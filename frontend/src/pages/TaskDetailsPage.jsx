@@ -111,6 +111,37 @@ function TaskDetailsPage() {
         </span>
       </header>
 
+      {instance && (
+        <section className="task-details-card task-execution-card">
+          <div className="task-details-section-header">
+            <div>
+              <h2>Виконання · {selectedDate}</h2>
+              <p className="task-details-muted">Виконавець: <strong>{memberName(instance.memberId)}</strong> · Статус: <strong>{instance.status}</strong></p>
+            </div>
+            <div className="task-card-actions">
+              {instance.status === 'PENDING' && <button className="task-action-button primary" disabled={processing} onClick={() => runInstanceAction('start')}>Почати</button>}
+              {instance.status === 'IN_PROGRESS' && <>
+                <button className="task-action-button primary" disabled={processing} onClick={() => runInstanceAction('complete')}>Виконано</button>
+                <button className="task-action-button" disabled={processing} onClick={() => runInstanceAction('pause')}>Призупинити</button>
+              </>}
+              {instance.status === 'PAUSED' && <button className="task-action-button primary" disabled={processing} onClick={() => runInstanceAction('resume')}>Продовжити</button>}
+              {instance.delegationAllowed && ['PENDING','IN_PROGRESS','PAUSED'].includes(instance.status) &&
+                <button className="task-action-button" onClick={() => { setDelegating(!delegating); setDelegateToMemberId(String(members.find(m => m.id !== instance.memberId)?.id || '')) }}>Делегувати</button>}
+              {['PENDING','IN_PROGRESS','PAUSED'].includes(instance.status) &&
+                <button className="task-action-button" disabled={processing} onClick={() => window.confirm('Відмінити виконання?') && runInstanceAction('cancel')}>Відмінити</button>}
+              {['PENDING','IN_PROGRESS','PAUSED'].includes(instance.status) &&
+                <button className="task-action-button" disabled={processing} onClick={() => window.confirm('Відмовитися від завдання?') && runInstanceAction('release')}>Відмовитися</button>}
+            </div>
+          </div>
+          {delegating && <div className="task-delegation-panel">
+            <select value={delegateToMemberId} onChange={(e) => setDelegateToMemberId(e.target.value)}>
+              {members.filter(m => m.id !== instance.memberId).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
+            <button className="primary-button" disabled={processing || !delegateToMemberId} onClick={handleDelegate}>Передати</button>
+          </div>}
+        </section>
+      )}
+
       <div className="task-details-grid">
         <section className="task-details-card">
           <h2>Основне</h2>
