@@ -476,7 +476,9 @@ public class TaskService {
                 .filter(d -> d.getAssignmentPolicy() != AssignmentPolicy.SINGLE_MEMBER)
                 .filter(d -> d.getAssignmentPolicy() != AssignmentPolicy.GROUP_SHARED)
                 .filter(d -> taskGenerationService.shouldGenerate(d, date))
-                .filter(d -> !taskInstanceRepository.existsByTaskDefinitionIdAndScheduledDate(d.getId(), date))
+                .filter(d -> taskInstanceRepository.findByTaskDefinitionIdAndScheduledDate(d.getId(), date)
+                        .map(i -> i.getStatus() == TaskInstanceStatus.RELEASED)
+                        .orElse(true))
                 .filter(d -> member == null || isEligible(d, member))
                 .toList();
     }
@@ -494,10 +496,16 @@ public class TaskService {
             throw new InvalidTaskStateException("Task is not scheduled for this date");
         if (!isEligible(definition, member))
             throw new InvalidTaskStateException("Member is not eligible for this task");
-        if (taskInstanceRepository.existsByTaskDefinitionIdAndScheduledDate(definitionId, date))
+        TaskInstance instance = taskInstanceRepository.findByTaskDefinitionIdAndScheduledDate(definitionId, date)
+                .orElse(null);
+        if (instance != null && instance.getStatus() != TaskInstanceStatus.RELEASED)
             throw new InvalidTaskStateException("Task has already been claimed for this date");
-        TaskInstance instance = new TaskInstance(definition, member, date);
-        instance.markClaimed();
+        if (instance == null) {
+            instance = new TaskInstance(definition, member, date);
+            instance.markClaimed();
+        } else {
+            instance.reclaim(member);
+        }
         TaskInstance saved = taskInstanceRepository.save(instance);
         taskAuditService.recordUserEvent(
                 definition, saved, TaskAuditEventType.INSTANCE_CLAIMED, member,
@@ -513,7 +521,7 @@ public class TaskService {
         taskAuthorizationService.requireDelegate(instance);
         if (!definition.isDelegationAllowed())
             throw new InvalidTaskStateException("Delegation is not allowed for this task");
-        if (instance.getStatus() == TaskInstanceStatus.COMPLETED || instance.getStatus() == TaskInstanceStatus.MISSED || instance.getStatus() == TaskInstanceStatus.EXCUSED)
+        if (instance.getStatus() == TaskInstanceStatus.COMPLETED || instance.getStatus() == TaskInstanceStatus.MISSED || instance.getStatus() == TaskInstanceStatus.EXCUSED || instance.getStatus() == TaskInstanceStatus.CANCELLED || instance.getStatus() == TaskInstanceStatus.RELEASED)
             throw new InvalidTaskStateException("Finished task cannot be delegated");
         WorkspaceMember target = getMemberOrThrow(workspaceId, toMemberId);
         if (!isEligibleForDelegation(definition, target))
@@ -522,7 +530,11 @@ public class TaskService {
         if (from.getId().equals(target.getId())) return instance;
         WorkspaceMember delegatedBy = currentUserService.getCurrentAccount().getWorkspaceMember();
         taskDelegationRepository.save(new TaskDelegation(instance, from, target, delegatedBy, reason));
+        boolean wasInProgress = instance.getStatus() == TaskInstanceStatus.IN_PROGRESS;
         instance.changeExecutor(target);
+        if (wasInProgress) {
+            instance.pause();
+        }
         taskAuditService.recordUserEvent(
                 definition, instance, TaskAuditEventType.INSTANCE_DELEGATED, delegatedBy,
                 ActorType.MEMBER, from.getId(), ActorType.MEMBER, target.getId(), reason
@@ -662,6 +674,32 @@ public class TaskService {
                 currentUserService.getCurrentAccount().getWorkspaceMember(),
                 ActorType.MEMBER, instance.getMember().getId(),
                 ActorType.MEMBER, instance.getMember().getId(), null
+        );
+        return instance;
+    }
+
+    @Transactional
+    public TaskInstance release(Long workspaceId, Long instanceId) {
+        TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
+        taskAuthorizationService.requireExecute(instance);
+        TaskDefinition definition = instance.getTaskDefinition();
+
+        if (definition.getAssignmentPolicy() == AssignmentPolicy.SINGLE_MEMBER
+                || definition.getAssignmentPolicy() == AssignmentPolicy.GROUP_SHARED) {
+            throw new InvalidTaskStateException("This task cannot be released back to the open pool");
+        }
+        if (instance.getStatus() != TaskInstanceStatus.PENDING
+                && instance.getStatus() != TaskInstanceStatus.IN_PROGRESS
+                && instance.getStatus() != TaskInstanceStatus.PAUSED) {
+            throw new InvalidTaskStateException("Task cannot be released from status " + instance.getStatus());
+        }
+
+        WorkspaceMember from = instance.getMember();
+        instance.release();
+        taskAuditService.recordUserEvent(
+                definition, instance, TaskAuditEventType.INSTANCE_RELEASED,
+                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                ActorType.MEMBER, from.getId(), null, null, null
         );
         return instance;
     }
