@@ -203,3 +203,20 @@ export async function setTaskDefinitionActive(token, workspaceId, definitionId, 
   })
   return handleResponse(response, 'Failed to change task activity')
 }
+
+
+export async function getTaskInstanceHistory(token, workspaceId, instanceId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/instances/${instanceId}/history`,
+    { token }
+  )
+  return handleResponse(response, 'Failed to load task history')
+}
+
+export async function getTaskDefinitionHistory(token, workspaceId, definitionId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/definitions/${definitionId}/history`,
+    { token }
+  )
+  return handleResponse(response, 'Failed to load task history')
+}
