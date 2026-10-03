@@ -389,6 +389,13 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
+    public TaskDefinition getDefinition(Long workspaceId, Long definitionId) {
+        TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
+        taskAuthorizationService.requireRead(definition);
+        return definition;
+    }
+
+    @Transactional(readOnly = true)
     public List<TaskDefinition> getDefinitions(
             Long workspaceId
     ) {
