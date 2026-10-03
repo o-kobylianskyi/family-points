@@ -542,7 +542,7 @@ function TasksPage() {
               >
                 <div className="task-card-main">
                   <div className="task-title-row">
-                    <h3>№{task.id} · {task.title}</h3>
+                    <h3>Виконання №{task.id} · Definition №{task.taskDefinitionId} · {task.title}</h3>
 
                     {task.mandatory && (
                       <span className="task-mandatory">
