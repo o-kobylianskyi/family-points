@@ -6,6 +6,7 @@ import {
   getTaskDefinition,
   getTaskDefinitionHistory,
   getTaskParticipants,
+  getTaskSubtasks,
   setTaskDefinitionActive,
 } from '../api/taskApi'
 
@@ -21,6 +22,7 @@ function TaskDetailsPage() {
   const [members, setMembers] = useState([])
   const [participants, setParticipants] = useState([])
   const [history, setHistory] = useState([])
+  const [subtasks, setSubtasks] = useState([])
   const [error, setError] = useState('')
   const [processing, setProcessing] = useState(false)
 
@@ -28,16 +30,18 @@ function TaskDetailsPage() {
     try {
       setError('')
       const token = getAccessToken()
-      const [definition, memberList, participantList, audit] = await Promise.all([
+      const [definition, memberList, participantList, audit, childTasks] = await Promise.all([
         getTaskDefinition(token, currentUser.workspaceId, definitionId),
         getWorkspaceMembers(token, currentUser.workspaceId),
         getTaskParticipants(token, currentUser.workspaceId, definitionId),
         getTaskDefinitionHistory(token, currentUser.workspaceId, definitionId),
+        getTaskSubtasks(token, currentUser.workspaceId, definitionId),
       ])
       setTask(definition)
       setMembers(memberList)
       setParticipants(participantList)
       setHistory(audit)
+      setSubtasks(childTasks)
     } catch (e) {
       setError(e.message)
     }
@@ -103,6 +107,25 @@ function TaskDetailsPage() {
           </dl>
         </section>
       </div>
+
+      <section className="task-details-card">
+        <div className="task-details-section-header">
+          <h2>Підзавдання</h2>
+        </div>
+        {subtasks.length === 0 ? (
+          <p className="task-details-muted">Підзавдань поки немає.</p>
+        ) : (
+          <div className="task-details-subtasks">
+            {subtasks.map((subtask) => (
+              <Link key={subtask.id} className="task-details-subtask" to={`/tasks/${subtask.id}`}>
+                <span><strong>№{subtask.id}</strong> · {subtask.title}</span>
+                <span>{subtask.rewardAmount ? `+${subtask.rewardAmount} ${subtask.rewardPointTypeCode || ''}` : 'Без винагороди'} →</span>
+              </Link>
+            ))}
+          </div>
+        )}
+        <p className="task-details-muted">Створення підзавдання буде використовувати бюджет і контекст цього завдання.</p>
+      </section>
 
       <section className="task-details-card">
         <div className="task-details-section-header">
