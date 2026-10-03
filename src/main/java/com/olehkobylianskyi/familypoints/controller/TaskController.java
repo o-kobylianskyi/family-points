@@ -202,6 +202,30 @@ public class TaskController {
         );
     }
 
+    @PostMapping("/instances/{instanceId}/pause")
+    public TaskInstanceResponse pause(
+            @PathVariable Long workspaceId,
+            @PathVariable Long instanceId
+    ) {
+        return TaskInstanceResponse.from(taskService.pause(workspaceId, instanceId));
+    }
+
+    @PostMapping("/instances/{instanceId}/resume")
+    public TaskInstanceResponse resume(
+            @PathVariable Long workspaceId,
+            @PathVariable Long instanceId
+    ) {
+        return TaskInstanceResponse.from(taskService.resume(workspaceId, instanceId));
+    }
+
+    @PostMapping("/instances/{instanceId}/cancel")
+    public TaskInstanceResponse cancel(
+            @PathVariable Long workspaceId,
+            @PathVariable Long instanceId
+    ) {
+        return TaskInstanceResponse.from(taskService.cancel(workspaceId, instanceId));
+    }
+
     @PostMapping("/instances/{instanceId}/complete")
     public TaskInstanceResponse complete(
             @PathVariable Long workspaceId,
