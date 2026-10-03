@@ -70,17 +70,20 @@ export function startTask(
   )
 }
 
-export function completeTask(
-  token,
-  workspaceId,
-  instanceId
-) {
-  return changeTaskStatus(
-    token,
-    workspaceId,
-    instanceId,
-    'complete'
-  )
+export function completeTask(token, workspaceId, instanceId) {
+  return changeTaskStatus(token, workspaceId, instanceId, 'complete')
+}
+
+export function pauseTask(token, workspaceId, instanceId) {
+  return changeTaskStatus(token, workspaceId, instanceId, 'pause')
+}
+
+export function resumeTask(token, workspaceId, instanceId) {
+  return changeTaskStatus(token, workspaceId, instanceId, 'resume')
+}
+
+export function cancelTask(token, workspaceId, instanceId) {
+  return changeTaskStatus(token, workspaceId, instanceId, 'cancel')
 }
 
 export async function createTaskDefinition(
