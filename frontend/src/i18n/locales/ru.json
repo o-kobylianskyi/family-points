@@ -1,0 +1,232 @@
+{
+  "common": {
+    "loading": "Загрузка...",
+    "logout": "Выйти",
+    "points": "баллов",
+    "cancel": "Отмена",
+    "saving": "Сохранение...",
+    "close": "Закрыть",
+    "edit": "Редактировать"
+  },
+  "navigation": {
+    "dashboard": "Главная",
+    "workspace": "Семья",
+    "tasks": "Задания",
+    "points": "Баллы",
+    "rewards": "Награды",
+    "settings": "Настройки"
+  },
+  "login": {
+    "subtitle": "Семейные задания, баллы и награды",
+    "username": "Логин",
+    "password": "Пароль",
+    "submit": "Войти",
+    "submitting": "Вход...",
+    "invalidCredentials": "Неверный логин или пароль"
+  },
+  "dashboard": {
+    "welcome": "Здравствуйте, {{name}}",
+    "description": "Краткий обзор вашей семьи",
+    "members": "Участники",
+    "inWorkspace": "в вашей семье",
+    "children": "Дети",
+    "childProfiles": "детских профилей",
+    "parents": "Родители",
+    "parentProfiles": "родительских профилей",
+    "balances": "Текущие балансы членов семьи",
+    "tasksDescription": "Актуальные задания семьи",
+    "tasksComingSoon": "Задания подключим следующим шагом"
+  },
+  "workspace": {
+    "title": "Семья",
+    "description": "Члены вашей семьи и их роли",
+    "members": "Участники ({{count}})",
+    "addMember": "+ Добавить участника",
+    "groups": {
+      "title": "Группы людей",
+      "description": "Группы используются для назначения задач и ролей.",
+      "namePlaceholder": "Название группы",
+      "create": "Создать группу",
+      "members": "участников",
+      "addMember": "Добавить участника",
+      "addRole": "Добавить роль",
+      "rolePrompt": "Название новой роли",
+      "noCandidates": "Все члены семьи уже в этой группе"
+    }
+  },
+  "memberType": {
+    "PARENT": "Родитель",
+    "CHILD": "Ребёнок",
+    "OTHER": "Другой"
+  },
+  "points": {
+    "title": "Баллы",
+    "description": "Балансы и история операций членов семьи",
+    "earn": "Начислить",
+    "spend": "Списать",
+    "penalty": "Штраф",
+    "history": "История",
+    "historyDescription": "Последние операции с баллами",
+    "noHistory": "Операций пока нет",
+    "noDescription": "Без описания"
+  },
+  "pointTransactionType": {
+    "EARN": "Начисление",
+    "SPEND": "Списание",
+    "PENALTY": "Штраф",
+    "REFUND": "Возврат",
+    "ADJUSTMENT": "Корректировка"
+  },
+  "pointOperation": {
+    "amount": "Количество баллов",
+    "description": "Описание",
+    "invalidAmount": "Введите целое число больше нуля",
+    "operationFailed": "Не удалось выполнить операцию",
+    "earn": {
+      "title": "Начислить баллы",
+      "submit": "Начислить"
+    },
+    "spend": {
+      "title": "Списать баллы",
+      "submit": "Списать"
+    },
+    "penalty": {
+      "title": "Начислить штраф",
+      "submit": "Штраф"
+    }
+  },
+  "tasks": {
+    "title": "Задания",
+    "description": "Задания и их выполнение",
+    "taskCount_one": "{{count}} задание",
+    "taskCount_few": "{{count}} задания",
+    "taskCount_many": "{{count}} заданий",
+    "taskCount_other": "{{count}} заданий",
+    "noTasks": "На этот день заданий нет",
+    "noTasksDescription": "Для выбранного члена семьи нет запланированных заданий.",
+    "mandatory": "Обязательное",
+    "start": "Начать",
+    "complete": "Выполнить",
+    "startedAt": "Начато",
+    "completedAt": "Выполнено",
+    "dueTime": "Выполнить до",
+    "reward": "Награда",
+    "penalty": "Штраф",
+    "createButton": "Новое задание",
+    "create": {
+      "title": "Новое задание",
+      "description": "Создайте новое задание для члена семьи",
+      "assignedTo": "Исполнитель",
+      "taskTitle": "Название",
+      "taskDescription": "Описание",
+      "recurrence": "Повторение",
+      "dueTime": "Выполнить до",
+      "mandatory": "Обязательное задание",
+      "reward": "Награда",
+      "penalty": "Штраф",
+      "pointType": "Тип баллов",
+      "amount": "Количество",
+      "submit": "Создать",
+      "titleRequired": "Укажите название задания",
+      "executionDate": "Дата выполнения",
+      "startDate": "Начиная с",
+      "endDate": "Заканчивая",
+      "dayOfWeek": "День недели",
+      "dayOfMonth": "День месяца",
+      "dueTimePlaceholder": "Напр. 18:30 или 18",
+      "dueTimeHint": "Можно ввести 8, 18, 830, 1830 или 18:30.",
+      "startDateRequired": "Укажите дату начала или выполнения задания",
+      "endDateInvalid": "Дата окончания не может быть раньше даты начала",
+      "dueTimeInvalid": "Некорректное время. Введите, например, 18 или 18:30",
+      "monthDayInvalid": "День месяца должен быть от 1 до 31",
+      "assignmentPolicy": "Тип исполнителя",
+      "preferredMember": "Предпочтительный исполнитель",
+      "targetGroup": "Группа исполнителей",
+      "requiredRoles": "Необходимые роли в группе",
+      "roleMatchMode": "Условие ролей",
+      "responsibleMember": "Ответственный",
+      "currentUser": "Текущий пользователь",
+      "delegationAllowed": "Разрешить делегирование",
+      "participants": "Участники",
+      "administrators": "Администраторы",
+      "observers": "Наблюдатели",
+      "executors": "Исполнители",
+      "authorHint": "Автором автоматически остаётся пользователь, создавший задачу."
+    },
+    "open": {
+      "title": "Открытые задания",
+      "description": "Задания, которые может взять {{name}}",
+      "empty": "Нет доступных открытых заданий",
+      "badge": "Открытое",
+      "claim": "Взять задание"
+    },
+    "assignment": {
+      "assignedInitially": "Изначально назначено",
+      "executor": "Выполняет",
+      "claimedAt": "Взято",
+      "delegate": "Делегировать",
+      "delegateConfirm": "Передать",
+      "scope": "Доступность",
+      "preferred": "Желаемый исполнитель",
+      "delegationAllowed": "Делегирование разрешено"
+    },
+    "management": {
+      "title": "Управление задачами",
+      "description": "Задачи по вашей роли в них.",
+      "created": "Созданные мной",
+      "admin": "Администрирую",
+      "observer": "Наблюдаю",
+      "executor": "Выполняю",
+      "empty": "В этой категории задач нет.",
+      "role": {
+        "ADMIN": "Администраторы",
+        "OBSERVER": "Наблюдатели",
+        "EXECUTOR": "Исполнители"
+      },
+      "status": "Статус",
+      "active": "Активно",
+      "inactive": "Неактивно",
+      "deactivate": "Деактивировать",
+      "activate": "Активировать"
+    },
+    "edit": {
+      "title": "Редактирование задания",
+      "description": "Изменения применяются к настройкам задания и будущим выполнениям. История уже созданных выполнений не переписывается.",
+      "save": "Сохранить"
+    }
+  },
+  "taskRecurrence": {
+    "ONCE": "Один раз",
+    "DAILY": "Ежедневно",
+    "WEEKLY": "Еженедельно",
+    "MONTHLY": "Ежемесячно",
+    "CUSTOM": "Свой график"
+  },
+  "taskStatus": {
+    "PENDING": "Ожидает",
+    "IN_PROGRESS": "Выполняется",
+    "COMPLETED": "Выполнено",
+    "MISSED": "Пропущено",
+    "EXCUSED": "Освобождено"
+  },
+  "weekdays": {
+    "monday": "Понедельник",
+    "tuesday": "Вторник",
+    "wednesday": "Среда",
+    "thursday": "Четверг",
+    "friday": "Пятница",
+    "saturday": "Суббота",
+    "sunday": "Воскресенье"
+  },
+  "assignmentPolicy": {
+    "SINGLE_MEMBER": "Конкретный человек",
+    "GROUP_SHARED": "Группа вместе",
+    "OPEN_GROUP": "Кто-либо из группы",
+    "OPEN_WORKSPACE": "Кто угодно",
+    "PREFERRED_MEMBER": "Предпочтительный исполнитель"
+  },
+  "roleMatchMode": {
+    "ANY": "Любая из выбранных ролей",
+    "ALL": "Все выбранные роли"
+  }
+}

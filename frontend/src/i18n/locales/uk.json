@@ -1,0 +1,232 @@
+{
+  "common": {
+    "loading": "Завантаження...",
+    "logout": "Вийти",
+    "points": "балів",
+    "cancel": "Скасувати",
+    "saving": "Збереження...",
+    "close": "Закрити",
+    "edit": "Редагувати"
+  },
+  "navigation": {
+    "dashboard": "Головна",
+    "workspace": "Сімʼя",
+    "tasks": "Завдання",
+    "points": "Бали",
+    "rewards": "Нагороди",
+    "settings": "Налаштування"
+  },
+  "login": {
+    "subtitle": "Сімейні завдання, бали та нагороди",
+    "username": "Логін",
+    "password": "Пароль",
+    "submit": "Увійти",
+    "submitting": "Вхід...",
+    "invalidCredentials": "Неправильний логін або пароль"
+  },
+  "dashboard": {
+    "welcome": "Вітаю, {{name}}",
+    "description": "Ось короткий огляд вашої сімʼї",
+    "members": "Учасники",
+    "inWorkspace": "у вашій сімʼї",
+    "children": "Діти",
+    "childProfiles": "дитячих профілів",
+    "parents": "Батьки",
+    "parentProfiles": "батьківських профілів",
+    "balances": "Поточні баланси членів сімʼї",
+    "tasksDescription": "Актуальні завдання сімʼї",
+    "tasksComingSoon": "Завдання підключимо наступним кроком"
+  },
+  "workspace": {
+    "title": "Сімʼя",
+    "description": "Учасники вашої сімʼї та їхні ролі",
+    "members": "Учасники ({{count}})",
+    "addMember": "+ Додати учасника",
+    "groups": {
+      "title": "Групи людей",
+      "description": "Групи використовуються для призначення завдань і ролей.",
+      "namePlaceholder": "Назва групи",
+      "create": "Створити групу",
+      "members": "учасників",
+      "addMember": "Додати учасника",
+      "addRole": "Додати роль",
+      "rolePrompt": "Назва нової ролі",
+      "noCandidates": "Усі члени сімʼї вже в цій групі"
+    }
+  },
+  "memberType": {
+    "PARENT": "Батьки",
+    "CHILD": "Дитина",
+    "OTHER": "Інший"
+  },
+  "points": {
+    "title": "Бали",
+    "description": "Баланси та історія операцій членів сімʼї",
+    "earn": "Нарахувати",
+    "spend": "Списати",
+    "penalty": "Штраф",
+    "history": "Історія",
+    "historyDescription": "Останні операції з балами",
+    "noHistory": "Операцій поки немає",
+    "noDescription": "Без опису"
+  },
+  "pointTransactionType": {
+    "EARN": "Нарахування",
+    "SPEND": "Списання",
+    "PENALTY": "Штраф",
+    "REFUND": "Повернення",
+    "ADJUSTMENT": "Коригування"
+  },
+  "pointOperation": {
+    "amount": "Кількість балів",
+    "description": "Опис",
+    "invalidAmount": "Введіть ціле число більше нуля",
+    "operationFailed": "Не вдалося виконати операцію",
+    "earn": {
+      "title": "Нарахувати бали",
+      "submit": "Нарахувати"
+    },
+    "spend": {
+      "title": "Списати бали",
+      "submit": "Списати"
+    },
+    "penalty": {
+      "title": "Нарахувати штраф",
+      "submit": "Штраф"
+    }
+  },
+  "tasks": {
+    "title": "Завдання",
+    "description": "Завдання та їх виконання",
+    "taskCount_one": "{{count}} завдання",
+    "taskCount_few": "{{count}} завдання",
+    "taskCount_many": "{{count}} завдань",
+    "taskCount_other": "{{count}} завдань",
+    "noTasks": "На цей день завдань немає",
+    "noTasksDescription": "Для вибраного члена сімʼї немає запланованих завдань.",
+    "mandatory": "Обовʼязкове",
+    "start": "Почати",
+    "complete": "Виконано",
+    "startedAt": "Розпочато",
+    "completedAt": "Виконано",
+    "dueTime": "Виконати до",
+    "reward": "Нагорода",
+    "penalty": "Штраф",
+    "createButton": "Нове завдання",
+    "create": {
+      "title": "Нове завдання",
+      "description": "Створіть нове завдання для члена сім'ї",
+      "assignedTo": "Виконавець",
+      "taskTitle": "Назва",
+      "taskDescription": "Опис",
+      "recurrence": "Повторення",
+      "dueTime": "Виконати до",
+      "mandatory": "Обов'язкове завдання",
+      "reward": "Нагорода",
+      "penalty": "Штраф",
+      "pointType": "Тип балів",
+      "amount": "Кількість",
+      "submit": "Створити",
+      "titleRequired": "Вкажіть назву завдання",
+      "executionDate": "Дата виконання",
+      "startDate": "Починаючи з",
+      "endDate": "Закінчуючи",
+      "dayOfWeek": "День тижня",
+      "dayOfMonth": "День місяця",
+      "dueTimePlaceholder": "Напр. 18:30 або 18",
+      "dueTimeHint": "Можна ввести 8, 18, 830, 1830 або 18:30.",
+      "startDateRequired": "Вкажіть дату початку або виконання завдання",
+      "endDateInvalid": "Дата завершення не може бути раніше дати початку",
+      "dueTimeInvalid": "Некоректний час. Використайте, наприклад, 18 або 18:30",
+      "monthDayInvalid": "День місяця має бути від 1 до 31",
+      "assignmentPolicy": "Тип виконавця",
+      "preferredMember": "Бажаний виконавець",
+      "targetGroup": "Група виконавців",
+      "requiredRoles": "Необхідні ролі в групі",
+      "roleMatchMode": "Умова ролей",
+      "responsibleMember": "Відповідальний",
+      "currentUser": "Поточний користувач",
+      "delegationAllowed": "Дозволити делегування",
+      "participants": "Учасники",
+      "administrators": "Адміністратори",
+      "observers": "Спостерігачі",
+      "executors": "Виконавці",
+      "authorHint": "Автором автоматично залишається користувач, який створив завдання."
+    },
+    "open": {
+      "title": "Відкриті завдання",
+      "description": "Завдання, які може взяти {{name}}",
+      "empty": "Немає доступних відкритих завдань",
+      "badge": "Відкрите",
+      "claim": "Взяти завдання"
+    },
+    "assignment": {
+      "assignedInitially": "Спочатку призначено",
+      "executor": "Виконує",
+      "claimedAt": "Взято",
+      "delegate": "Делегувати",
+      "delegateConfirm": "Передати",
+      "scope": "Доступність",
+      "preferred": "Бажаний виконавець",
+      "delegationAllowed": "Делегування дозволено"
+    },
+    "management": {
+      "title": "Керування завданнями",
+      "description": "Завдання за вашою роллю в них.",
+      "created": "Створені мною",
+      "admin": "Адмініструю",
+      "observer": "Спостерігаю",
+      "executor": "Виконую",
+      "empty": "У цій категорії завдань немає.",
+      "role": {
+        "ADMIN": "Адміністратори",
+        "OBSERVER": "Спостерігачі",
+        "EXECUTOR": "Виконавці"
+      },
+      "status": "Стан",
+      "active": "Активне",
+      "inactive": "Неактивне",
+      "deactivate": "Деактивувати",
+      "activate": "Активувати"
+    },
+    "edit": {
+      "title": "Редагування завдання",
+      "description": "Зміни застосовуються до налаштувань завдання та майбутніх виконань. Історія вже створених виконань не переписується.",
+      "save": "Зберегти"
+    }
+  },
+  "taskRecurrence": {
+    "ONCE": "Один раз",
+    "DAILY": "Щодня",
+    "WEEKLY": "Щотижня",
+    "MONTHLY": "Щомісяця",
+    "CUSTOM": "Власний розклад"
+  },
+  "taskStatus": {
+    "PENDING": "Очікує",
+    "IN_PROGRESS": "Виконується",
+    "COMPLETED": "Виконано",
+    "MISSED": "Пропущено",
+    "EXCUSED": "Звільнено"
+  },
+  "weekdays": {
+    "monday": "Понеділок",
+    "tuesday": "Вівторок",
+    "wednesday": "Середа",
+    "thursday": "Четвер",
+    "friday": "Пʼятниця",
+    "saturday": "Субота",
+    "sunday": "Неділя"
+  },
+  "assignmentPolicy": {
+    "SINGLE_MEMBER": "Конкретна особа",
+    "GROUP_SHARED": "Група разом",
+    "OPEN_GROUP": "Будь-хто з групи",
+    "OPEN_WORKSPACE": "Будь-хто",
+    "PREFERRED_MEMBER": "Бажаний виконавець"
+  },
+  "roleMatchMode": {
+    "ANY": "Будь-яка з вибраних ролей",
+    "ALL": "Усі вибрані ролі"
+  }
+}

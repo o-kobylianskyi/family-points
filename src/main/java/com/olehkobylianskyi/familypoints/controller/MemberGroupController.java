@@ -1,0 +1,16 @@
+package com.olehkobylianskyi.familypoints.controller;
+import com.olehkobylianskyi.familypoints.dto.*; import com.olehkobylianskyi.familypoints.service.MemberGroupService; import jakarta.validation.Valid; import org.springframework.http.*; import org.springframework.web.bind.annotation.*; import java.util.*;
+@RestController @RequestMapping("/workspaces/{workspaceId}/member-groups") public class MemberGroupController {
+ private final MemberGroupService service; public MemberGroupController(MemberGroupService s){service=s;}
+ @GetMapping public List<MemberGroupResponse> getGroups(@PathVariable Long workspaceId){return service.getGroups(workspaceId);}
+ @PostMapping @ResponseStatus(HttpStatus.CREATED) public MemberGroupResponse create(@PathVariable Long workspaceId,@Valid @RequestBody MemberGroupCreateRequest r){return service.createGroup(workspaceId,r.getName(),r.getDescription());}
+ @PutMapping("/{groupId}") public MemberGroupResponse update(@PathVariable Long workspaceId,@PathVariable Long groupId,@Valid @RequestBody MemberGroupUpdateRequest r){return service.updateGroup(workspaceId,groupId,r.getName(),r.getDescription(),r.isShowInNavigation());}
+ @DeleteMapping("/{groupId}") @ResponseStatus(HttpStatus.NO_CONTENT) public void delete(@PathVariable Long workspaceId,@PathVariable Long groupId){service.deactivateGroup(workspaceId,groupId);}
+ @PostMapping("/{groupId}/roles") public MemberGroupResponse addRole(@PathVariable Long workspaceId,@PathVariable Long groupId,@Valid @RequestBody GroupRoleCreateRequest r){return service.addRole(workspaceId,groupId,r.getName(),r.getDescription());}
+ @PutMapping("/{groupId}/members") public MemberGroupResponse addMember(@PathVariable Long workspaceId,@PathVariable Long groupId,@Valid @RequestBody GroupMembershipCreateRequest r){return service.addMember(workspaceId,groupId,r.getMemberId(),r.getRoleIds());}
+ @DeleteMapping("/{groupId}/members/{memberId}") public MemberGroupResponse removeMember(@PathVariable Long workspaceId,@PathVariable Long groupId,@PathVariable Long memberId){return service.removeMember(workspaceId,groupId,memberId);}
+ @PutMapping("/{groupId}/children") public MemberGroupResponse addChild(@PathVariable Long workspaceId,@PathVariable Long groupId,@Valid @RequestBody GroupChildRequest r){return service.addChildGroup(workspaceId,groupId,r.getChildGroupId());}
+ @DeleteMapping("/{groupId}/children/{childId}") public MemberGroupResponse removeChild(@PathVariable Long workspaceId,@PathVariable Long groupId,@PathVariable Long childId){return service.removeChildGroup(workspaceId,groupId,childId);}
+ @GetMapping("/{groupId}/resolved-actors") public Map<String,Object> actors(@PathVariable Long workspaceId,@PathVariable Long groupId){return service.resolveActors(workspaceId,groupId);}
+ @PostMapping("/{groupId}/points") public MemberGroupResponse points(@PathVariable Long workspaceId,@PathVariable Long groupId,@Valid @RequestBody GroupPointOperationRequest r){return service.addPoints(workspaceId,groupId,r.getPointTypeId(),r.getAmount(),r.getType(),r.getDescription());}
+}

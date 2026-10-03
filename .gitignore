@@ -1,0 +1,35 @@
+# Build output
+target/
+**/target/
+build/
+dist/
+
+# Frontend dependencies / local env
+frontend/node_modules/
+node_modules/
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+.apt_generated/
+.springBeans
+.sts4-cache/
+
+# OS / logs
+.DS_Store
+Thumbs.db
+*.log
+
+# Local secrets / generated archives
+*.local.properties
+*.zip

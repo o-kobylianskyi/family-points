@@ -1,0 +1,230 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "logout": "Log out",
+    "points": "points",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "close": "Close",
+    "edit": "Edit"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "workspace": "Workspace",
+    "tasks": "Tasks",
+    "points": "Points",
+    "rewards": "Rewards",
+    "settings": "Settings"
+  },
+  "login": {
+    "subtitle": "Workspace tasks, points and rewards",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Log in",
+    "submitting": "Logging in...",
+    "invalidCredentials": "Incorrect username or password"
+  },
+  "dashboard": {
+    "welcome": "Hello, {{name}}",
+    "description": "Here is a quick overview of your workspace",
+    "members": "Members",
+    "inWorkspace": "in your workspace",
+    "children": "Children",
+    "childProfiles": "child profiles",
+    "parents": "Parents",
+    "parentProfiles": "parent profiles",
+    "balances": "Current workspace member balances",
+    "tasksDescription": "Current workspace tasks",
+    "tasksComingSoon": "Tasks will be connected next"
+  },
+  "workspace": {
+    "title": "Workspace",
+    "description": "Your workspace members and their roles",
+    "members": "Members ({{count}})",
+    "addMember": "+ Add member",
+    "groups": {
+      "title": "Member groups",
+      "description": "Groups used for task assignment and roles.",
+      "namePlaceholder": "Group name",
+      "create": "Create group",
+      "members": "members",
+      "addMember": "Add member",
+      "addRole": "Add role",
+      "rolePrompt": "New role name",
+      "noCandidates": "All workspace members are already in this group"
+    }
+  },
+  "memberType": {
+    "PARENT": "Parent",
+    "CHILD": "Child",
+    "OTHER": "Other"
+  },
+  "points": {
+    "title": "Points",
+    "description": "Balances and transaction history of workspace members",
+    "earn": "Add points",
+    "spend": "Spend",
+    "penalty": "Penalty",
+    "history": "History",
+    "historyDescription": "Recent point transactions",
+    "noHistory": "No transactions yet",
+    "noDescription": "No description"
+  },
+  "pointTransactionType": {
+    "EARN": "Earned",
+    "SPEND": "Spent",
+    "PENALTY": "Penalty",
+    "REFUND": "Refund",
+    "ADJUSTMENT": "Adjustment"
+  },
+  "pointOperation": {
+    "amount": "Points",
+    "description": "Description",
+    "invalidAmount": "Enter a whole number greater than zero",
+    "operationFailed": "The operation could not be completed",
+    "earn": {
+      "title": "Add points",
+      "submit": "Add"
+    },
+    "spend": {
+      "title": "Spend points",
+      "submit": "Spend"
+    },
+    "penalty": {
+      "title": "Apply penalty",
+      "submit": "Apply penalty"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "description": "Tasks and their completion",
+    "taskCount_one": "{{count}} task",
+    "taskCount_other": "{{count}} tasks",
+    "noTasks": "No tasks for this day",
+    "noTasksDescription": "There are no scheduled tasks for the selected workspace member.",
+    "mandatory": "Mandatory",
+    "start": "Start",
+    "complete": "Complete",
+    "startedAt": "Started",
+    "completedAt": "Completed",
+    "dueTime": "Due by",
+    "reward": "Reward",
+    "penalty": "Penalty",
+    "createButton": "New task",
+    "create": {
+      "title": "New task",
+      "description": "Create a new task for a workspace member",
+      "assignedTo": "Assigned to",
+      "taskTitle": "Title",
+      "taskDescription": "Description",
+      "recurrence": "Recurrence",
+      "dueTime": "Due by",
+      "mandatory": "Mandatory task",
+      "reward": "Reward",
+      "penalty": "Penalty",
+      "pointType": "Point type",
+      "amount": "Amount",
+      "submit": "Create",
+      "titleRequired": "Enter a task title",
+      "executionDate": "Execution date",
+      "startDate": "Starts on",
+      "endDate": "Ends on",
+      "dayOfWeek": "Day of week",
+      "dayOfMonth": "Day of month",
+      "dueTimePlaceholder": "e.g. 18:30 or 18",
+      "dueTimeHint": "You can enter 8, 18, 830, 1830, or 18:30.",
+      "startDateRequired": "Enter the task start or execution date",
+      "endDateInvalid": "End date cannot be before start date",
+      "dueTimeInvalid": "Invalid time. Enter, for example, 18 or 18:30",
+      "monthDayInvalid": "Day of month must be between 1 and 31",
+      "assignmentPolicy": "Assignment type",
+      "preferredMember": "Preferred member",
+      "targetGroup": "Target group",
+      "requiredRoles": "Required group roles",
+      "roleMatchMode": "Role condition",
+      "responsibleMember": "Responsible member",
+      "currentUser": "Current user",
+      "delegationAllowed": "Allow delegation",
+      "participants": "Participants",
+      "administrators": "Administrators",
+      "observers": "Observers",
+      "executors": "Executors",
+      "authorHint": "The author is automatically the user who created the task."
+    },
+    "open": {
+      "title": "Open tasks",
+      "description": "Tasks that {{name}} can claim",
+      "empty": "No available open tasks",
+      "badge": "Open",
+      "claim": "Claim task"
+    },
+    "assignment": {
+      "assignedInitially": "Initially assigned to",
+      "executor": "Executor",
+      "claimedAt": "Claimed",
+      "delegate": "Delegate",
+      "delegateConfirm": "Transfer",
+      "scope": "Availability",
+      "preferred": "Preferred executor",
+      "delegationAllowed": "Delegation allowed"
+    },
+    "management": {
+      "title": "Task management",
+      "description": "Tasks grouped by your role.",
+      "created": "Created by me",
+      "admin": "I administer",
+      "observer": "I observe",
+      "executor": "I execute",
+      "empty": "No tasks in this category.",
+      "role": {
+        "ADMIN": "Administrators",
+        "OBSERVER": "Observers",
+        "EXECUTOR": "Executors"
+      },
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "deactivate": "Deactivate",
+      "activate": "Activate"
+    },
+    "edit": {
+      "title": "Edit task",
+      "description": "Changes apply to the task definition and future executions. Existing execution history is not rewritten.",
+      "save": "Save"
+    }
+  },
+  "taskRecurrence": {
+    "ONCE": "Once",
+    "DAILY": "Daily",
+    "WEEKLY": "Weekly",
+    "MONTHLY": "Monthly",
+    "CUSTOM": "Custom"
+  },
+  "taskStatus": {
+    "PENDING": "Pending",
+    "IN_PROGRESS": "In progress",
+    "COMPLETED": "Completed",
+    "MISSED": "Missed",
+    "EXCUSED": "Excused"
+  },
+  "weekdays": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  "assignmentPolicy": {
+    "SINGLE_MEMBER": "Specific member",
+    "GROUP_SHARED": "Group together",
+    "OPEN_GROUP": "Anyone from group",
+    "OPEN_WORKSPACE": "Anyone",
+    "PREFERRED_MEMBER": "Preferred member"
+  },
+  "roleMatchMode": {
+    "ANY": "Any selected role",
+    "ALL": "All selected roles"
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "common": {
+    "loading": "Wird geladen...",
+    "logout": "Abmelden",
+    "points": "Punkte",
+    "cancel": "Abbrechen",
+    "saving": "Speichern...",
+    "close": "Schließen",
+    "edit": "Bearbeiten"
+  },
+  "navigation": {
+    "dashboard": "Übersicht",
+    "workspace": "Familie",
+    "tasks": "Aufgaben",
+    "points": "Punkte",
+    "rewards": "Belohnungen",
+    "settings": "Einstellungen"
+  },
+  "login": {
+    "subtitle": "Familienaufgaben, Punkte und Belohnungen",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "submit": "Anmelden",
+    "submitting": "Anmeldung...",
+    "invalidCredentials": "Benutzername oder Passwort ist falsch"
+  },
+  "dashboard": {
+    "welcome": "Hallo, {{name}}",
+    "description": "Hier ist ein kurzer Überblick über deine Familie",
+    "members": "Mitglieder",
+    "inWorkspace": "in deiner Familie",
+    "children": "Kinder",
+    "childProfiles": "Kinderprofile",
+    "parents": "Eltern",
+    "parentProfiles": "Elternprofile",
+    "balances": "Aktuelle Punktestände der Familienmitglieder",
+    "tasksDescription": "Aktuelle Aufgaben der Familie",
+    "tasksComingSoon": "Aufgaben werden als Nächstes angebunden"
+  },
+  "workspace": {
+    "title": "Familie",
+    "description": "Familienmitglieder und ihre Rollen",
+    "members": "Mitglieder ({{count}})",
+    "addMember": "+ Mitglied hinzufügen",
+    "groups": {
+      "title": "Personengruppen",
+      "description": "Gruppen für Aufgabenzuweisung und Rollen.",
+      "namePlaceholder": "Gruppenname",
+      "create": "Gruppe erstellen",
+      "members": "Mitglieder",
+      "addMember": "Mitglied hinzufügen",
+      "addRole": "Rolle hinzufügen",
+      "rolePrompt": "Name der neuen Rolle",
+      "noCandidates": "Alle Familienmitglieder sind bereits in dieser Gruppe"
+    }
+  },
+  "memberType": {
+    "PARENT": "Elternteil",
+    "CHILD": "Kind",
+    "OTHER": "Andere"
+  },
+  "points": {
+    "title": "Punkte",
+    "description": "Punktestände und Transaktionsverlauf der Familienmitglieder",
+    "earn": "Gutschreiben",
+    "spend": "Abziehen",
+    "penalty": "Strafe",
+    "history": "Verlauf",
+    "historyDescription": "Letzte Punktetransaktionen",
+    "noHistory": "Noch keine Transaktionen",
+    "noDescription": "Keine Beschreibung"
+  },
+  "pointTransactionType": {
+    "EARN": "Gutschrift",
+    "SPEND": "Ausgabe",
+    "PENALTY": "Strafe",
+    "REFUND": "Rückerstattung",
+    "ADJUSTMENT": "Korrektur"
+  },
+  "pointOperation": {
+    "amount": "Punkte",
+    "description": "Beschreibung",
+    "invalidAmount": "Bitte eine ganze Zahl größer als null eingeben",
+    "operationFailed": "Die Operation konnte nicht ausgeführt werden",
+    "earn": {
+      "title": "Punkte gutschreiben",
+      "submit": "Gutschreiben"
+    },
+    "spend": {
+      "title": "Punkte abziehen",
+      "submit": "Abziehen"
+    },
+    "penalty": {
+      "title": "Strafe vergeben",
+      "submit": "Strafe"
+    }
+  },
+  "tasks": {
+    "title": "Aufgaben",
+    "description": "Aufgaben und deren Erledigung",
+    "taskCount_one": "{{count}} Aufgabe",
+    "taskCount_other": "{{count}} Aufgaben",
+    "noTasks": "Keine Aufgaben für diesen Tag",
+    "noTasksDescription": "Für das ausgewählte Familienmitglied sind keine Aufgaben geplant.",
+    "mandatory": "Pflichtaufgabe",
+    "start": "Starten",
+    "complete": "Erledigen",
+    "startedAt": "Gestartet",
+    "completedAt": "Erledigt",
+    "dueTime": "Fällig bis",
+    "reward": "Belohnung",
+    "penalty": "Strafe",
+    "createButton": "Neue Aufgabe",
+    "create": {
+      "title": "Neue Aufgabe",
+      "description": "Neue Aufgabe für ein Familienmitglied erstellen",
+      "assignedTo": "Zugewiesen an",
+      "taskTitle": "Titel",
+      "taskDescription": "Beschreibung",
+      "recurrence": "Wiederholung",
+      "dueTime": "Fällig bis",
+      "mandatory": "Pflichtaufgabe",
+      "reward": "Belohnung",
+      "penalty": "Strafe",
+      "pointType": "Punktetyp",
+      "amount": "Anzahl",
+      "submit": "Erstellen",
+      "titleRequired": "Bitte einen Titel eingeben",
+      "executionDate": "Ausführungsdatum",
+      "startDate": "Beginn",
+      "endDate": "Ende",
+      "dayOfWeek": "Wochentag",
+      "dayOfMonth": "Tag des Monats",
+      "dueTimePlaceholder": "z. B. 18:30 oder 18",
+      "dueTimeHint": "Eingaben wie 8, 18, 830, 1830 oder 18:30 sind möglich.",
+      "startDateRequired": "Bitte Start- bzw. Ausführungsdatum angeben",
+      "endDateInvalid": "Das Enddatum darf nicht vor dem Startdatum liegen",
+      "dueTimeInvalid": "Ungültige Uhrzeit. Zum Beispiel 18 oder 18:30 eingeben",
+      "monthDayInvalid": "Der Tag des Monats muss zwischen 1 und 31 liegen",
+      "assignmentPolicy": "Ausführungstyp",
+      "preferredMember": "Bevorzugtes Mitglied",
+      "targetGroup": "Zielgruppe",
+      "requiredRoles": "Erforderliche Gruppenrollen",
+      "roleMatchMode": "Rollenbedingung",
+      "responsibleMember": "Verantwortlich",
+      "currentUser": "Aktueller Benutzer",
+      "delegationAllowed": "Delegierung erlauben",
+      "participants": "Beteiligte",
+      "administrators": "Administratoren",
+      "observers": "Beobachter",
+      "executors": "Ausführende",
+      "authorHint": "Autor bleibt automatisch der Benutzer, der die Aufgabe erstellt hat."
+    },
+    "open": {
+      "title": "Offene Aufgaben",
+      "description": "Aufgaben, die {{name}} übernehmen kann",
+      "empty": "Keine verfügbaren offenen Aufgaben",
+      "badge": "Offen",
+      "claim": "Aufgabe übernehmen"
+    },
+    "assignment": {
+      "assignedInitially": "Ursprünglich zugewiesen",
+      "executor": "Ausgeführt von",
+      "claimedAt": "Übernommen",
+      "delegate": "Delegieren",
+      "delegateConfirm": "Übertragen",
+      "scope": "Verfügbarkeit",
+      "preferred": "Bevorzugte Person",
+      "delegationAllowed": "Delegierung erlaubt"
+    },
+    "management": {
+      "title": "Aufgabenverwaltung",
+      "description": "Aufgaben nach Ihrer Rolle.",
+      "created": "Von mir erstellt",
+      "admin": "Ich verwalte",
+      "observer": "Ich beobachte",
+      "executor": "Ich führe aus",
+      "empty": "Keine Aufgaben in dieser Kategorie.",
+      "role": {
+        "ADMIN": "Administratoren",
+        "OBSERVER": "Beobachter",
+        "EXECUTOR": "Ausführende"
+      },
+      "status": "Status",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "deactivate": "Deaktivieren",
+      "activate": "Aktivieren"
+    },
+    "edit": {
+      "title": "Aufgabe bearbeiten",
+      "description": "Änderungen gelten für die Aufgabendefinition und zukünftige Ausführungen. Bereits erstellte Ausführungen werden nicht rückwirkend geändert.",
+      "save": "Speichern"
+    }
+  },
+  "taskRecurrence": {
+    "ONCE": "Einmalig",
+    "DAILY": "Täglich",
+    "WEEKLY": "Wöchentlich",
+    "MONTHLY": "Monatlich",
+    "CUSTOM": "Benutzerdefiniert"
+  },
+  "taskStatus": {
+    "PENDING": "Offen",
+    "IN_PROGRESS": "In Bearbeitung",
+    "COMPLETED": "Erledigt",
+    "MISSED": "Versäumt",
+    "EXCUSED": "Entschuldigt"
+  },
+  "weekdays": {
+    "monday": "Montag",
+    "tuesday": "Dienstag",
+    "wednesday": "Mittwoch",
+    "thursday": "Donnerstag",
+    "friday": "Freitag",
+    "saturday": "Samstag",
+    "sunday": "Sonntag"
+  },
+  "assignmentPolicy": {
+    "SINGLE_MEMBER": "Bestimmte Person",
+    "GROUP_SHARED": "Gruppe gemeinsam",
+    "OPEN_GROUP": "Jemand aus der Gruppe",
+    "OPEN_WORKSPACE": "Beliebige Person",
+    "PREFERRED_MEMBER": "Bevorzugte Person"
+  },
+  "roleMatchMode": {
+    "ANY": "Eine der ausgewählten Rollen",
+    "ALL": "Alle ausgewählten Rollen"
+  }
+}
