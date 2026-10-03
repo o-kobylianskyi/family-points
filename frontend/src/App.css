@@ -2049,3 +2049,36 @@ input {
 .member-editor-actions { align-items: center; }
 .member-editor-spacer { flex: 1; }
 .danger-button { padding: 10px 15px; border-radius: 9px; border: 1px solid #e2a5a5; background: white; color: #a43131; font-weight: 600; cursor: pointer; }
+
+
+/* ---------- TASK DETAILS ---------- */
+.task-open-link { display: inline-block; text-decoration: none; color: inherit; }
+.task-details-page { display: flex; flex-direction: column; gap: 18px; }
+.task-details-back { width: fit-content; color: #5865f2; text-decoration: none; font-weight: 600; }
+.task-details-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 26px; border: 1px solid #e0e4ee; border-radius: 16px; background: white; }
+.task-details-header h1 { margin: 5px 0 8px; font-size: 28px; }
+.task-details-header p { margin: 0; color: #64748b; line-height: 1.55; }
+.task-details-number { color: #8a91a5; font-size: 13px; font-weight: 700; }
+.task-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.task-details-card { padding: 22px; border: 1px solid #e0e4ee; border-radius: 14px; background: white; }
+.task-details-card h2 { margin: 0 0 18px; font-size: 18px; }
+.task-details-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; margin: 0; }
+.task-details-fields div { min-width: 0; }
+.task-details-fields dt { margin-bottom: 4px; color: #8a91a5; font-size: 12px; }
+.task-details-fields dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.task-details-section-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.task-details-section-header h2 { margin-bottom: 0; }
+.task-details-muted { margin: 12px 0 0; color: #8a91a5; }
+.task-participant-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.task-participant-chip { padding: 7px 10px; border-radius: 20px; background: #f1f3f8; font-size: 13px; }
+.task-details-history { display: flex; flex-direction: column; }
+.task-details-history-row { display: grid; grid-template-columns: 180px 190px 1fr; gap: 14px; padding: 12px 0; border-top: 1px solid #eceef4; font-size: 13px; }
+.task-details-history-row:first-child { border-top: 0; }
+.task-details-history-row time { color: #8a91a5; }
+
+@media (max-width: 800px) {
+  .task-details-grid { grid-template-columns: 1fr; }
+  .task-details-header { flex-direction: column; }
+  .task-details-fields { grid-template-columns: 1fr; }
+  .task-details-history-row { grid-template-columns: 1fr; gap: 4px; }
+}
