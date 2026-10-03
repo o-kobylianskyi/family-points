@@ -51,6 +51,7 @@ public class TaskController {
                         request.getTargetGroupId(),
                         request.getPreferredMemberId(),
                         request.getResponsibleMemberId(),
+                        request.getParentTaskDefinitionId(),
                         request.isDelegationAllowed(),
                         request.getRoleMatchMode(),
                         request.getRequiredGroupRoleIds(),
@@ -92,6 +93,16 @@ public class TaskController {
                 .toList();
     }
 
+
+    @GetMapping("/definitions/{definitionId}/subtasks")
+    public List<TaskDefinitionResponse> getSubtasks(
+            @PathVariable Long workspaceId,
+            @PathVariable Long definitionId
+    ) {
+        return taskService.getSubtasks(workspaceId, definitionId).stream()
+                .map(TaskDefinitionResponse::from)
+                .toList();
+    }
 
     @GetMapping("/definitions/{definitionId}")
     public TaskDefinitionResponse getDefinition(
