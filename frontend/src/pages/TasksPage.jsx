@@ -28,6 +28,10 @@ function getToday() {
   return `${year}-${month}-${day}`
 }
 
+function newestFirst(items) {
+  return [...items].sort((a, b) => Number(b.id) - Number(a.id))
+}
+
 function TasksPage() {
   const { t, i18n } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
@@ -517,7 +521,7 @@ function TasksPage() {
           </div>
         ) : (
           <div className="task-list">
-            {tasks.map((task) => (
+            {newestFirst(tasks).map((task) => (
               <article
                 className="task-card"
                 key={task.id}
@@ -746,7 +750,7 @@ function TasksPage() {
           </div>
         ) : (
           <div className="task-list">
-            {openTasks.map((task) => (
+            {newestFirst(openTasks).map((task) => (
               <article
                 className="task-card open-task-card"
                 key={`open-${task.id}`}
@@ -854,7 +858,7 @@ function TasksPage() {
           ))}
         </div>
         {managedTasks.length === 0 ? <div className="empty-state compact">{t('tasks.management.empty')}</div> : (
-          <div className="task-list">{managedTasks.map((task) => (
+          <div className="task-list">{newestFirst(managedTasks).map((task) => (
             <article className="task-card" key={`managed-${task.id}`}>
               <div className="task-card-main"><div className="task-title-row"><h3>Definition №{task.id} · {task.title}</h3></div>
                 {task.description && <p className="task-description">{task.description}</p>}
