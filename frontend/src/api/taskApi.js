@@ -86,6 +86,10 @@ export function cancelTask(token, workspaceId, instanceId) {
   return changeTaskStatus(token, workspaceId, instanceId, 'cancel')
 }
 
+export function releaseTask(token, workspaceId, instanceId) {
+  return changeTaskStatus(token, workspaceId, instanceId, 'release')
+}
+
 export async function createTaskDefinition(
   token,
   workspaceId,
