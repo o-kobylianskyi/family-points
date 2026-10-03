@@ -45,6 +45,8 @@ public interface TaskInstanceRepository
 
     boolean existsByTaskDefinitionIdAndScheduledDate(Long taskDefinitionId, LocalDate scheduledDate);
 
+    List<TaskInstance> findByTaskDefinitionIdAndStatus(Long taskDefinitionId, TaskInstanceStatus status);
+
     @Query("""
         select ti
         from TaskInstance ti
