@@ -23,6 +23,7 @@ public class TaskDefinitionCreateRequest {
     private Long targetGroupId;
     private Long preferredMemberId;
     private Long responsibleMemberId;
+    private Long parentTaskDefinitionId;
     private boolean delegationAllowed;
     private RoleMatchMode roleMatchMode = RoleMatchMode.ANY;
     private Set<Long> requiredGroupRoleIds = new LinkedHashSet<>();
@@ -122,6 +123,8 @@ public class TaskDefinitionCreateRequest {
     public Long getPreferredMemberId() { return preferredMemberId; }
     public void setPreferredMemberId(Long preferredMemberId) { this.preferredMemberId = preferredMemberId; }
     public Long getResponsibleMemberId() { return responsibleMemberId; }
+    public Long getParentTaskDefinitionId() { return parentTaskDefinitionId; }
+    public void setParentTaskDefinitionId(Long parentTaskDefinitionId) { this.parentTaskDefinitionId = parentTaskDefinitionId; }
     public void setResponsibleMemberId(Long responsibleMemberId) { this.responsibleMemberId = responsibleMemberId; }
     public boolean isDelegationAllowed() { return delegationAllowed; }
     public void setDelegationAllowed(boolean delegationAllowed) { this.delegationAllowed = delegationAllowed; }
