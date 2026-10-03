@@ -183,6 +183,18 @@ public class TaskInstance {
         this.startedAt = LocalDateTime.now();
     }
 
+    public void pause() {
+        this.status = TaskInstanceStatus.PAUSED;
+    }
+
+    public void resume() {
+        this.status = TaskInstanceStatus.IN_PROGRESS;
+    }
+
+    public void cancel() {
+        this.status = TaskInstanceStatus.CANCELLED;
+    }
+
     public void complete() {
         this.status = TaskInstanceStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
