@@ -245,3 +245,13 @@ export async function getTaskSubtasks(token, workspaceId, definitionId) {
   )
   return handleResponse(response, 'Failed to load subtasks')
 }
+
+
+export async function getTaskDefinitionInstance(token, workspaceId, definitionId, date) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/definitions/${definitionId}/instance?date=${encodeURIComponent(date)}`,
+    { token }
+  )
+  if (response.status === 204) return null
+  return handleResponse(response, 'Failed to load task execution')
+}
