@@ -620,178 +620,13 @@ function TasksPage() {
                 </div>
 
                 <div className="task-card-actions">
-                  {task.status === 'PENDING' && (
-                    <button
-                      type="button"
-                      className="task-action-button"
-                      disabled={processingTaskId === task.id}
-                      onClick={() =>
-                        handleTaskAction(task, 'start')
-                      }
-                    >
-                      {t('tasks.start')}
-                    </button>
-                  )}
-
-                  {task.status === 'IN_PROGRESS' && (
-                    <>
-                      <button
-                        type="button"
-                        className="task-action-button primary"
-                        disabled={processingTaskId === task.id}
-                        onClick={() => handleTaskAction(task, 'complete')}
-                      >
-                        {t('tasks.complete')}
-                      </button>
-                      <button
-                        type="button"
-                        className="task-action-button secondary"
-                        disabled={processingTaskId === task.id}
-                        onClick={() => handleTaskAction(task, 'pause')}
-                      >
-                        Призупинити
-                      </button>
-                    </>
-                  )}
-
-                  {task.status === 'PAUSED' && (
-                    <button
-                      type="button"
-                      className="task-action-button primary"
-                      disabled={processingTaskId === task.id}
-                      onClick={() => handleTaskAction(task, 'resume')}
-                    >
-                      Продовжити
-                    </button>
-                  )}
-
-                  {['PENDING', 'IN_PROGRESS', 'PAUSED'].includes(task.status) && (
-                    <button
-                      type="button"
-                      className="task-action-button secondary"
-                      disabled={processingTaskId === task.id}
-                      onClick={() => {
-                        if (window.confirm('Відмінити це виконання завдання?')) {
-                          handleTaskAction(task, 'cancel')
-                        }
-                      }}
-                    >
-                      Відмінити
-                    </button>
-                  )}
-
-                  {['PENDING', 'IN_PROGRESS', 'PAUSED'].includes(task.status)
-                    && !['SINGLE_MEMBER', 'GROUP_SHARED'].includes(task.assignmentPolicy) && (
-                    <button
-                      type="button"
-                      className="task-action-button secondary"
-                      disabled={processingTaskId === task.id}
-                      onClick={() => {
-                        if (window.confirm('Відмовитися від завдання? Воно знову стане доступним для взяття.')) {
-                          handleTaskAction(task, 'release')
-                        }
-                      }}
-                    >
-                      Відмовитися
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    className="task-action-button secondary"
-                    disabled={loadingHistoryTaskId === task.id}
-                    onClick={() => toggleTaskHistory(task)}
-                  >
-                    {historyTaskId === task.id
-                      ? t('tasks.history.hide', { defaultValue: 'Сховати історію' })
-                      : t('tasks.history.show', { defaultValue: 'Історія' })}
-                  </button>
-
-                  {task.delegationAllowed &&
-                    ['PENDING', 'IN_PROGRESS', 'PAUSED'].includes(task.status) && (
-                      <button
-                        type="button"
-                        className="task-action-button secondary"
-                        disabled={processingTaskId === task.id}
-                        onClick={() => beginDelegation(task)}
-                      >
-                        {t('tasks.assignment.delegate')}
-                      </button>
-                    )}
-                <Link className="task-action-button secondary task-open-link" to={`/tasks/${task.taskDefinitionId}`}>Відкрити →</Link>
+                  {task.status === 'PENDING' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'start')}>{t('tasks.start')}</button>}
+                  {task.status === 'IN_PROGRESS' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'complete')}>{t('tasks.complete')}</button>}
+                  {task.status === 'PAUSED' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'resume')}>Продовжити</button>}
+                  <Link className="task-action-button secondary task-open-link" to={`/tasks/${task.taskDefinitionId}?date=${selectedDate}`}>Відкрити →</Link>
                 </div>
 
-                {historyTaskId === task.id && (
-                  <div className="task-history-panel">
-                    <strong>{t('tasks.history.title', { defaultValue: 'Історія' })}</strong>
-                    {loadingHistoryTaskId === task.id ? (
-                      <p>{t('common.loading')}</p>
-                    ) : (historyByTaskId[task.id] || []).length === 0 ? (
-                      <p>{t('tasks.history.empty', { defaultValue: 'Історія поки порожня.' })}</p>
-                    ) : (
-                      <div className="task-history-list">
-                        {(historyByTaskId[task.id] || []).map((event) => (
-                          <div className="task-history-event" key={event.id}>
-                            <time>{formatDateTime(event.occurredAt)}</time>
-                            <span>{auditEventText(event)}</span>
-                            {event.details && <small>{event.details}</small>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {delegatingTaskId === task.id && (
-                  <div className="task-delegation-panel">
-                    <select
-                      value={delegateToMemberId}
-                      onChange={(event) =>
-                        setDelegateToMemberId(event.target.value)
-                      }
-                    >
-                      {members
-                        .filter(
-                          (member) =>
-                            member.id !== task.memberId
-                        )
-                        .map((member) => (
-                          <option
-                            key={member.id}
-                            value={member.id}
-                          >
-                            {member.name}
-                          </option>
-                        ))}
-                    </select>
-
-                    <button
-                      type="button"
-                      className="task-action-button primary"
-                      disabled={
-                        !delegateToMemberId ||
-                        processingTaskId === task.id
-                      }
-                      onClick={() => handleDelegate(task)}
-                    >
-                      {t('tasks.assignment.delegateConfirm')}
-                    </button>
-
-                    <button
-                      type="button"
-                      className="task-action-button secondary"
-                      onClick={() => {
-                        setDelegatingTaskId(null)
-                        setDelegateToMemberId('')
-                      }}
-                    >
-                      {t('common.cancel', {
-                        defaultValue: 'Cancel',
-                      })}
-                    </button>
-                  </div>
-                )}
-              </article>
+                </article>
             ))}
           </div>
         )}
@@ -944,47 +779,10 @@ function TasksPage() {
                 </div>
               </div>
               <div className="task-card-actions management-actions">
-                <button
-                  type="button"
-                  className="secondary-button"
-                  disabled={loadingDefinitionHistoryId === task.id}
-                  onClick={() => toggleDefinitionHistory(task)}
-                >
-                  {definitionHistoryId === task.id ? 'Сховати історію' : 'Історія'}
-                </button>
-                {(managementView === 'created' || managementView === 'admin') && (
-                  <>
-                    <button type="button" className="secondary-button" onClick={() => setEditingTask(task)}>
-                      {t('common.edit')}
-                    </button>
-                    <button type="button" className="secondary-button" disabled={processingTaskId === `definition-${task.id}`} onClick={() => handleDefinitionActive(task)}>
-                      {task.active ? t('tasks.management.deactivate') : t('tasks.management.activate')}
-                    </button>
-                  </>
-                )}
+                <Link className="task-action-button secondary task-open-link" to={`/tasks/${task.id}?date=${selectedDate}`}>Відкрити →</Link>
               </div>
 
-              {definitionHistoryId === task.id && (
-                <div className="task-history-panel">
-                  <strong>Історія Definition №{task.id}</strong>
-                  {loadingDefinitionHistoryId === task.id ? (
-                    <p>{t('common.loading')}</p>
-                  ) : (historyByDefinitionId[task.id] || []).length === 0 ? (
-                    <p>Історія поки порожня.</p>
-                  ) : (
-                    <div className="task-history-list">
-                      {(historyByDefinitionId[task.id] || []).map((event) => (
-                        <div className="task-history-event" key={event.id}>
-                          <time>{formatDateTime(event.occurredAt)}</time>
-                          <span>{auditEventText(event)}</span>
-                          {event.details && <small>{event.details}</small>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </article>
+              </article>
           ))}</div>
         )}
       </section>
