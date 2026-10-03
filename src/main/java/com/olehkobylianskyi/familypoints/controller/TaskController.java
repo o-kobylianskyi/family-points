@@ -93,6 +93,14 @@ public class TaskController {
     }
 
 
+    @GetMapping("/definitions/{definitionId}")
+    public TaskDefinitionResponse getDefinition(
+            @PathVariable Long workspaceId,
+            @PathVariable Long definitionId
+    ) {
+        return TaskDefinitionResponse.from(taskService.getDefinition(workspaceId, definitionId));
+    }
+
     @PutMapping("/definitions/{definitionId}")
     public TaskDefinitionResponse updateDefinition(
             @PathVariable Long workspaceId,
