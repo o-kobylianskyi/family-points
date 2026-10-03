@@ -94,6 +94,12 @@ public class TaskController {
     }
 
 
+    @GetMapping("/definitions/{definitionId}/instance")
+    public ResponseEntity<TaskInstanceResponse> getDefinitionInstance(@PathVariable Long workspaceId, @PathVariable Long definitionId, @RequestParam LocalDate date) {
+        TaskInstance instance = taskService.getInstanceForDefinitionDate(workspaceId, definitionId, date);
+        return instance == null ? ResponseEntity.noContent().build() : ResponseEntity.ok(TaskInstanceResponse.from(instance));
+    }
+
     @GetMapping("/definitions/{definitionId}/subtasks")
     public List<TaskDefinitionResponse> getSubtasks(
             @PathVariable Long workspaceId,
