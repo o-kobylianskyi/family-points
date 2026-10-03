@@ -2082,3 +2082,8 @@ input {
   .task-details-fields { grid-template-columns: 1fr; }
   .task-details-history-row { grid-template-columns: 1fr; gap: 4px; }
 }
+
+.task-details-subtasks { display: flex; flex-direction: column; margin-top: 12px; }
+.task-details-subtask { display: flex; justify-content: space-between; gap: 18px; padding: 13px 0; border-top: 1px solid #eceef4; color: #252a38; text-decoration: none; }
+.task-details-subtask:hover { color: #5865f2; }
+@media (max-width: 600px) { .task-details-subtask { flex-direction: column; gap: 5px; } }
