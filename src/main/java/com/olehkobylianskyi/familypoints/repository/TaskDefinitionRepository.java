@@ -18,6 +18,8 @@ public interface TaskDefinitionRepository
     Optional<TaskDefinition>
     findByIdAndWorkspaceId(Long id, Long workspaceId);
 
+    Optional<TaskDefinition> findByWorkNodeId(Long workNodeId);
+
     List<TaskDefinition>
     findByWorkspaceIdAndActiveTrue(Long workspaceId);
 }
