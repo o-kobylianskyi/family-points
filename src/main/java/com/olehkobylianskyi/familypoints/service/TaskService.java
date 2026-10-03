@@ -478,6 +478,13 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
+    public TaskInstance getInstanceForDefinitionDate(Long workspaceId, Long definitionId, LocalDate date) {
+        TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
+        taskAuthorizationService.requireRead(definition);
+        return taskInstanceRepository.findByTaskDefinitionIdAndScheduledDate(definitionId, date).orElse(null);
+    }
+
+    @Transactional(readOnly = true)
     public List<TaskInstance> getMemberTasks(
             Long workspaceId,
             Long memberId,
