@@ -236,3 +236,12 @@ export async function getTaskDefinition(token, workspaceId, definitionId) {
   )
   return handleResponse(response, 'Failed to load task')
 }
+
+
+export async function getTaskSubtasks(token, workspaceId, definitionId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/definitions/${definitionId}/subtasks`,
+    { token }
+  )
+  return handleResponse(response, 'Failed to load subtasks')
+}
