@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 import {
   getTaskDefinition,
+  getTaskDefinitionInstance,
+  startTask, completeTask, pauseTask, resumeTask, cancelTask, releaseTask, delegateTask,
   getTaskDefinitionHistory,
   getTaskParticipants,
   getTaskSubtasks,
@@ -17,8 +19,13 @@ function formatDateTime(value) {
 
 function TaskDetailsPage() {
   const { definitionId } = useParams()
+  const [searchParams] = useSearchParams()
+  const selectedDate = searchParams.get('date') || new Date().toISOString().slice(0, 10)
   const { currentUser, getAccessToken } = useAuth()
   const [task, setTask] = useState(null)
+  const [instance, setInstance] = useState(null)
+  const [delegating, setDelegating] = useState(false)
+  const [delegateToMemberId, setDelegateToMemberId] = useState('')
   const [members, setMembers] = useState([])
   const [participants, setParticipants] = useState([])
   const [history, setHistory] = useState([])
@@ -30,24 +37,26 @@ function TaskDetailsPage() {
     try {
       setError('')
       const token = getAccessToken()
-      const [definition, memberList, participantList, audit, childTasks] = await Promise.all([
+      const [definition, memberList, participantList, audit, childTasks, execution] = await Promise.all([
         getTaskDefinition(token, currentUser.workspaceId, definitionId),
         getWorkspaceMembers(token, currentUser.workspaceId),
         getTaskParticipants(token, currentUser.workspaceId, definitionId),
         getTaskDefinitionHistory(token, currentUser.workspaceId, definitionId),
         getTaskSubtasks(token, currentUser.workspaceId, definitionId),
+        getTaskDefinitionInstance(token, currentUser.workspaceId, definitionId, selectedDate),
       ])
       setTask(definition)
       setMembers(memberList)
       setParticipants(participantList)
       setHistory(audit)
       setSubtasks(childTasks)
+      setInstance(execution)
     } catch (e) {
       setError(e.message)
     }
   }
 
-  useEffect(() => { load() }, [definitionId, currentUser.workspaceId])
+  useEffect(() => { load() }, [definitionId, selectedDate, currentUser.workspaceId])
 
   if (error && !task) return <div className="page-error">{error}</div>
   if (!task) return <div className="page-loading">Завантаження...</div>
