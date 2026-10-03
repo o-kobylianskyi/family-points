@@ -35,6 +35,7 @@ public class TaskService {
     private final TaskDelegationRepository taskDelegationRepository;
     private final TaskParticipantRepository taskParticipantRepository;
     private final TaskAuthorizationService taskAuthorizationService;
+    private final TaskAuditService taskAuditService;
 
     public TaskService(
             TaskDefinitionRepository taskDefinitionRepository,
@@ -53,7 +54,8 @@ public class TaskService {
             GroupCompositionRepository groupCompositionRepository,
             TaskDelegationRepository taskDelegationRepository,
             TaskParticipantRepository taskParticipantRepository,
-            TaskAuthorizationService taskAuthorizationService
+            TaskAuthorizationService taskAuthorizationService,
+            TaskAuditService taskAuditService
     ) {
         this.taskDefinitionRepository = taskDefinitionRepository;
         this.taskInstanceRepository = taskInstanceRepository;
@@ -72,6 +74,7 @@ public class TaskService {
         this.taskDelegationRepository = taskDelegationRepository;
         this.taskParticipantRepository = taskParticipantRepository;
         this.taskAuthorizationService = taskAuthorizationService;
+        this.taskAuditService = taskAuditService;
     }
 
     @Transactional
@@ -165,6 +168,11 @@ public class TaskService {
             addParticipant(savedDefinition, TaskParticipantRole.EXECUTOR, ActorType.GROUP, targetGroup.getId());
 
         // Only SINGLE_MEMBER has a concrete member instance in v1. Open/shared policies are resolved by claim/participants next.
+        taskAuditService.recordUserEvent(
+                savedDefinition, null, TaskAuditEventType.DEFINITION_CREATED, creator,
+                null, null, null, null, null
+        );
+
         if (policy == AssignmentPolicy.SINGLE_MEMBER)
             taskGenerationService.generateForDefinition(savedDefinition, LocalDate.now());
 
@@ -241,6 +249,11 @@ public class TaskService {
             addParticipant(definition, TaskParticipantRole.EXECUTOR, ActorType.GROUP, targetGroup.getId());
 
         TaskDefinition saved = taskDefinitionRepository.save(definition);
+        taskAuditService.recordUserEvent(
+                saved, null, TaskAuditEventType.DEFINITION_UPDATED,
+                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                null, null, null, null, null
+        );
         if (policy == AssignmentPolicy.SINGLE_MEMBER && saved.isActive())
             taskGenerationService.generateForDefinition(saved, LocalDate.now());
         return saved;
@@ -250,9 +263,19 @@ public class TaskService {
     public TaskDefinition setDefinitionActive(Long workspaceId, Long definitionId, boolean active) {
         TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
         requireDefinitionManagement(definition);
+        boolean changed = definition.isActive() != active;
         definition.setActive(active);
         if (definition.getWorkNode() != null) definition.getWorkNode().setActive(active);
-        return taskDefinitionRepository.save(definition);
+        TaskDefinition saved = taskDefinitionRepository.save(definition);
+        if (changed) {
+            taskAuditService.recordUserEvent(
+                    saved, null,
+                    active ? TaskAuditEventType.DEFINITION_ACTIVATED : TaskAuditEventType.DEFINITION_DEACTIVATED,
+                    currentUserService.getCurrentAccount().getWorkspaceMember(),
+                    null, null, null, null, null
+            );
+        }
+        return saved;
     }
 
     private void requireDefinitionManagement(TaskDefinition definition) {
@@ -390,20 +413,23 @@ public class TaskService {
             );
         }
 
-        return taskInstanceRepository
-                .findByTaskDefinitionIdAndScheduledDate(
-                        definitionId,
-                        scheduledDate
-                )
-                .orElseGet(() ->
-                        taskInstanceRepository.save(
-                                new TaskInstance(
-                                        definition,
-                                        definition.getAssignedMember(),
-                                        scheduledDate
-                                )
-                        )
-                );
+        TaskInstance existing = taskInstanceRepository
+                .findByTaskDefinitionIdAndScheduledDate(definitionId, scheduledDate)
+                .orElse(null);
+        if (existing != null) {
+            return existing;
+        }
+
+        TaskInstance created = taskInstanceRepository.save(
+                new TaskInstance(definition, definition.getAssignedMember(), scheduledDate)
+        );
+        taskAuditService.recordUserEvent(
+                definition, created, TaskAuditEventType.INSTANCE_CREATED,
+                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                null, null, ActorType.MEMBER, created.getMember().getId(),
+                "Created for " + scheduledDate
+        );
+        return created;
     }
 
     @Transactional(readOnly = true)
@@ -456,7 +482,12 @@ public class TaskService {
             throw new InvalidTaskStateException("Task has already been claimed for this date");
         TaskInstance instance = new TaskInstance(definition, member, date);
         instance.markClaimed();
-        return taskInstanceRepository.save(instance);
+        TaskInstance saved = taskInstanceRepository.save(instance);
+        taskAuditService.recordUserEvent(
+                definition, saved, TaskAuditEventType.INSTANCE_CLAIMED, member,
+                null, null, ActorType.MEMBER, member.getId(), null
+        );
+        return saved;
     }
 
     @Transactional
@@ -476,6 +507,10 @@ public class TaskService {
         WorkspaceMember delegatedBy = currentUserService.getCurrentAccount().getWorkspaceMember();
         taskDelegationRepository.save(new TaskDelegation(instance, from, target, delegatedBy, reason));
         instance.changeExecutor(target);
+        taskAuditService.recordUserEvent(
+                definition, instance, TaskAuditEventType.INSTANCE_DELEGATED, delegatedBy,
+                ActorType.MEMBER, from.getId(), ActorType.MEMBER, target.getId(), reason
+        );
         return instance;
     }
 
@@ -535,6 +570,11 @@ public class TaskService {
         }
 
         instance.start();
+        taskAuditService.recordUserEvent(
+                instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_STARTED,
+                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                null, null, ActorType.MEMBER, instance.getMember().getId(), null
+        );
 
         return instance;
     }
@@ -569,6 +609,12 @@ public class TaskService {
         processReward(
                 workspaceId,
                 instance
+        );
+
+        taskAuditService.recordUserEvent(
+                instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_COMPLETED,
+                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                null, null, ActorType.MEMBER, instance.getMember().getId(), null
         );
 
         return instance;
@@ -759,15 +805,13 @@ public class TaskService {
             MemberExceptionPeriod period =
                     exceptionPeriods.getFirst();
 
-            instance.excuse(
-                    TaskExcuseReason.EXCEPTION_PERIOD,
-                    "Automatically excused: "
-                            + period.getType()
-                            + (
-                            period.getComment() == null
-                                    ? ""
-                                    : " - " + period.getComment()
-                    )
+            String autoComment = "Automatically excused: "
+                    + period.getType()
+                    + (period.getComment() == null ? "" : " - " + period.getComment());
+            instance.excuse(TaskExcuseReason.EXCEPTION_PERIOD, autoComment);
+            taskAuditService.recordSystemEvent(
+                    instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_EXCUSED,
+                    null, null, ActorType.MEMBER, instance.getMember().getId(), autoComment
             );
             return instance;
         }
@@ -775,6 +819,12 @@ public class TaskService {
         instance.markMissed();
 
         processPenalty(workspaceId, instance);
+
+        taskAuditService.recordUserEvent(
+                instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_MISSED,
+                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                null, null, ActorType.MEMBER, instance.getMember().getId(), null
+        );
 
         return instance;
     }
@@ -862,6 +912,13 @@ public class TaskService {
          * більше не повинен застосовуватися.
          */
         instance.markPenaltyProcessed();
+
+        taskAuditService.recordUserEvent(
+                instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_EXCUSED,
+                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                null, null, ActorType.MEMBER, instance.getMember().getId(),
+                reason + (comment == null || comment.isBlank() ? "" : ": " + comment)
+        );
 
         return instance;
     }
