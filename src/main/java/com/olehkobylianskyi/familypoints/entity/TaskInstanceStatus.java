@@ -4,6 +4,7 @@ public enum TaskInstanceStatus {
 
     PENDING,
     IN_PROGRESS,
+    PAUSED,
 
     WAITING_APPROVAL,
     COMPLETED,
