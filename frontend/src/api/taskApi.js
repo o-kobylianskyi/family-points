@@ -227,3 +227,12 @@ export async function getTaskDefinitionHistory(token, workspaceId, definitionId)
   )
   return handleResponse(response, 'Failed to load task history')
 }
+
+
+export async function getTaskDefinition(token, workspaceId, definitionId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/definitions/${definitionId}`,
+    { token }
+  )
+  return handleResponse(response, 'Failed to load task')
+}
