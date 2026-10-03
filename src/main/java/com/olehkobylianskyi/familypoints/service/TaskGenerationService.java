@@ -16,13 +16,16 @@ public class TaskGenerationService {
 
     private final TaskDefinitionRepository taskDefinitionRepository;
     private final TaskInstanceRepository taskInstanceRepository;
+    private final TaskAuditService taskAuditService;
 
     public TaskGenerationService(
             TaskDefinitionRepository taskDefinitionRepository,
-            TaskInstanceRepository taskInstanceRepository
+            TaskInstanceRepository taskInstanceRepository,
+            TaskAuditService taskAuditService
     ) {
         this.taskDefinitionRepository = taskDefinitionRepository;
         this.taskInstanceRepository = taskInstanceRepository;
+        this.taskAuditService = taskAuditService;
     }
 
     @Transactional
@@ -71,9 +74,22 @@ public class TaskGenerationService {
             return Optional.empty();
         }
 
-        return Optional.of(taskInstanceRepository.save(
+        TaskInstance instance = taskInstanceRepository.save(
                 createInstance(definition, member, date)
-        ));
+        );
+
+        taskAuditService.recordSystemEvent(
+                definition,
+                instance,
+                TaskAuditEventType.INSTANCE_GENERATED,
+                null,
+                null,
+                ActorType.MEMBER,
+                member.getId(),
+                "Generated for " + date
+        );
+
+        return Optional.of(instance);
     }
 
     public boolean shouldGenerate(
