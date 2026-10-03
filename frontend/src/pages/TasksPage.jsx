@@ -6,6 +6,9 @@ import { getWorkspaceMembers } from '../api/workspaceApi'
 import {
   claimTask,
   completeTask,
+  pauseTask,
+  resumeTask,
+  cancelTask,
   delegateTask,
   getMemberTasks,
   getOpenTasks,
@@ -188,11 +191,19 @@ function TasksPage() {
       }
 
       if (action === 'complete') {
-        updatedTask = await completeTask(
-          token,
-          currentUser.workspaceId,
-          task.id
-        )
+        updatedTask = await completeTask(token, currentUser.workspaceId, task.id)
+      }
+
+      if (action === 'pause') {
+        updatedTask = await pauseTask(token, currentUser.workspaceId, task.id)
+      }
+
+      if (action === 'resume') {
+        updatedTask = await resumeTask(token, currentUser.workspaceId, task.id)
+      }
+
+      if (action === 'cancel') {
+        updatedTask = await cancelTask(token, currentUser.workspaceId, task.id)
       }
 
       if (updatedTask) {
@@ -341,6 +352,9 @@ function TasksPage() {
       case 'INSTANCE_GENERATED': return `${actor}: ${t('tasks.history.generated', { defaultValue: 'автоматично створено виконання завдання' })}`
       case 'INSTANCE_CLAIMED': return `${actor}: ${t('tasks.history.claimed', { defaultValue: 'прийняв(ла) завдання' })}`
       case 'INSTANCE_STARTED': return `${actor}: ${t('tasks.history.started', { defaultValue: 'почав(ла) виконання' })}`
+      case 'INSTANCE_PAUSED': return `${actor}: призупинив(ла) виконання`
+      case 'INSTANCE_RESUMED': return `${actor}: продовжив(ла) виконання`
+      case 'INSTANCE_CANCELLED': return `${actor}: відмінив(ла) виконання`
       case 'INSTANCE_COMPLETED': return `${actor}: ${t('tasks.history.completed', { defaultValue: 'завершив(ла) завдання' })}`
       case 'INSTANCE_MISSED': return `${actor}: ${t('tasks.history.missed', { defaultValue: 'позначив(ла) завдання пропущеним' })}`
       case 'INSTANCE_EXCUSED': return `${actor}: ${t('tasks.history.excused', { defaultValue: 'звільнив(ла) від виконання' })}`
@@ -612,15 +626,49 @@ function TasksPage() {
                   )}
 
                   {task.status === 'IN_PROGRESS' && (
+                    <>
+                      <button
+                        type="button"
+                        className="task-action-button primary"
+                        disabled={processingTaskId === task.id}
+                        onClick={() => handleTaskAction(task, 'complete')}
+                      >
+                        {t('tasks.complete')}
+                      </button>
+                      <button
+                        type="button"
+                        className="task-action-button secondary"
+                        disabled={processingTaskId === task.id}
+                        onClick={() => handleTaskAction(task, 'pause')}
+                      >
+                        Призупинити
+                      </button>
+                    </>
+                  )}
+
+                  {task.status === 'PAUSED' && (
                     <button
                       type="button"
                       className="task-action-button primary"
                       disabled={processingTaskId === task.id}
-                      onClick={() =>
-                        handleTaskAction(task, 'complete')
-                      }
+                      onClick={() => handleTaskAction(task, 'resume')}
                     >
-                      {t('tasks.complete')}
+                      Продовжити
+                    </button>
+                  )}
+
+                  {['PENDING', 'IN_PROGRESS', 'PAUSED'].includes(task.status) && (
+                    <button
+                      type="button"
+                      className="task-action-button secondary"
+                      disabled={processingTaskId === task.id}
+                      onClick={() => {
+                        if (window.confirm('Відмінити це виконання завдання?')) {
+                          handleTaskAction(task, 'cancel')
+                        }
+                      }}
+                    >
+                      Відмінити
                     </button>
                   )}
 
