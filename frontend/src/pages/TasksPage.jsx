@@ -866,14 +866,45 @@ function TasksPage() {
                   <span><strong>{t('tasks.management.status')}:</strong> {task.active ? t('tasks.management.active') : t('tasks.management.inactive')}</span>
                 </div>
               </div>
-              {(managementView === 'created' || managementView === 'admin') && (
-                <div className="task-card-actions management-actions">
-                  <button type="button" className="secondary-button" onClick={() => setEditingTask(task)}>
-                    {t('common.edit')}
-                  </button>
-                  <button type="button" className="secondary-button" disabled={processingTaskId === `definition-${task.id}`} onClick={() => handleDefinitionActive(task)}>
-                    {task.active ? t('tasks.management.deactivate') : t('tasks.management.activate')}
-                  </button>
+              <div className="task-card-actions management-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  disabled={loadingDefinitionHistoryId === task.id}
+                  onClick={() => toggleDefinitionHistory(task)}
+                >
+                  {definitionHistoryId === task.id ? 'Сховати історію' : 'Історія'}
+                </button>
+                {(managementView === 'created' || managementView === 'admin') && (
+                  <>
+                    <button type="button" className="secondary-button" onClick={() => setEditingTask(task)}>
+                      {t('common.edit')}
+                    </button>
+                    <button type="button" className="secondary-button" disabled={processingTaskId === `definition-${task.id}`} onClick={() => handleDefinitionActive(task)}>
+                      {task.active ? t('tasks.management.deactivate') : t('tasks.management.activate')}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {definitionHistoryId === task.id && (
+                <div className="task-history-panel">
+                  <strong>Історія Definition №{task.id}</strong>
+                  {loadingDefinitionHistoryId === task.id ? (
+                    <p>{t('common.loading')}</p>
+                  ) : (historyByDefinitionId[task.id] || []).length === 0 ? (
+                    <p>Історія поки порожня.</p>
+                  ) : (
+                    <div className="task-history-list">
+                      {(historyByDefinitionId[task.id] || []).map((event) => (
+                        <div className="task-history-event" key={event.id}>
+                          <time>{formatDateTime(event.occurredAt)}</time>
+                          <span>{auditEventText(event)}</span>
+                          {event.details && <small>{event.details}</small>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </article>
