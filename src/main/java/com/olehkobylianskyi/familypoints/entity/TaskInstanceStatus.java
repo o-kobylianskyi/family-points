@@ -12,5 +12,6 @@ public enum TaskInstanceStatus {
     MISSED,
     EXCUSED,
 
+    RELEASED,
     CANCELLED
 }
