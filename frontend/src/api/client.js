@@ -28,15 +28,5 @@ export async function apiRequest(
     }
   )
 
-  if (response.status === 401) {
-    localStorage.removeItem('accessToken')
-
-    window.dispatchEvent(
-      new Event('auth:unauthorized')
-    )
-
-    throw new Error('Unauthorized')
-  }
-
   return response
 }
