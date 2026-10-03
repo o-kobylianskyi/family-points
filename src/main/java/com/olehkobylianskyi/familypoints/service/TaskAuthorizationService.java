@@ -85,9 +85,14 @@ public class TaskAuthorizationService {
         WorkspaceMember me = currentMember();
         TaskDefinition definition = instance.getTaskDefinition();
         if (!sameWorkspace(definition, me)) return false;
-        if (me.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) return true;
-        if (instance.getMember() != null && instance.getMember().getId().equals(me.getId())) return true;
-        return matchesParticipant(definition.getId(), TaskParticipantRole.EXECUTOR, me.getId());
+
+        // Execution rights belong only to the current executor of this concrete
+        // TaskInstance. Being the author/admin or merely an EXECUTOR participant
+        // does not mean that a member may execute an instance delegated to
+        // somebody else. Administrative lifecycle actions are authorized
+        // separately through requireManage/requireAdministrativeAction.
+        return instance.getMember() != null
+                && instance.getMember().getId().equals(me.getId());
     }
 
     public void requireExecute(TaskInstance instance) {
