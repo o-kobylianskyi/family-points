@@ -195,6 +195,16 @@ public class TaskInstance {
         this.status = TaskInstanceStatus.CANCELLED;
     }
 
+    public void release() {
+        this.status = TaskInstanceStatus.RELEASED;
+    }
+
+    public void reclaim(WorkspaceMember member) {
+        this.member = member;
+        this.claimedAt = LocalDateTime.now();
+        this.status = TaskInstanceStatus.PENDING;
+    }
+
     public void complete() {
         this.status = TaskInstanceStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
