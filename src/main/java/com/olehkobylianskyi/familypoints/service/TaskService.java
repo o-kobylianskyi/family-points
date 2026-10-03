@@ -85,6 +85,7 @@ public class TaskService {
             Long targetGroupId,
             Long preferredMemberId,
             Long responsibleMemberId,
+            Long parentTaskDefinitionId,
             boolean delegationAllowed,
             RoleMatchMode roleMatchMode,
             Set<Long> requiredGroupRoleIds,
@@ -154,7 +155,15 @@ public class TaskService {
             }
         }
 
-        WorkNode workNode = workNodeRepository.save(new WorkNode(workspace, null, WorkNodeType.TASK, title.trim(), description));
+        WorkNode parentNode = null;
+        if (parentTaskDefinitionId != null) {
+            TaskDefinition parentDefinition = getDefinitionOrThrow(workspaceId, parentTaskDefinitionId);
+            taskAuthorizationService.requireRead(parentDefinition);
+            if (parentDefinition.getWorkNode() == null)
+                throw new InvalidTaskStateException("Parent task has no work node");
+            parentNode = parentDefinition.getWorkNode();
+        }
+        WorkNode workNode = workNodeRepository.save(new WorkNode(workspace, parentNode, WorkNodeType.TASK, title.trim(), description));
         definition.setWorkNode(workNode);
         TaskDefinition savedDefinition = taskDefinitionRepository.save(definition);
 
@@ -386,6 +395,21 @@ public class TaskService {
             case OPEN_WORKSPACE -> { }
             case PREFERRED_MEMBER -> { if (preferredMember == null) throw new IllegalArgumentException("preferredMemberId is required for PREFERRED_MEMBER"); }
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<TaskDefinition> getSubtasks(Long workspaceId, Long definitionId) {
+        TaskDefinition parent = getDefinitionOrThrow(workspaceId, definitionId);
+        taskAuthorizationService.requireRead(parent);
+        if (parent.getWorkNode() == null) return List.of();
+
+        return workNodeRepository.findByParentNodeIdOrderBySortOrderAscIdAsc(parent.getWorkNode().getId())
+                .stream()
+                .filter(node -> node.getType() == WorkNodeType.TASK)
+                .map(node -> taskDefinitionRepository.findByWorkNodeId(node.getId()).orElse(null))
+                .filter(java.util.Objects::nonNull)
+                .filter(taskAuthorizationService::canRead)
+                .toList();
     }
 
     @Transactional(readOnly = true)
