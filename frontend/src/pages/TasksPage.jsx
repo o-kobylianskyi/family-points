@@ -9,6 +9,7 @@ import {
   pauseTask,
   resumeTask,
   cancelTask,
+  releaseTask,
   delegateTask,
   getMemberTasks,
   getOpenTasks,
@@ -204,6 +205,12 @@ function TasksPage() {
 
       if (action === 'cancel') {
         updatedTask = await cancelTask(token, currentUser.workspaceId, task.id)
+      }
+
+      if (action === 'release') {
+        await releaseTask(token, currentUser.workspaceId, task.id)
+        await loadAllTasks()
+        return
       }
 
       if (updatedTask) {
@@ -672,6 +679,22 @@ function TasksPage() {
                     </button>
                   )}
 
+                  {['PENDING', 'IN_PROGRESS', 'PAUSED'].includes(task.status)
+                    && !['SINGLE_MEMBER', 'GROUP_SHARED'].includes(task.assignmentPolicy) && (
+                    <button
+                      type="button"
+                      className="task-action-button secondary"
+                      disabled={processingTaskId === task.id}
+                      onClick={() => {
+                        if (window.confirm('Відмовитися від завдання? Воно знову стане доступним для взяття.')) {
+                          handleTaskAction(task, 'release')
+                        }
+                      }}
+                    >
+                      Відмовитися
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     className="task-action-button secondary"
@@ -684,7 +707,7 @@ function TasksPage() {
                   </button>
 
                   {task.delegationAllowed &&
-                    ['PENDING', 'IN_PROGRESS'].includes(task.status) && (
+                    ['PENDING', 'IN_PROGRESS', 'PAUSED'].includes(task.status) && (
                       <button
                         type="button"
                         className="task-action-button secondary"
