@@ -268,12 +268,26 @@ public class TaskService {
         if (definition.getWorkNode() != null) definition.getWorkNode().setActive(active);
         TaskDefinition saved = taskDefinitionRepository.save(definition);
         if (changed) {
+            WorkspaceMember performedBy = currentUserService.getCurrentAccount().getWorkspaceMember();
             taskAuditService.recordUserEvent(
                     saved, null,
                     active ? TaskAuditEventType.DEFINITION_ACTIVATED : TaskAuditEventType.DEFINITION_DEACTIVATED,
-                    currentUserService.getCurrentAccount().getWorkspaceMember(),
+                    performedBy,
                     null, null, null, null, null
             );
+
+            if (!active) {
+                for (TaskInstance instance : taskInstanceRepository.findByTaskDefinitionIdAndStatus(
+                        definitionId, TaskInstanceStatus.IN_PROGRESS)) {
+                    instance.pause();
+                    taskAuditService.recordSystemEvent(
+                            saved, instance, TaskAuditEventType.INSTANCE_PAUSED,
+                            ActorType.MEMBER, instance.getMember().getId(),
+                            ActorType.MEMBER, instance.getMember().getId(),
+                            "Paused automatically because the task definition was deactivated"
+                    );
+                }
+            }
         }
         return saved;
     }
@@ -472,6 +486,8 @@ public class TaskService {
         TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
         WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
         taskAuthorizationService.requireClaimForSelf(definition, member);
+        if (!definition.isActive())
+            throw new InvalidTaskStateException("Inactive task definition cannot be claimed");
         if (definition.getAssignmentPolicy() == AssignmentPolicy.SINGLE_MEMBER || definition.getAssignmentPolicy() == AssignmentPolicy.GROUP_SHARED)
             throw new InvalidTaskStateException("This task is not claimable");
         if (!taskGenerationService.shouldGenerate(definition, date))
@@ -561,6 +577,10 @@ public class TaskService {
 
         taskAuthorizationService.requireExecute(instance);
 
+        if (!instance.getTaskDefinition().isActive()) {
+            throw new InvalidTaskStateException("Inactive task definition cannot be started");
+        }
+
         if (instance.getStatus()
                 != TaskInstanceStatus.PENDING) {
 
@@ -580,6 +600,73 @@ public class TaskService {
     }
 
     @Transactional
+    public TaskInstance pause(Long workspaceId, Long instanceId) {
+        TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
+        taskAuthorizationService.requireExecute(instance);
+
+        if (instance.getStatus() != TaskInstanceStatus.IN_PROGRESS) {
+            throw new InvalidTaskStateException("Only an in-progress task can be paused");
+        }
+
+        instance.pause();
+        taskAuditService.recordUserEvent(
+                instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_PAUSED,
+                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                ActorType.MEMBER, instance.getMember().getId(),
+                ActorType.MEMBER, instance.getMember().getId(), null
+        );
+        return instance;
+    }
+
+    @Transactional
+    public TaskInstance resume(Long workspaceId, Long instanceId) {
+        TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
+        taskAuthorizationService.requireExecute(instance);
+
+        if (!instance.getTaskDefinition().isActive()) {
+            throw new InvalidTaskStateException("Inactive task definition cannot be resumed");
+        }
+        if (instance.getStatus() != TaskInstanceStatus.PAUSED) {
+            throw new InvalidTaskStateException("Only a paused task can be resumed");
+        }
+
+        instance.resume();
+        taskAuditService.recordUserEvent(
+                instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_RESUMED,
+                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                ActorType.MEMBER, instance.getMember().getId(),
+                ActorType.MEMBER, instance.getMember().getId(), null
+        );
+        return instance;
+    }
+
+    @Transactional
+    public TaskInstance cancel(Long workspaceId, Long instanceId) {
+        TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
+        if (taskAuthorizationService.canManage(instance.getTaskDefinition())) {
+            taskAuthorizationService.requireAdministrativeAction(instance);
+        } else {
+            taskAuthorizationService.requireExecute(instance);
+        }
+
+        if (instance.getStatus() == TaskInstanceStatus.COMPLETED
+                || instance.getStatus() == TaskInstanceStatus.MISSED
+                || instance.getStatus() == TaskInstanceStatus.EXCUSED
+                || instance.getStatus() == TaskInstanceStatus.CANCELLED) {
+            throw new InvalidTaskStateException("Finished task cannot be cancelled");
+        }
+
+        instance.cancel();
+        taskAuditService.recordUserEvent(
+                instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_CANCELLED,
+                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                ActorType.MEMBER, instance.getMember().getId(),
+                ActorType.MEMBER, instance.getMember().getId(), null
+        );
+        return instance;
+    }
+
+    @Transactional
     public TaskInstance complete(
             Long workspaceId,
             Long instanceId
@@ -591,6 +678,10 @@ public class TaskService {
                 );
 
         taskAuthorizationService.requireExecute(instance);
+
+        if (!instance.getTaskDefinition().isActive()) {
+            throw new InvalidTaskStateException("Inactive task definition cannot be completed");
+        }
 
         if (instance.getStatus()
                 != TaskInstanceStatus.PENDING
