@@ -226,6 +226,14 @@ public class TaskController {
         return TaskInstanceResponse.from(taskService.cancel(workspaceId, instanceId));
     }
 
+    @PostMapping("/instances/{instanceId}/release")
+    public TaskInstanceResponse release(
+            @PathVariable Long workspaceId,
+            @PathVariable Long instanceId
+    ) {
+        return TaskInstanceResponse.from(taskService.release(workspaceId, instanceId));
+    }
+
     @PostMapping("/instances/{instanceId}/complete")
     public TaskInstanceResponse complete(
             @PathVariable Long workspaceId,
