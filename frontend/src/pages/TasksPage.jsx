@@ -542,7 +542,7 @@ function TasksPage() {
               >
                 <div className="task-card-main">
                   <div className="task-title-row">
-                    <h3>Виконання №{task.id} · Definition №{task.taskDefinitionId} · {task.title}</h3>
+                    <h3>№{task.taskDefinitionId} · {task.title}</h3>
 
                     {task.mandatory && (
                       <span className="task-mandatory">
@@ -908,7 +908,7 @@ function TasksPage() {
         {managedTasks.length === 0 ? <div className="empty-state compact">{t('tasks.management.empty')}</div> : (
           <div className="task-list">{newestFirst(managedTasks).map((task) => (
             <article className="task-card" key={`managed-${task.id}`}>
-              <div className="task-card-main"><div className="task-title-row"><h3>Definition №{task.id} · {task.title}</h3></div>
+              <div className="task-card-main"><div className="task-title-row"><h3>№{task.id} · {task.title}</h3></div>
                 {task.description && <p className="task-description">{task.description}</p>}
                 <div className="task-participant-summary">
                   {['ADMIN','OBSERVER','EXECUTOR'].map((role) => {
