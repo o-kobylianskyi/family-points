@@ -34,6 +34,7 @@ public class TaskService {
     private final GroupCompositionRepository groupCompositionRepository;
     private final TaskDelegationRepository taskDelegationRepository;
     private final TaskParticipantRepository taskParticipantRepository;
+    private final TaskAuthorizationService taskAuthorizationService;
 
     public TaskService(
             TaskDefinitionRepository taskDefinitionRepository,
@@ -51,7 +52,8 @@ public class TaskService {
             GroupMembershipRepository groupMembershipRepository,
             GroupCompositionRepository groupCompositionRepository,
             TaskDelegationRepository taskDelegationRepository,
-            TaskParticipantRepository taskParticipantRepository
+            TaskParticipantRepository taskParticipantRepository,
+            TaskAuthorizationService taskAuthorizationService
     ) {
         this.taskDefinitionRepository = taskDefinitionRepository;
         this.taskInstanceRepository = taskInstanceRepository;
@@ -69,6 +71,7 @@ public class TaskService {
         this.groupCompositionRepository = groupCompositionRepository;
         this.taskDelegationRepository = taskDelegationRepository;
         this.taskParticipantRepository = taskParticipantRepository;
+        this.taskAuthorizationService = taskAuthorizationService;
     }
 
     @Transactional
@@ -99,6 +102,7 @@ public class TaskService {
             Integer penaltyAmount,
             LocalTime dueTime
     ) {
+        taskAuthorizationService.requireCreate(workspaceId);
         Workspace workspace = getWorkspaceOrThrow(workspaceId);
         AssignmentPolicy policy = assignmentPolicy == null ? AssignmentPolicy.SINGLE_MEMBER : assignmentPolicy;
 
@@ -252,10 +256,7 @@ public class TaskService {
     }
 
     private void requireDefinitionManagement(TaskDefinition definition) {
-        WorkspaceMember me = currentUserService.getCurrentAccount().getWorkspaceMember();
-        if (definition.getCreatedBy() != null && definition.getCreatedBy().getId().equals(me.getId())) return;
-        if (participantMatchesMember(definition.getId(), TaskParticipantRole.ADMIN, me.getId(), new java.util.HashSet<>())) return;
-        throw new org.springframework.security.access.AccessDeniedException("Only the task author or administrator can manage this task");
+        taskAuthorizationService.requireManage(definition);
     }
 
     private void saveParticipants(TaskDefinition definition, TaskParticipantRole role, java.util.List<com.olehkobylianskyi.familypoints.dto.TaskActorRef> actors) {
@@ -280,7 +281,8 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public java.util.List<TaskParticipant> getParticipants(Long workspaceId, Long definitionId) {
-        getDefinitionOrThrow(workspaceId, definitionId);
+        TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
+        taskAuthorizationService.requireRead(definition);
         return taskParticipantRepository.findByTaskDefinitionIdOrderByIdAsc(definitionId);
     }
 
@@ -303,7 +305,7 @@ public class TaskService {
             case "executor" -> TaskParticipantRole.EXECUTOR;
             default -> null;
         };
-        if (role == null) return all;
+        if (role == null) return all.stream().filter(taskAuthorizationService::canRead).toList();
         return all.stream().filter(d -> participantMatchesMember(d.getId(), role, me.getId(), new java.util.HashSet<>())).toList();
     }
 
@@ -356,9 +358,10 @@ public class TaskService {
         getWorkspaceOrThrow(workspaceId);
 
         return taskDefinitionRepository
-                .findByWorkspaceIdAndActiveTrueOrderByIdAsc(
-                        workspaceId
-                );
+                .findByWorkspaceIdAndActiveTrueOrderByIdAsc(workspaceId)
+                .stream()
+                .filter(taskAuthorizationService::canRead)
+                .toList();
     }
 
     @Transactional
@@ -372,6 +375,8 @@ public class TaskService {
                         workspaceId,
                         definitionId
                 );
+
+        taskAuthorizationService.requireManage(definition);
 
         if (!definition.isActive()) {
             throw new InvalidTaskStateException(
@@ -410,16 +415,23 @@ public class TaskService {
         getMemberOrThrow(workspaceId, memberId);
 
         return taskInstanceRepository
-                .findByMemberIdAndScheduledDateOrderByIdAsc(
-                        memberId,
-                        date
-                );
+                .findByMemberIdAndScheduledDateOrderByIdAsc(memberId, date)
+                .stream()
+                .filter(instance -> taskAuthorizationService.canRead(instance.getTaskDefinition()))
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public List<TaskDefinition> getOpenDefinitions(Long workspaceId, LocalDate date, Long memberId) {
         getWorkspaceOrThrow(workspaceId);
-        WorkspaceMember member = memberId == null ? null : getMemberOrThrow(workspaceId, memberId);
+        taskAuthorizationService.requireWorkspace(workspaceId);
+        WorkspaceMember current = taskAuthorizationService.currentMember();
+        WorkspaceMember member = memberId == null ? current : getMemberOrThrow(workspaceId, memberId);
+        if (!member.getId().equals(current.getId())
+                && !current.hasPermission(WorkspacePermission.VIEW_ALL_TASKS)
+                && !current.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) {
+            throw new org.springframework.security.access.AccessDeniedException("Current user cannot inspect open tasks for another member");
+        }
         return taskDefinitionRepository.findByWorkspaceIdAndActiveTrueOrderByIdAsc(workspaceId).stream()
                 .filter(d -> d.getAssignmentPolicy() != AssignmentPolicy.SINGLE_MEMBER)
                 .filter(d -> d.getAssignmentPolicy() != AssignmentPolicy.GROUP_SHARED)
@@ -433,6 +445,7 @@ public class TaskService {
     public TaskInstance claim(Long workspaceId, Long definitionId, LocalDate date, Long memberId) {
         TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
         WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
+        taskAuthorizationService.requireClaimForSelf(definition, member);
         if (definition.getAssignmentPolicy() == AssignmentPolicy.SINGLE_MEMBER || definition.getAssignmentPolicy() == AssignmentPolicy.GROUP_SHARED)
             throw new InvalidTaskStateException("This task is not claimable");
         if (!taskGenerationService.shouldGenerate(definition, date))
@@ -450,6 +463,7 @@ public class TaskService {
     public TaskInstance delegate(Long workspaceId, Long instanceId, Long toMemberId, String reason) {
         TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
         TaskDefinition definition = instance.getTaskDefinition();
+        taskAuthorizationService.requireDelegate(instance);
         if (!definition.isDelegationAllowed())
             throw new InvalidTaskStateException("Delegation is not allowed for this task");
         if (instance.getStatus() == TaskInstanceStatus.COMPLETED || instance.getStatus() == TaskInstanceStatus.MISSED || instance.getStatus() == TaskInstanceStatus.EXCUSED)
@@ -510,6 +524,8 @@ public class TaskService {
                         instanceId
                 );
 
+        taskAuthorizationService.requireExecute(instance);
+
         if (instance.getStatus()
                 != TaskInstanceStatus.PENDING) {
 
@@ -533,6 +549,8 @@ public class TaskService {
                         workspaceId,
                         instanceId
                 );
+
+        taskAuthorizationService.requireExecute(instance);
 
         if (instance.getStatus()
                 != TaskInstanceStatus.PENDING
@@ -714,6 +732,8 @@ public class TaskService {
                         instanceId
                 );
 
+        taskAuthorizationService.requireAdministrativeAction(instance);
+
         if (instance.getStatus() == TaskInstanceStatus.COMPLETED) {
             throw new InvalidTaskStateException(
                     "Completed task cannot be marked as missed"
@@ -820,6 +840,8 @@ public class TaskService {
                         workspaceId,
                         instanceId
                 );
+
+        taskAuthorizationService.requireAdministrativeAction(instance);
 
         if (instance.getStatus() != TaskInstanceStatus.PENDING
                 && instance.getStatus() != TaskInstanceStatus.IN_PROGRESS) {

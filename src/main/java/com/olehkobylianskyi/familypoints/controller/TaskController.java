@@ -8,6 +8,7 @@ import com.olehkobylianskyi.familypoints.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/workspaces/{workspaceId}/tasks")
+@PreAuthorize("@workspaceSecurity.canAccessWorkspace(#workspaceId)")
 public class TaskController {
 
     private final TaskService taskService;
@@ -33,6 +35,7 @@ public class TaskController {
     }
 
     @PostMapping("/definitions")
+    @PreAuthorize("hasAuthority('CREATE_TASKS') && @workspaceSecurity.canAccessWorkspace(#workspaceId)")
     public ResponseEntity<TaskDefinitionResponse> createDefinition(
             @PathVariable Long workspaceId,
             @Valid @RequestBody TaskDefinitionCreateRequest request
@@ -240,6 +243,7 @@ public class TaskController {
 
 
     @PostMapping("/generate")
+    @PreAuthorize("hasAuthority('MANAGE_TASKS') && @workspaceSecurity.canAccessWorkspace(#workspaceId)")
     public List<TaskInstanceResponse> generate(
             @PathVariable Long workspaceId,
             @RequestParam LocalDate date
@@ -252,6 +256,7 @@ public class TaskController {
     }
 
     @PostMapping("/process-deadlines")
+    @PreAuthorize("hasAuthority('MANAGE_TASKS') && @workspaceSecurity.canAccessWorkspace(#workspaceId)")
     public List<TaskInstanceResponse> processDeadlines(
             @PathVariable Long workspaceId,
             @RequestParam LocalDateTime now
