@@ -53,7 +53,11 @@ public class TaskAuditService {
         TaskInstance instance = taskInstanceRepository.findById(instanceId)
                 .filter(value -> value.getTaskDefinition().getWorkspace().getId().equals(workspaceId))
                 .orElseThrow(() -> new ResourceNotFoundException("Task instance " + instanceId + " not found in workspace " + workspaceId));
-        taskAuthorizationService.requireRead(instance.getTaskDefinition());
+        taskAuthorizationService.requireWorkspace(workspaceId);
+        if (!taskAuthorizationService.canRead(instance.getTaskDefinition())
+                && !taskAuthorizationService.canExecute(instance)) {
+            throw new org.springframework.security.access.AccessDeniedException("Current user cannot view this task history");
+        }
         return taskAuditEventRepository.findByTaskInstanceIdOrderByOccurredAtAscIdAsc(instanceId)
                 .stream().map(event -> toResponse(workspaceId, event)).toList();
     }
