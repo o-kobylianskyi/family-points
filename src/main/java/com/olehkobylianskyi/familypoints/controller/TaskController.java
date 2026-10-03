@@ -23,15 +23,18 @@ public class TaskController {
     private final TaskService taskService;
     private final TaskGenerationService taskGenerationService;
     private final TaskDeadlineService taskDeadlineService;
+    private final com.olehkobylianskyi.familypoints.service.TaskAuditService taskAuditService;
 
     public TaskController(
             TaskService taskService,
             TaskGenerationService taskGenerationService,
-            TaskDeadlineService taskDeadlineService
+            TaskDeadlineService taskDeadlineService,
+            com.olehkobylianskyi.familypoints.service.TaskAuditService taskAuditService
     ) {
         this.taskService = taskService;
         this.taskGenerationService = taskGenerationService;
         this.taskDeadlineService = taskDeadlineService;
+        this.taskAuditService = taskAuditService;
     }
 
     @PostMapping("/definitions")
@@ -239,6 +242,23 @@ public class TaskController {
                         request.getComment()
                 )
         );
+    }
+
+
+    @GetMapping("/definitions/{definitionId}/history")
+    public List<TaskAuditEventResponse> getDefinitionHistory(
+            @PathVariable Long workspaceId,
+            @PathVariable Long definitionId
+    ) {
+        return taskAuditService.getDefinitionHistory(workspaceId, definitionId);
+    }
+
+    @GetMapping("/instances/{instanceId}/history")
+    public List<TaskAuditEventResponse> getInstanceHistory(
+            @PathVariable Long workspaceId,
+            @PathVariable Long instanceId
+    ) {
+        return taskAuditService.getInstanceHistory(workspaceId, instanceId);
     }
 
 
