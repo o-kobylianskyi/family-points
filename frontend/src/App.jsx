@@ -14,6 +14,7 @@ import DashboardPage from './pages/DashboardPage'
 import MembersPage from './pages/MembersPage'
 import GroupPage from './pages/GroupPage'
 import TasksPage from './pages/TasksPage'
+import TaskDetailsPage from './pages/TaskDetailsPage'
 import PointsPage from './pages/PointsPage'
 import RewardsPage from './pages/RewardsPage'
 import SettingsPage from './pages/SettingsPage'
@@ -55,6 +56,11 @@ function App() {
             <Route
               path="/tasks"
               element={<TasksPage />}
+            />
+
+            <Route
+              path="/tasks/:definitionId"
+              element={<TaskDetailsPage />}
             />
 
             <Route
