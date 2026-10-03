@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 
 import { useAuth } from '../context/AuthContext'
 import { getWorkspaceMembers } from '../api/workspaceApi'
@@ -717,6 +718,7 @@ function TasksPage() {
                         {t('tasks.assignment.delegate')}
                       </button>
                     )}
+                <Link className="task-action-button secondary task-open-link" to={`/tasks/${task.taskDefinitionId}`}>Відкрити →</Link>
                 </div>
 
                 {historyTaskId === task.id && (
