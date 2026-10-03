@@ -64,6 +64,27 @@ function TaskDetailsPage() {
   const memberName = (id) => members.find((m) => m.id === id)?.name || (id ? `#${id}` : '—')
   const author = task.createdByMemberName || memberName(task.createdByMemberId)
 
+  const runInstanceAction = async (action) => {
+    if (!instance) return
+    try {
+      setProcessing(true); setError('')
+      const token = getAccessToken()
+      const actions = { start: startTask, complete: completeTask, pause: pauseTask, resume: resumeTask, cancel: cancelTask, release: releaseTask }
+      await actions[action](token, currentUser.workspaceId, instance.id)
+      await load()
+    } catch (e) { setError(e.message) } finally { setProcessing(false) }
+  }
+
+  const handleDelegate = async () => {
+    if (!instance || !delegateToMemberId) return
+    try {
+      setProcessing(true); setError('')
+      await delegateTask(getAccessToken(), currentUser.workspaceId, instance.id, Number(delegateToMemberId))
+      setDelegating(false); setDelegateToMemberId('')
+      await load()
+    } catch (e) { setError(e.message) } finally { setProcessing(false) }
+  }
+
   const toggleActive = async () => {
     try {
       setProcessing(true)
