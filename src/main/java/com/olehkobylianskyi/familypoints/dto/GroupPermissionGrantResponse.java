@@ -16,4 +16,15 @@ public record GroupPermissionGrantResponse(
                 grant.getScope()
         );
     }
+
+    public static GroupPermissionGrantResponse from(RolePermissionGrant grant) {
+        return new GroupPermissionGrantResponse(
+                grant.getId(),
+                grant.getRoleDefinition().getId(),
+                grant.getPermission(),
+                grant.getScope() == RolePermissionScope.SUBTREE
+                        ? GroupPermissionScope.GROUP_SUBTREE
+                        : GroupPermissionScope.GROUP
+        );
+    }
 }
