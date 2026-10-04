@@ -286,6 +286,12 @@
       "POINT_AWARD": "Нарахування балів",
       "POINT_SPEND": "Списання балів",
       "SUBGROUP_MANAGE": "Керування підгрупами"
+    },
+    "groups": {
+      "tasks": "Завдання",
+      "members": "Учасники",
+      "groups": "Групи",
+      "points": "Бали"
     }
   }
 }
