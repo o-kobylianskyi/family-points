@@ -5,6 +5,7 @@ import CreateTaskModal from '../components/CreateTaskModal'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 import {
   getTaskDefinition,
+  getTaskDefinitions,
   getTaskDefinitionInstance,
   startTask, completeTask, pauseTask, resumeTask, cancelTask, releaseTask, delegateTask,
   getTaskDefinitionHistory,
@@ -24,6 +25,7 @@ function TaskDetailsPage() {
   const selectedDate = searchParams.get('date') || new Date().toISOString().slice(0, 10)
   const { currentUser, getAccessToken } = useAuth()
   const [task, setTask] = useState(null)
+  const [visibleDefinitions, setVisibleDefinitions] = useState([])
   const [instance, setInstance] = useState(null)
   const [delegating, setDelegating] = useState(false)
   const [delegateToMemberId, setDelegateToMemberId] = useState('')
@@ -39,8 +41,9 @@ function TaskDetailsPage() {
     try {
       setError('')
       const token = getAccessToken()
-      const [definition, memberList, participantList, audit, childTasks, execution] = await Promise.all([
+      const [definition, definitions, memberList, participantList, audit, childTasks, execution] = await Promise.all([
         getTaskDefinition(token, currentUser.workspaceId, definitionId),
+        getTaskDefinitions(token, currentUser.workspaceId),
         getWorkspaceMembers(token, currentUser.workspaceId),
         getTaskParticipants(token, currentUser.workspaceId, definitionId),
         getTaskDefinitionHistory(token, currentUser.workspaceId, definitionId),
@@ -48,6 +51,7 @@ function TaskDetailsPage() {
         getTaskDefinitionInstance(token, currentUser.workspaceId, definitionId, selectedDate),
       ])
       setTask(definition)
+      setVisibleDefinitions(definitions)
       setMembers(memberList)
       setParticipants(participantList)
       setHistory(audit)
@@ -65,6 +69,19 @@ function TaskDetailsPage() {
 
   const memberName = (id) => members.find((m) => m.id === id)?.name || (id ? `#${id}` : '—')
   const author = task.createdByMemberName || memberName(task.createdByMemberId)
+
+  const visibleById = new Map(visibleDefinitions.map((definition) => [definition.id, definition]))
+  const ancestors = []
+  let parentId = task.parentTaskDefinitionId
+  const visited = new Set()
+  while (parentId && !visited.has(parentId)) {
+    visited.add(parentId)
+    const parent = visibleById.get(parentId)
+    if (!parent) break
+    ancestors.unshift(parent)
+    parentId = parent.parentTaskDefinitionId
+  }
+  const hiddenParent = Boolean(task.parentTaskDefinitionId && !visibleById.has(task.parentTaskDefinitionId))
 
   const runInstanceAction = async (action) => {
     if (!instance) return
@@ -101,6 +118,19 @@ function TaskDetailsPage() {
       <Link className="task-details-back" to="/tasks">← До завдань</Link>
 
       {error && <div className="page-error">{error}</div>}
+
+      {(ancestors.length > 0 || hiddenParent) && (
+        <nav className="task-hierarchy-breadcrumb" aria-label="Ієрархія завдання">
+          {ancestors.map((parent) => (
+            <span key={parent.id}>
+              <Link to={`/tasks/${parent.id}?date=${selectedDate}`}>№{parent.id} · {parent.title}</Link>
+              <span> → </span>
+            </span>
+          ))}
+          {hiddenParent && <span>Батьківське завдання недоступне → </span>}
+          <strong>№{task.id} · {task.title}</strong>
+        </nav>
+      )}
 
       <header className="task-details-header">
         <div>
