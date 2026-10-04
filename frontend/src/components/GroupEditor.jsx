@@ -3,7 +3,7 @@ import {
   updateMemberGroup, addGroupMember, removeGroupMember, addChildGroup, removeChildGroup,
   addGroupRole, updateGroupRole, updateGroupMemberRoles,
   getGroupPermissions, addGroupPermission, removeGroupPermission,
-  getRoleSets, createRoleSet, updateRoleSet,
+  getRoleSets, createRoleSet, updateRoleSet, deleteRoleSet,
 } from '../api/memberGroupApi'
 
 const permissionOptions = [
@@ -79,12 +79,12 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
     <h3>Набори ролей</h3>
     <div className="group-edit-row"><input value={newSetName} onChange={e=>setNewSetName(e.target.value)} placeholder="Напр. Керівництво"/><button type="button" disabled={!newSetName.trim()} onClick={()=>run(async()=>{await createRoleSet(token,workspaceId,{name:newSetName.trim(),description:null});setNewSetName('')})}>+ Набір</button></div>
     {roleSets.map(set=><div className="group-edit-item" key={set.id}>
-      {editingSet?.id===set.id?<><input value={editingSet.name} onChange={e=>setEditingSet({...editingSet,name:e.target.value})}/><button type="button" onClick={()=>run(async()=>{await updateRoleSet(token,workspaceId,set.id,{name:editingSet.name,description:editingSet.description||null});setEditingSet(null)})}>Зберегти</button></>:<><span><strong>{set.name}</strong>{set.description?' · '+set.description:''}</span><button type="button" onClick={()=>setEditingSet({...set})}>Редагувати</button></>}
+      {editingSet?.id===set.id?<><input value={editingSet.name} onChange={e=>setEditingSet({...editingSet,name:e.target.value})}/><button type="button" onClick={()=>run(async()=>{await updateRoleSet(token,workspaceId,set.id,{name:editingSet.name,description:editingSet.description||null});setEditingSet(null)})}>Зберегти</button></>:<><span><strong>{set.name}</strong>{set.description?' · '+set.description:''}</span><span className="group-edit-actions"><button type="button" onClick={()=>setEditingSet({...set})}>Редагувати</button><button type="button" onClick={()=>{if(window.confirm(`Видалити набір ролей "${set.name}"? Ролі залишаться, але будуть без набору.`))run(()=>deleteRoleSet(token,workspaceId,set.id))}}>×</button></span></>}
     </div>)}
 
     <h3>Ролі групи</h3>
     <div className="role-editor-box">
-      <div className="group-edit-row"><input value={newRole.name} onChange={e=>setNewRole({...newRole,name:e.target.value})} placeholder="Назва ролі"/><select value={newRole.roleSetId} onChange={e=>setNewRole({...newRole,roleSetId:e.target.value})}><option value="">Без набору</option>{roleSets.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select><button type="button" disabled={!newRole.name.trim()} onClick={()=>run(async()=>{const updated=await addGroupRole(token,workspaceId,group.id,{name:newRole.name.trim(),description:newRole.description||null});const created=updated.roles.find(r=>r.name===newRole.name.trim());if(created&&newRole.roleSetId)await updateGroupRole(token,workspaceId,group.id,created.id,{name:created.name,description:created.description,roleSetId:Number(newRole.roleSetId)});setNewRole({name:'',description:'',roleSetId:''})})}>+ Роль</button></div>
+      <div className="group-edit-row"><input value={newRole.name} onChange={e=>setNewRole({...newRole,name:e.target.value})} placeholder="Назва ролі"/><select value={newRole.roleSetId} onChange={e=>setNewRole({...newRole,roleSetId:e.target.value})}><option value="">Без набору</option>{roleSets.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select><button type="button" disabled={!newRole.name.trim()} onClick={()=>run(async()=>{await addGroupRole(token,workspaceId,group.id,{name:newRole.name.trim(),description:newRole.description||null,roleSetId:newRole.roleSetId?Number(newRole.roleSetId):null});setNewRole({name:'',description:'',roleSetId:''})})}>+ Роль</button></div>
     </div>
 
     {group.roles.map(role=><div className="role-manager-card" key={role.id}>
