@@ -877,3 +877,139 @@ Any time a discussion changes mechanics, product behavior, domain boundaries, st
 3. only then consider the topic safely preserved.
 
 A chat summary/handoff is **not** a substitute for this file.
+
+
+---
+
+## 24. Purchase / reward eligibility requirements
+
+### 2026-10-04 — conditions for buying rewards with points
+
+**AGREED**
+
+Buying a reward/item is not determined by point balance alone.
+
+A catalog item/reward may have:
+
+1. a **price** — spendable resources that are consumed on purchase, e.g. points;
+2. **eligibility requirements** — conditions that must be satisfied but are not necessarily consumed.
+
+Example:
+
+- bicycle price: 1000 points;
+- minimum reputation: 1000;
+- complete a defined set of tasks;
+- no serious behavior incidents during the required period.
+
+If all requirements are satisfied, the item becomes purchasable.
+
+### Reputation is not spent
+
+**INVARIANT**
+
+Reputation used as a purchase requirement is a threshold/qualification, not a currency spend.
+
+For example:
+
+- before purchase: 1200 points, 1100 reputation;
+- bicycle costs 1000 points and requires 1000 reputation;
+- after purchase: 200 points, 1100 reputation.
+
+Reputation changes only through its own reputation mechanics (task/behavior/manual/decay/etc.), not merely because a purchase was made.
+
+### Generic requirement engine
+
+**AGREED DIRECTION**
+
+Purchase eligibility should reuse a generic requirement/condition engine rather than adding bicycle-specific or reward-specific fields.
+
+Useful requirement types may include:
+
+- `MIN_REPUTATION` — reputation >= configured value;
+- `TASK_COMPLETED` — a specific task completed;
+- `TASK_COUNT` — N qualifying tasks completed;
+- `TASK_GROUP_COMPLETED` — all / minimum number from a defined task set;
+- `NO_SERIOUS_BEHAVIOR_EVENT` — no event above configured severity within a period;
+- `BEHAVIOR_SCORE_AT_LEAST` — daily/period behavior score above threshold;
+- `STREAK_AT_LEAST` — maintain a configured streak;
+- `LEARNING_ACTIVITY_COMPLETED`;
+- `ACHIEVEMENT_UNLOCKED`;
+- `MIN_POINT_BALANCE` where useful;
+- future generic conditions.
+
+The exact enum/schema names are not fixed yet.
+
+### Requirement composition
+
+**AGREED**
+
+Requirements should support the same compositional ideas already discussed for Tasks:
+
+- `ALL_SATISFIED`;
+- `MINIMUM_SATISFIED`;
+- `requiredCount`;
+- `alwaysRequired`.
+
+This allows reward rules such as:
+
+> To buy the bicycle:
+> - always: reputation >= 1000;
+> - always: no serious misconduct in the last 30 days;
+> - complete at least 3 of these 5 target tasks;
+> - have at least 1000 spendable points at checkout.
+
+### Time windows
+
+**AGREED DIRECTION**
+
+Behavior/task requirements may be evaluated over an explicit time window, for example:
+
+- last 7 days;
+- last 30 days;
+- current month;
+- since a configured start date.
+
+This prevents a one-time historical achievement from satisfying a requirement that is intended to measure recent effort.
+
+### Serious behavior incidents
+
+**DESIGN / QUESTION**
+
+A requirement such as “no serious misconduct” should be based on explicit Behavior severity/category rather than arbitrary point/reputation loss.
+
+Possible semantics:
+
+- block if a `BehaviorEvent` with severity `SERIOUS` or `CRITICAL` exists in the evaluation window;
+- optionally restart a clean-period timer after such an event;
+- excused/cancelled/reversed events should not count.
+
+Exact severity model and clean-period semantics remain to be defined.
+
+### Purchase evaluation and audit
+
+**AGREED DIRECTION**
+
+At checkout the server should evaluate all requirements atomically enough to avoid stale eligibility:
+
+1. evaluate current requirements;
+2. verify sufficient spendable points/resources;
+3. create purchase/redemption record;
+4. deduct points/resources;
+5. preserve the evaluated requirement result/snapshot for audit where useful.
+
+A failed requirement must block the purchase without spending points.
+
+### UX implication
+
+**AGREED DIRECTION**
+
+The UI should explain *why* a reward is locked.
+
+Example:
+
+- ✅ 1000/1000 reputation;
+- ✅ no serious incidents for 30 days;
+- ❌ completed 2/3 required target tasks;
+- ✅ 1350/1000 points.
+
+This turns the reward into a visible long-term goal rather than a mysterious locked item.
