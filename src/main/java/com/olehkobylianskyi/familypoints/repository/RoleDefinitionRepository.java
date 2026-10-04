@@ -10,4 +10,5 @@ public interface RoleDefinitionRepository extends JpaRepository<RoleDefinition, 
     List<RoleDefinition> findByRoleSetIdAndActiveTrueOrderByNameAsc(Long roleSetId);
     Optional<RoleDefinition> findByIdAndWorkspaceId(Long id, Long workspaceId);
     Optional<RoleDefinition> findByWorkspaceIdAndSystemCode(Long workspaceId, String systemCode);
+    Optional<RoleDefinition> findByLegacyGroupRoleId(Long legacyGroupRoleId);
 }
