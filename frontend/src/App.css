@@ -2582,3 +2582,96 @@ input {
     width:100%;
   }
 }
+
+
+/* ---------- ROLE SET MANAGER ---------- */
+.role-set-manager-modal{
+  width:min(820px,calc(100vw - 32px));
+}
+.role-set-manager-modal .group-editor-header{
+  align-items:flex-start;
+  margin-bottom:14px;
+}
+.role-set-manager-modal .group-editor-header h3{
+  margin:0;
+}
+.role-set-manager-modal .group-editor-header p{
+  margin:5px 0 0;
+  max-width:650px;
+  line-height:1.4;
+}
+.role-set-add-main{
+  margin-bottom:14px;
+}
+.role-set-create-expanded{
+  grid-template-columns:1fr 1fr;
+  padding:14px;
+  margin:0 0 14px;
+  border:1px solid #e3e7ef;
+  border-radius:12px;
+  background:#fbfcfe;
+}
+.role-set-create-actions{
+  grid-column:1/-1;
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+}
+.role-set-manager-list{
+  display:grid;
+  gap:0;
+  border:1px solid #e3e7ef;
+  border-radius:12px;
+  overflow:hidden;
+  background:#fff;
+}
+.role-set-manager-list .role-set-manage-row{
+  padding:12px 14px;
+  border-top:1px solid #eef0f5;
+}
+.role-set-manager-list .role-set-manage-row:first-child{
+  border-top:0;
+}
+.role-set-info{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+.role-set-name-line{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.role-set-edit-fields{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  flex:1 1 auto;
+}
+.system-role-set{
+  background:#fafbfe;
+}
+.system-role-set .role-set-info small{
+  color:#7e8596;
+}
+
+@media(max-width:700px){
+  .role-set-manager-modal{
+    width:calc(100vw - 16px);
+  }
+  .role-set-create-expanded,
+  .role-set-edit-fields{
+    grid-template-columns:1fr;
+  }
+  .role-set-create-actions{
+    grid-column:auto;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+  .role-set-manager-list .role-set-manage-row{
+    align-items:stretch;
+    flex-direction:column;
+  }
+}
