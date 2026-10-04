@@ -17,7 +17,7 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
  const reloadAux=async()=>{const [s,g]=await Promise.all([getRoleSets(token,workspaceId),getGroupPermissions(token,workspaceId,group.id)]);setRoleSets(s);setPermissionGrants(g)}
  useEffect(()=>{reloadAux().catch(e=>setError(e.message))},[token,workspaceId,group.id])
  useEffect(()=>{const k=e=>e.key==='Escape'&&(roleEditor?setRoleEditor(null):memberRoleEditor?setMemberRoleEditor(null):showSetManager?setShowSetManager(false):onClose());window.addEventListener('keydown',k);return()=>window.removeEventListener('keydown',k)},[onClose,roleEditor,memberRoleEditor,showSetManager])
- const run=async action=>{try{setError('');await action();await onChanged();await reloadAux()}catch(e){setError(e.message)}}
+ const run=async action=>{try{setError('');await action();await onChanged();await reloadAux();return true}catch(e){setError(e.message||'Помилка збереження');return false}}
  const availableMembers=useMemo(()=>members.filter(m=>!group.members.some(x=>x.memberId===m.id)),[members,group])
  const availableGroups=useMemo(()=>groups.filter(g=>g.id!==group.id&&!group.childGroups.some(x=>x.groupId===g.id)),[groups,group])
  const groupedRoles=useMemo(()=>{const rows=[...roleSets.map(s=>({id:String(s.id),name:s.name,roles:group.roles.filter(r=>r.roleSetId===s.id)})),{id:'none',name:'Без набору',roles:group.roles.filter(r=>!r.roleSetId)}];return rows.filter(x=>x.roles.length)},[roleSets,group.roles])
@@ -29,18 +29,36 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
  const openRole=role=>{const permissions={};grantsFor(role.id).forEach(g=>permissions[g.permission]=g.scope);setRoleEditor({...role,roleSetId:role.roleSetId||'',permissions})}
  const saveRole=async()=>{
    if(!roleEditor.name.trim())return
-   await run(async()=>{
+   setSaving(true)
+   const ok=await run(async()=>{
      let roleId=roleEditor.id
      if(roleId) await updateGroupRole(token,workspaceId,group.id,roleId,{name:roleEditor.name.trim(),description:roleEditor.description||null,roleSetId:roleEditor.roleSetId?Number(roleEditor.roleSetId):null})
-     else {const updated=await addGroupRole(token,workspaceId,group.id,{name:roleEditor.name.trim(),description:roleEditor.description||null,roleSetId:roleEditor.roleSetId?Number(roleEditor.roleSetId):null});roleId=updated.roles.find(r=>r.name===roleEditor.name.trim())?.id}
-     if(roleId){
-       const existing=grantsFor(roleId)
-       for(const grant of existing) if(!roleEditor.permissions[grant.permission]||roleEditor.permissions[grant.permission]!==grant.scope) await removeGroupPermission(token,workspaceId,group.id,grant.id)
-       for(const [permission,scope] of Object.entries(roleEditor.permissions)) if(scope&&!existing.some(g=>g.permission===permission&&g.scope===scope)) await addGroupPermission(token,workspaceId,group.id,roleId,{permission,scope})
+     else {
+       const updated=await addGroupRole(token,workspaceId,group.id,{name:roleEditor.name.trim(),description:roleEditor.description||null,roleSetId:roleEditor.roleSetId?Number(roleEditor.roleSetId):null})
+       roleId=updated.roles.find(r=>r.name===roleEditor.name.trim())?.id
+       if(!roleId) throw new Error('Не вдалося визначити ID створеної ролі')
      }
-   });setRoleEditor(null)
+     const existing=grantsFor(roleId)
+     for(const grant of existing){
+       if(!roleEditor.permissions[grant.permission]||roleEditor.permissions[grant.permission]!==grant.scope){
+         await removeGroupPermission(token,workspaceId,group.id,grant.id)
+       }
+     }
+     for(const [permission,scope] of Object.entries(roleEditor.permissions)){
+       if(scope&&!existing.some(g=>g.permission===permission&&g.scope===scope)){
+         await addGroupPermission(token,workspaceId,group.id,roleId,{permission,scope})
+       }
+     }
+   })
+   setSaving(false)
+   if(ok)setRoleEditor(null)
  }
- const saveMemberRoles=async()=>{await run(()=>updateGroupMemberRoles(token,workspaceId,group.id,memberRoleEditor.memberId,[...memberRoleEditor.roleIds]));setMemberRoleEditor(null)}
+ const saveMemberRoles=async()=>{
+   setSaving(true)
+   const ok=await run(()=>updateGroupMemberRoles(token,workspaceId,group.id,memberRoleEditor.memberId,[...memberRoleEditor.roleIds]))
+   setSaving(false)
+   if(ok)setMemberRoleEditor(null)
+ }
 
  return <div className="modal-backdrop"><div className="modal-card group-editor" role="dialog" aria-modal="true">
   <div className="group-editor-header"><h2>Редагування групи</h2><button type="button" className="group-editor-close-x" onClick={onClose}>×</button></div>
@@ -71,18 +89,20 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
 
   {roleEditor&&<div className="nested-modal-backdrop"><div className="nested-modal-card role-editor-modal">
     <div className="group-editor-header"><h3>{roleEditor.id?'Редагування ролі':'Нова роль'}</h3><button type="button" className="group-editor-close-x" onClick={()=>setRoleEditor(null)}>×</button></div>
+    {error&&<div className="page-error" style={{marginTop:'12px'}}>{error}</div>}
     <label className="form-field"><span>Назва</span><input value={roleEditor.name} onChange={e=>setRoleEditor({...roleEditor,name:e.target.value})}/></label>
     <label className="form-field"><span>Набір ролей</span><select value={roleEditor.roleSetId||''} onChange={e=>setRoleEditor({...roleEditor,roleSetId:e.target.value})}><option value="">Без набору</option>{roleSets.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
     <label className="form-field"><span>Опис</span><textarea value={roleEditor.description||''} onChange={e=>setRoleEditor({...roleEditor,description:e.target.value})}/></label>
     <h4>Права ролі</h4><div className="role-permissions">{permissionOptions.map(p=>{const scope=roleEditor.permissions[p];return <div className="role-permission-row" key={p}><label><input type="checkbox" checked={Boolean(scope)} onChange={e=>{const next={...roleEditor.permissions};e.target.checked?next[p]='GROUP':delete next[p];setRoleEditor({...roleEditor,permissions:next})}}/>{p}</label>{scope&&<select value={scope} onChange={e=>setRoleEditor({...roleEditor,permissions:{...roleEditor.permissions,[p]:e.target.value}})}><option value="GROUP">Ця група</option><option value="GROUP_SUBTREE">Група + підгрупи</option></select>}</div>})}</div>
-    <div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setRoleEditor(null)}>Скасувати</button><button type="button" className="add-member-button" disabled={!roleEditor.name.trim()} onClick={saveRole}>Зберегти</button></div>
+    <div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setRoleEditor(null)}>Скасувати</button><button type="button" className="add-member-button" disabled={saving||!roleEditor.name.trim()} onClick={saveRole}>{saving?'Збереження…':'Зберегти'}</button></div>
   </div></div>}
 
   {memberRoleEditor&&<div className="nested-modal-backdrop"><div className="nested-modal-card">
     <div className="group-editor-header"><h3>Ролі: {memberRoleEditor.memberName}</h3><button type="button" className="group-editor-close-x" onClick={()=>setMemberRoleEditor(null)}>×</button></div>
+    {error&&<div className="page-error" style={{marginTop:'12px'}}>{error}</div>}
     {groupedRoles.map(set=><div className="role-set-block" key={set.id}><div className="role-set-title">{set.name}</div>{set.roles.map(r=><label className="role-choice-row" key={r.id}><input type="checkbox" checked={memberRoleEditor.roleIds.has(r.id)} onChange={()=>{const ids=new Set(memberRoleEditor.roleIds);ids.has(r.id)?ids.delete(r.id):ids.add(r.id);setMemberRoleEditor({...memberRoleEditor,roleIds:ids})}}/><span>{r.name}</span></label>)}</div>)}
     {!group.roles.length&&<div className="role-muted">Спочатку створіть хоча б одну роль.</div>}
-    <div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setMemberRoleEditor(null)}>Скасувати</button><button type="button" className="add-member-button" onClick={saveMemberRoles}>Зберегти ролі</button></div>
+    <div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setMemberRoleEditor(null)}>Скасувати</button><button type="button" className="add-member-button" disabled={saving} onClick={saveMemberRoles}>{saving?'Збереження…':'Зберегти ролі'}</button></div>
   </div></div>}
  </div></div>
 }
