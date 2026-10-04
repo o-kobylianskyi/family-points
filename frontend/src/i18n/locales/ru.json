@@ -265,5 +265,27 @@
       "REVIEWER": "Проверяющий",
       "OBSERVER": "Наблюдатель"
     }
+  },
+  "rolePermissions": {
+    "title": "Права роли",
+    "scopes": {
+      "GROUP": "Эта группа",
+      "GROUP_SUBTREE": "Группа + подгруппы"
+    },
+    "permissions": {
+      "TASK_VIEW": "Просмотр заданий",
+      "TASK_CREATE": "Создание заданий",
+      "TASK_ASSIGN": "Назначение заданий",
+      "TASK_MANAGE": "Управление заданиями",
+      "TASK_APPROVE": "Подтверждение выполнения заданий",
+      "MEMBER_VIEW": "Просмотр участников",
+      "MEMBER_MANAGE": "Управление участниками",
+      "GROUP_VIEW": "Просмотр групп",
+      "GROUP_MANAGE": "Управление группой",
+      "POINT_VIEW": "Просмотр баллов",
+      "POINT_AWARD": "Начисление баллов",
+      "POINT_SPEND": "Списание баллов",
+      "SUBGROUP_MANAGE": "Управление подгруппами"
+    }
   }
 }
