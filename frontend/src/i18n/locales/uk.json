@@ -277,7 +277,8 @@
       "CONTROL": "Стандартні контрольні ролі"
     },
     "rolesInSet": "Ролі в наборі",
-    "roleNameRequired": "Вкажіть назву ролі"
+    "roleNameRequired": "Вкажіть назву ролі",
+    "addStandaloneRole": "Додати роль"
   },
   "rolePermissions": {
     "title": "Права ролі",
