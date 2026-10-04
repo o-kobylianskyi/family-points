@@ -226,5 +226,42 @@
   "roleMatchMode": {
     "ANY": "Eine der ausgewählten Rollen",
     "ALL": "Alle ausgewählten Rollen"
+  },
+  "roles": {
+    "title": "Rollen und Rollensätze",
+    "description": "Gemeinsamer Rollenkatalog des Workspace. Vordefinierte Rollen werden automatisch übersetzt; eigene gemeinsame Rollen können in verschiedenen Gruppen und Aufgaben verwendet werden.",
+    "addSet": "+ Rollensatz hinzufügen",
+    "addRole": "Rolle hinzufügen",
+    "systemBadge": "System",
+    "shared": "Gemeinsam",
+    "private": "Lokal",
+    "emptySet": "Dieser Rollensatz enthält noch keine Rollen.",
+    "withoutSet": "Ohne Rollensatz",
+    "editSet": "Rollensatz bearbeiten",
+    "newSet": "Neuer Rollensatz",
+    "editRole": "Rolle bearbeiten",
+    "newRole": "Neue Rolle",
+    "name": "Name",
+    "descriptionField": "Beschreibung",
+    "roleSet": "Rollensatz",
+    "visibility": "Sichtbarkeit",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "deleteSetConfirm": "Diesen Rollensatz löschen? Die Rollen bleiben ohne Rollensatz erhalten.",
+    "deleteRoleConfirm": "Diese Rolle löschen?",
+    "roleSets": {
+      "MANAGEMENT": "Leitung",
+      "EXECUTION": "Ausführung",
+      "CONTROL": "Kontrolle"
+    },
+    "system": {
+      "LEADER": "Leitung",
+      "DEPUTY": "Stellvertretung",
+      "SENIOR": "Senior",
+      "EXECUTOR": "Ausführende Person",
+      "ASSISTANT": "Assistenz",
+      "REVIEWER": "Prüfung",
+      "OBSERVER": "Beobachtung"
+    }
   }
 }
