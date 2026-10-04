@@ -7,7 +7,12 @@ import {
   getRoleSets, createRoleSet, updateRoleSet, deleteRoleSet,
 } from '../api/memberGroupApi'
 
-const permissionOptions=['TASK_VIEW','TASK_CREATE','TASK_ASSIGN','TASK_MANAGE','TASK_APPROVE','MEMBER_VIEW','MEMBER_MANAGE','GROUP_VIEW','GROUP_MANAGE','POINT_VIEW','POINT_AWARD','POINT_SPEND','SUBGROUP_MANAGE']
+const permissionGroups=[
+ {key:'tasks',permissions:['TASK_VIEW','TASK_CREATE','TASK_ASSIGN','TASK_MANAGE','TASK_APPROVE']},
+ {key:'members',permissions:['MEMBER_VIEW','MEMBER_MANAGE']},
+ {key:'groups',permissions:['GROUP_VIEW','GROUP_MANAGE','SUBGROUP_MANAGE']},
+ {key:'points',permissions:['POINT_VIEW','POINT_AWARD','POINT_SPEND']},
+]
 
 export default function GroupEditor({group,groups,members,token,workspaceId,onChanged,onClose}){
  const { t } = useTranslation()
@@ -129,7 +134,21 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
     <label className="form-field"><span>Назва</span><input value={roleEditor.name} onChange={e=>setRoleEditor({...roleEditor,name:e.target.value})}/></label>
     <label className="form-field"><span>Набір ролей</span><select value={roleEditor.roleSetId||''} onChange={e=>setRoleEditor({...roleEditor,roleSetId:e.target.value})}><option value="">Без набору</option>{roleSets.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
     <label className="form-field"><span>Опис</span><textarea value={roleEditor.description||''} onChange={e=>setRoleEditor({...roleEditor,description:e.target.value})}/></label>
-    <h4>{t('rolePermissions.title')}</h4><div className="role-permissions">{permissionOptions.map(p=>{const scope=roleEditor.permissions[p];return <div className="role-permission-row" key={p}><label><input type="checkbox" checked={Boolean(scope)} onChange={e=>{const next={...roleEditor.permissions};e.target.checked?next[p]='GROUP':delete next[p];setRoleEditor({...roleEditor,permissions:next})}}/><span>{t(`rolePermissions.permissions.${p}`,{defaultValue:p})}</span></label>{scope&&<select value={scope} onChange={e=>setRoleEditor({...roleEditor,permissions:{...roleEditor.permissions,[p]:e.target.value}})}><option value="GROUP">{t('rolePermissions.scopes.GROUP')}</option><option value="GROUP_SUBTREE">{t('rolePermissions.scopes.GROUP_SUBTREE')}</option></select>}</div>})}</div>
+    <h4>{t('rolePermissions.title')}</h4>
+    <div className="role-permission-groups">
+      {permissionGroups.map(group=><section className="role-permission-group" key={group.key}>
+        <h5>{t(`rolePermissions.groups.${group.key}`)}</h5>
+        <div className="role-permissions">
+          {group.permissions.map(p=>{const scope=roleEditor.permissions[p];return <div className="role-permission-row" key={p}>
+            <label className="role-permission-check">
+              <input type="checkbox" checked={Boolean(scope)} onChange={e=>{const next={...roleEditor.permissions};e.target.checked?next[p]='GROUP':delete next[p];setRoleEditor({...roleEditor,permissions:next})}}/>
+              <span>{t(`rolePermissions.permissions.${p}`,{defaultValue:p})}</span>
+            </label>
+            {scope&&<select value={scope} onChange={e=>setRoleEditor({...roleEditor,permissions:{...roleEditor.permissions,[p]:e.target.value}})}><option value="GROUP">{t('rolePermissions.scopes.GROUP')}</option><option value="GROUP_SUBTREE">{t('rolePermissions.scopes.GROUP_SUBTREE')}</option></select>}
+          </div>})}
+        </div>
+      </section>)}
+    </div>
     <div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setRoleEditor(null)}>Скасувати</button><button type="submit" className="add-member-button" disabled={saving}>{saving?'Збереження…':'Зберегти'}</button></div>
   </form></div>}
 
