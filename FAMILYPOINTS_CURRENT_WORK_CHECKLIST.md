@@ -174,11 +174,13 @@ Do not call this compile-/migration-tested until it is actually run.
 - [ ] Create Workspace tab/page **“Ролі та набори”**
 - [ ] List predefined/shared RoleSets
 - [ ] List RoleDefinitions grouped by RoleSet
-- [ ] Create/edit custom shared role where authorized
-- [ ] Show predefined role localization
-- [ ] Manage role descriptions
+- [ ] Create/edit custom SHARED RoleSet where authorized
+- [ ] Create/edit custom SHARED RoleDefinition where authorized
+- [ ] Show predefined roles translated to current interface language via stable systemCode
+- [ ] Manage role descriptions/localization metadata
 - [ ] Manage permission presets/grants where allowed
-- [ ] Clear distinction between system/default and custom roles
+- [ ] Clear distinction between system/default, shared custom and local PRIVATE roles
+- [ ] Prepare catalog to be seeded by Workspace/activity templates (Family/Office/Business/etc.)
 
 ## 4.2 Simplify GroupEditor
 
@@ -188,9 +190,12 @@ Target:
 
 - [ ] Remove global catalog administration from GroupEditor
 - [ ] Keep contextual role assignment only
-- [ ] Select/bind available RoleSets for group context
-- [ ] Assign available roles to members
+- [ ] Select/bind available shared RoleSets for group context
+- [ ] Assign available standard/shared roles to members
 - [ ] Allow local PRIVATE role creation where authorized
+- [ ] Local PRIVATE role remains visible only in owner context / explicitly allowed descendants
+- [ ] Local role creation cannot grant permissions outside creator delegation scope
+- [ ] Support scenario: create group → add available members → assign senior/leader → add group-specific custom role
 - [ ] Keep local permission configuration only where model explicitly permits it
 - [ ] Compact grouped multi-select by RoleSet
 - [ ] Avoid redundant `onChanged()+reloadAux` requests
@@ -346,7 +351,10 @@ Concept recovered and logged; implementation is later.
 
 ## Templates
 - [ ] WorkspaceTemplate foundation
-- [ ] declarative seed of roles/groups/work/economy
+- [ ] built-in activity templates such as Family / Office-Small Team / Business / Software Development / Household
+- [ ] declarative seed of RoleSets/RoleDefinitions/bindings
+- [ ] declarative seed of groups/work hierarchy/permissions/economy
+- [ ] predefined role localization through systemCode
 - [ ] full wizard later
 
 ---
