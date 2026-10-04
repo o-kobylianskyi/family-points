@@ -284,6 +284,12 @@
       "POINT_AWARD": "Award points",
       "POINT_SPEND": "Spend/deduct points",
       "SUBGROUP_MANAGE": "Manage subgroups"
+    },
+    "groups": {
+      "tasks": "Tasks",
+      "members": "Members",
+      "groups": "Groups",
+      "points": "Points"
     }
   }
 }
