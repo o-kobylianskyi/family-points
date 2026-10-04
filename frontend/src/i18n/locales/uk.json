@@ -151,7 +151,9 @@
       "administrators": "Адміністратори",
       "observers": "Спостерігачі",
       "executors": "Виконавці",
-      "authorHint": "Автором автоматично залишається користувач, який створив завдання."
+      "authorHint": "Автором автоматично залишається користувач, який створив завдання.",
+      "defaultTitleBase": "Завдання",
+      "duplicateTitle": "Завдання з назвою «{{title}}» уже існує."
     },
     "open": {
       "title": "Відкриті завдання",
@@ -313,7 +315,11 @@
       "LEADER": "Керівник групи",
       "CONTROL": "Контролер",
       "CUSTOM": "Власні налаштування"
-    }
+    },
+    "defaultLocalRoleName": "Локальна роль",
+    "modifiedSuffix": "(модифіковано)",
+    "duplicateRoleName": "Роль з назвою «{{name}}» уже існує в цій групі.",
+    "duplicatePermissionsWarning": "Ідентичні права вже має роль «{{name}}»."
   },
   "rolePermissions": {
     "title": "Права ролі",
