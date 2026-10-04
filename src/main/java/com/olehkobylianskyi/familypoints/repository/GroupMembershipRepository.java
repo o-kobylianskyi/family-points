@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface GroupMembershipRepository extends JpaRepository<GroupMembership, Long> {
     List<GroupMembership> findByMemberGroupIdAndActiveTrueOrderByIdAsc(Long memberGroupId);
+    List<GroupMembership> findByMemberGroupIdOrderByIdAsc(Long memberGroupId);
     Optional<GroupMembership> findByMemberGroupIdAndMemberId(Long memberGroupId, Long memberId);
     List<GroupMembership> findByMemberIdAndActiveTrue(Long memberId);
 }
