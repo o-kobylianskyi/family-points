@@ -5,7 +5,7 @@ import java.time.*;
 import java.util.List;
 
 public class TaskDefinitionResponse {
-    private final Long id, assignedMemberId, targetGroupId, preferredMemberId, responsibleMemberId, createdByMemberId;
+    private final Long id, assignedMemberId, targetGroupId, preferredMemberId, responsibleMemberId, createdByMemberId, parentTaskDefinitionId;
     private final String title, description, createdByMemberName;
     private final boolean mandatory, active, delegationAllowed;
     private final TaskRecurrenceType recurrenceType;
@@ -23,6 +23,9 @@ public class TaskDefinitionResponse {
     private TaskDefinitionResponse(TaskDefinition t) {
         id=t.getId(); assignedMemberId=id(t.getAssignedMember()); targetGroupId=id(t.getTargetGroup()); preferredMemberId=id(t.getPreferredMember());
         responsibleMemberId=id(t.getResponsibleMember()); createdByMemberId=id(t.getCreatedBy()); createdByMemberName=t.getCreatedBy()==null?null:t.getCreatedBy().getName();
+        parentTaskDefinitionId = t.getWorkNode() != null && t.getWorkNode().getParentNode() != null
+                && t.getWorkNode().getParentNode().getTaskDefinition() != null
+                ? t.getWorkNode().getParentNode().getTaskDefinition().getId() : null;
         title=t.getTitle(); description=t.getDescription(); mandatory=t.isMandatory(); active=t.isActive(); delegationAllowed=t.isDelegationAllowed();
         recurrenceType=t.getRecurrenceType(); assignmentPolicy=t.getAssignmentPolicy(); roleMatchMode=t.getRoleMatchMode();
         requiredGroupRoleIds=t.getRequiredGroupRoles().stream().map(GroupRole::getId).toList();
@@ -34,7 +37,7 @@ public class TaskDefinitionResponse {
     }
     private static Long id(Object x){ if(x==null)return null; if(x instanceof WorkspaceMember v)return v.getId(); if(x instanceof MemberGroup v)return v.getId(); if(x instanceof PointType v)return v.getId(); return null; }
     public static TaskDefinitionResponse from(TaskDefinition t){return new TaskDefinitionResponse(t);}
-    public Long getId(){return id;} public Long getAssignedMemberId(){return assignedMemberId;} public Long getTargetGroupId(){return targetGroupId;} public Long getPreferredMemberId(){return preferredMemberId;} public Long getResponsibleMemberId(){return responsibleMemberId;} public Long getCreatedByMemberId(){return createdByMemberId;}
+    public Long getId(){return id;} public Long getParentTaskDefinitionId(){return parentTaskDefinitionId;} public Long getAssignedMemberId(){return assignedMemberId;} public Long getTargetGroupId(){return targetGroupId;} public Long getPreferredMemberId(){return preferredMemberId;} public Long getResponsibleMemberId(){return responsibleMemberId;} public Long getCreatedByMemberId(){return createdByMemberId;}
     public String getTitle(){return title;} public String getCreatedByMemberName(){return createdByMemberName;} public String getDescription(){return description;} public boolean isMandatory(){return mandatory;} public boolean isActive(){return active;} public boolean isDelegationAllowed(){return delegationAllowed;}
     public TaskRecurrenceType getRecurrenceType(){return recurrenceType;} public AssignmentPolicy getAssignmentPolicy(){return assignmentPolicy;} public RoleMatchMode getRoleMatchMode(){return roleMatchMode;} public List<Long> getRequiredGroupRoleIds(){return requiredGroupRoleIds;}
     public LocalDate getStartDate(){return startDate;} public LocalDate getEndDate(){return endDate;} public Integer getRecurrenceDayOfWeek(){return recurrenceDayOfWeek;} public Integer getRecurrenceDayOfMonth(){return recurrenceDayOfMonth;} public LocalDateTime getCreatedAt(){return createdAt;} public LocalDateTime getUpdatedAt(){return updatedAt;} public LocalTime getDueTime(){return dueTime;}
