@@ -157,8 +157,10 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
       <button type="button" className="group-editor-close-x" onClick={()=>{setShowSetManager(false);setShowNewSetForm(false);setEditingSet(null)}}>×</button>
     </div>
 
-    {!showNewSetForm
-      ? <button type="button" className="primary-button role-set-add-main" onClick={()=>setShowNewSetForm(true)}>+ {t('roles.addSet')}</button>
+    <div className="role-set-manager-primary-actions">
+      <button type="button" className="primary-button" onClick={()=>openNewCatalogRole(null)}>+ {t('roles.addStandaloneRole')}</button>
+      {!showNewSetForm
+        ? <button type="button" className="secondary-button" onClick={()=>setShowNewSetForm(true)}>+ {t('roles.addSet')}</button>
       : <div className="role-set-create role-set-create-expanded">
           <input placeholder={t('roles.setNamePlaceholder')} value={newSet.name} onChange={e=>setNewSet({...newSet,name:e.target.value})}/>
           <input placeholder={t('roles.setDescriptionPlaceholder')} value={newSet.description} onChange={e=>setNewSet({...newSet,description:e.target.value})}/>
@@ -167,6 +169,7 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
             <button type="button" className="primary-button" disabled={!newSet.name.trim()} onClick={()=>run(async()=>{await createRoleSet(token,workspaceId,{name:newSet.name.trim(),description:newSet.description||null});setNewSet({name:'',description:''});setShowNewSetForm(false)})}>{t('roles.createSet')}</button>
           </div>
         </div>}
+    </div>
 
     <div className="role-set-manager-list">
       {roleSets.map(s=>{
@@ -224,6 +227,12 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
     </div>
     {error&&<div className="page-error" style={{marginTop:'12px'}}>{error}</div>}
     <label className="form-field"><span>{t('roles.name')}</span><input value={catalogRoleEditor.name||''} onChange={e=>setCatalogRoleEditor({...catalogRoleEditor,name:e.target.value})}/></label>
+    <label className="form-field"><span>{t('roles.roleSet')}</span>
+      <select value={catalogRoleEditor.roleSetId||''} onChange={e=>setCatalogRoleEditor({...catalogRoleEditor,roleSetId:e.target.value?Number(e.target.value):null})}>
+        <option value="">{t('roles.withoutSet')}</option>
+        {roleSets.map(s=><option key={s.id} value={s.id}>{roleSetDisplayName(s)}</option>)}
+      </select>
+    </label>
     <label className="form-field"><span>{t('roles.descriptionField')}</span><textarea value={catalogRoleEditor.description||''} onChange={e=>setCatalogRoleEditor({...catalogRoleEditor,description:e.target.value})}/></label>
     <div className="modal-actions">
       <button type="button" className="secondary-button" onClick={()=>setCatalogRoleEditor(null)}>{t('common.cancel')}</button>
