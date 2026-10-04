@@ -79,22 +79,39 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
 
  return <div className="modal-backdrop"><div className="modal-card group-editor" role="dialog" aria-modal="true">
   <div className="group-editor-header"><h2>Редагування групи</h2><button type="button" className="group-editor-close-x" onClick={onClose}>×</button></div>
-  {error&&<div className="page-error">{error}</div>}
-  <label className="form-field"><span>Назва</span><input value={name} onChange={e=>setName(e.target.value)}/></label>
-  <label className="form-field"><span>Опис</span><textarea value={description} onChange={e=>setDescription(e.target.value)}/></label>
-  <label className="group-navigation-toggle"><input type="checkbox" checked={showInNavigation} onChange={e=>setShowInNavigation(e.target.checked)}/><span>Показувати в навігації</span></label>
+  <div className="group-editor-scroll">
+    {error&&<div className="page-error group-editor-error">{error}</div>}
+    <div className="group-editor-grid">
+      <section className="group-editor-panel">
+        <h3>Основні дані</h3>
+        <label className="form-field"><span>Назва</span><input value={name} onChange={e=>setName(e.target.value)}/></label>
+        <label className="form-field"><span>Опис</span><textarea value={description} onChange={e=>setDescription(e.target.value)}/></label>
+        <label className="group-navigation-toggle"><input type="checkbox" checked={showInNavigation} onChange={e=>setShowInNavigation(e.target.checked)}/><span>Показувати в навігації</span></label>
+      </section>
 
-  <div className="role-section-heading"><h3>Особи та їх ролі</h3></div>
-  <div className="group-edit-row"><select value={memberId} onChange={e=>setMemberId(e.target.value)}><option value="">Оберіть особу…</option>{availableMembers.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select><button type="button" disabled={!memberId} onClick={()=>run(async()=>{await addGroupMember(token,workspaceId,group.id,{memberId:Number(memberId),roleIds:[]});setMemberId('')})}>Додати</button></div>
-  {group.members.map(m=><div className="role-member-card" key={m.memberId}><div className="group-edit-item"><strong>{m.memberName}</strong><span className="group-edit-actions"><button type="button" onClick={()=>setMemberRoleEditor({memberId:m.memberId,memberName:m.memberName,roleIds:new Set(m.roleIds||[])})}>Вибрати ролі</button><button type="button" onClick={()=>run(()=>removeGroupMember(token,workspaceId,group.id,m.memberId))}>×</button></span></div><div className="role-chip-list">{(m.roleIds||[]).length?(m.roleIds||[]).map(id=><span className="role-chip" key={id}>{roleName(id)}</span>):<span className="role-muted">Ролі не призначені</span>}</div></div>)}
+      <section className="group-editor-panel">
+        <div className="role-section-heading"><h3>Особи та їх ролі</h3></div>
+        <div className="group-edit-row"><select value={memberId} onChange={e=>setMemberId(e.target.value)}><option value="">Оберіть особу…</option>{availableMembers.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select><button type="button" disabled={!memberId} onClick={()=>run(async()=>{await addGroupMember(token,workspaceId,group.id,{memberId:Number(memberId),roleIds:[]});setMemberId('')})}>Додати</button></div>
+        <div className="group-editor-list">
+          {group.members.map(m=><div className="role-member-card" key={m.memberId}><div className="group-edit-item"><strong>{m.memberName}</strong><span className="group-edit-actions"><button type="button" onClick={()=>setMemberRoleEditor({memberId:m.memberId,memberName:m.memberName,roleIds:new Set(m.roleIds||[])})}>Вибрати ролі</button><button type="button" onClick={()=>run(()=>removeGroupMember(token,workspaceId,group.id,m.memberId))}>×</button></span></div><div className="role-chip-list">{(m.roleIds||[]).length?(m.roleIds||[]).map(id=><span className="role-chip" key={id}>{roleName(id)}</span>):<span className="role-muted">Ролі не призначені</span>}</div></div>)}
+        </div>
+      </section>
 
-  <h3>Підгрупи</h3>
-  <div className="group-edit-row"><select value={childId} onChange={e=>setChildId(e.target.value)}><option value="">Оберіть групу…</option>{availableGroups.map(g=><option key={g.id} value={g.id}>{g.name}</option>)}</select><button type="button" disabled={!childId} onClick={()=>run(async()=>{await addChildGroup(token,workspaceId,group.id,Number(childId));setChildId('')})}>Додати</button></div>
-  {group.childGroups.map(c=><div className="group-edit-item" key={c.groupId}><span>↳ {c.groupName}</span><button type="button" onClick={()=>run(()=>removeChildGroup(token,workspaceId,group.id,c.groupId))}>×</button></div>)}
+      <section className="group-editor-panel">
+        <h3>Підгрупи</h3>
+        <div className="group-edit-row"><select value={childId} onChange={e=>setChildId(e.target.value)}><option value="">Оберіть групу…</option>{availableGroups.map(g=><option key={g.id} value={g.id}>{g.name}</option>)}</select><button type="button" disabled={!childId} onClick={()=>run(async()=>{await addChildGroup(token,workspaceId,group.id,Number(childId));setChildId('')})}>Додати</button></div>
+        <div className="group-editor-list">
+          {group.childGroups.map(c=><div className="group-edit-item" key={c.groupId}><span>↳ {c.groupName}</span><button type="button" onClick={()=>run(()=>removeChildGroup(token,workspaceId,group.id,c.groupId))}>×</button></div>)}
+        </div>
 
-  <div className="role-section-heading"><h3>Ролі</h3><button type="button" onClick={()=>setShowSetManager(true)}>Керування наборами</button></div>
-  {groupedRoles.length?groupedRoles.map(set=><div className="role-set-block" key={set.id}><div className="role-set-title">{set.name}</div>{set.roles.map(r=><button type="button" className="role-list-row" key={r.id} onClick={()=>openRole(r)}><span><strong>{r.name}</strong>{r.description&&<small>{r.description}</small>}</span><span>Редагувати ›</span></button>)}</div>):<div className="role-muted">У цій групі ще немає ролей.</div>}
-  <button type="button" className="secondary-button role-add-button" onClick={openNewRole}>+ Додати роль</button>
+        <div className="role-section-heading"><h3>Ролі</h3><button type="button" onClick={()=>setShowSetManager(true)}>Керування наборами</button></div>
+        <div className="group-editor-list">
+          {groupedRoles.length?groupedRoles.map(set=><div className="role-set-block" key={set.id}><div className="role-set-title">{set.name}</div>{set.roles.map(r=><button type="button" className="role-list-row" key={r.id} onClick={()=>openRole(r)}><span><strong>{r.name}</strong>{r.description&&<small>{r.description}</small>}</span><span>Редагувати ›</span></button>)}</div>):<div className="role-muted">У цій групі ще немає ролей.</div>}
+        </div>
+        <button type="button" className="secondary-button role-add-button" onClick={openNewRole}>+ Додати роль</button>
+      </section>
+    </div>
+  </div>
 
   <div className="modal-actions group-editor-actions"><button type="button" className="secondary-button" onClick={onClose}>Скасувати</button><button type="button" className="add-member-button" onClick={saveMain} disabled={saving||!name.trim()}>{saving?'Збереження…':'Зберегти'}</button></div>
 
