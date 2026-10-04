@@ -3,6 +3,7 @@ package com.olehkobylianskyi.familypoints.service;
 import com.olehkobylianskyi.familypoints.entity.*;
 import com.olehkobylianskyi.familypoints.repository.GroupCompositionRepository;
 import com.olehkobylianskyi.familypoints.repository.GroupMembershipRepository;
+import com.olehkobylianskyi.familypoints.repository.GroupPermissionGrantRepository;
 import com.olehkobylianskyi.familypoints.repository.TaskParticipantRepository;
 import com.olehkobylianskyi.familypoints.security.CurrentUserService;
 import org.springframework.security.access.AccessDeniedException;
