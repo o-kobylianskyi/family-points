@@ -134,7 +134,10 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
   )
 
   const grantsFor = id => permissionGrants.filter(g => g.roleId === id)
-  const roleName = id => group.roles.find(r => r.id === id)?.name || `#${id}`
+  const roleDisplayName = role => role?.systemCode
+    ? t(`roles.system.${role.systemCode}`, { defaultValue: role.name })
+    : role?.name
+  const roleName = id => roleDisplayName(group.roles.find(r => r.id === id)) || `#${id}`
 
   const permissionsForRole = roleId => {
     const permissions = {}
@@ -423,28 +426,40 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
 
             <div className="role-section-heading">
               <div>
-                <h3>{t('roles.localRoles')}</h3>
-                <small className="role-muted">{t('roles.localRolesHint')}</small>
+                <h3>{t('roles.availableRoles')}</h3>
+                <small className="role-muted">{t('roles.availableRolesHint')}</small>
               </div>
             </div>
 
             <div className="group-editor-list">
               {group.roles.length
-                ? group.roles.map(role => <div className="role-list-row role-list-row-static" key={role.id}>
-                    <span>
-                      <strong>{role.name}</strong>
-                      {role.description && <small>{role.description}</small>}
-                    </span>
-                    <span className="group-edit-actions">
-                      <button type="button" onClick={() => openRole(role)}>{t('common.edit')}</button>
-                      <button type="button" className="danger-link" onClick={() => removeRole(role)}>{t('roles.delete')}</button>
-                    </span>
-                  </div>)
-                : <div className="role-muted">{t('roles.noLocalRoles')}</div>}
+                ? group.roles.map(role => {
+                    const isCustomLocal = role.visibility === 'PRIVATE' && !role.systemDefault
+                    return <div className="role-list-row role-list-row-static" key={role.id}>
+                      <span>
+                        <strong>{roleDisplayName(role)}</strong>
+                        <small>
+                          {role.systemDefault
+                            ? t('roles.predefinedRole')
+                            : isCustomLocal
+                              ? t('roles.customGroupRole')
+                              : t('roles.sharedRole')}
+                        </small>
+                        {role.description && !role.systemDefault && <small>{role.description}</small>}
+                      </span>
+                      {isCustomLocal
+                        ? <span className="group-edit-actions">
+                            <button type="button" onClick={() => openRole(role)}>{t('common.edit')}</button>
+                            <button type="button" className="danger-link" onClick={() => removeRole(role)}>{t('roles.delete')}</button>
+                          </span>
+                        : <span className="role-system-badge">{t('roles.readyToAssign')}</span>}
+                    </div>
+                  })
+                : <div className="role-muted">{t('roles.noAvailableRoles')}</div>}
             </div>
 
             <button type="button" className="secondary-button role-add-button" onClick={openNewRole}>
-              + {t('roles.addLocalRole')}
+              + {t('roles.createCustomRole')}
             </button>
           </section>
         </div>
@@ -557,7 +572,7 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
                 setMemberRoleEditor({ ...memberRoleEditor, roleIds: ids })
               }}
             />
-            <span>{role.name}</span>
+            <span>{roleDisplayName(role)}</span>
           </label>)}
 
           {!group.roles.length && <div className="role-muted">{t('roles.createLocalRoleFirst')}</div>}
