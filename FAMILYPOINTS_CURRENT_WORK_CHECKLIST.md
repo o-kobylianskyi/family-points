@@ -79,17 +79,18 @@ Do not call this compile-/migration-tested until it is actually run.
 
 ## 2.2 Legacy data migration
 
-- [ ] Define mapping from existing `GroupRole` to new `RoleDefinition`
-- [ ] Preserve existing role names/descriptions
-- [ ] Preserve existing role-set membership
-- [ ] Preserve existing member-role assignments
+- [x] Define mapping from existing `GroupRole` to new `RoleDefinition` via `legacy_group_role_id`
+- [x] Preserve existing role names/descriptions in V8 bridge migration
+- [x] Preserve existing role-set membership in V8 bridge migration
+- [x] Preserve existing member-role assignments in V8 bridge migration
 - [ ] Preserve existing permission grants
 - [ ] Decide which migrated roles become:
   - [ ] PRIVATE
   - [ ] SHARED
-- [ ] Define owner context for migrated group-local roles
-- [ ] Create migration/bridge without deleting legacy tables yet
-- [ ] Smoke-test migrated real data
+- [x] Define owner context for migrated group-local roles as PRIVATE + MEMBER_GROUP
+- [x] Create V8 migration bridge without deleting legacy tables
+- [x] Add temporary dual-write bridge for legacy GroupRole/member-role edits
+- [ ] Smoke-test V8 + dual-write against current real DB
 - [ ] Remove legacy only in a later separate migration
 
 ## 2.3 Role catalog service/API
