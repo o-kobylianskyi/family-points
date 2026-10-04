@@ -83,7 +83,7 @@ Do not call this compile-/migration-tested until it is actually run.
 - [x] Preserve existing role names/descriptions in V8 bridge migration
 - [x] Preserve existing role-set membership in V8 bridge migration
 - [x] Preserve existing member-role assignments in V8 bridge migration
-- [ ] Preserve existing permission grants
+- [x] Preserve existing permission grants via V9 bridge migration
 - [ ] Decide which migrated roles become:
   - [ ] PRIVATE
   - [ ] SHARED
@@ -144,7 +144,10 @@ Do not call this compile-/migration-tested until it is actually run.
 
 ## 3.1 Functional role vs security permission
 
-- [ ] Decide/finalize how `RolePermissionGrant` targets new RoleDefinition
+- [x] Add `RolePermissionGrant` targeting new RoleDefinition
+- [x] Add `RolePermissionScope = CURRENT | SUBTREE`
+- [x] Add temporary dual-write for legacy GroupPermissionGrant create/delete
+- [ ] Smoke-test V9 + permission dual-write against current real DB
 - [ ] Do not automatically grant permissions just because a custom functional role exists
 - [ ] Keep explicit grants/presets
 - [ ] Preserve workspace-global permissions separately
