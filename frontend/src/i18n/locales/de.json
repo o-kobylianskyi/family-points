@@ -263,5 +263,27 @@
       "REVIEWER": "Prüfung",
       "OBSERVER": "Beobachtung"
     }
+  },
+  "rolePermissions": {
+    "title": "Rollenrechte",
+    "scopes": {
+      "GROUP": "Diese Gruppe",
+      "GROUP_SUBTREE": "Gruppe + Untergruppen"
+    },
+    "permissions": {
+      "TASK_VIEW": "Aufgaben anzeigen",
+      "TASK_CREATE": "Aufgaben erstellen",
+      "TASK_ASSIGN": "Aufgaben zuweisen",
+      "TASK_MANAGE": "Aufgaben verwalten",
+      "TASK_APPROVE": "Aufgabenerledigung bestätigen",
+      "MEMBER_VIEW": "Mitglieder anzeigen",
+      "MEMBER_MANAGE": "Mitglieder verwalten",
+      "GROUP_VIEW": "Gruppen anzeigen",
+      "GROUP_MANAGE": "Gruppe verwalten",
+      "POINT_VIEW": "Punkte anzeigen",
+      "POINT_AWARD": "Punkte vergeben",
+      "POINT_SPEND": "Punkte abbuchen",
+      "SUBGROUP_MANAGE": "Untergruppen verwalten"
+    }
   }
 }
