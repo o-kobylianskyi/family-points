@@ -384,3 +384,14 @@ Before each substantial implementation batch:
 - check `FAMILYPOINTS_CONCEPT_CHECKLIST.md`;
 - do not implement a `RECOVER` item by guessing;
 - update this checklist as items become verified/implemented.
+
+
+## Automatic naming / duplicate UX
+- [x] Auto-name new local roles from permission profile
+- [x] Append numeric suffix for generated role-name collisions
+- [x] Use “modified” suffix when advanced permissions diverge from the base profile
+- [x] Stop auto-renaming after manual role-name edit
+- [x] Reject duplicate local role names within the group
+- [x] Warn when another local role has identical permission+scope set
+- [x] Auto-name new tasks with localized “Task/Завдання + first free number”
+- [x] Reject duplicate task titles in the current task catalog
