@@ -9,4 +9,5 @@ public interface GroupRoleRepository extends JpaRepository<GroupRole, Long> {
     List<GroupRole> findByMemberGroupIdOrderByNameAsc(Long memberGroupId);
     Optional<GroupRole> findByIdAndMemberGroupId(Long id, Long memberGroupId);
     boolean existsByMemberGroupIdAndNameIgnoreCase(Long memberGroupId, String name);
+    List<GroupRole> findByRoleSetIdOrderByNameAsc(Long roleSetId);
 }
