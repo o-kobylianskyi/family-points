@@ -18,17 +18,20 @@ public class TaskAuthorizationService {
     private final TaskParticipantRepository taskParticipantRepository;
     private final GroupMembershipRepository groupMembershipRepository;
     private final GroupCompositionRepository groupCompositionRepository;
+    private final GroupPermissionGrantRepository groupPermissionGrantRepository;
 
     public TaskAuthorizationService(
             CurrentUserService currentUserService,
             TaskParticipantRepository taskParticipantRepository,
             GroupMembershipRepository groupMembershipRepository,
-            GroupCompositionRepository groupCompositionRepository
+            GroupCompositionRepository groupCompositionRepository,
+            GroupPermissionGrantRepository groupPermissionGrantRepository
     ) {
         this.currentUserService = currentUserService;
         this.taskParticipantRepository = taskParticipantRepository;
         this.groupMembershipRepository = groupMembershipRepository;
         this.groupCompositionRepository = groupCompositionRepository;
+        this.groupPermissionGrantRepository = groupPermissionGrantRepository;
     }
 
     public WorkspaceMember currentMember() {
@@ -59,6 +62,7 @@ public class TaskAuthorizationService {
         if (matchesParticipant(definition.getId(), TaskParticipantRole.ADMIN, me.getId())) return true;
         if (matchesParticipant(definition.getId(), TaskParticipantRole.OBSERVER, me.getId())) return true;
         if (matchesParticipant(definition.getId(), TaskParticipantRole.EXECUTOR, me.getId())) return true;
+        if (hasScopedTaskPermission(definition, me, GroupPermission.TASK_VIEW)) return true;
         return isEligible(definition, me);
     }
 
@@ -72,7 +76,8 @@ public class TaskAuthorizationService {
         if (me.hasPermission(WorkspacePermission.MANAGE_TASKS)
                 || me.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) return true;
         return isAuthor(definition, me)
-                || matchesParticipant(definition.getId(), TaskParticipantRole.ADMIN, me.getId());
+                || matchesParticipant(definition.getId(), TaskParticipantRole.ADMIN, me.getId())
+                || hasScopedTaskPermission(definition, me, GroupPermission.TASK_MANAGE);
     }
 
     public void requireManage(TaskDefinition definition) {
@@ -144,6 +149,36 @@ public class TaskAuthorizationService {
             if (participant.getActorType() == ActorType.MEMBER && participant.getActorId().equals(memberId)) return true;
             if (participant.getActorType() == ActorType.GROUP
                     && memberMatchesGroup(participant.getActorId(), memberId, Set.of(), RoleMatchMode.ANY, new HashSet<>())) return true;
+        }
+        return false;
+    }
+
+    private boolean hasScopedTaskPermission(TaskDefinition definition, WorkspaceMember member, GroupPermission permission) {
+        MemberGroup target = definition.getTargetGroup();
+        if (target == null || !target.isEffectiveOn(java.time.LocalDate.now())) return false;
+
+        for (GroupMembership membership : groupMembershipRepository.findByMemberIdAndActiveTrue(member.getId())) {
+            MemberGroup authorityGroup = membership.getMemberGroup();
+            if (!authorityGroup.isEffectiveOn(java.time.LocalDate.now())) continue;
+
+            for (GroupRole role : membership.getRoles()) {
+                for (GroupPermissionGrant grant : groupPermissionGrantRepository.findByGroupRoleIdAndPermission(role.getId(), permission)) {
+                    if (!grant.getMemberGroup().getId().equals(authorityGroup.getId())) continue;
+                    if (grant.getScope() == GroupPermissionScope.GROUP
+                            && authorityGroup.getId().equals(target.getId())) return true;
+                    if (grant.getScope() == GroupPermissionScope.GROUP_SUBTREE
+                            && groupContains(authorityGroup.getId(), target.getId(), new HashSet<>())) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean groupContains(Long rootGroupId, Long targetGroupId, Set<Long> visited) {
+        if (rootGroupId.equals(targetGroupId)) return true;
+        if (!visited.add(rootGroupId)) return false;
+        for (GroupComposition composition : groupCompositionRepository.findByParentGroupIdAndActiveTrueOrderByIdAsc(rootGroupId)) {
+            if (groupContains(composition.getChildGroup().getId(), targetGroupId, visited)) return true;
         }
         return false;
     }
