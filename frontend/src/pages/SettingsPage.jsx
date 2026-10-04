@@ -18,6 +18,8 @@ function SettingsPage() {
   const [own, setOwn] = useState({ currentPassword: '', newPassword: '', confirm: '' })
 
   const canManage = currentUser?.permissions?.includes('MANAGE_MEMBERS')
+  const canManageRoles = currentUser?.permissions?.includes('MANAGE_ROLES')
+    || currentUser?.permissions?.includes('ADMIN_OVERRIDE')
   const accountByMember = useMemo(() => new Map(accounts.map(a => [a.workspaceMemberId, a])), [accounts])
 
   async function load() {
@@ -160,7 +162,7 @@ function SettingsPage() {
       </form>
     </section>
 
-    {canManage && <RoleCatalogSettings token={getAccessToken()} workspaceId={currentUser.workspaceId} canManage={canManage} />}
+    <RoleCatalogSettings token={getAccessToken()} workspaceId={currentUser.workspaceId} canManage={canManageRoles} />
 
     {canManage && <section className="settings-section">
       <h2>{t('settings.accounts.title')}</h2><p>{t('settings.accounts.description')}</p>
