@@ -23,6 +23,7 @@ public final class DefaultWorkspaceRoles {
                 WorkspacePermission.VIEW_WORKSPACE,
                 WorkspacePermission.MANAGE_WORKSPACE,
                 WorkspacePermission.MANAGE_MEMBERS,
+                WorkspacePermission.MANAGE_ROLES,
 
                 WorkspacePermission.VIEW_OWN_POINTS,
                 WorkspacePermission.VIEW_ALL_POINTS,
