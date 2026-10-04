@@ -264,6 +264,17 @@
       "ASSISTANT": "Помічник",
       "REVIEWER": "Перевіряючий",
       "OBSERVER": "Спостерігач"
+    },
+    "managerTitle": "Набори ролей",
+    "managerDescription": "Системні набори доступні для використання, але не редагуються. Власні набори можна створювати, змінювати та використовувати в групах і завданнях.",
+    "setNamePlaceholder": "Назва набору",
+    "setDescriptionPlaceholder": "Опис (необов'язково)",
+    "createSet": "Створити набір",
+    "noDescription": "Без опису",
+    "roleSetDescriptions": {
+      "MANAGEMENT": "Стандартні керівні ролі",
+      "EXECUTION": "Стандартні виконавчі ролі",
+      "CONTROL": "Стандартні контрольні ролі"
     }
   },
   "rolePermissions": {
