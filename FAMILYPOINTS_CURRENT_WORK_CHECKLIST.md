@@ -398,11 +398,15 @@ Before each substantial implementation batch:
 
 
 ## Global-role assignment correction
-- [ ] Stop creating/using legacy GroupRole copies for predefined roles
-- [ ] Expose shared Workspace RoleDefinitions as automatically available in every new group
-- [ ] Use RoleAssignment for member ↔ global role ↔ group context
-- [ ] Keep RoleSetBinding as availability/reference only; never clone roles
-- [ ] Create PRIVATE RoleDefinition only for genuinely custom group roles
-- [ ] Update GroupEditor role picker to show global predefined roles by default
-- [ ] Rename “Add local role” UX to “Create custom role”
-- [ ] Migrate existing legacy GroupRole member assignments to direct RoleAssignment usage
+- [x] Stop creating/using legacy GroupRole copies for new predefined-role usage
+- [x] Expose shared Workspace RoleDefinitions as automatically available in every group
+- [x] Use RoleAssignment for member ↔ global role ↔ group context
+- [x] Keep RoleSetBinding/reference semantics; do not clone RoleDefinitions into groups
+- [x] Create PRIVATE RoleDefinition only for genuinely custom group roles
+- [x] Update GroupEditor role picker to show global predefined roles by default
+- [x] Rename normal UX to “Create custom role”
+- [x] Reuse V8-migrated legacy assignments and switch current group response to RoleAssignment
+- [x] Switch task required-role eligibility to RoleDefinition
+- [x] Switch scoped task authorization to RoleAssignment + RolePermissionGrant
+- [x] Add V11 migration for task-role bridge + system role permission presets
+- [ ] Smoke-test V11 migration and group/task flows locally
