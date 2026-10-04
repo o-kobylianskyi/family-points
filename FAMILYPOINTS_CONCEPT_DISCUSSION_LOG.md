@@ -1225,3 +1225,40 @@ create group → add members → create/choose role → assign role.
 **STATUS**
 
 This is considered sufficient for the current development stage. Further role refinements should be driven by real usage rather than additional speculative complexity.
+
+
+---
+
+## 27. Automatic naming and duplicate detection
+
+### 2026-10-04 — UX naming convention
+
+**AGREED**
+
+For newly created local roles, the UI should propose a meaningful name automatically from the selected permission profile.
+
+Examples:
+
+- SENIOR → localized “Старший” / equivalent current UI language;
+- LEADER → localized “Керівник групи”;
+- if the same generated name already exists, append the first free numeric suffix: `Старший 2`, `Старший 3`, etc.;
+- when advanced permissions diverge from the selected profile and the user has not manually renamed the role, propose `<profile> (модифіковано)` with numeric suffix if needed;
+- once the user manually edits the name, automatic naming must stop overwriting it.
+
+**AGREED**
+
+Duplicate role names in the same group are rejected case-insensitively when entered manually.
+
+**AGREED**
+
+If another local role already has an identical effective permission + scope set, show a warning naming that role. This warning does not block save, because two semantically different roles may intentionally share the same permissions.
+
+**AGREED**
+
+New task definitions receive an automatic localized name using the first free number:
+
+- `Завдання 1`
+- `Завдання 2`
+- etc.
+
+Manual task titles remain allowed. A manually entered title identical to another existing TaskDefinition title is rejected.
