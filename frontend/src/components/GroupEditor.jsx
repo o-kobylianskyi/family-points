@@ -7,6 +7,9 @@ import {
   addChildGroup,
   removeChildGroup,
   addGroupRole,
+  getGroupPermissions,
+  addGroupPermission,
+  removeGroupPermission,
 } from '../api/memberGroupApi'
 
 export default function GroupEditor({
@@ -27,8 +30,24 @@ export default function GroupEditor({
   const [memberId, setMemberId] = useState('')
   const [childId, setChildId] = useState('')
   const [roleName, setRoleName] = useState('')
+  const [permissionGrants, setPermissionGrants] = useState([])
+  const [permissionRoleId, setPermissionRoleId] = useState('')
+  const [permission, setPermission] = useState('TASK_VIEW')
+  const [permissionScope, setPermissionScope] = useState('GROUP')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    getGroupPermissions(token, workspaceId, group.id)
+      .then(setPermissionGrants)
+      .catch((e) => setError(e.message))
+  }, [token, workspaceId, group.id])
+
+  const permissionOptions = [
+    'TASK_VIEW', 'TASK_CREATE', 'TASK_ASSIGN', 'TASK_MANAGE', 'TASK_APPROVE',
+    'MEMBER_VIEW', 'MEMBER_MANAGE', 'GROUP_VIEW', 'GROUP_MANAGE',
+    'POINT_VIEW', 'POINT_AWARD', 'POINT_SPEND', 'SUBGROUP_MANAGE',
+  ]
 
   const availableMembers = useMemo(
     () =>
@@ -368,6 +387,49 @@ export default function GroupEditor({
             </span>
           ))}
         </div>
+
+        <h3>Права ролей</h3>
+
+        {group.roles.length === 0 ? (
+          <div className="task-details-muted">Спочатку створіть роль.</div>
+        ) : (
+          <>
+            <div className="group-edit-row">
+              <select value={permissionRoleId} onChange={(event) => setPermissionRoleId(event.target.value)}>
+                <option value="">Оберіть роль…</option>
+                {group.roles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
+              </select>
+              <select value={permission} onChange={(event) => setPermission(event.target.value)}>
+                {permissionOptions.map((item) => <option key={item} value={item}>{item}</option>)}
+              </select>
+              <select value={permissionScope} onChange={(event) => setPermissionScope(event.target.value)}>
+                <option value="GROUP">Тільки ця група</option>
+                <option value="GROUP_SUBTREE">Група + підгрупи</option>
+              </select>
+              <button type="button" disabled={!permissionRoleId} onClick={() =>
+                run(async () => {
+                  await addGroupPermission(token, workspaceId, group.id, Number(permissionRoleId), { permission, scope: permissionScope })
+                  setPermissionGrants(await getGroupPermissions(token, workspaceId, group.id))
+                })
+              }>Додати право</button>
+            </div>
+
+            {permissionGrants.map((grant) => {
+              const role = group.roles.find((item) => item.id === grant.roleId)
+              return (
+                <div className="group-edit-item" key={grant.id}>
+                  <span><strong>{role?.name || '#' + grant.roleId}</strong> · {grant.permission} · {grant.scope === 'GROUP_SUBTREE' ? 'група + підгрупи' : 'тільки група'}</span>
+                  <button type="button" title="Видалити право" onClick={() =>
+                    run(async () => {
+                      await removeGroupPermission(token, workspaceId, group.id, grant.id)
+                      setPermissionGrants(await getGroupPermissions(token, workspaceId, group.id))
+                    })
+                  }>×</button>
+                </div>
+              )
+            })}
+          </>
+        )}
 
         <div className="modal-actions group-editor-actions">
           <button
