@@ -23,9 +23,7 @@ public class TaskDefinitionResponse {
     private TaskDefinitionResponse(TaskDefinition t) {
         id=t.getId(); assignedMemberId=id(t.getAssignedMember()); targetGroupId=id(t.getTargetGroup()); preferredMemberId=id(t.getPreferredMember());
         responsibleMemberId=id(t.getResponsibleMember()); createdByMemberId=id(t.getCreatedBy()); createdByMemberName=t.getCreatedBy()==null?null:t.getCreatedBy().getName();
-        parentTaskDefinitionId = t.getWorkNode() != null && t.getWorkNode().getParentNode() != null
-                && t.getWorkNode().getParentNode().getTaskDefinition() != null
-                ? t.getWorkNode().getParentNode().getTaskDefinition().getId() : null;
+        parentTaskDefinitionId = null;
         title=t.getTitle(); description=t.getDescription(); mandatory=t.isMandatory(); active=t.isActive(); delegationAllowed=t.isDelegationAllowed();
         recurrenceType=t.getRecurrenceType(); assignmentPolicy=t.getAssignmentPolicy(); roleMatchMode=t.getRoleMatchMode();
         requiredGroupRoleIds=t.getRequiredGroupRoles().stream().map(GroupRole::getId).toList();
