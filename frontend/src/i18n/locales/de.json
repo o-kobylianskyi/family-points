@@ -275,7 +275,8 @@
       "CONTROL": "Standardrollen für Kontrolle"
     },
     "rolesInSet": "Rollen im Rollensatz",
-    "roleNameRequired": "Geben Sie einen Rollennamen ein"
+    "roleNameRequired": "Geben Sie einen Rollennamen ein",
+    "addStandaloneRole": "Rolle hinzufügen"
   },
   "rolePermissions": {
     "title": "Rollenrechte",
