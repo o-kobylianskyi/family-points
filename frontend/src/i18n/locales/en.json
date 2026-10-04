@@ -149,7 +149,9 @@
       "administrators": "Administrators",
       "observers": "Observers",
       "executors": "Executors",
-      "authorHint": "The author is automatically the user who created the task."
+      "authorHint": "The author is automatically the user who created the task.",
+      "defaultTitleBase": "Task",
+      "duplicateTitle": "A task named “{{title}}” already exists."
     },
     "open": {
       "title": "Open tasks",
@@ -311,7 +313,11 @@
       "LEADER": "Group leader",
       "CONTROL": "Controller",
       "CUSTOM": "Custom"
-    }
+    },
+    "defaultLocalRoleName": "Local role",
+    "modifiedSuffix": "(modified)",
+    "duplicateRoleName": "A role named “{{name}}” already exists in this group.",
+    "duplicatePermissionsWarning": "Role “{{name}}” already has identical permissions."
   },
   "rolePermissions": {
     "title": "Role permissions",
