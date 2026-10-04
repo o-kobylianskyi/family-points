@@ -273,7 +273,9 @@
       "MANAGEMENT": "Default management roles",
       "EXECUTION": "Default execution roles",
       "CONTROL": "Default control roles"
-    }
+    },
+    "rolesInSet": "Roles in set",
+    "roleNameRequired": "Enter a role name"
   },
   "rolePermissions": {
     "title": "Role permissions",
