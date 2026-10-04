@@ -13,24 +13,20 @@ export async function apiRequest(
     `${API_URL}${path}`,
     {
       method,
-
       headers: {
         ...(body ? { 'Content-Type': 'application/json' } : {}),
-        ...(token
-          ? { Authorization: `Bearer ${token}` }
-          : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
-
-      body: body
-        ? JSON.stringify(body)
-        : undefined,
+      body: body ? JSON.stringify(body) : undefined,
     }
   )
 
-  if (response.status === 401) {
-    window.dispatchEvent(new Event('auth:unauthorized'))
-  }
-
+  /*
+   * A 401 from an ordinary API endpoint does not necessarily mean that the
+   * locally stored JWT is invalid. Endpoint/security mistakes must be shown
+   * to the user as API errors instead of destroying an otherwise valid
+   * session. AuthContext validates/restores the session through /auth/me.
+   */
   return response
 }
