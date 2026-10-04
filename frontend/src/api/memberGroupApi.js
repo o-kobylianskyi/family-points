@@ -18,6 +18,7 @@ export const addGroupPermission=(t,f,g,r,b)=>h(apiRequest(`${p(f)}/${g}/roles/${
 export const removeGroupPermission=(t,f,g,id)=>h(apiRequest(`${p(f)}/${g}/permissions/${id}`,{token:t,method:'DELETE'}),'Failed to remove group permission')
 
 export const updateGroupRole=(t,f,g,r,b)=>h(apiRequest(`${p(f)}/${g}/roles/${r}`,{token:t,method:'PUT',body:b}),'Failed to update group role')
+export const deleteGroupRole=(t,f,g,r)=>h(apiRequest(`${p(f)}/${g}/roles/${r}`,{token:t,method:'DELETE'}),'Failed to delete group role')
 export const updateGroupMemberRoles=(t,f,g,m,roleIds)=>h(apiRequest(`${p(f)}/${g}/members/${m}/roles`,{token:t,method:'PUT',body:roleIds}),'Failed to update member roles')
 const rs=(f)=>`/workspaces/${f}/role-sets`
 export const getRoleSets=(t,f)=>h(apiRequest(rs(f),{token:t}),'Failed to load role sets')
