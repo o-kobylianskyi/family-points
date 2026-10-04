@@ -2758,3 +2758,63 @@ input {
     width:100%;
   }
 }
+
+
+/* ---------- SIMPLIFIED LOCAL ROLE UI ---------- */
+.role-list-row-static{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+  padding:11px 12px;
+  border:1px solid #e6e9f0;
+  border-radius:10px;
+  background:#fff;
+  margin-bottom:8px;
+}
+.role-list-row-static > span:first-child{
+  min-width:0;
+}
+.role-list-row-static strong,
+.role-list-row-static small{
+  display:block;
+}
+.role-list-row-static small{
+  margin-top:3px;
+  color:#858b9b;
+}
+.simplified-role-editor{
+  width:min(760px,calc(100vw - 32px));
+}
+.simplified-role-editor .group-editor-header{
+  align-items:flex-start;
+}
+.simplified-role-editor .group-editor-header p{
+  margin:5px 0 0;
+  max-width:600px;
+}
+.advanced-permissions-toggle{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  width:100%;
+  margin:12px 0 4px;
+  padding:10px 0;
+  border:0;
+  border-top:1px solid #e7eaf0;
+  background:transparent;
+  color:#4f5bd5;
+  cursor:pointer;
+  font-weight:700;
+  text-align:left;
+}
+@media(max-width:700px){
+  .role-list-row-static{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .role-list-row-static .group-edit-actions{
+    width:100%;
+  }
+}
