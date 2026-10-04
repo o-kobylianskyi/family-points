@@ -59,6 +59,7 @@ function normalizeTime(value) {
 
 function CreateTaskModal({
   members,
+  existingTaskDefinitions = [],
   defaultMemberId,
   onClose,
   onCreated,
@@ -71,6 +72,18 @@ function CreateTaskModal({
   const { currentUser, getAccessToken } = useAuth()
 
   const editing = Boolean(initialTask)
+
+  const firstFreeTaskTitle = () => {
+    const base = t('tasks.create.defaultTitleBase')
+    const used = new Set(
+      existingTaskDefinitions
+        .filter(task => task.id !== initialTask?.id)
+        .map(task => (task.title || '').trim().toLocaleLowerCase())
+    )
+    let number = 1
+    while (used.has(`${base} ${number}`.toLocaleLowerCase())) number += 1
+    return `${base} ${number}`
+  }
   const [assignmentPolicy, setAssignmentPolicy] = useState(initialTask?.assignmentPolicy ?? 'SINGLE_MEMBER')
   const [assignedMemberId, setAssignedMemberId] = useState(initialTask?.assignedMemberId ?? defaultMemberId ?? members[0]?.id ?? '')
   const [targetGroupId, setTargetGroupId] = useState(initialTask?.targetGroupId ?? '')
@@ -84,7 +97,8 @@ function CreateTaskModal({
   const [observers, setObservers] = useState(() => participantKeys('OBSERVER'))
   const [executors, setExecutors] = useState(() => participantKeys('EXECUTOR'))
 
-  const [title, setTitle] = useState(initialTask?.title ?? '')
+  const [title, setTitle] = useState(() => initialTask?.title ?? firstFreeTaskTitle())
+  const [titleTouched, setTitleTouched] = useState(Boolean(initialTask))
   const [description, setDescription] = useState(initialTask?.description ?? '')
   const [mandatory, setMandatory] = useState(initialTask?.mandatory ?? false)
   const [delegationAllowed, setDelegationAllowed] = useState(initialTask?.delegationAllowed ?? false)
@@ -192,6 +206,15 @@ function CreateTaskModal({
 
     if (!trimmedTitle) {
       setError(t('tasks.create.titleRequired'))
+      return
+    }
+
+    const duplicateTitle = existingTaskDefinitions.some(task =>
+      task.id !== initialTask?.id &&
+      (task.title || '').trim().toLocaleLowerCase() === trimmedTitle.toLocaleLowerCase()
+    )
+    if (duplicateTitle) {
+      setError(t('tasks.create.duplicateTitle', { title: trimmedTitle }))
       return
     }
 
@@ -456,9 +479,10 @@ function CreateTaskModal({
               type="text"
               value={title}
               maxLength={150}
-              onChange={(event) =>
+              onChange={(event) => {
+                setTitleTouched(true)
                 setTitle(event.target.value)
-              }
+              }}
               required
             />
           </label>
