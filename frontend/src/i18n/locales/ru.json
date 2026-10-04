@@ -319,7 +319,15 @@
     "defaultLocalRoleName": "Локальная роль",
     "modifiedSuffix": "(изменено)",
     "duplicateRoleName": "Роль с названием «{{name}}» уже существует в этой группе.",
-    "duplicatePermissionsWarning": "Идентичные права уже есть у роли «{{name}}»."
+    "duplicatePermissionsWarning": "Идентичные права уже есть у роли «{{name}}».",
+    "availableRoles": "Доступные роли",
+    "availableRolesHint": "Предопределённые и общие роли уже доступны в группе. Создавайте собственную роль только если готовой роли недостаточно.",
+    "predefinedRole": "Предопределённая роль",
+    "customGroupRole": "Собственная роль этой группы",
+    "sharedRole": "Общая роль Workspace",
+    "readyToAssign": "Готова к назначению",
+    "noAvailableRoles": "Нет доступных ролей.",
+    "createCustomRole": "Создать собственную роль"
   },
   "rolePermissions": {
     "title": "Права роли",
