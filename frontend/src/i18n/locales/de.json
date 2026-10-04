@@ -284,6 +284,12 @@
       "POINT_AWARD": "Punkte vergeben",
       "POINT_SPEND": "Punkte abbuchen",
       "SUBGROUP_MANAGE": "Untergruppen verwalten"
+    },
+    "groups": {
+      "tasks": "Aufgaben",
+      "members": "Mitglieder",
+      "groups": "Gruppen",
+      "points": "Punkte"
     }
   }
 }
