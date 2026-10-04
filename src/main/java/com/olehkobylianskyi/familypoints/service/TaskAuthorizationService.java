@@ -3,7 +3,8 @@ package com.olehkobylianskyi.familypoints.service;
 import com.olehkobylianskyi.familypoints.entity.*;
 import com.olehkobylianskyi.familypoints.repository.GroupCompositionRepository;
 import com.olehkobylianskyi.familypoints.repository.GroupMembershipRepository;
-import com.olehkobylianskyi.familypoints.repository.GroupPermissionGrantRepository;
+import com.olehkobylianskyi.familypoints.repository.RoleAssignmentRepository;
+import com.olehkobylianskyi.familypoints.repository.RolePermissionGrantRepository;
 import com.olehkobylianskyi.familypoints.repository.TaskParticipantRepository;
 import com.olehkobylianskyi.familypoints.security.CurrentUserService;
 import org.springframework.security.access.AccessDeniedException;
@@ -19,20 +20,23 @@ public class TaskAuthorizationService {
     private final TaskParticipantRepository taskParticipantRepository;
     private final GroupMembershipRepository groupMembershipRepository;
     private final GroupCompositionRepository groupCompositionRepository;
-    private final GroupPermissionGrantRepository groupPermissionGrantRepository;
+    private final RoleAssignmentRepository roleAssignmentRepository;
+    private final RolePermissionGrantRepository rolePermissionGrantRepository;
 
     public TaskAuthorizationService(
             CurrentUserService currentUserService,
             TaskParticipantRepository taskParticipantRepository,
             GroupMembershipRepository groupMembershipRepository,
             GroupCompositionRepository groupCompositionRepository,
-            GroupPermissionGrantRepository groupPermissionGrantRepository
+            RoleAssignmentRepository roleAssignmentRepository,
+            RolePermissionGrantRepository rolePermissionGrantRepository
     ) {
         this.currentUserService = currentUserService;
         this.taskParticipantRepository = taskParticipantRepository;
         this.groupMembershipRepository = groupMembershipRepository;
         this.groupCompositionRepository = groupCompositionRepository;
-        this.groupPermissionGrantRepository = groupPermissionGrantRepository;
+        this.roleAssignmentRepository = roleAssignmentRepository;
+        this.rolePermissionGrantRepository = rolePermissionGrantRepository;
     }
 
     public WorkspaceMember currentMember() {
@@ -137,7 +141,7 @@ public class TaskAuthorizationService {
         if (policy == AssignmentPolicy.OPEN_GROUP || definition.getTargetGroup() != null) {
             return memberMatchesGroup(
                     definition.getTargetGroup().getId(), member.getId(),
-                    definition.getRequiredGroupRoles(), definition.getRoleMatchMode(), new HashSet<>()
+                    definition.getRequiredRoleDefinitions(), definition.getRoleMatchMode(), new HashSet<>()
             );
         }
         return policy == AssignmentPolicy.SINGLE_MEMBER
@@ -158,18 +162,26 @@ public class TaskAuthorizationService {
         MemberGroup target = definition.getTargetGroup();
         if (target == null || !target.isEffectiveOn(java.time.LocalDate.now())) return false;
 
-        for (GroupMembership membership : groupMembershipRepository.findByMemberIdAndActiveTrue(member.getId())) {
-            MemberGroup authorityGroup = membership.getMemberGroup();
-            if (!authorityGroup.isEffectiveOn(java.time.LocalDate.now())) continue;
+        for (RoleAssignment assignment : roleAssignmentRepository
+                .findByWorkspaceIdAndActorTypeAndActorIdAndActiveTrue(
+                        member.getWorkspace().getId(), ActorType.MEMBER, member.getId())) {
+            if (assignment.getContextType() != RoleContextType.MEMBER_GROUP || assignment.getContextId() == null) continue;
 
-            for (GroupRole role : membership.getRoles()) {
-                for (GroupPermissionGrant grant : groupPermissionGrantRepository.findByGroupRoleIdAndPermission(role.getId(), permission)) {
-                    if (!grant.getMemberGroup().getId().equals(authorityGroup.getId())) continue;
-                    if (grant.getScope() == GroupPermissionScope.GROUP
-                            && authorityGroup.getId().equals(target.getId())) return true;
-                    if (grant.getScope() == GroupPermissionScope.GROUP_SUBTREE
-                            && groupContains(authorityGroup.getId(), target.getId(), new HashSet<>())) return true;
-                }
+            Long authorityGroupId = assignment.getContextId();
+            MemberGroup authorityGroup = groupMembershipRepository
+                    .findByMemberGroupIdAndMemberId(authorityGroupId, member.getId())
+                    .filter(GroupMembership::isActive)
+                    .map(GroupMembership::getMemberGroup)
+                    .orElse(null);
+            if (authorityGroup == null || !authorityGroup.isEffectiveOn(java.time.LocalDate.now())) continue;
+
+            for (RolePermissionGrant grant : rolePermissionGrantRepository
+                    .findByRoleDefinitionIdAndPermissionAndActiveTrue(
+                            assignment.getRoleDefinition().getId(), permission)) {
+                if (grant.getScope() == RolePermissionScope.CURRENT
+                        && authorityGroupId.equals(target.getId())) return true;
+                if (grant.getScope() == RolePermissionScope.SUBTREE
+                        && groupContains(authorityGroupId, target.getId(), new HashSet<>())) return true;
             }
         }
         return false;
@@ -193,14 +205,27 @@ public class TaskAuthorizationService {
     }
 
     private boolean memberMatchesGroup(
-            Long groupId, Long memberId, Set<GroupRole> requiredRoles,
+            Long groupId, Long memberId, Set<RoleDefinition> requiredRoles,
             RoleMatchMode mode, Set<Long> visited
     ) {
         if (!visited.add(groupId)) return false;
         var membership = groupMembershipRepository.findByMemberGroupIdAndMemberId(groupId, memberId).orElse(null);
         if (membership != null && membership.isActive()) {
             if (requiredRoles == null || requiredRoles.isEmpty()) return true;
-            long matched = requiredRoles.stream().filter(membership.getRoles()::contains).count();
+
+            Set<Long> assignedRoleIds = roleAssignmentRepository
+                    .findByWorkspaceIdAndActorTypeAndActorIdAndContextTypeAndContextIdAndActiveTrue(
+                            membership.getMemberGroup().getWorkspace().getId(),
+                            ActorType.MEMBER,
+                            memberId,
+                            RoleContextType.MEMBER_GROUP,
+                            groupId
+                    )
+                    .stream()
+                    .map(assignment -> assignment.getRoleDefinition().getId())
+                    .collect(java.util.stream.Collectors.toSet());
+
+            long matched = requiredRoles.stream().filter(role -> assignedRoleIds.contains(role.getId())).count();
             if ((mode == null || mode == RoleMatchMode.ANY) && matched > 0) return true;
             if (mode == RoleMatchMode.ALL && matched == requiredRoles.size()) return true;
         }
