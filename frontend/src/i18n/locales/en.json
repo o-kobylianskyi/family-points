@@ -317,7 +317,15 @@
     "defaultLocalRoleName": "Local role",
     "modifiedSuffix": "(modified)",
     "duplicateRoleName": "A role named “{{name}}” already exists in this group.",
-    "duplicatePermissionsWarning": "Role “{{name}}” already has identical permissions."
+    "duplicatePermissionsWarning": "Role “{{name}}” already has identical permissions.",
+    "availableRoles": "Available roles",
+    "availableRolesHint": "Predefined and shared roles are already available in the group. Create a custom role only when none of the existing roles fits.",
+    "predefinedRole": "Predefined role",
+    "customGroupRole": "Custom role for this group",
+    "sharedRole": "Shared Workspace role",
+    "readyToAssign": "Ready to assign",
+    "noAvailableRoles": "No roles available.",
+    "createCustomRole": "Create custom role"
   },
   "rolePermissions": {
     "title": "Role permissions",
