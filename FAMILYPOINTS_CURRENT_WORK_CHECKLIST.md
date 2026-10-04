@@ -95,16 +95,17 @@ Do not call this compile-/migration-tested until it is actually run.
 
 ## 2.3 Role catalog service/API
 
-- [ ] Add/finish `RoleDefinitionService`
-- [ ] Add RoleDefinition list API
-- [ ] Add create API
-- [ ] Add update API
-- [ ] Add deactivate/delete semantics
-- [ ] Support role set association
-- [ ] Support `PRIVATE / SHARED`
-- [ ] Support owner context
-- [ ] Protect `systemCode/systemDefault` semantics
-- [ ] Add localization/fallback-name handling for predefined roles
+- [x] Add/finish `RoleDefinitionService`
+- [x] Add RoleDefinition list API
+- [x] Add create API
+- [x] Add update API
+- [x] Add deactivate/delete semantics
+- [x] Support role set association
+- [x] Support `PRIVATE / SHARED` in backend model
+- [x] Support owner context
+- [x] Protect system-default RoleDefinitions/RoleSets from edit/delete
+- [x] Add localization/fallback-name handling for predefined roles in frontend
+- [ ] Smoke-test RoleDefinition/RoleSet catalog API locally
 
 ## 2.4 RoleSetBinding
 
@@ -171,15 +172,17 @@ Do not call this compile-/migration-tested until it is actually run.
 
 ## 4.1 Workspace-level catalog
 
-- [ ] Create Workspace tab/page **“Ролі та набори”**
-- [ ] List predefined/shared RoleSets
-- [ ] List RoleDefinitions grouped by RoleSet
-- [ ] Create/edit custom SHARED RoleSet where authorized
-- [ ] Create/edit custom SHARED RoleDefinition where authorized
-- [ ] Show predefined roles translated to current interface language via stable systemCode
-- [ ] Manage role descriptions/localization metadata
+- [x] Add Workspace settings section **“Ролі та набори”**
+- [x] List predefined/shared RoleSets
+- [x] List RoleDefinitions grouped by RoleSet
+- [x] Create/edit custom SHARED RoleSet where authorized
+- [x] Create/edit custom SHARED RoleDefinition where authorized
+- [x] Show predefined roles translated to current interface language via stable systemCode
+- [x] Manage role descriptions
+- [ ] Manage localization metadata for custom shared roles
 - [ ] Manage permission presets/grants where allowed
-- [ ] Clear distinction between system/default, shared custom and local PRIVATE roles
+- [x] Clear distinction between system/default and shared custom roles in Workspace settings
+- [ ] Local PRIVATE role UI stays for contextual Group/Task editor
 - [ ] Prepare catalog to be seeded by Workspace/activity templates (Family/Office/Business/etc.)
 
 ## 4.2 Simplify GroupEditor
@@ -365,13 +368,12 @@ Concept recovered and logged; implementation is later.
 
 Recommended next sequence:
 
-1. verify V7 + current DB/default bootstrap;
-2. inspect/define migration bridge from `GroupRole` to `RoleDefinition`;
-3. finish RoleDefinition/RoleAssignment/RoleSetBinding services and APIs;
+1. smoke-test V9/V10 + new Role Catalog settings UI;
+2. fix/simplify GroupEditor to contextual assignment + local PRIVATE roles;
+3. finish RoleAssignment/RoleSetBinding services and APIs;
 4. implement ScopeEvaluator + authorization tests;
-5. build Workspace “Ролі та набори” UI;
-6. simplify GroupEditor to contextual assignment;
-7. only then proceed to group lifecycle and Task assignment/requirements.
+5. switch authorization off legacy GroupRole;
+6. only then proceed to group lifecycle and Task assignment/requirements.
 
 ---
 
