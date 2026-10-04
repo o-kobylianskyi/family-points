@@ -1158,3 +1158,70 @@ WorkspaceTemplate should be able to seed, at minimum:
 - economy/default settings.
 
 The large template wizard remains later work, but the role model must remain compatible with this foundation now.
+
+
+---
+
+## 26. Simplified role administration UX
+
+### 2026-10-04 — stop exposing RBAC complexity in ordinary group editing
+
+**AGREED**
+
+The technical role/permission backend remains flexible, but ordinary users should not have to administer raw RBAC details for routine work.
+
+The normal GroupEditor experience is simplified to:
+
+- local roles for the current group;
+- simple permission profiles;
+- optional advanced permission editing only when needed.
+
+**AGREED**
+
+RoleSet administration is removed from the normal GroupEditor flow.
+
+Shared/system RoleSets and shared RoleDefinitions belong in:
+
+- Workspace settings;
+- role/template administration;
+- later WorkspaceTemplate/activity presets.
+
+**AGREED**
+
+Local roles:
+
+- belong only to the current group/context;
+- do not require a RoleSet;
+- can be created, edited, assigned and deleted directly in the group;
+- may use a simple predefined permission profile.
+
+Initial permission profiles:
+
+- NONE — no additional permissions;
+- EXECUTOR;
+- SENIOR;
+- LEADER / group leader;
+- CONTROL / controller;
+- CUSTOM — explicit advanced configuration.
+
+The profile is a UI convenience, not a new security primitive. It resolves to ordinary permission grants/scopes underneath.
+
+**AGREED**
+
+Advanced raw permissions remain available behind an explicit “Advanced permissions” control.
+
+**INVARIANT**
+
+Do not force users through:
+
+RoleSet → Role → individual permission checkboxes → scope → assignment
+
+for simple scenarios.
+
+The common scenario should remain:
+
+create group → add members → create/choose role → assign role.
+
+**STATUS**
+
+This is considered sufficient for the current development stage. Further role refinements should be driven by real usage rather than additional speculative complexity.
