@@ -273,7 +273,9 @@
       "MANAGEMENT": "Standardrollen für Leitung",
       "EXECUTION": "Standardrollen für Ausführung",
       "CONTROL": "Standardrollen für Kontrolle"
-    }
+    },
+    "rolesInSet": "Rollen im Rollensatz",
+    "roleNameRequired": "Geben Sie einen Rollennamen ein"
   },
   "rolePermissions": {
     "title": "Rollenrechte",
