@@ -1,0 +1,779 @@
+# FamilyPoints — Concept & Mechanics Discussion Log
+
+> **Purpose:** persistent project memory for product mechanics, domain concepts, alternatives, rejected ideas, and decisions discussed outside code.
+>
+> This file is intentionally broader than a roadmap or technical specification. It exists so that important product reasoning does not disappear when a chat/session ends.
+>
+> **Rule:** do not silently rewrite old decisions. Prefer appending a dated entry that marks an earlier idea as `SUPERSEDED`, `REJECTED`, or `REFINED`.
+
+Last reconstructed/updated: **2026-10-04**
+
+---
+
+## 1. Status vocabulary
+
+Use these labels consistently:
+
+- **IMPLEMENTED** — confirmed in the current Git branch/source.
+- **PARTIAL** — implementation exists but semantics/API/UI are incomplete.
+- **AGREED** — concept/mechanics were explicitly agreed but not yet implemented.
+- **DISCUSSED** — explored, but no final decision is reliably known.
+- **RECOVER** — we know the topic was discussed earlier, but exact details were lost and must not be invented.
+- **SUPERSEDED** — earlier model replaced by a later model.
+- **REJECTED** — consciously not chosen.
+- **QUESTION** — unresolved design decision.
+
+Source of truth hierarchy:
+1. Current GitHub source for what is actually implemented.
+2. This log for historical product/domain reasoning.
+3. Current technical specification / concept documents for consolidated design.
+4. Chat memory only as a recovery source — never as the sole durable record.
+
+---
+
+## 2. Core product direction
+
+### 2026-10-04 — reconstructed baseline
+
+**AGREED**
+
+FamilyPoints is a family-focused system that combines:
+
+- tasks and recurring responsibilities;
+- points/economy;
+- rewards and penalties;
+- behavior tracking;
+- learning/practice;
+- application/device access control;
+- groups, roles and scoped authorization.
+
+The architecture should also remain capable of evolving into a broader Team/Office Manager without rewriting the core domains.
+
+**AGREED**
+
+Keep these conceptual planes separate:
+
+1. **Workspace / organizational graph** — members, groups, teams.
+2. **Work hierarchy** — `WorkNode` with `GROUP/TASK`.
+3. **Authorization context** — permissions and roles with explicit scope.
+
+Do not derive authorization merely from hierarchy membership.
+
+---
+
+## 3. Tasks: definition, occurrence, execution
+
+### 2026-10-04 — reconstructed
+
+**AGREED**
+
+- `TaskDefinition` describes the reusable/recurring definition.
+- `TaskInstance` represents a concrete occurrence/execution.
+- Assignment, eligibility, preferred executor, claim, current executor, participation, and delegation are separate concepts.
+- `claim != delegation`.
+- Parent/child work hierarchy does not itself grant access.
+
+**AGREED**
+
+Assignment policy family:
+
+- `SINGLE_MEMBER`
+- `GROUP_SHARED`
+- `OPEN_GROUP`
+- `OPEN_WORKSPACE`
+- `PREFERRED_MEMBER`
+
+**AGREED**
+
+Distinguish:
+
+- `assignedActor`
+- `preferredActor`
+- `claimedByActor`
+- `currentExecutor`
+- responsible/coordinator actor where required
+
+**DISCUSSED / NEEDS RECONCILIATION**
+
+Older lifecycle concepts included:
+
+- `AVAILABLE`
+- `IN_PROGRESS`
+- `WAITING_APPROVAL`
+- `APPROVED`
+- `REJECTED`
+- `EXPIRED`
+- `CANCELLED`
+
+The current implementation later introduced/uses states such as `PAUSED` and `RELEASED`. Do not restore old states blindly; reconcile with current code before changes.
+
+**AGREED**
+
+Task visibility, availability, eligibility and execution permission are distinct:
+
+- a future task may be visible in calendar;
+- it may not yet be available;
+- an actor may see it but not be eligible;
+- an eligible actor may still lack management rights.
+
+---
+
+## 4. Recurrence, calendar, future tasks
+
+**AGREED**
+
+Recurrence:
+
+- `ONCE`
+- `DAILY`
+- `WEEKLY`
+- `MONTHLY`
+- `CUSTOM` reserved for future extension.
+
+Rules:
+
+- no silent historical backfill;
+- monthly day 31 means literal day 31;
+- historical `ONCE` should not silently create a pending occurrence;
+- recurring tasks starting in the past should not generate the entire missing history unless an explicit policy says so.
+
+**AGREED**
+
+Calendar/product views should support:
+
+- day;
+- week;
+- month;
+- arbitrary period;
+- visible future tasks.
+
+**AGREED**
+
+Reminder is separate from deadline.
+
+**DISCUSSED**
+
+Future mechanisms:
+
+- defer;
+- decline;
+- extension request;
+- review/approval;
+- overdue handling.
+
+---
+
+## 5. Requirements / dependencies / conditions
+
+**AGREED**
+
+Requirements are broader than a simple task-dependency table.
+
+`RequirementGroup` supports:
+
+- `ALL_SATISFIED`
+- `MINIMUM_SATISFIED`
+
+and may use:
+
+- `requiredCount`
+- per-item `alwaysRequired=true`
+
+Examples:
+
+- 1 of 3 alternatives;
+- 2 of 5 alternatives;
+- mandatory conditions plus selectable alternatives.
+
+**AGREED**
+
+Recurring dependency must match the relevant occurrence/date, not merely any historical completion.
+
+**DISCUSSED / AGREED DIRECTION**
+
+Generic requirement types may eventually include:
+
+- another task completed;
+- learning activity completed;
+- balance/savings condition;
+- behavior condition;
+- achievement;
+- other domain-specific conditions.
+
+**INVARIANT**
+
+Do not mix:
+
+- mandatory task;
+- eligibility;
+- prerequisite/requirement.
+
+---
+
+## 6. Quality, approval and reward calculation
+
+### Recovered mechanics
+
+**AGREED**
+
+Reward policies:
+
+- `FIXED`
+- `QUALITY_PERCENTAGE`
+- `BASE_PLUS_QUALITY_BONUS`
+- `MILESTONE`
+
+A task may have a quality rating that **does not affect payment at all**.
+
+**AGREED**
+
+Configurable quality / star scale. Recovered example:
+
+- 5★ → 100%
+- 4★ → 70%
+- 3★ → 50%
+- 2★ → 20%
+- 1★ → 0%
+
+This mapping is an example/configuration, not a universal hard-coded law.
+
+**AGREED**
+
+Approval policy may support:
+
+- `AUTO`
+- `PARENT_REQUIRED`
+
+**INVARIANT**
+
+Do not conflate:
+
+- quality rating;
+- deadline;
+- reputation;
+- behavior rating.
+
+These are different signals.
+
+---
+
+## 7. Milestones / savepoints / partial rewards
+
+**AGREED**
+
+Tasks may contain `TaskStep` / `TaskMilestone`.
+
+Milestones/savepoints can support partial reward settlement.
+
+Reward timing modes discussed:
+
+- `PAY_IMMEDIATELY`
+- `PAY_ON_TASK_COMPLETION`
+
+**QUESTION**
+
+Before implementation, define precisely:
+
+- whether failed final completion can claw back already-paid milestone rewards;
+- whether milestone quality is independent from final task quality;
+- whether milestone completion can be reverted;
+- idempotency rules for partial settlement.
+
+---
+
+## 8. Reward groups and reward selection
+
+**AGREED**
+
+`RewardGroup` modes:
+
+- `ALL`
+- `CHOOSE_ONE`
+- `CHOOSE_MULTIPLE`
+
+Reward types should be extensible, including:
+
+- `POINTS`
+- `GOLD`
+- `MONEY`
+- `DEVICE_TIME`
+- future custom/resource types.
+
+**AGREED**
+
+Once a random/selected reward result has been resolved, the result must be persisted and reused. It must not re-randomize during subsequent reads or settlement retries.
+
+**RECOVER / DISCUSSED**
+
+Selection actor concepts recovered from earlier discussion:
+
+- `CHILD`
+- `PARENT`
+- `SYSTEM`
+
+Selection method concepts:
+
+- `MANUAL`
+- `RANDOM`
+- `RANDOM_FILL`
+
+Additional recovered concepts:
+
+- `randomEligible`
+- weighted selection / `weight`
+
+Exact final schema was not reliably preserved. Do not treat the enum names above as final database/API contracts until revalidated.
+
+---
+
+## 9. Reputation
+
+**AGREED**
+
+Reputation is a separate long-term signal.
+
+It is **not**:
+
+- task quality stars;
+- `BehaviorDailyReview`;
+- raw points balance.
+
+**AGREED**
+
+Reputation was intended to participate in reward mechanics as an additional factor.
+
+**RECOVER — CRITICAL**
+
+The exact previously agreed reputation algorithm, coefficients, update rules and bounds were lost from the surviving context.
+
+Do **not** invent a new formula during implementation.
+
+This domain must remain visible in roadmap/specification until reconstructed or explicitly redesigned.
+
+---
+
+## 10. Behavior module
+
+**AGREED**
+
+Behavior is a separate domain, not a special type of Task.
+
+Core concepts:
+
+- `BehaviorRule`
+- `BehaviorEvent`
+- `BehaviorDailyReview`
+
+`BehaviorRule` may be:
+
+- `POSITIVE`
+- `NEGATIVE`
+
+with configurable default amount.
+
+Examples previously discussed:
+
+- +10 for helping;
+- −30 for fighting.
+
+A concrete behavior event may create a reward/penalty ledger transaction.
+
+**AGREED**
+
+Daily behavior score is separate from task quality and reputation.
+
+Recovered example bonus mapping:
+
+- 90–100% → +30
+- 80–89% → +20
+- 70–79% → +10
+- <70% → 0
+
+This is an example/configuration, not a mandatory fixed rule.
+
+**AGREED DIRECTION**
+
+Negative concrete events may penalize. Automatically penalizing solely because the aggregate daily score is low was not recommended.
+
+**RECOVER / DISCUSSED**
+
+A child-created/self-reported `BehaviorEvent` may require approval, e.g. a `PENDING_APPROVAL` stage.
+
+Exact final workflow needs confirmation before implementation.
+
+---
+
+## 11. Streaks and achievements
+
+**AGREED / DISCUSSED**
+
+Streaks were explicitly part of the concept.
+
+Potential sources include:
+
+- repeated task completion;
+- learning practice;
+- positive behavior;
+- daily/weekly consistency.
+
+**AGREED DIRECTION**
+
+Streaks/achievements should not be implemented as fake tasks merely to reuse the Task module.
+
+**QUESTION**
+
+Need final rules for:
+
+- streak reset;
+- excused days;
+- freeze/protection;
+- reward thresholds;
+- whether streaks are per-rule, per-domain or generic.
+
+---
+
+## 12. Exceptions / excused days
+
+**PARTIAL / RECOVER**
+
+The system already has the idea of exception periods/snapshots in task mechanics, but the full business semantics of **excused days** were discussed more broadly and are not fully recovered.
+
+Potential use cases that must be decided before implementation:
+
+- sickness;
+- vacation;
+- family event;
+- technical impossibility;
+- parent-granted exception.
+
+**QUESTION**
+
+An excused day may need to affect separately:
+
+- recurrence expectation;
+- streak continuity;
+- penalties;
+- quality/reputation calculations;
+- learning daily limits.
+
+Do not assume one global behavior for all domains.
+
+---
+
+## 13. Learning Bank
+
+**AGREED**
+
+Learning is a separate domain using the shared economy/ledger.
+
+Core concepts:
+
+- `LearningActivity`
+- `Question`
+- `Attempt`
+
+Categories discussed:
+
+- mathematics;
+- reading;
+- languages;
+- logic.
+
+Question types:
+
+- `NUMBER_INPUT`
+- `SINGLE_CHOICE`
+- `MULTIPLE_CHOICE`
+- `TRUE_FALSE`
+
+Difficulty:
+
+- `EASY`
+- `NORMAL`
+- `HARD`
+- future adaptive difficulty.
+
+Modes:
+
+- `PRACTICE`
+- `CHALLENGE`
+
+**AGREED**
+
+Anti-farming controls may include:
+
+- `maxAttemptsPerDay`
+- `maxRewardPerDay`
+- `cooldown`
+- `repeatRewardPolicy`
+
+**AGREED**
+
+Other discussed concepts:
+
+- generators;
+- automatic answer checking where possible;
+- reading comprehension;
+- book/chapter milestones;
+- learning plans.
+
+---
+
+## 14. Claimable task bank and Task Requests
+
+**AGREED**
+
+Support both:
+
+- assigned work;
+- claimable/open task bank.
+
+Open task policies still respect eligibility and authorization.
+
+`OPEN_GROUP` / `OPEN_WORKSPACE` do **not** imply that every eligible executor may manage/edit the task.
+
+**AGREED / DISCUSSED**
+
+`TaskRequest` is a separate scenario for proposing/requesting a task.
+
+A child may request:
+
+- a new task;
+- work from a bank;
+- approval for an activity.
+
+Exact request workflow/statuses still require consolidation before implementation.
+
+---
+
+## 15. Group execution and coordination
+
+**AGREED**
+
+Groups are actors, not merely lists of members.
+
+A task assigned to a group may still be claimed/executed by a concrete member.
+
+**AGREED**
+
+Role-based eligibility can filter a target group using match semantics:
+
+- `ANY`
+- `ALL`
+
+**DISCUSSED**
+
+Separate from executor:
+
+- responsible coordinator;
+- preferred assignee;
+- participants;
+- delegated actor.
+
+**RECOVER / DISCUSSED**
+
+Earlier discussion included concepts such as:
+
+- responsibility transfer;
+- delegated bonus/penalty;
+- completion bonus when all requirements are satisfied.
+
+Do not implement these until exact semantics are reconstructed.
+
+---
+
+## 16. Delegation vs subtask / subcontract
+
+**INVARIANT**
+
+Delegation is not the same as:
+
+- claim;
+- assignment;
+- responsibility transfer;
+- subcontract;
+- child/subtask.
+
+Delegation must preserve original assignment/history.
+
+Funding/subcontract mechanics belong to later task change/funding domains.
+
+---
+
+## 17. Economy / ledger
+
+**IMPLEMENTED BASE**
+
+Point ledger/economy exists and task settlement is designed to be idempotent.
+
+**AGREED**
+
+Sources may include:
+
+- task reward;
+- milestone reward;
+- behavior;
+- learning;
+- manual award;
+- manual penalty;
+- future funding/subcontract mechanics.
+
+**AGREED**
+
+Manual penalty is a first-class family scenario, not merely a negative task reward.
+
+**LATER**
+
+Funding ledger after a generic Task Change Request mechanism.
+
+---
+
+## 18. Device and application control
+
+**AGREED**
+
+Core concepts:
+
+- program/app price in points;
+- duration packages;
+- daily/weekly limits;
+- schedules;
+- per-app/per-device/per-category rules;
+- always-allowed/free apps;
+- automatic stop/block when paid or allowed time ends.
+
+Partial use policy discussed:
+
+- auto;
+- manual;
+- ignore;
+- unused remainder policy including “do not count/save remainder”.
+
+Platform direction:
+
+1. Android first;
+2. Windows agent next;
+3. iOS later.
+
+Server remains source of truth; clients enforce locally according to `DeviceCapabilities` and sync.
+
+---
+
+## 19. Roles / permissions / actor model
+
+**AGREED**
+
+Avoid hard-coded business authorization such as:
+
+`if PARENT ... else CHILD ...`
+
+Use generic actor/role/permission mechanisms.
+
+Functional role is not the same as security permission.
+
+Current target direction includes:
+
+- `RoleDefinition`
+- `RoleAssignment`
+- `RoleSet`
+- `RoleSetBinding`
+- `RolePermissionGrant`
+
+Visibility:
+
+- `PRIVATE`
+- `SHARED`
+
+Scope:
+
+- `CURRENT`
+- `SUBTREE`
+
+Scope flows downward only.
+
+No role/permission escalation upward merely because an actor has access in a child context.
+
+---
+
+## 20. Concepts that must never be silently merged
+
+Keep these separate unless a future explicit decision says otherwise:
+
+- Task quality vs BehaviorDailyReview vs Reputation.
+- Assignment vs eligibility vs claim vs current execution vs delegation.
+- Organizational graph vs WorkNode hierarchy.
+- Functional role vs security permission.
+- Deadline vs reminder.
+- Task dependency vs eligibility.
+- Task vs Behavior event.
+- Task vs Learning activity.
+- Delegation vs subcontract/subtask.
+- Visibility vs availability vs eligibility vs manage permission.
+
+---
+
+## 21. Recovery queue
+
+These topics are known to have incomplete historical recovery:
+
+- exact Reputation formula and update algorithm;
+- exact Reward selection actor/method schema;
+- weighted/random-fill reward semantics;
+- excused-day rules and their effect on streaks/reputation/penalties;
+- streak reset/freeze/reward rules;
+- child-created BehaviorEvent approval workflow;
+- responsibility transfer semantics;
+- delegated bonus/penalty semantics;
+- completion bonus semantics;
+- old `HABIT` concept and whether it was superseded by Recurrence + Behavior;
+- exact TaskRequest workflow/statuses.
+
+Do not close these items by assumption.
+
+---
+
+## 22. Append-only discussion entry template
+
+When a meaningful product/domain discussion happens, append an entry here before the session ends.
+
+```md
+### YYYY-MM-DD — <topic>
+
+**Status:** AGREED | DISCUSSED | RECOVER | SUPERSEDED | REJECTED | QUESTION
+
+**Context**
+Why the topic came up.
+
+**Decision / current understanding**
+- ...
+
+**Alternatives considered**
+- ...
+
+**Invariants / things not to mix**
+- ...
+
+**Open questions**
+- ...
+
+**Implementation impact**
+- backend:
+- frontend:
+- DB/migration:
+- tests:
+
+**Supersedes / superseded by**
+- ...
+```
+
+---
+
+## 23. Maintenance rule
+
+Any time a discussion changes mechanics, product behavior, domain boundaries, statuses, reward formulas, permission semantics, or lifecycle:
+
+1. update this log;
+2. update the project checklist;
+3. only then consider the topic safely preserved.
+
+A chat summary/handoff is **not** a substitute for this file.
