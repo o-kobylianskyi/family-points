@@ -16,13 +16,16 @@ public class RoleSetService {
     private final WorkspaceRepository workspaces;
     private final RoleSetRepository roleSets;
     private final GroupRoleRepository roles;
+    private final RoleDefinitionRepository roleDefinitions;
     private final RoleCatalogAuthorizationService authorization;
 
     public RoleSetService(WorkspaceRepository workspaces, RoleSetRepository roleSets, GroupRoleRepository roles,
+                          RoleDefinitionRepository roleDefinitions,
                           RoleCatalogAuthorizationService authorization) {
         this.workspaces = workspaces;
         this.roleSets = roleSets;
         this.roles = roles;
+        this.roleDefinitions = roleDefinitions;
         this.authorization = authorization;
     }
 
@@ -62,6 +65,7 @@ public class RoleSetService {
         RoleSet set = roleSet(workspaceId, id);
         if (set.isSystemDefault()) throw new IllegalArgumentException("System role sets cannot be deleted");
         roles.findByRoleSetIdOrderByNameAsc(id).forEach(role -> role.setRoleSet(null));
+        roleDefinitions.findByRoleSetIdAndActiveTrueOrderByNameAsc(id).forEach(role -> role.setRoleSet(null));
         set.setActive(false);
         roleSets.save(set);
     }
