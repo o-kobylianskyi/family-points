@@ -3,6 +3,7 @@ package com.olehkobylianskyi.familypoints.service;
 import com.olehkobylianskyi.familypoints.entity.*;
 import com.olehkobylianskyi.familypoints.repository.RoleAssignmentRepository;
 import com.olehkobylianskyi.familypoints.repository.RoleDefinitionRepository;
+import com.olehkobylianskyi.familypoints.repository.RolePermissionGrantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +21,16 @@ public class LegacyGroupRoleBridgeService {
 
     private final RoleDefinitionRepository roleDefinitions;
     private final RoleAssignmentRepository roleAssignments;
+    private final RolePermissionGrantRepository rolePermissionGrants;
 
     public LegacyGroupRoleBridgeService(
             RoleDefinitionRepository roleDefinitions,
-            RoleAssignmentRepository roleAssignments
+            RoleAssignmentRepository roleAssignments,
+            RolePermissionGrantRepository rolePermissionGrants
     ) {
         this.roleDefinitions = roleDefinitions;
         this.roleAssignments = roleAssignments;
+        this.rolePermissionGrants = rolePermissionGrants;
     }
 
     @Transactional
@@ -56,6 +60,38 @@ public class LegacyGroupRoleBridgeService {
         role.setActive(true);
 
         return roleDefinitions.save(role);
+    }
+
+    @Transactional
+    public RolePermissionGrant syncPermissionGrant(GroupPermissionGrant legacyGrant) {
+        RoleDefinition role = syncRole(legacyGrant.getGroupRole());
+
+        RolePermissionGrant grant = rolePermissionGrants
+                .findByLegacyGroupPermissionGrantId(legacyGrant.getId())
+                .orElseGet(() -> {
+                    RolePermissionGrant created = new RolePermissionGrant(
+                            role,
+                            legacyGrant.getPermission(),
+                            toRoleScope(legacyGrant.getScope())
+                    );
+                    created.setLegacyGroupPermissionGrantId(legacyGrant.getId());
+                    return created;
+                });
+
+        grant.setActive(true);
+        return rolePermissionGrants.save(grant);
+    }
+
+    @Transactional
+    public void removePermissionGrant(GroupPermissionGrant legacyGrant) {
+        rolePermissionGrants.findByLegacyGroupPermissionGrantId(legacyGrant.getId())
+                .ifPresent(rolePermissionGrants::delete);
+    }
+
+    private RolePermissionScope toRoleScope(GroupPermissionScope scope) {
+        return scope == GroupPermissionScope.GROUP_SUBTREE
+                ? RolePermissionScope.SUBTREE
+                : RolePermissionScope.CURRENT;
     }
 
     @Transactional
