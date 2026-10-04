@@ -15,6 +15,7 @@ import {
   getMemberTasks,
   getOpenTasks,
   getTaskDefinitionsByView,
+  getTaskDefinitions,
   getTaskParticipants,
   getTaskInstanceHistory,
   getTaskDefinitionHistory,
@@ -37,6 +38,32 @@ function newestFirst(items) {
   return [...items].sort((a, b) => Number(b.id) - Number(a.id))
 }
 
+function hierarchyRows(items, definitionOf) {
+  const byDefinitionId = new Map(items.map((item) => [definitionOf(item).id, item]))
+  const children = new Map()
+  const roots = []
+
+  for (const item of items) {
+    const definition = definitionOf(item)
+    const parentId = definition.parentTaskDefinitionId
+    if (parentId && byDefinitionId.has(parentId)) {
+      if (!children.has(parentId)) children.set(parentId, [])
+      children.get(parentId).push(item)
+    } else {
+      roots.push(item)
+    }
+  }
+
+  const rows = []
+  const visit = (item, depth) => {
+    rows.push({ item, depth })
+    const id = definitionOf(item).id
+    newestFirst(children.get(id) || []).forEach((child) => visit(child, depth + 1))
+  }
+  newestFirst(roots).forEach((root) => visit(root, 0))
+  return rows
+}
+
 function TasksPage() {
   const { t, i18n } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
@@ -52,6 +79,7 @@ function TasksPage() {
   const [managementView, setManagementView] = useState('created')
   const [pageTab, setPageTab] = useState('my')
   const [managedTasks, setManagedTasks] = useState([])
+  const [visibleDefinitions, setVisibleDefinitions] = useState([])
   const [participantMap, setParticipantMap] = useState({})
 
   const [loadingMembers, setLoadingMembers] = useState(true)
@@ -123,7 +151,7 @@ function TasksPage() {
 
       const token = getAccessToken()
 
-      const [memberTasks, availableOpenTasks] =
+      const [memberTasks, availableOpenTasks, definitions] =
         await Promise.all([
           getMemberTasks(
             token,
@@ -137,10 +165,12 @@ function TasksPage() {
             selectedDate,
             selectedMemberId
           ),
+          getTaskDefinitions(token, currentUser.workspaceId),
         ])
 
       setTasks(memberTasks)
       setOpenTasks(availableOpenTasks)
+      setVisibleDefinitions(definitions)
     } catch (error) {
       setError(error.message)
     } finally {
@@ -543,10 +573,11 @@ function TasksPage() {
           </div>
         ) : (
           <div className="task-list">
-            {newestFirst(tasks).map((task) => (
+            {hierarchyRows(tasks, (task) => visibleDefinitions.find((d) => d.id === task.taskDefinitionId) || { id: task.taskDefinitionId }).map(({ item: task, depth }) => (
               <article
                 className="task-card"
                 key={task.id}
+                style={{ marginLeft: `${Math.min(depth, 6) * 28}px` }}
               >
                 <div className="task-card-main">
                   <div className="task-title-row">
@@ -766,8 +797,8 @@ function TasksPage() {
           ))}
         </div>
         {managedTasks.length === 0 ? <div className="empty-state compact">{t('tasks.management.empty')}</div> : (
-          <div className="task-list">{newestFirst(managedTasks).map((task) => (
-            <article className="task-card" key={`managed-${task.id}`}>
+          <div className="task-list">{hierarchyRows(managedTasks, (task) => task).map(({ item: task, depth }) => (
+            <article className="task-card" key={`managed-${task.id}`} style={{ marginLeft: `${Math.min(depth, 6) * 28}px` }}>
               <div className="task-card-main"><div className="task-title-row"><h3>№{task.id} · {task.title}</h3></div>
                 {task.description && <p className="task-description">{task.description}</p>}
                 <div className="task-participant-summary">
