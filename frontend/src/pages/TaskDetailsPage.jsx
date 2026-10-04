@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import CreateTaskModal from '../components/CreateTaskModal'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 import {
   getTaskDefinition,
@@ -30,6 +31,7 @@ function TaskDetailsPage() {
   const [participants, setParticipants] = useState([])
   const [history, setHistory] = useState([])
   const [subtasks, setSubtasks] = useState([])
+  const [createSubtaskOpen, setCreateSubtaskOpen] = useState(false)
   const [error, setError] = useState('')
   const [processing, setProcessing] = useState(false)
 
@@ -172,6 +174,7 @@ function TaskDetailsPage() {
       <section className="task-details-card">
         <div className="task-details-section-header">
           <h2>Підзавдання</h2>
+          <button type="button" className="task-action-button primary" onClick={() => setCreateSubtaskOpen(true)}>+ Створити</button>
         </div>
         {subtasks.length === 0 ? (
           <p className="task-details-muted">Підзавдань поки немає.</p>
@@ -219,6 +222,19 @@ function TaskDetailsPage() {
             </div>
           )}</div>}
       </section>
+      {createSubtaskOpen && (
+        <CreateTaskModal
+          members={members}
+          defaultMemberId={instance?.memberId || currentUser.memberId}
+          parentTaskDefinitionId={task.id}
+          parentTaskTitle={task.title}
+          onClose={() => setCreateSubtaskOpen(false)}
+          onCreated={async () => {
+            setCreateSubtaskOpen(false)
+            await load()
+          }}
+        />
+      )}
     </div>
   )
 }
