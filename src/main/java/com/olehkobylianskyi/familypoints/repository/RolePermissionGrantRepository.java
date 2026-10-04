@@ -10,5 +10,6 @@ import java.util.Optional;
 public interface RolePermissionGrantRepository extends JpaRepository<RolePermissionGrant, Long> {
     List<RolePermissionGrant> findByRoleDefinitionIdAndPermissionAndActiveTrue(Long roleDefinitionId, GroupPermission permission);
     List<RolePermissionGrant> findByRoleDefinitionIdAndActiveTrueOrderByIdAsc(Long roleDefinitionId);
+    List<RolePermissionGrant> findByRoleDefinitionId(Long roleDefinitionId);
     Optional<RolePermissionGrant> findByLegacyGroupPermissionGrantId(Long legacyGroupPermissionGrantId);
 }
