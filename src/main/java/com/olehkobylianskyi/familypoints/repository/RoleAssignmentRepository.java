@@ -8,6 +8,13 @@ import java.util.Optional;
 public interface RoleAssignmentRepository extends JpaRepository<RoleAssignment, Long> {
     List<RoleAssignment> findByWorkspaceIdAndActorTypeAndActorIdAndActiveTrue(Long workspaceId, ActorType actorType, Long actorId);
     List<RoleAssignment> findByWorkspaceIdAndContextTypeAndContextIdAndActiveTrue(Long workspaceId, RoleContextType contextType, Long contextId);
+    List<RoleAssignment> findByWorkspaceIdAndActorTypeAndActorIdAndContextTypeAndContextIdAndActiveTrue(
+            Long workspaceId,
+            ActorType actorType,
+            Long actorId,
+            RoleContextType contextType,
+            Long contextId
+    );
     List<RoleAssignment> findByRoleDefinitionId(Long roleDefinitionId);
     Optional<RoleAssignment> findByWorkspaceIdAndRoleDefinitionIdAndActorTypeAndActorIdAndContextTypeAndContextId(
             Long workspaceId,
