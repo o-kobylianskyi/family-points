@@ -88,6 +88,15 @@ public class LegacyGroupRoleBridgeService {
                 .ifPresent(rolePermissionGrants::delete);
     }
 
+    @Transactional
+    public void removeRoleBridge(GroupRole legacyRole) {
+        roleDefinitions.findByLegacyGroupRoleId(legacyRole.getId()).ifPresent(role -> {
+            rolePermissionGrants.deleteAll(rolePermissionGrants.findByRoleDefinitionId(role.getId()));
+            roleAssignments.deleteAll(roleAssignments.findByRoleDefinitionId(role.getId()));
+            roleDefinitions.delete(role);
+        });
+    }
+
     private RolePermissionScope toRoleScope(GroupPermissionScope scope) {
         return scope == GroupPermissionScope.GROUP_SUBTREE
                 ? RolePermissionScope.SUBTREE
