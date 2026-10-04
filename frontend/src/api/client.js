@@ -28,5 +28,9 @@ export async function apiRequest(
     }
   )
 
+  if (response.status === 401) {
+    window.dispatchEvent(new Event('auth:unauthorized'))
+  }
+
   return response
 }
