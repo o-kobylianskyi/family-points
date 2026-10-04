@@ -262,6 +262,17 @@
       "ASSISTANT": "Assistenz",
       "REVIEWER": "Prüfung",
       "OBSERVER": "Beobachtung"
+    },
+    "managerTitle": "Rollensätze",
+    "managerDescription": "System-Rollensätze können verwendet, aber nicht bearbeitet werden. Eigene Rollensätze können erstellt, geändert und in Gruppen oder Aufgaben verwendet werden.",
+    "setNamePlaceholder": "Name des Rollensatzes",
+    "setDescriptionPlaceholder": "Beschreibung (optional)",
+    "createSet": "Rollensatz erstellen",
+    "noDescription": "Keine Beschreibung",
+    "roleSetDescriptions": {
+      "MANAGEMENT": "Standardrollen für Leitung",
+      "EXECUTION": "Standardrollen für Ausführung",
+      "CONTROL": "Standardrollen für Kontrolle"
     }
   },
   "rolePermissions": {
