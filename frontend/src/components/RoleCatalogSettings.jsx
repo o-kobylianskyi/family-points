@@ -96,7 +96,7 @@ export default function RoleCatalogSettings({ token, workspaceId, canManage }) {
         name: editingRole.name.trim(),
         description: editingRole.description?.trim() || null,
         roleSetId: editingRole.roleSetId ? Number(editingRole.roleSetId) : null,
-        visibility: editingRole.visibility || 'SHARED',
+        visibility: 'SHARED',
         ownerContextType: editingRole.ownerContextType || 'WORKSPACE',
         ownerContextId: editingRole.ownerContextType === 'WORKSPACE' ? null : editingRole.ownerContextId,
       }
@@ -182,7 +182,6 @@ export default function RoleCatalogSettings({ token, workspaceId, canManage }) {
       <label>{t('roles.name')}<input value={editingRole.name} onChange={e => setEditingRole({ ...editingRole, name: e.target.value })}/></label>
       <label>{t('roles.roleSet')}<select value={editingRole.roleSetId || ''} onChange={e => setEditingRole({ ...editingRole, roleSetId: e.target.value })}><option value="">{t('roles.withoutSet')}</option>{sets.map(set => <option key={set.id} value={set.id}>{setLabel(set)}</option>)}</select></label>
       <label>{t('roles.descriptionField')}<textarea value={editingRole.description || ''} onChange={e => setEditingRole({ ...editingRole, description: e.target.value })}/></label>
-      <label>{t('roles.visibility')}<select value={editingRole.visibility || 'SHARED'} onChange={e => setEditingRole({ ...editingRole, visibility: e.target.value })}><option value="SHARED">{t('roles.shared')}</option><option value="PRIVATE">{t('roles.private')}</option></select></label>
       <div className="modal-actions">
         {editingRole.id && !editingRole.systemDefault && <button type="button" className="danger-button" onClick={() => window.confirm(t('roles.deleteRoleConfirm')) && run(async () => { await deleteRoleDefinition(token, workspaceId, editingRole.id); setEditingRole(null) })}>{t('roles.delete')}</button>}
         <button type="button" className="secondary-button" onClick={() => setEditingRole(null)}>{t('common.cancel')}</button>
