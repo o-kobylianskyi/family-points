@@ -16,6 +16,9 @@ public class WorkNode {
     @JoinColumn(name = "parent_node_id")
     private WorkNode parentNode;
 
+    @OneToOne(mappedBy = "workNode", fetch = FetchType.LAZY)
+    private TaskDefinition taskDefinition;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private WorkNodeType type;
@@ -45,6 +48,7 @@ public class WorkNode {
     public Long getId() { return id; }
     public Workspace getWorkspace() { return workspace; }
     public WorkNode getParentNode() { return parentNode; }
+    public TaskDefinition getTaskDefinition() { return taskDefinition; }
     public WorkNodeType getType() { return type; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
