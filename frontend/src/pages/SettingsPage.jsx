@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 import { changeOwnPassword, createMemberAccount, getWorkspaceAccounts, resetMemberPassword, updateMemberAccount } from '../api/accountApi'
+import RoleCatalogSettings from '../components/RoleCatalogSettings'
 
 function SettingsPage() {
   const { t } = useTranslation()
@@ -158,6 +159,8 @@ function SettingsPage() {
         <button className="primary-button" disabled={busy}>{t('settings.password.change')}</button>
       </form>
     </section>
+
+    {canManage && <RoleCatalogSettings token={getAccessToken()} workspaceId={currentUser.workspaceId} canManage={canManage} />}
 
     {canManage && <section className="settings-section">
       <h2>{t('settings.accounts.title')}</h2><p>{t('settings.accounts.description')}</p>
