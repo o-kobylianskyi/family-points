@@ -52,6 +52,7 @@ public class RoleSetService {
     @Transactional
     public void deactivate(Long workspaceId, Long id) {
         RoleSet set = roleSet(workspaceId, id);
+        roles.findByRoleSetIdOrderByNameAsc(id).forEach(role -> role.setRoleSet(null));
         set.setActive(false);
         roleSets.save(set);
     }
