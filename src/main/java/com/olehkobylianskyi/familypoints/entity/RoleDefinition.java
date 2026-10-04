@@ -75,6 +75,7 @@ public class RoleDefinition {
     public void setName(String name) { this.name = name; }
     public void setDescription(String description) { this.description = description; }
     public void setVisibility(RoleVisibility visibility) { this.visibility = visibility; }
+    public void setOwnerContext(RoleContextType type, Long id) { this.ownerContextType = type; this.ownerContextId = id; }
     public void setSystemDefault(boolean systemDefault) { this.systemDefault = systemDefault; }
     public void setLegacyGroupRoleId(Long legacyGroupRoleId) { this.legacyGroupRoleId = legacyGroupRoleId; }
     public void setActive(boolean active) { this.active = active; }
