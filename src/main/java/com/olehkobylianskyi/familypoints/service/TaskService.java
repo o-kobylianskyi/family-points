@@ -29,7 +29,8 @@ public class TaskService {
     private final CurrentUserService currentUserService;
     private final TaskGenerationService taskGenerationService;
     private final MemberGroupRepository memberGroupRepository;
-    private final GroupRoleRepository groupRoleRepository;
+    private final RoleDefinitionRepository roleDefinitionRepository;
+    private final RoleAssignmentRepository roleAssignmentRepository;
     private final GroupMembershipRepository groupMembershipRepository;
     private final GroupCompositionRepository groupCompositionRepository;
     private final TaskDelegationRepository taskDelegationRepository;
@@ -49,7 +50,8 @@ public class TaskService {
             CurrentUserService currentUserService,
             TaskGenerationService taskGenerationService,
             MemberGroupRepository memberGroupRepository,
-            GroupRoleRepository groupRoleRepository,
+            RoleDefinitionRepository roleDefinitionRepository,
+            RoleAssignmentRepository roleAssignmentRepository,
             GroupMembershipRepository groupMembershipRepository,
             GroupCompositionRepository groupCompositionRepository,
             TaskDelegationRepository taskDelegationRepository,
@@ -68,7 +70,8 @@ public class TaskService {
         this.currentUserService = currentUserService;
         this.taskGenerationService = taskGenerationService;
         this.memberGroupRepository = memberGroupRepository;
-        this.groupRoleRepository = groupRoleRepository;
+        this.roleDefinitionRepository = roleDefinitionRepository;
+        this.roleAssignmentRepository = roleAssignmentRepository;
         this.groupMembershipRepository = groupMembershipRepository;
         this.groupCompositionRepository = groupCompositionRepository;
         this.taskDelegationRepository = taskDelegationRepository;
@@ -149,9 +152,10 @@ public class TaskService {
         if (requiredGroupRoleIds != null && !requiredGroupRoleIds.isEmpty()) {
             if (targetGroup == null) throw new IllegalArgumentException("Group roles require targetGroupId");
             for (Long roleId : requiredGroupRoleIds) {
-                GroupRole role = groupRoleRepository.findByIdAndMemberGroupId(roleId, targetGroup.getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Group role not found: " + roleId));
-                definition.getRequiredGroupRoles().add(role);
+                RoleDefinition role = roleDefinitionRepository.findByIdAndWorkspaceId(roleId, workspaceId)
+                        .filter(candidate -> isRoleAvailableInGroup(candidate, targetGroup.getId()))
+                        .orElseThrow(() -> new ResourceNotFoundException("Role definition not available in target group: " + roleId));
+                definition.getRequiredRoleDefinitions().add(role);
             }
         }
 
@@ -217,13 +221,14 @@ public class TaskService {
         definition.setResponsibleMember(responsible);
         definition.setDelegationAllowed(request.isDelegationAllowed());
         definition.setRoleMatchMode(request.getRoleMatchMode() == null ? RoleMatchMode.ANY : request.getRoleMatchMode());
-        definition.getRequiredGroupRoles().clear();
+        definition.getRequiredRoleDefinitions().clear();
         if (request.getRequiredGroupRoleIds() != null && !request.getRequiredGroupRoleIds().isEmpty()) {
             if (targetGroup == null) throw new IllegalArgumentException("Group roles require targetGroupId");
             for (Long roleId : request.getRequiredGroupRoleIds()) {
-                GroupRole role = groupRoleRepository.findByIdAndMemberGroupId(roleId, targetGroup.getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Group role not found: " + roleId));
-                definition.getRequiredGroupRoles().add(role);
+                RoleDefinition role = roleDefinitionRepository.findByIdAndWorkspaceId(roleId, workspaceId)
+                        .filter(candidate -> isRoleAvailableInGroup(candidate, targetGroup.getId()))
+                        .orElseThrow(() -> new ResourceNotFoundException("Role definition not available in target group: " + roleId));
+                definition.getRequiredRoleDefinitions().add(role);
             }
         }
 
@@ -593,18 +598,29 @@ public class TaskService {
             if (definition.getTargetGroup() == null) return true;
         }
         if (policy == AssignmentPolicy.OPEN_GROUP || definition.getTargetGroup() != null) {
-            return memberMatchesGroup(definition.getTargetGroup().getId(), member.getId(), definition.getRequiredGroupRoles(), definition.getRoleMatchMode(), new java.util.HashSet<>());
+            return memberMatchesGroup(definition.getTargetGroup().getId(), member.getId(), definition.getRequiredRoleDefinitions(), definition.getRoleMatchMode(), new java.util.HashSet<>());
         }
         return policy == AssignmentPolicy.SINGLE_MEMBER && definition.getAssignedMember() != null
                 && definition.getAssignedMember().getId().equals(member.getId());
     }
 
-    private boolean memberMatchesGroup(Long groupId, Long memberId, Set<GroupRole> requiredRoles, RoleMatchMode mode, Set<Long> visited) {
+    private boolean memberMatchesGroup(Long groupId, Long memberId, Set<RoleDefinition> requiredRoles, RoleMatchMode mode, Set<Long> visited) {
         if (!visited.add(groupId)) return false;
         var membership = groupMembershipRepository.findByMemberGroupIdAndMemberId(groupId, memberId).orElse(null);
         if (membership != null && membership.isActive()) {
             if (requiredRoles == null || requiredRoles.isEmpty()) return true;
-            long matched = requiredRoles.stream().filter(membership.getRoles()::contains).count();
+            Set<Long> assignedRoleIds = roleAssignmentRepository
+                    .findByWorkspaceIdAndActorTypeAndActorIdAndContextTypeAndContextIdAndActiveTrue(
+                            membership.getMemberGroup().getWorkspace().getId(),
+                            ActorType.MEMBER,
+                            memberId,
+                            RoleContextType.MEMBER_GROUP,
+                            groupId
+                    )
+                    .stream()
+                    .map(a -> a.getRoleDefinition().getId())
+                    .collect(java.util.stream.Collectors.toSet());
+            long matched = requiredRoles.stream().filter(r -> assignedRoleIds.contains(r.getId())).count();
             if ((mode == null || mode == RoleMatchMode.ANY) && matched > 0) return true;
             if (mode == RoleMatchMode.ALL && matched == requiredRoles.size()) return true;
         }
@@ -612,6 +628,13 @@ public class TaskService {
             if (memberMatchesGroup(composition.getChildGroup().getId(), memberId, requiredRoles, mode, visited)) return true;
         }
         return false;
+    }
+
+    private boolean isRoleAvailableInGroup(RoleDefinition role, Long groupId) {
+        if (!role.isActive()) return false;
+        if (role.getVisibility() == RoleVisibility.SHARED) return true;
+        return role.getOwnerContextType() == RoleContextType.MEMBER_GROUP
+                && java.util.Objects.equals(role.getOwnerContextId(), groupId);
     }
 
     @Transactional
