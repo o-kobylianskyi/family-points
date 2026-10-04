@@ -821,6 +821,7 @@ function TasksPage() {
       {createModalOpen && (
         <CreateTaskModal
           members={members}
+          existingTaskDefinitions={visibleDefinitions}
           defaultMemberId={selectedMemberId}
           onClose={() => setCreateModalOpen(false)}
           onCreated={() => loadAllTasks()}
@@ -830,6 +831,7 @@ function TasksPage() {
       {editingTask && (
         <CreateTaskModal
           members={members}
+          existingTaskDefinitions={visibleDefinitions}
           defaultMemberId={selectedMemberId}
           initialTask={editingTask}
           initialParticipants={participantMap[editingTask.id] || []}
