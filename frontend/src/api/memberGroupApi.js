@@ -16,3 +16,11 @@ export const addGroupPoints=(t,f,g,b)=>h(apiRequest(`${p(f)}/${g}/points`,{token
 export const getGroupPermissions=(t,f,g)=>h(apiRequest(`${p(f)}/${g}/permissions`,{token:t}),'Failed to load group permissions')
 export const addGroupPermission=(t,f,g,r,b)=>h(apiRequest(`${p(f)}/${g}/roles/${r}/permissions`,{token:t,method:'POST',body:b}),'Failed to add group permission')
 export const removeGroupPermission=(t,f,g,id)=>h(apiRequest(`${p(f)}/${g}/permissions/${id}`,{token:t,method:'DELETE'}),'Failed to remove group permission')
+
+export const updateGroupRole=(t,f,g,r,b)=>h(apiRequest(`${p(f)}/${g}/roles/${r}`,{token:t,method:'PUT',body:b}),'Failed to update group role')
+export const updateGroupMemberRoles=(t,f,g,m,roleIds)=>h(apiRequest(`${p(f)}/${g}/members/${m}/roles`,{token:t,method:'PUT',body:roleIds}),'Failed to update member roles')
+const rs=(f)=>`/workspaces/${f}/role-sets`
+export const getRoleSets=(t,f)=>h(apiRequest(rs(f),{token:t}),'Failed to load role sets')
+export const createRoleSet=(t,f,b)=>h(apiRequest(rs(f),{token:t,method:'POST',body:b}),'Failed to create role set')
+export const updateRoleSet=(t,f,id,b)=>h(apiRequest(`${rs(f)}/${id}`,{token:t,method:'PUT',body:b}),'Failed to update role set')
+export const deleteRoleSet=(t,f,id)=>h(apiRequest(`${rs(f)}/${id}`,{token:t,method:'DELETE'}),'Failed to delete role set')
