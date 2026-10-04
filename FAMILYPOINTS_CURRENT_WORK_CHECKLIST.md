@@ -395,3 +395,14 @@ Before each substantial implementation batch:
 - [x] Warn when another local role has identical permission+scope set
 - [x] Auto-name new tasks with localized “Task/Завдання + first free number”
 - [x] Reject duplicate task titles in the current task catalog
+
+
+## Global-role assignment correction
+- [ ] Stop creating/using legacy GroupRole copies for predefined roles
+- [ ] Expose shared Workspace RoleDefinitions as automatically available in every new group
+- [ ] Use RoleAssignment for member ↔ global role ↔ group context
+- [ ] Keep RoleSetBinding as availability/reference only; never clone roles
+- [ ] Create PRIVATE RoleDefinition only for genuinely custom group roles
+- [ ] Update GroupEditor role picker to show global predefined roles by default
+- [ ] Rename “Add local role” UX to “Create custom role”
+- [ ] Migrate existing legacy GroupRole member assignments to direct RoleAssignment usage
