@@ -64,6 +64,8 @@ function CreateTaskModal({
   onCreated,
   initialTask = null,
   initialParticipants = [],
+  parentTaskDefinitionId = null,
+  parentTaskTitle = null,
 }) {
   const { t } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
@@ -244,6 +246,7 @@ function CreateTaskModal({
         targetGroupId: ['GROUP_SHARED', 'OPEN_GROUP'].includes(assignmentPolicy) ? Number(targetGroupId) : null,
         preferredMemberId: assignmentPolicy === 'PREFERRED_MEMBER' ? Number(preferredMemberId) : null,
         responsibleMemberId: responsibleMemberId ? Number(responsibleMemberId) : null,
+        parentTaskDefinitionId: editing ? null : parentTaskDefinitionId,
         roleMatchMode,
         requiredGroupRoleIds: ['GROUP_SHARED', 'OPEN_GROUP'].includes(assignmentPolicy) ? requiredGroupRoleIds : [],
         administrators: actorRefs(administrators),
@@ -330,6 +333,13 @@ function CreateTaskModal({
           {error && (
             <div className="page-error">
               {error}
+            </div>
+          )}
+
+          {!editing && parentTaskDefinitionId && (
+            <div className="task-parent-context">
+              <strong>Підзавдання для №{parentTaskDefinitionId}</strong>
+              {parentTaskTitle && <span>{parentTaskTitle}</span>}
             </div>
           )}
 
