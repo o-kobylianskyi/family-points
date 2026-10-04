@@ -317,7 +317,15 @@
     "defaultLocalRoleName": "Lokale Rolle",
     "modifiedSuffix": "(geändert)",
     "duplicateRoleName": "Eine Rolle mit dem Namen „{{name}}“ existiert bereits in dieser Gruppe.",
-    "duplicatePermissionsWarning": "Die Rolle „{{name}}“ hat bereits identische Rechte."
+    "duplicatePermissionsWarning": "Die Rolle „{{name}}“ hat bereits identische Rechte.",
+    "availableRoles": "Verfügbare Rollen",
+    "availableRolesHint": "Vordefinierte und gemeinsame Rollen sind bereits in der Gruppe verfügbar. Erstellen Sie eine eigene Rolle nur, wenn keine vorhandene passt.",
+    "predefinedRole": "Vordefinierte Rolle",
+    "customGroupRole": "Eigene Rolle dieser Gruppe",
+    "sharedRole": "Gemeinsame Workspace-Rolle",
+    "readyToAssign": "Zuweisbar",
+    "noAvailableRoles": "Keine Rollen verfügbar.",
+    "createCustomRole": "Eigene Rolle erstellen"
   },
   "rolePermissions": {
     "title": "Rollenrechte",
