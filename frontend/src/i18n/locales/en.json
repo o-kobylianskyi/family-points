@@ -262,6 +262,17 @@
       "ASSISTANT": "Assistant",
       "REVIEWER": "Reviewer",
       "OBSERVER": "Observer"
+    },
+    "managerTitle": "Role sets",
+    "managerDescription": "System role sets can be used but not edited. Custom role sets can be created, changed, and reused in groups and tasks.",
+    "setNamePlaceholder": "Role set name",
+    "setDescriptionPlaceholder": "Description (optional)",
+    "createSet": "Create role set",
+    "noDescription": "No description",
+    "roleSetDescriptions": {
+      "MANAGEMENT": "Default management roles",
+      "EXECUTION": "Default execution roles",
+      "CONTROL": "Default control roles"
     }
   },
   "rolePermissions": {
