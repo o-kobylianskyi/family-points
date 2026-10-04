@@ -12,3 +12,7 @@ export const addChildGroup=(t,f,g,c)=>h(apiRequest(`${p(f)}/${g}/children`,{toke
 export const removeChildGroup=(t,f,g,c)=>h(apiRequest(`${p(f)}/${g}/children/${c}`,{token:t,method:'DELETE'}),'Failed to remove child group')
 export const getResolvedActors=(t,f,g)=>h(apiRequest(`${p(f)}/${g}/resolved-actors`,{token:t}),'Failed to resolve group actors')
 export const addGroupPoints=(t,f,g,b)=>h(apiRequest(`${p(f)}/${g}/points`,{token:t,method:'POST',body:b}),'Failed to change group balance')
+
+export const getGroupPermissions=(t,f,g)=>h(apiRequest(`${p(f)}/${g}/permissions`,{token:t}),'Failed to load group permissions')
+export const addGroupPermission=(t,f,g,r,b)=>h(apiRequest(`${p(f)}/${g}/roles/${r}/permissions`,{token:t,method:'POST',body:b}),'Failed to add group permission')
+export const removeGroupPermission=(t,f,g,id)=>h(apiRequest(`${p(f)}/${g}/permissions/${id}`,{token:t,method:'DELETE'}),'Failed to remove group permission')
