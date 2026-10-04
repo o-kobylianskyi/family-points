@@ -255,6 +255,7 @@ function TaskDetailsPage() {
       {createSubtaskOpen && (
         <CreateTaskModal
           members={members}
+          existingTaskDefinitions={visibleDefinitions}
           defaultMemberId={instance?.memberId || currentUser.memberId}
           parentTaskDefinitionId={task.id}
           parentTaskTitle={task.title}
