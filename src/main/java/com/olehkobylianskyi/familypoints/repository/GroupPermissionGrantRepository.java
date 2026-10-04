@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface GroupPermissionGrantRepository extends JpaRepository<GroupPermissionGrant, Long> {
     List<GroupPermissionGrant> findByGroupRoleIdAndPermission(Long groupRoleId, GroupPermission permission);
+    List<GroupPermissionGrant> findByGroupRoleIdOrderByIdAsc(Long groupRoleId);
     List<GroupPermissionGrant> findByMemberGroupIdOrderByIdAsc(Long memberGroupId);
     Optional<GroupPermissionGrant> findByIdAndMemberGroupId(Long id, Long memberGroupId);
 }
