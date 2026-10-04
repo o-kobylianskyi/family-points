@@ -191,16 +191,14 @@ Current state: GroupEditor still contains role-set manager, role editor and perm
 
 Target:
 
-- [ ] Remove global catalog administration from GroupEditor
-- [ ] Keep contextual role assignment only
-- [ ] Select/bind available shared RoleSets for group context
-- [ ] Assign available standard/shared roles to members
-- [ ] Allow local PRIVATE role creation where authorized
-- [ ] Local PRIVATE role remains visible only in owner context / explicitly allowed descendants
-- [ ] Local role creation cannot grant permissions outside creator delegation scope
-- [ ] Support scenario: create group → add available members → assign senior/leader → add group-specific custom role
-- [ ] Keep local permission configuration only where model explicitly permits it
-- [ ] Compact grouped multi-select by RoleSet
+- [x] Remove RoleSet administration from normal GroupEditor flow
+- [x] Keep contextual/local role assignment in GroupEditor
+- [x] Allow local role creation without requiring a RoleSet
+- [x] Add simple permission profiles for local roles
+- [x] Hide raw permission matrix behind “Advanced permissions”
+- [x] Add local role delete flow with cleanup
+- [ ] Assign shared/system RoleDefinitions directly in GroupEditor later if real usage requires it
+- [ ] Enforce creator delegation ceiling for local advanced permissions when new authorization model is switched on
 - [ ] Avoid redundant `onChanged()+reloadAux` requests
 
 ## 4.3 Task role UI
@@ -368,12 +366,12 @@ Concept recovered and logged; implementation is later.
 
 Recommended next sequence:
 
-1. smoke-test V9/V10 + new Role Catalog settings UI;
-2. fix/simplify GroupEditor to contextual assignment + local PRIVATE roles;
+1. smoke-test simplified local-role editor and local role deletion;
+2. stop role UX work unless real usage exposes a concrete problem;
 3. finish RoleAssignment/RoleSetBinding services and APIs;
 4. implement ScopeEvaluator + authorization tests;
 5. switch authorization off legacy GroupRole;
-6. only then proceed to group lifecycle and Task assignment/requirements.
+6. then proceed to group lifecycle and Task assignment/requirements.
 
 ---
 
