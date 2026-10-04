@@ -328,27 +328,127 @@ Exact final schema was not reliably preserved. Do not treat the enum names above
 
 ## 9. Reputation
 
+### 2026-10-04 — mechanics recovered with user
+
 **AGREED**
 
-Reputation is a separate long-term signal.
-
-It is **not**:
+Reputation is a separate long-term balance/metric. It is **not**:
 
 - task quality stars;
 - `BehaviorDailyReview`;
-- raw points balance.
+- the spendable points balance.
+
+### Earning and losing reputation
 
 **AGREED**
 
-Reputation was intended to participate in reward mechanics as an additional factor.
+A task may define not only point reward/penalty but also a separate reputation delta:
 
-**RECOVER — CRITICAL**
+- reputation earned for successful completion;
+- reputation lost for failure/poor outcome where configured.
 
-The exact previously agreed reputation algorithm, coefficients, update rules and bounds were lost from the surviving context.
+Task points and task reputation are therefore two independent settlement dimensions.
 
-Do **not** invent a new formula during implementation.
+**AGREED**
 
-This domain must remain visible in roadmap/specification until reconstructed or explicitly redesigned.
+Behavior can also affect reputation:
+
+- good behavior may grant reputation;
+- bad behavior may deduct reputation.
+
+The exact mapping remains configurable and must not collapse Behavior into the Reputation domain.
+
+### Manual reputation awards
+
+**AGREED**
+
+An authorized administrator/group administrator may manually award reputation as a bonus, analogous to manual point awards, but only when the actor has the explicit permission to do so.
+
+**DESIGN / QUESTION**
+
+Manual reputation distribution should support configurable limits so a delegated group administrator cannot mint unlimited reputation.
+
+Possible configuration level discussed:
+
+- per actor/role;
+- per group/context;
+- per period (daily/weekly/monthly);
+- maximum amount per operation;
+- total reputation allocation/budget available to a group.
+
+Exact limit model is not yet fixed.
+
+### Reputation as an access threshold
+
+**AGREED**
+
+Rewards, purchases, bonuses, games, privileges or other catalog items may require a minimum reputation threshold in addition to their point price.
+
+Example:
+
+- bicycle price: 1000 points;
+- bicycle reputation requirement: 1000 reputation;
+- member must satisfy both conditions before the reward is available.
+
+The reputation threshold is a **qualification/access requirement**, not necessarily a spend. Unless a specific reward says otherwise, buying an item should spend points while reputation remains as the member's standing.
+
+This allows expensive/important rewards to require sustained good participation over time rather than only accumulated points.
+
+### Decay / reset
+
+**DISCUSSED — IMPORTANT**
+
+Reputation should potentially be non-permanent so that old good history cannot indefinitely unlock every high-trust reward.
+
+Mechanics considered:
+
+- reputation decay over time;
+- reputation loss when the member remains inactive / does not participate;
+- periodic reset;
+- configurable decay windows/rates;
+- exceptions/excused periods so sickness/vacation/etc. do not unfairly reduce reputation.
+
+Example product intent: a child who wants a high-value reward such as a bicycle may need roughly a month of consistently good behavior and task effort to maintain/build the required reputation.
+
+**QUESTION**
+
+Before implementation decide:
+
+- continuous decay vs scheduled decay;
+- inactivity-only decay vs universal decay;
+- whether reputation can reach zero but never negative, or negative reputation is allowed;
+- workspace/group-specific decay policy;
+- grace period;
+- interaction with excused days;
+- whether some reputation types/categories are non-decaying;
+- whether a seasonal/manual reset is supported.
+
+### Reputation ledger/history
+
+**AGREED DIRECTION**
+
+Reputation changes should be auditable, similarly to points, with source/reason and actor:
+
+- TASK;
+- BEHAVIOR;
+- MANUAL_BONUS;
+- MANUAL_PENALTY;
+- DECAY;
+- ADJUSTMENT;
+- other future source types.
+
+A dedicated reputation transaction/history model is preferable to storing only the current scalar balance.
+
+### Invariant
+
+Do not conflate:
+
+- spendable points;
+- reputation standing;
+- task quality;
+- behavior daily score.
+
+A reward may require both points and reputation, but they represent different things.
 
 ---
 
@@ -716,7 +816,7 @@ Keep these separate unless a future explicit decision says otherwise:
 
 These topics are known to have incomplete historical recovery:
 
-- exact Reputation formula and update algorithm;
+- exact Reputation decay/reset algorithm and manual-allocation limit model;
 - exact Reward selection actor/method schema;
 - weighted/random-fill reward semantics;
 - excused-day rules and their effect on streaks/reputation/penalties;
