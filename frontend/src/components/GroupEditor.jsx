@@ -61,6 +61,20 @@ function detectProfile(permissions) {
   return 'CUSTOM'
 }
 
+function firstFreeName(baseName, roles, currentRoleId = null) {
+  const base = (baseName || '').trim()
+  if (!base) return ''
+  const used = new Set(
+    roles
+      .filter(role => role.id !== currentRoleId)
+      .map(role => (role.name || '').trim().toLocaleLowerCase())
+  )
+  if (!used.has(base.toLocaleLowerCase())) return base
+  let n = 2
+  while (used.has(`${base} ${n}`.toLocaleLowerCase())) n += 1
+  return `${base} ${n}`
+}
+
 export default function GroupEditor({ group, groups, members, token, workspaceId, onChanged, onClose }) {
   const { t } = useTranslation()
 
@@ -122,6 +136,31 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
   const grantsFor = id => permissionGrants.filter(g => g.roleId === id)
   const roleName = id => group.roles.find(r => r.id === id)?.name || `#${id}`
 
+  const permissionsForRole = roleId => {
+    const permissions = {}
+    grantsFor(roleId).forEach(grant => { permissions[grant.permission] = grant.scope })
+    return permissions
+  }
+
+  const duplicatePermissionRole = roleEditor
+    ? group.roles.find(role =>
+        role.id !== roleEditor.id &&
+        samePermissions(permissionsForRole(role.id), roleEditor.permissions)
+      )
+    : null
+
+  const roleProfileBaseName = profile => {
+    if (profile === 'NONE' || profile === 'CUSTOM') return t('roles.defaultLocalRoleName')
+    return t(`roles.permissionProfiles.${profile}`)
+  }
+
+  const suggestedRoleName = (profile, modified = false, currentRoleId = null) => {
+    const baseProfile = profile === 'CUSTOM' ? 'NONE' : profile
+    const baseName = roleProfileBaseName(baseProfile)
+    const rawName = modified ? `${baseName} ${t('roles.modifiedSuffix')}` : baseName
+    return firstFreeName(rawName, group.roles, currentRoleId)
+  }
+
   async function saveMain() {
     if (!name.trim()) return setError(t('roles.groupNameRequired'))
     try {
@@ -146,11 +185,13 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
     setShowAdvancedPermissions(false)
     setRoleEditor({
       id: null,
-      name: '',
+      name: suggestedRoleName('NONE'),
+      nameTouched: false,
       description: '',
       roleSetId: null,
       permissions: {},
       profile: 'NONE',
+      baseProfile: 'NONE',
     })
   }
 
@@ -159,13 +200,16 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
     grantsFor(role.id).forEach(g => { permissions[g.permission] = g.scope })
     setError('')
     setShowAdvancedPermissions(false)
+    const detectedProfile = detectProfile(permissions)
     setRoleEditor({
       id: role.id,
       name: role.name || '',
+      nameTouched: true,
       description: role.description || '',
       roleSetId: role.roleSetId || null,
       permissions,
-      profile: detectProfile(permissions),
+      profile: detectedProfile,
+      baseProfile: detectedProfile === 'CUSTOM' ? 'NONE' : detectedProfile,
     })
   }
 
@@ -174,18 +218,40 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
       setRoleEditor({ ...roleEditor, profile: 'CUSTOM' })
       return
     }
-    setRoleEditor({
+    const next = {
       ...roleEditor,
       profile,
+      baseProfile: profile,
       permissions: { ...permissionProfiles[profile] },
-    })
+    }
+    if (!roleEditor.nameTouched) {
+      next.name = suggestedRoleName(profile, false, roleEditor.id)
+    }
+    setRoleEditor(next)
   }
 
   const updatePermission = (permission, checked, scope = 'GROUP') => {
-    const next = { ...roleEditor.permissions }
-    if (checked) next[permission] = scope
-    else delete next[permission]
-    setRoleEditor({ ...roleEditor, permissions: next, profile: detectProfile(next) })
+    const nextPermissions = { ...roleEditor.permissions }
+    if (checked) nextPermissions[permission] = scope
+    else delete nextPermissions[permission]
+
+    const detected = detectProfile(nextPermissions)
+    const next = {
+      ...roleEditor,
+      permissions: nextPermissions,
+      profile: detected,
+    }
+
+    if (detected !== 'CUSTOM') next.baseProfile = detected
+
+    if (!roleEditor.nameTouched) {
+      const baseProfile = detected === 'CUSTOM'
+        ? (roleEditor.baseProfile || 'NONE')
+        : detected
+      next.name = suggestedRoleName(baseProfile, detected === 'CUSTOM', roleEditor.id)
+    }
+
+    setRoleEditor(next)
   }
 
   const saveRole = async event => {
@@ -194,6 +260,15 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
     const effectiveName = (roleEditor?.name || sourceRole?.name || '').trim()
     if (!effectiveName) {
       setError(t('roles.roleNameRequired'))
+      return
+    }
+
+    const duplicateName = group.roles.some(role =>
+      role.id !== roleEditor.id &&
+      (role.name || '').trim().toLocaleLowerCase() === effectiveName.toLocaleLowerCase()
+    )
+    if (duplicateName) {
+      setError(t('roles.duplicateRoleName', { name: effectiveName }))
       return
     }
 
@@ -396,13 +471,17 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
 
           <label className="form-field">
             <span>{t('roles.name')}</span>
-            <input value={roleEditor.name} onChange={e => setRoleEditor({ ...roleEditor, name: e.target.value })} />
+            <input value={roleEditor.name} onChange={e => setRoleEditor({ ...roleEditor, name: e.target.value, nameTouched: true })} />
           </label>
 
           <label className="form-field">
             <span>{t('roles.descriptionField')}</span>
             <textarea value={roleEditor.description || ''} onChange={e => setRoleEditor({ ...roleEditor, description: e.target.value })} />
           </label>
+
+          {duplicatePermissionRole && <div className="role-duplicate-warning">
+            {t('roles.duplicatePermissionsWarning', { name: duplicatePermissionRole.name })}
+          </div>}
 
           <label className="form-field">
             <span>{t('roles.permissionProfile')}</span>
