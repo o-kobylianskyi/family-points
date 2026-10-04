@@ -1013,3 +1013,148 @@ Example:
 - ✅ 1350/1000 points.
 
 This turns the reward into a visible long-term goal rather than a mysterious locked item.
+
+
+---
+
+## 25. Role catalog administration, activity templates and local contextual roles
+
+### 2026-10-04 — recovered role administration mechanics
+
+**AGREED**
+
+The system must support a reusable catalog of predefined role sets and roles tailored to the type of Workspace/activity.
+
+Examples of activity/template families discussed:
+
+- Family;
+- Office / Small Team;
+- Business;
+- Software Development / project work;
+- Household;
+- future custom templates.
+
+A template may seed an initial role catalog appropriate to the activity instead of forcing every Workspace to build roles from scratch.
+
+### Predefined role localization
+
+**AGREED**
+
+Predefined roles/role sets use stable `systemCode` values as business keys and must be displayed in the current UI language.
+
+The localized visible name is not the business identifier.
+
+Examples:
+
+- LEADER
+- DEPUTY
+- SENIOR
+- EXECUTOR
+- ASSISTANT
+- REVIEWER
+- OBSERVER
+
+The same predefined role should therefore appear translated according to interface language while remaining the same domain role.
+
+### Workspace-level role administration
+
+**AGREED**
+
+Workspace settings must contain a dedicated role administration area, conceptually **“Ролі та набори”**, where an authorized user can:
+
+- view predefined/shared RoleSets;
+- view RoleDefinitions grouped by RoleSet;
+- create custom SHARED RoleSets;
+- create/edit custom SHARED RoleDefinitions;
+- configure descriptions/localization metadata where applicable;
+- configure permission presets/grants where authorized;
+- bind reusable RoleSets to contexts.
+
+Global/shared catalog administration should not be hidden inside a particular GroupEditor.
+
+### Reusable RoleSets
+
+**AGREED**
+
+A RoleSet/RoleDefinition can be reusable and available in multiple contexts.
+
+`RoleSetBinding` makes a reusable set available in a Workspace/Group/Task context but does **not** assign roles to actors automatically.
+
+Examples:
+
+- a common Management set can be available in several groups;
+- the same EXECUTOR/REVIEWER definitions can be reused in different project groups;
+- binding is catalog/context configuration, assignment is a separate action.
+
+### Local/private contextual roles
+
+**AGREED**
+
+A user who is allowed to create/manage a specific context may create a local functional role directly inside that context.
+
+Examples:
+
+- user creates group **“Група для прибирання”**;
+- adds the members available to that group;
+- assigns a standard role such as LEADER/SENIOR/EXECUTOR;
+- creates an additional custom role specific to cleaning work;
+- the custom role is visible only in that group/context (and, if explicitly configured with subtree semantics, in allowed descendants), not in the general Workspace catalog.
+
+Such a role is `PRIVATE` by default.
+
+It must not appear as a general reusable role for unrelated groups/tasks.
+
+### Local role creation and privilege safety
+
+**INVARIANT**
+
+Being allowed to create a local functional role does not grant the creator permission to invent new security privileges.
+
+A local role may:
+
+- organize responsibilities;
+- be assigned to actors in the current context;
+- participate in eligibility/assignment logic;
+- receive only permission grants the creator is authorized to delegate.
+
+It may not:
+
+- become Workspace-global automatically;
+- expose itself in unrelated/sibling contexts;
+- escalate rights above the creator's delegation scope.
+
+### Contextual administration pattern
+
+**AGREED**
+
+Use this separation:
+
+**Workspace settings / role catalog**
+- administer shared/predefined role sets and roles;
+- translations/system codes;
+- shared presets;
+- catalog-wide availability.
+
+**Group/Task context**
+- choose/bind available shared role sets;
+- assign available roles to members/actors;
+- create context-local PRIVATE roles where permitted;
+- configure only rights that may legally be delegated in that context.
+
+This is the target UI/authorization model for the role refactor.
+
+### Templates and role catalog
+
+**AGREED DIRECTION**
+
+WorkspaceTemplate should be able to seed, at minimum:
+
+- default RoleSets;
+- predefined RoleDefinitions;
+- initial bindings;
+- group structure;
+- WorkNode structure;
+- permission presets;
+- economy/default settings.
+
+The large template wizard remains later work, but the role model must remain compatible with this foundation now.
