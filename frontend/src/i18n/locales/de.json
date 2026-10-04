@@ -149,7 +149,9 @@
       "administrators": "Administratoren",
       "observers": "Beobachter",
       "executors": "Ausführende",
-      "authorHint": "Autor bleibt automatisch der Benutzer, der die Aufgabe erstellt hat."
+      "authorHint": "Autor bleibt automatisch der Benutzer, der die Aufgabe erstellt hat.",
+      "defaultTitleBase": "Aufgabe",
+      "duplicateTitle": "Eine Aufgabe mit dem Namen „{{title}}“ existiert bereits."
     },
     "open": {
       "title": "Offene Aufgaben",
@@ -311,7 +313,11 @@
       "LEADER": "Gruppenleitung",
       "CONTROL": "Kontrolle",
       "CUSTOM": "Benutzerdefiniert"
-    }
+    },
+    "defaultLocalRoleName": "Lokale Rolle",
+    "modifiedSuffix": "(geändert)",
+    "duplicateRoleName": "Eine Rolle mit dem Namen „{{name}}“ existiert bereits in dieser Gruppe.",
+    "duplicatePermissionsWarning": "Die Rolle „{{name}}“ hat bereits identische Rechte."
   },
   "rolePermissions": {
     "title": "Rollenrechte",
