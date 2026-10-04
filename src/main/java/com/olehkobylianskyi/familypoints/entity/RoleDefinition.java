@@ -39,6 +39,9 @@ public class RoleDefinition {
     @Column(name = "system_default", nullable = false)
     private boolean systemDefault;
 
+    @Column(name = "legacy_group_role_id")
+    private Long legacyGroupRoleId;
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -65,6 +68,7 @@ public class RoleDefinition {
     public RoleContextType getOwnerContextType() { return ownerContextType; }
     public Long getOwnerContextId() { return ownerContextId; }
     public boolean isSystemDefault() { return systemDefault; }
+    public Long getLegacyGroupRoleId() { return legacyGroupRoleId; }
     public boolean isActive() { return active; }
     public void setRoleSet(RoleSet roleSet) { this.roleSet = roleSet; }
     public void setSystemCode(String systemCode) { this.systemCode = systemCode; }
