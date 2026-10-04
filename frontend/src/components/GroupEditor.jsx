@@ -6,6 +6,9 @@ import {
   getGroupPermissions, addGroupPermission, removeGroupPermission,
   getRoleSets, createRoleSet, updateRoleSet, deleteRoleSet,
 } from '../api/memberGroupApi'
+import {
+  getRoleDefinitions, createRoleDefinition, updateRoleDefinition, deleteRoleDefinition
+} from '../api/roleCatalogApi'
 
 const permissionGroups=[
  {key:'tasks',permissions:['TASK_VIEW','TASK_CREATE','TASK_ASSIGN','TASK_MANAGE','TASK_APPROVE']},
@@ -17,11 +20,11 @@ const permissionGroups=[
 export default function GroupEditor({group,groups,members,token,workspaceId,onChanged,onClose}){
  const { t } = useTranslation()
  const [name,setName]=useState(group.name),[description,setDescription]=useState(group.description||''),[showInNavigation,setShowInNavigation]=useState(Boolean(group.showInNavigation))
- const [memberId,setMemberId]=useState(''),[childId,setChildId]=useState(''),[roleSets,setRoleSets]=useState([]),[permissionGrants,setPermissionGrants]=useState([])
- const [showSetManager,setShowSetManager]=useState(false),[showNewSetForm,setShowNewSetForm]=useState(false),[newSet,setNewSet]=useState({name:'',description:''}),[editingSet,setEditingSet]=useState(null)
+ const [memberId,setMemberId]=useState(''),[childId,setChildId]=useState(''),[roleSets,setRoleSets]=useState([]),[roleDefinitions,setRoleDefinitions]=useState([]),[permissionGrants,setPermissionGrants]=useState([])
+ const [showSetManager,setShowSetManager]=useState(false),[showNewSetForm,setShowNewSetForm]=useState(false),[newSet,setNewSet]=useState({name:'',description:''}),[editingSet,setEditingSet]=useState(null),[catalogRoleEditor,setCatalogRoleEditor]=useState(null)
  const [roleEditor,setRoleEditor]=useState(null),[memberRoleEditor,setMemberRoleEditor]=useState(null),[error,setError]=useState(''),[saving,setSaving]=useState(false)
 
- const reloadAux=async()=>{const [s,g]=await Promise.all([getRoleSets(token,workspaceId),getGroupPermissions(token,workspaceId,group.id)]);setRoleSets(s);setPermissionGrants(g)}
+ const reloadAux=async()=>{const [s,d,g]=await Promise.all([getRoleSets(token,workspaceId),getRoleDefinitions(token,workspaceId),getGroupPermissions(token,workspaceId,group.id)]);setRoleSets(s);setRoleDefinitions(d);setPermissionGrants(g)}
  useEffect(()=>{reloadAux().catch(e=>setError(e.message))},[token,workspaceId,group.id])
  useEffect(()=>{const k=e=>e.key==='Escape'&&(roleEditor?setRoleEditor(null):memberRoleEditor?setMemberRoleEditor(null):showSetManager?setShowSetManager(false):onClose());window.addEventListener('keydown',k);return()=>window.removeEventListener('keydown',k)},[onClose,roleEditor,memberRoleEditor,showSetManager])
  const run=async action=>{try{setError('');await action();await onChanged();await reloadAux();return true}catch(e){setError(e.message||'Помилка збереження');return false}}
@@ -32,6 +35,8 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
  const roleName=id=>group.roles.find(r=>r.id===id)?.name||`#${id}`
  const roleSetDisplayName=s=>s.systemCode?t(`roles.roleSets.${s.systemCode}`,{defaultValue:s.name}):s.name
  const roleSetDisplayDescription=s=>s.systemCode?t(`roles.roleSetDescriptions.${s.systemCode}`,{defaultValue:s.description||''}):(s.description||'')
+ const catalogRoleDisplayName=r=>r.systemCode?t(`roles.system.${r.systemCode}`,{defaultValue:r.name}):r.name
+ const rolesForSet=setId=>roleDefinitions.filter(r=>r.roleSetId===setId&&r.active)
 
  async function saveMain(){if(!name.trim())return setError('Назва групи не може бути порожньою.');try{setSaving(true);setError('');await updateMemberGroup(token,workspaceId,group.id,{name:name.trim(),description:description.trim()||null,showInNavigation});await onChanged();onClose()}catch(e){setError(e.message)}finally{setSaving(false)}}
  const openNewRole=()=>setRoleEditor({id:null,name:'',description:'',roleSetId:'',permissions:{}})
@@ -84,6 +89,28 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
    const ok=await run(()=>updateGroupMemberRoles(token,workspaceId,group.id,memberRoleEditor.memberId,[...memberRoleEditor.roleIds]))
    setSaving(false)
    if(ok)setMemberRoleEditor(null)
+ }
+
+ const openNewCatalogRole=roleSetId=>setCatalogRoleEditor({id:null,roleSetId,name:'',description:'',systemDefault:false})
+ const openCatalogRole=role=>setCatalogRoleEditor({...role})
+ const saveCatalogRole=async()=>{
+   const roleName=(catalogRoleEditor?.name||'').trim()
+   if(!roleName){setError(t('roles.roleNameRequired'));return}
+   setSaving(true)
+   const body={
+     name:roleName,
+     description:catalogRoleEditor.description?.trim()||null,
+     roleSetId:catalogRoleEditor.roleSetId,
+     visibility:'SHARED',
+     ownerContextType:'WORKSPACE',
+     ownerContextId:null
+   }
+   const ok=await run(async()=>{
+     if(catalogRoleEditor.id) await updateRoleDefinition(token,workspaceId,catalogRoleEditor.id,body)
+     else await createRoleDefinition(token,workspaceId,body)
+   })
+   setSaving(false)
+   if(ok)setCatalogRoleEditor(null)
  }
 
  return <div className="modal-backdrop"><div className="modal-card group-editor" role="dialog" aria-modal="true">
@@ -142,29 +169,65 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
         </div>}
 
     <div className="role-set-manager-list">
-      {roleSets.map(s=><div className={`role-set-manage-row ${s.systemDefault?'system-role-set':''}`} key={s.id}>
-        {editingSet?.id===s.id&&!s.systemDefault
-          ? <>
-              <div className="role-set-edit-fields">
-                <input value={editingSet.name} onChange={e=>setEditingSet({...editingSet,name:e.target.value})}/>
-                <input value={editingSet.description||''} onChange={e=>setEditingSet({...editingSet,description:e.target.value})}/>
-              </div>
-              <span className="group-edit-actions">
-                <button type="button" className="secondary-button" onClick={()=>setEditingSet(null)}>{t('common.cancel')}</button>
-                <button type="button" className="primary-button" disabled={!editingSet.name.trim()} onClick={()=>run(async()=>{await updateRoleSet(token,workspaceId,s.id,{name:editingSet.name.trim(),description:editingSet.description||null});setEditingSet(null)})}>{t('roles.save')}</button>
-              </span>
-            </>
-          : <>
-              <span className="role-set-info">
-                <span className="role-set-name-line"><strong>{roleSetDisplayName(s)}</strong>{s.systemDefault&&<span className="role-system-badge">{t('roles.systemBadge')}</span>}</span>
-                <small>{roleSetDisplayDescription(s)||t('roles.noDescription')}</small>
-              </span>
-              {!s.systemDefault&&<span className="group-edit-actions">
-                <button type="button" onClick={()=>setEditingSet({...s})}>{t('common.edit')}</button>
-                <button type="button" className="danger-link" onClick={()=>window.confirm(t('roles.deleteSetConfirm'))&&run(()=>deleteRoleSet(token,workspaceId,s.id))}>{t('roles.delete')}</button>
-              </span>}
-            </>}
-      </div>)}
+      {roleSets.map(s=>{
+        const setRoles=rolesForSet(s.id)
+        return <section className={`role-set-manage-card ${s.systemDefault?'system-role-set':''}`} key={s.id}>
+          <div className="role-set-manage-header">
+            {editingSet?.id===s.id&&!s.systemDefault
+              ? <>
+                  <div className="role-set-edit-fields">
+                    <input value={editingSet.name} onChange={e=>setEditingSet({...editingSet,name:e.target.value})}/>
+                    <input value={editingSet.description||''} onChange={e=>setEditingSet({...editingSet,description:e.target.value})}/>
+                  </div>
+                  <span className="group-edit-actions">
+                    <button type="button" className="secondary-button" onClick={()=>setEditingSet(null)}>{t('common.cancel')}</button>
+                    <button type="button" className="primary-button" disabled={!editingSet.name.trim()} onClick={()=>run(async()=>{await updateRoleSet(token,workspaceId,s.id,{name:editingSet.name.trim(),description:editingSet.description||null});setEditingSet(null)})}>{t('roles.save')}</button>
+                  </span>
+                </>
+              : <>
+                  <span className="role-set-info">
+                    <span className="role-set-name-line"><strong>{roleSetDisplayName(s)}</strong>{s.systemDefault&&<span className="role-system-badge">{t('roles.systemBadge')}</span>}</span>
+                    <small>{roleSetDisplayDescription(s)||t('roles.noDescription')}</small>
+                  </span>
+                  {!s.systemDefault&&<span className="group-edit-actions">
+                    <button type="button" onClick={()=>setEditingSet({...s})}>{t('common.edit')}</button>
+                    <button type="button" className="danger-link" onClick={()=>window.confirm(t('roles.deleteSetConfirm'))&&run(()=>deleteRoleSet(token,workspaceId,s.id))}>{t('roles.delete')}</button>
+                  </span>}
+                </>}
+          </div>
+          <div className="role-set-contents">
+            <div className="role-set-contents-title">
+              <strong>{t('roles.rolesInSet')}</strong>
+              {!s.systemDefault&&<button type="button" className="role-inline-add" onClick={()=>openNewCatalogRole(s.id)}>+ {t('roles.addRole')}</button>}
+            </div>
+            {setRoles.length
+              ? <div className="role-set-definition-list">{setRoles.map(r=><div className="role-set-definition-row" key={r.id}>
+                  <span><strong>{catalogRoleDisplayName(r)}</strong>{r.description&&<small>{r.description}</small>}</span>
+                  {r.systemDefault
+                    ? <span className="role-system-badge">{t('roles.systemBadge')}</span>
+                    : <span className="group-edit-actions">
+                        <button type="button" onClick={()=>openCatalogRole(r)}>{t('common.edit')}</button>
+                        <button type="button" className="danger-link" onClick={()=>window.confirm(t('roles.deleteRoleConfirm'))&&run(()=>deleteRoleDefinition(token,workspaceId,r.id))}>{t('roles.delete')}</button>
+                      </span>}
+                </div>)}</div>
+              : <div className="role-muted">{t('roles.emptySet')}</div>}
+          </div>
+        </section>
+      })}
+    </div>
+  </div></div>}
+
+  {catalogRoleEditor&&<div className="nested-modal-backdrop"><div className="nested-modal-card role-catalog-role-modal">
+    <div className="group-editor-header">
+      <h3>{catalogRoleEditor.id?t('roles.editRole'):t('roles.newRole')}</h3>
+      <button type="button" className="group-editor-close-x" onClick={()=>setCatalogRoleEditor(null)}>×</button>
+    </div>
+    {error&&<div className="page-error" style={{marginTop:'12px'}}>{error}</div>}
+    <label className="form-field"><span>{t('roles.name')}</span><input value={catalogRoleEditor.name||''} onChange={e=>setCatalogRoleEditor({...catalogRoleEditor,name:e.target.value})}/></label>
+    <label className="form-field"><span>{t('roles.descriptionField')}</span><textarea value={catalogRoleEditor.description||''} onChange={e=>setCatalogRoleEditor({...catalogRoleEditor,description:e.target.value})}/></label>
+    <div className="modal-actions">
+      <button type="button" className="secondary-button" onClick={()=>setCatalogRoleEditor(null)}>{t('common.cancel')}</button>
+      <button type="button" className="primary-button" disabled={saving||!catalogRoleEditor.name?.trim()} onClick={saveCatalogRole}>{saving?t('common.saving'):t('roles.save')}</button>
     </div>
   </div></div>}
 
