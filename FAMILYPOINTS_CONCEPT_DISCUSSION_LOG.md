@@ -1262,3 +1262,53 @@ New task definitions receive an automatic localized name using the first free nu
 - etc.
 
 Manual task titles remain allowed. A manually entered title identical to another existing TaskDefinition title is rejected.
+
+
+---
+
+## 28. Global predefined roles are referenced, not copied into groups
+
+### 2026-10-04 — correction to group role mechanics
+
+**AGREED / ARCHITECTURAL CORRECTION**
+
+Predefined/shared roles must exist only once per Workspace as reusable `RoleDefinition` records.
+
+Creating a MemberGroup must **not** create duplicate role rows such as LEADER, SENIOR, EXECUTOR, REVIEWER, etc.
+
+Instead:
+
+- the group automatically has access to the Workspace's default/shared role catalog;
+- standard RoleSets/RoleDefinitions are referenced from the group context;
+- assigning a standard role to a member in a group creates only a `RoleAssignment`;
+- the assignment context is `MEMBER_GROUP + groupId`;
+- no duplicate `GroupRole` or duplicate `RoleDefinition` is created.
+
+Example:
+
+`SENIOR` exists once in the Workspace.
+Assigning SENIOR to Oleh in Group A and Group B creates two RoleAssignments pointing to the same RoleDefinition.
+
+**AGREED**
+
+A new PRIVATE RoleDefinition is created only for genuinely group-specific/custom semantics, e.g. “Відповідальний за інвентар”.
+
+Custom/local role creation is therefore an exception path, not the normal path.
+
+**AGREED**
+
+Normal group UX should be:
+
+1. create group;
+2. predefined roles are immediately available;
+3. add members;
+4. assign existing global roles;
+5. only use “Create custom role” if no existing role fits.
+
+**INVARIANT**
+
+RoleSet availability/binding does not clone RoleDefinitions.
+
+RoleDefinition = reusable catalog entity.
+RoleAssignment = contextual use of that role by an actor.
+RoleSetBinding = contextual availability of a set.
