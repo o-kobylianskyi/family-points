@@ -184,6 +184,11 @@ export async function delegateTask(
   )
 }
 
+export async function getTaskDefinitions(token, workspaceId) {
+  const response = await apiRequest(`/workspaces/${workspaceId}/tasks/definitions`, { token })
+  return handleResponse(response, 'Failed to load task definitions')
+}
+
 export async function getTaskDefinitionsByView(token, workspaceId, view) {
   const response = await apiRequest(`/workspaces/${workspaceId}/tasks/definitions/views/${view}`, { token })
   return handleResponse(response, `Failed to load ${view} tasks`)
