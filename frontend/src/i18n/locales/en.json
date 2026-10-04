@@ -263,5 +263,27 @@
       "REVIEWER": "Reviewer",
       "OBSERVER": "Observer"
     }
+  },
+  "rolePermissions": {
+    "title": "Role permissions",
+    "scopes": {
+      "GROUP": "This group",
+      "GROUP_SUBTREE": "Group + subgroups"
+    },
+    "permissions": {
+      "TASK_VIEW": "View tasks",
+      "TASK_CREATE": "Create tasks",
+      "TASK_ASSIGN": "Assign tasks",
+      "TASK_MANAGE": "Manage tasks",
+      "TASK_APPROVE": "Approve task completion",
+      "MEMBER_VIEW": "View members",
+      "MEMBER_MANAGE": "Manage members",
+      "GROUP_VIEW": "View groups",
+      "GROUP_MANAGE": "Manage group",
+      "POINT_VIEW": "View points",
+      "POINT_AWARD": "Award points",
+      "POINT_SPEND": "Spend/deduct points",
+      "SUBGROUP_MANAGE": "Manage subgroups"
+    }
   }
 }
