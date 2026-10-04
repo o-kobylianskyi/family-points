@@ -30,7 +30,7 @@ public class TaskDefinitionResponse {
                 : null;
         title=t.getTitle(); description=t.getDescription(); mandatory=t.isMandatory(); active=t.isActive(); delegationAllowed=t.isDelegationAllowed();
         recurrenceType=t.getRecurrenceType(); assignmentPolicy=t.getAssignmentPolicy(); roleMatchMode=t.getRoleMatchMode();
-        requiredGroupRoleIds=t.getRequiredGroupRoles().stream().map(GroupRole::getId).toList();
+        requiredGroupRoleIds=t.getRequiredRoleDefinitions().stream().map(RoleDefinition::getId).toList();
         startDate=t.getStartDate(); endDate=t.getEndDate(); recurrenceDayOfWeek=t.getRecurrenceDayOfWeek(); recurrenceDayOfMonth=t.getRecurrenceDayOfMonth();
         createdAt=t.getCreatedAt(); updatedAt=t.getUpdatedAt(); dueTime=t.getDueTime();
         PointType r=t.getRewardPointType(), p=t.getPenaltyPointType();
