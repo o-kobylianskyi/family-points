@@ -5,6 +5,7 @@ import com.olehkobylianskyi.familypoints.entity.RoleSet;
 import com.olehkobylianskyi.familypoints.entity.Workspace;
 import com.olehkobylianskyi.familypoints.exception.ResourceNotFoundException;
 import com.olehkobylianskyi.familypoints.repository.GroupRoleRepository;
+import com.olehkobylianskyi.familypoints.repository.RoleDefinitionRepository;
 import com.olehkobylianskyi.familypoints.repository.RoleSetRepository;
 import com.olehkobylianskyi.familypoints.repository.WorkspaceRepository;
 import org.springframework.stereotype.Service;
