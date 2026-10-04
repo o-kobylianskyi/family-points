@@ -165,6 +165,7 @@ public class TaskAuthorizationService {
         for (RoleAssignment assignment : roleAssignmentRepository
                 .findByWorkspaceIdAndActorTypeAndActorIdAndActiveTrue(
                         member.getWorkspace().getId(), ActorType.MEMBER, member.getId())) {
+            if (!assignment.getRoleDefinition().isActive()) continue;
             if (assignment.getContextType() != RoleContextType.MEMBER_GROUP || assignment.getContextId() == null) continue;
 
             Long authorityGroupId = assignment.getContextId();
