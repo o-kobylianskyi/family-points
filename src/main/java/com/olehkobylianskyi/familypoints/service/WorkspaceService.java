@@ -11,13 +11,17 @@ import java.util.Optional;
 public class WorkspaceService {
 
     private final WorkspaceRepository workspaceRepository;
+    private final RoleCatalogBootstrapService roleCatalogBootstrapService;
 
-    public WorkspaceService(WorkspaceRepository workspaceRepository) {
+    public WorkspaceService(WorkspaceRepository workspaceRepository, RoleCatalogBootstrapService roleCatalogBootstrapService) {
         this.workspaceRepository = workspaceRepository;
+        this.roleCatalogBootstrapService = roleCatalogBootstrapService;
     }
 
     public Workspace createWorkspace(String name) {
-        return workspaceRepository.save(new Workspace(name));
+        Workspace workspace = workspaceRepository.save(new Workspace(name));
+        roleCatalogBootstrapService.ensureDefaults(workspace);
+        return workspace;
     }
 
     public List<Workspace> getAllWorkspaces() {
