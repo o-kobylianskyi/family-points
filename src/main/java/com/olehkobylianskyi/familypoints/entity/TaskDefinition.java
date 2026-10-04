@@ -55,11 +55,11 @@ public class TaskDefinition {
 
     @ManyToMany
     @JoinTable(
-            name = "task_definition_required_group_roles",
+            name = "task_definition_required_role_definitions",
             joinColumns = @JoinColumn(name = "task_definition_id"),
-            inverseJoinColumns = @JoinColumn(name = "group_role_id")
+            inverseJoinColumns = @JoinColumn(name = "role_definition_id")
     )
-    private java.util.Set<GroupRole> requiredGroupRoles = new java.util.LinkedHashSet<>();
+    private java.util.Set<RoleDefinition> requiredRoleDefinitions = new java.util.LinkedHashSet<>();
 
     @Column(nullable = false, length = 150)
     private String title;
@@ -269,7 +269,7 @@ public class TaskDefinition {
     public void setDelegationAllowed(boolean delegationAllowed) { this.delegationAllowed = delegationAllowed; }
     public RoleMatchMode getRoleMatchMode() { return roleMatchMode; }
     public void setRoleMatchMode(RoleMatchMode roleMatchMode) { this.roleMatchMode = roleMatchMode; }
-    public java.util.Set<GroupRole> getRequiredGroupRoles() { return requiredGroupRoles; }
+    public java.util.Set<RoleDefinition> getRequiredRoleDefinitions() { return requiredRoleDefinitions; }
 
     public String getTitle() {
         return title;
