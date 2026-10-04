@@ -27,8 +27,12 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
  async function saveMain(){if(!name.trim())return setError('Назва групи не може бути порожньою.');try{setSaving(true);setError('');await updateMemberGroup(token,workspaceId,group.id,{name:name.trim(),description:description.trim()||null,showInNavigation});await onChanged();onClose()}catch(e){setError(e.message)}finally{setSaving(false)}}
  const openNewRole=()=>setRoleEditor({id:null,name:'',description:'',roleSetId:'',permissions:{}})
  const openRole=role=>{const permissions={};grantsFor(role.id).forEach(g=>permissions[g.permission]=g.scope);setRoleEditor({...role,roleSetId:role.roleSetId||'',permissions})}
- const saveRole=async()=>{
-   if(!roleEditor.name.trim())return
+ const saveRole=async(event)=>{
+   event?.preventDefault?.()
+   if(!roleEditor?.name?.trim()){
+     setError('Вкажіть назву ролі')
+     return
+   }
    setSaving(true)
    const ok=await run(async()=>{
      let roleId=roleEditor.id
@@ -87,15 +91,15 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
     {roleSets.map(s=><div className="role-set-manage-row" key={s.id}>{editingSet?.id===s.id?<><input value={editingSet.name} onChange={e=>setEditingSet({...editingSet,name:e.target.value})}/><input value={editingSet.description||''} onChange={e=>setEditingSet({...editingSet,description:e.target.value})}/><button type="button" onClick={()=>run(async()=>{await updateRoleSet(token,workspaceId,s.id,{name:editingSet.name.trim(),description:editingSet.description||null});setEditingSet(null)})}>Зберегти</button></>:<><span><strong>{s.name}</strong><small>{s.description||'Без опису'}</small></span><span className="group-edit-actions"><button type="button" onClick={()=>setEditingSet({...s})}>Редагувати</button><button type="button" className="danger-link" onClick={()=>window.confirm(`Видалити набір "${s.name}"? Ролі залишаться без набору.`)&&run(()=>deleteRoleSet(token,workspaceId,s.id))}>Видалити</button></span></>}</div>)}
   </div></div>}
 
-  {roleEditor&&<div className="nested-modal-backdrop"><div className="nested-modal-card role-editor-modal">
+  {roleEditor&&<div className="nested-modal-backdrop"><form className="nested-modal-card role-editor-modal" onSubmit={saveRole}>
     <div className="group-editor-header"><h3>{roleEditor.id?'Редагування ролі':'Нова роль'}</h3><button type="button" className="group-editor-close-x" onClick={()=>setRoleEditor(null)}>×</button></div>
     {error&&<div className="page-error" style={{marginTop:'12px'}}>{error}</div>}
     <label className="form-field"><span>Назва</span><input value={roleEditor.name} onChange={e=>setRoleEditor({...roleEditor,name:e.target.value})}/></label>
     <label className="form-field"><span>Набір ролей</span><select value={roleEditor.roleSetId||''} onChange={e=>setRoleEditor({...roleEditor,roleSetId:e.target.value})}><option value="">Без набору</option>{roleSets.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
     <label className="form-field"><span>Опис</span><textarea value={roleEditor.description||''} onChange={e=>setRoleEditor({...roleEditor,description:e.target.value})}/></label>
     <h4>Права ролі</h4><div className="role-permissions">{permissionOptions.map(p=>{const scope=roleEditor.permissions[p];return <div className="role-permission-row" key={p}><label><input type="checkbox" checked={Boolean(scope)} onChange={e=>{const next={...roleEditor.permissions};e.target.checked?next[p]='GROUP':delete next[p];setRoleEditor({...roleEditor,permissions:next})}}/>{p}</label>{scope&&<select value={scope} onChange={e=>setRoleEditor({...roleEditor,permissions:{...roleEditor.permissions,[p]:e.target.value}})}><option value="GROUP">Ця група</option><option value="GROUP_SUBTREE">Група + підгрупи</option></select>}</div>})}</div>
-    <div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setRoleEditor(null)}>Скасувати</button><button type="button" className="add-member-button" disabled={saving||!roleEditor.name.trim()} onClick={saveRole}>{saving?'Збереження…':'Зберегти'}</button></div>
-  </div></div>}
+    <div className="modal-actions"><button type="button" className="secondary-button" onClick={()=>setRoleEditor(null)}>Скасувати</button><button type="submit" className="add-member-button" disabled={saving}>{saving?'Збереження…':'Зберегти'}</button></div>
+  </form></div>}
 
   {memberRoleEditor&&<div className="nested-modal-backdrop"><div className="nested-modal-card">
     <div className="group-editor-header"><h3>Ролі: {memberRoleEditor.memberName}</h3><button type="button" className="group-editor-close-x" onClick={()=>setMemberRoleEditor(null)}>×</button></div>
