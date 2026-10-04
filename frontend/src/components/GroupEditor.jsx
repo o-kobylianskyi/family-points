@@ -26,19 +26,32 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
 
  async function saveMain(){if(!name.trim())return setError('Назва групи не може бути порожньою.');try{setSaving(true);setError('');await updateMemberGroup(token,workspaceId,group.id,{name:name.trim(),description:description.trim()||null,showInNavigation});await onChanged();onClose()}catch(e){setError(e.message)}finally{setSaving(false)}}
  const openNewRole=()=>setRoleEditor({id:null,name:'',description:'',roleSetId:'',permissions:{}})
- const openRole=role=>{const permissions={};grantsFor(role.id).forEach(g=>permissions[g.permission]=g.scope);setRoleEditor({...role,roleSetId:role.roleSetId||'',permissions})}
+ const openRole=role=>{
+   const permissions={}
+   grantsFor(role.id).forEach(g=>permissions[g.permission]=g.scope)
+   setError('')
+   setRoleEditor({
+     id:role.id,
+     name:role.name||'',
+     description:role.description||'',
+     roleSetId:role.roleSetId||'',
+     permissions
+   })
+ }
  const saveRole=async(event)=>{
    event?.preventDefault?.()
-   if(!roleEditor?.name?.trim()){
+   const sourceRole=roleEditor?.id ? group.roles.find(r=>r.id===roleEditor.id) : null
+   const effectiveName=(roleEditor?.name||sourceRole?.name||'').trim()
+   if(!effectiveName){
      setError('Вкажіть назву ролі')
      return
    }
    setSaving(true)
    const ok=await run(async()=>{
      let roleId=roleEditor.id
-     if(roleId) await updateGroupRole(token,workspaceId,group.id,roleId,{name:roleEditor.name.trim(),description:roleEditor.description||null,roleSetId:roleEditor.roleSetId?Number(roleEditor.roleSetId):null})
+     if(roleId) await updateGroupRole(token,workspaceId,group.id,roleId,{name:effectiveName,description:roleEditor.description||null,roleSetId:roleEditor.roleSetId?Number(roleEditor.roleSetId):null})
      else {
-       const updated=await addGroupRole(token,workspaceId,group.id,{name:roleEditor.name.trim(),description:roleEditor.description||null,roleSetId:roleEditor.roleSetId?Number(roleEditor.roleSetId):null})
+       const updated=await addGroupRole(token,workspaceId,group.id,{name:effectiveName,description:roleEditor.description||null,roleSetId:roleEditor.roleSetId?Number(roleEditor.roleSetId):null})
        roleId=updated.roles.find(r=>r.name===roleEditor.name.trim())?.id
        if(!roleId) throw new Error('Не вдалося визначити ID створеної ролі')
      }
