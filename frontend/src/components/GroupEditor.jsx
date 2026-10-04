@@ -18,7 +18,7 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
  const { t } = useTranslation()
  const [name,setName]=useState(group.name),[description,setDescription]=useState(group.description||''),[showInNavigation,setShowInNavigation]=useState(Boolean(group.showInNavigation))
  const [memberId,setMemberId]=useState(''),[childId,setChildId]=useState(''),[roleSets,setRoleSets]=useState([]),[permissionGrants,setPermissionGrants]=useState([])
- const [showSetManager,setShowSetManager]=useState(false),[newSet,setNewSet]=useState({name:'',description:''}),[editingSet,setEditingSet]=useState(null)
+ const [showSetManager,setShowSetManager]=useState(false),[showNewSetForm,setShowNewSetForm]=useState(false),[newSet,setNewSet]=useState({name:'',description:''}),[editingSet,setEditingSet]=useState(null)
  const [roleEditor,setRoleEditor]=useState(null),[memberRoleEditor,setMemberRoleEditor]=useState(null),[error,setError]=useState(''),[saving,setSaving]=useState(false)
 
  const reloadAux=async()=>{const [s,g]=await Promise.all([getRoleSets(token,workspaceId),getGroupPermissions(token,workspaceId,group.id)]);setRoleSets(s);setPermissionGrants(g)}
@@ -30,6 +30,8 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
  const groupedRoles=useMemo(()=>{const rows=[...roleSets.map(s=>({id:String(s.id),name:s.name,roles:group.roles.filter(r=>r.roleSetId===s.id)})),{id:'none',name:'Без набору',roles:group.roles.filter(r=>!r.roleSetId)}];return rows.filter(x=>x.roles.length)},[roleSets,group.roles])
  const grantsFor=id=>permissionGrants.filter(g=>g.roleId===id)
  const roleName=id=>group.roles.find(r=>r.id===id)?.name||`#${id}`
+ const roleSetDisplayName=s=>s.systemCode?t(`roles.roleSets.${s.systemCode}`,{defaultValue:s.name}):s.name
+ const roleSetDisplayDescription=s=>s.systemCode?t(`roles.roleSetDescriptions.${s.systemCode}`,{defaultValue:s.description||''}):(s.description||'')
 
  async function saveMain(){if(!name.trim())return setError('Назва групи не може бути порожньою.');try{setSaving(true);setError('');await updateMemberGroup(token,workspaceId,group.id,{name:name.trim(),description:description.trim()||null,showInNavigation});await onChanged();onClose()}catch(e){setError(e.message)}finally{setSaving(false)}}
  const openNewRole=()=>setRoleEditor({id:null,name:'',description:'',roleSetId:'',permissions:{}})
@@ -122,10 +124,48 @@ export default function GroupEditor({group,groups,members,token,workspaceId,onCh
 
   <div className="modal-actions group-editor-actions"><button type="button" className="secondary-button" onClick={onClose}>Скасувати</button><button type="button" className="add-member-button" onClick={saveMain} disabled={saving||!name.trim()}>{saving?'Збереження…':'Зберегти'}</button></div>
 
-  {showSetManager&&<div className="nested-modal-backdrop"><div className="nested-modal-card">
-    <div className="group-editor-header"><h3>Набори ролей</h3><button type="button" className="group-editor-close-x" onClick={()=>setShowSetManager(false)}>×</button></div>
-    <div className="role-set-create"><input placeholder="Назва набору" value={newSet.name} onChange={e=>setNewSet({...newSet,name:e.target.value})}/><input placeholder="Опис (необов'язково)" value={newSet.description} onChange={e=>setNewSet({...newSet,description:e.target.value})}/><button type="button" disabled={!newSet.name.trim()} onClick={()=>run(async()=>{await createRoleSet(token,workspaceId,{name:newSet.name.trim(),description:newSet.description||null});setNewSet({name:'',description:''})})}>+ Створити</button></div>
-    {roleSets.map(s=><div className="role-set-manage-row" key={s.id}>{editingSet?.id===s.id?<><input value={editingSet.name} onChange={e=>setEditingSet({...editingSet,name:e.target.value})}/><input value={editingSet.description||''} onChange={e=>setEditingSet({...editingSet,description:e.target.value})}/><button type="button" onClick={()=>run(async()=>{await updateRoleSet(token,workspaceId,s.id,{name:editingSet.name.trim(),description:editingSet.description||null});setEditingSet(null)})}>Зберегти</button></>:<><span><strong>{s.name}</strong><small>{s.description||'Без опису'}</small></span><span className="group-edit-actions"><button type="button" onClick={()=>setEditingSet({...s})}>Редагувати</button><button type="button" className="danger-link" onClick={()=>window.confirm(`Видалити набір "${s.name}"? Ролі залишаться без набору.`)&&run(()=>deleteRoleSet(token,workspaceId,s.id))}>Видалити</button></span></>}</div>)}
+  {showSetManager&&<div className="nested-modal-backdrop"><div className="nested-modal-card role-set-manager-modal">
+    <div className="group-editor-header">
+      <div><h3>{t('roles.managerTitle')}</h3><p className="role-muted">{t('roles.managerDescription')}</p></div>
+      <button type="button" className="group-editor-close-x" onClick={()=>{setShowSetManager(false);setShowNewSetForm(false);setEditingSet(null)}}>×</button>
+    </div>
+
+    {!showNewSetForm
+      ? <button type="button" className="primary-button role-set-add-main" onClick={()=>setShowNewSetForm(true)}>+ {t('roles.addSet')}</button>
+      : <div className="role-set-create role-set-create-expanded">
+          <input placeholder={t('roles.setNamePlaceholder')} value={newSet.name} onChange={e=>setNewSet({...newSet,name:e.target.value})}/>
+          <input placeholder={t('roles.setDescriptionPlaceholder')} value={newSet.description} onChange={e=>setNewSet({...newSet,description:e.target.value})}/>
+          <div className="role-set-create-actions">
+            <button type="button" className="secondary-button" onClick={()=>{setShowNewSetForm(false);setNewSet({name:'',description:''})}}>{t('common.cancel')}</button>
+            <button type="button" className="primary-button" disabled={!newSet.name.trim()} onClick={()=>run(async()=>{await createRoleSet(token,workspaceId,{name:newSet.name.trim(),description:newSet.description||null});setNewSet({name:'',description:''});setShowNewSetForm(false)})}>{t('roles.createSet')}</button>
+          </div>
+        </div>}
+
+    <div className="role-set-manager-list">
+      {roleSets.map(s=><div className={`role-set-manage-row ${s.systemDefault?'system-role-set':''}`} key={s.id}>
+        {editingSet?.id===s.id&&!s.systemDefault
+          ? <>
+              <div className="role-set-edit-fields">
+                <input value={editingSet.name} onChange={e=>setEditingSet({...editingSet,name:e.target.value})}/>
+                <input value={editingSet.description||''} onChange={e=>setEditingSet({...editingSet,description:e.target.value})}/>
+              </div>
+              <span className="group-edit-actions">
+                <button type="button" className="secondary-button" onClick={()=>setEditingSet(null)}>{t('common.cancel')}</button>
+                <button type="button" className="primary-button" disabled={!editingSet.name.trim()} onClick={()=>run(async()=>{await updateRoleSet(token,workspaceId,s.id,{name:editingSet.name.trim(),description:editingSet.description||null});setEditingSet(null)})}>{t('roles.save')}</button>
+              </span>
+            </>
+          : <>
+              <span className="role-set-info">
+                <span className="role-set-name-line"><strong>{roleSetDisplayName(s)}</strong>{s.systemDefault&&<span className="role-system-badge">{t('roles.systemBadge')}</span>}</span>
+                <small>{roleSetDisplayDescription(s)||t('roles.noDescription')}</small>
+              </span>
+              {!s.systemDefault&&<span className="group-edit-actions">
+                <button type="button" onClick={()=>setEditingSet({...s})}>{t('common.edit')}</button>
+                <button type="button" className="danger-link" onClick={()=>window.confirm(t('roles.deleteSetConfirm'))&&run(()=>deleteRoleSet(token,workspaceId,s.id))}>{t('roles.delete')}</button>
+              </span>}
+            </>}
+      </div>)}
+    </div>
   </div></div>}
 
   {roleEditor&&<div className="nested-modal-backdrop"><form className="nested-modal-card role-editor-modal" onSubmit={saveRole}>
