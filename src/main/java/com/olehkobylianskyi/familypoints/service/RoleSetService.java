@@ -16,15 +16,19 @@ public class RoleSetService {
     private final WorkspaceRepository workspaces;
     private final RoleSetRepository roleSets;
     private final GroupRoleRepository roles;
+    private final RoleCatalogAuthorizationService authorization;
 
-    public RoleSetService(WorkspaceRepository workspaces, RoleSetRepository roleSets, GroupRoleRepository roles) {
+    public RoleSetService(WorkspaceRepository workspaces, RoleSetRepository roleSets, GroupRoleRepository roles,
+                          RoleCatalogAuthorizationService authorization) {
         this.workspaces = workspaces;
         this.roleSets = roleSets;
         this.roles = roles;
+        this.authorization = authorization;
     }
 
     @Transactional(readOnly = true)
     public List<RoleSetResponse> list(Long workspaceId) {
+        authorization.requireWorkspace(workspaceId);
         workspace(workspaceId);
         return roleSets.findByWorkspaceIdAndActiveTrueOrderByNameAsc(workspaceId).stream()
                 .map(set -> RoleSetResponse.from(set, roles.findByRoleSetIdOrderByNameAsc(set.getId())))
@@ -33,6 +37,7 @@ public class RoleSetService {
 
     @Transactional
     public RoleSetResponse create(Long workspaceId, String name, String description) {
+        authorization.requireManage(workspaceId);
         Workspace workspace = workspace(workspaceId);
         if (roleSets.existsByWorkspaceIdAndNameIgnoreCase(workspaceId, name.trim())) {
             throw new IllegalArgumentException("Role set already exists: " + name);
@@ -43,7 +48,9 @@ public class RoleSetService {
 
     @Transactional
     public RoleSetResponse update(Long workspaceId, Long id, String name, String description) {
+        authorization.requireManage(workspaceId);
         RoleSet set = roleSet(workspaceId, id);
+        if (set.isSystemDefault()) throw new IllegalArgumentException("System role sets cannot be edited");
         set.setName(name.trim());
         set.setDescription(blank(description));
         return RoleSetResponse.from(roleSets.save(set), roles.findByRoleSetIdOrderByNameAsc(id));
@@ -51,7 +58,9 @@ public class RoleSetService {
 
     @Transactional
     public void deactivate(Long workspaceId, Long id) {
+        authorization.requireManage(workspaceId);
         RoleSet set = roleSet(workspaceId, id);
+        if (set.isSystemDefault()) throw new IllegalArgumentException("System role sets cannot be deleted");
         roles.findByRoleSetIdOrderByNameAsc(id).forEach(role -> role.setRoleSet(null));
         set.setActive(false);
         roleSets.save(set);
