@@ -275,7 +275,8 @@
       "CONTROL": "Default control roles"
     },
     "rolesInSet": "Roles in set",
-    "roleNameRequired": "Enter a role name"
+    "roleNameRequired": "Enter a role name",
+    "addStandaloneRole": "Add role"
   },
   "rolePermissions": {
     "title": "Role permissions",
