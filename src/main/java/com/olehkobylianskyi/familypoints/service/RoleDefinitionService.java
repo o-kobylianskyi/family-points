@@ -16,21 +16,25 @@ public class RoleDefinitionService {
     private final RoleDefinitionRepository roles;
     private final RoleSetRepository roleSets;
     private final MemberGroupRepository groups;
+    private final RoleCatalogAuthorizationService authorization;
 
     public RoleDefinitionService(
             WorkspaceRepository workspaces,
             RoleDefinitionRepository roles,
             RoleSetRepository roleSets,
-            MemberGroupRepository groups
+            MemberGroupRepository groups,
+            RoleCatalogAuthorizationService authorization
     ) {
         this.workspaces = workspaces;
         this.roles = roles;
         this.roleSets = roleSets;
         this.groups = groups;
+        this.authorization = authorization;
     }
 
     @Transactional(readOnly = true)
     public List<RoleDefinitionResponse> list(Long workspaceId) {
+        authorization.requireWorkspace(workspaceId);
         workspace(workspaceId);
         return roles.findByWorkspaceIdAndActiveTrueOrderByNameAsc(workspaceId)
                 .stream().map(RoleDefinitionResponse::from).toList();
@@ -38,6 +42,7 @@ public class RoleDefinitionService {
 
     @Transactional
     public RoleDefinitionResponse create(Long workspaceId, RoleDefinitionRequest request) {
+        authorization.requireManage(workspaceId);
         Workspace workspace = workspace(workspaceId);
         RoleContextType contextType = request.getOwnerContextType() == null
                 ? RoleContextType.WORKSPACE : request.getOwnerContextType();
@@ -57,6 +62,7 @@ public class RoleDefinitionService {
 
     @Transactional
     public RoleDefinitionResponse update(Long workspaceId, Long roleId, RoleDefinitionRequest request) {
+        authorization.requireManage(workspaceId);
         RoleDefinition role = role(workspaceId, roleId);
         if (role.isSystemDefault()) {
             throw new IllegalArgumentException("System role definitions cannot be edited");
@@ -77,6 +83,7 @@ public class RoleDefinitionService {
 
     @Transactional
     public void deactivate(Long workspaceId, Long roleId) {
+        authorization.requireManage(workspaceId);
         RoleDefinition role = role(workspaceId, roleId);
         if (role.isSystemDefault()) {
             throw new IllegalArgumentException("System role definitions cannot be deleted");
