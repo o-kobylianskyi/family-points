@@ -14,6 +14,7 @@ public class RewardPurchaseResponse {
     private final Long pointTypeId;
     private final String pointTypeCode;
     private final int priceAmount;
+    private final Integer durationMinutes;
     private final RewardPurchaseStatus status;
     private final LocalDateTime purchasedAt;
     private final LocalDateTime resolvedAt;
@@ -29,6 +30,7 @@ public class RewardPurchaseResponse {
         this.pointTypeId = purchase.getPointType().getId();
         this.pointTypeCode = purchase.getPointType().getCode();
         this.priceAmount = purchase.getPriceAmount();
+        this.durationMinutes = purchase.getDurationMinutes();
         this.status = purchase.getStatus();
         this.purchasedAt = purchase.getPurchasedAt();
         this.resolvedAt = purchase.getResolvedAt();
@@ -46,6 +48,7 @@ public class RewardPurchaseResponse {
     public Long getPointTypeId() { return pointTypeId; }
     public String getPointTypeCode() { return pointTypeCode; }
     public int getPriceAmount() { return priceAmount; }
+    public Integer getDurationMinutes() { return durationMinutes; }
     public RewardPurchaseStatus getStatus() { return status; }
     public LocalDateTime getPurchasedAt() { return purchasedAt; }
     public LocalDateTime getResolvedAt() { return resolvedAt; }
