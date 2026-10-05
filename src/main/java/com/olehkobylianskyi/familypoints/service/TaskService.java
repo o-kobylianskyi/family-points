@@ -24,6 +24,7 @@ public class TaskService {
     private final WorkspaceMemberRepository workspaceMemberRepository;
     private final PointTypeRepository pointTypeRepository;
     private final PointService pointService;
+    private final ReputationService reputationService;
     private final MemberExceptionPeriodRepository memberExceptionPeriodRepository;
     private final WorkNodeRepository workNodeRepository;
     private final CurrentUserService currentUserService;
@@ -45,6 +46,7 @@ public class TaskService {
             WorkspaceMemberRepository workspaceMemberRepository,
             PointTypeRepository pointTypeRepository,
             PointService pointService,
+            ReputationService reputationService,
             MemberExceptionPeriodRepository memberExceptionPeriodRepository,
             WorkNodeRepository workNodeRepository,
             CurrentUserService currentUserService,
@@ -65,6 +67,7 @@ public class TaskService {
         this.workspaceMemberRepository = workspaceMemberRepository;
         this.pointTypeRepository = pointTypeRepository;
         this.pointService = pointService;
+        this.reputationService = reputationService;
         this.memberExceptionPeriodRepository = memberExceptionPeriodRepository;
         this.workNodeRepository = workNodeRepository;
         this.currentUserService = currentUserService;
@@ -107,6 +110,8 @@ public class TaskService {
             Integer rewardAmount,
             Long penaltyPointTypeId,
             Integer penaltyAmount,
+            Integer rewardReputationAmount,
+            Integer penaltyReputationAmount,
             LocalTime dueTime
     ) {
         taskAuthorizationService.requireCreate(workspaceId);
@@ -130,6 +135,8 @@ public class TaskService {
         PointType penaltyPointType = getOptionalPointType(workspaceId, penaltyPointTypeId);
         validateAmountAndPointType(rewardPointTypeId, rewardAmount, "Reward");
         validateAmountAndPointType(penaltyPointTypeId, penaltyAmount, "Penalty");
+        validateReputationAmount(rewardReputationAmount, "Reward reputation");
+        validateReputationAmount(penaltyReputationAmount, "Penalty reputation");
 
         // Legacy assignedMember remains populated only for SINGLE_MEMBER until shared/open TaskInstance lifecycle is enabled.
         TaskDefinition definition = new TaskDefinition(
@@ -149,6 +156,8 @@ public class TaskService {
         definition.setPreferredMember(preferredMember);
         definition.setDelegationAllowed(delegationAllowed);
         definition.setRoleMatchMode(roleMatchMode == null ? RoleMatchMode.ANY : roleMatchMode);
+        definition.setRewardReputationAmount(rewardReputationAmount);
+        definition.setPenaltyReputationAmount(penaltyReputationAmount);
 
         if (requiredGroupRoleIds != null && !requiredGroupRoleIds.isEmpty()) {
             if (targetGroup == null) throw new IllegalArgumentException("Group roles require targetGroupId");
@@ -215,6 +224,8 @@ public class TaskService {
         validateRecurrence(request.getRecurrenceType(), request.getRecurrenceDayOfWeek(), request.getRecurrenceDayOfMonth());
         validateAmountAndPointType(request.getRewardPointTypeId(), request.getRewardAmount(), "Reward");
         validateAmountAndPointType(request.getPenaltyPointTypeId(), request.getPenaltyAmount(), "Penalty");
+        validateReputationAmount(request.getRewardReputationAmount(), "Reward reputation");
+        validateReputationAmount(request.getPenaltyReputationAmount(), "Penalty reputation");
 
         definition.setAssignmentPolicy(policy);
         definition.setAssignedMember(policy == AssignmentPolicy.SINGLE_MEMBER ? assignedMember : null);
@@ -247,6 +258,8 @@ public class TaskService {
         definition.setRewardAmount(request.getRewardAmount());
         definition.setPenaltyPointType(getOptionalPointType(workspaceId, request.getPenaltyPointTypeId()));
         definition.setPenaltyAmount(request.getPenaltyAmount());
+        definition.setRewardReputationAmount(request.getRewardReputationAmount());
+        definition.setPenaltyReputationAmount(request.getPenaltyReputationAmount());
 
         if (definition.getWorkNode() != null) {
             definition.getWorkNode().setTitle(definition.getTitle());
@@ -863,26 +876,39 @@ public class TaskService {
         PointType rewardPointType =
                 instance.getRewardPointType();
 
-        if (rewardAmount == null
-                || rewardAmount <= 0
-                || rewardPointType == null) {
-
-            instance.markRewardProcessed();
-            return;
+        if (rewardAmount != null
+                && rewardAmount > 0
+                && rewardPointType != null) {
+            pointService.earn(
+                    workspaceId,
+                    instance.getMember().getId(),
+                    rewardPointType.getId(),
+                    rewardAmount,
+                    PointTransactionSourceType.TASK,
+                    instance.getId(),
+                    "Task completed: " + instance.getTitle()
+            );
         }
 
-        pointService.earn(
-                workspaceId,
-                instance.getMember().getId(),
-                rewardPointType.getId(),
-                rewardAmount,
-                PointTransactionSourceType.TASK,
-                instance.getId(),
-                "Task completed: "
-                        + instance.getTitle()
-        );
+        Integer reputationAmount = instance.getRewardReputationAmount();
+        if (reputationAmount != null && reputationAmount > 0) {
+            reputationService.add(
+                    workspaceId,
+                    instance.getMember().getId(),
+                    reputationAmount,
+                    ReputationTransactionSourceType.TASK,
+                    instance.getId(),
+                    "Task completed: " + instance.getTitle()
+            );
+        }
 
         instance.markRewardProcessed();
+    }
+
+    private void validateReputationAmount(Integer amount, String fieldName) {
+        if (amount != null && amount < 0) {
+            throw new IllegalArgumentException(fieldName + " cannot be negative");
+        }
     }
 
     private void validateAmountAndPointType(
@@ -1081,28 +1107,31 @@ public class TaskService {
         PointType penaltyPointType =
                 instance.getPenaltyPointType();
 
-        /*
-         * Обов'язкова задача може не мати
-         * налаштованого штрафу.
-         */
-        if (penaltyAmount == null
-                || penaltyAmount <= 0
-                || penaltyPointType == null) {
-
-            instance.markPenaltyProcessed();
-            return;
+        if (penaltyAmount != null
+                && penaltyAmount > 0
+                && penaltyPointType != null) {
+            pointService.penalty(
+                    workspaceId,
+                    instance.getMember().getId(),
+                    penaltyPointType,
+                    penaltyAmount,
+                    PointTransactionSourceType.TASK,
+                    instance.getId(),
+                    "Task missed: " + instance.getTitle()
+            );
         }
 
-        pointService.penalty(
-                workspaceId,
-                instance.getMember().getId(),
-                penaltyPointType,
-                penaltyAmount,
-                PointTransactionSourceType.TASK,
-                instance.getId(),
-                "Task missed: "
-                        + instance.getTitle()
-        );
+        Integer reputationAmount = instance.getPenaltyReputationAmount();
+        if (reputationAmount != null && reputationAmount > 0) {
+            reputationService.add(
+                    workspaceId,
+                    instance.getMember().getId(),
+                    -reputationAmount,
+                    ReputationTransactionSourceType.TASK,
+                    instance.getId(),
+                    "Task missed: " + instance.getTitle()
+            );
+        }
 
         instance.markPenaltyProcessed();
     }
