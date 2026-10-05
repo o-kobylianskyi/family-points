@@ -57,6 +57,52 @@ function normalizeTime(value) {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 }
 
+const TASK_ECONOMY_PRESETS = {
+  SIMPLE: {
+    rewardAmount: 10,
+    penaltyAmount: 5,
+    rewardReputationAmount: 1,
+    penaltyReputationAmount: 1,
+  },
+  NORMAL: {
+    rewardAmount: 20,
+    penaltyAmount: 10,
+    rewardReputationAmount: 2,
+    penaltyReputationAmount: 1,
+  },
+  HARD: {
+    rewardAmount: 40,
+    penaltyAmount: 20,
+    rewardReputationAmount: 4,
+    penaltyReputationAmount: 2,
+  },
+}
+
+const POINT_AMOUNT_OPTIONS = [0, 5, 10, 20, 40, 60, 80, 100]
+const REPUTATION_AMOUNT_OPTIONS = [0, 1, 2, 3, 4, 5, 10]
+
+function detectEconomyPreset(task) {
+  if (!task) return 'SIMPLE'
+
+  const reward = Number(task.rewardAmount || 0)
+  const penalty = Number(task.penaltyAmount || 0)
+  const rewardReputation = Number(task.rewardReputationAmount || 0)
+  const penaltyReputation = Number(task.penaltyReputationAmount || 0)
+
+  for (const [preset, values] of Object.entries(TASK_ECONOMY_PRESETS)) {
+    if (
+      reward === values.rewardAmount &&
+      penalty === values.penaltyAmount &&
+      rewardReputation === values.rewardReputationAmount &&
+      penaltyReputation === values.penaltyReputationAmount
+    ) {
+      return preset
+    }
+  }
+
+  return 'CUSTOM'
+}
+
 function CreateTaskModal({
   members,
   existingTaskDefinitions = [],
@@ -120,15 +166,20 @@ function CreateTaskModal({
 
   const [rewardPointTypeId, setRewardPointTypeId] =
     useState(initialTask?.rewardPointTypeId ?? '')
-  const [rewardAmount, setRewardAmount] = useState(initialTask?.rewardAmount ?? '')
+  const [economyPreset, setEconomyPreset] =
+    useState(() => detectEconomyPreset(initialTask))
+
+  const [rewardAmount, setRewardAmount] =
+    useState(initialTask?.rewardAmount ?? TASK_ECONOMY_PRESETS.SIMPLE.rewardAmount)
 
   const [penaltyPointTypeId, setPenaltyPointTypeId] =
     useState(initialTask?.penaltyPointTypeId ?? '')
-  const [penaltyAmount, setPenaltyAmount] = useState(initialTask?.penaltyAmount ?? '')
+  const [penaltyAmount, setPenaltyAmount] =
+    useState(initialTask?.penaltyAmount ?? TASK_ECONOMY_PRESETS.SIMPLE.penaltyAmount)
   const [rewardReputationAmount, setRewardReputationAmount] =
-    useState(initialTask?.rewardReputationAmount ?? '')
+    useState(initialTask?.rewardReputationAmount ?? TASK_ECONOMY_PRESETS.SIMPLE.rewardReputationAmount)
   const [penaltyReputationAmount, setPenaltyReputationAmount] =
-    useState(initialTask?.penaltyReputationAmount ?? '')
+    useState(initialTask?.penaltyReputationAmount ?? TASK_ECONOMY_PRESETS.SIMPLE.penaltyReputationAmount)
 
   const [loading, setLoading] = useState(false)
   const [loadingPointTypes, setLoadingPointTypes] =
@@ -185,6 +236,81 @@ function CreateTaskModal({
     const [actorType, rawId] = key.split(':')
     return { actorType, actorId: Number(rawId) }
   })
+
+  const applyEconomyPreset = (preset) => {
+    setEconomyPreset(preset)
+
+    if (preset === 'CUSTOM') return
+
+    const values = TASK_ECONOMY_PRESETS[preset]
+    setRewardAmount(values.rewardAmount)
+    setPenaltyAmount(values.penaltyAmount)
+    setRewardReputationAmount(values.rewardReputationAmount)
+    setPenaltyReputationAmount(values.penaltyReputationAmount)
+  }
+
+  const amountSelectValue = (value, options) => {
+    const numeric = Number(value || 0)
+    return options.includes(numeric) ? String(numeric) : 'CUSTOM'
+  }
+
+  const updateEconomyValue = (setter, value) => {
+    setter(value)
+    setEconomyPreset('CUSTOM')
+  }
+
+  const renderAmountSelector = ({
+    value,
+    setter,
+    options,
+    step,
+    ariaLabel,
+  }) => {
+    const selectValue = amountSelectValue(value, options)
+    const isCustom = selectValue === 'CUSTOM'
+
+    return (
+      <div className="task-amount-control">
+        <select
+          aria-label={ariaLabel}
+          value={selectValue}
+          onChange={(event) => {
+            const next = event.target.value
+            setEconomyPreset('CUSTOM')
+
+            if (next === 'CUSTOM') {
+              if (options.includes(Number(value || 0))) {
+                setter('')
+              }
+              return
+            }
+
+            setter(Number(next))
+          }}
+        >
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+          <option value="CUSTOM">{t('tasks.create.economy.customAmount')}</option>
+        </select>
+
+        {isCustom && (
+          <input
+            type="number"
+            min="0"
+            step={step}
+            value={value}
+            placeholder={t('tasks.create.economy.customAmountPlaceholder')}
+            onChange={(event) =>
+              updateEconomyValue(setter, event.target.value)
+            }
+          />
+        )}
+      </div>
+    )
+  }
 
   const handleDueTimeBlur = () => {
     const normalized = normalizeTime(dueTime)
@@ -598,6 +724,25 @@ function CreateTaskModal({
             <small>{t('tasks.create.authorHint')}</small>
           </div>
 
+          <div className="task-economy-presets">
+            <div>
+              <strong>{t('tasks.create.economy.title')}</strong>
+              <small>{t('tasks.create.economy.hint')}</small>
+            </div>
+            <div className="task-economy-preset-buttons">
+              {['SIMPLE', 'NORMAL', 'HARD', 'CUSTOM'].map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  className={economyPreset === preset ? 'active' : ''}
+                  onClick={() => applyEconomyPreset(preset)}
+                >
+                  {t(`tasks.create.economy.presets.${preset}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="task-economy-grid">
             <section className="task-value-section">
               <h3>{t('tasks.create.reward')}</h3>
@@ -629,30 +774,25 @@ function CreateTaskModal({
 
                 <label className="form-field">
                   <span>{t('tasks.create.amount')}</span>
-
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={rewardAmount}
-                    onChange={(event) =>
-                      setRewardAmount(event.target.value)
-                    }
-                  />
+                  {renderAmountSelector({
+                    value: rewardAmount,
+                    setter: setRewardAmount,
+                    options: POINT_AMOUNT_OPTIONS,
+                    step: 10,
+                    ariaLabel: t('tasks.create.reward'),
+                  })}
                 </label>
               </div>
 
               <label className="form-field task-reputation-field">
                 <span>{t('tasks.create.reputation')}</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={rewardReputationAmount}
-                  onChange={(event) =>
-                    setRewardReputationAmount(event.target.value)
-                  }
-                />
+                {renderAmountSelector({
+                  value: rewardReputationAmount,
+                  setter: setRewardReputationAmount,
+                  options: REPUTATION_AMOUNT_OPTIONS,
+                  step: 1,
+                  ariaLabel: t('tasks.create.reputation'),
+                })}
               </label>
             </section>
 
@@ -686,30 +826,25 @@ function CreateTaskModal({
 
                 <label className="form-field">
                   <span>{t('tasks.create.amount')}</span>
-
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={penaltyAmount}
-                    onChange={(event) =>
-                      setPenaltyAmount(event.target.value)
-                    }
-                  />
+                  {renderAmountSelector({
+                    value: penaltyAmount,
+                    setter: setPenaltyAmount,
+                    options: POINT_AMOUNT_OPTIONS,
+                    step: 10,
+                    ariaLabel: t('tasks.create.penalty'),
+                  })}
                 </label>
               </div>
 
               <label className="form-field task-reputation-field">
                 <span>{t('tasks.create.reputation')}</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={penaltyReputationAmount}
-                  onChange={(event) =>
-                    setPenaltyReputationAmount(event.target.value)
-                  }
-                />
+                {renderAmountSelector({
+                  value: penaltyReputationAmount,
+                  setter: setPenaltyReputationAmount,
+                  options: REPUTATION_AMOUNT_OPTIONS,
+                  step: 1,
+                  ariaLabel: t('tasks.create.reputation'),
+                })}
               </label>
             </section>
           </div>
