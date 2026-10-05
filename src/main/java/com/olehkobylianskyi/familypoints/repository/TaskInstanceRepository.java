@@ -43,6 +43,14 @@ public interface TaskInstanceRepository
             Long taskDefinitionId, Long memberId, LocalDate scheduledDate
     );
 
+    boolean existsByTaskDefinitionIdAndMemberIdAndScheduledDateAndStatus(
+            Long taskDefinitionId,
+            Long memberId,
+            LocalDate scheduledDate,
+            TaskInstanceStatus status
+    );
+
+
     boolean existsByTaskDefinitionIdAndScheduledDate(Long taskDefinitionId, LocalDate scheduledDate);
 
     List<TaskInstance> findByTaskDefinitionIdAndStatus(Long taskDefinitionId, TaskInstanceStatus status);
