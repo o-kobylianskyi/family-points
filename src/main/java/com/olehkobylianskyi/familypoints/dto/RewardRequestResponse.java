@@ -16,6 +16,7 @@ public class RewardRequestResponse {
     private final String pointTypeCode;
     private final Integer priceAmount;
     private final Integer minimumReputation;
+    private final Integer durationMinutes;
     private final LocalDateTime createdAt;
     private final LocalDateTime reviewedAt;
     private final List<RewardRequirementResponse> requirements;
@@ -32,6 +33,7 @@ public class RewardRequestResponse {
         this.pointTypeCode = request.getApprovedPointType() == null ? null : request.getApprovedPointType().getCode();
         this.priceAmount = request.getApprovedPriceAmount();
         this.minimumReputation = request.getMinimumReputation();
+        this.durationMinutes = request.getApprovedDurationMinutes();
         this.createdAt = request.getCreatedAt();
         this.reviewedAt = request.getReviewedAt();
         this.requirements = requirements;
@@ -48,6 +50,7 @@ public class RewardRequestResponse {
     public String getPointTypeCode() { return pointTypeCode; }
     public Integer getPriceAmount() { return priceAmount; }
     public Integer getMinimumReputation() { return minimumReputation; }
+    public Integer getDurationMinutes() { return durationMinutes; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getReviewedAt() { return reviewedAt; }
     public List<RewardRequirementResponse> getRequirements() { return requirements; }
