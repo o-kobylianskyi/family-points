@@ -288,9 +288,6 @@ public class TaskRewardNegotiationService {
                 "Earned by completing task: " + instance.getTitle()
         );
         Integer durationMinutes = negotiation.getApprovedDurationMinutes();
-        if (durationMinutes == null && reward != null && reward.getRewardKind() == RewardKind.TIME_BASED) {
-            durationMinutes = reward.getDefaultDurationMinutes();
-        }
         rewardRequest.approve(pointType, 0, null, durationMinutes, false);
         rewardRequests.save(rewardRequest);
     }
