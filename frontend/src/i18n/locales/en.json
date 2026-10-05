@@ -166,7 +166,8 @@
           "NORMAL": "Normal",
           "HARD": "Hard",
           "CUSTOM": "Custom"
-        }
+        },
+        "openSuggestions": "Open value list"
       }
     },
     "open": {
