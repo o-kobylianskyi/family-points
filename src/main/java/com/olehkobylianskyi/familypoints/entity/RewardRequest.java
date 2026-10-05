@@ -43,6 +43,9 @@ public class RewardRequest {
     @Column(name = "minimum_reputation")
     private Integer minimumReputation;
 
+    @Column(name = "approved_duration_minutes")
+    private Integer approvedDurationMinutes;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -80,14 +83,16 @@ public class RewardRequest {
     public PointType getApprovedPointType() { return approvedPointType; }
     public Integer getApprovedPriceAmount() { return approvedPriceAmount; }
     public Integer getMinimumReputation() { return minimumReputation; }
+    public Integer getApprovedDurationMinutes() { return approvedDurationMinutes; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getReviewedAt() { return reviewedAt; }
     public LocalDateTime getCompletedAt() { return completedAt; }
 
-    public void approve(PointType pointType, Integer priceAmount, Integer minimumReputation, boolean hasBeforeRequirements) {
+    public void approve(PointType pointType, Integer priceAmount, Integer minimumReputation, Integer durationMinutes, boolean hasBeforeRequirements) {
         this.approvedPointType = pointType;
         this.approvedPriceAmount = priceAmount;
         this.minimumReputation = minimumReputation;
+        this.approvedDurationMinutes = durationMinutes;
         this.status = hasBeforeRequirements
                 ? RewardRequestStatus.WAITING_REQUIREMENTS
                 : RewardRequestStatus.READY_TO_PURCHASE;
