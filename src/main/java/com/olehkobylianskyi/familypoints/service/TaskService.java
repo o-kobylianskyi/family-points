@@ -119,6 +119,7 @@ public class TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Member group not found: " + targetGroupId));
 
         validateAssignment(policy, assignedMember, targetGroup, preferredMember);
+        validateParticipantModel(administrators, observers, executors, policy);
 
         if (startDate == null) throw new IllegalArgumentException("Task start date must be specified");
         if (endDate != null && endDate.isBefore(startDate))
@@ -207,6 +208,7 @@ public class TaskService {
                 : getMemberOrThrow(workspaceId, request.getResponsibleMemberId());
 
         validateAssignment(policy, assignedMember, targetGroup, preferredMember);
+        validateParticipantModel(request.getAdministrators(), request.getObservers(), request.getExecutors(), policy);
         if (request.getStartDate() == null) throw new IllegalArgumentException("Task start date must be specified");
         if (request.getEndDate() != null && request.getEndDate().isBefore(request.getStartDate()))
             throw new IllegalArgumentException("Task end date cannot be before start date");
@@ -314,8 +316,37 @@ public class TaskService {
         if (actors == null) return;
         for (var actor : actors) {
             if (actor == null || actor.getActorType() == null || actor.getActorId() == null) continue;
+            if ((role == TaskParticipantRole.ADMIN || role == TaskParticipantRole.OBSERVER)
+                    && actor.getActorType() != ActorType.MEMBER) {
+                throw new IllegalArgumentException(role + " participants must be workspace members");
+            }
             validateActor(definition.getWorkspace().getId(), actor.getActorType(), actor.getActorId());
             addParticipant(definition, role, actor.getActorType(), actor.getActorId());
+        }
+    }
+
+    private void validateParticipantModel(
+            java.util.List<com.olehkobylianskyi.familypoints.dto.TaskActorRef> administrators,
+            java.util.List<com.olehkobylianskyi.familypoints.dto.TaskActorRef> observers,
+            java.util.List<com.olehkobylianskyi.familypoints.dto.TaskActorRef> executors,
+            AssignmentPolicy policy
+    ) {
+        if (administrators != null && administrators.stream()
+                .filter(java.util.Objects::nonNull)
+                .anyMatch(actor -> actor.getActorType() != ActorType.MEMBER)) {
+            throw new IllegalArgumentException("Task administrators can only be workspace members");
+        }
+        if (observers != null && observers.stream()
+                .filter(java.util.Objects::nonNull)
+                .anyMatch(actor -> actor.getActorType() != ActorType.MEMBER)) {
+            throw new IllegalArgumentException("Task observers can only be workspace members");
+        }
+        long executorCount = executors == null ? 0 : executors.stream()
+                .filter(java.util.Objects::nonNull)
+                .filter(actor -> actor.getActorType() != null && actor.getActorId() != null)
+                .count();
+        if (policy == AssignmentPolicy.PARTICIPANTS && executorCount == 0) {
+            throw new IllegalArgumentException("At least one executor is required");
         }
     }
 
@@ -397,7 +428,7 @@ public class TaskService {
         switch (policy) {
             case SINGLE_MEMBER -> { if (assignedMember == null) throw new IllegalArgumentException("assignedMemberId is required for SINGLE_MEMBER"); }
             case GROUP_SHARED, OPEN_GROUP -> { if (targetGroup == null) throw new IllegalArgumentException("targetGroupId is required for " + policy); }
-            case OPEN_WORKSPACE -> { }
+            case OPEN_WORKSPACE, PARTICIPANTS -> { }
             case PREFERRED_MEMBER -> { if (preferredMember == null) throw new IllegalArgumentException("preferredMemberId is required for PREFERRED_MEMBER"); }
         }
     }
@@ -594,6 +625,14 @@ public class TaskService {
     private boolean isEligible(TaskDefinition definition, WorkspaceMember member) {
         if (!member.getWorkspace().getId().equals(definition.getWorkspace().getId())) return false;
         AssignmentPolicy policy = definition.getAssignmentPolicy();
+        if (policy == AssignmentPolicy.PARTICIPANTS) {
+            return participantMatchesMember(
+                    definition.getId(),
+                    TaskParticipantRole.EXECUTOR,
+                    member.getId(),
+                    new java.util.HashSet<>()
+            );
+        }
         if (policy == AssignmentPolicy.OPEN_WORKSPACE || policy == AssignmentPolicy.PREFERRED_MEMBER) {
             if (definition.getTargetGroup() == null) return true;
         }
