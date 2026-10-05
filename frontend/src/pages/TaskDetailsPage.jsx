@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import CreateTaskModal from '../components/CreateTaskModal'
+import TaskRewardNegotiationModal from '../components/TaskRewardNegotiationModal'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 import {
   getTaskDefinition,
@@ -38,6 +39,7 @@ function TaskDetailsPage() {
   const [createSubtaskOpen, setCreateSubtaskOpen] = useState(false)
   const [error, setError] = useState('')
   const [processing, setProcessing] = useState(false)
+  const [rewardNegotiationOpen, setRewardNegotiationOpen] = useState(false)
 
   const load = async () => {
     try {
@@ -179,6 +181,16 @@ function TaskDetailsPage() {
                 <button className="task-action-button" disabled={processing} onClick={() => runInstanceAction('pause')}>Призупинити</button>
               </>}
               {instance.status === 'PAUSED' && <button className="task-action-button primary" disabled={processing} onClick={() => runInstanceAction('resume')}>Продовжити</button>}
+              {instance.memberId === currentUser.memberId
+                && ['PENDING','IN_PROGRESS','PAUSED'].includes(instance.status) && (
+                  <button
+                    className="task-action-button"
+                    type="button"
+                    onClick={() => setRewardNegotiationOpen(true)}
+                  >
+                    Запросити іншу винагороду
+                  </button>
+                )}
               {instance.delegationAllowed && ['PENDING','IN_PROGRESS','PAUSED'].includes(instance.status) &&
                 <button className="task-action-button" onClick={() => { setDelegating(!delegating); setDelegateToMemberId(String(members.find(m => m.id !== instance.memberId)?.id || '')) }}>Делегувати</button>}
               {['PENDING','IN_PROGRESS','PAUSED'].includes(instance.status) &&
@@ -275,6 +287,17 @@ function TaskDetailsPage() {
             </div>
           )}</div>}
       </section>
+      {rewardNegotiationOpen && instance && (
+        <TaskRewardNegotiationModal
+          task={instance}
+          onClose={() => setRewardNegotiationOpen(false)}
+          onSaved={async () => {
+            setRewardNegotiationOpen(false)
+            await load()
+          }}
+        />
+      )}
+
       {createSubtaskOpen && (
         <CreateTaskModal
           members={members}
