@@ -212,7 +212,10 @@
     "IN_PROGRESS": "In progress",
     "COMPLETED": "Completed",
     "MISSED": "Missed",
-    "EXCUSED": "Excused"
+    "EXCUSED": "Excused",
+    "PAUSED": "Paused",
+    "CANCELLED": "Cancelled",
+    "RELEASED": "Released"
   },
   "weekdays": {
     "monday": "Monday",
@@ -405,6 +408,35 @@
       "newPasswordOptional": "New password (optional)",
       "allowLogin": "Allow login",
       "save": "Save"
+    }
+  },
+  "taskParticipantRole": {
+    "ADMIN": "Administrator",
+    "OBSERVER": "Observer",
+    "EXECUTOR": "Executor"
+  },
+  "taskAudit": {
+    "eventType": {
+      "DEFINITION_CREATED": "Task created",
+      "DEFINITION_UPDATED": "Task updated",
+      "DEFINITION_ACTIVATED": "Task activated",
+      "DEFINITION_DEACTIVATED": "Task deactivated",
+      "INSTANCE_CREATED": "Execution created",
+      "INSTANCE_GENERATED": "Execution generated",
+      "INSTANCE_CLAIMED": "Task claimed",
+      "INSTANCE_STARTED": "Execution started",
+      "INSTANCE_PAUSED": "Execution paused",
+      "INSTANCE_RESUMED": "Execution resumed",
+      "INSTANCE_CANCELLED": "Execution cancelled",
+      "INSTANCE_RELEASED": "Task released",
+      "INSTANCE_COMPLETED": "Task completed",
+      "INSTANCE_MISSED": "Task missed",
+      "INSTANCE_EXCUSED": "Execution excused",
+      "INSTANCE_DELEGATED": "Task delegated"
+    },
+    "details": {
+      "generatedFor": "Generated for {{date}}",
+      "createdFor": "Created for {{date}}"
     }
   }
 }
