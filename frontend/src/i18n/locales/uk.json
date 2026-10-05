@@ -356,5 +356,11 @@
       "groups": "Групи",
       "points": "Бали"
     }
+  },
+  "pointType": {
+    "POINTS": "Бали",
+    "COPPER": "Мідь",
+    "SILVER": "Срібло",
+    "GOLD": "Золото"
   }
 }
