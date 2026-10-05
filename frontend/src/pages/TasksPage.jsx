@@ -19,11 +19,14 @@ import {
   getTaskParticipants,
   getTaskInstanceHistory,
   getTaskDefinitionHistory,
+  getPendingTaskRewardRequests,
+  rejectTaskRewardRequest,
   setTaskDefinitionActive,
   startTask,
 } from '../api/taskApi'
 
 import CreateTaskModal from '../components/CreateTaskModal'
+import TaskRewardNegotiationModal from '../components/TaskRewardNegotiationModal'
 
 function getToday() {
   const now = new Date()
@@ -94,6 +97,14 @@ function TasksPage() {
   const [definitionHistoryId, setDefinitionHistoryId] = useState(null)
   const [historyByDefinitionId, setHistoryByDefinitionId] = useState({})
   const [loadingDefinitionHistoryId, setLoadingDefinitionHistoryId] = useState(null)
+  const [rewardNegotiationTask, setRewardNegotiationTask] = useState(null)
+  const [pendingRewardRequests, setPendingRewardRequests] = useState([])
+  const [reviewingRewardRequest, setReviewingRewardRequest] = useState(null)
+
+  const canManageRewardRequests =
+    currentUser.permissions?.includes('MANAGE_TASKS')
+    || currentUser.permissions?.includes('MANAGE_REWARDS')
+    || currentUser.permissions?.includes('ADMIN_OVERRIDE')
 
   useEffect(() => {
     const loadMembers = async () => {
@@ -185,6 +196,16 @@ function TasksPage() {
       setManagedTasks(definitions)
       const entries = await Promise.all(definitions.map(async (definition) => [definition.id, await getTaskParticipants(token, currentUser.workspaceId, definition.id)]))
       setParticipantMap(Object.fromEntries(entries))
+
+      if (canManageRewardRequests) {
+        const pending = await getPendingTaskRewardRequests(
+          token,
+          currentUser.workspaceId
+        )
+        setPendingRewardRequests(pending)
+      } else {
+        setPendingRewardRequests([])
+      }
     } catch (error) { setError(error.message) }
   }
 
@@ -668,6 +689,16 @@ function TasksPage() {
                   {task.status === 'PENDING' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'start')}>{t('tasks.start')}</button>}
                   {task.status === 'IN_PROGRESS' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'complete')}>{t('tasks.complete')}</button>}
                   {task.status === 'PAUSED' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'resume')}>Продовжити</button>}
+                  {task.memberId === currentUser.memberId
+                    && ['PENDING', 'IN_PROGRESS', 'PAUSED'].includes(task.status) && (
+                      <button
+                        type="button"
+                        className="task-action-button secondary"
+                        onClick={() => setRewardNegotiationTask(task)}
+                      >
+                        Запросити іншу винагороду
+                      </button>
+                    )}
                   <Link className="task-action-button secondary task-open-link" to={`/tasks/${task.taskDefinitionId}?date=${selectedDate}`}>Відкрити →</Link>
                 </div>
 
@@ -801,6 +832,75 @@ function TasksPage() {
         )}
       </section>
 
+      {pageTab === 'management' && canManageRewardRequests && pendingRewardRequests.length > 0 && (
+        <section className="tasks-panel task-reward-request-panel">
+          <div className="tasks-panel-header">
+            <div>
+              <h2>Запити на зміну винагороди</h2>
+              <p>Виконавець пропонує іншу винагороду за конкретне виконання завдання.</p>
+            </div>
+            <span className="open-task-count">{pendingRewardRequests.length}</span>
+          </div>
+
+          <div className="task-reward-request-list">
+            {pendingRewardRequests.map((request) => (
+              <article className="task-reward-request-card" key={request.id}>
+                <div>
+                  <strong>{request.requestedByMemberName}</strong>
+                  <h3>{request.taskTitle}</h3>
+                  <p>
+                    {request.requestedPointAmount
+                      ? `${request.requestedPointAmount} балів`
+                      : 'без балів'}
+                    {request.requestedReputationAmount
+                      ? ` · +${request.requestedReputationAmount} репутації`
+                      : ''}
+                    {request.requestedRewardTitle
+                      ? ` · ${request.requestedRewardTitle}`
+                      : ''}
+                    {request.requestedCustomRewardTitle
+                      ? ` · ${request.requestedCustomRewardTitle}`
+                      : ''}
+                  </p>
+                  {request.requestedComment && (
+                    <small>{request.requestedComment}</small>
+                  )}
+                </div>
+
+                <div className="task-card-actions">
+                  <button
+                    type="button"
+                    className="task-action-button primary"
+                    onClick={() => setReviewingRewardRequest(request)}
+                  >
+                    Розглянути
+                  </button>
+                  <button
+                    type="button"
+                    className="task-action-button secondary"
+                    onClick={async () => {
+                      try {
+                        setError('')
+                        await rejectTaskRewardRequest(
+                          getAccessToken(),
+                          currentUser.workspaceId,
+                          request.id
+                        )
+                        await loadManagedTasks()
+                      } catch (requestError) {
+                        setError(requestError.message)
+                      }
+                    }}
+                  >
+                    Відхилити
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className={pageTab === 'management' ? 'tasks-panel task-management-panel' : 'tasks-panel task-management-panel ui-hidden'}>
         <div className="tasks-panel-header"><div><h2>{t('tasks.management.title')}</h2><p>{t('tasks.management.description')}</p></div></div>
         <div className="task-management-tabs">
@@ -839,6 +939,29 @@ function TasksPage() {
           defaultMemberId={selectedMemberId}
           onClose={() => setCreateModalOpen(false)}
           onCreated={() => loadAllTasks()}
+        />
+      )}
+
+      {rewardNegotiationTask && (
+        <TaskRewardNegotiationModal
+          task={rewardNegotiationTask}
+          onClose={() => setRewardNegotiationTask(null)}
+          onSaved={async () => {
+            setRewardNegotiationTask(null)
+            await loadAllTasks()
+          }}
+        />
+      )}
+
+      {reviewingRewardRequest && (
+        <TaskRewardNegotiationModal
+          mode="review"
+          request={reviewingRewardRequest}
+          onClose={() => setReviewingRewardRequest(null)}
+          onSaved={async () => {
+            setReviewingRewardRequest(null)
+            await loadManagedTasks()
+          }}
         />
       )}
 
