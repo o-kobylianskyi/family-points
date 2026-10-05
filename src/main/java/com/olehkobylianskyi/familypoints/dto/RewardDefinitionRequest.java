@@ -21,7 +21,7 @@ public class RewardDefinitionRequest {
     @NotNull
     private Long pointTypeId;
 
-    @Min(1)
+    @Min(0)
     private int priceAmount;
 
     @Min(0)
