@@ -26,7 +26,6 @@ import {
 } from '../api/taskApi'
 
 import CreateTaskModal from '../components/CreateTaskModal'
-import TaskRewardNegotiationModal from '../components/TaskRewardNegotiationModal'
 
 function getToday() {
   const now = new Date()
@@ -97,7 +96,6 @@ function TasksPage() {
   const [definitionHistoryId, setDefinitionHistoryId] = useState(null)
   const [historyByDefinitionId, setHistoryByDefinitionId] = useState({})
   const [loadingDefinitionHistoryId, setLoadingDefinitionHistoryId] = useState(null)
-  const [rewardNegotiationTask, setRewardNegotiationTask] = useState(null)
   const [pendingRewardRequests, setPendingRewardRequests] = useState([])
   const [reviewingRewardRequest, setReviewingRewardRequest] = useState(null)
 
@@ -689,16 +687,6 @@ function TasksPage() {
                   {task.status === 'PENDING' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'start')}>{t('tasks.start')}</button>}
                   {task.status === 'IN_PROGRESS' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'complete')}>{t('tasks.complete')}</button>}
                   {task.status === 'PAUSED' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'resume')}>Продовжити</button>}
-                  {task.memberId === currentUser.memberId
-                    && ['PENDING', 'IN_PROGRESS', 'PAUSED'].includes(task.status) && (
-                      <button
-                        type="button"
-                        className="task-action-button secondary"
-                        onClick={() => setRewardNegotiationTask(task)}
-                      >
-                        Запросити іншу винагороду
-                      </button>
-                    )}
                   <Link className="task-action-button secondary task-open-link" to={`/tasks/${task.taskDefinitionId}?date=${selectedDate}`}>Відкрити →</Link>
                 </div>
 
@@ -939,17 +927,6 @@ function TasksPage() {
           defaultMemberId={selectedMemberId}
           onClose={() => setCreateModalOpen(false)}
           onCreated={() => loadAllTasks()}
-        />
-      )}
-
-      {rewardNegotiationTask && (
-        <TaskRewardNegotiationModal
-          task={rewardNegotiationTask}
-          onClose={() => setRewardNegotiationTask(null)}
-          onSaved={async () => {
-            setRewardNegotiationTask(null)
-            await loadAllTasks()
-          }}
         />
       )}
 
