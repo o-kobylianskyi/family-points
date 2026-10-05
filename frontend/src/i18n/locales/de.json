@@ -208,11 +208,14 @@
     "CUSTOM": "Benutzerdefiniert"
   },
   "taskStatus": {
-    "PENDING": "Offen",
+    "PENDING": "Ausstehend",
     "IN_PROGRESS": "In Bearbeitung",
     "COMPLETED": "Erledigt",
-    "MISSED": "Versäumt",
-    "EXCUSED": "Entschuldigt"
+    "MISSED": "Verpasst",
+    "EXCUSED": "Entschuldigt",
+    "PAUSED": "Pausiert",
+    "CANCELLED": "Abgebrochen",
+    "RELEASED": "Freigegeben"
   },
   "weekdays": {
     "monday": "Montag",
@@ -405,6 +408,35 @@
       "newPasswordOptional": "Neues Passwort (optional)",
       "allowLogin": "Anmeldung erlauben",
       "save": "Speichern"
+    }
+  },
+  "taskParticipantRole": {
+    "ADMIN": "Administrator",
+    "OBSERVER": "Beobachter",
+    "EXECUTOR": "Ausführender"
+  },
+  "taskAudit": {
+    "eventType": {
+      "DEFINITION_CREATED": "Aufgabe erstellt",
+      "DEFINITION_UPDATED": "Aufgabe aktualisiert",
+      "DEFINITION_ACTIVATED": "Aufgabe aktiviert",
+      "DEFINITION_DEACTIVATED": "Aufgabe deaktiviert",
+      "INSTANCE_CREATED": "Ausführung erstellt",
+      "INSTANCE_GENERATED": "Ausführung erzeugt",
+      "INSTANCE_CLAIMED": "Aufgabe übernommen",
+      "INSTANCE_STARTED": "Ausführung gestartet",
+      "INSTANCE_PAUSED": "Ausführung pausiert",
+      "INSTANCE_RESUMED": "Ausführung fortgesetzt",
+      "INSTANCE_CANCELLED": "Ausführung abgebrochen",
+      "INSTANCE_RELEASED": "Aufgabe freigegeben",
+      "INSTANCE_COMPLETED": "Aufgabe erledigt",
+      "INSTANCE_MISSED": "Aufgabe verpasst",
+      "INSTANCE_EXCUSED": "Ausführung entschuldigt",
+      "INSTANCE_DELEGATED": "Aufgabe delegiert"
+    },
+    "details": {
+      "generatedFor": "Erzeugt für {{date}}",
+      "createdFor": "Erstellt für {{date}}"
     }
   }
 }
