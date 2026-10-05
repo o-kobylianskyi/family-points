@@ -479,3 +479,22 @@ Before each substantial implementation batch:
 - [ ] Integrate time rewards with app/screen-time control
 - [ ] Complete rewards UI i18n
 - [ ] Run backend/frontend smoke test locally
+
+
+## Task reward negotiation
+- [x] Add TaskRewardRequest persistence and lifecycle
+- [x] Scope reward negotiation to TaskInstance
+- [x] Allow executor to request point/reputation changes
+- [x] Allow executor to request a catalog reward
+- [x] Allow executor to request a free-form reward
+- [x] Allow parent/manager to edit requested terms before approval
+- [x] Make approved negotiation replace normal TaskInstance reward
+- [x] Create zero-price RewardRequest for approved non-point reward after task completion
+- [x] Add executor “Запросити іншу винагороду” UI
+- [x] Add parent management queue for pending reward negotiations
+- [ ] Add request-status badge to task cards
+- [ ] Add counter-offer / negotiation conversation history
+- [ ] Add notifications
+- [ ] Add WAIT_FOR_DECISION task-start policy
+- [ ] Add negotiation audit events
+- [ ] Smoke-test Task Reward Negotiation locally
