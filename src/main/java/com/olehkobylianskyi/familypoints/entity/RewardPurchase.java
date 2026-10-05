@@ -33,6 +33,9 @@ public class RewardPurchase {
     @Column(name = "price_amount", nullable = false)
     private int priceAmount;
 
+    @Column(name = "duration_minutes")
+    private Integer durationMinutes;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private RewardPurchaseStatus status;
@@ -55,6 +58,7 @@ public class RewardPurchase {
         this.rewardTitle = rewardDefinition.getTitle();
         this.pointType = rewardDefinition.getPointType();
         this.priceAmount = rewardDefinition.getPriceAmount();
+        this.durationMinutes = rewardDefinition.getDefaultDurationMinutes();
         this.status = status;
         this.purchasedAt = LocalDateTime.now();
     }
@@ -72,6 +76,7 @@ public class RewardPurchase {
         this.priceAmount = rewardRequest.getApprovedPriceAmount() == null
                 ? 0
                 : rewardRequest.getApprovedPriceAmount();
+        this.durationMinutes = rewardRequest.getApprovedDurationMinutes();
         this.status = status;
         this.purchasedAt = LocalDateTime.now();
     }
@@ -83,6 +88,7 @@ public class RewardPurchase {
     public String getRewardTitle() { return rewardTitle; }
     public PointType getPointType() { return pointType; }
     public int getPriceAmount() { return priceAmount; }
+    public Integer getDurationMinutes() { return durationMinutes; }
     public RewardPurchaseStatus getStatus() { return status; }
     public LocalDateTime getPurchasedAt() { return purchasedAt; }
     public LocalDateTime getResolvedAt() { return resolvedAt; }
