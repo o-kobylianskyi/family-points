@@ -84,18 +84,18 @@ function CreateTaskModal({
     while (used.has(`${base} ${number}`.toLocaleLowerCase())) number += 1
     return `${base} ${number}`
   }
-  const [assignmentPolicy, setAssignmentPolicy] = useState(initialTask?.assignmentPolicy ?? 'SINGLE_MEMBER')
-  const [assignedMemberId, setAssignedMemberId] = useState(initialTask?.assignedMemberId ?? defaultMemberId ?? members[0]?.id ?? '')
-  const [targetGroupId, setTargetGroupId] = useState(initialTask?.targetGroupId ?? '')
-  const [preferredMemberId, setPreferredMemberId] = useState(initialTask?.preferredMemberId ?? defaultMemberId ?? members[0]?.id ?? '')
-  const [responsibleMemberId, setResponsibleMemberId] = useState(initialTask?.responsibleMemberId ?? '')
-  const [roleMatchMode, setRoleMatchMode] = useState(initialTask?.roleMatchMode ?? 'ANY')
-  const [requiredGroupRoleIds, setRequiredGroupRoleIds] = useState(initialTask?.requiredGroupRoleIds ?? [])
   const [memberGroups, setMemberGroups] = useState([])
-  const participantKeys = (role) => initialParticipants.filter((p) => p.role === role).map((p) => `${p.actorType}:${p.actorId}`)
-  const [administrators, setAdministrators] = useState(() => participantKeys('ADMIN'))
-  const [observers, setObservers] = useState(() => participantKeys('OBSERVER'))
-  const [executors, setExecutors] = useState(() => participantKeys('EXECUTOR'))
+  const participantKeys = (role) => initialParticipants
+    .filter((p) => p.role === role)
+    .map((p) => `${p.actorType}:${p.actorId}`)
+  const [administrators, setAdministrators] = useState(() => participantKeys('ADMIN').filter(key => key.startsWith('MEMBER:')))
+  const [observers, setObservers] = useState(() => participantKeys('OBSERVER').filter(key => key.startsWith('MEMBER:')))
+  const [executors, setExecutors] = useState(() => {
+    const existing = participantKeys('EXECUTOR')
+    if (existing.length || editing) return existing
+    const initialMemberId = defaultMemberId ?? currentUser?.memberId ?? members[0]?.id
+    return initialMemberId ? [`MEMBER:${initialMemberId}`] : []
+  })
 
   const [title, setTitle] = useState(() => initialTask?.title ?? firstFreeTaskTitle())
   const [titleTouched, setTitleTouched] = useState(Boolean(initialTask))
@@ -165,15 +165,12 @@ function CreateTaskModal({
         const token = getAccessToken()
         const data = await getMemberGroups(token, currentUser.workspaceId)
         setMemberGroups(data)
-        if (!editing && data.length > 0) setTargetGroupId((current) => current || String(data[0].id))
       } catch (error) {
         setError(error.message)
       }
     }
     loadGroups()
   }, [currentUser.workspaceId, getAccessToken])
-
-  const selectedGroup = memberGroups.find((group) => String(group.id) === String(targetGroupId))
 
   const actorKey = (actorType, actorId) => `${actorType}:${actorId}`
   const toggleActor = (setter, actorType, actorId) => {
@@ -184,12 +181,6 @@ function CreateTaskModal({
     const [actorType, rawId] = key.split(':')
     return { actorType, actorId: Number(rawId) }
   })
-
-  const toggleRequiredRole = (roleId) => {
-    setRequiredGroupRoleIds((current) => current.includes(roleId)
-      ? current.filter((id) => id !== roleId)
-      : [...current, roleId])
-  }
 
   const handleDueTimeBlur = () => {
     const normalized = normalizeTime(dueTime)
@@ -215,6 +206,11 @@ function CreateTaskModal({
     )
     if (duplicateTitle) {
       setError(t('tasks.create.duplicateTitle', { title: trimmedTitle }))
+      return
+    }
+
+    if (executors.length === 0) {
+      setError(t('tasks.create.executorRequired'))
       return
     }
 
@@ -263,18 +259,24 @@ function CreateTaskModal({
           ? Number(penaltyAmount)
           : null
 
+      const executorRefs = actorRefs(executors)
+      const singleMemberExecutor =
+        executorRefs.length === 1 && executorRefs[0].actorType === 'MEMBER'
+          ? executorRefs[0]
+          : null
+
       const request = {
-        assignmentPolicy,
-        assignedMemberId: assignmentPolicy === 'SINGLE_MEMBER' ? Number(assignedMemberId) : null,
-        targetGroupId: ['GROUP_SHARED', 'OPEN_GROUP'].includes(assignmentPolicy) ? Number(targetGroupId) : null,
-        preferredMemberId: assignmentPolicy === 'PREFERRED_MEMBER' ? Number(preferredMemberId) : null,
-        responsibleMemberId: responsibleMemberId ? Number(responsibleMemberId) : null,
+        assignmentPolicy: singleMemberExecutor ? 'SINGLE_MEMBER' : 'PARTICIPANTS',
+        assignedMemberId: singleMemberExecutor ? singleMemberExecutor.actorId : null,
+        targetGroupId: null,
+        preferredMemberId: null,
+        responsibleMemberId: null,
         parentTaskDefinitionId: editing ? null : parentTaskDefinitionId,
-        roleMatchMode,
-        requiredGroupRoleIds: ['GROUP_SHARED', 'OPEN_GROUP'].includes(assignmentPolicy) ? requiredGroupRoleIds : [],
+        roleMatchMode: 'ANY',
+        requiredGroupRoleIds: [],
         administrators: actorRefs(administrators),
         observers: actorRefs(observers),
-        executors: actorRefs(executors),
+        executors: executorRefs,
         title: trimmedTitle,
         description: description.trim() || null,
         mandatory,
@@ -366,78 +368,6 @@ function CreateTaskModal({
             </div>
           )}
 
-          <label className="form-field">
-            <span>{t('tasks.create.assignmentPolicy')}</span>
-            <select value={assignmentPolicy} onChange={(event) => setAssignmentPolicy(event.target.value)}>
-              <option value="SINGLE_MEMBER">{t('assignmentPolicy.SINGLE_MEMBER')}</option>
-              <option value="GROUP_SHARED">{t('assignmentPolicy.GROUP_SHARED')}</option>
-              <option value="OPEN_GROUP">{t('assignmentPolicy.OPEN_GROUP')}</option>
-              <option value="OPEN_WORKSPACE">{t('assignmentPolicy.OPEN_WORKSPACE')}</option>
-              <option value="PREFERRED_MEMBER">{t('assignmentPolicy.PREFERRED_MEMBER')}</option>
-            </select>
-          </label>
-
-          {assignmentPolicy === 'SINGLE_MEMBER' && (
-            <label className="form-field">
-              <span>{t('tasks.create.assignedTo')}</span>
-              <select value={assignedMemberId} onChange={(event) => setAssignedMemberId(event.target.value)} required>
-                {members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
-              </select>
-            </label>
-          )}
-
-          {assignmentPolicy === 'PREFERRED_MEMBER' && (
-            <label className="form-field">
-              <span>{t('tasks.create.preferredMember')}</span>
-              <select value={preferredMemberId} onChange={(event) => setPreferredMemberId(event.target.value)} required>
-                {members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
-              </select>
-            </label>
-          )}
-
-          {['GROUP_SHARED', 'OPEN_GROUP'].includes(assignmentPolicy) && (
-            <>
-              <label className="form-field">
-                <span>{t('tasks.create.targetGroup')}</span>
-                <select value={targetGroupId} onChange={(event) => { setTargetGroupId(event.target.value); setRequiredGroupRoleIds([]) }} required>
-                  <option value="">—</option>
-                  {memberGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
-                </select>
-              </label>
-
-              {selectedGroup?.roles?.length > 0 && (
-                <div className="task-value-section">
-                  <h3>{t('tasks.create.requiredRoles')}</h3>
-                  <div className="role-checkbox-list">
-                    {selectedGroup.roles.map((role) => (
-                      <label className="form-checkbox" key={role.id}>
-                        <input type="checkbox" checked={requiredGroupRoleIds.includes(role.id)} onChange={() => toggleRequiredRole(role.id)} />
-                        <span>{role.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {requiredGroupRoleIds.length > 1 && (
-                    <label className="form-field">
-                      <span>{t('tasks.create.roleMatchMode')}</span>
-                      <select value={roleMatchMode} onChange={(event) => setRoleMatchMode(event.target.value)}>
-                        <option value="ANY">{t('roleMatchMode.ANY')}</option>
-                        <option value="ALL">{t('roleMatchMode.ALL')}</option>
-                      </select>
-                    </label>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-
-          <label className="form-field">
-            <span>{t('tasks.create.responsibleMember')}</span>
-            <select value={responsibleMemberId} onChange={(event) => setResponsibleMemberId(event.target.value)}>
-              <option value="">{t('tasks.create.currentUser')}</option>
-              {members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
-            </select>
-          </label>
-
           <div className="task-participants-editor">
             <h3>{t('tasks.create.participants')}</h3>
             {[
@@ -452,21 +382,32 @@ function CreateTaskModal({
                     const key = actorKey('MEMBER', member.id)
                     return (
                       <label className="form-checkbox" key={`${role}-${key}`}>
-                        <input type="checkbox" checked={selected.includes(key)} onChange={() => toggleActor(setter, 'MEMBER', member.id)} />
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(key)}
+                          onChange={() => toggleActor(setter, 'MEMBER', member.id)}
+                        />
                         <span>{member.name}</span>
                       </label>
                     )
                   })}
-                  {memberGroups.map((group) => {
+                  {role === 'executors' && memberGroups.map((group) => {
                     const key = actorKey('GROUP', group.id)
                     return (
                       <label className="form-checkbox" key={`${role}-${key}`}>
-                        <input type="checkbox" checked={selected.includes(key)} onChange={() => toggleActor(setter, 'GROUP', group.id)} />
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(key)}
+                          onChange={() => toggleActor(setter, 'GROUP', group.id)}
+                        />
                         <span>👥 {group.name}</span>
                       </label>
                     )
                   })}
                 </div>
+                {(role === 'administrators' || role === 'observers') && (
+                  <small>{t('tasks.create.memberOnlyParticipants')}</small>
+                )}
               </div>
             ))}
             <small>{t('tasks.create.authorHint')}</small>
