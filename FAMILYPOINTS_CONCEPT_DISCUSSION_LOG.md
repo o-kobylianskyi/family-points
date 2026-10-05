@@ -1366,3 +1366,23 @@ For combined executor sets, eligibility comes from EXECUTOR TaskParticipants.
 **OPEN**
 
 The current TaskInstance lifecycle still represents one concrete executor after claim. If FamilyPoints later needs true simultaneous/shared completion by multiple executor actors, instance-level joint participation semantics must be implemented separately rather than inferred from the definition-level participant list.
+
+
+---
+
+## 30. Sliding authenticated session / idle timeout
+
+### 2026-10-05
+
+**AGREED**
+
+FamilyPoints uses a one-hour idle timeout rather than a long fixed access-token lifetime.
+
+- JWT access token lifetime: 1 hour.
+- User interaction records activity locally.
+- When the token is approaching expiration and the user was recently active, the client refreshes the access token through an authenticated refresh endpoint.
+- Token refresh is controlled and periodic; it is not performed on every mouse movement or API request.
+- If there is no user activity for 1 hour, the session is cleared and protected navigation returns to login.
+- An expired/invalid token still produces the normal global 401 logout behavior.
+
+This is a sliding session: active users remain signed in; inactive users are required to authenticate again after the idle period.
