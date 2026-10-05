@@ -19,6 +19,7 @@ public class TaskDefinitionResponse {
     private final Long rewardPointTypeId, penaltyPointTypeId;
     private final String rewardPointTypeCode, penaltyPointTypeCode;
     private final Integer rewardAmount, penaltyAmount;
+    private final Integer rewardReputationAmount, penaltyReputationAmount;
 
     private TaskDefinitionResponse(TaskDefinition t) {
         id=t.getId(); assignedMemberId=id(t.getAssignedMember()); targetGroupId=id(t.getTargetGroup()); preferredMemberId=id(t.getPreferredMember());
@@ -36,6 +37,8 @@ public class TaskDefinitionResponse {
         PointType r=t.getRewardPointType(), p=t.getPenaltyPointType();
         rewardPointTypeId=id(r); rewardPointTypeCode=r==null?null:r.getCode(); rewardAmount=t.getRewardAmount();
         penaltyPointTypeId=id(p); penaltyPointTypeCode=p==null?null:p.getCode(); penaltyAmount=t.getPenaltyAmount();
+        rewardReputationAmount=t.getRewardReputationAmount();
+        penaltyReputationAmount=t.getPenaltyReputationAmount();
     }
     private static Long id(Object x){ if(x==null)return null; if(x instanceof WorkspaceMember v)return v.getId(); if(x instanceof MemberGroup v)return v.getId(); if(x instanceof PointType v)return v.getId(); return null; }
     public static TaskDefinitionResponse from(TaskDefinition t){return new TaskDefinitionResponse(t);}
@@ -44,4 +47,5 @@ public class TaskDefinitionResponse {
     public TaskRecurrenceType getRecurrenceType(){return recurrenceType;} public AssignmentPolicy getAssignmentPolicy(){return assignmentPolicy;} public RoleMatchMode getRoleMatchMode(){return roleMatchMode;} public List<Long> getRequiredGroupRoleIds(){return requiredGroupRoleIds;}
     public LocalDate getStartDate(){return startDate;} public LocalDate getEndDate(){return endDate;} public Integer getRecurrenceDayOfWeek(){return recurrenceDayOfWeek;} public Integer getRecurrenceDayOfMonth(){return recurrenceDayOfMonth;} public LocalDateTime getCreatedAt(){return createdAt;} public LocalDateTime getUpdatedAt(){return updatedAt;} public LocalTime getDueTime(){return dueTime;}
     public Long getRewardPointTypeId(){return rewardPointTypeId;} public String getRewardPointTypeCode(){return rewardPointTypeCode;} public Integer getRewardAmount(){return rewardAmount;} public Long getPenaltyPointTypeId(){return penaltyPointTypeId;} public String getPenaltyPointTypeCode(){return penaltyPointTypeCode;} public Integer getPenaltyAmount(){return penaltyAmount;}
+    public Integer getRewardReputationAmount(){return rewardReputationAmount;} public Integer getPenaltyReputationAmount(){return penaltyReputationAmount;}
 }
