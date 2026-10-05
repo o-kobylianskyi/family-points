@@ -13,6 +13,7 @@ public enum PointTransactionSourceType {
     ACHIEVEMENT,
 
     ACCESS_PURCHASE,
+    REWARD_PURCHASE,
 
     POINT_EXCHANGE,
 
