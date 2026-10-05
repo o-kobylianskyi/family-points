@@ -66,6 +66,12 @@ public class TaskInstance {
 
     private Integer penaltyAmount;
 
+    @Column(name = "reward_reputation_amount")
+    private Integer rewardReputationAmount;
+
+    @Column(name = "penalty_reputation_amount")
+    private Integer penaltyReputationAmount;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private TaskInstanceStatus status;
@@ -122,6 +128,12 @@ public class TaskInstance {
 
         this.penaltyAmount =
                 taskDefinition.getPenaltyAmount();
+
+        this.rewardReputationAmount =
+                taskDefinition.getRewardReputationAmount();
+
+        this.penaltyReputationAmount =
+                taskDefinition.getPenaltyReputationAmount();
 
         this.status = TaskInstanceStatus.PENDING;
 
@@ -262,4 +274,7 @@ public class TaskInstance {
     public Integer getPenaltyAmount() {
         return penaltyAmount;
     }
+
+    public Integer getRewardReputationAmount() { return rewardReputationAmount; }
+    public Integer getPenaltyReputationAmount() { return penaltyReputationAmount; }
 }
