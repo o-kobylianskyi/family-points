@@ -197,7 +197,7 @@ function TasksPage() {
       const entries = await Promise.all(definitions.map(async (definition) => [definition.id, await getTaskParticipants(token, currentUser.workspaceId, definition.id)]))
       setParticipantMap(Object.fromEntries(entries))
 
-      if (canManageRewardRequests) {
+      if (pageTab === 'management' && canManageRewardRequests) {
         const pending = await getPendingTaskRewardRequests(
           token,
           currentUser.workspaceId
@@ -211,7 +211,7 @@ function TasksPage() {
 
   useEffect(() => {
     loadManagedTasks()
-  }, [managementView, currentUser.workspaceId, getAccessToken])
+  }, [managementView, pageTab, currentUser.workspaceId, getAccessToken])
 
   const handleDefinitionActive = async (task) => {
     try {
