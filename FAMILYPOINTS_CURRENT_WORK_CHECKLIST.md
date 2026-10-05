@@ -422,3 +422,19 @@ Before each substantial implementation batch:
 - [x] Eligibility for PARTICIPANTS uses EXECUTOR TaskParticipants
 - [ ] Smoke-test combined executor task creation and claim visibility
 - [ ] Design true joint/multi-actor TaskInstance execution only if required by real usage
+
+
+## Reputation — task slice
+- [x] Add dedicated reputation ledger
+- [x] Add task reward reputation
+- [x] Add task penalty reputation
+- [x] Snapshot reputation values on TaskInstance
+- [x] Award reputation on task completion
+- [x] Deduct reputation on missed mandatory task
+- [x] Add reputation fields to Create/Edit Task UI
+- [x] Expose reputation values in task DTOs
+- [ ] Add reputation balance/history UI
+- [ ] Add manual reputation bonus/penalty with permission budgets
+- [ ] Add behavior reputation sources
+- [ ] Add reputation decay/reset policy
+- [ ] Add reward eligibility minimum-reputation conditions
