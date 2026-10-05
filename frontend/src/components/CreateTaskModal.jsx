@@ -181,19 +181,6 @@ function CreateTaskModal({
   const [penaltyReputationAmount, setPenaltyReputationAmount] =
     useState(initialTask?.penaltyReputationAmount ?? TASK_ECONOMY_PRESETS.SIMPLE.penaltyReputationAmount)
 
-  const [rewardAmountCustom, setRewardAmountCustom] = useState(
-    () => editing && !POINT_AMOUNT_OPTIONS.includes(Number(initialTask?.rewardAmount || 0))
-  )
-  const [penaltyAmountCustom, setPenaltyAmountCustom] = useState(
-    () => editing && !POINT_AMOUNT_OPTIONS.includes(Number(initialTask?.penaltyAmount || 0))
-  )
-  const [rewardReputationCustom, setRewardReputationCustom] = useState(
-    () => editing && !REPUTATION_AMOUNT_OPTIONS.includes(Number(initialTask?.rewardReputationAmount || 0))
-  )
-  const [penaltyReputationCustom, setPenaltyReputationCustom] = useState(
-    () => editing && !REPUTATION_AMOUNT_OPTIONS.includes(Number(initialTask?.penaltyReputationAmount || 0))
-  )
-
   const [loading, setLoading] = useState(false)
   const [loadingPointTypes, setLoadingPointTypes] =
     useState(true)
@@ -260,10 +247,6 @@ function CreateTaskModal({
     setPenaltyAmount(values.penaltyAmount)
     setRewardReputationAmount(values.rewardReputationAmount)
     setPenaltyReputationAmount(values.penaltyReputationAmount)
-    setRewardAmountCustom(false)
-    setPenaltyAmountCustom(false)
-    setRewardReputationCustom(false)
-    setPenaltyReputationCustom(false)
   }
 
   const updateEconomyValue = (setter, value) => {
@@ -274,58 +257,30 @@ function CreateTaskModal({
   const renderAmountSelector = ({
     value,
     setter,
-    custom,
-    setCustom,
     options,
     step,
     ariaLabel,
-  }) => {
-    const selectValue = custom ? 'CUSTOM' : String(Number(value || 0))
-
-    return (
-      <div className="task-amount-control">
-        <select
-          aria-label={ariaLabel}
-          value={selectValue}
-          onChange={(event) => {
-            const next = event.target.value
-            setEconomyPreset('CUSTOM')
-
-            if (next === 'CUSTOM') {
-              setCustom(true)
-              if (options.includes(Number(value || 0))) {
-                setter('')
-              }
-              return
-            }
-
-            setCustom(false)
-            setter(Number(next))
-          }}
-        >
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-          <option value="CUSTOM">{t('tasks.create.economy.customAmount')}</option>
-        </select>
-
-        {custom && (
-          <input
-            type="number"
-            min="0"
-            step={step}
-            value={value}
-            placeholder={t('tasks.create.economy.customAmountPlaceholder')}
-            onChange={(event) =>
-              updateEconomyValue(setter, event.target.value)
-            }
-          />
-        )}
-      </div>
-    )
-  }
+    listId,
+  }) => (
+    <div className="task-amount-control">
+      <input
+        type="number"
+        min="0"
+        step={step}
+        list={listId}
+        aria-label={ariaLabel}
+        value={value}
+        onChange={(event) =>
+          updateEconomyValue(setter, event.target.value)
+        }
+      />
+      <datalist id={listId}>
+        {options.map((option) => (
+          <option key={option} value={option} />
+        ))}
+      </datalist>
+    </div>
+  )
 
   const handleDueTimeBlur = () => {
     const normalized = normalizeTime(dueTime)
@@ -792,11 +747,10 @@ function CreateTaskModal({
                   {renderAmountSelector({
                     value: rewardAmount,
                     setter: setRewardAmount,
-                    custom: rewardAmountCustom,
-                    setCustom: setRewardAmountCustom,
                     options: POINT_AMOUNT_OPTIONS,
                     step: 10,
                     ariaLabel: t('tasks.create.reward'),
+                    listId: 'reward-point-options',
                   })}
                 </label>
               </div>
@@ -806,11 +760,10 @@ function CreateTaskModal({
                 {renderAmountSelector({
                   value: rewardReputationAmount,
                   setter: setRewardReputationAmount,
-                  custom: rewardReputationCustom,
-                  setCustom: setRewardReputationCustom,
                   options: REPUTATION_AMOUNT_OPTIONS,
                   step: 1,
                   ariaLabel: t('tasks.create.reputation'),
+                  listId: 'reward-reputation-options',
                 })}
               </label>
             </section>
@@ -848,11 +801,10 @@ function CreateTaskModal({
                   {renderAmountSelector({
                     value: penaltyAmount,
                     setter: setPenaltyAmount,
-                    custom: penaltyAmountCustom,
-                    setCustom: setPenaltyAmountCustom,
                     options: POINT_AMOUNT_OPTIONS,
                     step: 10,
                     ariaLabel: t('tasks.create.penalty'),
+                    listId: 'penalty-point-options',
                   })}
                 </label>
               </div>
@@ -862,11 +814,10 @@ function CreateTaskModal({
                 {renderAmountSelector({
                   value: penaltyReputationAmount,
                   setter: setPenaltyReputationAmount,
-                  custom: penaltyReputationCustom,
-                  setCustom: setPenaltyReputationCustom,
                   options: REPUTATION_AMOUNT_OPTIONS,
                   step: 1,
                   ariaLabel: t('tasks.create.reputation'),
+                  listId: 'penalty-reputation-options',
                 })}
               </label>
             </section>
