@@ -168,7 +168,12 @@ function SettingsPage() {
       <h2>{t('settings.accounts.title')}</h2><p>{t('settings.accounts.description')}</p>
       <div className="account-grid">
         {members.map(member => { const account = accountByMember.get(member.id); return <article className="account-card" key={member.id}>
-          <div><h3>{member.name}</h3><div className="account-meta">{member.workspaceRoleName} · {member.memberType}</div></div>
+          <div>
+            <h3>{member.name}</h3>
+            <div className="account-meta">
+              {member.workspaceRoleName} · {t(`memberType.${member.memberType}`, { defaultValue: member.memberType })}
+            </div>
+          </div>
           {account ? <><div className="account-login">@{account.username}</div><span className={`account-status ${account.enabled ? 'enabled' : 'disabled'}`}>{account.enabled ? t('settings.accounts.enabled') : t('settings.accounts.disabled')}</span><button onClick={() => startEdit(member, account)}>{t('settings.accounts.manage')}</button></>
           : <><div className="account-missing">{t('settings.accounts.missing')}</div><button className="primary-button" onClick={() => startCreate(member)}>{t('settings.accounts.create')}</button></>}
         </article> })}
