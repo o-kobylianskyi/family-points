@@ -20,7 +20,9 @@ public class RewardPurchaseResponse {
 
     private RewardPurchaseResponse(RewardPurchase purchase) {
         this.id = purchase.getId();
-        this.rewardDefinitionId = purchase.getRewardDefinition().getId();
+        this.rewardDefinitionId = purchase.getRewardDefinition() == null
+                ? null
+                : purchase.getRewardDefinition().getId();
         this.memberId = purchase.getMember().getId();
         this.memberName = purchase.getMember().getName();
         this.rewardTitle = purchase.getRewardTitle();
