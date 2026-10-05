@@ -115,6 +115,7 @@ public class TaskRewardRequest {
             PointType pointType,
             Integer pointAmount,
             Integer reputationAmount,
+            Integer durationMinutes,
             RewardDefinition rewardDefinition,
             String customRewardTitle,
             String comment
@@ -122,6 +123,7 @@ public class TaskRewardRequest {
         this.requestedPointType = pointType;
         this.requestedPointAmount = pointAmount;
         this.requestedReputationAmount = reputationAmount;
+        this.requestedDurationMinutes = durationMinutes;
         this.requestedRewardDefinition = rewardDefinition;
         this.requestedCustomRewardTitle = customRewardTitle;
         this.requestedComment = comment;
@@ -131,6 +133,7 @@ public class TaskRewardRequest {
             PointType pointType,
             Integer pointAmount,
             Integer reputationAmount,
+            Integer durationMinutes,
             RewardDefinition rewardDefinition,
             String customRewardTitle,
             String reviewerComment
@@ -138,6 +141,7 @@ public class TaskRewardRequest {
         this.approvedPointType = pointType;
         this.approvedPointAmount = pointAmount;
         this.approvedReputationAmount = reputationAmount;
+        this.approvedDurationMinutes = durationMinutes;
         this.approvedRewardDefinition = rewardDefinition;
         this.approvedCustomRewardTitle = customRewardTitle;
         this.reviewerComment = reviewerComment;
