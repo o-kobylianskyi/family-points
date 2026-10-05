@@ -362,5 +362,12 @@
     "COPPER": "Мідь",
     "SILVER": "Срібло",
     "GOLD": "Золото"
+  },
+  "pointHistorySource": {
+    "POINT_EXCHANGE": "Обмін балів",
+    "TASK_COMPLETED": "Завдання виконано: {{title}}",
+    "TASK_MISSED": "Завдання пропущено: {{title}}",
+    "INITIAL_TEST_POINTS": "Початкові тестові бали",
+    "unknownTask": "невідоме завдання"
   }
 }
