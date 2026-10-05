@@ -586,92 +586,94 @@ function CreateTaskModal({
             </span>
           </label>
 
-          <div className="task-value-section">
-            <h3>{t('tasks.create.reward')}</h3>
+          <div className="task-economy-grid">
+            <section className="task-value-section">
+              <h3>{t('tasks.create.reward')}</h3>
 
-            <div className="form-row">
-              <label className="form-field">
-                <span>{t('tasks.create.pointType')}</span>
+              <div className="form-row">
+                <label className="form-field">
+                  <span>{t('tasks.create.pointType')}</span>
 
-                <select
-                  value={rewardPointTypeId}
-                  disabled={
-                    loadingPointTypes ||
-                    pointTypes.length === 0
-                  }
-                  onChange={(event) =>
-                    setRewardPointTypeId(event.target.value)
-                  }
-                >
-                  {pointTypes.map((pointType) => (
-                    <option
-                      key={pointType.id}
-                      value={pointType.id}
-                    >
-                      {pointType.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <select
+                    value={rewardPointTypeId}
+                    disabled={
+                      loadingPointTypes ||
+                      pointTypes.length === 0
+                    }
+                    onChange={(event) =>
+                      setRewardPointTypeId(event.target.value)
+                    }
+                  >
+                    {pointTypes.map((pointType) => (
+                      <option
+                        key={pointType.id}
+                        value={pointType.id}
+                      >
+                        {t(`pointType.${pointType.code}`, { defaultValue: pointType.name })}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-              <label className="form-field">
-                <span>{t('tasks.create.amount')}</span>
+                <label className="form-field">
+                  <span>{t('tasks.create.amount')}</span>
 
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={rewardAmount}
-                  onChange={(event) =>
-                    setRewardAmount(event.target.value)
-                  }
-                />
-              </label>
-            </div>
-          </div>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={rewardAmount}
+                    onChange={(event) =>
+                      setRewardAmount(event.target.value)
+                    }
+                  />
+                </label>
+              </div>
+            </section>
 
-          <div className="task-value-section">
-            <h3>{t('tasks.create.penalty')}</h3>
+            <section className="task-value-section">
+              <h3>{t('tasks.create.penalty')}</h3>
 
-            <div className="form-row">
-              <label className="form-field">
-                <span>{t('tasks.create.pointType')}</span>
+              <div className="form-row">
+                <label className="form-field">
+                  <span>{t('tasks.create.pointType')}</span>
 
-                <select
-                  value={penaltyPointTypeId}
-                  disabled={
-                    loadingPointTypes ||
-                    pointTypes.length === 0
-                  }
-                  onChange={(event) =>
-                    setPenaltyPointTypeId(event.target.value)
-                  }
-                >
-                  {pointTypes.map((pointType) => (
-                    <option
-                      key={pointType.id}
-                      value={pointType.id}
-                    >
-                      {pointType.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <select
+                    value={penaltyPointTypeId}
+                    disabled={
+                      loadingPointTypes ||
+                      pointTypes.length === 0
+                    }
+                    onChange={(event) =>
+                      setPenaltyPointTypeId(event.target.value)
+                    }
+                  >
+                    {pointTypes.map((pointType) => (
+                      <option
+                        key={pointType.id}
+                        value={pointType.id}
+                      >
+                        {t(`pointType.${pointType.code}`, { defaultValue: pointType.name })}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-              <label className="form-field">
-                <span>{t('tasks.create.amount')}</span>
+                <label className="form-field">
+                  <span>{t('tasks.create.amount')}</span>
 
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={penaltyAmount}
-                  onChange={(event) =>
-                    setPenaltyAmount(event.target.value)
-                  }
-                />
-              </label>
-            </div>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={penaltyAmount}
+                    onChange={(event) =>
+                      setPenaltyAmount(event.target.value)
+                    }
+                  />
+                </label>
+              </div>
+            </section>
           </div>
 
           <div className="modal-actions">
