@@ -1574,3 +1574,98 @@ Point spending uses the normal point ledger with source REWARD_PURCHASE.
 - Goal conversion for large requests such as a bicycle;
 - automatic application/screen-time activation from a purchased reward;
 - full rewards UI i18n and UX polish.
+
+
+---
+
+## 34. Task reward negotiation
+
+### 2026-10-05
+
+**INITIAL IMPLEMENTATION**
+
+A concrete task executor may negotiate the reward for a specific TaskInstance.
+
+Examples:
+
+- “I want 40 points instead of 20.”
+- “I will do it for +2 reputation.”
+- “I will do it if I may play Minecraft for another 30 minutes.”
+- combinations of points, reputation and a reward.
+
+### Scope
+
+Negotiation belongs to TaskInstance, not TaskDefinition.
+
+This means approving a different reward for today's execution does not modify the recurring task's normal reward for future days.
+
+### TaskRewardRequest
+
+A request stores:
+
+- taskInstance;
+- requesting executor;
+- requested point type / amount;
+- requested reputation;
+- requested catalog RewardDefinition or custom reward title;
+- requester comment;
+- separately stored approved terms;
+- reviewer comment;
+- REQUESTED / APPROVED / REJECTED / CANCELLED / FULFILLED lifecycle.
+
+Only the current concrete executor may create the request.
+
+Only one active REQUESTED/APPROVED negotiation per executor + TaskInstance is allowed.
+
+### Review
+
+A member with MANAGE_TASKS, MANAGE_REWARDS or ADMIN_OVERRIDE may review the request.
+
+The reviewer receives the requested terms as defaults but may change:
+
+- point amount/type;
+- reputation amount;
+- catalog reward;
+- custom reward title;
+- comment.
+
+### Reward replacement rule
+
+An APPROVED negotiation replaces the standard reward snapshot of that TaskInstance.
+
+Example:
+
+- normal task reward = 20 points;
+- child requests 40;
+- parent approves 30;
+- task completion pays exactly 30, not 20 + 30.
+
+If there is no approved negotiation, the normal TaskInstance reward is processed unchanged.
+
+### Reward-module integration
+
+If the approved negotiation contains a catalog reward or custom reward title, completing the task creates a zero-price RewardRequest in READY_TO_PURCHASE state.
+
+Therefore privileges such as “30 more minutes of game time” use the same Rewards workflow rather than a second independent benefit system.
+
+### UI v1
+
+Executor task cards expose “Запросити іншу винагороду”.
+
+The request modal supports:
+
+- points;
+- reputation;
+- reward from catalog;
+- custom reward text;
+- comment.
+
+Task Management shows a “Запити на зміну винагороди” queue where a parent/manager may review, edit and approve or reject requests.
+
+### Deferred
+
+- visible request-status badge directly on each task card;
+- counter-offer conversation/history instead of one request + one review;
+- notification delivery;
+- configurable policy to pause task start while waiting for negotiation;
+- negotiation audit events.
