@@ -387,6 +387,30 @@ public class PointService {
     }
 
     @Transactional
+    public PointTransaction refund(
+            Long workspaceId,
+            Long memberId,
+            Long pointTypeId,
+            int amount,
+            PointTransactionSourceType sourceType,
+            Long sourceId,
+            String description
+    ) {
+        WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
+        PointType pointType = getPointTypeOrThrow(workspaceId, pointTypeId);
+
+        return saveTransaction(
+                member,
+                pointType,
+                amount,
+                PointTransactionType.REFUND,
+                sourceType,
+                sourceId,
+                description
+        );
+    }
+
+    @Transactional
     public PointTransaction penalty(
             Long workspaceId,
             Long memberId,
