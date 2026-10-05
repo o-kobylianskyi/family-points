@@ -162,8 +162,6 @@ function SettingsPage() {
       </form>
     </section>
 
-    <RoleCatalogSettings token={getAccessToken()} workspaceId={currentUser.workspaceId} canManage={canManageRoles} />
-
     {canManage && <section className="settings-section">
       <h2>{t('settings.accounts.title')}</h2><p>{t('settings.accounts.description')}</p>
       <div className="account-grid">
@@ -179,6 +177,8 @@ function SettingsPage() {
         </article> })}
       </div>
     </section>}
+
+    <RoleCatalogSettings token={getAccessToken()} workspaceId={currentUser.workspaceId} canManage={canManageRoles} />
 
     {editing && <div className="modal-backdrop"><div className="modal-card account-modal" role="dialog" aria-modal="true">
       <div className="modal-header"><div><h2>{editing.mode === 'create' ? t('settings.accounts.createTitle') : t('settings.accounts.editTitle')}</h2><p>{editing.member.name}</p></div><button className="modal-close" type="button" onClick={() => setEditing(null)}>×</button></div>
