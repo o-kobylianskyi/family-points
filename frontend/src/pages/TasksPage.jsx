@@ -458,8 +458,15 @@ function TasksPage() {
           {t('tasks.reward')}:{' '}
           <strong>
             +{task.rewardAmount}{' '}
-            {task.rewardPointTypeCode}
+            {t(`pointType.${task.rewardPointTypeCode}`, { defaultValue: task.rewardPointTypeCode })}
           </strong>
+        </span>
+      )}
+
+      {task.rewardReputationAmount > 0 && (
+        <span className="task-reward">
+          {t('tasks.reputation')}:{' '}
+          <strong>+{task.rewardReputationAmount}</strong>
         </span>
       )}
 
@@ -468,8 +475,15 @@ function TasksPage() {
           {t('tasks.penalty')}:{' '}
           <strong>
             -{task.penaltyAmount}{' '}
-            {task.penaltyPointTypeCode}
+            {t(`pointType.${task.penaltyPointTypeCode}`, { defaultValue: task.penaltyPointTypeCode })}
           </strong>
+        </span>
+      )}
+
+      {task.penaltyReputationAmount > 0 && (
+        <span className="task-penalty">
+          {t('tasks.reputation')}:{' '}
+          <strong>-{task.penaltyReputationAmount}</strong>
         </span>
       )}
     </div>
