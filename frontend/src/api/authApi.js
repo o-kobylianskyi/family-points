@@ -32,3 +32,18 @@ export async function getCurrentUser(token) {
 
   return response.json()
 }
+
+export async function refreshAccessToken(token) {
+  const response = await fetch(`${API_URL}/auth/refresh`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error('Не вдалося продовжити сесію')
+  }
+
+  return response.json()
+}
