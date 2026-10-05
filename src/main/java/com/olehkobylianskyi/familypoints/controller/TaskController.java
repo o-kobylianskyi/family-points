@@ -70,6 +70,8 @@ public class TaskController {
                         request.getRewardAmount(),
                         request.getPenaltyPointTypeId(),
                         request.getPenaltyAmount(),
+                        request.getRewardReputationAmount(),
+                        request.getPenaltyReputationAmount(),
                         request.getDueTime()
                 );
 
