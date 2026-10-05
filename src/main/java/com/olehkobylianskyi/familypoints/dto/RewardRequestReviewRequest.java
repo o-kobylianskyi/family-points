@@ -14,6 +14,9 @@ public class RewardRequestReviewRequest {
     @Min(0)
     private Integer minimumReputation;
 
+    @Min(1)
+    private Integer durationMinutes;
+
     @Valid
     private List<RewardRequirementRequest> requirements = new ArrayList<>();
 
@@ -23,6 +26,8 @@ public class RewardRequestReviewRequest {
     public void setPriceAmount(Integer priceAmount) { this.priceAmount = priceAmount; }
     public Integer getMinimumReputation() { return minimumReputation; }
     public void setMinimumReputation(Integer minimumReputation) { this.minimumReputation = minimumReputation; }
+    public Integer getDurationMinutes() { return durationMinutes; }
+    public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
     public List<RewardRequirementRequest> getRequirements() { return requirements; }
     public void setRequirements(List<RewardRequirementRequest> requirements) { this.requirements = requirements; }
 }
