@@ -531,6 +531,23 @@ public class RewardService {
         RewardRequirement requirement = obligation.getRequirement();
         if (requirement == null) return;
 
+        if (requirement.getRequirementType() == RewardRequirementType.TASK_COMPLETED
+                && requirement.getTaskDefinition() != null
+                && requirement.getTimeScope() == RewardRequirementTimeScope.SINCE_REWARD) {
+            boolean completedAfterReward =
+                    taskInstances.existsByTaskDefinitionIdAndMemberIdAndStatusAndCompletedAtAfter(
+                            requirement.getTaskDefinition().getId(),
+                            obligation.getMember().getId(),
+                            TaskInstanceStatus.COMPLETED,
+                            obligation.getCreatedAt()
+                    );
+
+            if (completedAfterReward) {
+                obligation.complete();
+            }
+            return;
+        }
+
         if (requirementMet(
                 obligation.getMember(),
                 requirement,
