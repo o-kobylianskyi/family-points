@@ -37,6 +37,13 @@ public class RewardDefinition {
     private boolean requiresApproval;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "reward_kind", nullable = false, length = 30)
+    private RewardKind rewardKind = RewardKind.STANDARD;
+
+    @Column(name = "default_duration_minutes")
+    private Integer defaultDurationMinutes;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "acquisition_mode", nullable = false, length = 30)
     private RewardAcquisitionMode acquisitionMode = RewardAcquisitionMode.DIRECT;
 
@@ -67,7 +74,9 @@ public class RewardDefinition {
             int priceAmount,
             Integer minimumReputation,
             boolean requiresApproval,
-            RewardAcquisitionMode acquisitionMode
+            RewardAcquisitionMode acquisitionMode,
+            RewardKind rewardKind,
+            Integer defaultDurationMinutes
     ) {
         this.workspace = workspace;
         this.title = title;
@@ -77,6 +86,8 @@ public class RewardDefinition {
         this.minimumReputation = minimumReputation;
         this.requiresApproval = requiresApproval;
         this.acquisitionMode = acquisitionMode == null ? RewardAcquisitionMode.DIRECT : acquisitionMode;
+        this.rewardKind = rewardKind == null ? RewardKind.STANDARD : rewardKind;
+        this.defaultDurationMinutes = defaultDurationMinutes;
         this.active = true;
     }
 
@@ -100,6 +111,8 @@ public class RewardDefinition {
     public int getPriceAmount() { return priceAmount; }
     public Integer getMinimumReputation() { return minimumReputation; }
     public boolean isRequiresApproval() { return requiresApproval; }
+    public RewardKind getRewardKind() { return rewardKind; }
+    public Integer getDefaultDurationMinutes() { return defaultDurationMinutes; }
     public RewardAcquisitionMode getAcquisitionMode() { return acquisitionMode; }
     public Set<RewardCategory> getCategories() { return categories; }
     public boolean isActive() { return active; }
@@ -112,6 +125,8 @@ public class RewardDefinition {
     public void setPriceAmount(int priceAmount) { this.priceAmount = priceAmount; }
     public void setMinimumReputation(Integer minimumReputation) { this.minimumReputation = minimumReputation; }
     public void setRequiresApproval(boolean requiresApproval) { this.requiresApproval = requiresApproval; }
+    public void setRewardKind(RewardKind rewardKind) { this.rewardKind = rewardKind == null ? RewardKind.STANDARD : rewardKind; }
+    public void setDefaultDurationMinutes(Integer defaultDurationMinutes) { this.defaultDurationMinutes = defaultDurationMinutes; }
     public void setAcquisitionMode(RewardAcquisitionMode acquisitionMode) { this.acquisitionMode = acquisitionMode; }
     public void setCategories(Set<RewardCategory> categories) {
         this.categories.clear();
