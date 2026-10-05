@@ -1669,3 +1669,32 @@ Task Management shows a “Запити на зміну винагороди” 
 - notification delivery;
 - configurable policy to pause task start while waiting for negotiation;
 - negotiation audit events.
+
+
+---
+
+## 35. Time-based rewards
+
+### 2026-10-05
+
+Rewards now distinguish:
+
+- STANDARD — an item, privilege or fact of receiving a reward;
+- TIME_BASED — access for a duration, e.g. watch cartoons, play a game, use a device.
+
+RewardDefinition stores:
+
+- rewardKind;
+- optional defaultDurationMinutes.
+
+For TIME_BASED rewards, null defaultDurationMinutes means duration is normally decided per concrete request/agreement.
+
+Concrete RewardRequest / RewardPurchase may store their own duration snapshot, independent from the catalog default.
+
+Task reward negotiation also stores requestedDurationMinutes and approvedDurationMinutes separately.
+
+In the negotiation UI, selecting a TIME_BASED catalog reward reveals a duration selector. The default is “Будь-який”, which is persisted as null. The executor or reviewer may choose 15/30/45/60/90/120 minutes or enter a custom duration.
+
+“Будь-який” in negotiation remains intentionally unspecified; it is not silently replaced by the catalog default. This allows the parent/reviewer to approve the privilege without fixing duration yet.
+
+The negotiation form is initialized from the current TaskInstance reward snapshot: current point type, point amount and reputation amount, rather than starting blank.
