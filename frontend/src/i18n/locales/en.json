@@ -154,7 +154,8 @@
       "duplicateTitle": "A task named “{{title}}” already exists.",
       "executorRequired": "Select at least one executor: a member or a group.",
       "memberOnlyParticipants": "Only individual members can be selected here.",
-      "participantsHint": "Executors can be individual members, groups, or a combination of both."
+      "participantsHint": "Executors can be individual members, groups, or a combination of both.",
+      "reputation": "Reputation"
     },
     "open": {
       "title": "Open tasks",
@@ -196,7 +197,8 @@
       "title": "Edit task",
       "description": "Changes apply to the task definition and future executions. Existing execution history is not rewritten.",
       "save": "Save"
-    }
+    },
+    "reputation": "Reputation"
   },
   "taskRecurrence": {
     "ONCE": "Once",
