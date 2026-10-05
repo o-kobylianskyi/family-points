@@ -1,6 +1,8 @@
 package com.olehkobylianskyi.familypoints.entity;
 
 import jakarta.persistence.*;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "reward_requirements")
@@ -47,6 +49,26 @@ public class RewardRequirement {
     @Column(nullable = false)
     private boolean required = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "blocking_mode", nullable = false, length = 30)
+    private RewardBlockingMode blockingMode = RewardBlockingMode.NONE;
+
+    @ManyToMany
+    @JoinTable(
+            name = "reward_requirement_blocked_categories",
+            joinColumns = @JoinColumn(name = "requirement_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<RewardCategory> blockedCategories = new LinkedHashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "reward_requirement_blocked_rewards",
+            joinColumns = @JoinColumn(name = "requirement_id"),
+            inverseJoinColumns = @JoinColumn(name = "reward_definition_id")
+    )
+    private Set<RewardDefinition> blockedRewards = new LinkedHashSet<>();
+
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
@@ -63,6 +85,7 @@ public class RewardRequirement {
             Integer windowValue,
             String description,
             boolean required,
+            RewardBlockingMode blockingMode,
             int sortOrder
     ) {
         this.workspace = workspace;
@@ -75,6 +98,7 @@ public class RewardRequirement {
         this.windowValue = windowValue;
         this.description = description;
         this.required = required;
+        this.blockingMode = blockingMode == null ? RewardBlockingMode.NONE : blockingMode;
         this.sortOrder = sortOrder;
     }
 
@@ -89,5 +113,8 @@ public class RewardRequirement {
     public Integer getWindowValue() { return windowValue; }
     public String getDescription() { return description; }
     public boolean isRequired() { return required; }
+    public RewardBlockingMode getBlockingMode() { return blockingMode; }
+    public Set<RewardCategory> getBlockedCategories() { return blockedCategories; }
+    public Set<RewardDefinition> getBlockedRewards() { return blockedRewards; }
     public int getSortOrder() { return sortOrder; }
 }
