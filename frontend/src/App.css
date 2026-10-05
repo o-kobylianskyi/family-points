@@ -205,6 +205,7 @@ input {
   display: flex;
   align-items: center;
   gap: 18px;
+  margin-left: auto;
 }
 
 .header-user-info {
