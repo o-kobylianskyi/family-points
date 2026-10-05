@@ -169,6 +169,53 @@ const refreshPoints = async () => {
     ).format(new Date(value))
   }
 
+  const pointTypeDisplayName = (transaction) =>
+    t(`pointType.${transaction.pointTypeCode}`, {
+      defaultValue:
+        transaction.pointTypeName ||
+        transaction.pointTypeCode ||
+        t('common.points'),
+    })
+
+  const transactionDescription = (transaction) => {
+    const description = transaction.description?.trim() || ''
+
+    if (transaction.sourceType === 'POINT_EXCHANGE') {
+      return t('pointHistorySource.POINT_EXCHANGE')
+    }
+
+    if (transaction.sourceType === 'TASK') {
+      const prefix = 'Task completed:'
+      const title = description.startsWith(prefix)
+        ? description.slice(prefix.length).trim()
+        : description
+
+      return t('pointHistorySource.TASK_COMPLETED', {
+        title: title || t('pointHistorySource.unknownTask'),
+      })
+    }
+
+    if (transaction.sourceType === 'TASK_PENALTY') {
+      const prefix = 'Task missed:'
+      const title = description.startsWith(prefix)
+        ? description.slice(prefix.length).trim()
+        : description
+
+      return t('pointHistorySource.TASK_MISSED', {
+        title: title || t('pointHistorySource.unknownTask'),
+      })
+    }
+
+    if (
+      transaction.sourceType === 'SYSTEM' &&
+      description === 'Initial test points'
+    ) {
+      return t('pointHistorySource.INITIAL_TEST_POINTS')
+    }
+
+    return description || t('points.noDescription')
+  }
+
   const getAmountClass = (amount) => {
     if (amount > 0) {
       return 'positive'
@@ -366,8 +413,7 @@ const handlePointOperation = async ({
                   </div>
 
                   <div className="transaction-description">
-                    {transaction.description ||
-                      t('points.noDescription')}
+                    {transactionDescription(transaction)}
                   </div>
 
                   <div className="transaction-date">
@@ -383,8 +429,7 @@ const handlePointOperation = async ({
                   {formatAmount(transaction.amount)}
 
                   <span>
-                    {transaction.pointTypeName ||
-                      t('common.points')}
+                    {pointTypeDisplayName(transaction)}
                   </span>
                 </div>
               </div>
