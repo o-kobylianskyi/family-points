@@ -25,6 +25,8 @@ function TaskRewardNegotiationModal({
   const [reputationAmount, setReputationAmount] = useState('')
   const [rewardDefinitionId, setRewardDefinitionId] = useState('')
   const [customRewardTitle, setCustomRewardTitle] = useState('')
+  const [durationPreset, setDurationPreset] = useState('ANY')
+  const [customDurationMinutes, setCustomDurationMinutes] = useState('')
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -69,6 +71,17 @@ function TaskRewardNegotiationModal({
               : ''
           )
           setCustomRewardTitle(request.requestedCustomRewardTitle || '')
+          const requestedDuration = request.requestedDurationMinutes
+          if (requestedDuration == null) {
+            setDurationPreset('ANY')
+            setCustomDurationMinutes('')
+          } else if ([15, 30, 45, 60, 90, 120].includes(requestedDuration)) {
+            setDurationPreset(String(requestedDuration))
+            setCustomDurationMinutes('')
+          } else {
+            setDurationPreset('CUSTOM')
+            setCustomDurationMinutes(String(requestedDuration))
+          }
           setComment(request.requestedComment || '')
         } else {
           setPointTypeId(
@@ -78,16 +91,10 @@ function TaskRewardNegotiationModal({
                 ? String(pointData[0].id)
                 : ''
           )
-          setPointAmount(
-            task?.rewardAmount == null
-              ? ''
-              : String(task.rewardAmount)
-          )
-          setReputationAmount(
-            task?.rewardReputationAmount == null
-              ? ''
-              : String(task.rewardReputationAmount)
-          )
+          setPointAmount(String(task?.rewardAmount ?? 0))
+          setReputationAmount(String(task?.rewardReputationAmount ?? 0))
+          setDurationPreset('ANY')
+          setCustomDurationMinutes('')
         }
       } catch (loadError) {
         setError(loadError.message)
@@ -107,6 +114,13 @@ function TaskRewardNegotiationModal({
   const submit = async (event) => {
     event.preventDefault()
 
+    const durationMinutes =
+      durationPreset === 'ANY'
+        ? null
+        : durationPreset === 'CUSTOM'
+          ? (Number(customDurationMinutes) > 0 ? Number(customDurationMinutes) : null)
+          : Number(durationPreset)
+
     const payload = {
       pointTypeId:
         Number(pointAmount) > 0 && pointTypeId
@@ -123,6 +137,10 @@ function TaskRewardNegotiationModal({
       rewardDefinitionId:
         rewardDefinitionId
           ? Number(rewardDefinitionId)
+          : null,
+      durationMinutes:
+        selectedReward?.rewardKind === 'TIME_BASED'
+          ? durationMinutes
           : null,
       customRewardTitle:
         customRewardTitle.trim() || null,
@@ -267,7 +285,43 @@ function TaskRewardNegotiationModal({
                   {selectedReward.priceAmount != null
                     ? ` · звичайна ціна ${selectedReward.priceAmount}`
                     : ''}
+                  {selectedReward.rewardKind === 'TIME_BASED'
+                    ? ` · часова нагорода${selectedReward.defaultDurationMinutes ? ` · типово ${selectedReward.defaultDurationMinutes} хв` : ''}`
+                    : ''}
                 </small>
+              )}
+
+              {selectedReward?.rewardKind === 'TIME_BASED' && (
+                <div className="form-row task-reward-duration-row">
+                  <label className="form-field">
+                    <span>Час</span>
+                    <select
+                      value={durationPreset}
+                      onChange={(event) => setDurationPreset(event.target.value)}
+                    >
+                      <option value="ANY">Будь-який</option>
+                      <option value="15">15 хв</option>
+                      <option value="30">30 хв</option>
+                      <option value="45">45 хв</option>
+                      <option value="60">1 година</option>
+                      <option value="90">1 год 30 хв</option>
+                      <option value="120">2 години</option>
+                      <option value="CUSTOM">Інший час…</option>
+                    </select>
+                  </label>
+
+                  {durationPreset === 'CUSTOM' && (
+                    <label className="form-field">
+                      <span>Хвилин</span>
+                      <input
+                        type="number"
+                        min="1"
+                        value={customDurationMinutes}
+                        onChange={(event) => setCustomDurationMinutes(event.target.value)}
+                      />
+                    </label>
+                  )}
+                </div>
               )}
 
               <label className="form-field">
@@ -317,6 +371,11 @@ function TaskRewardNegotiationModal({
                   {request.requestedRewardTitle
                     ? ` · ${request.requestedRewardTitle}`
                     : ''}
+                  {request.requestedDurationMinutes
+                    ? ` · ${request.requestedDurationMinutes} хв`
+                    : request.requestedRewardDefinitionId
+                      ? ' · час: будь-який'
+                      : ''}
                   {request.requestedCustomRewardTitle
                     ? ` · ${request.requestedCustomRewardTitle}`
                     : ''}
