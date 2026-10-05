@@ -498,3 +498,17 @@ Before each substantial implementation batch:
 - [ ] Add WAIT_FOR_DECISION task-start policy
 - [ ] Add negotiation audit events
 - [ ] Smoke-test Task Reward Negotiation locally
+
+
+## Time-based rewards
+- [x] Add STANDARD / TIME_BASED RewardKind
+- [x] Add optional catalog defaultDurationMinutes
+- [x] Snapshot duration on RewardRequest and RewardPurchase
+- [x] Add requested / approved duration to TaskRewardRequest
+- [x] Add duration selector to task reward negotiation
+- [x] Default negotiated duration to “Будь-який”
+- [x] Prefill negotiation point/reputation fields from current TaskInstance snapshot
+- [x] Add reward kind and typical duration to reward creation UI
+- [ ] Add duration editing to all free-form reward request flows
+- [ ] Integrate purchased time rewards with app/screen-time timers
+- [ ] Smoke-test V17 and time-based reward flow locally
