@@ -151,7 +151,10 @@
       "executors": "Ausführende",
       "authorHint": "Autor bleibt automatisch der Benutzer, der die Aufgabe erstellt hat.",
       "defaultTitleBase": "Aufgabe",
-      "duplicateTitle": "Eine Aufgabe mit dem Namen „{{title}}“ existiert bereits."
+      "duplicateTitle": "Eine Aufgabe mit dem Namen „{{title}}“ existiert bereits.",
+      "executorRequired": "Wählen Sie mindestens eine ausführende Person oder Gruppe.",
+      "memberOnlyParticipants": "Hier können nur einzelne Mitglieder ausgewählt werden.",
+      "participantsHint": "Ausführende können einzelne Mitglieder, Gruppen oder Kombinationen davon sein."
     },
     "open": {
       "title": "Offene Aufgaben",
@@ -223,7 +226,8 @@
     "GROUP_SHARED": "Gruppe gemeinsam",
     "OPEN_GROUP": "Jemand aus der Gruppe",
     "OPEN_WORKSPACE": "Beliebige Person",
-    "PREFERRED_MEMBER": "Bevorzugte Person"
+    "PREFERRED_MEMBER": "Bevorzugte Person",
+    "PARTICIPANTS": "Nach Teilnehmerliste"
   },
   "roleMatchMode": {
     "ANY": "Eine der ausgewählten Rollen",
