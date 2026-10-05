@@ -42,6 +42,7 @@ const emptyReviewForm = {
   afterTaskIds: [],
   blockingMode: 'NONE',
   blockedCategoryIds: [],
+  blockedRewardDefinitionIds: [],
 }
 
 function toggleId(items, id) {
@@ -59,10 +60,7 @@ function taskRequirements(form) {
     required: true,
     blockingMode: 'NONE',
     blockedCategoryIds: [],
-    blockedRewardDefinitionIds:
-      form.blockingMode === 'SPECIFIC_REWARDS'
-        ? form.blockedRewardDefinitionIds
-        : [],
+    blockedRewardDefinitionIds: [],
   }))
 
   const after = form.afterTaskIds.map((taskDefinitionId) => ({
@@ -76,7 +74,10 @@ function taskRequirements(form) {
       form.blockingMode === 'CATEGORIES'
         ? form.blockedCategoryIds
         : [],
-    blockedRewardDefinitionIds: [],
+    blockedRewardDefinitionIds:
+      form.blockingMode === 'SPECIFIC_REWARDS'
+        ? form.blockedRewardDefinitionIds
+        : [],
   }))
 
   return [...before, ...after]
