@@ -438,3 +438,15 @@ Before each substantial implementation batch:
 - [ ] Add behavior reputation sources
 - [ ] Add reputation decay/reset policy
 - [ ] Add reward eligibility minimum-reputation conditions
+
+
+## Quick task economy presets
+- [x] Default new task to SIMPLE economy
+- [x] Add SIMPLE / NORMAL / HARD / CUSTOM presets
+- [x] Add common-value dropdowns for points
+- [x] Add common-value dropdowns for reputation
+- [x] Add “Other…” manual amount entry
+- [x] Use step 10 for custom point values
+- [x] Use step 1 for custom reputation values
+- [x] Switch preset to CUSTOM after manual value change
+- [ ] Smoke-test create/edit task economy presets locally
