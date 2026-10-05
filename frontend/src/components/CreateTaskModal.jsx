@@ -185,6 +185,7 @@ function CreateTaskModal({
   const [loadingPointTypes, setLoadingPointTypes] =
     useState(true)
   const [error, setError] = useState('')
+  const [openAmountMenu, setOpenAmountMenu] = useState(null)
 
   useEffect(() => {
     const loadPointTypes = async () => {
@@ -260,27 +261,56 @@ function CreateTaskModal({
     options,
     step,
     ariaLabel,
-    listId,
-  }) => (
-    <div className="task-amount-control">
-      <input
-        type="number"
-        min="0"
-        step={step}
-        list={listId}
-        aria-label={ariaLabel}
-        value={value}
-        onChange={(event) =>
-          updateEconomyValue(setter, event.target.value)
-        }
-      />
-      <datalist id={listId}>
-        {options.map((option) => (
-          <option key={option} value={option} />
-        ))}
-      </datalist>
-    </div>
-  )
+    controlId,
+  }) => {
+    const isOpen = openAmountMenu === controlId
+
+    return (
+      <div className="task-amount-control">
+        <div className="task-amount-combobox">
+          <input
+            type="number"
+            min="0"
+            step={step}
+            aria-label={ariaLabel}
+            value={value}
+            onChange={(event) =>
+              updateEconomyValue(setter, event.target.value)
+            }
+          />
+          <button
+            type="button"
+            className="task-amount-dropdown-button"
+            aria-label={t('tasks.create.economy.openSuggestions')}
+            aria-expanded={isOpen}
+            onClick={() =>
+              setOpenAmountMenu(isOpen ? null : controlId)
+            }
+          >
+            ▾
+          </button>
+
+          {isOpen && (
+            <div className="task-amount-dropdown-menu">
+              {options.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={Number(value) === option ? 'active' : ''}
+                  onClick={() => {
+                    updateEconomyValue(setter, option)
+                    setOpenAmountMenu(null)
+                  }}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   const handleDueTimeBlur = () => {
     const normalized = normalizeTime(dueTime)
@@ -750,7 +780,7 @@ function CreateTaskModal({
                     options: POINT_AMOUNT_OPTIONS,
                     step: 10,
                     ariaLabel: t('tasks.create.reward'),
-                    listId: 'reward-point-options',
+                    controlId: 'reward-points',
                   })}
                 </label>
               </div>
@@ -763,7 +793,7 @@ function CreateTaskModal({
                   options: REPUTATION_AMOUNT_OPTIONS,
                   step: 1,
                   ariaLabel: t('tasks.create.reputation'),
-                  listId: 'reward-reputation-options',
+                  controlId: 'reward-reputation',
                 })}
               </label>
             </section>
@@ -804,7 +834,7 @@ function CreateTaskModal({
                     options: POINT_AMOUNT_OPTIONS,
                     step: 10,
                     ariaLabel: t('tasks.create.penalty'),
-                    listId: 'penalty-point-options',
+                    controlId: 'penalty-points',
                   })}
                 </label>
               </div>
@@ -817,7 +847,7 @@ function CreateTaskModal({
                   options: REPUTATION_AMOUNT_OPTIONS,
                   step: 1,
                   ariaLabel: t('tasks.create.reputation'),
-                  listId: 'penalty-reputation-options',
+                  controlId: 'penalty-reputation',
                 })}
               </label>
             </section>
