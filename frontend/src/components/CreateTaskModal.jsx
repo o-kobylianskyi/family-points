@@ -690,9 +690,7 @@ function CreateTaskModal({
               disabled={
                 loading ||
                 loadingPointTypes ||
-                (assignmentPolicy === 'SINGLE_MEMBER' && !assignedMemberId) ||
-                (['GROUP_SHARED', 'OPEN_GROUP'].includes(assignmentPolicy) && !targetGroupId) ||
-                (assignmentPolicy === 'PREFERRED_MEMBER' && !preferredMemberId)
+                executors.length === 0
               }
             >
               {loading
