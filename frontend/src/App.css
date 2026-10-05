@@ -3348,3 +3348,26 @@ input {
     grid-template-columns: 1fr;
   }
 }
+
+
+.reward-obligation-banner {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid #e3d8a8;
+  border-radius: 12px;
+  background: #fffaf0;
+}
+
+.reward-obligation-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 760px) {
+  .reward-obligation-row {
+    flex-direction: column;
+  }
+}
