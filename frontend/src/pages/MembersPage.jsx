@@ -176,6 +176,13 @@ function MembersPage() {
     [groups]
   )
 
+  const roleDisplayName = (role) =>
+    role?.systemCode
+      ? t(`roles.system.${role.systemCode}`, {
+          defaultValue: role.name,
+        })
+      : role?.name
+
   const renderGroupTree = (
     group,
     visited = new Set()
@@ -328,7 +335,7 @@ function MembersPage() {
             <div className="group-tags">
               {roles.map((role) => (
                 <span key={role.id}>
-                  {role.name}
+                  {roleDisplayName(role)}
                 </span>
               ))}
             </div>
