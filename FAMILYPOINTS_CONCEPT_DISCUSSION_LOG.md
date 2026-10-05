@@ -1312,3 +1312,57 @@ RoleSet availability/binding does not clone RoleDefinitions.
 RoleDefinition = reusable catalog entity.
 RoleAssignment = contextual use of that role by an actor.
 RoleSetBinding = contextual availability of a set.
+
+
+---
+
+## 29. Task actor model simplified to participant lists
+
+### 2026-10-05 — remove duplicate assignment controls
+
+**AGREED**
+
+The ordinary task editor should not expose both assignment-policy fields and participant lists.
+
+Remove from the normal UI:
+
+- assignment type;
+- assigned member;
+- responsible member;
+- preferred member / target group selection as primary assignment controls.
+
+Use the Participants section as the visible source of task actors.
+
+**AGREED**
+
+Task participant constraints:
+
+- ADMIN: MEMBER only;
+- OBSERVER: MEMBER only;
+- EXECUTOR: MEMBER and/or GROUP;
+- executor selection may be combined: multiple members, multiple groups, or groups + individual members.
+
+The task author remains an ADMIN automatically.
+
+**AGREED**
+
+Before save, validate the minimum viable task:
+
+- non-empty title;
+- valid schedule/start date;
+- valid recurrence-specific values;
+- at least one executor;
+- reward/penalty values consistent with point types;
+- ADMIN/OBSERVER actor types restricted to MEMBER.
+
+**IMPLEMENTED**
+
+A compatibility AssignmentPolicy.PARTICIPANTS represents explicit executor lists without widening eligibility to the whole Workspace.
+
+If there is exactly one MEMBER executor, SINGLE_MEMBER may still be used internally so the existing concrete TaskInstance generation lifecycle continues to work.
+
+For combined executor sets, eligibility comes from EXECUTOR TaskParticipants.
+
+**OPEN**
+
+The current TaskInstance lifecycle still represents one concrete executor after claim. If FamilyPoints later needs true simultaneous/shared completion by multiple executor actors, instance-level joint participation semantics must be implemented separately rather than inferred from the definition-level participant list.
