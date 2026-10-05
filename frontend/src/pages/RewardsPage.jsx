@@ -68,7 +68,7 @@ function taskRequirements(form) {
     phase: 'AFTER_REWARD',
     requirementType: 'TASK_COMPLETED',
     taskDefinitionId,
-    timeScope: 'TODAY',
+    timeScope: 'SINCE_REWARD',
     required: true,
     blockingMode: form.blockingMode,
     blockedCategoryIds:
