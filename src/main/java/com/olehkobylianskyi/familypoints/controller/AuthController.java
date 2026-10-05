@@ -26,6 +26,20 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String accessToken = jwtService.generateAccessToken(userDetails);
+
+        return ResponseEntity.ok(
+                new LoginResponse(
+                        accessToken,
+                        "Bearer",
+                        jwtService.getAccessTokenExpirationSeconds()
+                )
+        );
+    }
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest request
