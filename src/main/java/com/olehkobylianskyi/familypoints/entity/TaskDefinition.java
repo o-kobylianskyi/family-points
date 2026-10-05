@@ -160,6 +160,12 @@ public class TaskDefinition {
 
     private Integer penaltyAmount;
 
+    @Column(name = "reward_reputation_amount")
+    private Integer rewardReputationAmount;
+
+    @Column(name = "penalty_reputation_amount")
+    private Integer penaltyReputationAmount;
+
 
     /*
      * Потрібен JPA/Hibernate.
@@ -355,6 +361,9 @@ public class TaskDefinition {
         return penaltyAmount;
     }
 
+    public Integer getRewardReputationAmount() { return rewardReputationAmount; }
+    public Integer getPenaltyReputationAmount() { return penaltyReputationAmount; }
+
     // Definition editing changes future scheduling/configuration only. Existing TaskInstance snapshots stay unchanged.
     public void setAssignedMember(WorkspaceMember assignedMember) { this.assignedMember = assignedMember; }
     public void setTitle(String title) { this.title = title; }
@@ -370,4 +379,6 @@ public class TaskDefinition {
     public void setRewardAmount(Integer value) { this.rewardAmount = value; }
     public void setPenaltyPointType(PointType value) { this.penaltyPointType = value; }
     public void setPenaltyAmount(Integer value) { this.penaltyAmount = value; }
+    public void setRewardReputationAmount(Integer value) { this.rewardReputationAmount = value; }
+    public void setPenaltyReputationAmount(Integer value) { this.penaltyReputationAmount = value; }
 }
