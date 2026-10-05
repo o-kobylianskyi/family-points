@@ -367,5 +367,38 @@
     "TASK_MISSED": "Aufgabe verpasst: {{title}}",
     "INITIAL_TEST_POINTS": "Anfängliche Testpunkte",
     "unknownTask": "unbekannte Aufgabe"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "description": "Verwalten Sie Ihr Konto, Rollen und Workspace-Zugänge.",
+    "password": {
+      "title": "Passwort ändern",
+      "description": "Aktualisieren Sie das Passwort des aktuellen Kontos.",
+      "current": "Aktuelles Passwort",
+      "new": "Neues Passwort",
+      "confirm": "Neues Passwort bestätigen",
+      "change": "Passwort ändern",
+      "changed": "Passwort wurde geändert."
+    },
+    "accounts": {
+      "title": "Benutzerkonten",
+      "description": "Verwalten Sie den Zugang für Workspace-Mitglieder.",
+      "usernameRequired": "Benutzername eingeben.",
+      "passwordMin": "Das Passwort muss mindestens 8 Zeichen lang sein.",
+      "passwordMismatch": "Die Passwörter stimmen nicht überein.",
+      "saved": "Benutzerkonto wurde gespeichert.",
+      "enabled": "Anmeldung erlaubt",
+      "disabled": "Anmeldung deaktiviert",
+      "manage": "Verwalten",
+      "missing": "Noch kein Benutzerkonto",
+      "create": "Konto erstellen",
+      "createTitle": "Benutzerkonto erstellen",
+      "editTitle": "Benutzerkonto bearbeiten",
+      "username": "Benutzername",
+      "initialPassword": "Initiales Passwort",
+      "newPasswordOptional": "Neues Passwort (optional)",
+      "allowLogin": "Anmeldung erlauben",
+      "save": "Speichern"
+    }
   }
 }
