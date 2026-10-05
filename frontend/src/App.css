@@ -3019,3 +3019,31 @@ input {
     justify-self: stretch;
   }
 }
+
+
+/* ---------- TASK ECONOMY GRID ---------- */
+.create-task-modal .task-economy-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 24px;
+  align-items: start;
+}
+
+.create-task-modal .task-value-section {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #e1e5ec;
+  border-radius: 12px;
+  background: #fbfcfe;
+}
+
+.create-task-modal .task-value-section h3 {
+  margin: 0 0 14px;
+}
+
+@media (max-width: 900px) {
+  .create-task-modal .task-economy-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
