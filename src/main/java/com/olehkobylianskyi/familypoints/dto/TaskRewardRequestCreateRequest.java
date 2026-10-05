@@ -15,6 +15,9 @@ public class TaskRewardRequestCreateRequest {
 
     private Long rewardDefinitionId;
 
+    @Min(1)
+    private Integer durationMinutes;
+
     @Size(max = 150)
     private String customRewardTitle;
 
@@ -29,6 +32,8 @@ public class TaskRewardRequestCreateRequest {
     public void setReputationAmount(Integer reputationAmount) { this.reputationAmount = reputationAmount; }
     public Long getRewardDefinitionId() { return rewardDefinitionId; }
     public void setRewardDefinitionId(Long rewardDefinitionId) { this.rewardDefinitionId = rewardDefinitionId; }
+    public Integer getDurationMinutes() { return durationMinutes; }
+    public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
     public String getCustomRewardTitle() { return customRewardTitle; }
     public void setCustomRewardTitle(String customRewardTitle) { this.customRewardTitle = customRewardTitle; }
     public String getComment() { return comment; }
