@@ -49,7 +49,7 @@ public class AuthController {
                 new LoginResponse(
                         accessToken,
                         "Bearer",
-                        3600
+                        jwtService.getAccessTokenExpirationSeconds()
                 )
         );
     }
