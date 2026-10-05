@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import CreateTaskModal from '../components/CreateTaskModal'
@@ -14,12 +15,13 @@ import {
   setTaskDefinitionActive,
 } from '../api/taskApi'
 
-function formatDateTime(value) {
+function formatDateTime(value, locale) {
   if (!value) return '—'
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 }
 
 function TaskDetailsPage() {
+  const { t, i18n } = useTranslation()
   const { definitionId } = useParams()
   const [searchParams] = useSearchParams()
   const selectedDate = searchParams.get('date') || new Date().toISOString().slice(0, 10)
@@ -68,6 +70,26 @@ function TaskDetailsPage() {
   if (!task) return <div className="page-loading">Завантаження...</div>
 
   const memberName = (id) => members.find((m) => m.id === id)?.name || (id ? `#${id}` : '—')
+  const formatTaskDateTime = (value) => formatDateTime(value, i18n.resolvedLanguage || i18n.language)
+  const translateEnum = (prefix, value) =>
+    value ? t(`${prefix}.${value}`, { defaultValue: value }) : '—'
+
+  const translateAuditDetails = (event) => {
+    const details = event.details?.trim()
+    if (!details) return ''
+
+    const generatedMatch = details.match(/^Generated for (\d{4}-\d{2}-\d{2})$/)
+    if (generatedMatch) {
+      return t('taskAudit.details.generatedFor', { date: generatedMatch[1] })
+    }
+
+    const createdMatch = details.match(/^Created for (\d{4}-\d{2}-\d{2})$/)
+    if (createdMatch) {
+      return t('taskAudit.details.createdFor', { date: createdMatch[1] })
+    }
+
+    return details
+  }
   const author = task.createdByMemberName || memberName(task.createdByMemberId)
 
   const visibleById = new Map(visibleDefinitions.map((definition) => [definition.id, definition]))
@@ -148,7 +170,7 @@ function TaskDetailsPage() {
           <div className="task-details-section-header">
             <div>
               <h2>Виконання · {selectedDate}</h2>
-              <p className="task-details-muted">Виконавець: <strong>{memberName(instance.memberId)}</strong> · Статус: <strong>{instance.status}</strong></p>
+              <p className="task-details-muted">Виконавець: <strong>{memberName(instance.memberId)}</strong> · Статус: <strong>{translateEnum('taskStatus', instance.status)}</strong></p>
             </div>
             <div className="task-card-actions">
               {instance.status === 'PENDING' && <button className="task-action-button primary" disabled={processing} onClick={() => runInstanceAction('start')}>Почати</button>}
@@ -179,12 +201,12 @@ function TaskDetailsPage() {
           <h2>Основне</h2>
           <dl className="task-details-fields">
             <div><dt>Автор</dt><dd>{author}</dd></div>
-            <div><dt>Створено</dt><dd>{formatDateTime(task.createdAt)}</dd></div>
-            <div><dt>Оновлено</dt><dd>{formatDateTime(task.updatedAt)}</dd></div>
+            <div><dt>Створено</dt><dd>{formatTaskDateTime(task.createdAt)}</dd></div>
+            <div><dt>Оновлено</dt><dd>{formatTaskDateTime(task.updatedAt)}</dd></div>
             <div><dt>Обов'язкове</dt><dd>{task.mandatory ? 'Так' : 'Ні'}</dd></div>
-            <div><dt>Повторення</dt><dd>{task.recurrenceType}</dd></div>
+            <div><dt>Повторення</dt><dd>{translateEnum('taskRecurrence', task.recurrenceType)}</dd></div>
             <div><dt>Термін</dt><dd>{task.dueTime || '—'}</dd></div>
-            <div><dt>Призначення</dt><dd>{task.assignmentPolicy}</dd></div>
+            <div><dt>Призначення</dt><dd>{translateEnum('assignmentPolicy', task.assignmentPolicy)}</dd></div>
             <div><dt>Делегування</dt><dd>{task.delegationAllowed ? 'Дозволено' : 'Заборонено'}</dd></div>
           </dl>
         </section>
@@ -195,8 +217,10 @@ function TaskDetailsPage() {
             <div><dt>Призначено</dt><dd>{memberName(task.assignedMemberId)}</dd></div>
             <div><dt>Відповідальний</dt><dd>{memberName(task.responsibleMemberId)}</dd></div>
             <div><dt>Бажаний виконавець</dt><dd>{memberName(task.preferredMemberId)}</dd></div>
-            <div><dt>Нагорода</dt><dd>{task.rewardAmount ? `+${task.rewardAmount} ${task.rewardPointTypeCode || ''}` : '—'}</dd></div>
-            <div><dt>Штраф</dt><dd>{task.penaltyAmount ? `-${task.penaltyAmount} ${task.penaltyPointTypeCode || ''}` : '—'}</dd></div>
+            <div><dt>Нагорода</dt><dd>{task.rewardAmount ? `+${task.rewardAmount} ${translateEnum('pointType', task.rewardPointTypeCode)}` : '—'}</dd></div>
+            <div><dt>Репутація за виконання</dt><dd>{task.rewardReputationAmount > 0 ? `+${task.rewardReputationAmount}` : '—'}</dd></div>
+            <div><dt>Штраф</dt><dd>{task.penaltyAmount ? `-${task.penaltyAmount} ${translateEnum('pointType', task.penaltyPointTypeCode)}` : '—'}</dd></div>
+            <div><dt>Репутація за невиконання</dt><dd>{task.penaltyReputationAmount > 0 ? `-${task.penaltyReputationAmount}` : '—'}</dd></div>
           </dl>
         </section>
       </div>
@@ -213,7 +237,7 @@ function TaskDetailsPage() {
             {subtasks.map((subtask) => (
               <Link key={subtask.id} className="task-details-subtask" to={`/tasks/${subtask.id}`}>
                 <span><strong>№{subtask.id}</strong> · {subtask.title}</span>
-                <span>{subtask.rewardAmount ? `+${subtask.rewardAmount} ${subtask.rewardPointTypeCode || ''}` : 'Без винагороди'} →</span>
+                <span>{subtask.rewardAmount ? `+${subtask.rewardAmount} ${translateEnum('pointType', subtask.rewardPointTypeCode)}` : 'Без винагороди'} →</span>
               </Link>
             ))}
           </div>
@@ -227,7 +251,7 @@ function TaskDetailsPage() {
         </div>
         {participants.length === 0 ? <p className="task-details-muted">Додаткових учасників немає.</p> :
           <div className="task-participant-list">{participants.map((p) =>
-            <span key={p.id} className="task-participant-chip">{p.actorName || `#${p.actorId}`} · {p.role}</span>
+            <span key={p.id} className="task-participant-chip">{p.actorName || `#${p.actorId}`} · {translateEnum('taskParticipantRole', p.role)}</span>
           )}</div>}
       </section>
 
@@ -246,9 +270,9 @@ function TaskDetailsPage() {
         {history.length === 0 ? <p className="task-details-muted">Історія поки порожня.</p> :
           <div className="task-details-history">{history.map((event) =>
             <div key={event.id} className="task-details-history-row">
-              <time>{formatDateTime(event.occurredAt)}</time>
-              <strong>{event.eventType}</strong>
-              {event.details && <span>{event.details}</span>}
+              <time>{formatTaskDateTime(event.occurredAt)}</time>
+              <strong>{translateEnum('taskAudit.eventType', event.eventType)}</strong>
+              {event.details && <span>{translateAuditDetails(event)}</span>}
             </div>
           )}</div>}
       </section>
