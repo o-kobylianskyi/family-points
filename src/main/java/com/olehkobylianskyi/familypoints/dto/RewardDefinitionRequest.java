@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import com.olehkobylianskyi.familypoints.entity.RewardAcquisitionMode;
+import com.olehkobylianskyi.familypoints.entity.RewardKind;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,11 @@ public class RewardDefinitionRequest {
 
     private boolean requiresApproval;
 
+    private RewardKind rewardKind = RewardKind.STANDARD;
+
+    @Min(1)
+    private Integer defaultDurationMinutes;
+
     private RewardAcquisitionMode acquisitionMode = RewardAcquisitionMode.DIRECT;
 
     private List<Long> categoryIds = new ArrayList<>();
@@ -48,6 +54,10 @@ public class RewardDefinitionRequest {
     public void setMinimumReputation(Integer minimumReputation) { this.minimumReputation = minimumReputation; }
     public boolean isRequiresApproval() { return requiresApproval; }
     public void setRequiresApproval(boolean requiresApproval) { this.requiresApproval = requiresApproval; }
+    public RewardKind getRewardKind() { return rewardKind; }
+    public void setRewardKind(RewardKind rewardKind) { this.rewardKind = rewardKind; }
+    public Integer getDefaultDurationMinutes() { return defaultDurationMinutes; }
+    public void setDefaultDurationMinutes(Integer defaultDurationMinutes) { this.defaultDurationMinutes = defaultDurationMinutes; }
     public RewardAcquisitionMode getAcquisitionMode() { return acquisitionMode; }
     public void setAcquisitionMode(RewardAcquisitionMode acquisitionMode) { this.acquisitionMode = acquisitionMode; }
     public List<Long> getCategoryIds() { return categoryIds; }
