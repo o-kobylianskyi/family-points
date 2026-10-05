@@ -11,9 +11,13 @@ public class RewardPurchase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "reward_definition_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reward_definition_id")
     private RewardDefinition rewardDefinition;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reward_request_id")
+    private RewardRequest rewardRequest;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
@@ -55,8 +59,26 @@ public class RewardPurchase {
         this.purchasedAt = LocalDateTime.now();
     }
 
+    public RewardPurchase(
+            RewardRequest rewardRequest,
+            WorkspaceMember member,
+            RewardPurchaseStatus status
+    ) {
+        this.rewardRequest = rewardRequest;
+        this.rewardDefinition = rewardRequest.getRewardDefinition();
+        this.member = member;
+        this.rewardTitle = rewardRequest.getTitle();
+        this.pointType = rewardRequest.getApprovedPointType();
+        this.priceAmount = rewardRequest.getApprovedPriceAmount() == null
+                ? 0
+                : rewardRequest.getApprovedPriceAmount();
+        this.status = status;
+        this.purchasedAt = LocalDateTime.now();
+    }
+
     public Long getId() { return id; }
     public RewardDefinition getRewardDefinition() { return rewardDefinition; }
+    public RewardRequest getRewardRequest() { return rewardRequest; }
     public WorkspaceMember getMember() { return member; }
     public String getRewardTitle() { return rewardTitle; }
     public PointType getPointType() { return pointType; }
