@@ -28,6 +28,12 @@ public interface TaskInstanceRepository
             LocalDate scheduledDate
     );
 
+    Optional<TaskInstance> findByIdAndTaskDefinitionWorkspaceId(
+            Long id,
+            Long workspaceId
+    );
+
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             select ti
