@@ -360,5 +360,12 @@
     "COPPER": "Kupfer",
     "SILVER": "Silber",
     "GOLD": "Gold"
+  },
+  "pointHistorySource": {
+    "POINT_EXCHANGE": "Punktetausch",
+    "TASK_COMPLETED": "Aufgabe abgeschlossen: {{title}}",
+    "TASK_MISSED": "Aufgabe verpasst: {{title}}",
+    "INITIAL_TEST_POINTS": "Anfängliche Testpunkte",
+    "unknownTask": "unbekannte Aufgabe"
   }
 }
