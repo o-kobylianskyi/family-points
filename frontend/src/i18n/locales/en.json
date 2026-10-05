@@ -155,7 +155,19 @@
       "executorRequired": "Select at least one executor: a member or a group.",
       "memberOnlyParticipants": "Only individual members can be selected here.",
       "participantsHint": "Executors can be individual members, groups, or a combination of both.",
-      "reputation": "Reputation"
+      "reputation": "Reputation",
+      "economy": {
+        "title": "Task value",
+        "hint": "Choose a preset or adjust the values manually.",
+        "customAmount": "Other…",
+        "customAmountPlaceholder": "Enter value",
+        "presets": {
+          "SIMPLE": "Simple",
+          "NORMAL": "Normal",
+          "HARD": "Hard",
+          "CUSTOM": "Custom"
+        }
+      }
     },
     "open": {
       "title": "Open tasks",
