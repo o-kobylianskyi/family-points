@@ -166,7 +166,8 @@
           "NORMAL": "Normal",
           "HARD": "Schwierig",
           "CUSTOM": "Eigene"
-        }
+        },
+        "openSuggestions": "Werteliste öffnen"
       }
     },
     "open": {
