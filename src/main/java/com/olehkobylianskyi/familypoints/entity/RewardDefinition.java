@@ -2,6 +2,8 @@ package com.olehkobylianskyi.familypoints.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "reward_definitions")
@@ -34,6 +36,18 @@ public class RewardDefinition {
     @Column(name = "requires_approval", nullable = false)
     private boolean requiresApproval;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "acquisition_mode", nullable = false, length = 30)
+    private RewardAcquisitionMode acquisitionMode = RewardAcquisitionMode.DIRECT;
+
+    @ManyToMany
+    @JoinTable(
+            name = "reward_definition_categories",
+            joinColumns = @JoinColumn(name = "reward_definition_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<RewardCategory> categories = new LinkedHashSet<>();
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -52,7 +66,8 @@ public class RewardDefinition {
             PointType pointType,
             int priceAmount,
             Integer minimumReputation,
-            boolean requiresApproval
+            boolean requiresApproval,
+            RewardAcquisitionMode acquisitionMode
     ) {
         this.workspace = workspace;
         this.title = title;
@@ -61,6 +76,7 @@ public class RewardDefinition {
         this.priceAmount = priceAmount;
         this.minimumReputation = minimumReputation;
         this.requiresApproval = requiresApproval;
+        this.acquisitionMode = acquisitionMode == null ? RewardAcquisitionMode.DIRECT : acquisitionMode;
         this.active = true;
     }
 
@@ -84,6 +100,8 @@ public class RewardDefinition {
     public int getPriceAmount() { return priceAmount; }
     public Integer getMinimumReputation() { return minimumReputation; }
     public boolean isRequiresApproval() { return requiresApproval; }
+    public RewardAcquisitionMode getAcquisitionMode() { return acquisitionMode; }
+    public Set<RewardCategory> getCategories() { return categories; }
     public boolean isActive() { return active; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
@@ -94,5 +112,10 @@ public class RewardDefinition {
     public void setPriceAmount(int priceAmount) { this.priceAmount = priceAmount; }
     public void setMinimumReputation(Integer minimumReputation) { this.minimumReputation = minimumReputation; }
     public void setRequiresApproval(boolean requiresApproval) { this.requiresApproval = requiresApproval; }
+    public void setAcquisitionMode(RewardAcquisitionMode acquisitionMode) { this.acquisitionMode = acquisitionMode; }
+    public void setCategories(Set<RewardCategory> categories) {
+        this.categories.clear();
+        if (categories != null) this.categories.addAll(categories);
+    }
     public void setActive(boolean active) { this.active = active; }
 }
