@@ -3052,3 +3052,64 @@ input {
 .create-task-modal .task-reputation-field {
   margin-top: 14px;
 }
+
+
+/* ---------- TASK ECONOMY PRESETS ---------- */
+.create-task-modal .task-economy-presets {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid #e1e5ec;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.create-task-modal .task-economy-presets > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.create-task-modal .task-economy-presets small {
+  color: #858b9b;
+}
+
+.create-task-modal .task-economy-preset-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.create-task-modal .task-economy-preset-buttons button {
+  padding: 8px 12px;
+  border: 1px solid #d9ddea;
+  border-radius: 9px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.create-task-modal .task-economy-preset-buttons button.active {
+  border-color: #5865f2;
+  background: #eef0ff;
+  color: #3947d8;
+}
+
+.create-task-modal .task-amount-control {
+  display: grid;
+  gap: 8px;
+}
+
+.create-task-modal .task-amount-control select,
+.create-task-modal .task-amount-control input {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .create-task-modal .task-economy-presets {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
