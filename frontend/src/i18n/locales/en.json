@@ -360,5 +360,12 @@
     "COPPER": "Copper",
     "SILVER": "Silver",
     "GOLD": "Gold"
+  },
+  "pointHistorySource": {
+    "POINT_EXCHANGE": "Point exchange",
+    "TASK_COMPLETED": "Task completed: {{title}}",
+    "TASK_MISSED": "Task missed: {{title}}",
+    "INITIAL_TEST_POINTS": "Initial test points",
+    "unknownTask": "unknown task"
   }
 }
