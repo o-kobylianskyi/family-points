@@ -18,11 +18,15 @@ public class RewardDefinitionResponse {
     private final boolean requiresApproval;
     private final String acquisitionMode;
     private final List<RewardCategoryResponse> categories;
+    private final List<RewardRequirementResponse> requirements;
     private final boolean active;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    private RewardDefinitionResponse(RewardDefinition reward) {
+    private RewardDefinitionResponse(
+            RewardDefinition reward,
+            List<RewardRequirementResponse> requirements
+    ) {
         this.id = reward.getId();
         this.title = reward.getTitle();
         this.description = reward.getDescription();
@@ -36,13 +40,21 @@ public class RewardDefinitionResponse {
         this.categories = reward.getCategories().stream()
                 .map(RewardCategoryResponse::new)
                 .toList();
+        this.requirements = requirements == null ? List.of() : requirements;
         this.active = reward.isActive();
         this.createdAt = reward.getCreatedAt();
         this.updatedAt = reward.getUpdatedAt();
     }
 
     public static RewardDefinitionResponse from(RewardDefinition reward) {
-        return new RewardDefinitionResponse(reward);
+        return new RewardDefinitionResponse(reward, List.of());
+    }
+
+    public static RewardDefinitionResponse from(
+            RewardDefinition reward,
+            List<RewardRequirementResponse> requirements
+    ) {
+        return new RewardDefinitionResponse(reward, requirements);
     }
 
     public Long getId() { return id; }
@@ -56,6 +68,7 @@ public class RewardDefinitionResponse {
     public boolean isRequiresApproval() { return requiresApproval; }
     public String getAcquisitionMode() { return acquisitionMode; }
     public List<RewardCategoryResponse> getCategories() { return categories; }
+    public List<RewardRequirementResponse> getRequirements() { return requirements; }
     public boolean isActive() { return active; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
