@@ -155,6 +155,7 @@ public class TaskRewardNegotiationService {
                 input.getPointTypeId(),
                 input.getPointAmount(),
                 input.getReputationAmount(),
+                input.getDurationMinutes(),
                 input.getRewardDefinitionId(),
                 input.getCustomRewardTitle()
         );
