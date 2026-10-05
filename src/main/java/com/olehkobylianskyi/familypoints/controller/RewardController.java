@@ -141,6 +141,18 @@ public class RewardController {
         );
     }
 
+    @GetMapping("/obligations/open")
+    public List<RewardObligationResponse> openObligations(
+            @PathVariable Long workspaceId
+    ) {
+        assertWorkspace(workspaceId);
+        return rewardService.listOpenObligations(
+                workspaceId,
+                currentUser.getCurrentMemberId(),
+                canManageRewards()
+        );
+    }
+
     @GetMapping("/purchases")
     public List<RewardPurchaseResponse> purchases(
             @PathVariable Long workspaceId
