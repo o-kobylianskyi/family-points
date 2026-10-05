@@ -356,5 +356,11 @@
       "groups": "Группы",
       "points": "Баллы"
     }
+  },
+  "pointType": {
+    "POINTS": "Баллы",
+    "COPPER": "Медь",
+    "SILVER": "Серебро",
+    "GOLD": "Золото"
   }
 }
