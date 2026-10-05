@@ -1386,3 +1386,31 @@ FamilyPoints uses a one-hour idle timeout rather than a long fixed access-token 
 - An expired/invalid token still produces the normal global 401 logout behavior.
 
 This is a sliding session: active users remain signed in; inactive users are required to authenticate again after the idle period.
+
+
+---
+
+## 31. Task reputation reward and penalty
+
+### 2026-10-05
+
+**IMPLEMENTED — first reputation slice**
+
+Reputation is introduced as a separate non-spendable ledger, independent from PointType balances.
+
+TaskDefinition/TaskInstance now support:
+
+- rewardReputationAmount — reputation granted on successful completion;
+- penaltyReputationAmount — reputation deducted when a mandatory task is missed.
+
+TaskInstance snapshots these values so later edits to the TaskDefinition do not retroactively change an already generated instance.
+
+Reputation transactions are stored in a dedicated reputation_transactions ledger with source type, source id, description and timestamp.
+
+For task processing:
+
+- completion may award points, reputation, both, or neither;
+- missed mandatory task may deduct points, reputation, both, or neither;
+- EXCUSED remains protected from penalty processing.
+
+This does not yet implement reputation decay, manual reputation administration, behavior reputation or reward eligibility thresholds. Those remain later stages of the broader reputation model.
