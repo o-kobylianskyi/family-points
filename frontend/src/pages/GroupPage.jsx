@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getMemberGroups } from '../api/memberGroupApi'
 import { useAuth } from '../context/AuthContext'
 
 export default function GroupPage() {
+  const { t } = useTranslation()
   const { groupId } = useParams()
   const { currentUser, getAccessToken } = useAuth()
   const [groups, setGroups] = useState([])
@@ -20,7 +22,7 @@ export default function GroupPage() {
     </div>
     {tab === 'overview' && <div className="dashboard-stats"><div className="stat-card"><span className="stat-label">Учасники</span><strong className="stat-value">{group.members?.length || 0}</strong><span className="stat-description">безпосередньо в групі</span></div><div className="stat-card"><span className="stat-label">Підгрупи</span><strong className="stat-value">{group.childGroups?.length || 0}</strong><span className="stat-description">вкладені групи</span></div><div className="stat-card"><span className="stat-label">Ролі</span><strong className="stat-value">{group.roles?.length || 0}</strong><span className="stat-description">ролей групи</span></div></div>}
     {tab === 'members' && <section className="dashboard-panel"><h2>Учасники</h2>{(group.members || []).map(m => <div className="group-edit-item" key={m.memberId}><span>{m.memberName}</span></div>)}</section>}
-    {tab === 'points' && <section className="dashboard-panel"><h2>Баланс групи</h2>{(group.balances || []).map(b => <div className="balance-row" key={b.pointTypeId}><strong>{b.name}</strong><span>{b.amount}</span></div>)}</section>}
+    {tab === 'points' && <section className="dashboard-panel"><h2>Баланс групи</h2>{(group.balances || []).map(b => <div className="balance-row" key={b.pointTypeId}><strong>{t(`pointType.${b.code}`, { defaultValue: b.name || b.code })}</strong><span>{b.amount}</span></div>)}</section>}
     {tab === 'tasks' && <section className="dashboard-panel"><h2>Завдання групи</h2><div className="empty-state compact">Фільтр завдань за групою буде підключений у наступному кроці.</div></section>}
   </>
 }
