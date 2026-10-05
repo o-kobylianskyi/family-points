@@ -9,6 +9,7 @@ import {
   createRewardCategory,
   createRewardRequest,
   getRewardCategories,
+  getOpenRewardObligations,
   getRewardPurchases,
   getRewardRequests,
   getRewards,
@@ -90,6 +91,7 @@ function RewardsPage() {
   const [categories, setCategories] = useState([])
   const [requests, setRequests] = useState([])
   const [purchases, setPurchases] = useState([])
+  const [obligations, setObligations] = useState([])
   const [pointTypes, setPointTypes] = useState([])
   const [tasks, setTasks] = useState([])
 
@@ -122,6 +124,7 @@ function RewardsPage() {
         categoryData,
         requestData,
         purchaseData,
+        obligationData,
         pointTypeData,
         taskData,
       ] = await Promise.all([
@@ -129,6 +132,7 @@ function RewardsPage() {
         getRewardCategories(token, workspaceId),
         getRewardRequests(token, workspaceId),
         getRewardPurchases(token, workspaceId),
+        getOpenRewardObligations(token, workspaceId),
         getPointTypes(token, workspaceId),
         getTaskDefinitions(token, workspaceId),
       ])
@@ -137,6 +141,7 @@ function RewardsPage() {
       setCategories(categoryData)
       setRequests(requestData)
       setPurchases(purchaseData)
+      setObligations(obligationData)
       setPointTypes(pointTypeData)
       setTasks(taskData.filter((task) => task.active !== false))
 
@@ -324,6 +329,22 @@ function RewardsPage() {
 
       {error && <div className="page-error">{error}</div>}
 
+      {obligations.length > 0 && (
+        <section className="reward-obligation-banner">
+          <strong>Невиконані домовленості після нагород</strong>
+          {obligations.map((obligation) => (
+            <div key={obligation.id} className="reward-obligation-row">
+              <span>
+                {obligation.memberName}: {obligation.title}
+                {' · '}
+                після «{obligation.rewardTitle}»
+              </span>
+              <span>{obligation.blockingMode}</span>
+            </div>
+          ))}
+        </section>
+      )}
+
       <div className="page-tabs">
         <button
           type="button"
@@ -369,6 +390,18 @@ function RewardsPage() {
                     {reward.priceAmount} {pointLabel(reward.pointTypeId, reward.pointTypeCode)}
                   </strong>
                 </div>
+
+                {reward.requirements?.length > 0 && (
+                  <div className="reward-requirements-summary">
+                    <strong>Умови:</strong>
+                    {reward.requirements.map((requirement) => (
+                      <div key={requirement.id}>
+                        {requirement.phase === 'AFTER_REWARD' ? 'Після нагороди: ' : 'До нагороди: '}
+                        {requirement.taskTitle || requirement.description || requirement.requirementType}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="reward-tags">
                   {reward.categories?.map((category) => (
