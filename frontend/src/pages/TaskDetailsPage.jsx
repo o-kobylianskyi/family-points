@@ -262,7 +262,6 @@ function TaskDetailsPage() {
             {task.active ? 'Деактивувати' : 'Активувати'}
           </button>
         </div>
-        <p className="task-details-muted">Редагування та видалення TaskDefinition будуть зосереджені на цій сторінці.</p>
       </section>
 
       <section className="task-details-card">
