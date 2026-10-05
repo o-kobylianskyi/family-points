@@ -3371,3 +3371,70 @@ input {
     flex-direction: column;
   }
 }
+
+
+/* ---------- TASK REWARD NEGOTIATION ---------- */
+.task-reward-negotiation-modal {
+  width: min(760px, calc(100vw - 32px));
+}
+
+.task-reward-negotiation-form {
+  display: grid;
+  gap: 18px;
+}
+
+.task-reward-negotiation-form section {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8f9fc;
+}
+
+.task-reward-negotiation-form section h3 {
+  margin: 0;
+}
+
+.task-reward-original-request {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid #e1e5ec;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.task-reward-request-panel {
+  margin-bottom: 18px;
+}
+
+.task-reward-request-list {
+  display: grid;
+  gap: 12px;
+}
+
+.task-reward-request-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 0;
+  border-top: 1px solid #eceef3;
+}
+
+.task-reward-request-card:first-child {
+  border-top: 0;
+}
+
+.task-reward-request-card h3 {
+  margin: 4px 0;
+}
+
+.task-reward-request-card p {
+  margin: 6px 0;
+}
+
+@media (max-width: 760px) {
+  .task-reward-request-card {
+    flex-direction: column;
+  }
+}
