@@ -37,6 +37,9 @@ public class TaskRewardRequest {
     @Column(name = "requested_reputation_amount")
     private Integer requestedReputationAmount;
 
+    @Column(name = "requested_duration_minutes")
+    private Integer requestedDurationMinutes;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requested_reward_definition_id")
     private RewardDefinition requestedRewardDefinition;
@@ -56,6 +59,9 @@ public class TaskRewardRequest {
 
     @Column(name = "approved_reputation_amount")
     private Integer approvedReputationAmount;
+
+    @Column(name = "approved_duration_minutes")
+    private Integer approvedDurationMinutes;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_reward_definition_id")
@@ -98,12 +104,14 @@ public class TaskRewardRequest {
     public PointType getRequestedPointType() { return requestedPointType; }
     public Integer getRequestedPointAmount() { return requestedPointAmount; }
     public Integer getRequestedReputationAmount() { return requestedReputationAmount; }
+    public Integer getRequestedDurationMinutes() { return requestedDurationMinutes; }
     public RewardDefinition getRequestedRewardDefinition() { return requestedRewardDefinition; }
     public String getRequestedCustomRewardTitle() { return requestedCustomRewardTitle; }
     public String getRequestedComment() { return requestedComment; }
     public PointType getApprovedPointType() { return approvedPointType; }
     public Integer getApprovedPointAmount() { return approvedPointAmount; }
     public Integer getApprovedReputationAmount() { return approvedReputationAmount; }
+    public Integer getApprovedDurationMinutes() { return approvedDurationMinutes; }
     public RewardDefinition getApprovedRewardDefinition() { return approvedRewardDefinition; }
     public String getApprovedCustomRewardTitle() { return approvedCustomRewardTitle; }
     public String getReviewerComment() { return reviewerComment; }
