@@ -151,7 +151,10 @@
       "executors": "Executors",
       "authorHint": "The author is automatically the user who created the task.",
       "defaultTitleBase": "Task",
-      "duplicateTitle": "A task named “{{title}}” already exists."
+      "duplicateTitle": "A task named “{{title}}” already exists.",
+      "executorRequired": "Select at least one executor: a member or a group.",
+      "memberOnlyParticipants": "Only individual members can be selected here.",
+      "participantsHint": "Executors can be individual members, groups, or a combination of both."
     },
     "open": {
       "title": "Open tasks",
@@ -223,7 +226,8 @@
     "GROUP_SHARED": "Group together",
     "OPEN_GROUP": "Anyone from group",
     "OPEN_WORKSPACE": "Anyone",
-    "PREFERRED_MEMBER": "Preferred member"
+    "PREFERRED_MEMBER": "Preferred member",
+    "PARTICIPANTS": "By executor list"
   },
   "roleMatchMode": {
     "ANY": "Any selected role",
