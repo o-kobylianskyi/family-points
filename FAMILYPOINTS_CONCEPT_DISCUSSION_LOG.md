@@ -1414,3 +1414,37 @@ For task processing:
 - EXCUSED remains protected from penalty processing.
 
 This does not yet implement reputation decay, manual reputation administration, behavior reputation or reward eligibility thresholds. Those remain later stages of the broader reputation model.
+
+
+---
+
+## 32. Quick task economy presets
+
+### 2026-10-05
+
+**IMPLEMENTED**
+
+New tasks start with a fast default economy preset instead of empty numeric fields.
+
+Presets:
+
+- SIMPLE: reward 10 points, penalty 5 points, +1 reputation, -1 reputation;
+- NORMAL: reward 20 points, penalty 10 points, +2 reputation, -1 reputation;
+- HARD: reward 40 points, penalty 20 points, +4 reputation, -2 reputation;
+- CUSTOM: user-defined values.
+
+The task editor exposes quick-select dropdowns for common point and reputation values.
+
+Common point values:
+0, 5, 10, 20, 40, 60, 80, 100.
+
+Common reputation values:
+0, 1, 2, 3, 4, 5, 10.
+
+Selecting “Other…” reveals a numeric input:
+- points use step 10;
+- reputation uses step 1.
+
+Any manual value change switches the economy preset to CUSTOM.
+
+This is intended to make ordinary task creation require only title/executor/date changes while still allowing full manual economy control.
