@@ -210,10 +210,22 @@ public class RewardService {
                 .stream()
                 .anyMatch(RewardRequirement::isRequired);
 
+        Integer durationMinutes = review.getDurationMinutes();
+        if (rewardRequest.getRewardDefinition() != null
+                && rewardRequest.getRewardDefinition().getRewardKind() == RewardKind.TIME_BASED
+                && durationMinutes == null) {
+            durationMinutes = rewardRequest.getRewardDefinition().getDefaultDurationMinutes();
+        }
+        if (rewardRequest.getRewardDefinition() != null
+                && rewardRequest.getRewardDefinition().getRewardKind() == RewardKind.STANDARD) {
+            durationMinutes = null;
+        }
+
         rewardRequest.approve(
                 pointType,
                 price,
                 review.getMinimumReputation(),
+                durationMinutes,
                 hasBefore
         );
 
