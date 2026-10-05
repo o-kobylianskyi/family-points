@@ -16,6 +16,8 @@ public class RewardDefinitionResponse {
     private final int priceAmount;
     private final Integer minimumReputation;
     private final boolean requiresApproval;
+    private final String rewardKind;
+    private final Integer defaultDurationMinutes;
     private final String acquisitionMode;
     private final List<RewardCategoryResponse> categories;
     private final List<RewardRequirementResponse> requirements;
@@ -36,6 +38,8 @@ public class RewardDefinitionResponse {
         this.priceAmount = reward.getPriceAmount();
         this.minimumReputation = reward.getMinimumReputation();
         this.requiresApproval = reward.isRequiresApproval();
+        this.rewardKind = reward.getRewardKind().name();
+        this.defaultDurationMinutes = reward.getDefaultDurationMinutes();
         this.acquisitionMode = reward.getAcquisitionMode().name();
         this.categories = reward.getCategories().stream()
                 .map(RewardCategoryResponse::new)
@@ -66,6 +70,8 @@ public class RewardDefinitionResponse {
     public int getPriceAmount() { return priceAmount; }
     public Integer getMinimumReputation() { return minimumReputation; }
     public boolean isRequiresApproval() { return requiresApproval; }
+    public String getRewardKind() { return rewardKind; }
+    public Integer getDefaultDurationMinutes() { return defaultDurationMinutes; }
     public String getAcquisitionMode() { return acquisitionMode; }
     public List<RewardCategoryResponse> getCategories() { return categories; }
     public List<RewardRequirementResponse> getRequirements() { return requirements; }
