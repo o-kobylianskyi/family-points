@@ -78,6 +78,7 @@ public class TaskRewardNegotiationService {
                 input.getPointTypeId(),
                 input.getPointAmount(),
                 input.getReputationAmount(),
+                input.getDurationMinutes(),
                 input.getRewardDefinitionId(),
                 input.getCustomRewardTitle()
         );
@@ -92,6 +93,7 @@ public class TaskRewardNegotiationService {
                 getPointType(workspaceId, input.getPointTypeId(), input.getPointAmount()),
                 normalizeAmount(input.getPointAmount()),
                 normalizeAmount(input.getReputationAmount()),
+                normalizeDuration(input.getDurationMinutes()),
                 getReward(workspaceId, input.getRewardDefinitionId()),
                 blankToNull(input.getCustomRewardTitle()),
                 blankToNull(input.getComment())
@@ -161,6 +163,7 @@ public class TaskRewardNegotiationService {
                 getPointType(workspaceId, input.getPointTypeId(), input.getPointAmount()),
                 normalizeAmount(input.getPointAmount()),
                 normalizeAmount(input.getReputationAmount()),
+                normalizeDuration(input.getDurationMinutes()),
                 getReward(workspaceId, input.getRewardDefinitionId()),
                 blankToNull(input.getCustomRewardTitle()),
                 blankToNull(input.getComment())
@@ -283,7 +286,11 @@ public class TaskRewardNegotiationService {
                 title,
                 "Earned by completing task: " + instance.getTitle()
         );
-        rewardRequest.approve(pointType, 0, null, false);
+        Integer durationMinutes = negotiation.getApprovedDurationMinutes();
+        if (durationMinutes == null && reward != null && reward.getRewardKind() == RewardKind.TIME_BASED) {
+            durationMinutes = reward.getDefaultDurationMinutes();
+        }
+        rewardRequest.approve(pointType, 0, null, durationMinutes, false);
         rewardRequests.save(rewardRequest);
     }
 
@@ -292,6 +299,7 @@ public class TaskRewardNegotiationService {
             Long pointTypeId,
             Integer pointAmount,
             Integer reputationAmount,
+            Integer durationMinutes,
             Long rewardDefinitionId,
             String customRewardTitle
     ) {
@@ -301,12 +309,22 @@ public class TaskRewardNegotiationService {
         if (reputationAmount != null && reputationAmount < 0) {
             throw new IllegalArgumentException("Reputation amount cannot be negative");
         }
+        if (durationMinutes != null && durationMinutes <= 0) {
+            throw new IllegalArgumentException("Reward duration must be positive");
+        }
         if (pointAmount != null && pointAmount > 0 && pointTypeId == null) {
             throw new IllegalArgumentException("Point type is required when points are requested");
         }
 
         if (pointTypeId != null) getPointType(workspaceId, pointTypeId, 1);
-        if (rewardDefinitionId != null) getReward(workspaceId, rewardDefinitionId);
+        RewardDefinition selectedReward = rewardDefinitionId == null
+                ? null
+                : getReward(workspaceId, rewardDefinitionId);
+        if (selectedReward != null
+                && selectedReward.getRewardKind() == RewardKind.STANDARD
+                && durationMinutes != null) {
+            throw new IllegalArgumentException("Standard reward cannot have duration");
+        }
 
         boolean hasSomething =
                 (pointAmount != null && pointAmount > 0)
@@ -354,6 +372,10 @@ public class TaskRewardNegotiationService {
     }
 
     private Integer normalizeAmount(Integer value) {
+        return value != null && value > 0 ? value : null;
+    }
+
+    private Integer normalizeDuration(Integer value) {
         return value != null && value > 0 ? value : null;
     }
 
