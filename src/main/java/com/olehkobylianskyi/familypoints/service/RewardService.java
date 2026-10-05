@@ -82,7 +82,15 @@ public class RewardService {
                 ? rewards.findByWorkspaceIdOrderByIdAsc(workspaceId)
                 : rewards.findByWorkspaceIdAndActiveTrueOrderByIdAsc(workspaceId);
 
-        return list.stream().map(RewardDefinitionResponse::from).toList();
+        return list.stream()
+                .map(reward -> RewardDefinitionResponse.from(
+                        reward,
+                        requirements.findByRewardDefinitionIdOrderBySortOrderAscIdAsc(reward.getId())
+                                .stream()
+                                .map(RewardRequirementResponse::from)
+                                .toList()
+                ))
+                .toList();
     }
 
     @Transactional
@@ -105,7 +113,13 @@ public class RewardService {
         RewardDefinition saved = rewards.save(reward);
         saveRequirements(workspaceId, saved, null, request.getRequirements());
 
-        return RewardDefinitionResponse.from(saved);
+        return RewardDefinitionResponse.from(
+                saved,
+                requirements.findByRewardDefinitionIdOrderBySortOrderAscIdAsc(saved.getId())
+                        .stream()
+                        .map(RewardRequirementResponse::from)
+                        .toList()
+        );
     }
 
     @Transactional
@@ -340,6 +354,33 @@ public class RewardService {
     }
 
     @Transactional
+    public List<RewardObligationResponse> listOpenObligations(
+            Long workspaceId,
+            Long currentMemberId,
+            boolean canManage
+    ) {
+        if (canManage) {
+            List<RewardObligation> open = obligations
+                    .findByMemberWorkspaceIdAndStatusOrderByCreatedAtDesc(
+                            workspaceId,
+                            RewardObligationStatus.OPEN
+                    );
+
+            open.forEach(obligation -> refreshObligation(obligation));
+            return open.stream()
+                    .filter(obligation -> obligation.getStatus() == RewardObligationStatus.OPEN)
+                    .map(RewardObligationResponse::new)
+                    .toList();
+        }
+
+        WorkspaceMember member = getMember(workspaceId, currentMemberId);
+        List<RewardObligation> open = refreshOpenObligations(member);
+        return open.stream()
+                .map(RewardObligationResponse::new)
+                .toList();
+    }
+
+    @Transactional
     public RewardRequestResponse refreshRequest(Long workspaceId, Long requestId) {
         RewardRequest request = getRequest(workspaceId, requestId);
         refreshRequestReadiness(request);
@@ -433,10 +474,7 @@ public class RewardService {
     }
 
     private void assertNotBlocked(WorkspaceMember member, RewardDefinition reward) {
-        List<RewardObligation> open = obligations.findByMemberIdAndStatusOrderByCreatedAtAsc(
-                member.getId(),
-                RewardObligationStatus.OPEN
-        );
+        List<RewardObligation> open = refreshOpenObligations(member);
 
         for (RewardObligation obligation : open) {
             switch (obligation.getBlockingMode()) {
@@ -467,15 +505,38 @@ public class RewardService {
     }
 
     private void assertNoGlobalBlock(WorkspaceMember member) {
-        boolean blocked = obligations.findByMemberIdAndStatusOrderByCreatedAtAsc(
-                        member.getId(),
-                        RewardObligationStatus.OPEN
-                )
+        boolean blocked = refreshOpenObligations(member)
                 .stream()
                 .anyMatch(o -> o.getBlockingMode() == RewardBlockingMode.ALL_REWARDS);
 
         if (blocked) {
             throw new IllegalArgumentException("New rewards are blocked by an unfinished obligation");
+        }
+    }
+
+    private List<RewardObligation> refreshOpenObligations(WorkspaceMember member) {
+        List<RewardObligation> open = obligations.findByMemberIdAndStatusOrderByCreatedAtAsc(
+                member.getId(),
+                RewardObligationStatus.OPEN
+        );
+
+        open.forEach(this::refreshObligation);
+
+        return open.stream()
+                .filter(obligation -> obligation.getStatus() == RewardObligationStatus.OPEN)
+                .toList();
+    }
+
+    private void refreshObligation(RewardObligation obligation) {
+        RewardRequirement requirement = obligation.getRequirement();
+        if (requirement == null) return;
+
+        if (requirementMet(
+                obligation.getMember(),
+                requirement,
+                requirement.getRewardRequest()
+        )) {
+            obligation.complete();
         }
     }
 
