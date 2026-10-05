@@ -16,6 +16,7 @@ public class TaskRewardRequestResponse {
     private final String requestedPointTypeCode;
     private final Integer requestedPointAmount;
     private final Integer requestedReputationAmount;
+    private final Integer requestedDurationMinutes;
     private final Long requestedRewardDefinitionId;
     private final String requestedRewardTitle;
     private final String requestedCustomRewardTitle;
@@ -25,6 +26,7 @@ public class TaskRewardRequestResponse {
     private final String approvedPointTypeCode;
     private final Integer approvedPointAmount;
     private final Integer approvedReputationAmount;
+    private final Integer approvedDurationMinutes;
     private final Long approvedRewardDefinitionId;
     private final String approvedRewardTitle;
     private final String approvedCustomRewardTitle;
@@ -46,6 +48,7 @@ public class TaskRewardRequestResponse {
         this.requestedPointTypeCode = request.getRequestedPointType() == null ? null : request.getRequestedPointType().getCode();
         this.requestedPointAmount = request.getRequestedPointAmount();
         this.requestedReputationAmount = request.getRequestedReputationAmount();
+        this.requestedDurationMinutes = request.getRequestedDurationMinutes();
         this.requestedRewardDefinitionId = request.getRequestedRewardDefinition() == null ? null : request.getRequestedRewardDefinition().getId();
         this.requestedRewardTitle = request.getRequestedRewardDefinition() == null ? null : request.getRequestedRewardDefinition().getTitle();
         this.requestedCustomRewardTitle = request.getRequestedCustomRewardTitle();
@@ -55,6 +58,7 @@ public class TaskRewardRequestResponse {
         this.approvedPointTypeCode = request.getApprovedPointType() == null ? null : request.getApprovedPointType().getCode();
         this.approvedPointAmount = request.getApprovedPointAmount();
         this.approvedReputationAmount = request.getApprovedReputationAmount();
+        this.approvedDurationMinutes = request.getApprovedDurationMinutes();
         this.approvedRewardDefinitionId = request.getApprovedRewardDefinition() == null ? null : request.getApprovedRewardDefinition().getId();
         this.approvedRewardTitle = request.getApprovedRewardDefinition() == null ? null : request.getApprovedRewardDefinition().getTitle();
         this.approvedCustomRewardTitle = request.getApprovedCustomRewardTitle();
@@ -75,6 +79,7 @@ public class TaskRewardRequestResponse {
     public String getRequestedPointTypeCode() { return requestedPointTypeCode; }
     public Integer getRequestedPointAmount() { return requestedPointAmount; }
     public Integer getRequestedReputationAmount() { return requestedReputationAmount; }
+    public Integer getRequestedDurationMinutes() { return requestedDurationMinutes; }
     public Long getRequestedRewardDefinitionId() { return requestedRewardDefinitionId; }
     public String getRequestedRewardTitle() { return requestedRewardTitle; }
     public String getRequestedCustomRewardTitle() { return requestedCustomRewardTitle; }
@@ -83,6 +88,7 @@ public class TaskRewardRequestResponse {
     public String getApprovedPointTypeCode() { return approvedPointTypeCode; }
     public Integer getApprovedPointAmount() { return approvedPointAmount; }
     public Integer getApprovedReputationAmount() { return approvedReputationAmount; }
+    public Integer getApprovedDurationMinutes() { return approvedDurationMinutes; }
     public Long getApprovedRewardDefinitionId() { return approvedRewardDefinitionId; }
     public String getApprovedRewardTitle() { return approvedRewardTitle; }
     public String getApprovedCustomRewardTitle() { return approvedCustomRewardTitle; }
