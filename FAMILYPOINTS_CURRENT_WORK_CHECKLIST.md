@@ -450,3 +450,32 @@ Before each substantial implementation batch:
 - [x] Use step 1 for custom reputation values
 - [x] Switch preset to CUSTOM after manual value change
 - [ ] Smoke-test create/edit task economy presets locally
+
+
+## Rewards v1
+- [x] Add reward catalog persistence
+- [x] Add reward purchases and REWARD_PURCHASE ledger source
+- [x] Allow zero-price conditional rewards
+- [x] Add many-to-many reward categories
+- [x] Add DIRECT / REQUEST / DIRECT_OR_REQUEST acquisition modes
+- [x] Add free-form and catalog-based RewardRequest
+- [x] Allow parent approval to override price / point type / minimum reputation
+- [x] Add BEFORE_REWARD / AFTER_REWARD requirements
+- [x] Implement TASK_COMPLETED + TODAY for preconditions
+- [x] Implement SINCE_REWARD for advance task obligations
+- [x] Create RewardObligation after advance reward grant
+- [x] Auto-complete task-backed obligations after required task completion
+- [x] Add NONE / WARN_ONLY / ALL_REWARDS / CATEGORIES / SPECIFIC_REWARDS blocking
+- [x] Add category blocking selection
+- [x] Add manually selected reward blocking
+- [x] Add initial /rewards catalog + requests + management UI
+- [x] Show open advance obligations
+- [ ] Implement Behavior module and NO_NEGATIVE_BEHAVIOR evaluation
+- [ ] Add availability schedule for recurring reward access
+- [ ] Add daily / weekly purchase limits
+- [ ] Add generalized RewardGroup and RequirementGroup semantics
+- [ ] Add full redeem / cancel / refund / approval lifecycle
+- [ ] Add Goal conversion for large reward requests
+- [ ] Integrate time rewards with app/screen-time control
+- [ ] Complete rewards UI i18n
+- [ ] Run backend/frontend smoke test locally
