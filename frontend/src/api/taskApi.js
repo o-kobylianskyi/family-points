@@ -260,3 +260,53 @@ export async function getTaskDefinitionInstance(token, workspaceId, definitionId
   if (response.status === 204) return null
   return handleResponse(response, 'Failed to load task execution')
 }
+
+
+export async function createTaskRewardRequest(token, workspaceId, instanceId, request) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/instances/${instanceId}/reward-requests`,
+    { token, method: 'POST', body: request }
+  )
+  return handleResponse(response, 'Failed to create task reward request')
+}
+
+export async function getTaskRewardRequests(token, workspaceId, instanceId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/instances/${instanceId}/reward-requests`,
+    { token }
+  )
+  return handleResponse(response, 'Failed to load task reward requests')
+}
+
+export async function getPendingTaskRewardRequests(token, workspaceId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/reward-requests/pending`,
+    { token }
+  )
+  return handleResponse(response, 'Failed to load pending task reward requests')
+}
+
+export async function approveTaskRewardRequest(token, workspaceId, requestId, review) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/reward-requests/${requestId}/approve`,
+    { token, method: 'POST', body: review }
+  )
+  return handleResponse(response, 'Failed to approve task reward request')
+}
+
+export async function rejectTaskRewardRequest(token, workspaceId, requestId, comment = '') {
+  const params = comment ? `?comment=${encodeURIComponent(comment)}` : ''
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/reward-requests/${requestId}/reject${params}`,
+    { token, method: 'POST' }
+  )
+  return handleResponse(response, 'Failed to reject task reward request')
+}
+
+export async function cancelTaskRewardRequest(token, workspaceId, requestId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/reward-requests/${requestId}/cancel`,
+    { token, method: 'POST' }
+  )
+  return handleResponse(response, 'Failed to cancel task reward request')
+}
