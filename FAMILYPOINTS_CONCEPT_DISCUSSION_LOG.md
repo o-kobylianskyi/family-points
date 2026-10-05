@@ -1448,3 +1448,129 @@ Selecting “Other…” reveals a numeric input:
 Any manual value change switches the economy preset to CUSTOM.
 
 This is intended to make ordinary task creation require only title/executor/date changes while still allowing full manual economy control.
+
+
+---
+
+## 33. Rewards v1: catalog, requests, conditions and advance obligations
+
+### 2026-10-05
+
+**INITIAL IMPLEMENTATION**
+
+Rewards are modeled as a workflow rather than only a point-priced store item.
+
+### RewardDefinition
+
+A catalog reward has:
+
+- title and description;
+- point type and standard price (price may be zero);
+- optional minimum reputation threshold;
+- 0..N reward categories;
+- acquisition mode:
+  - DIRECT;
+  - REQUEST;
+  - DIRECT_OR_REQUEST;
+- optional approval requirement;
+- BEFORE_REWARD and AFTER_REWARD requirements.
+
+Categories are many-to-many so the same reward may belong to multiple filters, for example Games + Screen time.
+
+### RewardRequest
+
+A workspace member can request:
+
+- an existing catalog reward;
+- or a free-form reward that does not exist in the catalog, e.g. “I want a bicycle” or “I want 30 more minutes of game time”.
+
+A manager with MANAGE_REWARDS may approve a request and override:
+
+- point type;
+- price;
+- minimum reputation;
+- requirements.
+
+Request lifecycle v1:
+REQUESTED -> WAITING_REQUIREMENTS / READY_TO_PURCHASE -> PURCHASED,
+with REJECTED and CANCELLED reserved.
+
+### Requirements
+
+Initial requirement model is generic and stores:
+
+- phase: BEFORE_REWARD / AFTER_REWARD;
+- type: TASK_COMPLETED / NO_NEGATIVE_BEHAVIOR / CUSTOM;
+- task definition reference when applicable;
+- time scope;
+- optional rolling window;
+- blocking scope for AFTER_REWARD.
+
+Task requirement evaluation implemented in v1:
+
+- BEFORE_REWARD + TODAY:
+  the concrete TaskInstance for the requesting member must be COMPLETED today;
+- AFTER_REWARD + SINCE_REWARD:
+  completion must happen after the reward was actually granted, so an earlier completion today cannot satisfy an advance obligation.
+
+NO_NEGATIVE_BEHAVIOR is present in the domain model but automatic evaluation is intentionally pending until the Behavior module exists.
+
+### Advance rewards / obligations
+
+AFTER_REWARD requirements represent an advance agreement, e.g.:
+
+“Play for another 30 minutes now, then wash the dishes.”
+
+Granting the reward creates RewardObligation records.
+
+Open task-backed obligations automatically complete once the required task is completed after the reward grant.
+
+Blocking modes:
+
+- NONE;
+- WARN_ONLY;
+- ALL_REWARDS;
+- CATEGORIES;
+- SPECIFIC_REWARDS.
+
+CATEGORIES and SPECIFIC_REWARDS keep explicit selected lists. This allows an unfinished advance obligation to block, for example, only Games / Screen time, or only individually selected rewards.
+
+### Purchase checks
+
+Before direct purchase or approved request purchase, the service checks:
+
+- active reward;
+- acquisition/approval policy;
+- open blocking obligations;
+- minimum reputation;
+- BEFORE_REWARD requirements;
+- sufficient point balance.
+
+Point spending uses the normal point ledger with source REWARD_PURCHASE.
+
+### Rewards page v1
+
+/rewards now contains:
+
+- catalog;
+- free-form reward request;
+- request queue;
+- parent review with price/reputation override;
+- selection of multiple BEFORE task conditions;
+- selection of multiple AFTER task conditions;
+- blocking mode and category/specific-reward scope;
+- reward category management;
+- reward creation;
+- recent purchase history;
+- visible open advance obligations.
+
+### Explicitly deferred
+
+- Behavior engine evaluation for NO_NEGATIVE_BEHAVIOR;
+- reward availability schedules and per-day/week purchase limits;
+- RewardGroup ALL / CHOOSE_ONE / CHOOSE_MULTIPLE;
+- generalized RequirementGroup ALL_SATISFIED / MINIMUM_SATISFIED;
+- approval/redeem/cancel/refund lifecycle polish;
+- Goal conversion for large requests such as a bicycle;
+- automatic application/screen-time activation from a purchased reward;
+- full rewards UI i18n and UX polish.
