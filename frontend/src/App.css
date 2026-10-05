@@ -3047,3 +3047,8 @@ input {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+.create-task-modal .task-reputation-field {
+  margin-top: 14px;
+}
