@@ -5,5 +5,6 @@ public enum AssignmentPolicy {
     GROUP_SHARED,
     OPEN_GROUP,
     OPEN_WORKSPACE,
-    PREFERRED_MEMBER
+    PREFERRED_MEMBER,
+    PARTICIPANTS
 }
