@@ -98,6 +98,10 @@ public class RewardService {
         Workspace workspace = getWorkspace(workspaceId);
         PointType pointType = getPointType(workspaceId, request.getPointTypeId());
 
+        if (request.getRewardKind() == RewardKind.STANDARD && request.getDefaultDurationMinutes() != null) {
+            throw new IllegalArgumentException("Standard reward cannot have duration");
+        }
+
         RewardDefinition reward = new RewardDefinition(
                 workspace,
                 request.getTitle().trim(),
@@ -106,7 +110,11 @@ public class RewardService {
                 request.getPriceAmount(),
                 request.getMinimumReputation(),
                 request.isRequiresApproval(),
-                request.getAcquisitionMode()
+                request.getAcquisitionMode(),
+                request.getRewardKind(),
+                request.getRewardKind() == RewardKind.TIME_BASED
+                        ? request.getDefaultDurationMinutes()
+                        : null
         );
 
         reward.setCategories(resolveCategories(workspaceId, request.getCategoryIds()));
