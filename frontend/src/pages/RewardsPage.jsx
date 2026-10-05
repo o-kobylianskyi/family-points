@@ -26,6 +26,8 @@ const emptyRewardForm = {
   priceAmount: 20,
   minimumReputation: '',
   acquisitionMode: 'DIRECT',
+  rewardKind: 'STANDARD',
+  defaultDurationMinutes: '',
   requiresApproval: false,
   categoryIds: [],
   beforeTaskIds: [],
@@ -39,6 +41,7 @@ const emptyReviewForm = {
   pointTypeId: '',
   priceAmount: 20,
   minimumReputation: '',
+  durationMinutes: '',
   beforeTaskIds: [],
   afterTaskIds: [],
   blockingMode: 'NONE',
@@ -212,6 +215,11 @@ function RewardsPage() {
               : Number(rewardForm.minimumReputation),
           requiresApproval: rewardForm.requiresApproval,
           acquisitionMode: rewardForm.acquisitionMode,
+          rewardKind: rewardForm.rewardKind,
+          defaultDurationMinutes:
+            rewardForm.rewardKind === 'TIME_BASED' && rewardForm.defaultDurationMinutes !== ''
+              ? Number(rewardForm.defaultDurationMinutes)
+              : null,
           categoryIds: rewardForm.categoryIds,
           requirements: taskRequirements(rewardForm),
         }
@@ -271,6 +279,10 @@ function RewardsPage() {
         request.minimumReputation
         ?? reward?.minimumReputation
         ?? '',
+      durationMinutes:
+        request.durationMinutes
+        ?? reward?.defaultDurationMinutes
+        ?? '',
     })
   }
 
@@ -286,6 +298,10 @@ function RewardsPage() {
           reviewForm.minimumReputation === ''
             ? null
             : Number(reviewForm.minimumReputation),
+        durationMinutes:
+          reviewForm.durationMinutes === ''
+            ? null
+            : Number(reviewForm.durationMinutes),
         requirements: taskRequirements(reviewForm),
       }
     )
@@ -411,6 +427,14 @@ function RewardsPage() {
                   {reward.minimumReputation != null && (
                     <span>Репутація ≥ {reward.minimumReputation}</span>
                   )}
+                  {reward.rewardKind === 'TIME_BASED' && (
+                    <span>
+                      Часова
+                      {reward.defaultDurationMinutes
+                        ? ` · ${reward.defaultDurationMinutes} хв`
+                        : ' · за домовленістю'}
+                    </span>
+                  )}
                 </div>
 
                 <div className="reward-actions">
@@ -490,6 +514,9 @@ function RewardsPage() {
               {request.priceAmount != null && (
                 <div className="reward-request-price">
                   Ціна: <strong>{request.priceAmount} {pointLabel(request.pointTypeId, request.pointTypeCode)}</strong>
+                  {request.durationMinutes
+                    ? <span> · {request.durationMinutes} хв</span>
+                    : ''}
                 </div>
               )}
 
@@ -572,6 +599,21 @@ function RewardsPage() {
                         })}
                       />
                     </label>
+                    {rewards.find((item) => item.id === request.rewardDefinitionId)?.rewardKind === 'TIME_BASED' && (
+                      <label>
+                        <span>Тривалість, хв</span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={reviewForm.durationMinutes}
+                          placeholder="Будь-яка"
+                          onChange={(event) => setReviewForm({
+                            ...reviewForm,
+                            durationMinutes: event.target.value,
+                          })}
+                        />
+                      </label>
+                    )}
                   </div>
 
                   <TaskConditionPicker
@@ -760,6 +802,40 @@ function RewardsPage() {
                     <option value="DIRECT_OR_REQUEST">Напряму або за запитом</option>
                   </select>
                 </label>
+
+                <label>
+                  <span>Тип нагороди</span>
+                  <select
+                    value={rewardForm.rewardKind}
+                    onChange={(event) => setRewardForm({
+                      ...rewardForm,
+                      rewardKind: event.target.value,
+                      defaultDurationMinutes:
+                        event.target.value === 'TIME_BASED'
+                          ? rewardForm.defaultDurationMinutes
+                          : '',
+                    })}
+                  >
+                    <option value="STANDARD">Звичайна / предмет</option>
+                    <option value="TIME_BASED">Часова</option>
+                  </select>
+                </label>
+
+                {rewardForm.rewardKind === 'TIME_BASED' && (
+                  <label>
+                    <span>Типова тривалість, хв</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={rewardForm.defaultDurationMinutes}
+                      placeholder="За домовленістю"
+                      onChange={(event) => setRewardForm({
+                        ...rewardForm,
+                        defaultDurationMinutes: event.target.value,
+                      })}
+                    />
+                  </label>
+                )}
               </div>
 
               <label className="form-checkbox">
