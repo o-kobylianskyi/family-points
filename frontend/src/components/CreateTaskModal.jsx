@@ -125,6 +125,10 @@ function CreateTaskModal({
   const [penaltyPointTypeId, setPenaltyPointTypeId] =
     useState(initialTask?.penaltyPointTypeId ?? '')
   const [penaltyAmount, setPenaltyAmount] = useState(initialTask?.penaltyAmount ?? '')
+  const [rewardReputationAmount, setRewardReputationAmount] =
+    useState(initialTask?.rewardReputationAmount ?? '')
+  const [penaltyReputationAmount, setPenaltyReputationAmount] =
+    useState(initialTask?.penaltyReputationAmount ?? '')
 
   const [loading, setLoading] = useState(false)
   const [loadingPointTypes, setLoadingPointTypes] =
@@ -311,6 +315,14 @@ function CreateTaskModal({
             : null,
 
         penaltyAmount: penalty,
+        rewardReputationAmount:
+          Number(rewardReputationAmount) > 0
+            ? Number(rewardReputationAmount)
+            : null,
+        penaltyReputationAmount:
+          Number(penaltyReputationAmount) > 0
+            ? Number(penaltyReputationAmount)
+            : null,
       }
 
       const token = getAccessToken()
@@ -629,6 +641,19 @@ function CreateTaskModal({
                   />
                 </label>
               </div>
+
+              <label className="form-field task-reputation-field">
+                <span>{t('tasks.create.reputation')}</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={rewardReputationAmount}
+                  onChange={(event) =>
+                    setRewardReputationAmount(event.target.value)
+                  }
+                />
+              </label>
             </section>
 
             <section className="task-value-section">
@@ -673,6 +698,19 @@ function CreateTaskModal({
                   />
                 </label>
               </div>
+
+              <label className="form-field task-reputation-field">
+                <span>{t('tasks.create.reputation')}</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={penaltyReputationAmount}
+                  onChange={(event) =>
+                    setPenaltyReputationAmount(event.target.value)
+                  }
+                />
+              </label>
             </section>
           </div>
 
