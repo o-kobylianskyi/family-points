@@ -100,6 +100,12 @@ public class TaskDefinitionCreateRequest {
     @Min(0)
     private Integer penaltyAmount;
 
+    @Min(0)
+    private Integer rewardReputationAmount;
+
+    @Min(0)
+    private Integer penaltyReputationAmount;
+
     /**
      * Час виконання конкретного TaskInstance.
      *
@@ -254,6 +260,11 @@ public class TaskDefinitionCreateRequest {
     public void setPenaltyAmount(Integer penaltyAmount) {
         this.penaltyAmount = penaltyAmount;
     }
+
+    public Integer getRewardReputationAmount() { return rewardReputationAmount; }
+    public void setRewardReputationAmount(Integer value) { this.rewardReputationAmount = value; }
+    public Integer getPenaltyReputationAmount() { return penaltyReputationAmount; }
+    public void setPenaltyReputationAmount(Integer value) { this.penaltyReputationAmount = value; }
 
 
     public LocalTime getDueTime() {
