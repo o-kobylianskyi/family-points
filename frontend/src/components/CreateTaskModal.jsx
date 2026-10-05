@@ -368,52 +368,6 @@ function CreateTaskModal({
             </div>
           )}
 
-          <div className="task-participants-editor">
-            <h3>{t('tasks.create.participants')}</h3>
-            <p className="role-muted">{t('tasks.create.participantsHint')}</p>
-            {[
-              ['administrators', administrators, setAdministrators],
-              ['observers', observers, setObservers],
-              ['executors', executors, setExecutors],
-            ].map(([role, selected, setter]) => (
-              <div className="participant-role-block" key={role}>
-                <strong>{t(`tasks.create.${role}`)}</strong>
-                <div className="participant-choice-grid">
-                  {members.map((member) => {
-                    const key = actorKey('MEMBER', member.id)
-                    return (
-                      <label className="form-checkbox" key={`${role}-${key}`}>
-                        <input
-                          type="checkbox"
-                          checked={selected.includes(key)}
-                          onChange={() => toggleActor(setter, 'MEMBER', member.id)}
-                        />
-                        <span>{member.name}</span>
-                      </label>
-                    )
-                  })}
-                  {role === 'executors' && memberGroups.map((group) => {
-                    const key = actorKey('GROUP', group.id)
-                    return (
-                      <label className="form-checkbox" key={`${role}-${key}`}>
-                        <input
-                          type="checkbox"
-                          checked={selected.includes(key)}
-                          onChange={() => toggleActor(setter, 'GROUP', group.id)}
-                        />
-                        <span>👥 {group.name}</span>
-                      </label>
-                    )
-                  })}
-                </div>
-                {(role === 'administrators' || role === 'observers') && (
-                  <small>{t('tasks.create.memberOnlyParticipants')}</small>
-                )}
-              </div>
-            ))}
-            <small>{t('tasks.create.authorHint')}</small>
-          </div>
-
           <label className="form-field">
             <span>{t('tasks.create.taskTitle')}</span>
 
@@ -585,6 +539,52 @@ function CreateTaskModal({
               {t('tasks.create.delegationAllowed')}
             </span>
           </label>
+
+          <div className="task-participants-editor">
+            <h3>{t('tasks.create.participants')}</h3>
+            <p className="role-muted">{t('tasks.create.participantsHint')}</p>
+            {[
+              ['administrators', administrators, setAdministrators],
+              ['observers', observers, setObservers],
+              ['executors', executors, setExecutors],
+            ].map(([role, selected, setter]) => (
+              <div className="participant-role-block" key={role}>
+                <strong>{t(`tasks.create.${role}`)}</strong>
+                <div className="participant-choice-grid">
+                  {members.map((member) => {
+                    const key = actorKey('MEMBER', member.id)
+                    return (
+                      <label className="form-checkbox" key={`${role}-${key}`}>
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(key)}
+                          onChange={() => toggleActor(setter, 'MEMBER', member.id)}
+                        />
+                        <span>{member.name}</span>
+                      </label>
+                    )
+                  })}
+                  {role === 'executors' && memberGroups.map((group) => {
+                    const key = actorKey('GROUP', group.id)
+                    return (
+                      <label className="form-checkbox" key={`${role}-${key}`}>
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(key)}
+                          onChange={() => toggleActor(setter, 'GROUP', group.id)}
+                        />
+                        <span>👥 {group.name}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+                {(role === 'administrators' || role === 'observers') && (
+                  <small>{t('tasks.create.memberOnlyParticipants')}</small>
+                )}
+              </div>
+            ))}
+            <small>{t('tasks.create.authorHint')}</small>
+          </div>
 
           <div className="task-economy-grid">
             <section className="task-value-section">
