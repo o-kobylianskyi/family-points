@@ -38,6 +38,7 @@ public class TaskService {
     private final TaskParticipantRepository taskParticipantRepository;
     private final TaskAuthorizationService taskAuthorizationService;
     private final TaskAuditService taskAuditService;
+    private final TaskRewardNegotiationService taskRewardNegotiationService;
 
     public TaskService(
             TaskDefinitionRepository taskDefinitionRepository,
@@ -59,7 +60,8 @@ public class TaskService {
             TaskDelegationRepository taskDelegationRepository,
             TaskParticipantRepository taskParticipantRepository,
             TaskAuthorizationService taskAuthorizationService,
-            TaskAuditService taskAuditService
+            TaskAuditService taskAuditService,
+            TaskRewardNegotiationService taskRewardNegotiationService
     ) {
         this.taskDefinitionRepository = taskDefinitionRepository;
         this.taskInstanceRepository = taskInstanceRepository;
@@ -81,6 +83,7 @@ public class TaskService {
         this.taskParticipantRepository = taskParticipantRepository;
         this.taskAuthorizationService = taskAuthorizationService;
         this.taskAuditService = taskAuditService;
+        this.taskRewardNegotiationService = taskRewardNegotiationService;
     }
 
     @Transactional
@@ -867,6 +870,11 @@ public class TaskService {
             TaskInstance instance
     ) {
         if (instance.isRewardProcessed()) {
+            return;
+        }
+
+        if (taskRewardNegotiationService.processApprovedOverride(workspaceId, instance)) {
+            instance.markRewardProcessed();
             return;
         }
 
