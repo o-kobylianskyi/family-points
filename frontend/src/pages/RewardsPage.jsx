@@ -31,6 +31,7 @@ const emptyRewardForm = {
   afterTaskIds: [],
   blockingMode: 'NONE',
   blockedCategoryIds: [],
+  blockedRewardDefinitionIds: [],
 }
 
 const emptyReviewForm = {
@@ -58,7 +59,10 @@ function taskRequirements(form) {
     required: true,
     blockingMode: 'NONE',
     blockedCategoryIds: [],
-    blockedRewardDefinitionIds: [],
+    blockedRewardDefinitionIds:
+      form.blockingMode === 'SPECIFIC_REWARDS'
+        ? form.blockedRewardDefinitionIds
+        : [],
   }))
 
   const after = form.afterTaskIds.map((taskDefinitionId) => ({
@@ -559,6 +563,7 @@ function RewardsPage() {
                   {reviewForm.afterTaskIds.length > 0 && (
                     <BlockingEditor
                       categories={categories}
+                      rewards={rewards}
                       form={reviewForm}
                       setForm={setReviewForm}
                     />
@@ -777,6 +782,7 @@ function RewardsPage() {
               {rewardForm.afterTaskIds.length > 0 && (
                 <BlockingEditor
                   categories={categories}
+                  rewards={rewards}
                   form={rewardForm}
                   setForm={setRewardForm}
                 />
@@ -827,7 +833,7 @@ function TaskConditionPicker({ title, tasks, selected, onToggle }) {
   )
 }
 
-function BlockingEditor({ categories, form, setForm }) {
+function BlockingEditor({ categories, rewards, form, setForm }) {
   return (
     <div className="reward-blocking-editor">
       <strong>Що робити, поки післяумова не виконана?</strong>
@@ -842,6 +848,7 @@ function BlockingEditor({ categories, form, setForm }) {
         <option value="WARN_ONLY">Лише попереджати</option>
         <option value="ALL_REWARDS">Блокувати всі нагороди</option>
         <option value="CATEGORIES">Блокувати вибрані категорії</option>
+        <option value="SPECIFIC_REWARDS">Блокувати конкретні нагороди</option>
       </select>
 
       {form.blockingMode === 'CATEGORIES' && (
@@ -857,6 +864,27 @@ function BlockingEditor({ categories, form, setForm }) {
                 })}
               />
               <span>{category.name}</span>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {form.blockingMode === 'SPECIFIC_REWARDS' && (
+        <div className="reward-checkbox-grid">
+          {rewards.map((reward) => (
+            <label className="form-checkbox" key={reward.id}>
+              <input
+                type="checkbox"
+                checked={form.blockedRewardDefinitionIds.includes(reward.id)}
+                onChange={() => setForm({
+                  ...form,
+                  blockedRewardDefinitionIds: toggleId(
+                    form.blockedRewardDefinitionIds,
+                    reward.id
+                  ),
+                })}
+              />
+              <span>{reward.title}</span>
             </label>
           ))}
         </div>
