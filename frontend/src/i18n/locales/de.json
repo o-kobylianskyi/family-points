@@ -354,5 +354,11 @@
       "groups": "Gruppen",
       "points": "Punkte"
     }
+  },
+  "pointType": {
+    "POINTS": "Punkte",
+    "COPPER": "Kupfer",
+    "SILVER": "Silber",
+    "GOLD": "Gold"
   }
 }
