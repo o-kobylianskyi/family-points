@@ -2,6 +2,8 @@ package com.olehkobylianskyi.familypoints.dto;
 
 import com.olehkobylianskyi.familypoints.entity.RewardDefinition;
 import java.time.LocalDateTime;
+import java.util.List;
+import com.olehkobylianskyi.familypoints.entity.RewardCategory;
 
 public class RewardDefinitionResponse {
 
@@ -14,6 +16,8 @@ public class RewardDefinitionResponse {
     private final int priceAmount;
     private final Integer minimumReputation;
     private final boolean requiresApproval;
+    private final String acquisitionMode;
+    private final List<RewardCategoryResponse> categories;
     private final boolean active;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
@@ -28,6 +32,10 @@ public class RewardDefinitionResponse {
         this.priceAmount = reward.getPriceAmount();
         this.minimumReputation = reward.getMinimumReputation();
         this.requiresApproval = reward.isRequiresApproval();
+        this.acquisitionMode = reward.getAcquisitionMode().name();
+        this.categories = reward.getCategories().stream()
+                .map(RewardCategoryResponse::new)
+                .toList();
         this.active = reward.isActive();
         this.createdAt = reward.getCreatedAt();
         this.updatedAt = reward.getUpdatedAt();
@@ -46,6 +54,8 @@ public class RewardDefinitionResponse {
     public int getPriceAmount() { return priceAmount; }
     public Integer getMinimumReputation() { return minimumReputation; }
     public boolean isRequiresApproval() { return requiresApproval; }
+    public String getAcquisitionMode() { return acquisitionMode; }
+    public List<RewardCategoryResponse> getCategories() { return categories; }
     public boolean isActive() { return active; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
