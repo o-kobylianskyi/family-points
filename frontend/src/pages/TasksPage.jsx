@@ -846,6 +846,11 @@ function TasksPage() {
                     {request.requestedRewardTitle
                       ? ` · ${request.requestedRewardTitle}`
                       : ''}
+                    {request.requestedDurationMinutes
+                      ? ` · ${request.requestedDurationMinutes} хв`
+                      : request.requestedRewardDefinitionId
+                        ? ' · час: будь-який'
+                        : ''}
                     {request.requestedCustomRewardTitle
                       ? ` · ${request.requestedCustomRewardTitle}`
                       : ''}
