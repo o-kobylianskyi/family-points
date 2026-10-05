@@ -24,17 +24,20 @@ public class TaskController {
     private final TaskGenerationService taskGenerationService;
     private final TaskDeadlineService taskDeadlineService;
     private final com.olehkobylianskyi.familypoints.service.TaskAuditService taskAuditService;
+    private final com.olehkobylianskyi.familypoints.service.TaskRewardNegotiationService taskRewardNegotiationService;
 
     public TaskController(
             TaskService taskService,
             TaskGenerationService taskGenerationService,
             TaskDeadlineService taskDeadlineService,
-            com.olehkobylianskyi.familypoints.service.TaskAuditService taskAuditService
+            com.olehkobylianskyi.familypoints.service.TaskAuditService taskAuditService,
+            com.olehkobylianskyi.familypoints.service.TaskRewardNegotiationService taskRewardNegotiationService
     ) {
         this.taskService = taskService;
         this.taskGenerationService = taskGenerationService;
         this.taskDeadlineService = taskDeadlineService;
         this.taskAuditService = taskAuditService;
+        this.taskRewardNegotiationService = taskRewardNegotiationService;
     }
 
     @PostMapping("/definitions")
@@ -301,6 +304,57 @@ public class TaskController {
                         request.getComment()
                 )
         );
+    }
+
+
+    @PostMapping("/instances/{instanceId}/reward-requests")
+    public TaskRewardRequestResponse createRewardRequest(
+            @PathVariable Long workspaceId,
+            @PathVariable Long instanceId,
+            @Valid @RequestBody TaskRewardRequestCreateRequest request
+    ) {
+        return taskRewardNegotiationService.create(workspaceId, instanceId, request);
+    }
+
+    @GetMapping("/instances/{instanceId}/reward-requests")
+    public List<TaskRewardRequestResponse> getRewardRequests(
+            @PathVariable Long workspaceId,
+            @PathVariable Long instanceId
+    ) {
+        return taskRewardNegotiationService.list(workspaceId, instanceId);
+    }
+
+    @GetMapping("/reward-requests/pending")
+    public List<TaskRewardRequestResponse> getPendingRewardRequests(
+            @PathVariable Long workspaceId
+    ) {
+        return taskRewardNegotiationService.listPending(workspaceId);
+    }
+
+    @PostMapping("/reward-requests/{requestId}/approve")
+    public TaskRewardRequestResponse approveRewardRequest(
+            @PathVariable Long workspaceId,
+            @PathVariable Long requestId,
+            @Valid @RequestBody TaskRewardRequestReviewRequest request
+    ) {
+        return taskRewardNegotiationService.approve(workspaceId, requestId, request);
+    }
+
+    @PostMapping("/reward-requests/{requestId}/reject")
+    public TaskRewardRequestResponse rejectRewardRequest(
+            @PathVariable Long workspaceId,
+            @PathVariable Long requestId,
+            @RequestParam(required = false) String comment
+    ) {
+        return taskRewardNegotiationService.reject(workspaceId, requestId, comment);
+    }
+
+    @PostMapping("/reward-requests/{requestId}/cancel")
+    public TaskRewardRequestResponse cancelRewardRequest(
+            @PathVariable Long workspaceId,
+            @PathVariable Long requestId
+    ) {
+        return taskRewardNegotiationService.cancel(workspaceId, requestId);
     }
 
 
