@@ -370,6 +370,7 @@ function CreateTaskModal({
 
           <div className="task-participants-editor">
             <h3>{t('tasks.create.participants')}</h3>
+            <p className="role-muted">{t('tasks.create.participantsHint')}</p>
             {[
               ['administrators', administrators, setAdministrators],
               ['observers', observers, setObservers],
