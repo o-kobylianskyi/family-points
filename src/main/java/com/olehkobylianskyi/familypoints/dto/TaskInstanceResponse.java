@@ -27,6 +27,8 @@ public class TaskInstanceResponse {
     private final Long penaltyPointTypeId;
     private final String penaltyPointTypeCode;
     private final Integer penaltyAmount;
+    private final Integer rewardReputationAmount;
+    private final Integer penaltyReputationAmount;
 
     private final LocalDate scheduledDate;
     private final TaskInstanceStatus status;
@@ -56,6 +58,8 @@ public class TaskInstanceResponse {
             Long penaltyPointTypeId,
             String penaltyPointTypeCode,
             Integer penaltyAmount,
+            Integer rewardReputationAmount,
+            Integer penaltyReputationAmount,
             LocalDate scheduledDate,
             TaskInstanceStatus status,
             LocalDateTime startedAt,
@@ -83,6 +87,8 @@ public class TaskInstanceResponse {
         this.penaltyPointTypeId = penaltyPointTypeId;
         this.penaltyPointTypeCode = penaltyPointTypeCode;
         this.penaltyAmount = penaltyAmount;
+        this.rewardReputationAmount = rewardReputationAmount;
+        this.penaltyReputationAmount = penaltyReputationAmount;
 
         this.scheduledDate = scheduledDate;
         this.status = status;
@@ -137,6 +143,8 @@ public class TaskInstanceResponse {
                         : null,
 
                 instance.getPenaltyAmount(),
+                instance.getRewardReputationAmount(),
+                instance.getPenaltyReputationAmount(),
 
                 instance.getScheduledDate(),
                 instance.getStatus(),
@@ -206,6 +214,9 @@ public class TaskInstanceResponse {
     public Integer getPenaltyAmount() {
         return penaltyAmount;
     }
+
+    public Integer getRewardReputationAmount() { return rewardReputationAmount; }
+    public Integer getPenaltyReputationAmount() { return penaltyReputationAmount; }
 
     public LocalDate getScheduledDate() {
         return scheduledDate;
