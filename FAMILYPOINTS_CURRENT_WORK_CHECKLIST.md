@@ -410,3 +410,15 @@ Before each substantial implementation batch:
 - [x] Switch scoped task authorization to RoleAssignment + RolePermissionGrant
 - [x] Add V11 migration for task-role bridge + system role permission presets
 - [ ] Smoke-test V11 migration and group/task flows locally
+
+
+## Task participant UI simplification
+- [x] Remove duplicate assignment controls from CreateTaskModal
+- [x] Keep Participants as the visible actor source
+- [x] Restrict ADMIN and OBSERVER to MEMBER actors
+- [x] Allow combined MEMBER + GROUP executors
+- [x] Require at least one executor before save
+- [x] Add PARTICIPANTS assignment policy for explicit executor sets
+- [x] Eligibility for PARTICIPANTS uses EXECUTOR TaskParticipants
+- [ ] Smoke-test combined executor task creation and claim visibility
+- [ ] Design true joint/multi-actor TaskInstance execution only if required by real usage
