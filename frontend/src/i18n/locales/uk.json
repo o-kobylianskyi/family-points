@@ -214,7 +214,10 @@
     "IN_PROGRESS": "Виконується",
     "COMPLETED": "Виконано",
     "MISSED": "Пропущено",
-    "EXCUSED": "Звільнено"
+    "EXCUSED": "Звільнено",
+    "PAUSED": "Призупинено",
+    "CANCELLED": "Скасовано",
+    "RELEASED": "Відмовлено"
   },
   "weekdays": {
     "monday": "Понеділок",
@@ -407,6 +410,35 @@
       "newPasswordOptional": "Новий пароль (необов'язково)",
       "allowLogin": "Дозволити вхід",
       "save": "Зберегти"
+    }
+  },
+  "taskParticipantRole": {
+    "ADMIN": "Адміністратор",
+    "OBSERVER": "Спостерігач",
+    "EXECUTOR": "Виконавець"
+  },
+  "taskAudit": {
+    "eventType": {
+      "DEFINITION_CREATED": "Завдання створено",
+      "DEFINITION_UPDATED": "Завдання оновлено",
+      "DEFINITION_ACTIVATED": "Завдання активовано",
+      "DEFINITION_DEACTIVATED": "Завдання деактивовано",
+      "INSTANCE_CREATED": "Виконання створено",
+      "INSTANCE_GENERATED": "Виконання згенеровано",
+      "INSTANCE_CLAIMED": "Завдання взято",
+      "INSTANCE_STARTED": "Виконання розпочато",
+      "INSTANCE_PAUSED": "Виконання призупинено",
+      "INSTANCE_RESUMED": "Виконання продовжено",
+      "INSTANCE_CANCELLED": "Виконання скасовано",
+      "INSTANCE_RELEASED": "Від завдання відмовились",
+      "INSTANCE_COMPLETED": "Завдання виконано",
+      "INSTANCE_MISSED": "Завдання пропущено",
+      "INSTANCE_EXCUSED": "Від виконання звільнено",
+      "INSTANCE_DELEGATED": "Завдання делеговано"
+    },
+    "details": {
+      "generatedFor": "Згенеровано на {{date}}",
+      "createdFor": "Створено на {{date}}"
     }
   }
 }
