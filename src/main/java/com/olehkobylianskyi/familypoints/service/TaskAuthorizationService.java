@@ -135,6 +135,9 @@ public class TaskAuthorizationService {
     public boolean isEligible(TaskDefinition definition, WorkspaceMember member) {
         if (!sameWorkspace(definition, member)) return false;
         AssignmentPolicy policy = definition.getAssignmentPolicy();
+        if (policy == AssignmentPolicy.PARTICIPANTS) {
+            return matchesParticipant(definition.getId(), TaskParticipantRole.EXECUTOR, member.getId());
+        }
         if (policy == AssignmentPolicy.OPEN_WORKSPACE || policy == AssignmentPolicy.PREFERRED_MEMBER) {
             if (definition.getTargetGroup() == null) return true;
         }
