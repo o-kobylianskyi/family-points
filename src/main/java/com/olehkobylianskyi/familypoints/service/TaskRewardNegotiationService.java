@@ -332,7 +332,7 @@ public class TaskRewardNegotiationService {
     }
 
     private TaskInstance getInstance(Long workspaceId, Long instanceId) {
-        return taskInstances.findByIdAndWorkspaceIdForUpdate(instanceId, workspaceId)
+        return taskInstances.findByIdAndTaskDefinitionWorkspaceId(instanceId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task instance not found: " + instanceId));
     }
 
