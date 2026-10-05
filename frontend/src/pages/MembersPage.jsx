@@ -183,6 +183,11 @@ function MembersPage() {
         })
       : role?.name
 
+  const pointTypeDisplayName = (balance) =>
+    t(`pointType.${balance.code}`, {
+      defaultValue: balance.name || balance.code,
+    })
+
   const renderGroupTree = (
     group,
     visited = new Set()
@@ -362,7 +367,7 @@ function MembersPage() {
               {balances.map((balance) => (
                 <span key={balance.pointTypeId}>
                   <strong>{balance.amount}</strong>{' '}
-                  {balance.code}
+                  {pointTypeDisplayName(balance)}
                 </span>
               ))}
             </div>
