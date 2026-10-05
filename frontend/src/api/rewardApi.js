@@ -100,3 +100,12 @@ export async function getRewardPurchases(token, workspaceId) {
   const response = await apiRequest(`/workspaces/${workspaceId}/rewards/purchases`, { token })
   return handleResponse(response, 'Failed to load reward purchases')
 }
+
+
+export async function getOpenRewardObligations(token, workspaceId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/rewards/obligations/open`,
+    { token }
+  )
+  return handleResponse(response, 'Failed to load reward obligations')
+}
