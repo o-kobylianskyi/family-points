@@ -9,5 +9,6 @@ import java.util.Optional;
 public interface RewardPurchaseRepository extends JpaRepository<RewardPurchase, Long> {
     List<RewardPurchase> findByMemberIdOrderByPurchasedAtDesc(Long memberId);
     List<RewardPurchase> findByRewardDefinitionWorkspaceIdOrderByPurchasedAtDesc(Long workspaceId);
+    List<RewardPurchase> findByMemberWorkspaceIdOrderByPurchasedAtDesc(Long workspaceId);
     Optional<RewardPurchase> findByIdAndRewardDefinitionWorkspaceId(Long id, Long workspaceId);
 }
