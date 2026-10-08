@@ -9,7 +9,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-//import org.springframework.security.config.annotation.http.SessionCreationPolicy;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -96,7 +95,11 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "https://dev.family-point.com:8443"
+        ));
 
         configuration.setAllowedMethods(
                 List.of(
@@ -112,7 +115,8 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(
                 List.of(
                         "Authorization",
-                        "Content-Type"
+                        "Content-Type",
+                        "Accept"
                 )
         );
 
