@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.olehkobylianskyi.familypoints.android.storage.LanguageStore
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import com.olehkobylianskyi.familypoints.android.ui.screens.HomeScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.LoginScreen
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val tokenStore = TokenStore(this)
+        val languageStore = LanguageStore(this)
 
         setContent {
             FamilyPointsTheme {
@@ -27,8 +29,17 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(tokenStore.getAccessToken())
                 }
 
+                var language by remember {
+                    mutableStateOf(languageStore.getLanguage())
+                }
+
                 if (accessToken.isNullOrBlank()) {
                     LoginScreen(
+                        language = language,
+                        onLanguageChange = { selected ->
+                            languageStore.saveLanguage(selected)
+                            language = selected
+                        },
                         onLoginSuccess = { token ->
                             tokenStore.saveAccessToken(token)
                             accessToken = token
@@ -36,6 +47,7 @@ class MainActivity : ComponentActivity() {
                     )
                 } else {
                     HomeScreen(
+                        language = language,
                         onLogout = {
                             tokenStore.clear()
                             accessToken = null
