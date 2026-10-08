@@ -6,10 +6,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -24,25 +29,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.olehkobylianskyi.familypoints.android.data.LoginRequest
+import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.strings
-import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.IOException
 
 @Composable
 fun LoginScreen(
     language: AppLanguage,
     onLanguageChange: (AppLanguage) -> Unit,
-    onLoginSuccess: (String) -> Unit
+    onLogin: suspend (String, String) -> CurrentUserResponse,
+    onLoginSuccess: (CurrentUserResponse) -> Unit
 ) {
-    var username by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("oleh") }
     var password by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf("") }
     var languageMenuOpen by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
@@ -55,31 +60,13 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "FamilyPoints",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Text(
-            text = text.loginSubtitle,
-            modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
-        )
-
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.End
         ) {
-            Text(
-                text = text.language,
-                style = MaterialTheme.typography.labelMedium
-            )
-
             OutlinedButton(
                 onClick = { languageMenuOpen = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp)
+                enabled = !loading
             ) {
                 Text(language.label)
             }
@@ -100,6 +87,23 @@ fun LoginScreen(
             }
         }
 
+        Text(
+            text = "FP",
+            style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier.padding(top = 20.dp)
+        )
+
+        Text(
+            text = "FamilyPoints",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        Text(
+            text = text.loginSubtitle,
+            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
+        )
+
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
@@ -118,13 +122,38 @@ fun LoginScreen(
             label = { Text(text.password) },
             singleLine = true,
             enabled = !loading,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            visualTransformation = if (showPassword) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password
+            ),
+            trailingIcon = {
+                IconButton(
+                    onClick = { showPassword = !showPassword },
+                    enabled = !loading
+                ) {
+                    Icon(
+                        imageVector = if (showPassword) {
+                            Icons.Filled.VisibilityOff
+                        } else {
+                            Icons.Filled.Visibility
+                        },
+                        contentDescription = if (showPassword) {
+                            text.hidePassword
+                        } else {
+                            text.showPassword
+                        }
+                    )
+                }
+            }
         )
 
-        if (error != null) {
+        if (error.isNotBlank()) {
             Text(
-                text = error!!,
+                text = error,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(top = 12.dp)
             )
@@ -132,33 +161,16 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                if (username.isBlank() || password.isBlank()) {
-                    error = text.enterCredentials
-                    return@Button
-                }
-
                 scope.launch {
+                    error = ""
                     loading = true
-                    error = null
 
                     try {
-                        val response = ApiClient.authApi.login(
-                            LoginRequest(
-                                username = username.trim(),
-                                password = password
-                            )
-                        )
-                        onLoginSuccess(response.accessToken)
-                    } catch (exception: HttpException) {
-                        error = if (exception.code() == 401) {
-                            text.invalidCredentials
-                        } else {
-                            "${text.serverError}: ${exception.code()}"
-                        }
-                    } catch (_: IOException) {
-                        error = text.noConnection
+                        val user = onLogin(username, password)
+                        password = ""
+                        onLoginSuccess(user)
                     } catch (_: Exception) {
-                        error = text.loginFailed
+                        error = text.invalidCredentials
                     } finally {
                         loading = false
                     }
