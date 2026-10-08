@@ -1,15 +1,15 @@
 package com.olehkobylianskyi.familypoints.android.i18n
 
 data class AppStrings(
+    val loading: String,
     val loginSubtitle: String,
     val username: String,
     val password: String,
     val login: String,
-    val enterCredentials: String,
+    val loggingIn: String,
     val invalidCredentials: String,
-    val serverError: String,
-    val noConnection: String,
-    val loginFailed: String,
+    val showPassword: String,
+    val hidePassword: String,
     val loginSuccessful: String,
     val logout: String,
     val language: String
@@ -17,60 +17,60 @@ data class AppStrings(
 
 fun strings(language: AppLanguage): AppStrings = when (language) {
     AppLanguage.UK -> AppStrings(
-        loginSubtitle = "Увійдіть у свій акаунт",
+        loading = "Завантаження...",
+        loginSubtitle = "Сімейні завдання, бали та нагороди",
         username = "Логін",
         password = "Пароль",
         login = "Увійти",
-        enterCredentials = "Введіть логін і пароль",
+        loggingIn = "Вхід...",
         invalidCredentials = "Неправильний логін або пароль",
-        serverError = "Помилка сервера",
-        noConnection = "Немає з'єднання із сервером",
-        loginFailed = "Не вдалося виконати вхід",
+        showPassword = "Показати пароль",
+        hidePassword = "Приховати пароль",
         loginSuccessful = "Вхід успішний",
         logout = "Вийти",
         language = "Мова"
     )
 
     AppLanguage.DE -> AppStrings(
-        loginSubtitle = "Melden Sie sich bei Ihrem Konto an",
+        loading = "Wird geladen...",
+        loginSubtitle = "Familienaufgaben, Punkte und Belohnungen",
         username = "Benutzername",
         password = "Passwort",
         login = "Anmelden",
-        enterCredentials = "Benutzername und Passwort eingeben",
+        loggingIn = "Anmeldung...",
         invalidCredentials = "Benutzername oder Passwort ist falsch",
-        serverError = "Serverfehler",
-        noConnection = "Keine Verbindung zum Server",
-        loginFailed = "Anmeldung fehlgeschlagen",
+        showPassword = "Passwort anzeigen",
+        hidePassword = "Passwort ausblenden",
         loginSuccessful = "Anmeldung erfolgreich",
         logout = "Abmelden",
         language = "Sprache"
     )
 
     AppLanguage.EN -> AppStrings(
-        loginSubtitle = "Sign in to your account",
+        loading = "Loading...",
+        loginSubtitle = "Workspace tasks, points and rewards",
         username = "Username",
         password = "Password",
-        login = "Sign in",
-        enterCredentials = "Enter username and password",
+        login = "Log in",
+        loggingIn = "Logging in...",
         invalidCredentials = "Incorrect username or password",
-        serverError = "Server error",
-        noConnection = "No connection to the server",
-        loginFailed = "Sign in failed",
-        loginSuccessful = "Signed in successfully",
-        logout = "Sign out",
+        showPassword = "Show password",
+        hidePassword = "Hide password",
+        loginSuccessful = "Logged in successfully",
+        logout = "Log out",
         language = "Language"
     )
 
     AppLanguage.RU -> AppStrings(
-        loginSubtitle = "Войдите в свой аккаунт",
+        loading = "Загрузка...",
+        loginSubtitle = "Семейные задания, баллы и награды",
         username = "Логин",
         password = "Пароль",
         login = "Войти",
-        enterCredentials = "Введите логин и пароль",
-        invalidCredentials = "Неправильный логин или пароль",
-        serverError = "Ошибка сервера",
-        noConnection = "Нет соединения с сервером",
-        loginFailed = "Не удалось выполнить вход",
+        loggingIn = "Вход...",
+        invalidCredentials = "Неверный логин или пароль",
+        showPassword = "Показать пароль",
+        hidePassword = "Скрыть пароль",
         loginSuccessful = "Вход выполнен",
         logout = "Выйти",
         language = "Язык"
