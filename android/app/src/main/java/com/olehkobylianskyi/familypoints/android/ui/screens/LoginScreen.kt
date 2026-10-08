@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +26,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.LoginRequest
+import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
+import com.olehkobylianskyi.familypoints.android.i18n.strings
 import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -30,13 +35,18 @@ import java.io.IOException
 
 @Composable
 fun LoginScreen(
+    language: AppLanguage,
+    onLanguageChange: (AppLanguage) -> Unit,
     onLoginSuccess: (String) -> Unit
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var languageMenuOpen by remember { mutableStateOf(false) }
+
     val scope = rememberCoroutineScope()
+    val text = strings(language)
 
     Column(
         modifier = Modifier
@@ -51,15 +61,50 @@ fun LoginScreen(
         )
 
         Text(
-            text = "Увійдіть у свій акаунт",
-            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
+            text = text.loginSubtitle,
+            modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
         )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        ) {
+            Text(
+                text = text.language,
+                style = MaterialTheme.typography.labelMedium
+            )
+
+            OutlinedButton(
+                onClick = { languageMenuOpen = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 6.dp)
+            ) {
+                Text(language.label)
+            }
+
+            DropdownMenu(
+                expanded = languageMenuOpen,
+                onDismissRequest = { languageMenuOpen = false }
+            ) {
+                AppLanguage.entries.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(item.label) },
+                        onClick = {
+                            onLanguageChange(item)
+                            languageMenuOpen = false
+                        }
+                    )
+                }
+            }
+        }
 
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Логін") },
+            label = { Text(text.username) },
             singleLine = true,
             enabled = !loading
         )
@@ -70,7 +115,7 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp),
-            label = { Text("Пароль") },
+            label = { Text(text.password) },
             singleLine = true,
             enabled = !loading,
             visualTransformation = PasswordVisualTransformation(),
@@ -88,7 +133,7 @@ fun LoginScreen(
         Button(
             onClick = {
                 if (username.isBlank() || password.isBlank()) {
-                    error = "Введіть логін і пароль"
+                    error = text.enterCredentials
                     return@Button
                 }
 
@@ -106,14 +151,14 @@ fun LoginScreen(
                         onLoginSuccess(response.accessToken)
                     } catch (exception: HttpException) {
                         error = if (exception.code() == 401) {
-                            "Неправильний логін або пароль"
+                            text.invalidCredentials
                         } else {
-                            "Помилка сервера: ${exception.code()}"
+                            "${text.serverError}: ${exception.code()}"
                         }
                     } catch (_: IOException) {
-                        error = "Немає з'єднання із сервером"
+                        error = text.noConnection
                     } catch (_: Exception) {
-                        error = "Не вдалося виконати вхід"
+                        error = text.loginFailed
                     } finally {
                         loading = false
                     }
@@ -127,7 +172,7 @@ fun LoginScreen(
             if (loading) {
                 CircularProgressIndicator()
             } else {
-                Text("Увійти")
+                Text(text.login)
             }
         }
     }
