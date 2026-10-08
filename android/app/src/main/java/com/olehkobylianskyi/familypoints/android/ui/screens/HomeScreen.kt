@@ -11,12 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.strings
 
 @Composable
 fun HomeScreen(
     language: AppLanguage,
+    currentUser: CurrentUserResponse,
     onLogout: () -> Unit
 ) {
     val text = strings(language)
@@ -34,8 +36,14 @@ fun HomeScreen(
         )
 
         Text(
-            text = text.loginSuccessful,
-            modifier = Modifier.padding(top = 12.dp, bottom = 24.dp)
+            text = currentUser.memberName,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 12.dp)
+        )
+
+        Text(
+            text = "@${currentUser.username}",
+            modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
         )
 
         Button(onClick = onLogout) {
