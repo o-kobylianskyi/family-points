@@ -1,4 +1,7 @@
-const API_URL = `http://${window.location.hostname}:8080`
+const API_URL =
+    ['localhost', '127.0.0.1'].includes(window.location.hostname)
+        ? 'http://localhost:8080'
+        : 'https://api-dev.family-point.com:8443'
 
 export async function login(username, password) {
   const response = await fetch(`${API_URL}/auth/login`, {

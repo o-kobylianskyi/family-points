@@ -1,3 +1,4 @@
+
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
@@ -9,5 +10,18 @@ export default defineConfig({
       'react',
       'react-dom',
     ],
+  },
+
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
+
+    // Дозволяємо доступ через майбутній HTTPS proxy Contabo.
+    // Публічні домени додамо після їх створення.
+    allowedHosts: [],
+
+    // HMR поки залишаємо локальним.
+    // Для віддаленого DEV налаштуємо окремо.
   },
 })
