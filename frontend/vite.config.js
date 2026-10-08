@@ -17,9 +17,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
 
-    // Дозволяємо доступ через майбутній HTTPS proxy Contabo.
-    // Публічні домени додамо після їх створення.
-    allowedHosts: [],
+    // Localhost/IP addresses are allowed by Vite automatically.
+    // Explicitly allow the DEV hostname used by the reverse proxy.
+    allowedHosts: ['dev.family-point.com'],
 
     // HMR поки залишаємо локальним.
     // Для віддаленого DEV налаштуємо окремо.
