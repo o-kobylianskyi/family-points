@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -181,11 +180,9 @@ fun LoginScreen(
                 .padding(top = 20.dp),
             enabled = !loading
         ) {
-            if (loading) {
-                CircularProgressIndicator()
-            } else {
-                Text(text.login)
-            }
+            Text(
+                if (loading) text.loggingIn else text.login
+            )
         }
     }
 }
