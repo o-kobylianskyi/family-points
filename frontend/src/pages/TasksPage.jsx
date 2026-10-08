@@ -188,6 +188,10 @@ function TasksPage() {
   }
 
   const loadManagedTasks = async () => {
+    if (pageTab !== 'management') {
+      return
+    }
+
     try {
       const token = getAccessToken()
       const definitions = await getTaskDefinitionsByView(token, currentUser.workspaceId, managementView)
@@ -208,7 +212,9 @@ function TasksPage() {
   }
 
   useEffect(() => {
-    loadManagedTasks()
+    if (pageTab === 'management') {
+      loadManagedTasks()
+    }
   }, [managementView, pageTab, currentUser.workspaceId, getAccessToken])
 
   const handleDefinitionActive = async (task) => {
