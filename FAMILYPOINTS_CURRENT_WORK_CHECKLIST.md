@@ -512,3 +512,19 @@ Before each substantial implementation batch:
 - [ ] Add duration editing to all free-form reward request flows
 - [ ] Integrate purchased time rewards with app/screen-time timers
 - [ ] Smoke-test V17 and time-based reward flow locally
+
+
+## Android app
+- [x] Add native Android project under /android
+- [x] Add INTERNET permission
+- [x] Add Retrofit / OkHttp networking foundation
+- [x] Add native Compose Login screen
+- [x] Authenticate against /auth/login
+- [x] Persist JWT access token locally
+- [x] Add minimal authenticated Home screen and logout
+- [ ] Load /api/me after login and restore
+- [ ] Add native navigation
+- [ ] Add Tasks screen
+- [ ] Add Rewards screen
+- [ ] Add balances/dashboard
+- [ ] Add Android app-control/time-control layer
