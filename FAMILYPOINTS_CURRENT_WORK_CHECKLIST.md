@@ -534,3 +534,14 @@ Before each substantial implementation batch:
 - [ ] Add Android app-control/time-control layer
 
 - [x] Add native Points screen (members/balance/history/manual operations)
+
+## Android Members — 2026-10-10 initial native port
+
+- [x] Add Members API/repository and native navigation destination
+- [x] Members/Groups mobile tabs and shared AppHeader
+- [x] Load members, workspace roles and member groups
+- [x] Permission-gated add/edit/delete member dialog and confirmation
+- [x] Create group and render nested group tree with cycle guard
+- [ ] Port full GroupEditor: group edit, composition, role assignments, balances, permissions, lifecycle
+- [ ] Validate Members API DTO shape and permission edge cases against running backend
+- [ ] Verify Kotlin compile and Android runtime locally (not run by assistant)
