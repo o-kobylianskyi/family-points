@@ -31,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.GroupUpdateRequest
+import com.olehkobylianskyi.familypoints.android.data.GroupRoleResponse
+import com.olehkobylianskyi.familypoints.android.data.GroupRoleSaveRequest
 import com.olehkobylianskyi.familypoints.android.data.MemberSaveRequest
 import com.olehkobylianskyi.familypoints.android.data.MembersGroupResponse
 import com.olehkobylianskyi.familypoints.android.data.MembersPageData
@@ -214,6 +216,12 @@ fun MembersScreen(
             } },
             onMemberRoles = { id, roles -> mutate {
                 repository.setGroupMemberRoles(currentUser.workspaceId, groupToEdit.id, id, roles)
+            } },
+            onSaveRole = { roleId, request -> mutate {
+                repository.saveGroupRole(currentUser.workspaceId, groupToEdit.id, roleId, request)
+            } },
+            onDeleteRole = { roleId -> mutate {
+                repository.deleteGroupRole(currentUser.workspaceId, groupToEdit.id, roleId)
             } }
         )
     }
@@ -336,7 +344,9 @@ private fun GroupEditorDialog(
     onRemoveMember: (Long) -> Unit,
     onAddChild: (Long) -> Unit,
     onRemoveChild: (Long) -> Unit,
-    onMemberRoles: (Long, List<Long>) -> Unit
+    onMemberRoles: (Long, List<Long>) -> Unit,
+    onSaveRole: (Long?, GroupRoleSaveRequest) -> Unit,
+    onDeleteRole: (Long) -> Unit
 ) {
     var name by remember(group.id) { mutableStateOf(group.name) }
     var description by remember(group.id) { mutableStateOf(group.description ?: "") }
@@ -346,6 +356,18 @@ private fun GroupEditorDialog(
     var selectedRoleMember by remember(group.id) { mutableStateOf<Long?>(null) }
     var chosenRoles by remember(group.id) { mutableStateOf<Set<Long>>(emptySet()) }
     var openMenu by remember { mutableStateOf("") }
+    var editingRole by remember(group.id) { mutableStateOf<GroupRoleResponse?>(null) }
+    var roleDialog by remember(group.id) { mutableStateOf(false) }
+    var roleName by remember(group.id) { mutableStateOf("") }
+    var roleDescription by remember(group.id) { mutableStateOf("") }
+    var roleToDelete by remember(group.id) { mutableStateOf<GroupRoleResponse?>(null) }
+
+    fun openRole(role: GroupRoleResponse?) {
+        editingRole = role
+        roleName = role?.name ?: ""
+        roleDescription = role?.description ?: ""
+        roleDialog = true
+    }
 
     val memberCandidates = members.filter { item ->
         group.members.orEmpty().none { it.memberId == item.id }
@@ -436,7 +458,22 @@ private fun GroupEditorDialog(
                 item {
                     Text(memberText(language, "Доступні ролі", "Verfügbare Rollen", "Available roles", "Доступные роли"),
                         style = MaterialTheme.typography.titleMedium)
-                    group.roles.orEmpty().forEach { role -> Text("• " + role.name) }
+                    group.roles.orEmpty().forEach { role ->
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(role.name, modifier = Modifier.weight(1f))
+                            if (role.visibility == "PRIVATE" && role.systemDefault != true) {
+                                TextButton(enabled = !busy, onClick = { openRole(role) }) {
+                                    Text(memberText(language, "Змінити", "Ändern", "Edit", "Изменить"))
+                                }
+                                TextButton(enabled = !busy, onClick = { roleToDelete = role }) {
+                                    Text("×")
+                                }
+                            }
+                        }
+                    }
+                    OutlinedButton(enabled = !busy, onClick = { openRole(null) }) {
+                        Text(memberText(language, "+ Локальна роль", "+ Lokale Rolle", "+ Local role", "+ Локальная роль"))
+                    }
                 }
             }
         },
@@ -451,6 +488,69 @@ private fun GroupEditorDialog(
             }
         }
     )
+    if (roleDialog) {
+        val duplicate = group.roles.orEmpty().any {
+            it.id != editingRole?.id && it.name.trim().equals(roleName.trim(), ignoreCase = true)
+        }
+        AlertDialog(
+            onDismissRequest = { if (!busy) roleDialog = false },
+            title = { Text(memberText(language, "Локальна роль", "Lokale Rolle", "Local role", "Локальная роль")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = roleName,
+                        onValueChange = { roleName = it },
+                        label = { Text(memberText(language, "Назва", "Name", "Name", "Название")) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = roleDescription,
+                        onValueChange = { roleDescription = it },
+                        label = { Text(memberText(language, "Опис", "Beschreibung", "Description", "Описание")) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (duplicate) Text(
+                        memberText(language, "Роль із такою назвою вже існує", "Name bereits vorhanden",
+                            "Role name already exists", "Роль с таким названием уже существует"),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            confirmButton = {
+                Button(enabled = !busy && roleName.isNotBlank() && !duplicate, onClick = {
+                    onSaveRole(
+                        editingRole?.id,
+                        GroupRoleSaveRequest(roleName.trim(), roleDescription.trim().ifBlank { null }, editingRole?.roleSetId)
+                    )
+                    roleDialog = false
+                }) { Text(memberText(language, "Зберегти", "Speichern", "Save", "Сохранить")) }
+            },
+            dismissButton = {
+                TextButton(enabled = !busy, onClick = { roleDialog = false }) {
+                    Text(memberText(language, "Скасувати", "Abbrechen", "Cancel", "Отмена"))
+                }
+            }
+        )
+    }
+    roleToDelete?.let { role ->
+        AlertDialog(
+            onDismissRequest = { roleToDelete = null },
+            title = { Text(memberText(language, "Видалити локальну роль?", "Lokale Rolle löschen?",
+                "Delete local role?", "Удалить локальную роль?")) },
+            text = { Text(role.name) },
+            confirmButton = {
+                Button(enabled = !busy, onClick = {
+                    onDeleteRole(role.id)
+                    roleToDelete = null
+                }) { Text(memberText(language, "Видалити", "Löschen", "Delete", "Удалить")) }
+            },
+            dismissButton = {
+                TextButton(onClick = { roleToDelete = null }) {
+                    Text(memberText(language, "Скасувати", "Abbrechen", "Cancel", "Отмена"))
+                }
+            }
+        )
+    }
     if (activeRoleMember != null) {
         AlertDialog(
             onDismissRequest = { selectedRoleMember = null },
