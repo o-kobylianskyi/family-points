@@ -1,7 +1,5 @@
 package com.olehkobylianskyi.familypoints.android.ui.screens
 
-import android.content.res.Configuration
-import android.os.LocaleList
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,11 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskDefinitionResponse
@@ -36,7 +35,11 @@ import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
 import com.olehkobylianskyi.familypoints.android.i18n.tasksStrings
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 import kotlinx.coroutines.launch
 
@@ -63,11 +66,13 @@ fun TasksScreen(
     onUnauthorized: () -> Unit
 ) {
     val text = tasksStrings(language)
-    val context = LocalContext.current
-
     var members by remember { mutableStateOf<List<WorkspaceMemberResponse>>(emptyList()) }
     var selectedMemberId by remember { mutableStateOf<Long?>(null) }
     var selectedDate by remember { mutableStateOf(LocalDate.now().toString()) }
+    var calendarOpen by remember { mutableStateOf(false) }
+    var calendarMonth by remember {
+        mutableStateOf(YearMonth.from(LocalDate.now()))
+    }
 
     var tasks by remember { mutableStateOf<List<TaskInstanceResponse>>(emptyList()) }
     var openTasks by remember { mutableStateOf<List<TaskDefinitionResponse>>(emptyList()) }
@@ -174,6 +179,31 @@ fun TasksScreen(
         }
     }
 
+    if (calendarOpen) {
+        LocalizedCalendarDialog(
+            language = language,
+            selectedDate = try {
+                LocalDate.parse(selectedDate)
+            } catch (_: Exception) {
+                LocalDate.now()
+            },
+            visibleMonth = calendarMonth,
+            onPreviousMonth = {
+                calendarMonth = calendarMonth.minusMonths(1)
+            },
+            onNextMonth = {
+                calendarMonth = calendarMonth.plusMonths(1)
+            },
+            onDateSelected = { date ->
+                selectedDate = date.toString()
+                calendarOpen = false
+            },
+            onDismiss = {
+                calendarOpen = false
+            }
+        )
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -252,29 +282,8 @@ fun TasksScreen(
                         } catch (_: Exception) {
                             LocalDate.now()
                         }
-
-                        val locale = Locale.forLanguageTag(language.code)
-                        val configuration = Configuration(
-                            context.resources.configuration
-                        ).apply {
-                            setLocales(LocaleList(locale))
-                        }
-                        val localizedContext =
-                            context.createConfigurationContext(configuration)
-
-                        android.app.DatePickerDialog(
-                            localizedContext,
-                            { _, year, month, dayOfMonth ->
-                                selectedDate = LocalDate.of(
-                                    year,
-                                    month + 1,
-                                    dayOfMonth
-                                ).toString()
-                            },
-                            currentDate.year,
-                            currentDate.monthValue - 1,
-                            currentDate.dayOfMonth
-                        ).show()
+                        calendarMonth = YearMonth.from(currentDate)
+                        calendarOpen = true
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -692,3 +701,116 @@ private fun ManagedTaskCard(
     }
 }
 
+
+
+@Composable
+private fun LocalizedCalendarDialog(
+    language: AppLanguage,
+    selectedDate: LocalDate,
+    visibleMonth: YearMonth,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit,
+    onDateSelected: (LocalDate) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val locale = Locale.forLanguageTag(language.code)
+    val monthTitle = visibleMonth
+        .atDay(1)
+        .format(DateTimeFormatter.ofPattern("LLLL yyyy", locale))
+        .replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(locale) else it.toString()
+        }
+
+    val firstDay = visibleMonth.atDay(1)
+    val firstOffset = (firstDay.dayOfWeek.value - DayOfWeek.MONDAY.value + 7) % 7
+    val daysInMonth = visibleMonth.lengthOfMonth()
+    val cells = List(firstOffset) { null } +
+        (1..daysInMonth).map { visibleMonth.atDay(it) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(onClick = onPreviousMonth) {
+                    Text("‹")
+                }
+                Text(
+                    monthTitle,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+                TextButton(onClick = onNextMonth) {
+                    Text("›")
+                }
+            }
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    DayOfWeek.entries.forEach { day ->
+                        Text(
+                            text = day.getDisplayName(
+                                TextStyle.SHORT,
+                                locale
+                            ),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+
+                cells.chunked(7).forEach { week ->
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        week.forEach { date ->
+                            if (date == null) {
+                                Text(
+                                    text = "",
+                                    modifier = Modifier.weight(1f)
+                                )
+                            } else {
+                                val isSelected = date == selectedDate
+                                TextButton(
+                                    onClick = { onDateSelected(date) },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = date.dayOfMonth.toString(),
+                                        style = if (isSelected) {
+                                            MaterialTheme.typography.titleSmall
+                                        } else {
+                                            MaterialTheme.typography.bodyMedium
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        repeat(7 - week.size) {
+                            Text(
+                                text = "",
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    when (language) {
+                        AppLanguage.UK -> "Скасувати"
+                        AppLanguage.DE -> "Abbrechen"
+                        AppLanguage.EN -> "Cancel"
+                        AppLanguage.RU -> "Отмена"
+                    }
+                )
+            }
+        }
+    )
+}
