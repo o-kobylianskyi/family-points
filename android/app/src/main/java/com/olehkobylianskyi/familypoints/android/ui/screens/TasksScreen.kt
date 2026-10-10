@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
@@ -34,6 +35,7 @@ import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
 import com.olehkobylianskyi.familypoints.android.i18n.tasksStrings
 import java.time.LocalDate
+import kotlinx.coroutines.launch
 
 private enum class TasksPageTab {
     MY,
@@ -453,6 +455,7 @@ private fun TaskInstanceCard(
     onOpen: () -> Unit
 ) {
     val text = tasksStrings(language)
+    val scope = rememberCoroutineScope()
 
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -516,21 +519,21 @@ private fun TaskInstanceCard(
             ) {
                 when (task.status) {
                     "PENDING" -> Button(
-                        onClick = { launchTaskAction(onAction, "start") },
+                        onClick = { scope.launch { onAction("start") } },
                         enabled = !processing
                     ) {
                         Text(text.start)
                     }
 
                     "IN_PROGRESS" -> Button(
-                        onClick = { launchTaskAction(onAction, "complete") },
+                        onClick = { scope.launch { onAction("complete") } },
                         enabled = !processing
                     ) {
                         Text(text.complete)
                     }
 
                     "PAUSED" -> Button(
-                        onClick = { launchTaskAction(onAction, "resume") },
+                        onClick = { scope.launch { onAction("resume") } },
                         enabled = !processing
                     ) {
                         Text(text.resume)
@@ -554,6 +557,7 @@ private fun OpenTaskCard(
     onClaim: suspend () -> Unit
 ) {
     val text = tasksStrings(language)
+    val scope = rememberCoroutineScope()
 
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -594,7 +598,7 @@ private fun OpenTaskCard(
             }
 
             Button(
-                onClick = { launchTaskAction(onClaim) },
+                onClick = { scope.launch { onClaim() } },
                 enabled = !processing
             ) {
                 Text(text.claim)
@@ -656,27 +660,3 @@ private fun ManagedTaskCard(
     }
 }
 
-@Composable
-private fun launchTaskAction(
-    action: suspend () -> Unit
-) {
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        scope.launch {
-            action()
-        }
-    }
-}
-
-@Composable
-private fun launchTaskAction(
-    action: suspend (String) -> Unit,
-    value: String
-) {
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        scope.launch {
-            action(value)
-        }
-    }
-}
