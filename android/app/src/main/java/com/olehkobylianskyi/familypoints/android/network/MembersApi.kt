@@ -4,6 +4,7 @@ import com.olehkobylianskyi.familypoints.android.data.MemberGroupCreateRequest
 import com.olehkobylianskyi.familypoints.android.data.MemberSaveRequest
 import com.olehkobylianskyi.familypoints.android.data.GroupUpdateRequest
 import com.olehkobylianskyi.familypoints.android.data.GroupRoleSaveRequest
+import com.olehkobylianskyi.familypoints.android.data.GroupPointOperationRequest
 import com.olehkobylianskyi.familypoints.android.data.GroupPermissionGrantResponse
 import com.olehkobylianskyi.familypoints.android.data.GroupPermissionGrantRequest
 import com.olehkobylianskyi.familypoints.android.data.AddGroupMemberRequest
@@ -157,6 +158,14 @@ interface MembersApi {
         @Path("groupId") groupId: Long,
         @Path("grantId") grantId: Long
     ): retrofit2.Response<Unit>
+
+    @POST("workspaces/{workspaceId}/member-groups/{groupId}/points")
+    suspend fun postGroupPoints(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Body request: GroupPointOperationRequest
+    ): MembersGroupResponse
 
     @POST("workspaces/{workspaceId}/member-groups")
     suspend fun createGroup(
