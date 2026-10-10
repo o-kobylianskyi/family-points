@@ -226,8 +226,9 @@ fun MembersScreen(
             onMemberRoles = { id, roles -> mutate {
                 repository.setGroupMemberRoles(currentUser.workspaceId, groupToEdit.id, id, roles)
             } },
-            onSaveRole = { roleId, request -> mutate {
-                repository.saveGroupRole(currentUser.workspaceId, groupToEdit.id, roleId, request)
+            onSaveRole = { roleId, request, permissions -> mutate {
+                repository.saveGroupRole(currentUser.workspaceId, groupToEdit.id, roleId, request, permissions)
+                grants = repository.getGroupPermissions(currentUser.workspaceId, groupToEdit.id)
             } },
             onDeleteRole = { roleId -> mutate {
                 repository.deleteGroupRole(currentUser.workspaceId, groupToEdit.id, roleId)
@@ -359,7 +360,7 @@ private fun GroupEditorDialog(
     onAddChild: (Long) -> Unit,
     onRemoveChild: (Long) -> Unit,
     onMemberRoles: (Long, List<Long>) -> Unit,
-    onSaveRole: (Long?, GroupRoleSaveRequest) -> Unit,
+    onSaveRole: (Long?, GroupRoleSaveRequest, Map<String, String>?) -> Unit,
     onDeleteRole: (Long) -> Unit,
     onSavePermissions: (Long, Map<String, String>) -> Unit
 ) {
@@ -657,7 +658,8 @@ private fun GroupEditorDialog(
                 Button(enabled = !busy && roleName.isNotBlank() && !duplicate, onClick = {
                     onSaveRole(
                         editingRole?.id,
-                        GroupRoleSaveRequest(roleName.trim(), roleDescription.trim().ifBlank { null }, editingRole?.roleSetId)
+                        GroupRoleSaveRequest(roleName.trim(), roleDescription.trim().ifBlank { null }, editingRole?.roleSetId),
+                        permissionPresets[roleProfile]
                     )
                     roleDialog = false
                 }) { Text(memberText(language, "Зберегти", "Speichern", "Save", "Сохранить")) }
