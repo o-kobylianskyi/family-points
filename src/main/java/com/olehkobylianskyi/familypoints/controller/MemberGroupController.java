@@ -1,4 +1,5 @@
 package com.olehkobylianskyi.familypoints.controller;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.olehkobylianskyi.familypoints.dto.*; import com.olehkobylianskyi.familypoints.service.MemberGroupService; import jakarta.validation.Valid; import org.springframework.http.*; import org.springframework.web.bind.annotation.*; import java.util.*;
 @RestController @RequestMapping("/workspaces/{workspaceId}/member-groups") public class MemberGroupController {
  private final MemberGroupService service; public MemberGroupController(MemberGroupService s){service=s;}
@@ -18,5 +19,5 @@ import com.olehkobylianskyi.familypoints.dto.*; import com.olehkobylianskyi.fami
  @GetMapping("/{groupId}/permissions") public List<GroupPermissionGrantResponse> permissions(@PathVariable Long workspaceId,@PathVariable Long groupId){return service.getPermissionGrants(workspaceId,groupId);}
  @PostMapping("/{groupId}/roles/{roleId}/permissions") @ResponseStatus(HttpStatus.CREATED) public GroupPermissionGrantResponse addPermission(@PathVariable Long workspaceId,@PathVariable Long groupId,@PathVariable Long roleId,@Valid @RequestBody GroupPermissionGrantRequest r){return service.addPermissionGrant(workspaceId,groupId,roleId,r.getPermission(),r.getScope());}
  @DeleteMapping("/{groupId}/permissions/{grantId}") @ResponseStatus(HttpStatus.NO_CONTENT) public void removePermission(@PathVariable Long workspaceId,@PathVariable Long groupId,@PathVariable Long grantId){service.removePermissionGrant(workspaceId,groupId,grantId);}
- @PostMapping("/{groupId}/points") public MemberGroupResponse points(@PathVariable Long workspaceId,@PathVariable Long groupId,@Valid @RequestBody GroupPointOperationRequest r){return service.addPoints(workspaceId,groupId,r.getPointTypeId(),r.getAmount(),r.getType(),r.getDescription());}
+ @PreAuthorize("@workspaceSecurity.canManagePoints(#workspaceId)") @PostMapping("/{groupId}/points") public MemberGroupResponse points(@PathVariable Long workspaceId,@PathVariable Long groupId,@Valid @RequestBody GroupPointOperationRequest r){return service.addPoints(workspaceId,groupId,r.getPointTypeId(),r.getAmount(),r.getType(),r.getDescription());}
 }
