@@ -48,7 +48,11 @@ data class CreateTaskStrings(
     val simple: String,
     val normal: String,
     val hard: String,
-    val custom: String
+    val custom: String,
+    val pointsName: String,
+    val copperName: String,
+    val silverName: String,
+    val goldName: String
 )
 
 fun createTaskStrings(language: AppLanguage): CreateTaskStrings = when (language) {
@@ -100,7 +104,11 @@ fun createTaskStrings(language: AppLanguage): CreateTaskStrings = when (language
         simple = "Просте",
         normal = "Звичайне",
         hard = "Складне",
-        custom = "Власна"
+        custom = "Власна",
+        pointsName = "Бали",
+        copperName = "Мідь",
+        silverName = "Срібло",
+        goldName = "Золото"
     )
 
     AppLanguage.DE -> CreateTaskStrings(
@@ -151,7 +159,11 @@ fun createTaskStrings(language: AppLanguage): CreateTaskStrings = when (language
         simple = "Einfach",
         normal = "Normal",
         hard = "Schwierig",
-        custom = "Eigene"
+        custom = "Eigene",
+        pointsName = "Punkte",
+        copperName = "Kupfer",
+        silverName = "Silber",
+        goldName = "Gold"
     )
 
     AppLanguage.EN -> CreateTaskStrings(
@@ -202,7 +214,11 @@ fun createTaskStrings(language: AppLanguage): CreateTaskStrings = when (language
         simple = "Simple",
         normal = "Normal",
         hard = "Hard",
-        custom = "Custom"
+        custom = "Custom",
+        pointsName = "Points",
+        copperName = "Copper",
+        silverName = "Silver",
+        goldName = "Gold"
     )
 
     AppLanguage.RU -> CreateTaskStrings(
@@ -253,6 +269,10 @@ fun createTaskStrings(language: AppLanguage): CreateTaskStrings = when (language
         simple = "Простое",
         normal = "Обычное",
         hard = "Сложное",
-        custom = "Своё"
+        custom = "Своё",
+        pointsName = "Баллы",
+        copperName = "Медь",
+        silverName = "Серебро",
+        goldName = "Золото"
     )
 }
