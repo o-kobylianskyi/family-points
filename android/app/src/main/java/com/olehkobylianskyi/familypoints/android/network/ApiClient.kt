@@ -51,6 +51,10 @@ object ApiClient {
         retrofit.create(RewardsApi::class.java)
     }
 
+    val membersApi: MembersApi by lazy {
+        retrofit.create(MembersApi::class.java)
+    }
+
     val pointsApi: PointsApi by lazy {
         retrofit.create(PointsApi::class.java)
     }
