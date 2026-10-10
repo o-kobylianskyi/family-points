@@ -4,6 +4,24 @@ import com.olehkobylianskyi.familypoints.android.data.*
 import retrofit2.http.*
 
 interface SettingsApi {
+    @GET("workspaces/{workspaceId}/economy/point-types")
+    suspend fun pointTypes(
+        @Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long
+    ): List<PointTypeResponse>
+
+    @GET("workspaces/{workspaceId}/economy/point-types/{typeId}/name-forms")
+    suspend fun pointNameForms(
+        @Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long,
+        @Path("typeId") typeId: Long
+    ): List<PointNameFormDto>
+
+    @PUT("workspaces/{workspaceId}/economy/point-types/{typeId}/name-forms/{language}")
+    suspend fun savePointNameForms(
+        @Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long,
+        @Path("typeId") typeId: Long, @Path("language") language: String,
+        @Body body: PointNameFormSave
+    ): PointNameFormDto
+
     @PUT("api/me/password")
     suspend fun changePassword(
         @Header("Authorization") authorization: String,
