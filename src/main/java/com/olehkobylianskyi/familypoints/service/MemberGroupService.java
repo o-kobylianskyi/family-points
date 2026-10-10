@@ -4,6 +4,7 @@ import com.olehkobylianskyi.familypoints.dto.GroupPermissionGrantResponse;
 import com.olehkobylianskyi.familypoints.dto.MemberGroupResponse;
 import com.olehkobylianskyi.familypoints.entity.*;
 import com.olehkobylianskyi.familypoints.exception.ResourceNotFoundException;
+import com.olehkobylianskyi.familypoints.exception.InsufficientPointsException;
 import com.olehkobylianskyi.familypoints.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -350,29 +351,32 @@ public class MemberGroupService {
             PointTransactionType type,
             String description
     ) {
-        MemberGroup group = group(workspaceId, groupId);
+        // Serialize balance changes for this group before reading the ledger.
+        MemberGroup group = groups.findWithLockByIdAndWorkspaceId(groupId, workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + groupId));
+        if (!group.isActive()) {
+            throw new IllegalArgumentException("Group is not active");
+        }
+
         PointType pointType = pointTypes.findByIdAndWorkspaceId(pointTypeId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Point type not found: " + pointTypeId));
 
-        if (amount == 0) {
-            throw new IllegalArgumentException("Amount cannot be zero");
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+        if (type != PointTransactionType.EARN && type != PointTransactionType.SPEND) {
+            throw new IllegalArgumentException("Only EARN and SPEND are supported for manual group operations");
         }
 
-        int signed = Math.abs(amount);
-        if (type == PointTransactionType.SPEND || type == PointTransactionType.PENALTY) {
-            signed = -signed;
-        } else if (type == PointTransactionType.ADJUSTMENT) {
-            signed = amount;
+        long signed = type == PointTransactionType.SPEND ? -(long) amount : (long) amount;
+        long available = groupLedger.getBalance(groupId, pointTypeId);
+        if (signed < 0 && available < -signed) {
+            throw new InsufficientPointsException(-signed, available);
         }
 
         groupLedger.save(new GroupPointTransaction(
-                group,
-                pointType,
-                signed,
-                type,
-                blank(description)
+                group, pointType, Math.toIntExact(signed), type, blank(description)
         ));
-
         return response(group);
     }
 
