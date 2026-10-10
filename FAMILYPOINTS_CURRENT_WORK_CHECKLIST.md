@@ -608,3 +608,12 @@ Before each substantial implementation batch:
 - [x] Suppress zero balances in group overview; retain full balance list in editor
 - [x] Translate permission groups, role profiles, scope selection and member types
 - [ ] Compile Kotlin and verify layout on actual device/emulator, especially deep group nesting
+
+## 2026-10-11 — Android Settings
+- [x] Replace Settings placeholder with native screen
+- [x] Allow own password change with basic validation
+- [x] Load accounts (for managers), create account, update login status and username, reset password
+- [x] Localized new controls in UK/DE/EN/RU
+- [ ] Port role catalog/role sets editor from React
+- [ ] Compile Kotlin and smoke-test Settings API and 204 password responses
+- [ ] Improve account form failure handling and permission visibility
