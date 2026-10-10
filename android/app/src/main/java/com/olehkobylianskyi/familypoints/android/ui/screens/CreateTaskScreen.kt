@@ -122,6 +122,7 @@ fun CreateTaskScreen(
     var weekDayMenuOpen by remember { mutableStateOf(false) }
     var rewardTypeMenuOpen by remember { mutableStateOf(false) }
     var penaltyTypeMenuOpen by remember { mutableStateOf(false) }
+    var economyPresetMenuOpen by remember { mutableStateOf(false) }
 
     var dateField by remember { mutableStateOf<DateField?>(null) }
     var calendarMonth by remember {
@@ -164,6 +165,15 @@ fun CreateTaskScreen(
         }
     }
 
+    fun pointTypeLabel(type: PointTypeResponse): String =
+        when (type.code.uppercase()) {
+            "POINTS" -> text.pointsName
+            "COPPER" -> text.copperName
+            "SILVER" -> text.silverName
+            "GOLD" -> text.goldName
+            else -> type.name
+        }
+
     fun firstFreeTitle(data: CreateTaskReferenceData): String {
         val used = data.definitions
             .map { it.title.trim().lowercase() }
@@ -193,6 +203,170 @@ fun CreateTaskScreen(
 
         calendarMonth = YearMonth.from(date)
         dateField = field
+    }
+
+    fun submitTask() {
+        val data = referenceData ?: return
+        val trimmedTitle = title.trim()
+
+        if (trimmedTitle.isBlank()) {
+            error = text.titleRequired
+            return
+        }
+
+        if (
+            data.definitions.any {
+                it.title.trim().equals(
+                    trimmedTitle,
+                    ignoreCase = true
+                )
+            }
+        ) {
+            error = text.duplicateTitle
+            return
+        }
+
+        if (executors.isEmpty()) {
+            error = text.executorRequired
+            return
+        }
+
+        if (startDate.isBlank()) {
+            error = text.startDateRequired
+            return
+        }
+
+        if (
+            endDate.isNotBlank() &&
+            endDate < startDate
+        ) {
+            error = text.endDateInvalid
+            return
+        }
+
+        val normalizedTime = normalizeTaskTime(dueTime)
+
+        if (normalizedTime == null) {
+            error = text.dueTimeInvalid
+            return
+        }
+
+        val monthlyDay = recurrenceDayOfMonth.toIntOrNull()
+
+        if (
+            recurrenceType == "MONTHLY" &&
+            (
+                monthlyDay == null ||
+                monthlyDay !in 1..31
+            )
+        ) {
+            error = text.monthDayInvalid
+            return
+        }
+
+        val executorRefs = actorRefs(executors)
+        val singleMemberExecutor =
+            executorRefs.size == 1 &&
+                executorRefs[0].actorType == "MEMBER"
+
+        val reward = rewardAmount
+            .toIntOrNull()
+            ?.takeIf { it > 0 }
+
+        val penalty = penaltyAmount
+            .toIntOrNull()
+            ?.takeIf { it > 0 }
+
+        val request = TaskDefinitionCreateRequest(
+            assignmentPolicy =
+                if (singleMemberExecutor) {
+                    "SINGLE_MEMBER"
+                } else {
+                    "PARTICIPANTS"
+                },
+            assignedMemberId =
+                if (singleMemberExecutor) {
+                    executorRefs[0].actorId
+                } else {
+                    null
+                },
+            targetGroupId = null,
+            preferredMemberId = null,
+            responsibleMemberId = null,
+            parentTaskDefinitionId = parentTaskDefinitionId,
+            delegationAllowed = delegationAllowed,
+            roleMatchMode = "ANY",
+            requiredGroupRoleIds = emptyList(),
+            administrators = actorRefs(administrators),
+            observers = actorRefs(observers),
+            executors = executorRefs,
+            title = trimmedTitle,
+            description = description.trim().ifBlank { null },
+            mandatory = mandatory,
+            recurrenceType = recurrenceType,
+            startDate = startDate,
+            endDate = endDate.ifBlank { null },
+            recurrenceDayOfWeek =
+                if (recurrenceType == "WEEKLY") {
+                    recurrenceDayOfWeek
+                } else {
+                    null
+                },
+            recurrenceDayOfMonth =
+                if (recurrenceType == "MONTHLY") {
+                    monthlyDay
+                } else {
+                    null
+                },
+            rewardPointTypeId =
+                if (reward != null) {
+                    rewardPointTypeId
+                } else {
+                    null
+                },
+            rewardAmount = reward,
+            penaltyPointTypeId =
+                if (penalty != null) {
+                    penaltyPointTypeId
+                } else {
+                    null
+                },
+            penaltyAmount = penalty,
+            rewardReputationAmount =
+                rewardReputation
+                    .toIntOrNull()
+                    ?.takeIf { it > 0 },
+            penaltyReputationAmount =
+                penaltyReputation
+                    .toIntOrNull()
+                    ?.takeIf { it > 0 },
+            dueTime =
+                normalizedTime.takeIf {
+                    it.isNotBlank()
+                }
+        )
+
+        scope.launch {
+            saving = true
+            error = ""
+            try {
+                val created = repository.create(
+                    currentUser.workspaceId,
+                    request
+                )
+                onCreated(created)
+            } catch (exception: HttpException) {
+                if (exception.code() == 401) {
+                    onUnauthorized()
+                } else {
+                    error = exception.message()
+                }
+            } catch (exception: Exception) {
+                error = exception.message ?: ""
+            } finally {
+                saving = false
+            }
+        }
     }
 
     LaunchedEffect(currentUser.workspaceId) {
@@ -270,212 +444,53 @@ fun CreateTaskScreen(
         )
     }
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        item {
-            AppHeader(
-                language = language,
-                currentUser = currentUser,
-                onLanguageChange = onLanguageChange,
-                onLogout = onLogout,
-                onNavigate = onNavigate
-            )
-        }
+        AppHeader(
+            language = language,
+            currentUser = currentUser,
+            onLanguageChange = onLanguageChange,
+            onLogout = onLogout,
+            onNavigate = onNavigate
+        )
 
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.weight(1f),
+                enabled = !saving
             ) {
-                OutlinedButton(onClick = onCancel) {
-                    Text("← " + text.cancel)
-                }
+                Text("← " + text.cancel)
+            }
 
-                Button(
-                    onClick = {
-                        val data = referenceData ?: return@Button
-                        val trimmedTitle = title.trim()
-
-                        if (trimmedTitle.isBlank()) {
-                            error = text.titleRequired
-                            return@Button
-                        }
-
-                        if (
-                            data.definitions.any {
-                                it.title.trim().equals(
-                                    trimmedTitle,
-                                    ignoreCase = true
-                                )
-                            }
-                        ) {
-                            error = text.duplicateTitle
-                            return@Button
-                        }
-
-                        if (executors.isEmpty()) {
-                            error = text.executorRequired
-                            return@Button
-                        }
-
-                        if (startDate.isBlank()) {
-                            error = text.startDateRequired
-                            return@Button
-                        }
-
-                        if (
-                            endDate.isNotBlank() &&
-                            endDate < startDate
-                        ) {
-                            error = text.endDateInvalid
-                            return@Button
-                        }
-
-                        val normalizedTime =
-                            normalizeTaskTime(dueTime)
-
-                        if (normalizedTime == null) {
-                            error = text.dueTimeInvalid
-                            return@Button
-                        }
-
-                        val monthlyDay =
-                            recurrenceDayOfMonth.toIntOrNull()
-
-                        if (
-                            recurrenceType == "MONTHLY" &&
-                            (
-                                monthlyDay == null ||
-                                monthlyDay !in 1..31
-                            )
-                        ) {
-                            error = text.monthDayInvalid
-                            return@Button
-                        }
-
-                        val executorRefs = actorRefs(executors)
-                        val singleMemberExecutor =
-                            executorRefs.size == 1 &&
-                                executorRefs[0].actorType == "MEMBER"
-
-                        val reward = rewardAmount
-                            .toIntOrNull()
-                            ?.takeIf { it > 0 }
-
-                        val penalty = penaltyAmount
-                            .toIntOrNull()
-                            ?.takeIf { it > 0 }
-
-                        val request = TaskDefinitionCreateRequest(
-                            assignmentPolicy =
-                                if (singleMemberExecutor) {
-                                    "SINGLE_MEMBER"
-                                } else {
-                                    "PARTICIPANTS"
-                                },
-                            assignedMemberId =
-                                if (singleMemberExecutor) {
-                                    executorRefs[0].actorId
-                                } else {
-                                    null
-                                },
-                            targetGroupId = null,
-                            preferredMemberId = null,
-                            responsibleMemberId = null,
-                            parentTaskDefinitionId =
-                                parentTaskDefinitionId,
-                            delegationAllowed = delegationAllowed,
-                            roleMatchMode = "ANY",
-                            requiredGroupRoleIds = emptyList(),
-                            administrators =
-                                actorRefs(administrators),
-                            observers = actorRefs(observers),
-                            executors = executorRefs,
-                            title = trimmedTitle,
-                            description =
-                                description.trim().ifBlank { null },
-                            mandatory = mandatory,
-                            recurrenceType = recurrenceType,
-                            startDate = startDate,
-                            endDate = endDate.ifBlank { null },
-                            recurrenceDayOfWeek =
-                                if (recurrenceType == "WEEKLY") {
-                                    recurrenceDayOfWeek
-                                } else {
-                                    null
-                                },
-                            recurrenceDayOfMonth =
-                                if (recurrenceType == "MONTHLY") {
-                                    monthlyDay
-                                } else {
-                                    null
-                                },
-                            rewardPointTypeId =
-                                if (reward != null) {
-                                    rewardPointTypeId
-                                } else {
-                                    null
-                                },
-                            rewardAmount = reward,
-                            penaltyPointTypeId =
-                                if (penalty != null) {
-                                    penaltyPointTypeId
-                                } else {
-                                    null
-                                },
-                            penaltyAmount = penalty,
-                            rewardReputationAmount =
-                                rewardReputation
-                                    .toIntOrNull()
-                                    ?.takeIf { it > 0 },
-                            penaltyReputationAmount =
-                                penaltyReputation
-                                    .toIntOrNull()
-                                    ?.takeIf { it > 0 },
-                            dueTime =
-                                normalizedTime.takeIf {
-                                    it.isNotBlank()
-                                }
-                        )
-
-                        scope.launch {
-                            saving = true
-                            error = ""
-                            try {
-                                val created = repository.create(
-                                    currentUser.workspaceId,
-                                    request
-                                )
-                                onCreated(created)
-                            } catch (exception: HttpException) {
-                                if (exception.code() == 401) {
-                                    onUnauthorized()
-                                } else {
-                                    error = exception.message()
-                                }
-                            } catch (exception: Exception) {
-                                error = exception.message ?: ""
-                            } finally {
-                                saving = false
-                            }
-                        }
-                    },
-                    enabled = !saving &&
-                        !loading &&
-                        executors.isNotEmpty()
-                ) {
-                    Text(
-                        if (saving) text.saving else text.create
-                    )
-                }
+            Button(
+                onClick = { submitTask() },
+                modifier = Modifier.weight(1f),
+                enabled = !saving &&
+                    !loading &&
+                    executors.isNotEmpty()
+            ) {
+                Text(
+                    if (saving) text.saving else text.create
+                )
             }
         }
 
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
         item {
             Text(
                 text.title,
@@ -742,32 +757,44 @@ fun CreateTaskScreen(
             )
             Text(text.economyHint)
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                EconomyPreset.entries.forEach { preset ->
-                    val label = when (preset) {
-                        EconomyPreset.SIMPLE -> text.simple
-                        EconomyPreset.NORMAL -> text.normal
-                        EconomyPreset.HARD -> text.hard
-                        EconomyPreset.CUSTOM -> text.custom
-                    }
+            val presetLabel = when (economyPreset) {
+                EconomyPreset.SIMPLE -> text.simple
+                EconomyPreset.NORMAL -> text.normal
+                EconomyPreset.HARD -> text.hard
+                EconomyPreset.CUSTOM -> text.custom
+            }
 
-                    if (economyPreset == preset) {
-                        Button(
-                            onClick = { applyPreset(preset) },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(label)
+            Column {
+                OutlinedButton(
+                    onClick = {
+                        economyPresetMenuOpen = true
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(presetLabel + " ▾")
+                }
+
+                DropdownMenu(
+                    expanded = economyPresetMenuOpen,
+                    onDismissRequest = {
+                        economyPresetMenuOpen = false
+                    }
+                ) {
+                    EconomyPreset.entries.forEach { preset ->
+                        val label = when (preset) {
+                            EconomyPreset.SIMPLE -> text.simple
+                            EconomyPreset.NORMAL -> text.normal
+                            EconomyPreset.HARD -> text.hard
+                            EconomyPreset.CUSTOM -> text.custom
                         }
-                    } else {
-                        OutlinedButton(
-                            onClick = { applyPreset(preset) },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(label)
-                        }
+
+                        DropdownMenuItem(
+                            text = { Text(label) },
+                            onClick = {
+                                applyPreset(preset)
+                                economyPresetMenuOpen = false
+                            }
+                        )
                     }
                 }
             }
@@ -781,6 +808,7 @@ fun CreateTaskScreen(
                     amountLabel = text.amount,
                     reputationLabel = text.reputation,
                     pointTypes = data.pointTypes,
+                    pointTypeLabelFor = { pointTypeLabel(it) },
                     pointTypeId = rewardPointTypeId,
                     pointMenuOpen = rewardTypeMenuOpen,
                     onOpenPointMenu = {
@@ -813,6 +841,7 @@ fun CreateTaskScreen(
                     amountLabel = text.amount,
                     reputationLabel = text.reputation,
                     pointTypes = data.pointTypes,
+                    pointTypeLabelFor = { pointTypeLabel(it) },
                     pointTypeId = penaltyPointTypeId,
                     pointMenuOpen = penaltyTypeMenuOpen,
                     onOpenPointMenu = {
@@ -845,6 +874,7 @@ fun CreateTaskScreen(
                 modifier = Modifier.padding(bottom = 36.dp)
             )
         }
+      }
     }
 }
 
@@ -976,6 +1006,7 @@ private fun EconomySection(
     amountLabel: String,
     reputationLabel: String,
     pointTypes: List<PointTypeResponse>,
+    pointTypeLabelFor: (PointTypeResponse) -> String,
     pointTypeId: Long?,
     pointMenuOpen: Boolean,
     onOpenPointMenu: () -> Unit,
@@ -1009,8 +1040,7 @@ private fun EconomySection(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    (selectedType?.name
-                        ?: selectedType?.code
+                    (selectedType?.let(pointTypeLabelFor)
                         ?: "—") + " ▾"
                 )
             }
@@ -1021,7 +1051,9 @@ private fun EconomySection(
             ) {
                 pointTypes.forEach { type ->
                     DropdownMenuItem(
-                        text = { Text(type.name) },
+                        text = {
+                            Text(pointTypeLabelFor(type))
+                        },
                         onClick = {
                             onPointTypeSelected(type.id)
                         }
