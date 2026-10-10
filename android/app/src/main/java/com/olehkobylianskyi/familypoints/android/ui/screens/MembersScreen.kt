@@ -259,11 +259,11 @@ fun MembersScreen(
                         Text(memberText(language, "Ім’я", "Name", "Name", "Имя"))
                     }, singleLine = true)
                     OutlinedButton(onClick = { menu = "type" }, modifier = Modifier.fillMaxWidth()) {
-                        Text(type + " ▾")
+                        Text(memberTypeLabel(language, type) + " ▾")
                     }
                     DropdownMenu(expanded = menu == "type", onDismissRequest = { menu = "" }) {
                         listOf("PARENT", "CHILD", "OTHER").forEach { option ->
-                            DropdownMenuItem(text = { Text(option) }, onClick = { type = option; menu = "" })
+                            DropdownMenuItem(text = { Text(memberTypeLabel(language, option)) }, onClick = { type = option; menu = "" })
                         }
                     }
                     OutlinedButton(onClick = { menu = "role" }, modifier = Modifier.fillMaxWidth()) {
@@ -955,4 +955,10 @@ private fun groupPermissionLabel(language: AppLanguage, permission: String): Str
     "POINT_AWARD" -> memberText(language, "Нарахування балів", "Punkte vergeben", "Award points", "Начисление баллов")
     "POINT_SPEND" -> memberText(language, "Списання балів", "Punkte ausgeben", "Spend points", "Списание баллов")
     else -> permission
+}
+
+private fun memberTypeLabel(language: AppLanguage, type: String): String = when (type) {
+    "PARENT" -> memberText(language, "Батьки", "Elternteil", "Parent", "Родитель")
+    "CHILD" -> memberText(language, "Дитина", "Kind", "Child", "Ребёнок")
+    else -> memberText(language, "Інше", "Sonstige", "Other", "Другое")
 }
