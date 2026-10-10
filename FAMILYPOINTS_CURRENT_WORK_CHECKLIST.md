@@ -532,3 +532,5 @@ Before each substantial implementation batch:
 - [x] Add native Rewards screen (catalog/requests/manage/conditions/obligations/purchases)
 - [ ] Add balances/dashboard
 - [ ] Add Android app-control/time-control layer
+
+- [x] Add native Points screen (members/balance/history/manual operations)
