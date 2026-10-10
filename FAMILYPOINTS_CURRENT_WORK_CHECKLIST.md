@@ -527,6 +527,7 @@ Before each substantial implementation batch:
 - [x] Add native navigation shell
 - [x] Add native Tasks list screen (my/open/management)
 - [x] Add native Task Details screen (execution/actions/delegation/subtasks/participants/history)
+- [x] Add native Create Task screen (participants/recurrence/economy/subtasks)
 - [ ] Add Rewards screen
 - [ ] Add balances/dashboard
 - [ ] Add Android app-control/time-control layer
