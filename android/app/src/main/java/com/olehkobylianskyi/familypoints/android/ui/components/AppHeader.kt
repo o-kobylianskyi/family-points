@@ -57,7 +57,12 @@ fun AppHeader(
                         DashboardDestination.DASHBOARD to text.dashboard,
                         DashboardDestination.MEMBERS to text.members,
                         DashboardDestination.TASKS to text.tasks,
-                        DashboardDestination.POINTS to text.points,
+                        DashboardDestination.POINTS to when (language) {
+                            AppLanguage.UK -> "Бали"
+                            AppLanguage.RU -> "Баллы"
+                            AppLanguage.DE -> "Punkte"
+                            AppLanguage.EN -> "Points"
+                        },
                         DashboardDestination.REWARDS to text.rewards,
                         DashboardDestination.SETTINGS to text.settings
                     ).forEach { entry ->
