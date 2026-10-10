@@ -42,6 +42,7 @@ import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.createTaskStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
 import com.olehkobylianskyi.familypoints.android.ui.components.LocalizedCalendarDialog
+import retrofit2.HttpException as RetrofitHttpException
 import java.time.LocalDate
 import java.time.YearMonth
 import kotlinx.coroutines.launch
@@ -354,7 +355,7 @@ fun CreateTaskScreen(
                     request
                 )
                 onCreated(created)
-            } catch (exception: retrofit2.HttpException) {
+            } catch (exception: RetrofitHttpException) {
                 if (exception.code() == 401) {
                     onUnauthorized()
                 } else {
@@ -395,7 +396,7 @@ fun CreateTaskScreen(
             if (penaltyPointTypeId == null) {
                 penaltyPointTypeId = firstPointType?.id
             }
-        } catch (exception: retrofit2.HttpException) {
+        } catch (exception: RetrofitHttpException) {
             if (exception.code() == 401) {
                 onUnauthorized()
             } else {
