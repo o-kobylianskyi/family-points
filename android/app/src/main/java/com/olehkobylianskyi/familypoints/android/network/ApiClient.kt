@@ -19,12 +19,19 @@ object ApiClient {
             .build()
     }
 
-    val authApi: AuthApi by lazy {
+    private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(httpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(AuthApi::class.java)
+    }
+
+    val authApi: AuthApi by lazy {
+        retrofit.create(AuthApi::class.java)
+    }
+
+    val dashboardApi: DashboardApi by lazy {
+        retrofit.create(DashboardApi::class.java)
     }
 }
