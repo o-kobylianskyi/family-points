@@ -375,6 +375,9 @@ private fun GroupEditorDialog(
     var roleDialog by remember(group.id) { mutableStateOf(false) }
     var roleName by remember(group.id) { mutableStateOf("") }
     var roleDescription by remember(group.id) { mutableStateOf("") }
+    var roleNameTouched by remember(group.id) { mutableStateOf(false) }
+    var roleProfile by remember(group.id) { mutableStateOf("NONE") }
+    var roleProfileMenu by remember { mutableStateOf(false) }
     var roleToDelete by remember(group.id) { mutableStateOf<GroupRoleResponse?>(null) }
     var permissionRole by remember(group.id) { mutableStateOf<GroupRoleResponse?>(null) }
     var permissionValues by remember(group.id) { mutableStateOf<Map<String, String>>(emptyMap()) }
@@ -382,7 +385,16 @@ private fun GroupEditorDialog(
 
     fun openRole(role: GroupRoleResponse?) {
         editingRole = role
-        roleName = role?.name ?: ""
+        roleNameTouched = role != null
+        roleProfile = if (role == null) "NONE" else permissionPresets.entries
+            .firstOrNull { (_, permissions) ->
+                permissions == permissionGrants.filter { it.roleId == role.id }
+                    .associate { it.permission to it.scope }
+            }?.key ?: "CUSTOM"
+        roleName = role?.name ?: suggestedGroupRoleName(
+            memberText(language, "Нова роль", "Neue Rolle", "New role", "Новая роль"),
+            group.roles.orEmpty(), null
+        )
         roleDescription = role?.description ?: ""
         roleDialog = true
     }
@@ -570,6 +582,14 @@ private fun GroupEditorDialog(
         )
     }
     if (roleDialog) {
+        val comparablePermissions = permissionPresets[roleProfile]
+        val equalPermissionRole = comparablePermissions?.let { selected ->
+            group.roles.orEmpty().firstOrNull { role ->
+                role.id != editingRole?.id &&
+                    permissionGrants.filter { it.roleId == role.id }
+                        .associate { it.permission to it.scope } == selected
+            }
+        }
         val duplicate = group.roles.orEmpty().any {
             it.id != editingRole?.id && it.name.trim().equals(roleName.trim(), ignoreCase = true)
         }
@@ -580,7 +600,7 @@ private fun GroupEditorDialog(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = roleName,
-                        onValueChange = { roleName = it },
+                        onValueChange = { roleName = it; roleNameTouched = true },
                         label = { Text(memberText(language, "Назва", "Name", "Name", "Название")) },
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -590,6 +610,42 @@ private fun GroupEditorDialog(
                         label = { Text(memberText(language, "Опис", "Beschreibung", "Description", "Описание")) },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Text(memberText(language, "Профіль дозволів", "Berechtigungsprofil",
+                        "Permission profile", "Профиль прав"))
+                    OutlinedButton(onClick = { roleProfileMenu = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text(roleProfile + " ▾")
+                    }
+                    DropdownMenu(expanded = roleProfileMenu, onDismissRequest = { roleProfileMenu = false }) {
+                        listOf("NONE", "EXECUTOR", "SENIOR", "LEADER", "CONTROL", "CUSTOM").forEach { profile ->
+                            DropdownMenuItem(text = { Text(profile) }, onClick = {
+                                roleProfile = profile
+                                if (!roleNameTouched && profile != "CUSTOM") {
+                                    roleName = suggestedGroupRoleName(
+                                        groupRoleProfileName(language, profile),
+                                        group.roles.orEmpty(), editingRole?.id
+                                    )
+                                }
+                                roleProfileMenu = false
+                            })
+                        }
+                    }
+                    val proposedPermissions = permissionPresets[roleProfile]
+                    if (editingRole != null && proposedPermissions != null) {
+                        val existingPermissions = permissionGrants.filter { it.roleId == editingRole?.id }
+                            .associate { it.permission to it.scope }
+                        if (proposedPermissions != existingPermissions) {
+                            Text(memberText(language,
+                                "Профіль змінить права ролі після збереження.",
+                                "Das Profil ändert die Rechte nach dem Speichern.",
+                                "Saving will update this role's permissions.",
+                                "После сохранения профиль изменит права роли."))
+                        }
+                    }
+                    if (equalPermissionRole != null) Text(memberText(language,
+                        "Такі самі права вже має: " + equalPermissionRole.name,
+                        "Gleiche Berechtigungen: " + equalPermissionRole.name,
+                        "Same permissions as: " + equalPermissionRole.name,
+                        "Такие же права у: " + equalPermissionRole.name))
                     if (duplicate) Text(
                         memberText(language, "Роль із такою назвою вже існує", "Name bereits vorhanden",
                             "Role name already exists", "Роль с таким названием уже существует"),
@@ -686,3 +742,20 @@ private val permissionPresets: Map<String, Map<String, String>> = mapOf(
     "CONTROL" to listOf("TASK_VIEW", "TASK_APPROVE", "MEMBER_VIEW", "GROUP_VIEW", "POINT_VIEW")
         .associateWith { "GROUP" }
 )
+
+private fun suggestedGroupRoleName(base: String, existing: List<GroupRoleResponse>, editingId: Long?): String {
+    val used = existing.filter { it.id != editingId }
+        .map { it.name.trim().lowercase() }.toSet()
+    if (base.trim().lowercase() !in used) return base
+    var number = 2
+    while (("$base $number").lowercase() in used) number++
+    return "$base $number"
+}
+
+private fun groupRoleProfileName(language: AppLanguage, profile: String): String = when (profile) {
+    "EXECUTOR" -> memberText(language, "Виконавець", "Ausführender", "Executor", "Исполнитель")
+    "SENIOR" -> memberText(language, "Старший", "Senior", "Senior", "Старший")
+    "LEADER" -> memberText(language, "Керівник", "Leitung", "Leader", "Руководитель")
+    "CONTROL" -> memberText(language, "Контролер", "Kontrolle", "Controller", "Контролёр")
+    else -> memberText(language, "Нова роль", "Neue Rolle", "New role", "Новая роль")
+}
