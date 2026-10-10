@@ -25,6 +25,7 @@ import com.olehkobylianskyi.familypoints.android.auth.AuthSessionManager
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.CreateTaskRepository
 import com.olehkobylianskyi.familypoints.android.data.DashboardRepository
+import com.olehkobylianskyi.familypoints.android.data.RoleCatalogRepository
 import com.olehkobylianskyi.familypoints.android.data.SettingsRepository
 import com.olehkobylianskyi.familypoints.android.data.MembersRepository
 import com.olehkobylianskyi.familypoints.android.data.PointsRepository
@@ -94,6 +95,7 @@ class MainActivity : ComponentActivity() {
         val pointsRepository = PointsRepository(tokenStore)
         val membersRepository = MembersRepository(tokenStore)
         val settingsRepository = SettingsRepository(tokenStore)
+        val roleCatalogRepository = RoleCatalogRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore)
 
         setContent {
@@ -391,6 +393,7 @@ class MainActivity : ComponentActivity() {
                             currentUser = currentUser!!,
                             repository = settingsRepository,
                             membersRepository = membersRepository,
+                            roleCatalogRepository = roleCatalogRepository,
                             onLanguageChange = changeLanguage,
                             onLogout = logout,
                             onNavigate = navigate,
