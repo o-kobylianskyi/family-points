@@ -617,3 +617,12 @@ Before each substantial implementation batch:
 - [ ] Port role catalog/role sets editor from React
 - [ ] Compile Kotlin and smoke-test Settings API and 204 password responses
 - [ ] Improve account form failure handling and permission visibility
+
+## 2026-10-11 — Android Settings role catalog
+- [x] Read workspace role sets and definitions
+- [x] Create/edit/delete custom sets and non-system shared roles
+- [x] Support role-to-set assignment and localized action labels
+- [x] Mount role catalog within native Settings
+- [ ] Translate predefined system role names from systemCode
+- [ ] Confirm role CRUD API response compatibility and permissions
+- [ ] Verify Android Kotlin compile and runtime on emulator
