@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.olehkobylianskyi.familypoints.android.auth.AuthSessionManager
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
+import com.olehkobylianskyi.familypoints.android.data.CreateTaskRepository
 import com.olehkobylianskyi.familypoints.android.data.DashboardRepository
 import com.olehkobylianskyi.familypoints.android.data.TaskDetailsRepository
 import com.olehkobylianskyi.familypoints.android.data.TasksRepository
@@ -31,6 +32,7 @@ import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
 import com.olehkobylianskyi.familypoints.android.i18n.strings
 import com.olehkobylianskyi.familypoints.android.storage.LanguageStore
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
+import com.olehkobylianskyi.familypoints.android.ui.screens.CreateTaskScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardDestination
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.LoginScreen
@@ -74,6 +76,7 @@ class MainActivity : ComponentActivity() {
         val languageStore = LanguageStore(this)
         val dashboardRepository = DashboardRepository(tokenStore)
         val tasksRepository = TasksRepository(tokenStore)
+        val createTaskRepository = CreateTaskRepository(tokenStore)
         val taskDetailsRepository = TaskDetailsRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore)
 
@@ -265,19 +268,15 @@ class MainActivity : ComponentActivity() {
                     }
 
                     destination == AppDestination.CREATE_TASK -> {
-                        PlaceholderScreen(
+                        CreateTaskScreen(
                             language = language,
                             currentUser = currentUser!!,
-                            title = "+ " + dashboardStrings(language).tasks +
-                                (
-                                    parentTaskDefinitionId?.let {
-                                        " · parent №" + it
-                                    } ?: ""
-                                ),
+                            parentTaskDefinitionId = parentTaskDefinitionId,
+                            repository = createTaskRepository,
                             onLanguageChange = changeLanguage,
                             onLogout = logout,
                             onNavigate = navigate,
-                            onBack = {
+                            onCancel = {
                                 destination =
                                     if (parentTaskDefinitionId != null) {
                                         AppDestination.TASK_DETAILS
@@ -285,7 +284,17 @@ class MainActivity : ComponentActivity() {
                                         AppDestination.TASKS
                                     }
                                 parentTaskDefinitionId = null
-                            }
+                            },
+                            onCreated = {
+                                destination =
+                                    if (parentTaskDefinitionId != null) {
+                                        AppDestination.TASK_DETAILS
+                                    } else {
+                                        AppDestination.TASKS
+                                    }
+                                parentTaskDefinitionId = null
+                            },
+                            onUnauthorized = unauthorized
                         )
                     }
 
