@@ -14,6 +14,13 @@ public class WorkspaceSecurity {
         this.currentUserService = currentUserService;
     }
 
+    public boolean canManageEconomy(Long workspaceId) {
+        if (!currentUserService.belongsToWorkspace(workspaceId)) return false;
+        var member = currentUserService.getCurrentAccount().getWorkspaceMember();
+        return member.hasPermission(WorkspacePermission.MANAGE_ECONOMY)
+                || member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE);
+    }
+
     public boolean canManagePoints(Long workspaceId) {
         if (!currentUserService.belongsToWorkspace(workspaceId)) return false;
         var member = currentUserService.getCurrentAccount().getWorkspaceMember();
