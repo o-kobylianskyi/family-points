@@ -25,6 +25,7 @@ import com.olehkobylianskyi.familypoints.android.auth.AuthSessionManager
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.CreateTaskRepository
 import com.olehkobylianskyi.familypoints.android.data.DashboardRepository
+import com.olehkobylianskyi.familypoints.android.data.RewardNegotiationRepository
 import com.olehkobylianskyi.familypoints.android.data.TaskDetailsRepository
 import com.olehkobylianskyi.familypoints.android.data.TasksRepository
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
@@ -37,6 +38,7 @@ import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardDestination
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.LoginScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.PlaceholderScreen
+import com.olehkobylianskyi.familypoints.android.ui.screens.RewardNegotiationScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.TaskDetailsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.TasksScreen
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyPointsTheme
@@ -78,6 +80,8 @@ class MainActivity : ComponentActivity() {
         val tasksRepository = TasksRepository(tokenStore)
         val createTaskRepository = CreateTaskRepository(tokenStore)
         val taskDetailsRepository = TaskDetailsRepository(tokenStore)
+        val rewardNegotiationRepository =
+            RewardNegotiationRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore)
 
         setContent {
@@ -299,18 +303,38 @@ class MainActivity : ComponentActivity() {
                     }
 
                     destination == AppDestination.REWARD_NEGOTIATION -> {
-                        PlaceholderScreen(
-                            language = language,
-                            currentUser = currentUser!!,
-                            title = "Reward request · instance №" +
-                                (selectedTaskInstanceId ?: ""),
-                            onLanguageChange = changeLanguage,
-                            onLogout = logout,
-                            onNavigate = navigate,
-                            onBack = {
-                                destination = AppDestination.TASK_DETAILS
-                            }
-                        )
+                        val definitionId = selectedTaskDefinitionId
+                        val instanceId = selectedTaskInstanceId
+
+                        if (
+                            definitionId == null ||
+                            instanceId == null ||
+                            selectedTaskDate.isBlank()
+                        ) {
+                            destination = AppDestination.TASK_DETAILS
+                        } else {
+                            RewardNegotiationScreen(
+                                language = language,
+                                currentUser = currentUser!!,
+                                definitionId = definitionId,
+                                selectedDate = selectedTaskDate,
+                                instanceId = instanceId,
+                                repository =
+                                    rewardNegotiationRepository,
+                                onLanguageChange = changeLanguage,
+                                onLogout = logout,
+                                onNavigate = navigate,
+                                onBack = {
+                                    destination =
+                                        AppDestination.TASK_DETAILS
+                                },
+                                onSaved = {
+                                    destination =
+                                        AppDestination.TASK_DETAILS
+                                },
+                                onUnauthorized = unauthorized
+                            )
+                        }
                     }
 
                     else -> {
