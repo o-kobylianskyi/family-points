@@ -138,6 +138,34 @@ class MainActivity : ComponentActivity() {
                     destination = AppDestination.DASHBOARD
                 }
 
+                val changeLanguage: (AppLanguage) -> Unit = { selected ->
+                    languageStore.saveLanguage(selected)
+                    language = selected
+                }
+
+                val logout = {
+                    authSessionManager.clearSession()
+                    currentUser = null
+                    destination = AppDestination.DASHBOARD
+                }
+
+                val navigate: (DashboardDestination) -> Unit = { target ->
+                    destination = when (target) {
+                        DashboardDestination.DASHBOARD ->
+                            AppDestination.DASHBOARD
+                        DashboardDestination.MEMBERS ->
+                            AppDestination.MEMBERS
+                        DashboardDestination.TASKS ->
+                            AppDestination.TASKS
+                        DashboardDestination.POINTS ->
+                            AppDestination.POINTS
+                        DashboardDestination.REWARDS ->
+                            AppDestination.REWARDS
+                        DashboardDestination.SETTINGS ->
+                            AppDestination.SETTINGS
+                    }
+                }
+
                 when {
                     authLoading -> {
                         LoadingScreen(language)
@@ -170,31 +198,9 @@ class MainActivity : ComponentActivity() {
                             loadDashboard = {
                                 dashboardRepository.load(currentUser!!)
                             },
-                            onLanguageChange = { selected ->
-                                languageStore.saveLanguage(selected)
-                                language = selected
-                            },
-                            onLogout = {
-                                authSessionManager.clearSession()
-                                currentUser = null
-                                destination = AppDestination.DASHBOARD
-                            },
-                            onNavigate = { target ->
-                                destination = when (target) {
-                                    DashboardDestination.DASHBOARD ->
-                                        AppDestination.DASHBOARD
-                                    DashboardDestination.MEMBERS ->
-                                        AppDestination.MEMBERS
-                                    DashboardDestination.TASKS ->
-                                        AppDestination.TASKS
-                                    DashboardDestination.POINTS ->
-                                        AppDestination.POINTS
-                                    DashboardDestination.REWARDS ->
-                                        AppDestination.REWARDS
-                                    DashboardDestination.SETTINGS ->
-                                        AppDestination.SETTINGS
-                                }
-                            },
+                            onLanguageChange = changeLanguage,
+                            onLogout = logout,
+                            onNavigate = navigate,
                             onUnauthorized = unauthorized
                         )
                     }
@@ -204,6 +210,9 @@ class MainActivity : ComponentActivity() {
                             language = language,
                             currentUser = currentUser!!,
                             repository = tasksRepository,
+                            onLanguageChange = changeLanguage,
+                            onLogout = logout,
+                            onNavigate = navigate,
                             onBack = {
                                 destination = AppDestination.DASHBOARD
                             },
@@ -231,6 +240,9 @@ class MainActivity : ComponentActivity() {
                                 definitionId = definitionId,
                                 selectedDate = selectedTaskDate,
                                 repository = taskDetailsRepository,
+                                onLanguageChange = changeLanguage,
+                                onLogout = logout,
+                                onNavigate = navigate,
                                 onBack = {
                                     destination = AppDestination.TASKS
                                 },
@@ -255,12 +267,16 @@ class MainActivity : ComponentActivity() {
                     destination == AppDestination.CREATE_TASK -> {
                         PlaceholderScreen(
                             language = language,
+                            currentUser = currentUser!!,
                             title = "+ " + dashboardStrings(language).tasks +
                                 (
                                     parentTaskDefinitionId?.let {
                                         " · parent №" + it
                                     } ?: ""
                                 ),
+                            onLanguageChange = changeLanguage,
+                            onLogout = logout,
+                            onNavigate = navigate,
                             onBack = {
                                 destination =
                                     if (parentTaskDefinitionId != null) {
@@ -276,8 +292,12 @@ class MainActivity : ComponentActivity() {
                     destination == AppDestination.REWARD_NEGOTIATION -> {
                         PlaceholderScreen(
                             language = language,
+                            currentUser = currentUser!!,
                             title = "Reward request · instance №" +
                                 (selectedTaskInstanceId ?: ""),
+                            onLanguageChange = changeLanguage,
+                            onLogout = logout,
+                            onNavigate = navigate,
                             onBack = {
                                 destination = AppDestination.TASK_DETAILS
                             }
@@ -296,7 +316,11 @@ class MainActivity : ComponentActivity() {
 
                         PlaceholderScreen(
                             language = language,
+                            currentUser = currentUser!!,
                             title = title,
+                            onLanguageChange = changeLanguage,
+                            onLogout = logout,
+                            onNavigate = navigate,
                             onBack = {
                                 destination = AppDestination.DASHBOARD
                             }
