@@ -11,8 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -29,6 +27,7 @@ import com.olehkobylianskyi.familypoints.android.data.DashboardData
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
+import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
 import retrofit2.HttpException
 
 enum class DashboardDestination {
@@ -55,8 +54,6 @@ fun DashboardScreen(
     var data by remember { mutableStateOf<DashboardData?>(null) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
-    var languageMenuOpen by remember { mutableStateOf(false) }
-    var navigationMenuOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(currentUser.memberId, currentUser.workspaceId) {
         loading = true
@@ -88,92 +85,13 @@ fun DashboardScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Column {
-                        OutlinedButton(
-                            onClick = { navigationMenuOpen = true }
-                        ) {
-                            Text("☰")
-                        }
-
-                        DropdownMenu(
-                            expanded = navigationMenuOpen,
-                            onDismissRequest = {
-                                navigationMenuOpen = false
-                            }
-                        ) {
-                            listOf(
-                                DashboardDestination.DASHBOARD to text.dashboard,
-                                DashboardDestination.MEMBERS to text.members,
-                                DashboardDestination.TASKS to text.tasks,
-                                DashboardDestination.POINTS to text.points,
-                                DashboardDestination.REWARDS to text.rewards,
-                                DashboardDestination.SETTINGS to text.settings
-                            ).forEach { entry ->
-                                DropdownMenuItem(
-                                    text = { Text(entry.second) },
-                                    onClick = {
-                                        navigationMenuOpen = false
-                                        onNavigate(entry.first)
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    Column {
-                        Text(
-                            text = currentUser.memberName,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = currentUser.workspaceRoleName,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Column {
-                        OutlinedButton(
-                            onClick = { languageMenuOpen = true }
-                        ) {
-                            Text(language.label)
-                        }
-
-                        DropdownMenu(
-                            expanded = languageMenuOpen,
-                            onDismissRequest = {
-                                languageMenuOpen = false
-                            }
-                        ) {
-                            AppLanguage.entries.forEach { item ->
-                                DropdownMenuItem(
-                                    text = { Text(item.label) },
-                                    onClick = {
-                                        onLanguageChange(item)
-                                        languageMenuOpen = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    OutlinedButton(
-                        onClick = onLogout
-                    ) {
-                        Text(text.logout)
-                    }
-                }
-            }
+            AppHeader(
+                language = language,
+                currentUser = currentUser,
+                onLanguageChange = onLanguageChange,
+                onLogout = onLogout,
+                onNavigate = onNavigate
+            )
         }
 
         when {
