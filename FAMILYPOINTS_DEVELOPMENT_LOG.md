@@ -161,3 +161,9 @@
 - Added JUnit/Mockito unit tests in `MemberGroupPointsTest.java` for insufficient balance (no ledger write) and zero/negative manual amounts. Commit `e02eb17`.
 - Inspected the member group service and ledger repository. A repository-wide exhaustive inspection of every Java writer was not completed; other write paths require separate audit.
 - **Tests not executed yet**; local Maven run required. Integration concurrency tests also remain open.
+
+## 2026-10-11 — Compact Android Groups tree and translations
+- Based on emulator screenshot: replaced tall nested group cards with compact rows, labeled member/subgroup counts, toggle for expanding group contents, indented subgroups, and hid zero balances in overview (full balances remain available in editor).
+- Localized GroupEditor permission categories, individual permission names, profiles, scope labels and member-type selector in UK/DE/EN/RU.
+- Git commits: `7a7c2a0`, `420013c`, `59683d5`.
+- Source not compiled or runtime-tested after this UI update; check Android build and group hierarchy behavior on emulator.
