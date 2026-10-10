@@ -525,7 +525,7 @@ Before each substantial implementation batch:
 - [x] Add native Dashboard screen matching web data flow
 - [ ] Load /api/me after login and restore
 - [x] Add native navigation shell
-- [ ] Add Tasks screen
+- [x] Add native Tasks list screen (my/open/management)
 - [ ] Add Rewards screen
 - [ ] Add balances/dashboard
 - [ ] Add Android app-control/time-control layer
