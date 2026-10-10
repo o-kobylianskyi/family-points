@@ -33,9 +33,17 @@ data class MemberGroupBalanceResponse(
 data class GroupRoleResponse(
     val id: Long,
     val name: String,
+    val description: String? = null,
+    val roleSetId: Long? = null,
     val systemCode: String?,
     val visibility: String?,
     val systemDefault: Boolean?
+)
+
+data class GroupRoleSaveRequest(
+    val name: String,
+    val description: String?,
+    val roleSetId: Long?
 )
 
 data class GroupUpdateRequest(
