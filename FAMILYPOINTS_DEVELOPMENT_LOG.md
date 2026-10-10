@@ -136,3 +136,11 @@
 - Saving local roles now also applies selected NONE/EXECUTOR/SENIOR/LEADER/CONTROL grant presets via the existing REST permission endpoints. CUSTOM preserves existing grants on edit; new CUSTOM applies no preset.
 - Source commits: `70877d1`, `6e16f80`, `1ea8d1d`.
 - **NOT COMPILED OR DEVICE TESTED.** API role ID resolution after create and partial failure of multi-call updates need smoke testing. Next: verify compilation, then group balances and richer advanced-edit UX.
+
+## 2026-10-10 — Android group balances display
+
+- Inspected current remote HEAD `396188ece7d9e3adc1ab58426870664beadde859` before editing.
+- Checked React `GroupPage.jsx` and `memberGroupApi.js`. React currently displays balances by point type; the `addGroupPoints` method exists but no request body example was found in the inspected pages.
+- Added a detailed group balance section to the native GroupEditor using server-provided `balances`, `pointTypeId`, `code`, `name` and `amount`; displays empty state.
+- Source commit `4e4c15254b195213f86cec998a1060c3990d4424`.
+- **No mutation of group balances** added without verifying backend request DTO/permission rules. Kotlin build and runtime not verified after change. Last several Android batches still need local compile verification.
