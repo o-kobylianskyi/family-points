@@ -7,6 +7,16 @@ class SettingsRepository(private val store: TokenStore) {
     private fun auth(): String = "Bearer " + (store.getAccessToken()
         ?: error("Missing access token"))
 
+    suspend fun pointTypes(workspaceId: Long): List<PointTypeResponse> =
+        ApiClient.settingsApi.pointTypes(auth(), workspaceId)
+
+    suspend fun pointNameForms(workspaceId: Long, typeId: Long): List<PointNameFormDto> =
+        ApiClient.settingsApi.pointNameForms(auth(), workspaceId, typeId)
+
+    suspend fun savePointNameForms(workspaceId: Long, typeId: Long, language: String, form: PointNameFormSave) {
+        ApiClient.settingsApi.savePointNameForms(auth(), workspaceId, typeId, language, form)
+    }
+
     suspend fun changePassword(current: String, next: String) {
         ApiClient.settingsApi.changePassword(auth(), OwnPasswordChangeRequest(current, next))
     }
