@@ -4,6 +4,8 @@ import com.olehkobylianskyi.familypoints.android.data.MemberGroupCreateRequest
 import com.olehkobylianskyi.familypoints.android.data.MemberSaveRequest
 import com.olehkobylianskyi.familypoints.android.data.GroupUpdateRequest
 import com.olehkobylianskyi.familypoints.android.data.GroupRoleSaveRequest
+import com.olehkobylianskyi.familypoints.android.data.GroupPermissionGrantResponse
+import com.olehkobylianskyi.familypoints.android.data.GroupPermissionGrantRequest
 import com.olehkobylianskyi.familypoints.android.data.AddGroupMemberRequest
 import com.olehkobylianskyi.familypoints.android.data.ChildGroupRequest
 import com.olehkobylianskyi.familypoints.android.data.MembersGroupResponse
@@ -130,6 +132,30 @@ interface MembersApi {
         @Path("workspaceId") workspaceId: Long,
         @Path("groupId") groupId: Long,
         @Path("roleId") roleId: Long
+    ): retrofit2.Response<Unit>
+
+    @GET("workspaces/{workspaceId}/member-groups/{groupId}/permissions")
+    suspend fun getGroupPermissions(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long
+    ): List<GroupPermissionGrantResponse>
+
+    @POST("workspaces/{workspaceId}/member-groups/{groupId}/roles/{roleId}/permissions")
+    suspend fun addGroupPermission(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Path("roleId") roleId: Long,
+        @Body request: GroupPermissionGrantRequest
+    ): GroupPermissionGrantResponse
+
+    @DELETE("workspaces/{workspaceId}/member-groups/{groupId}/permissions/{grantId}")
+    suspend fun removeGroupPermission(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Path("grantId") grantId: Long
     ): retrofit2.Response<Unit>
 
     @POST("workspaces/{workspaceId}/member-groups")
