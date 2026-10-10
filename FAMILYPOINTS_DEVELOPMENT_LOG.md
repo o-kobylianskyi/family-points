@@ -109,3 +109,12 @@
 - Main source commit: `3f30eb07693fdad35737690bad8b836f3255a875`; preceding API/repository commits: `76f9c88`, `d912b62`, `bdfe6a3`.
 - **Not yet complete:** local custom role CRUD/permissions and group economy flows from React editor.
 - **NOT BUILT OR RUNTIME-TESTED**: user should run `git pull`, then `./gradlew.bat :app:compileDebugKotlin --console=plain` and test member/group operations in emulator.
+
+## 2026-10-10 — Android local group roles (PARTIAL)
+
+- GitHub HEAD inspected before coding: `b0729269d52cc4a5e8461a1270114c181999e294`.
+- Inspected React `GroupEditor.jsx`, group API, native Members screen and DTOs.
+- Implemented group-local PRIVATE role create/edit/delete dialogs, name duplicate validation, and protected system/shared roles from edit/delete. Added role DTO/request and matching REST/repository calls.
+- Commits: `d16f54f`, `6363497`, `f325c3e`, `3681ec4`.
+- **Not included:** permission profiles, scoped permission grant editor, automatic local role naming, group points operations.
+- **Build and runtime NOT VERIFIED.** Run local Android Kotlin compile and exercise flows after `git pull`.
