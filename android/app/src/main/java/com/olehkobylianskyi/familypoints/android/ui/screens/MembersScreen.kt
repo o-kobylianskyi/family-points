@@ -93,7 +93,8 @@ fun MembersScreen(
         editing = member
         name = member?.name ?: ""
         type = member?.memberType ?: "CHILD"
-        roleId = member?.workspaceRoleId ?: data?.roles?.firstOrNull()?.id
+        roleId = member?.workspaceRoleId ?: data?.roles?.firstOrNull { it.code == "CHILD" }?.id
+            ?: data?.roles?.firstOrNull()?.id
         editorOpen = true
     }
     fun mutate(operation: suspend () -> Unit) {
@@ -176,7 +177,9 @@ fun MembersScreen(
                                         else -> memberText(language, "Інше", "Sonstige", "Other", "Другое")
                                     }
                                 )
-                                Text(member.workspaceRoleName)
+                                Text(memberWorkspaceRoleLabel(language,
+                                    data?.roles?.firstOrNull { it.id == member.workspaceRoleId }?.code,
+                                    member.workspaceRoleName))
                             }
                         }
                     }
@@ -258,6 +261,8 @@ fun MembersScreen(
                     OutlinedTextField(value = name, onValueChange = { name = it }, label = {
                         Text(memberText(language, "Ім’я", "Name", "Name", "Имя"))
                     }, singleLine = true)
+                    Text(memberText(language, "Тип учасника", "Mitgliedstyp", "Member type", "Тип участника"),
+                        style = MaterialTheme.typography.labelMedium)
                     OutlinedButton(onClick = { menu = "type" }, modifier = Modifier.fillMaxWidth()) {
                         Text(memberTypeLabel(language, type) + " ▾")
                     }
@@ -266,12 +271,17 @@ fun MembersScreen(
                             DropdownMenuItem(text = { Text(memberTypeLabel(language, option)) }, onClick = { type = option; menu = "" })
                         }
                     }
+                    Text(memberText(language, "Роль у робочому просторі", "Rolle im Arbeitsbereich",
+                        "Workspace role", "Роль в рабочем пространстве"),
+                        style = MaterialTheme.typography.labelMedium)
                     OutlinedButton(onClick = { menu = "role" }, modifier = Modifier.fillMaxWidth()) {
-                        Text((data?.roles?.firstOrNull { it.id == roleId }?.name ?: "—") + " ▾")
+                        Text((data?.roles?.firstOrNull { it.id == roleId }?.let { memberWorkspaceRoleLabel(language, it.code, it.name) }
+                            ?: memberText(language, "Оберіть роль", "Rolle wählen", "Select role", "Выберите роль")) + " ▾")
                     }
                     DropdownMenu(expanded = menu == "role", onDismissRequest = { menu = "" }) {
                         data?.roles.orEmpty().forEach { role ->
-                            DropdownMenuItem(text = { Text(role.name) }, onClick = { roleId = role.id; menu = "" })
+                            DropdownMenuItem(text = { Text(memberWorkspaceRoleLabel(language, role.code, role.name)) },
+                                onClick = { roleId = role.id; menu = "" })
                         }
                     }
                     if (editing != null) TextButton(enabled = !busy, onClick = { confirmDelete = true }) {
@@ -966,4 +976,16 @@ private fun memberTypeLabel(language: AppLanguage, type: String): String = when 
     "PARENT" -> memberText(language, "Батьки", "Elternteil", "Parent", "Родитель")
     "CHILD" -> memberText(language, "Дитина", "Kind", "Child", "Ребёнок")
     else -> memberText(language, "Інше", "Sonstige", "Other", "Другое")
+}
+
+private fun memberWorkspaceRoleLabel(
+    language: AppLanguage,
+    code: String?,
+    fallback: String
+): String = when (code) {
+    "FAMILY_ADMIN" -> memberText(language, "Адміністратор сім’ї", "Familienadministrator",
+        "Family administrator", "Администратор семьи")
+    "PARENT" -> memberText(language, "Батьки", "Elternteil", "Parent", "Родитель")
+    "CHILD" -> memberText(language, "Дитина", "Kind", "Child", "Ребёнок")
+    else -> fallback
 }
