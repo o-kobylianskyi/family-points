@@ -1,5 +1,7 @@
 package com.olehkobylianskyi.familypoints.android.ui.screens
 
+import android.content.res.Configuration
+import android.os.LocaleList
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,6 +37,7 @@ import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
 import com.olehkobylianskyi.familypoints.android.i18n.tasksStrings
 import java.time.LocalDate
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 private enum class TasksPageTab {
@@ -250,8 +253,17 @@ fun TasksScreen(
                             LocalDate.now()
                         }
 
+                        val locale = Locale.forLanguageTag(language.code)
+                        val configuration = Configuration(
+                            context.resources.configuration
+                        ).apply {
+                            setLocales(LocaleList(locale))
+                        }
+                        val localizedContext =
+                            context.createConfigurationContext(configuration)
+
                         android.app.DatePickerDialog(
-                            context,
+                            localizedContext,
                             { _, year, month, dayOfMonth ->
                                 selectedDate = LocalDate.of(
                                     year,
