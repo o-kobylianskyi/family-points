@@ -522,8 +522,9 @@ Before each substantial implementation batch:
 - [x] Authenticate against /auth/login
 - [x] Persist JWT access token locally
 - [x] Add minimal authenticated Home screen and logout
+- [x] Add native Dashboard screen matching web data flow
 - [ ] Load /api/me after login and restore
-- [ ] Add native navigation
+- [x] Add native navigation shell
 - [ ] Add Tasks screen
 - [ ] Add Rewards screen
 - [ ] Add balances/dashboard
