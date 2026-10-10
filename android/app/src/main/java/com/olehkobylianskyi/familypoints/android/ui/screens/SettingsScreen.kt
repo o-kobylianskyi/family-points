@@ -28,6 +28,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.SettingsAccountResponse
+import com.olehkobylianskyi.familypoints.android.data.RoleCatalogRepository
 import com.olehkobylianskyi.familypoints.android.data.SettingsRepository
 import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.data.MembersRepository
@@ -49,6 +50,7 @@ fun SettingsScreen(
     currentUser: CurrentUserResponse,
     repository: SettingsRepository,
     membersRepository: MembersRepository,
+    roleCatalogRepository: RoleCatalogRepository,
     onLanguageChange: (AppLanguage) -> Unit,
     onLogout: () -> Unit,
     onNavigate: (DashboardDestination) -> Unit,
@@ -148,6 +150,15 @@ fun SettingsScreen(
                         }
                     }
                 }
+            }
+            item {
+                RoleCatalogSection(
+                    language = language,
+                    workspaceId = currentUser.workspaceId,
+                    canManage = "MANAGE_ROLES" in currentUser.permissions || "ADMIN_OVERRIDE" in currentUser.permissions,
+                    repository = roleCatalogRepository,
+                    onUnauthorized = onUnauthorized
+                )
             }
             if (canManage) {
                 item {
