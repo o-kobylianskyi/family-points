@@ -82,3 +82,11 @@
 - Commit: `6dec0ac1868d27600bb452aac0a482cee266b9c2`.
 - **Not build-verified after this change.** User should run Kotlin compilation locally.
 - Editor-only `RetrofitHttpException` unresolved highlighting remains unconfirmed as a real compiler error; preceding user Gradle compilation succeeded. Re-sync Gradle and invalidate IDE caches if necessary; do not replace Retrofit's `code()` with SDK property access.
+
+## 2026-10-10 — Fix nullable `when` compile failure
+
+- User reported actual Kotlin compiler error at `CreateTaskScreen.kt:413:24`: `when expression must be exhaustive. Add the null branch or an else branch`.
+- The previous removal of the `null` branch introduced a compile failure even though Kotlin had previously warned the branch was unreachable in that context.
+- Fixed by adding `else -> startDate` to the calendar selection `when (dateField)`; this preserves the previous fallback and makes the expression exhaustive.
+- Source commit: `9bd7879a03d7796854887f3966dc8dbf396be74a`.
+- **Not yet recompiled after this fix**; user must `git pull` and run `:app:compileDebugKotlin` locally.
