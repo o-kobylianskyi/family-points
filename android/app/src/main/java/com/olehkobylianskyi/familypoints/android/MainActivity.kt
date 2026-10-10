@@ -26,6 +26,7 @@ import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.CreateTaskRepository
 import com.olehkobylianskyi.familypoints.android.data.DashboardRepository
 import com.olehkobylianskyi.familypoints.android.data.RewardNegotiationRepository
+import com.olehkobylianskyi.familypoints.android.data.RewardsRepository
 import com.olehkobylianskyi.familypoints.android.data.TaskDetailsRepository
 import com.olehkobylianskyi.familypoints.android.data.TasksRepository
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
@@ -39,6 +40,7 @@ import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.LoginScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.PlaceholderScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.RewardNegotiationScreen
+import com.olehkobylianskyi.familypoints.android.ui.screens.RewardsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.TaskDetailsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.TasksScreen
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyPointsTheme
@@ -82,6 +84,7 @@ class MainActivity : ComponentActivity() {
         val taskDetailsRepository = TaskDetailsRepository(tokenStore)
         val rewardNegotiationRepository =
             RewardNegotiationRepository(tokenStore)
+        val rewardsRepository = RewardsRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore)
 
         setContent {
@@ -337,12 +340,23 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    destination == AppDestination.REWARDS -> {
+                        RewardsScreen(
+                            language = language,
+                            currentUser = currentUser!!,
+                            repository = rewardsRepository,
+                            onLanguageChange = changeLanguage,
+                            onLogout = logout,
+                            onNavigate = navigate,
+                            onUnauthorized = unauthorized
+                        )
+                    }
+
                     else -> {
                         val dashboardText = dashboardStrings(language)
                         val title = when (destination) {
                             AppDestination.MEMBERS -> dashboardText.members
                             AppDestination.POINTS -> dashboardText.points
-                            AppDestination.REWARDS -> dashboardText.rewards
                             AppDestination.SETTINGS -> dashboardText.settings
                             else -> ""
                         }
