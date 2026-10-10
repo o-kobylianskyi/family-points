@@ -20,14 +20,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.olehkobylianskyi.familypoints.android.auth.AuthSessionManager
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
+import com.olehkobylianskyi.familypoints.android.data.DashboardRepository
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
+import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
 import com.olehkobylianskyi.familypoints.android.i18n.strings
 import com.olehkobylianskyi.familypoints.android.storage.LanguageStore
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
-import com.olehkobylianskyi.familypoints.android.ui.screens.HomeScreen
+import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardDestination
+import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.LoginScreen
+import com.olehkobylianskyi.familypoints.android.ui.screens.PlaceholderScreen
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyPointsTheme
 import kotlinx.coroutines.delay
+
+private enum class AppDestination {
+    DASHBOARD,
+    TASKS,
+    POINTS,
+    REWARDS
+}
 
 class MainActivity : ComponentActivity() {
 
@@ -39,6 +50,7 @@ class MainActivity : ComponentActivity() {
 
         val tokenStore = TokenStore(this)
         val languageStore = LanguageStore(this)
+        val dashboardRepository = DashboardRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore)
 
         setContent {
@@ -55,6 +67,10 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(languageStore.getLanguage())
                 }
 
+                var destination by remember {
+                    mutableStateOf(AppDestination.DASHBOARD)
+                }
+
                 LaunchedEffect(Unit) {
                     currentUser = authSessionManager.restoreSession()
                     authLoading = false
@@ -66,6 +82,7 @@ class MainActivity : ComponentActivity() {
 
                         if (!authSessionManager.refreshIfNeeded()) {
                             currentUser = null
+                            destination = AppDestination.DASHBOARD
                         }
                     }
                 }
@@ -90,17 +107,59 @@ class MainActivity : ComponentActivity() {
                             },
                             onLoginSuccess = { user ->
                                 currentUser = user
+                                destination = AppDestination.DASHBOARD
+                            }
+                        )
+                    }
+
+                    destination == AppDestination.DASHBOARD -> {
+                        DashboardScreen(
+                            language = language,
+                            currentUser = currentUser!!,
+                            loadDashboard = {
+                                dashboardRepository.load(currentUser!!)
+                            },
+                            onLanguageChange = { selected ->
+                                languageStore.saveLanguage(selected)
+                                language = selected
+                            },
+                            onLogout = {
+                                authSessionManager.clearSession()
+                                currentUser = null
+                                destination = AppDestination.DASHBOARD
+                            },
+                            onNavigate = { target ->
+                                destination = when (target) {
+                                    DashboardDestination.TASKS ->
+                                        AppDestination.TASKS
+                                    DashboardDestination.POINTS ->
+                                        AppDestination.POINTS
+                                    DashboardDestination.REWARDS ->
+                                        AppDestination.REWARDS
+                                }
+                            },
+                            onUnauthorized = {
+                                authSessionManager.clearSession()
+                                currentUser = null
+                                destination = AppDestination.DASHBOARD
                             }
                         )
                     }
 
                     else -> {
-                        HomeScreen(
+                        val dashboardText = dashboardStrings(language)
+                        val title = when (destination) {
+                            AppDestination.TASKS -> dashboardText.tasks
+                            AppDestination.POINTS -> dashboardText.points
+                            AppDestination.REWARDS -> dashboardText.rewards
+                            AppDestination.DASHBOARD -> ""
+                        }
+
+                        PlaceholderScreen(
                             language = language,
-                            currentUser = currentUser!!,
-                            onLogout = {
-                                authSessionManager.clearSession()
-                                currentUser = null
+                            title = title,
+                            onBack = {
+                                destination = AppDestination.DASHBOARD
                             }
                         )
                     }
