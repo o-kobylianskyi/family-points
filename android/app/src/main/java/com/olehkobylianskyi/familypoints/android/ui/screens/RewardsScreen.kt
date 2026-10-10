@@ -340,6 +340,7 @@ fun RewardsScreen(
                                         reward.pointTypeId,
                                         reward.pointTypeCode
                                     ),
+                                    pointCode = reward.pointTypeCode,
                                     acquisitionLabel =
                                         acquisitionLabel(reward.acquisitionMode),
                                     processing = processing,
@@ -447,6 +448,7 @@ fun RewardsScreen(
                                         request.pointTypeId,
                                         request.pointTypeCode
                                     ),
+                                    pointCode = request.pointTypeCode,
                                     canManage = canManage,
                                     processing = processing,
                                     reviewing =
@@ -1161,6 +1163,7 @@ private fun RewardCatalogCard(
     language: AppLanguage,
     reward: RewardDefinitionSummary,
     pointLabel: String,
+    pointCode: String?,
     acquisitionLabel: String,
     processing: Boolean,
     onPurchase: () -> Unit,
@@ -1182,7 +1185,7 @@ private fun RewardCatalogCard(
             }
 
             Text(
-                reward.priceAmount.toString() + " " + pointLabel,
+                reward.priceAmount.toString() + " " + rewardPointUnit(language, reward.priceAmount, pointCode, pointLabel),
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -1265,6 +1268,7 @@ private fun RewardRequestCard(
     request: RewardRequestSummary,
     statusLabel: String,
     pointLabel: String,
+    pointCode: String?,
     canManage: Boolean,
     processing: Boolean,
     reviewing: Boolean,
@@ -1306,7 +1310,7 @@ private fun RewardRequestCard(
 
             request.priceAmount?.let {
                 Text(
-                    text.price + ": " + it + " " + pointLabel
+                    text.price + ": " + it + " " + rewardPointUnit(language, it, pointCode, pointLabel)
                 )
             }
 
@@ -1599,3 +1603,26 @@ private fun blockingLabel(
         .firstOrNull { it.first == value }
         ?.second
         ?: value
+
+private fun rewardPointUnit(language: AppLanguage, amount: Int, code: String?, fallback: String): String {
+    if (code?.uppercase() != "POINTS") return fallback
+    val count = kotlin.math.abs(amount.toLong())
+    val lastTwo = count % 100
+    val last = count % 10
+    return when (language) {
+        AppLanguage.UK -> when {
+            lastTwo in 11L..14L -> "балів"
+            last == 1L -> "бал"
+            last in 2L..4L -> "бали"
+            else -> "балів"
+        }
+        AppLanguage.RU -> when {
+            lastTwo in 11L..14L -> "баллов"
+            last == 1L -> "балл"
+            last in 2L..4L -> "балла"
+            else -> "баллов"
+        }
+        AppLanguage.DE -> "Punkte"
+        AppLanguage.EN -> if (count == 1L) "point" else "points"
+    }
+}
