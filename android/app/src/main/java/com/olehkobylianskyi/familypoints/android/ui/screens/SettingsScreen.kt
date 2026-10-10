@@ -152,6 +152,15 @@ fun SettingsScreen(
                 }
             }
             item {
+                CurrencyFormsSection(
+                    language = language,
+                    workspaceId = currentUser.workspaceId,
+                    canManage = "MANAGE_ECONOMY" in currentUser.permissions || "ADMIN_OVERRIDE" in currentUser.permissions,
+                    repository = repository,
+                    onUnauthorized = onUnauthorized
+                )
+            }
+            item {
                 RoleCatalogSection(
                     language = language,
                     workspaceId = currentUser.workspaceId,
