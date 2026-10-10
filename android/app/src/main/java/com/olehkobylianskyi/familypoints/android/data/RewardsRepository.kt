@@ -14,6 +14,9 @@ class RewardsRepository(
         return "Bearer $token"
     }
 
+    suspend fun loadPointNameForms(workspaceId: Long, pointTypeId: Long): List<PointNameFormDto> =
+        ApiClient.settingsApi.pointNameForms(authorization(), workspaceId, pointTypeId)
+
     suspend fun load(workspaceId: Long): RewardsPageData =
         coroutineScope {
             val auth = authorization()
