@@ -207,3 +207,11 @@
 - Added Android Settings currency form editor with language selection and sample quantities 1/2/5/11/21.
 - Reward catalog prices and request prices load and use configured forms; old backend fallback tolerates unavailable endpoint.
 - **Partial integration**: other Android screens (balances/history/tasks/group points) and React still require migration to the shared quantity formatter and configured forms. Built-in COPPER/SILVER/GOLD fallback remains existing display name until configured. New backend migration and Android source **not compiled or tested**.
+
+## 2026-10-11 — Currency morphology cross-client screen audit (SOURCE ONLY)
+
+- Reviewed Android screen inventory (Login, Dashboard, Tasks, TaskDetails, CreateTask, RewardNegotiation, Rewards, Points, Members/Groups, Settings/RoleCatalog/CurrencyForms), and React pages (Dashboard, Tasks, TaskDetails, Members, Group, Points, Rewards, Settings, Login) with relevant modal/components.
+- Web: introduced centralized `currencyQuantity` and `useCurrencyQuantity`; API read/save name forms; new currency forms editor in Settings; applied display formatting to Rewards catalog/request prices, Dashboard, Tasks, TaskDetails, Group balance, and Points balance.
+- Android: shared `formatPointAmount` already exists and Rewards reads configured forms; updated Dashboard and Points balance and TaskDetails quantities to format built-in POINTS properly.
+- **Remaining**: Android Tasks screen reward labels, group balances/member editor and currency history rows, CreateTask/negotiation currency previews, React point history and role/task forms; propagation of configured custom forms into all Android screens (currently Rewards only); standard forms for COPPER/SILVER/GOLD; translation gaps unrelated to currencies.
+- **Builds, migrations and runtime QA not executed by assistant.** Screens audited by reading source, not clicking through UI. Request local Maven, Gradle, npm build and smoke-testing with the new V18 backend deployed. Do not mark full coverage complete.
