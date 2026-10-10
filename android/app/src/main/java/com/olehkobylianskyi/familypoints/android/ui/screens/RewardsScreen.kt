@@ -360,7 +360,7 @@ fun RewardsScreen(
                                         reward.pointTypeCode
                                     ),
                                     pointCode = reward.pointTypeCode,
-                                    configuredForms = nameForms[reward.pointTypeId].orEmpty(),
+                                    configuredForms = reward.pointTypeId?.let { nameForms[it] }.orEmpty(),
                                     acquisitionLabel =
                                         acquisitionLabel(reward.acquisitionMode),
                                     processing = processing,
@@ -469,7 +469,7 @@ fun RewardsScreen(
                                         request.pointTypeCode
                                     ),
                                     pointCode = request.pointTypeCode,
-                                    configuredForms = nameForms[request.pointTypeId].orEmpty(),
+                                    configuredForms = request.pointTypeId?.let { nameForms[it] }.orEmpty(),
                                     canManage = canManage,
                                     processing = processing,
                                     reviewing =
