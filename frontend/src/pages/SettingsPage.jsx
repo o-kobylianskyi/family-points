@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 import { changeOwnPassword, createMemberAccount, getWorkspaceAccounts, resetMemberPassword, updateMemberAccount } from '../api/accountApi'
 import RoleCatalogSettings from '../components/RoleCatalogSettings'
+import CurrencyFormsSettings from '../components/CurrencyFormsSettings'
 
 function SettingsPage() {
   const { t } = useTranslation()
@@ -177,6 +178,9 @@ function SettingsPage() {
         </article> })}
       </div>
     </section>}
+
+    <CurrencyFormsSettings token={getAccessToken()} workspaceId={currentUser.workspaceId}
+      canManage={currentUser.permissions?.includes('MANAGE_ECONOMY') || currentUser.permissions?.includes('ADMIN_OVERRIDE')} />
 
     <RoleCatalogSettings token={getAccessToken()} workspaceId={currentUser.workspaceId} canManage={canManageRoles} />
 
