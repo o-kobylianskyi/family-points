@@ -75,3 +75,10 @@
 - One compiler **warning** remains: `CreateTaskScreen.kt:416:13 Expression under 'when' is never equal to null`. Not a compile failure.
 - **NOT VERIFIED:** full APK install or post-change runtime/API flows. Android Studio editor annotations may require IDE cache refresh if still displayed.
 - Next native page planned: Members, after inspection of matching React/API/backend source.
+
+## 2026-10-10 — Remove remaining Kotlin compiler warning
+
+- Removed unreachable `null` branch from the calendar `when (dateField)` in `CreateTaskScreen.kt`; selection is guarded by `if (dateField != null)`.
+- Commit: `6dec0ac1868d27600bb452aac0a482cee266b9c2`.
+- **Not build-verified after this change.** User should run Kotlin compilation locally.
+- Editor-only `RetrofitHttpException` unresolved highlighting remains unconfirmed as a real compiler error; preceding user Gradle compilation succeeded. Re-sync Gradle and invalidate IDE caches if necessary; do not replace Retrofit's `code()` with SDK property access.
