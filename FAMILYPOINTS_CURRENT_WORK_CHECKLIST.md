@@ -564,3 +564,13 @@ Before each substantial implementation batch:
 - [ ] Port automatic role naming and equivalent-permission warnings
 - [ ] Port group balance operations
 - [ ] Compile and smoke-test Android Members/GroupEditor locally
+
+## Android GroupEditor permission profiles — 2026-10-10
+
+- [x] Add role permission grant fetch/create/delete API
+- [x] Expose NONE/EXECUTOR/SENIOR/LEADER/CONTROL profiles
+- [x] Add advanced permission checklist and GROUP/GROUP_SUBTREE scope choice
+- [ ] Finish creation workflow applying selected profile immediately to new role
+- [ ] Auto-name local roles and show duplicate-permissions warning
+- [ ] Complete group balances UI
+- [ ] Compile and smoke-test role permissions on emulator
