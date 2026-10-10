@@ -299,19 +299,51 @@ fun TasksScreen(
 
         if (tab == TasksPageTab.MY) {
             item {
-                OutlinedButton(
-                    onClick = {
-                        val currentDate = try {
-                            LocalDate.parse(selectedDate)
-                        } catch (_: Exception) {
-                            LocalDate.now()
-                        }
-                        calendarMonth = YearMonth.from(currentDate)
-                        calendarOpen = true
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("📅  " + selectedDate)
+                    OutlinedButton(
+                        onClick = {
+                            val currentDate = try {
+                                LocalDate.parse(selectedDate)
+                            } catch (_: Exception) {
+                                LocalDate.now()
+                            }
+                            selectedDate = currentDate.minusDays(1).toString()
+                        }
+                    ) {
+                        Text("‹")
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            val currentDate = try {
+                                LocalDate.parse(selectedDate)
+                            } catch (_: Exception) {
+                                LocalDate.now()
+                            }
+                            calendarMonth = YearMonth.from(currentDate)
+                            calendarOpen = true
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("📅  " + selectedDate)
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            val currentDate = try {
+                                LocalDate.parse(selectedDate)
+                            } catch (_: Exception) {
+                                LocalDate.now()
+                            }
+                            selectedDate = currentDate.plusDays(1).toString()
+                        }
+                    ) {
+                        Text("›")
+                    }
                 }
             }
 
