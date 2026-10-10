@@ -14,7 +14,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskDefinitionResponse
@@ -60,6 +60,7 @@ fun TasksScreen(
     onUnauthorized: () -> Unit
 ) {
     val text = tasksStrings(language)
+    val context = LocalContext.current
 
     var members by remember { mutableStateOf<List<WorkspaceMemberResponse>>(emptyList()) }
     var selectedMemberId by remember { mutableStateOf<Long?>(null) }
@@ -184,11 +185,11 @@ fun TasksScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 OutlinedButton(onClick = onBack) {
-                    Text("← undefined")
+                    Text("← " + text.back)
                 }
 
                 Button(onClick = onCreateTask) {
-                    Text("+ undefined")
+                    Text("+ " + text.newTask)
                 }
             }
         }
@@ -241,13 +242,32 @@ fun TasksScreen(
 
         if (tab == TasksPageTab.MY) {
             item {
-                OutlinedTextField(
-                    value = selectedDate,
-                    onValueChange = { selectedDate = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("YYYY-MM-DD") },
-                    singleLine = true
-                )
+                OutlinedButton(
+                    onClick = {
+                        val currentDate = try {
+                            LocalDate.parse(selectedDate)
+                        } catch (_: Exception) {
+                            LocalDate.now()
+                        }
+
+                        android.app.DatePickerDialog(
+                            context,
+                            { _, year, month, dayOfMonth ->
+                                selectedDate = LocalDate.of(
+                                    year,
+                                    month + 1,
+                                    dayOfMonth
+                                ).toString()
+                            },
+                            currentDate.year,
+                            currentDate.monthValue - 1,
+                            currentDate.dayOfMonth
+                        ).show()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("📅  " + selectedDate)
+                }
             }
 
             item {
