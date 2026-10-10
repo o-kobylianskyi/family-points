@@ -529,6 +529,6 @@ Before each substantial implementation batch:
 - [x] Add native Task Details screen (execution/actions/delegation/subtasks/participants/history)
 - [x] Add native Create Task screen (participants/recurrence/economy/subtasks)
 - [x] Add native Task Reward Negotiation screen (points/reputation/catalog/time/custom request)
-- [ ] Add Rewards screen
+- [x] Add native Rewards screen (catalog/requests/manage/conditions/obligations/purchases)
 - [ ] Add balances/dashboard
 - [ ] Add Android app-control/time-control layer
