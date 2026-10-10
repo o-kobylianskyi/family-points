@@ -47,6 +47,7 @@ data class TaskDefinitionResponse(
     val preferredMemberId: Long?,
     val responsibleMemberId: Long?,
     val createdByMemberId: Long?,
+    val createdByMemberName: String?,
     val parentTaskDefinitionId: Long?,
     val title: String,
     val description: String?,
@@ -56,6 +57,12 @@ data class TaskDefinitionResponse(
     val recurrenceType: String?,
     val assignmentPolicy: String?,
     val roleMatchMode: String?,
+    val startDate: String?,
+    val endDate: String?,
+    val recurrenceDayOfWeek: Int?,
+    val recurrenceDayOfMonth: Int?,
+    val createdAt: String?,
+    val updatedAt: String?,
     val dueTime: String?,
     val rewardPointTypeId: Long?,
     val rewardPointTypeCode: String?,
@@ -92,3 +99,36 @@ data class DashboardData(
             it.status == "COMPLETED" || it.status == "EXCUSED"
         }
 }
+
+
+data class TaskAuditEventResponse(
+    val id: Long,
+    val taskDefinitionId: Long,
+    val taskInstanceId: Long?,
+    val eventType: String,
+    val performedByMemberId: Long?,
+    val performedByName: String?,
+    val occurredAt: String,
+    val fromActorType: String?,
+    val fromActorId: Long?,
+    val fromActorName: String?,
+    val toActorType: String?,
+    val toActorId: Long?,
+    val toActorName: String?,
+    val details: String?
+)
+
+data class TaskDetailsData(
+    val task: TaskDefinitionResponse,
+    val visibleDefinitions: List<TaskDefinitionResponse>,
+    val instance: TaskInstanceResponse?,
+    val members: List<WorkspaceMemberResponse>,
+    val participants: List<TaskParticipantResponse>,
+    val history: List<TaskAuditEventResponse>,
+    val subtasks: List<TaskDefinitionResponse>
+)
+
+data class TaskDelegationRequest(
+    val toMemberId: Long,
+    val reason: String? = null
+)
