@@ -59,6 +59,19 @@ class MembersRepository(private val tokenStore: TokenStore) {
         ApiClient.membersApi.setGroupMemberRoles(authorization(), workspaceId, groupId, memberId, roleIds)
     }
 
+    suspend fun saveGroupRole(workspaceId: Long, groupId: Long, roleId: Long?, request: GroupRoleSaveRequest) {
+        val auth = authorization()
+        if (roleId == null) {
+            ApiClient.membersApi.createGroupRole(auth, workspaceId, groupId, request)
+        } else {
+            ApiClient.membersApi.updateGroupRole(auth, workspaceId, groupId, roleId, request)
+        }
+    }
+
+    suspend fun deleteGroupRole(workspaceId: Long, groupId: Long, roleId: Long) {
+        ApiClient.membersApi.deleteGroupRole(authorization(), workspaceId, groupId, roleId)
+    }
+
     suspend fun createGroup(workspaceId: Long, name: String) {
         ApiClient.membersApi.createGroup(
             authorization(), workspaceId, MemberGroupCreateRequest(name)
