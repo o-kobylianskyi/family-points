@@ -1,3 +1,4 @@
+import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -23,6 +24,7 @@ function PointsPage() {
     getAccessToken,
   } = useAuth()
 
+  const currency = useCurrencyQuantity(getAccessToken(), currentUser.workspaceId)
   const [members, setMembers] = useState([])
   const [selectedMemberId, setSelectedMemberId] = useState(null)
 
@@ -342,11 +344,10 @@ const handlePointOperation = async ({
           <div className="points-summary-right">
             <div className="points-current-balance">
               <strong>
-                {loadingPoints ? '—' : balance}
+                {loadingPoints ? '—' : currency(balance, 'POINTS')}
               </strong>
 
-              <span>{t('common.points')}</span>
-            </div>
+              </div>
 
             {canManagePoints && (
               <div className="point-actions">
