@@ -58,6 +58,13 @@ data class GroupRoleSaveRequest(
     val roleSetId: Long?
 )
 
+data class GroupPointOperationRequest(
+    val pointTypeId: Long,
+    val amount: Int,
+    val type: String,
+    val description: String?
+)
+
 data class GroupUpdateRequest(
     val name: String,
     val description: String?,
