@@ -438,7 +438,9 @@ fun CreateTaskScreen(
                                     .toIntOrNull()
                                     ?.takeIf { it > 0 },
                             dueTime =
-                                normalizedTime.ifBlank { null }
+                                normalizedTime.takeIf {
+                                    it.isNotBlank()
+                                }
                         )
 
                         scope.launch {
