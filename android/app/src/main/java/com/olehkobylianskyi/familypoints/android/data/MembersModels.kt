@@ -19,7 +19,8 @@ data class MemberGroupChildResponse(
 
 data class MemberGroupMemberResponse(
     val memberId: Long,
-    val memberName: String
+    val memberName: String,
+    val roleIds: List<Long>? = null
 )
 
 data class MemberGroupBalanceResponse(
@@ -29,10 +30,33 @@ data class MemberGroupBalanceResponse(
     val amount: Long
 )
 
+data class GroupRoleResponse(
+    val id: Long,
+    val name: String,
+    val systemCode: String?,
+    val visibility: String?,
+    val systemDefault: Boolean?
+)
+
+data class GroupUpdateRequest(
+    val name: String,
+    val description: String?,
+    val showInNavigation: Boolean
+)
+
+data class AddGroupMemberRequest(
+    val memberId: Long,
+    val roleIds: List<Long> = emptyList()
+)
+
+data class ChildGroupRequest(val childGroupId: Long)
+
 data class MembersGroupResponse(
     val id: Long,
     val name: String,
     val description: String?,
+    val showInNavigation: Boolean? = null,
+    val roles: List<GroupRoleResponse>? = null,
     val members: List<MemberGroupMemberResponse>?,
     val childGroups: List<MemberGroupChildResponse>?,
     val balances: List<MemberGroupBalanceResponse>?
