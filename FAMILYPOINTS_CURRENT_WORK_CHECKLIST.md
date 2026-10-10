@@ -591,3 +591,13 @@ Before each substantial implementation batch:
 - [ ] Confirm backend DTO for POST /member-groups/{groupId}/points and group delegation rights
 - [ ] Add secure group point adjustment form after DTO verification
 - [ ] Verify Android compile and group UI on emulator
+
+## Android Group Points transactions — 2026-10-10
+
+- [x] Verify backend GroupPointOperationRequest and PointTransactionType
+- [x] Enforce MANAGE_POINTS/ADMIN_OVERRIDE and workspace scope on group points controller endpoint
+- [x] Add Android credit/debit form for existing group point types
+- [x] Reject zero/invalid amount in Android and display insufficient balance warning
+- [ ] Consider backend overdraft policy and atomic balance validation
+- [ ] Compile backend with Maven and Android with Gradle, deploy secured backend
+- [ ] Runtime-test role permissions and credit/debit API; verify ledger and balance refresh
