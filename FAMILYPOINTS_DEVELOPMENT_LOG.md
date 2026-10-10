@@ -118,3 +118,12 @@
 - Commits: `d16f54f`, `6363497`, `f325c3e`, `3681ec4`.
 - **Not included:** permission profiles, scoped permission grant editor, automatic local role naming, group points operations.
 - **Build and runtime NOT VERIFIED.** Run local Android Kotlin compile and exercise flows after `git pull`.
+
+## 2026-10-10 — Android GroupEditor role permission profiles (PARTIAL)
+
+- Remote HEAD inspected before changes: `3b315ff36e2a7d04060e65ffc6e6341afe0d9704`.
+- Ported existing React permission groups and presets NONE, EXECUTOR, SENIOR, LEADER, CONTROL; included advanced permission toggles and GROUP/GROUP_SUBTREE scope selection.
+- Added existing GET/POST/DELETE group permission REST calls and repository reconciliation of grants, plus a role-specific Compose dialog.
+- Code commits: `5f1907a`, `4f4792c`, `1940da5`, `1a3f19d`.
+- **Not compiled or runtime-tested.** User must verify with `git pull` and `./gradlew.bat :app:compileDebugKotlin --console=plain`; authorization and server-side grant rules remain authoritative.
+- Remaining: synchronize grants after role creation in one flow, automatic naming and duplicate permission warning, group balance controls, compact UI testing.
