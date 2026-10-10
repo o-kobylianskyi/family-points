@@ -413,7 +413,6 @@ fun CreateTaskScreen(
         val selected = when (dateField) {
             DateField.START -> startDate
             DateField.END -> endDate.ifBlank { startDate }
-            null -> startDate
         }
 
         LocalizedCalendarDialog(
