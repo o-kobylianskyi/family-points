@@ -55,6 +55,10 @@ object ApiClient {
         retrofit.create(MembersApi::class.java)
     }
 
+    val roleCatalogApi: RoleCatalogApi by lazy {
+        retrofit.create(RoleCatalogApi::class.java)
+    }
+
     val settingsApi: SettingsApi by lazy {
         retrofit.create(SettingsApi::class.java)
     }
