@@ -526,6 +526,7 @@ Before each substantial implementation batch:
 - [ ] Load /api/me after login and restore
 - [x] Add native navigation shell
 - [x] Add native Tasks list screen (my/open/management)
+- [x] Add native Task Details screen (execution/actions/delegation/subtasks/participants/history)
 - [ ] Add Rewards screen
 - [ ] Add balances/dashboard
 - [ ] Add Android app-control/time-control layer
