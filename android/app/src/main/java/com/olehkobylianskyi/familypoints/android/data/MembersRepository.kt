@@ -31,6 +31,34 @@ class MembersRepository(private val tokenStore: TokenStore) {
         ApiClient.membersApi.deleteMember(authorization(), workspaceId, memberId)
     }
 
+    suspend fun updateGroup(workspaceId: Long, groupId: Long, request: GroupUpdateRequest) {
+        ApiClient.membersApi.updateGroup(authorization(), workspaceId, groupId, request)
+    }
+
+    suspend fun addGroupMember(workspaceId: Long, groupId: Long, memberId: Long) {
+        ApiClient.membersApi.addGroupMember(
+            authorization(), workspaceId, groupId, AddGroupMemberRequest(memberId)
+        )
+    }
+
+    suspend fun removeGroupMember(workspaceId: Long, groupId: Long, memberId: Long) {
+        ApiClient.membersApi.removeGroupMember(authorization(), workspaceId, groupId, memberId)
+    }
+
+    suspend fun addChildGroup(workspaceId: Long, groupId: Long, childId: Long) {
+        ApiClient.membersApi.addChildGroup(
+            authorization(), workspaceId, groupId, ChildGroupRequest(childId)
+        )
+    }
+
+    suspend fun removeChildGroup(workspaceId: Long, groupId: Long, childId: Long) {
+        ApiClient.membersApi.removeChildGroup(authorization(), workspaceId, groupId, childId)
+    }
+
+    suspend fun setGroupMemberRoles(workspaceId: Long, groupId: Long, memberId: Long, roleIds: List<Long>) {
+        ApiClient.membersApi.setGroupMemberRoles(authorization(), workspaceId, groupId, memberId, roleIds)
+    }
+
     suspend fun createGroup(workspaceId: Long, name: String) {
         ApiClient.membersApi.createGroup(
             authorization(), workspaceId, MemberGroupCreateRequest(name)
