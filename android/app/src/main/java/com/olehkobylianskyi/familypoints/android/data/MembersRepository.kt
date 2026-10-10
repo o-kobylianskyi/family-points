@@ -109,6 +109,12 @@ class MembersRepository(private val tokenStore: TokenStore) {
         }
     }
 
+    suspend fun postGroupPoints(workspaceId: Long, groupId: Long, request: GroupPointOperationRequest) {
+        require(request.amount > 0) { "Amount must be positive" }
+        require(request.type == "EARN" || request.type == "SPEND") { "Unsupported group operation" }
+        ApiClient.membersApi.postGroupPoints(authorization(), workspaceId, groupId, request)
+    }
+
     suspend fun createGroup(workspaceId: Long, name: String) {
         ApiClient.membersApi.createGroup(
             authorization(), workspaceId, MemberGroupCreateRequest(name)
