@@ -35,6 +35,7 @@ import com.olehkobylianskyi.familypoints.android.data.PointTransactionResponse
 import com.olehkobylianskyi.familypoints.android.data.PointsRepository
 import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
+import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.i18n.createTaskStrings
 import com.olehkobylianskyi.familypoints.android.i18n.pointsStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
@@ -294,13 +295,11 @@ fun PointsScreen(
                                 if (loadingPoints) {
                                     "—"
                                 } else {
-                                    balance.toString()
+                                    formatPointAmount(balance, language, "POINTS", text.points)
                                 },
                                 style =
                                     MaterialTheme.typography.headlineLarge
                             )
-
-                            Text(text.points)
 
                             if (
                                 "MANAGE_POINTS" in
