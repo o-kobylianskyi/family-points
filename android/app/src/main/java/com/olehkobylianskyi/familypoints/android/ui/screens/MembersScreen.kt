@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -29,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
+import com.olehkobylianskyi.familypoints.android.data.GroupUpdateRequest
 import com.olehkobylianskyi.familypoints.android.data.MemberSaveRequest
 import com.olehkobylianskyi.familypoints.android.data.MembersGroupResponse
 import com.olehkobylianskyi.familypoints.android.data.MembersPageData
@@ -72,6 +74,7 @@ fun MembersScreen(
     var menu by remember { mutableStateOf("") }
     var confirmDelete by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
+    var editingGroupId by remember { mutableStateOf<Long?>(null) }
 
     suspend fun reload() {
         data = repository.load(currentUser.workspaceId)
@@ -175,11 +178,44 @@ fun MembersScreen(
                     val childIds = groups.flatMap { it.childGroups.orEmpty() }.map { it.groupId }.toSet()
                     val roots = groups.filter { it.id !in childIds }
                     items(roots, key = { "g" + it.id }) { group ->
-                        GroupTreeCard(group, groups, emptySet(), language)
+                        GroupTreeCard(group, groups, emptySet(), language, if (allowed) { id -> editingGroupId = id } else null)
                     }
                 }
             }
         }
+    }
+
+    val groupToEdit = data?.groups?.firstOrNull { it.id == editingGroupId }
+    if (groupToEdit != null && allowed) {
+        GroupEditorDialog(
+            group = groupToEdit,
+            groups = data?.groups.orEmpty(),
+            members = data?.members.orEmpty(),
+            language = language,
+            busy = busy,
+            onClose = { editingGroupId = null },
+            onSave = { request ->
+                mutate {
+                    repository.updateGroup(currentUser.workspaceId, groupToEdit.id, request)
+                    editingGroupId = null
+                }
+            },
+            onAddMember = { id -> mutate {
+                repository.addGroupMember(currentUser.workspaceId, groupToEdit.id, id)
+            } },
+            onRemoveMember = { id -> mutate {
+                repository.removeGroupMember(currentUser.workspaceId, groupToEdit.id, id)
+            } },
+            onAddChild = { id -> mutate {
+                repository.addChildGroup(currentUser.workspaceId, groupToEdit.id, id)
+            } },
+            onRemoveChild = { id -> mutate {
+                repository.removeChildGroup(currentUser.workspaceId, groupToEdit.id, id)
+            } },
+            onMemberRoles = { id, roles -> mutate {
+                repository.setGroupMemberRoles(currentUser.workspaceId, groupToEdit.id, id, roles)
+            } }
+        )
     }
 
     if (editorOpen) {
@@ -257,11 +293,17 @@ private fun GroupTreeCard(
     group: MembersGroupResponse,
     groups: List<MembersGroupResponse>,
     visited: Set<Long>,
-    language: AppLanguage
+    language: AppLanguage,
+    onEdit: ((Long) -> Unit)?
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(group.name, style = MaterialTheme.typography.titleMedium)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(group.name, style = MaterialTheme.typography.titleMedium)
+                if (onEdit != null) TextButton(onClick = { onEdit(group.id) }) {
+                    Text(memberText(language, "Редагувати", "Bearbeiten", "Edit", "Редактировать"))
+                }
+            }
             if (group.id in visited) {
                 Text(memberText(language, "Циклічне посилання", "Zyklischer Verweis", "Circular reference", "Циклическая ссылка"))
                 return@Column
@@ -275,8 +317,170 @@ private fun GroupTreeCard(
             group.childGroups.orEmpty().forEach { child ->
                 val nested = groups.firstOrNull { it.id == child.groupId }
                 if (nested == null) Text("↳ " + child.groupName)
-                else GroupTreeCard(nested, groups, visited + group.id, language)
+                else GroupTreeCard(nested, groups, visited + group.id, language, onEdit)
             }
         }
+    }
+}
+
+@Composable
+private fun GroupEditorDialog(
+    group: MembersGroupResponse,
+    groups: List<MembersGroupResponse>,
+    members: List<WorkspaceMemberResponse>,
+    language: AppLanguage,
+    busy: Boolean,
+    onClose: () -> Unit,
+    onSave: (GroupUpdateRequest) -> Unit,
+    onAddMember: (Long) -> Unit,
+    onRemoveMember: (Long) -> Unit,
+    onAddChild: (Long) -> Unit,
+    onRemoveChild: (Long) -> Unit,
+    onMemberRoles: (Long, List<Long>) -> Unit
+) {
+    var name by remember(group.id) { mutableStateOf(group.name) }
+    var description by remember(group.id) { mutableStateOf(group.description ?: "") }
+    var showInNavigation by remember(group.id) { mutableStateOf(group.showInNavigation ?: false) }
+    var selectedMember by remember(group.id) { mutableStateOf<Long?>(null) }
+    var selectedChild by remember(group.id) { mutableStateOf<Long?>(null) }
+    var selectedRoleMember by remember(group.id) { mutableStateOf<Long?>(null) }
+    var chosenRoles by remember(group.id) { mutableStateOf<Set<Long>>(emptySet()) }
+    var openMenu by remember { mutableStateOf("") }
+
+    val memberCandidates = members.filter { item ->
+        group.members.orEmpty().none { it.memberId == item.id }
+    }
+    val groupCandidates = groups.filter { item ->
+        item.id != group.id &&
+            group.childGroups.orEmpty().none { it.groupId == item.id }
+    }
+    val activeRoleMember = group.members.orEmpty().firstOrNull { it.memberId == selectedRoleMember }
+    val dialogTitle = memberText(language, "Редагувати групу", "Gruppe bearbeiten", "Edit group", "Редактировать группу")
+    val addText = memberText(language, "Додати", "Hinzufügen", "Add", "Добавить")
+
+    AlertDialog(
+        onDismissRequest = { if (!busy) onClose() },
+        title = { Text(dialogTitle) },
+        text = {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                item {
+                    OutlinedTextField(
+                        value = name, onValueChange = { name = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(memberText(language, "Назва", "Name", "Name", "Название")) }
+                    )
+                    OutlinedTextField(
+                        value = description, onValueChange = { description = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(memberText(language, "Опис", "Beschreibung", "Description", "Описание")) }
+                    )
+                    Row {
+                        Checkbox(checked = showInNavigation, onCheckedChange = { showInNavigation = it })
+                        Text(memberText(language, "Показувати в меню", "Im Menü anzeigen", "Show in menu", "Показывать в меню"))
+                    }
+                }
+                item {
+                    Text(memberText(language, "Учасники групи", "Gruppenmitglieder", "Group members", "Участники группы"),
+                        style = MaterialTheme.typography.titleMedium)
+                    OutlinedButton(onClick = { openMenu = "member" }, modifier = Modifier.fillMaxWidth()) {
+                        Text((memberCandidates.firstOrNull { it.id == selectedMember }?.name ?: addText) + " ▾")
+                    }
+                    DropdownMenu(expanded = openMenu == "member", onDismissRequest = { openMenu = "" }) {
+                        memberCandidates.forEach { member ->
+                            DropdownMenuItem(text = { Text(member.name) }, onClick = {
+                                selectedMember = member.id
+                                openMenu = ""
+                            })
+                        }
+                    }
+                    Button(enabled = !busy && selectedMember != null, onClick = {
+                        selectedMember?.let(onAddMember)
+                        selectedMember = null
+                    }) { Text(addText) }
+                }
+                items(group.members.orEmpty(), key = { "member" + it.memberId }) { member ->
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(member.memberName, modifier = Modifier.weight(1f))
+                        TextButton(enabled = !busy, onClick = {
+                            selectedRoleMember = member.memberId
+                            chosenRoles = member.roleIds.orEmpty().toSet()
+                        }) { Text(memberText(language, "Ролі", "Rollen", "Roles", "Роли")) }
+                        TextButton(enabled = !busy, onClick = { onRemoveMember(member.memberId) }) { Text("×") }
+                    }
+                }
+                item {
+                    Text(memberText(language, "Підгрупи", "Untergruppen", "Subgroups", "Подгруппы"),
+                        style = MaterialTheme.typography.titleMedium)
+                    OutlinedButton(onClick = { openMenu = "child" }, modifier = Modifier.fillMaxWidth()) {
+                        Text((groupCandidates.firstOrNull { it.id == selectedChild }?.name ?: addText) + " ▾")
+                    }
+                    DropdownMenu(expanded = openMenu == "child", onDismissRequest = { openMenu = "" }) {
+                        groupCandidates.forEach { child ->
+                            DropdownMenuItem(text = { Text(child.name) }, onClick = {
+                                selectedChild = child.id
+                                openMenu = ""
+                            })
+                        }
+                    }
+                    Button(enabled = !busy && selectedChild != null, onClick = {
+                        selectedChild?.let(onAddChild)
+                        selectedChild = null
+                    }) { Text(addText) }
+                }
+                items(group.childGroups.orEmpty(), key = { "child" + it.groupId }) { child ->
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(child.groupName, modifier = Modifier.weight(1f))
+                        TextButton(enabled = !busy, onClick = { onRemoveChild(child.groupId) }) { Text("×") }
+                    }
+                }
+                item {
+                    Text(memberText(language, "Доступні ролі", "Verfügbare Rollen", "Available roles", "Доступные роли"),
+                        style = MaterialTheme.typography.titleMedium)
+                    group.roles.orEmpty().forEach { role -> Text("• " + role.name) }
+                }
+            }
+        },
+        confirmButton = {
+            Button(enabled = !busy && name.isNotBlank(), onClick = {
+                onSave(GroupUpdateRequest(name.trim(), description.trim().ifBlank { null }, showInNavigation))
+            }) { Text(memberText(language, "Зберегти", "Speichern", "Save", "Сохранить")) }
+        },
+        dismissButton = {
+            TextButton(enabled = !busy, onClick = onClose) {
+                Text(memberText(language, "Закрити", "Schließen", "Close", "Закрыть"))
+            }
+        }
+    )
+    if (activeRoleMember != null) {
+        AlertDialog(
+            onDismissRequest = { selectedRoleMember = null },
+            title = { Text(activeRoleMember.memberName) },
+            text = {
+                Column {
+                    group.roles.orEmpty().forEach { role ->
+                        Row {
+                            Checkbox(
+                                checked = role.id in chosenRoles,
+                                onCheckedChange = { checked ->
+                                    chosenRoles = if (checked) chosenRoles + role.id else chosenRoles - role.id
+                                }
+                            )
+                            Text(role.name)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(enabled = !busy, onClick = {
+                    onMemberRoles(activeRoleMember.memberId, chosenRoles.toList())
+                    selectedRoleMember = null
+                }) { Text(memberText(language, "Зберегти", "Speichern", "Save", "Сохранить")) }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectedRoleMember = null }) {
+                    Text(memberText(language, "Скасувати", "Abbrechen", "Cancel", "Отмена"))
+                }
+            }
+        )
     }
 }
