@@ -3,6 +3,7 @@ package com.olehkobylianskyi.familypoints.android.network
 import com.olehkobylianskyi.familypoints.android.data.MemberGroupCreateRequest
 import com.olehkobylianskyi.familypoints.android.data.MemberSaveRequest
 import com.olehkobylianskyi.familypoints.android.data.GroupUpdateRequest
+import com.olehkobylianskyi.familypoints.android.data.GroupRoleSaveRequest
 import com.olehkobylianskyi.familypoints.android.data.AddGroupMemberRequest
 import com.olehkobylianskyi.familypoints.android.data.ChildGroupRequest
 import com.olehkobylianskyi.familypoints.android.data.MembersGroupResponse
@@ -105,6 +106,31 @@ interface MembersApi {
         @Path("memberId") memberId: Long,
         @Body roleIds: List<Long>
     ): MembersGroupResponse
+
+    @POST("workspaces/{workspaceId}/member-groups/{groupId}/roles")
+    suspend fun createGroupRole(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Body request: GroupRoleSaveRequest
+    ): MembersGroupResponse
+
+    @PUT("workspaces/{workspaceId}/member-groups/{groupId}/roles/{roleId}")
+    suspend fun updateGroupRole(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Path("roleId") roleId: Long,
+        @Body request: GroupRoleSaveRequest
+    ): MembersGroupResponse
+
+    @DELETE("workspaces/{workspaceId}/member-groups/{groupId}/roles/{roleId}")
+    suspend fun deleteGroupRole(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Path("roleId") roleId: Long
+    ): retrofit2.Response<Unit>
 
     @POST("workspaces/{workspaceId}/member-groups")
     suspend fun createGroup(
