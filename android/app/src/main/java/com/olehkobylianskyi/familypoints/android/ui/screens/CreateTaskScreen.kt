@@ -45,7 +45,6 @@ import com.olehkobylianskyi.familypoints.android.ui.components.LocalizedCalendar
 import java.time.LocalDate
 import java.time.YearMonth
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 private enum class EconomyPreset {
     SIMPLE,
@@ -355,7 +354,7 @@ fun CreateTaskScreen(
                     request
                 )
                 onCreated(created)
-            } catch (exception: HttpException) {
+            } catch (exception: retrofit2.HttpException) {
                 if (exception.code() == 401) {
                     onUnauthorized()
                 } else {
@@ -396,7 +395,7 @@ fun CreateTaskScreen(
             if (penaltyPointTypeId == null) {
                 penaltyPointTypeId = firstPointType?.id
             }
-        } catch (exception: HttpException) {
+        } catch (exception: retrofit2.HttpException) {
             if (exception.code() == 401) {
                 onUnauthorized()
             } else {
