@@ -25,6 +25,7 @@ import com.olehkobylianskyi.familypoints.android.auth.AuthSessionManager
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.CreateTaskRepository
 import com.olehkobylianskyi.familypoints.android.data.DashboardRepository
+import com.olehkobylianskyi.familypoints.android.data.MembersRepository
 import com.olehkobylianskyi.familypoints.android.data.PointsRepository
 import com.olehkobylianskyi.familypoints.android.data.RewardNegotiationRepository
 import com.olehkobylianskyi.familypoints.android.data.RewardsRepository
@@ -38,6 +39,7 @@ import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import com.olehkobylianskyi.familypoints.android.ui.screens.CreateTaskScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardDestination
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardScreen
+import com.olehkobylianskyi.familypoints.android.ui.screens.MembersScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.LoginScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.PlaceholderScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.PointsScreen
@@ -88,6 +90,7 @@ class MainActivity : ComponentActivity() {
             RewardNegotiationRepository(tokenStore)
         val rewardsRepository = RewardsRepository(tokenStore)
         val pointsRepository = PointsRepository(tokenStore)
+        val membersRepository = MembersRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore)
 
         setContent {
@@ -341,6 +344,18 @@ class MainActivity : ComponentActivity() {
                                 onUnauthorized = unauthorized
                             )
                         }
+                    }
+
+                    destination == AppDestination.MEMBERS -> {
+                        MembersScreen(
+                            language = language,
+                            currentUser = currentUser!!,
+                            repository = membersRepository,
+                            onLanguageChange = changeLanguage,
+                            onLogout = logout,
+                            onNavigate = navigate,
+                            onUnauthorized = unauthorized
+                        )
                     }
 
                     destination == AppDestination.POINTS -> {
