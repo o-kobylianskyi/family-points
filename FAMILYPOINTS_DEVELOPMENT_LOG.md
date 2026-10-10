@@ -50,3 +50,13 @@
 4. Have the user validate locally after `git pull`; record the actual build/run results here.
 
 **Logging decision:** Maintain this development log continuously alongside the existing concept log and work checklist.
+
+---
+
+## 2026-10-10 — Explicit Retrofit exception type in Create Task
+
+- **CHANGED:** `android/app/src/main/java/com/olehkobylianskyi/familypoints/android/ui/screens/CreateTaskScreen.kt`.
+- Replaced both ambiguous `catch (exception: HttpException)` declarations with `catch (exception: retrofit2.HttpException)` and removed the unused short-name import.
+- Purpose: disambiguate from Android SDK `android.net.http.HttpException` and avoid its API-extension inspection warning.
+- Source commit: `d8b067dd26434acbf4af6ef9717c0654bde25b8f`.
+- **NOT VERIFIED AFTER PATCH:** Gradle compilation / IDE inspection; user needs to run `git pull` and recheck. Previous compilation was successful before this change.
