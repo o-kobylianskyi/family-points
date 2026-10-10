@@ -59,12 +59,24 @@ class MembersRepository(private val tokenStore: TokenStore) {
         ApiClient.membersApi.setGroupMemberRoles(authorization(), workspaceId, groupId, memberId, roleIds)
     }
 
-    suspend fun saveGroupRole(workspaceId: Long, groupId: Long, roleId: Long?, request: GroupRoleSaveRequest) {
+    suspend fun saveGroupRole(
+        workspaceId: Long,
+        groupId: Long,
+        roleId: Long?,
+        request: GroupRoleSaveRequest,
+        permissions: Map<String, String>?
+    ) {
         val auth = authorization()
-        if (roleId == null) {
+        val saved = if (roleId == null) {
             ApiClient.membersApi.createGroupRole(auth, workspaceId, groupId, request)
         } else {
             ApiClient.membersApi.updateGroupRole(auth, workspaceId, groupId, roleId, request)
+        }
+        if (permissions != null) {
+            val resolvedId = roleId ?: saved.roles.orEmpty()
+                .firstOrNull { it.name == request.name && it.visibility == "PRIVATE" }?.id
+                ?: error("Created role ID could not be resolved; refresh before retrying")
+            updateRolePermissions(workspaceId, groupId, resolvedId, permissions)
         }
     }
 
