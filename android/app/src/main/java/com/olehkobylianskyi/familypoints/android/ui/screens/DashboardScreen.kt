@@ -1,6 +1,7 @@
 package com.olehkobylianskyi.familypoints.android.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,9 +32,12 @@ import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
 import retrofit2.HttpException
 
 enum class DashboardDestination {
+    DASHBOARD,
+    MEMBERS,
     TASKS,
     POINTS,
-    REWARDS
+    REWARDS,
+    SETTINGS
 }
 
 @Composable
@@ -52,6 +56,7 @@ fun DashboardScreen(
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
     var languageMenuOpen by remember { mutableStateOf(false) }
+    var navigationMenuOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(currentUser.memberId, currentUser.workspaceId) {
         loading = true
@@ -76,51 +81,94 @@ fun DashboardScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
+        contentPadding = PaddingValues(
+            top = 12.dp,
+            bottom = 40.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
-                    Text(
-                        text = currentUser.memberName,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = currentUser.workspaceRoleName,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Column {
+                        OutlinedButton(
+                            onClick = { navigationMenuOpen = true }
+                        ) {
+                            Text("☰")
+                        }
 
-                Column {
-                    OutlinedButton(
-                        onClick = { languageMenuOpen = true }
-                    ) {
-                        Text(language.label)
+                        DropdownMenu(
+                            expanded = navigationMenuOpen,
+                            onDismissRequest = {
+                                navigationMenuOpen = false
+                            }
+                        ) {
+                            listOf(
+                                DashboardDestination.DASHBOARD to text.dashboard,
+                                DashboardDestination.MEMBERS to text.members,
+                                DashboardDestination.TASKS to text.tasks,
+                                DashboardDestination.POINTS to text.points,
+                                DashboardDestination.REWARDS to text.rewards,
+                                DashboardDestination.SETTINGS to text.settings
+                            ).forEach { entry ->
+                                DropdownMenuItem(
+                                    text = { Text(entry.second) },
+                                    onClick = {
+                                        navigationMenuOpen = false
+                                        onNavigate(entry.first)
+                                    }
+                                )
+                            }
+                        }
                     }
 
-                    DropdownMenu(
-                        expanded = languageMenuOpen,
-                        onDismissRequest = { languageMenuOpen = false }
-                    ) {
-                        AppLanguage.entries.forEach { item ->
-                            DropdownMenuItem(
-                                text = { Text(item.label) },
-                                onClick = {
-                                    onLanguageChange(item)
-                                    languageMenuOpen = false
-                                }
-                            )
+                    Column {
+                        Text(
+                            text = currentUser.memberName,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = currentUser.workspaceRoleName,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Column {
+                        OutlinedButton(
+                            onClick = { languageMenuOpen = true }
+                        ) {
+                            Text(language.label)
+                        }
+
+                        DropdownMenu(
+                            expanded = languageMenuOpen,
+                            onDismissRequest = {
+                                languageMenuOpen = false
+                            }
+                        ) {
+                            AppLanguage.entries.forEach { item ->
+                                DropdownMenuItem(
+                                    text = { Text(item.label) },
+                                    onClick = {
+                                        onLanguageChange(item)
+                                        languageMenuOpen = false
+                                    }
+                                )
+                            }
                         }
                     }
 
                     OutlinedButton(
-                        onClick = onLogout,
-                        modifier = Modifier.padding(top = 4.dp)
+                        onClick = onLogout
                     ) {
                         Text(text.logout)
                     }
@@ -300,12 +348,7 @@ fun DashboardScreen(
                     }
                 }
 
-                item {
-                    Text(
-                        text = "",
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
-                }
+
             }
         }
     }
