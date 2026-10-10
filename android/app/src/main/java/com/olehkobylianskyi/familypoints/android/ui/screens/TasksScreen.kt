@@ -48,6 +48,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
+import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlinx.coroutines.launch
 
@@ -746,8 +747,17 @@ private fun LocalizedCalendarDialog(
             if (it.isLowerCase()) it.titlecase(locale) else it.toString()
         }
 
+    val firstDayOfWeek = WeekFields.of(locale).firstDayOfWeek
+    val orderedWeekDays = List(7) { offset ->
+        DayOfWeek.of(
+            ((firstDayOfWeek.value - 1 + offset) % 7) + 1
+        )
+    }
+
     val firstDay = visibleMonth.atDay(1)
-    val firstOffset = (firstDay.dayOfWeek.value - DayOfWeek.MONDAY.value + 7) % 7
+    val firstOffset =
+        (firstDay.dayOfWeek.value - firstDayOfWeek.value + 7) % 7
+
     val daysInMonth = visibleMonth.lengthOfMonth()
     val cells = List(firstOffset) { null } +
         (1..daysInMonth).map { visibleMonth.atDay(it) }
@@ -777,7 +787,7 @@ private fun LocalizedCalendarDialog(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    DayOfWeek.entries.forEach { day ->
+                    orderedWeekDays.forEach { day ->
                         Text(
                             text = day.getDisplayName(
                                 TextStyle.SHORT,
