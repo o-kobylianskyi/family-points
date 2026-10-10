@@ -72,6 +72,31 @@ class MembersRepository(private val tokenStore: TokenStore) {
         ApiClient.membersApi.deleteGroupRole(authorization(), workspaceId, groupId, roleId)
     }
 
+    suspend fun getGroupPermissions(workspaceId: Long, groupId: Long): List<GroupPermissionGrantResponse> =
+        ApiClient.membersApi.getGroupPermissions(authorization(), workspaceId, groupId)
+
+    suspend fun updateRolePermissions(
+        workspaceId: Long,
+        groupId: Long,
+        roleId: Long,
+        requested: Map<String, String>
+    ) {
+        val auth = authorization()
+        val existing = ApiClient.membersApi.getGroupPermissions(auth, workspaceId, groupId)
+            .filter { it.roleId == roleId }
+        existing.filter { requested[it.permission] != it.scope }.forEach {
+            ApiClient.membersApi.removeGroupPermission(auth, workspaceId, groupId, it.id)
+        }
+        requested.forEach { (permission, scope) ->
+            if (existing.none { it.permission == permission && it.scope == scope }) {
+                ApiClient.membersApi.addGroupPermission(
+                    auth, workspaceId, groupId, roleId,
+                    GroupPermissionGrantRequest(permission, scope)
+                )
+            }
+        }
+    }
+
     suspend fun createGroup(workspaceId: Long, name: String) {
         ApiClient.membersApi.createGroup(
             authorization(), workspaceId, MemberGroupCreateRequest(name)
