@@ -601,3 +601,10 @@ Before each substantial implementation batch:
 - [ ] Consider backend overdraft policy and atomic balance validation
 - [ ] Compile backend with Maven and Android with Gradle, deploy secured backend
 - [ ] Runtime-test role permissions and credit/debit API; verify ledger and balance refresh
+
+## 2026-10-11 — Android Groups UI polish
+- [x] Compact group cards with localized member and subgroup counters
+- [x] Expand/collapse tree and indent nested groups
+- [x] Suppress zero balances in group overview; retain full balance list in editor
+- [x] Translate permission groups, role profiles, scope selection and member types
+- [ ] Compile Kotlin and verify layout on actual device/emulator, especially deep group nesting
