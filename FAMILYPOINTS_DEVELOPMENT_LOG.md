@@ -192,3 +192,9 @@
 - Localized built-in workspace roles FAMILY_ADMIN/PARENT/CHILD using role code, preserving custom names.
 - Defaulted new members to CHILD workspace role when available rather than blindly selecting first role.
 - Source commit: `51ee1da`. Not compiled or runtime tested yet.
+
+## 2026-10-11 — Reward tabs responsive layout and Points navigation
+- User selected adaptive option A. Located screenshot's 3-tab layout in `RewardsScreen.kt`, not DashboardScreen.
+- Replaced 3 equal-width Row tabs with 2-per-row FlowRow; long labels can wrap to at most two lines with ellipsis, and request count appears as separate Badge.
+- Fixed AppHeader's Points navigation to nominative UK «Бали» / RU «Баллы»; the Dashboard balance quantity string «балів» remains correct.
+- Source commits `9f0a0af`, `1a8c1da`. Build/emulator verification pending.
