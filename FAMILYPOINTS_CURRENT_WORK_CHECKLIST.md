@@ -584,3 +584,10 @@ Before each substantial implementation batch:
 - [ ] Test multi-request role save failures, role IDs and permission sync
 - [ ] Port group balance controls
 - [ ] Run Android compile/runtime validation
+
+## Android group balances — 2026-10-10
+
+- [x] Show all server-provided group balances in GroupEditor by point type
+- [ ] Confirm backend DTO for POST /member-groups/{groupId}/points and group delegation rights
+- [ ] Add secure group point adjustment form after DTO verification
+- [ ] Verify Android compile and group UI on emulator
