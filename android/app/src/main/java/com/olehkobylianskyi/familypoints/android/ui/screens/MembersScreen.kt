@@ -325,75 +325,80 @@ private fun GroupTreeCard(
     language: AppLanguage,
     onEdit: ((Long) -> Unit)?
 ) {
-    val isNested = visited.isNotEmpty()
-    var expanded by remember(group.id) { mutableStateOf(!isNested) }
+    if (visited.isEmpty()) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                GroupTreeRow(group, groups, visited, language, onEdit)
+            }
+        }
+    } else {
+        GroupTreeRow(group, groups, visited, language, onEdit)
+    }
+}
+
+@Composable
+private fun GroupTreeRow(
+    group: MembersGroupResponse,
+    groups: List<MembersGroupResponse>,
+    visited: Set<Long>,
+    language: AppLanguage,
+    onEdit: ((Long) -> Unit)?
+) {
+    val nested = visited.isNotEmpty()
+    var expanded by remember(group.id) { mutableStateOf(!nested) }
     val members = group.members.orEmpty()
     val children = group.childGroups.orEmpty()
-    val nonzeroBalances = group.balances.orEmpty().filter { it.amount != 0L }
-    val hasChildren = children.isNotEmpty()
-    val isCycle = group.id in visited
-    val memberLabel = memberText(language, "учасників", "Mitglieder", "members", "участников")
-    val childLabel = memberText(language, "підгруп", "Untergruppen", "subgroups", "подгрупп")
+    val cycle = group.id in visited
+    val balances = group.balances.orEmpty().filter { it.amount != 0L }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(horizontal = if (isNested) 10.dp else 12.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp)
-        ) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                TextButton(
-                    onClick = { expanded = !expanded },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        (if (hasChildren) { if (expanded) "▾  " else "▸  " } else "•  ") + group.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-                if (onEdit != null) {
-                    TextButton(onClick = { onEdit(group.id) }) {
-                        Text(memberText(language, "Змінити", "Ändern", "Edit", "Изменить"))
-                    }
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            TextButton(
+                onClick = { expanded = !expanded },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    (if (nested) "  ↳ " else "") +
+                        (if (children.isNotEmpty()) (if (expanded) "▾ " else "▸ ") else "• ") +
+                        group.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            if (onEdit != null) {
+                TextButton(onClick = { onEdit(group.id) }) {
+                    Text(memberText(language, "Змінити", "Ändern", "Edit", "Изменить"))
                 }
             }
-            Text(
-                "${members.size} ${memberLabel} · ${children.size} ${childLabel}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (isCycle) {
-                Text(memberText(language, "Циклічне посилання", "Zyklischer Verweis",
-                    "Circular reference", "Циклическая ссылка"),
-                    color = MaterialTheme.colorScheme.error)
-            } else if (expanded) {
-                group.description?.takeIf { it.isNotBlank() }?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall)
-                }
-                if (members.isNotEmpty()) {
-                    Text(
-                        members.joinToString(" · ") { it.memberName },
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                if (nonzeroBalances.isNotEmpty()) {
-                    Text(
-                        nonzeroBalances.joinToString(" · ") { balance ->
-                            "${balance.amount} ${balance.name ?: balance.code ?: ""}"
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                children.forEach { child ->
-                    val nested = groups.firstOrNull { it.id == child.groupId }
-                    Column(modifier = Modifier.padding(start = 12.dp)) {
-                        if (nested == null) {
-                            Text("↳ " + child.groupName, style = MaterialTheme.typography.bodySmall)
-                        } else {
-                            GroupTreeCard(nested, groups, visited + group.id, language, onEdit)
-                        }
-                    }
+        }
+        Text(
+            "${members.size} " + memberText(language, "учасників", "Mitglieder", "members", "участников") +
+                " · ${children.size} " + memberText(language, "підгруп", "Untergruppen", "subgroups", "подгрупп"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (cycle) {
+            Text(memberText(language, "Циклічне посилання", "Zyklischer Verweis",
+                "Circular reference", "Циклическая ссылка"), color = MaterialTheme.colorScheme.error)
+        } else if (expanded) {
+            group.description?.takeIf { it.isNotBlank() }?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall)
+            }
+            if (members.isNotEmpty()) {
+                Text(members.joinToString(" · ") { it.memberName }, style = MaterialTheme.typography.bodySmall)
+            }
+            if (balances.isNotEmpty()) {
+                Text(balances.joinToString(" · ") {
+                    "${it.amount} ${it.name ?: it.code ?: ""}"
+                }, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            children.forEach { child ->
+                val childGroup = groups.firstOrNull { it.id == child.groupId }
+                if (childGroup == null) {
+                    Text("↳ " + child.groupName, style = MaterialTheme.typography.bodySmall)
+                } else {
+                    GroupTreeCard(childGroup, groups, visited + group.id, language, onEdit)
                 }
             }
         }
