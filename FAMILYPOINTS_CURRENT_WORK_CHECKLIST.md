@@ -636,3 +636,12 @@ Before each substantial implementation batch:
 - [ ] Populate recommended defaults for built-in COPPER/SILVER/GOLD, and expose forms in React Settings
 - [ ] Use formatter consistently in balances, transactions, tasks, groups and other currency displays
 - [ ] Build/test Flyway migration, backend API, Android Settings + reward prices
+
+## 2026-10-11 — Currency UI audit, Android + React
+- [x] Inventory screens/components showing currency counts in both clients
+- [x] Shared UI currency formatting helper for React; Android counterpart exists
+- [x] Web Settings currency form editor + API; Rewards/Tasks/TaskDetails/Group/Dashboard/Points displays
+- [x] Android Dashboard/Points basic POINTS summary + TaskDetails; Rewards custom forms
+- [ ] Android custom-form loading in all screens (not just Rewards); groups/history/negotiation/task-list/editor
+- [ ] Web point history and remaining forms; full localization and currency defaults
+- [ ] Backend V18 migration tests; Kotlin compile, JS build and live regression checks
