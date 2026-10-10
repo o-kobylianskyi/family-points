@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
+import com.olehkobylianskyi.familypoints.android.data.PointNameFormDto
 import com.olehkobylianskyi.familypoints.android.data.PointTypeResponse
 import com.olehkobylianskyi.familypoints.android.data.RewardDefinitionCreateRequest
 import com.olehkobylianskyi.familypoints.android.data.RewardDefinitionSummary
@@ -44,6 +45,8 @@ import com.olehkobylianskyi.familypoints.android.data.RewardRequestSummary
 import com.olehkobylianskyi.familypoints.android.data.RewardsPageData
 import com.olehkobylianskyi.familypoints.android.data.RewardsRepository
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
+import com.olehkobylianskyi.familypoints.android.i18n.PointNameForms
+import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.i18n.createTaskStrings
 import com.olehkobylianskyi.familypoints.android.i18n.rewardsStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
@@ -76,6 +79,7 @@ fun RewardsScreen(
 
     var tab by remember { mutableStateOf(RewardsTab.CATALOG) }
     var data by remember { mutableStateOf<RewardsPageData?>(null) }
+    var nameForms by remember { mutableStateOf<Map<Long, List<PointNameFormDto>>>(emptyMap()) }
     var loading by remember { mutableStateOf(true) }
     var processing by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
@@ -249,6 +253,21 @@ fun RewardsScreen(
         load()
     }
 
+    LaunchedEffect(data?.pointTypes) {
+        val types = data?.pointTypes.orEmpty()
+        val received = mutableMapOf<Long, List<PointNameFormDto>>()
+        types.forEach { type ->
+            try {
+                received[type.id] = repository.loadPointNameForms(currentUser.workspaceId, type.id)
+            } catch (e: HttpException) {
+                if (e.code() == 401) onUnauthorized()
+            } catch (_: Exception) {
+                // Older backend versions may not yet expose word-form settings.
+            }
+        }
+        nameForms = received
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -341,6 +360,7 @@ fun RewardsScreen(
                                         reward.pointTypeCode
                                     ),
                                     pointCode = reward.pointTypeCode,
+                                    configuredForms = nameForms[reward.pointTypeId].orEmpty(),
                                     acquisitionLabel =
                                         acquisitionLabel(reward.acquisitionMode),
                                     processing = processing,
@@ -449,6 +469,7 @@ fun RewardsScreen(
                                         request.pointTypeCode
                                     ),
                                     pointCode = request.pointTypeCode,
+                                    configuredForms = nameForms[request.pointTypeId].orEmpty(),
                                     canManage = canManage,
                                     processing = processing,
                                     reviewing =
@@ -1164,6 +1185,7 @@ private fun RewardCatalogCard(
     reward: RewardDefinitionSummary,
     pointLabel: String,
     pointCode: String?,
+    configuredForms: List<PointNameFormDto>,
     acquisitionLabel: String,
     processing: Boolean,
     onPurchase: () -> Unit,
@@ -1185,7 +1207,8 @@ private fun RewardCatalogCard(
             }
 
             Text(
-                reward.priceAmount.toString() + " " + rewardPointUnit(language, reward.priceAmount, pointCode, pointLabel),
+                formatPointAmount(reward.priceAmount.toLong(), language, pointCode, pointLabel,
+                    configuredForms.map { PointNameForms(it.language, it.one, it.few, it.many) }),
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -1269,6 +1292,7 @@ private fun RewardRequestCard(
     statusLabel: String,
     pointLabel: String,
     pointCode: String?,
+    configuredForms: List<PointNameFormDto>,
     canManage: Boolean,
     processing: Boolean,
     reviewing: Boolean,
@@ -1310,7 +1334,8 @@ private fun RewardRequestCard(
 
             request.priceAmount?.let {
                 Text(
-                    text.price + ": " + it + " " + rewardPointUnit(language, it, pointCode, pointLabel)
+                    text.price + ": " + formatPointAmount(it.toLong(), language, pointCode, pointLabel,
+                        configuredForms.map { form -> PointNameForms(form.language, form.one, form.few, form.many) })
                 )
             }
 
@@ -1604,25 +1629,3 @@ private fun blockingLabel(
         ?.second
         ?: value
 
-private fun rewardPointUnit(language: AppLanguage, amount: Int, code: String?, fallback: String): String {
-    if (code?.uppercase() != "POINTS") return fallback
-    val count = kotlin.math.abs(amount.toLong())
-    val lastTwo = count % 100
-    val last = count % 10
-    return when (language) {
-        AppLanguage.UK -> when {
-            lastTwo in 11L..14L -> "балів"
-            last == 1L -> "бал"
-            last in 2L..4L -> "бали"
-            else -> "балів"
-        }
-        AppLanguage.RU -> when {
-            lastTwo in 11L..14L -> "баллов"
-            last == 1L -> "балл"
-            last in 2L..4L -> "балла"
-            else -> "баллов"
-        }
-        AppLanguage.DE -> "Punkte"
-        AppLanguage.EN -> if (count == 1L) "point" else "points"
-    }
-}
