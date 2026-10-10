@@ -1,3 +1,4 @@
+import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
@@ -27,6 +28,7 @@ function TaskDetailsPage() {
   const [searchParams] = useSearchParams()
   const selectedDate = searchParams.get('date') || new Date().toISOString().slice(0, 10)
   const { currentUser, getAccessToken } = useAuth()
+  const currency = useCurrencyQuantity(getAccessToken(), currentUser.workspaceId)
   const [task, setTask] = useState(null)
   const [visibleDefinitions, setVisibleDefinitions] = useState([])
   const [instance, setInstance] = useState(null)
@@ -229,9 +231,9 @@ function TaskDetailsPage() {
             <div><dt>Призначено</dt><dd>{memberName(task.assignedMemberId)}</dd></div>
             <div><dt>Відповідальний</dt><dd>{memberName(task.responsibleMemberId)}</dd></div>
             <div><dt>Бажаний виконавець</dt><dd>{memberName(task.preferredMemberId)}</dd></div>
-            <div><dt>Нагорода</dt><dd>{task.rewardAmount ? `+${task.rewardAmount} ${translateEnum('pointType', task.rewardPointTypeCode)}` : '—'}</dd></div>
+            <div><dt>Нагорода</dt><dd>{task.rewardAmount ? `+${currency(task.rewardAmount, task.rewardPointTypeCode, task.rewardPointTypeId, translateEnum('pointType', task.rewardPointTypeCode))}` : '—'}</dd></div>
             <div><dt>Репутація за виконання</dt><dd>{task.rewardReputationAmount > 0 ? `+${task.rewardReputationAmount}` : '—'}</dd></div>
-            <div><dt>Штраф</dt><dd>{task.penaltyAmount ? `-${task.penaltyAmount} ${translateEnum('pointType', task.penaltyPointTypeCode)}` : '—'}</dd></div>
+            <div><dt>Штраф</dt><dd>{task.penaltyAmount ? `-${currency(task.penaltyAmount, task.penaltyPointTypeCode, task.penaltyPointTypeId, translateEnum('pointType', task.penaltyPointTypeCode))}` : '—'}</dd></div>
             <div><dt>Репутація за невиконання</dt><dd>{task.penaltyReputationAmount > 0 ? `-${task.penaltyReputationAmount}` : '—'}</dd></div>
           </dl>
         </section>
@@ -249,7 +251,7 @@ function TaskDetailsPage() {
             {subtasks.map((subtask) => (
               <Link key={subtask.id} className="task-details-subtask" to={`/tasks/${subtask.id}`}>
                 <span><strong>№{subtask.id}</strong> · {subtask.title}</span>
-                <span>{subtask.rewardAmount ? `+${subtask.rewardAmount} ${translateEnum('pointType', subtask.rewardPointTypeCode)}` : 'Без винагороди'} →</span>
+                <span>{subtask.rewardAmount ? `+${currency(subtask.rewardAmount, subtask.rewardPointTypeCode, subtask.rewardPointTypeId, translateEnum('pointType', subtask.rewardPointTypeCode))}` : 'Без винагороди'} →</span>
               </Link>
             ))}
           </div>
