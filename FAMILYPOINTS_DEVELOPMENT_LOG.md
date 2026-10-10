@@ -198,3 +198,12 @@
 - Replaced 3 equal-width Row tabs with 2-per-row FlowRow; long labels can wrap to at most two lines with ellipsis, and request count appears as separate Badge.
 - Fixed AppHeader's Points navigation to nominative UK «Бали» / RU «Баллы»; the Dashboard balance quantity string «балів» remains correct.
 - Source commits `9f0a0af`, `1a8c1da`. Build/emulator verification pending.
+
+## 2026-10-11 — Configurable currency declensions (phase 1, unverified)
+- Custom currencies already existed as PointType (code/name/order/active), without localized quantity forms.
+- Added V18 migration `point_type_name_forms` for UK/RU/EN/DE: one/few/many, unique per point type + language, scoped by point type FK.
+- Added Java entity/repository/DTO and secured GET/PUT endpoints under /workspaces/{workspaceId}/economy/point-types/{pointTypeId}/name-forms; writes require MANAGE_ECONOMY or ADMIN_OVERRIDE and workspace membership.
+- Added reusable Android `formatPointAmount` with Ukrainian/Russian 11–14 exceptions, singular/plural EN/DE, custom forms override and built-in POINTS fallback.
+- Added Android Settings currency form editor with language selection and sample quantities 1/2/5/11/21.
+- Reward catalog prices and request prices load and use configured forms; old backend fallback tolerates unavailable endpoint.
+- **Partial integration**: other Android screens (balances/history/tasks/group points) and React still require migration to the shared quantity formatter and configured forms. Built-in COPPER/SILVER/GOLD fallback remains existing display name until configured. New backend migration and Android source **not compiled or tested**.
