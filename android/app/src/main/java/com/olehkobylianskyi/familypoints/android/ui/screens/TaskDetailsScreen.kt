@@ -33,6 +33,7 @@ import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.taskDetailsStrings
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
+import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
@@ -43,6 +44,9 @@ fun TaskDetailsScreen(
     definitionId: Long,
     selectedDate: String,
     repository: TaskDetailsRepository,
+    onLanguageChange: (AppLanguage) -> Unit,
+    onLogout: () -> Unit,
+    onNavigate: (DashboardDestination) -> Unit,
     onBack: () -> Unit,
     onOpenTask: (Long, String) -> Unit,
     onCreateSubtask: (Long) -> Unit,
@@ -144,6 +148,16 @@ fun TaskDetailsScreen(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        item {
+            AppHeader(
+                language = language,
+                currentUser = currentUser,
+                onLanguageChange = onLanguageChange,
+                onLogout = onLogout,
+                onNavigate = onNavigate
+            )
+        }
+
         item {
             OutlinedButton(
                 onClick = onBack,
