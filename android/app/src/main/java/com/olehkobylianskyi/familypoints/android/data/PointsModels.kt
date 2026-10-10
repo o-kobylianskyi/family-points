@@ -23,3 +23,6 @@ data class PointsPageData(
     val balance: Long,
     val history: List<PointTransactionResponse>
 )
+
+data class PointNameFormDto(val language: String, val one: String, val few: String, val many: String)
+data class PointNameFormSave(val one: String, val few: String, val many: String)
