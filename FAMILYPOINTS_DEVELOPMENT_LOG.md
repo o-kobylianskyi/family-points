@@ -186,3 +186,9 @@
 - Mounted RoleCatalogSection in Settings and wired repository from MainActivity.
 - Commits: `6dbfe4a`, `7c2e55e`, `469c88d`, `818b1b5`, `dfe7c1e`, `c3b02e4`, `4214943`.
 - **Compilation/runtime NOT verified.** Run Android Kotlin Gradle compilation; then test API role catalog read and CRUD. UI polish, server-side permission validation and translated system role names remain.
+
+## 2026-10-11 — Android member editor field clarity and role translations
+- Added explicit localized labels above Member type and Workspace role dropdowns in the member dialog.
+- Localized built-in workspace roles FAMILY_ADMIN/PARENT/CHILD using role code, preserving custom names.
+- Defaulted new members to CHILD workspace role when available rather than blindly selecting first role.
+- Source commit: `51ee1da`. Not compiled or runtime tested yet.
