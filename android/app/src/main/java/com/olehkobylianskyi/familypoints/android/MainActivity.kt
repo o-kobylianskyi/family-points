@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import com.olehkobylianskyi.familypoints.android.auth.AuthSessionManager
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.DashboardRepository
+import com.olehkobylianskyi.familypoints.android.data.TaskDetailsRepository
 import com.olehkobylianskyi.familypoints.android.data.TasksRepository
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
@@ -31,6 +32,7 @@ import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardDestination
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.LoginScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.PlaceholderScreen
+import com.olehkobylianskyi.familypoints.android.ui.screens.TaskDetailsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.TasksScreen
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyPointsTheme
 import kotlinx.coroutines.delay
@@ -40,6 +42,7 @@ private enum class AppDestination {
     TASKS,
     TASK_DETAILS,
     CREATE_TASK,
+    REWARD_NEGOTIATION,
     POINTS,
     REWARDS
 }
@@ -56,6 +59,7 @@ class MainActivity : ComponentActivity() {
         val languageStore = LanguageStore(this)
         val dashboardRepository = DashboardRepository(tokenStore)
         val tasksRepository = TasksRepository(tokenStore)
+        val taskDetailsRepository = TaskDetailsRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore)
 
         setContent {
@@ -82,6 +86,14 @@ class MainActivity : ComponentActivity() {
 
                 var selectedTaskDate by remember {
                     mutableStateOf("")
+                }
+
+                var selectedTaskInstanceId by remember {
+                    mutableStateOf<Long?>(null)
+                }
+
+                var parentTaskDefinitionId by remember {
+                    mutableStateOf<Long?>(null)
                 }
 
                 LaunchedEffect(Unit) {
@@ -182,21 +194,66 @@ class MainActivity : ComponentActivity() {
                     }
 
                     destination == AppDestination.TASK_DETAILS -> {
-                        PlaceholderScreen(
-                            language = language,
-                            title = "Task №${selectedTaskDefinitionId ?: ""} · $selectedTaskDate",
-                            onBack = {
-                                destination = AppDestination.TASKS
-                            }
-                        )
+                        val definitionId = selectedTaskDefinitionId
+
+                        if (definitionId == null) {
+                            destination = AppDestination.TASKS
+                        } else {
+                            TaskDetailsScreen(
+                                language = language,
+                                currentUser = currentUser!!,
+                                definitionId = definitionId,
+                                selectedDate = selectedTaskDate,
+                                repository = taskDetailsRepository,
+                                onBack = {
+                                    destination = AppDestination.TASKS
+                                },
+                                onOpenTask = { childId, date ->
+                                    selectedTaskDefinitionId = childId
+                                    selectedTaskDate = date
+                                },
+                                onCreateSubtask = { parentId ->
+                                    parentTaskDefinitionId = parentId
+                                    destination = AppDestination.CREATE_TASK
+                                },
+                                onRequestReward = { instanceId ->
+                                    selectedTaskInstanceId = instanceId
+                                    destination =
+                                        AppDestination.REWARD_NEGOTIATION
+                                },
+                                onUnauthorized = unauthorized
+                            )
+                        }
                     }
 
                     destination == AppDestination.CREATE_TASK -> {
                         PlaceholderScreen(
                             language = language,
-                            title = "+ " + dashboardStrings(language).tasks,
+                            title = "+ " + dashboardStrings(language).tasks +
+                                (
+                                    parentTaskDefinitionId?.let {
+                                        " · parent №" + it
+                                    } ?: ""
+                                ),
                             onBack = {
-                                destination = AppDestination.TASKS
+                                destination =
+                                    if (parentTaskDefinitionId != null) {
+                                        AppDestination.TASK_DETAILS
+                                    } else {
+                                        AppDestination.TASKS
+                                    }
+                                parentTaskDefinitionId = null
+                            }
+                        )
+                    }
+
+                    destination == AppDestination.REWARD_NEGOTIATION -> {
+                        PlaceholderScreen(
+                            language = language,
+                            title = "Reward request · instance №" +
+                                (selectedTaskInstanceId ?: ""),
+                            onBack = {
+                                destination = AppDestination.TASK_DETAILS
                             }
                         )
                     }
