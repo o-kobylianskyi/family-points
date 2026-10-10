@@ -127,3 +127,12 @@
 - Code commits: `5f1907a`, `4f4792c`, `1940da5`, `1a3f19d`.
 - **Not compiled or runtime-tested.** User must verify with `git pull` and `./gradlew.bat :app:compileDebugKotlin --console=plain`; authorization and server-side grant rules remain authoritative.
 - Remaining: synchronize grants after role creation in one flow, automatic naming and duplicate permission warning, group balance controls, compact UI testing.
+
+## 2026-10-10 — Android local role naming and preset save (PARTIAL)
+
+- Verified remote HEAD `2147cdfc457e69fdd5bfcc8ecd3c5fbd4a2a934f` before implementation.
+- Local role names now default to a localized, collision-free suggestion; selecting a predefined permission profile updates the proposed name only until manually edited.
+- Role editor warns when another role has the same predefined permission set. Name duplicates remain blocked.
+- Saving local roles now also applies selected NONE/EXECUTOR/SENIOR/LEADER/CONTROL grant presets via the existing REST permission endpoints. CUSTOM preserves existing grants on edit; new CUSTOM applies no preset.
+- Source commits: `70877d1`, `6e16f80`, `1ea8d1d`.
+- **NOT COMPILED OR DEVICE TESTED.** API role ID resolution after create and partial failure of multi-call updates need smoke testing. Next: verify compilation, then group balances and richer advanced-edit UX.
