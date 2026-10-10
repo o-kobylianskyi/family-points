@@ -625,13 +625,13 @@ private fun GroupEditorDialog(
                         Text(memberText(language, "Профіль дозволів", "Berechtigungsprofil",
                             "Permission profile", "Профиль прав"))
                         OutlinedButton(onClick = { profileMenu = true }) {
-                            Text((profileNames.firstOrNull {
+                            Text(groupProfileLabel(language, profileNames.firstOrNull {
                                 it != "CUSTOM" && permissionPresets[it] == permissionValues
                             } ?: "CUSTOM") + " ▾")
                         }
                         DropdownMenu(expanded = profileMenu, onDismissRequest = { profileMenu = false }) {
                             profileNames.forEach { profile ->
-                                DropdownMenuItem(text = { Text(profile) }, onClick = {
+                                DropdownMenuItem(text = { Text(groupProfileLabel(language, profile)) }, onClick = {
                                     if (profile != "CUSTOM") permissionValues = permissionPresets[profile].orEmpty()
                                     profileMenu = false
                                 })
@@ -639,7 +639,7 @@ private fun GroupEditorDialog(
                         }
                     }
                     permissionCategories.forEach { (category, permissions) ->
-                        item { Text(category, style = MaterialTheme.typography.titleSmall) }
+                        item { Text(groupPermissionCategory(language, category), style = MaterialTheme.typography.titleSmall) }
                         items(permissions) { permission ->
                             Row(modifier = Modifier.fillMaxWidth()) {
                                 Checkbox(checked = permission in permissionValues, onCheckedChange = { checked ->
@@ -647,12 +647,12 @@ private fun GroupEditorDialog(
                                         permissionValues + (permission to "GROUP")
                                     else permissionValues - permission
                                 })
-                                Text(permission, modifier = Modifier.weight(1f))
+                                Text(groupPermissionLabel(language, permission), modifier = Modifier.weight(1f))
                                 if (permission in permissionValues) {
                                     TextButton(onClick = {
                                         val next = if (permissionValues[permission] == "GROUP") "GROUP_SUBTREE" else "GROUP"
                                         permissionValues = permissionValues + (permission to next)
-                                    }) { Text(permissionValues[permission] ?: "GROUP") }
+                                    }) { Text(groupScopeLabel(language, permissionValues[permission] ?: "GROUP")) }
                                 }
                             }
                         }
@@ -771,7 +771,7 @@ private fun GroupEditorDialog(
                     Text(memberText(language, "Профіль дозволів", "Berechtigungsprofil",
                         "Permission profile", "Профиль прав"))
                     OutlinedButton(onClick = { roleProfileMenu = true }, modifier = Modifier.fillMaxWidth()) {
-                        Text(roleProfile + " ▾")
+                        Text(groupProfileLabel(language, roleProfile) + " ▾")
                     }
                     DropdownMenu(expanded = roleProfileMenu, onDismissRequest = { roleProfileMenu = false }) {
                         listOf("NONE", "EXECUTOR", "SENIOR", "LEADER", "CONTROL", "CUSTOM").forEach { profile ->
@@ -917,4 +917,42 @@ private fun groupRoleProfileName(language: AppLanguage, profile: String): String
     "LEADER" -> memberText(language, "Керівник", "Leitung", "Leader", "Руководитель")
     "CONTROL" -> memberText(language, "Контролер", "Kontrolle", "Controller", "Контролёр")
     else -> memberText(language, "Нова роль", "Neue Rolle", "New role", "Новая роль")
+}
+
+private fun groupProfileLabel(language: AppLanguage, profile: String): String = when (profile) {
+    "NONE" -> memberText(language, "Без дозволів", "Keine Rechte", "No permissions", "Без прав")
+    "EXECUTOR" -> groupRoleProfileName(language, "EXECUTOR")
+    "SENIOR" -> groupRoleProfileName(language, "SENIOR")
+    "LEADER" -> groupRoleProfileName(language, "LEADER")
+    "CONTROL" -> groupRoleProfileName(language, "CONTROL")
+    else -> memberText(language, "Власний", "Benutzerdefiniert", "Custom", "Свой")
+}
+
+private fun groupScopeLabel(language: AppLanguage, scope: String): String =
+    if (scope == "GROUP_SUBTREE")
+        memberText(language, "Група + підгрупи", "Gruppe + Untergruppen", "Group + subgroups", "Группа + подгруппы")
+    else memberText(language, "Лише група", "Nur Gruppe", "Group only", "Только группа")
+
+private fun groupPermissionCategory(language: AppLanguage, category: String): String = when (category) {
+    "Tasks" -> memberText(language, "Завдання", "Aufgaben", "Tasks", "Задания")
+    "Members" -> memberText(language, "Учасники", "Mitglieder", "Members", "Участники")
+    "Groups" -> memberText(language, "Групи", "Gruppen", "Groups", "Группы")
+    else -> memberText(language, "Бали", "Punkte", "Points", "Баллы")
+}
+
+private fun groupPermissionLabel(language: AppLanguage, permission: String): String = when (permission) {
+    "TASK_VIEW" -> memberText(language, "Перегляд завдань", "Aufgaben ansehen", "View tasks", "Просмотр заданий")
+    "TASK_CREATE" -> memberText(language, "Створення завдань", "Aufgaben erstellen", "Create tasks", "Создание заданий")
+    "TASK_ASSIGN" -> memberText(language, "Призначення завдань", "Aufgaben zuweisen", "Assign tasks", "Назначение заданий")
+    "TASK_MANAGE" -> memberText(language, "Керування завданнями", "Aufgaben verwalten", "Manage tasks", "Управление заданиями")
+    "TASK_APPROVE" -> memberText(language, "Підтвердження завдань", "Aufgaben bestätigen", "Approve tasks", "Подтверждение заданий")
+    "MEMBER_VIEW" -> memberText(language, "Перегляд учасників", "Mitglieder ansehen", "View members", "Просмотр участников")
+    "MEMBER_MANAGE" -> memberText(language, "Керування учасниками", "Mitglieder verwalten", "Manage members", "Управление участниками")
+    "GROUP_VIEW" -> memberText(language, "Перегляд груп", "Gruppen ansehen", "View groups", "Просмотр групп")
+    "GROUP_MANAGE" -> memberText(language, "Керування групами", "Gruppen verwalten", "Manage groups", "Управление группами")
+    "SUBGROUP_MANAGE" -> memberText(language, "Керування підгрупами", "Untergruppen verwalten", "Manage subgroups", "Управление подгруппами")
+    "POINT_VIEW" -> memberText(language, "Перегляд балів", "Punkte ansehen", "View points", "Просмотр баллов")
+    "POINT_AWARD" -> memberText(language, "Нарахування балів", "Punkte vergeben", "Award points", "Начисление баллов")
+    "POINT_SPEND" -> memberText(language, "Списання балів", "Punkte ausgeben", "Spend points", "Списание баллов")
+    else -> permission
 }
