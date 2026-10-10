@@ -626,3 +626,13 @@ Before each substantial implementation batch:
 - [ ] Translate predefined system role names from systemCode
 - [ ] Confirm role CRUD API response compatibility and permissions
 - [ ] Verify Android Kotlin compile and runtime on emulator
+
+## 2026-10-11 — Localized custom currency declensions
+- [x] Store per-point-type forms one/few/many for UK/RU/EN/DE (Flyway V18)
+- [x] Secure read/update API for name forms
+- [x] Native Android Settings editor with quantity preview
+- [x] Shared Android quantity formatter for custom forms and POINTS fallback
+- [x] Apply configured forms to Android reward catalog and request prices
+- [ ] Populate recommended defaults for built-in COPPER/SILVER/GOLD, and expose forms in React Settings
+- [ ] Use formatter consistently in balances, transactions, tasks, groups and other currency displays
+- [ ] Build/test Flyway migration, backend API, Android Settings + reward prices
