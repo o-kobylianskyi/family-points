@@ -574,3 +574,13 @@ Before each substantial implementation batch:
 - [ ] Auto-name local roles and show duplicate-permissions warning
 - [ ] Complete group balances UI
 - [ ] Compile and smoke-test role permissions on emulator
+
+## Android local role follow-up — 2026-10-10
+
+- [x] Propose first unused localized role name and stop renaming after manual edit
+- [x] Warn on duplicate predefined permission profiles and reject duplicate names
+- [x] Apply selected permission preset on role save with explicit role ID resolution
+- [ ] Support modified-name suffix for manual advanced permission divergence
+- [ ] Test multi-request role save failures, role IDs and permission sync
+- [ ] Port group balance controls
+- [ ] Run Android compile/runtime validation
