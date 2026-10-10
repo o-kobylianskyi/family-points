@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.GroupUpdateRequest
+import com.olehkobylianskyi.familypoints.android.data.GroupPermissionGrantResponse
 import com.olehkobylianskyi.familypoints.android.data.GroupRoleResponse
 import com.olehkobylianskyi.familypoints.android.data.GroupRoleSaveRequest
 import com.olehkobylianskyi.familypoints.android.data.MemberSaveRequest
@@ -77,6 +78,7 @@ fun MembersScreen(
     var confirmDelete by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
     var editingGroupId by remember { mutableStateOf<Long?>(null) }
+    var grants by remember { mutableStateOf<List<GroupPermissionGrantResponse>>(emptyList()) }
 
     suspend fun reload() {
         data = repository.load(currentUser.workspaceId)
@@ -187,6 +189,12 @@ fun MembersScreen(
         }
     }
 
+    LaunchedEffect(editingGroupId) {
+        val id = editingGroupId ?: return@LaunchedEffect
+        try { grants = repository.getGroupPermissions(currentUser.workspaceId, id) }
+        catch (e: Exception) { failure(e) }
+    }
+
     val groupToEdit = data?.groups?.firstOrNull { it.id == editingGroupId }
     if (groupToEdit != null && allowed) {
         GroupEditorDialog(
@@ -195,6 +203,7 @@ fun MembersScreen(
             members = data?.members.orEmpty(),
             language = language,
             busy = busy,
+            permissionGrants = grants,
             onClose = { editingGroupId = null },
             onSave = { request ->
                 mutate {
@@ -222,6 +231,10 @@ fun MembersScreen(
             } },
             onDeleteRole = { roleId -> mutate {
                 repository.deleteGroupRole(currentUser.workspaceId, groupToEdit.id, roleId)
+            } },
+            onSavePermissions = { roleId, permissions -> mutate {
+                repository.updateRolePermissions(currentUser.workspaceId, groupToEdit.id, roleId, permissions)
+                grants = repository.getGroupPermissions(currentUser.workspaceId, groupToEdit.id)
             } }
         )
     }
@@ -338,6 +351,7 @@ private fun GroupEditorDialog(
     members: List<WorkspaceMemberResponse>,
     language: AppLanguage,
     busy: Boolean,
+    permissionGrants: List<GroupPermissionGrantResponse>,
     onClose: () -> Unit,
     onSave: (GroupUpdateRequest) -> Unit,
     onAddMember: (Long) -> Unit,
@@ -346,7 +360,8 @@ private fun GroupEditorDialog(
     onRemoveChild: (Long) -> Unit,
     onMemberRoles: (Long, List<Long>) -> Unit,
     onSaveRole: (Long?, GroupRoleSaveRequest) -> Unit,
-    onDeleteRole: (Long) -> Unit
+    onDeleteRole: (Long) -> Unit,
+    onSavePermissions: (Long, Map<String, String>) -> Unit
 ) {
     var name by remember(group.id) { mutableStateOf(group.name) }
     var description by remember(group.id) { mutableStateOf(group.description ?: "") }
@@ -361,6 +376,9 @@ private fun GroupEditorDialog(
     var roleName by remember(group.id) { mutableStateOf("") }
     var roleDescription by remember(group.id) { mutableStateOf("") }
     var roleToDelete by remember(group.id) { mutableStateOf<GroupRoleResponse?>(null) }
+    var permissionRole by remember(group.id) { mutableStateOf<GroupRoleResponse?>(null) }
+    var permissionValues by remember(group.id) { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var profileMenu by remember { mutableStateOf(false) }
 
     fun openRole(role: GroupRoleResponse?) {
         editingRole = role
@@ -462,6 +480,11 @@ private fun GroupEditorDialog(
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(role.name, modifier = Modifier.weight(1f))
                             if (role.visibility == "PRIVATE" && role.systemDefault != true) {
+                                TextButton(enabled = !busy, onClick = {
+                                    permissionRole = role
+                                    permissionValues = permissionGrants.filter { it.roleId == role.id }
+                                        .associate { it.permission to it.scope }
+                                }) { Text(memberText(language, "Права", "Rechte", "Permissions", "Права")) }
                                 TextButton(enabled = !busy, onClick = { openRole(role) }) {
                                     Text(memberText(language, "Змінити", "Ändern", "Edit", "Изменить"))
                                 }
@@ -488,6 +511,64 @@ private fun GroupEditorDialog(
             }
         }
     )
+    permissionRole?.let { role ->
+        val profileNames = listOf("NONE", "EXECUTOR", "SENIOR", "LEADER", "CONTROL", "CUSTOM")
+        AlertDialog(
+            onDismissRequest = { if (!busy) permissionRole = null },
+            title = { Text(role.name) },
+            text = {
+                LazyColumn {
+                    item {
+                        Text(memberText(language, "Профіль дозволів", "Berechtigungsprofil",
+                            "Permission profile", "Профиль прав"))
+                        OutlinedButton(onClick = { profileMenu = true }) {
+                            Text((profileNames.firstOrNull {
+                                it != "CUSTOM" && permissionPresets[it] == permissionValues
+                            } ?: "CUSTOM") + " ▾")
+                        }
+                        DropdownMenu(expanded = profileMenu, onDismissRequest = { profileMenu = false }) {
+                            profileNames.forEach { profile ->
+                                DropdownMenuItem(text = { Text(profile) }, onClick = {
+                                    if (profile != "CUSTOM") permissionValues = permissionPresets[profile].orEmpty()
+                                    profileMenu = false
+                                })
+                            }
+                        }
+                    }
+                    permissionCategories.forEach { (category, permissions) ->
+                        item { Text(category, style = MaterialTheme.typography.titleSmall) }
+                        items(permissions) { permission ->
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                Checkbox(checked = permission in permissionValues, onCheckedChange = { checked ->
+                                    permissionValues = if (checked)
+                                        permissionValues + (permission to "GROUP")
+                                    else permissionValues - permission
+                                })
+                                Text(permission, modifier = Modifier.weight(1f))
+                                if (permission in permissionValues) {
+                                    TextButton(onClick = {
+                                        val next = if (permissionValues[permission] == "GROUP") "GROUP_SUBTREE" else "GROUP"
+                                        permissionValues = permissionValues + (permission to next)
+                                    }) { Text(permissionValues[permission] ?: "GROUP") }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(enabled = !busy, onClick = {
+                    onSavePermissions(role.id, permissionValues)
+                    permissionRole = null
+                }) { Text(memberText(language, "Зберегти", "Speichern", "Save", "Сохранить")) }
+            },
+            dismissButton = {
+                TextButton(onClick = { permissionRole = null }) {
+                    Text(memberText(language, "Скасувати", "Abbrechen", "Cancel", "Отмена"))
+                }
+            }
+        )
+    }
     if (roleDialog) {
         val duplicate = group.roles.orEmpty().any {
             it.id != editingRole?.id && it.name.trim().equals(roleName.trim(), ignoreCase = true)
@@ -584,3 +665,24 @@ private fun GroupEditorDialog(
         )
     }
 }
+
+private val permissionCategories = listOf(
+    "Tasks" to listOf("TASK_VIEW", "TASK_CREATE", "TASK_ASSIGN", "TASK_MANAGE", "TASK_APPROVE"),
+    "Members" to listOf("MEMBER_VIEW", "MEMBER_MANAGE"),
+    "Groups" to listOf("GROUP_VIEW", "GROUP_MANAGE", "SUBGROUP_MANAGE"),
+    "Points" to listOf("POINT_VIEW", "POINT_AWARD", "POINT_SPEND")
+)
+
+private val permissionPresets: Map<String, Map<String, String>> = mapOf(
+    "NONE" to emptyMap(),
+    "EXECUTOR" to mapOf("TASK_VIEW" to "GROUP"),
+    "SENIOR" to listOf("TASK_VIEW", "TASK_ASSIGN", "TASK_APPROVE", "MEMBER_VIEW", "GROUP_VIEW")
+        .associateWith { "GROUP" },
+    "LEADER" to listOf(
+        "TASK_VIEW", "TASK_CREATE", "TASK_ASSIGN", "TASK_MANAGE", "TASK_APPROVE",
+        "MEMBER_VIEW", "MEMBER_MANAGE", "GROUP_VIEW", "GROUP_MANAGE",
+        "SUBGROUP_MANAGE", "POINT_VIEW", "POINT_AWARD"
+    ).associateWith { "GROUP" },
+    "CONTROL" to listOf("TASK_VIEW", "TASK_APPROVE", "MEMBER_VIEW", "GROUP_VIEW", "POINT_VIEW")
+        .associateWith { "GROUP" }
+)
