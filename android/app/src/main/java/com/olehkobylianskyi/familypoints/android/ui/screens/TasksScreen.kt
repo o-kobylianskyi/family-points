@@ -43,6 +43,7 @@ import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
 import com.olehkobylianskyi.familypoints.android.i18n.tasksStrings
+import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -69,6 +70,9 @@ fun TasksScreen(
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     repository: TasksRepository,
+    onLanguageChange: (AppLanguage) -> Unit,
+    onLogout: () -> Unit,
+    onNavigate: (DashboardDestination) -> Unit,
     onBack: () -> Unit,
     onOpenTask: (Long, String) -> Unit,
     onCreateTask: () -> Unit,
@@ -220,6 +224,16 @@ fun TasksScreen(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        item {
+            AppHeader(
+                language = language,
+                currentUser = currentUser,
+                onLanguageChange = onLanguageChange,
+                onLogout = onLogout,
+                onNavigate = onNavigate
+            )
+        }
+
         item {
             Row(
                 modifier = Modifier
