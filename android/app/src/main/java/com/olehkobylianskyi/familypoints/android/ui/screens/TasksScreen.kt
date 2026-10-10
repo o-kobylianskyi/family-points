@@ -432,32 +432,52 @@ fun TasksScreen(
             }
         } else {
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    ManagementView.entries.forEach { view ->
-                        val label = when (view) {
-                            ManagementView.CREATED -> text.created
-                            ManagementView.ADMIN -> text.admin
-                            ManagementView.OBSERVER -> text.observer
-                            ManagementView.EXECUTOR -> text.executorView
-                        }
-
-                        if (managementView == view) {
-                            Button(onClick = {}) {
-                                Text(label)
-                            }
-                        } else {
-                            OutlinedButton(
-                                onClick = { managementView = view }
+                    ManagementView.entries
+                        .chunked(2)
+                        .forEach { rowViews ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text(label)
+                                rowViews.forEach { view ->
+                                    val label = when (view) {
+                                        ManagementView.CREATED -> text.created
+                                        ManagementView.ADMIN -> text.admin
+                                        ManagementView.OBSERVER -> text.observer
+                                        ManagementView.EXECUTOR -> text.executorView
+                                    }
+
+                                    if (managementView == view) {
+                                        Button(
+                                            onClick = {},
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(label)
+                                        }
+                                    } else {
+                                        OutlinedButton(
+                                            onClick = {
+                                                managementView = view
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(label)
+                                        }
+                                    }
+                                }
+
+                                if (rowViews.size == 1) {
+                                    Text(
+                                        text = "",
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
                             }
                         }
-                    }
                 }
             }
 
