@@ -46,8 +46,10 @@ private enum class AppDestination {
     TASK_DETAILS,
     CREATE_TASK,
     REWARD_NEGOTIATION,
+    MEMBERS,
     POINTS,
-    REWARDS
+    REWARDS,
+    SETTINGS
 }
 
 class MainActivity : ComponentActivity() {
@@ -179,12 +181,18 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigate = { target ->
                                 destination = when (target) {
+                                    DashboardDestination.DASHBOARD ->
+                                        AppDestination.DASHBOARD
+                                    DashboardDestination.MEMBERS ->
+                                        AppDestination.MEMBERS
                                     DashboardDestination.TASKS ->
                                         AppDestination.TASKS
                                     DashboardDestination.POINTS ->
                                         AppDestination.POINTS
                                     DashboardDestination.REWARDS ->
                                         AppDestination.REWARDS
+                                    DashboardDestination.SETTINGS ->
+                                        AppDestination.SETTINGS
                                 }
                             },
                             onUnauthorized = unauthorized
@@ -279,8 +287,10 @@ class MainActivity : ComponentActivity() {
                     else -> {
                         val dashboardText = dashboardStrings(language)
                         val title = when (destination) {
+                            AppDestination.MEMBERS -> dashboardText.members
                             AppDestination.POINTS -> dashboardText.points
                             AppDestination.REWARDS -> dashboardText.rewards
+                            AppDestination.SETTINGS -> dashboardText.settings
                             else -> ""
                         }
 
