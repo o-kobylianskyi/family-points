@@ -555,3 +555,12 @@ Before each substantial implementation batch:
 - [ ] Implement group points operations and full i18n of system role names
 - [ ] Check cycle validation and group assignment permissions against backend
 - [ ] Compile and runtime smoke-test new GroupEditor on emulator
+
+## Android GroupEditor — local roles follow-up
+
+- [x] Implement create/edit/delete dialog for PRIVATE local roles, with duplicate title check
+- [x] Preserve shared/system role read-only behavior
+- [ ] Port role permission presets NONE/EXECUTOR/SENIOR/LEADER/CONTROL and advanced grants
+- [ ] Port automatic role naming and equivalent-permission warnings
+- [ ] Port group balance operations
+- [ ] Compile and smoke-test Android Members/GroupEditor locally
