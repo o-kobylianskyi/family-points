@@ -31,6 +31,7 @@ import com.olehkobylianskyi.familypoints.android.data.TaskDetailsData
 import com.olehkobylianskyi.familypoints.android.data.TaskDetailsRepository
 import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
+import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.i18n.taskDetailsStrings
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
@@ -444,7 +445,7 @@ fun TaskDetailsScreen(
                             memberName(details.members, task.preferredMemberId),
                         text.reward to
                             rewardText(
-                                task.rewardAmount,
+                                language, task.rewardAmount,
                                 task.rewardPointTypeCode,
                                 true
                             ),
@@ -452,7 +453,7 @@ fun TaskDetailsScreen(
                             signedText(task.rewardReputationAmount, true),
                         text.penalty to
                             rewardText(
-                                task.penaltyAmount,
+                                language, task.penaltyAmount,
                                 task.penaltyPointTypeCode,
                                 false
                             ),
@@ -495,8 +496,8 @@ fun TaskDetailsScreen(
                                 ) {
                                     val rewardLabel =
                                         if ((subtask.rewardAmount ?: 0) > 0) {
-                                            "+" + subtask.rewardAmount + " " +
-                                                (subtask.rewardPointTypeCode ?: "")
+                                            "+" + formatPointAmount(subtask.rewardAmount!!.toLong(), language,
+                                                subtask.rewardPointTypeCode, subtask.rewardPointTypeCode ?: "")
                                         } else {
                                             text.noReward
                                         }
@@ -654,13 +655,14 @@ private fun memberName(
 }
 
 private fun rewardText(
+    language: AppLanguage,
     amount: Int?,
     code: String?,
     positive: Boolean
 ): String {
     if ((amount ?: 0) <= 0) return "—"
     val sign = if (positive) "+" else "-"
-    return sign + amount + " " + (code ?: "")
+    return sign + formatPointAmount(amount!!.toLong(), language, code, code ?: "")
 }
 
 private fun signedText(
