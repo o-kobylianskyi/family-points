@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 
 import { useAuth } from '../context/AuthContext'
-import { getPointTypes } from '../api/economyApi'
+import { getPointTypes, getPointNameForms } from '../api/economyApi'
+import { currencyQuantity } from '../utils/formatCurrencyAmount'
+import { useTranslation } from 'react-i18next'
 import { getTaskDefinitions } from '../api/taskApi'
 import {
   approveRewardRequest,
@@ -89,6 +91,8 @@ function taskRequirements(form) {
 
 function RewardsPage() {
   const { currentUser, getAccessToken } = useAuth()
+  const { i18n } = useTranslation()
+  const [currencyForms, setCurrencyForms] = useState({})
 
   const [rewards, setRewards] = useState([])
   const [categories, setCategories] = useState([])
@@ -146,6 +150,11 @@ function RewardsPage() {
       setPurchases(purchaseData)
       setObligations(obligationData)
       setPointTypes(pointTypeData)
+      const forms = await Promise.all(pointTypeData.map(async type => {
+        try { return [type.id, await getPointNameForms(token, workspaceId, type.id)] }
+        catch { return [type.id, []] }
+      }))
+      setCurrencyForms(Object.fromEntries(forms))
       setTasks(taskData.filter((task) => task.active !== false))
 
       const defaultPointTypeId = pointTypeData[0]?.id ?? ''
@@ -309,6 +318,16 @@ function RewardsPage() {
     setReviewingRequestId(null)
   })
 
+  const pointAmountLabel = (amount, id, code) => {
+    const type = pointTypes.find(item => item.id === id || item.code === code)
+    return currencyQuantity(amount, {
+      code: type?.code || code,
+      name: pointLabel(id, code),
+      forms: currencyForms[type?.id || id] || [],
+      language: i18n.language,
+    })
+  }
+
   const pointLabel = (pointTypeId, code) => {
     const type = pointTypes.find((item) => item.id === pointTypeId)
     return type?.name || code || ''
@@ -403,7 +422,7 @@ function RewardsPage() {
                     {reward.description && <p>{reward.description}</p>}
                   </div>
                   <strong className="reward-price">
-                    {reward.priceAmount} {pointLabel(reward.pointTypeId, reward.pointTypeCode)}
+                    {pointAmountLabel(reward.priceAmount, reward.pointTypeId, reward.pointTypeCode)}
                   </strong>
                 </div>
 
@@ -513,7 +532,7 @@ function RewardsPage() {
 
               {request.priceAmount != null && (
                 <div className="reward-request-price">
-                  Ціна: <strong>{request.priceAmount} {pointLabel(request.pointTypeId, request.pointTypeCode)}</strong>
+                  Ціна: <strong>{pointAmountLabel(request.priceAmount, request.pointTypeId, request.pointTypeCode)}</strong>
                   {request.durationMinutes
                     ? <span> · {request.durationMinutes} хв</span>
                     : ''}
