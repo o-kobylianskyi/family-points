@@ -40,6 +40,18 @@ data class GroupRoleResponse(
     val systemDefault: Boolean?
 )
 
+data class GroupPermissionGrantResponse(
+    val id: Long,
+    val roleId: Long,
+    val permission: String,
+    val scope: String
+)
+
+data class GroupPermissionGrantRequest(
+    val permission: String,
+    val scope: String
+)
+
 data class GroupRoleSaveRequest(
     val name: String,
     val description: String?,
