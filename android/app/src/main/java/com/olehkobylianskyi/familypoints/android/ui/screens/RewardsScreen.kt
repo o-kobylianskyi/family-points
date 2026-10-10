@@ -1,6 +1,8 @@
 package com.olehkobylianskyi.familypoints.android.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.Badge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,6 +30,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
@@ -258,34 +263,15 @@ fun RewardsScreen(
             onNavigate = onNavigate
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            RewardTabButton(
-                selected = tab == RewardsTab.CATALOG,
-                label = text.catalog,
-                onClick = { tab = RewardsTab.CATALOG },
-                modifier = Modifier.weight(1f)
-            )
-            RewardTabButton(
-                selected = tab == RewardsTab.REQUESTS,
-                label = text.requests +
-                    " (" + (data?.requests?.size ?: 0) + ")",
-                onClick = { tab = RewardsTab.REQUESTS },
-                modifier = Modifier.weight(1f)
-            )
-            if (canManage) {
-                RewardTabButton(
-                    selected = tab == RewardsTab.MANAGE,
-                    label = text.settings,
-                    onClick = { tab = RewardsTab.MANAGE },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
+        RewardsTabs(
+            selected = tab,
+            catalog = text.catalog,
+            requests = text.requests,
+            requestCount = data?.requests?.size ?: 0,
+            manage = text.settings,
+            canManage = canManage,
+            onSelect = { tab = it }
+        )
 
         LazyColumn(
             modifier = Modifier
@@ -1103,27 +1089,70 @@ fun RewardsScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun RewardsTabs(
+    selected: RewardsTab,
+    catalog: String,
+    requests: String,
+    requestCount: Int,
+    manage: String,
+    canManage: Boolean,
+    onSelect: (RewardsTab) -> Unit
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        maxItemsInEachRow = 2
+    ) {
+        RewardTabButton(
+            selected = selected == RewardsTab.CATALOG,
+            label = catalog,
+            onClick = { onSelect(RewardsTab.CATALOG) },
+            modifier = Modifier.fillMaxWidth(0.48f)
+        )
+        RewardTabButton(
+            selected = selected == RewardsTab.REQUESTS,
+            label = requests,
+            count = requestCount,
+            onClick = { onSelect(RewardsTab.REQUESTS) },
+            modifier = Modifier.fillMaxWidth(0.48f)
+        )
+        if (canManage) RewardTabButton(
+            selected = selected == RewardsTab.MANAGE,
+            label = manage,
+            onClick = { onSelect(RewardsTab.MANAGE) },
+            modifier = Modifier.fillMaxWidth(0.48f)
+        )
+    }
+}
+
 @Composable
 private fun RewardTabButton(
     selected: Boolean,
     label: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    count: Int? = null
 ) {
+    val content: @Composable () -> Unit = {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                label,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
+            if (count != null && count > 0) {
+                Badge { Text(count.toString()) }
+            }
+        }
+    }
     if (selected) {
-        Button(
-            onClick = onClick,
-            modifier = modifier
-        ) {
-            Text(label)
-        }
+        Button(onClick = onClick, modifier = modifier) { content() }
     } else {
-        OutlinedButton(
-            onClick = onClick,
-            modifier = modifier
-        ) {
-            Text(label)
-        }
+        OutlinedButton(onClick = onClick, modifier = modifier) { content() }
     }
 }
 
