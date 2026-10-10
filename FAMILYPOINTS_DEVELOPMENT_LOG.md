@@ -100,3 +100,12 @@
 - Source commits: `85a5ba1`, `05a912f`, `762d556`, `7354173`, `a7fdc40`, `e83a06b`.
 - **PARTIAL:** Web GroupEditor (group membership, nested group edit, permission/role administration and point management) not yet ported.
 - **NOT COMPILE- OR RUNTIME-TESTED** after these changes. User should `git pull` and run `./gradlew.bat :app:compileDebugKotlin --console=plain`; send compiler errors and then test Members on emulator.
+
+## 2026-10-10 — Android Members GroupEditor follow-up (PARTIAL)
+
+- Compared React GroupEditor with the existing MemberGroups REST API before implementation.
+- Added group-update request model, group role/member DTO fields, Retrofit endpoints and repository operations for group basic fields, membership, subgroup links and role assignments.
+- Added compact Compose group editor dialog with scrollable content, selection dropdowns, add/remove actions and existing role assignment.
+- Main source commit: `3f30eb07693fdad35737690bad8b836f3255a875`; preceding API/repository commits: `76f9c88`, `d912b62`, `bdfe6a3`.
+- **Not yet complete:** local custom role CRUD/permissions and group economy flows from React editor.
+- **NOT BUILT OR RUNTIME-TESTED**: user should run `git pull`, then `./gradlew.bat :app:compileDebugKotlin --console=plain` and test member/group operations in emulator.
