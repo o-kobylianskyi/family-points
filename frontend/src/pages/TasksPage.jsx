@@ -1,3 +1,4 @@
+import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -69,6 +70,7 @@ function hierarchyRows(items, definitionOf) {
 function TasksPage() {
   const { t, i18n } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
+  const currency = useCurrencyQuantity(getAccessToken(), currentUser.workspaceId)
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
@@ -482,8 +484,8 @@ function TasksPage() {
         <span className="task-reward">
           {t('tasks.reward')}:{' '}
           <strong>
-            +{task.rewardAmount}{' '}
-            {t(`pointType.${task.rewardPointTypeCode}`, { defaultValue: task.rewardPointTypeCode })}
+            +{currency(task.rewardAmount, task.rewardPointTypeCode, task.rewardPointTypeId,
+              t(`pointType.${task.rewardPointTypeCode}`, { defaultValue: task.rewardPointTypeCode }))}
           </strong>
         </span>
       )}
@@ -499,8 +501,8 @@ function TasksPage() {
         <span className="task-penalty">
           {t('tasks.penalty')}:{' '}
           <strong>
-            -{task.penaltyAmount}{' '}
-            {t(`pointType.${task.penaltyPointTypeCode}`, { defaultValue: task.penaltyPointTypeCode })}
+            -{currency(task.penaltyAmount, task.penaltyPointTypeCode, task.penaltyPointTypeId,
+              t(`pointType.${task.penaltyPointTypeCode}`, { defaultValue: task.penaltyPointTypeCode }))}
           </strong>
         </span>
       )}
