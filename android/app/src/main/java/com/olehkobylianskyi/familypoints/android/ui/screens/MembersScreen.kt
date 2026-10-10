@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
+import com.olehkobylianskyi.familypoints.android.data.GroupPointOperationRequest
 import com.olehkobylianskyi.familypoints.android.data.GroupUpdateRequest
 import com.olehkobylianskyi.familypoints.android.data.GroupPermissionGrantResponse
 import com.olehkobylianskyi.familypoints.android.data.GroupRoleResponse
@@ -64,6 +65,7 @@ fun MembersScreen(
 ) {
     val scope = rememberCoroutineScope()
     val allowed = "MANAGE_MEMBERS" in currentUser.permissions
+    val canManagePoints = currentUser.permissions.any { it == "MANAGE_POINTS" || it == "ADMIN_OVERRIDE" }
     var data by remember { mutableStateOf<MembersPageData?>(null) }
     var busy by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(true) }
@@ -204,6 +206,7 @@ fun MembersScreen(
             language = language,
             busy = busy,
             permissionGrants = grants,
+            canManagePoints = canManagePoints,
             onClose = { editingGroupId = null },
             onSave = { request ->
                 mutate {
@@ -232,6 +235,9 @@ fun MembersScreen(
             } },
             onDeleteRole = { roleId -> mutate {
                 repository.deleteGroupRole(currentUser.workspaceId, groupToEdit.id, roleId)
+            } },
+            onPostPoints = { request -> mutate {
+                repository.postGroupPoints(currentUser.workspaceId, groupToEdit.id, request)
             } },
             onSavePermissions = { roleId, permissions -> mutate {
                 repository.updateRolePermissions(currentUser.workspaceId, groupToEdit.id, roleId, permissions)
@@ -353,6 +359,7 @@ private fun GroupEditorDialog(
     language: AppLanguage,
     busy: Boolean,
     permissionGrants: List<GroupPermissionGrantResponse>,
+    canManagePoints: Boolean,
     onClose: () -> Unit,
     onSave: (GroupUpdateRequest) -> Unit,
     onAddMember: (Long) -> Unit,
@@ -362,7 +369,8 @@ private fun GroupEditorDialog(
     onMemberRoles: (Long, List<Long>) -> Unit,
     onSaveRole: (Long?, GroupRoleSaveRequest, Map<String, String>?) -> Unit,
     onDeleteRole: (Long) -> Unit,
-    onSavePermissions: (Long, Map<String, String>) -> Unit
+    onSavePermissions: (Long, Map<String, String>) -> Unit,
+    onPostPoints: (GroupPointOperationRequest) -> Unit
 ) {
     var name by remember(group.id) { mutableStateOf(group.name) }
     var description by remember(group.id) { mutableStateOf(group.description ?: "") }
@@ -383,6 +391,11 @@ private fun GroupEditorDialog(
     var permissionRole by remember(group.id) { mutableStateOf<GroupRoleResponse?>(null) }
     var permissionValues by remember(group.id) { mutableStateOf<Map<String, String>>(emptyMap()) }
     var profileMenu by remember { mutableStateOf(false) }
+    var pointsDialog by remember { mutableStateOf(false) }
+    var pointTypeId by remember { mutableStateOf<Long?>(null) }
+    var pointAmount by remember { mutableStateOf("") }
+    var pointReason by remember { mutableStateOf("") }
+    var pointOperation by remember { mutableStateOf("EARN") }
 
     fun openRole(role: GroupRoleResponse?) {
         editingRole = role
@@ -489,6 +502,15 @@ private fun GroupEditorDialog(
                 item {
                     Text(memberText(language, "Баланс групи", "Gruppenguthaben", "Group balances", "Баланс группы"),
                         style = MaterialTheme.typography.titleMedium)
+                    if (canManagePoints && group.balances.orEmpty().isNotEmpty()) {
+                        OutlinedButton(enabled = !busy, onClick = {
+                            pointTypeId = group.balances.orEmpty().firstOrNull()?.pointTypeId
+                            pointAmount = ""
+                            pointReason = ""
+                            pointOperation = "EARN"
+                            pointsDialog = true
+                        }) { Text(memberText(language, "Змінити бали", "Punkte ändern", "Adjust points", "Изменить баллы")) }
+                    }
                     if (group.balances.orEmpty().isEmpty()) {
                         Text(memberText(language,
                             "Для цієї групи балансів поки немає",
@@ -596,6 +618,73 @@ private fun GroupEditorDialog(
             },
             dismissButton = {
                 TextButton(onClick = { permissionRole = null }) {
+                    Text(memberText(language, "Скасувати", "Abbrechen", "Cancel", "Отмена"))
+                }
+            }
+        )
+    }
+    if (pointsDialog && canManagePoints) {
+        val amount = pointAmount.toIntOrNull()
+        val existingBalance = group.balances.orEmpty().firstOrNull { it.pointTypeId == pointTypeId }
+        val insufficient = pointOperation == "SPEND" && amount != null &&
+            (existingBalance == null || existingBalance.amount < amount.toLong())
+        AlertDialog(
+            onDismissRequest = { if (!busy) pointsDialog = false },
+            title = { Text(memberText(language, "Бали групи", "Gruppenpunkte", "Group points", "Баллы группы")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(memberText(language, "Тип балів", "Punkteart", "Point type", "Тип баллов"))
+                    group.balances.orEmpty().forEach { balance ->
+                        OutlinedButton(
+                            onClick = { pointTypeId = balance.pointTypeId },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text((if (balance.pointTypeId == pointTypeId) "✓ " else "") +
+                                (balance.name ?: balance.code ?: "#${balance.pointTypeId}") +
+                                " (${balance.amount})")
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { pointOperation = "EARN" }) {
+                            Text((if (pointOperation == "EARN") "✓ " else "") +
+                                memberText(language, "Нарахувати", "Gutschreiben", "Credit", "Начислить"))
+                        }
+                        OutlinedButton(onClick = { pointOperation = "SPEND" }) {
+                            Text((if (pointOperation == "SPEND") "✓ " else "") +
+                                memberText(language, "Списати", "Abziehen", "Debit", "Списать"))
+                        }
+                    }
+                    OutlinedTextField(
+                        value = pointAmount,
+                        onValueChange = { value -> pointAmount = value.filter { it.isDigit() }.take(9) },
+                        label = { Text(memberText(language, "Кількість", "Anzahl", "Amount", "Количество")) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = pointReason,
+                        onValueChange = { pointReason = it.take(255) },
+                        label = { Text(memberText(language, "Причина", "Begründung", "Reason", "Причина")) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (insufficient) {
+                        Text(memberText(language, "Недостатньо балів", "Nicht genügend Punkte",
+                            "Insufficient balance", "Недостаточно баллов"), color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            confirmButton = {
+                Button(enabled = !busy && pointTypeId != null && amount != null && amount > 0 && !insufficient,
+                    onClick = {
+                        val id = pointTypeId ?: return@Button
+                        val value = amount ?: return@Button
+                        onPostPoints(GroupPointOperationRequest(id, value, pointOperation, pointReason.trim().ifBlank { null }))
+                        pointsDialog = false
+                    }
+                ) { Text(memberText(language, "Підтвердити", "Bestätigen", "Confirm", "Подтвердить")) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pointsDialog = false }) {
                     Text(memberText(language, "Скасувати", "Abbrechen", "Cancel", "Отмена"))
                 }
             }
