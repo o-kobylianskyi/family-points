@@ -9,13 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -139,17 +135,9 @@ fun LoginScreen(
                     onClick = { showPassword = !showPassword },
                     enabled = !loading
                 ) {
-                    Icon(
-                        imageVector = if (showPassword) {
-                            Icons.Filled.VisibilityOff
-                        } else {
-                            Icons.Filled.Visibility
-                        },
-                        contentDescription = if (showPassword) {
-                            text.hidePassword
-                        } else {
-                            text.showPassword
-                        }
+                    Text(
+                        text = if (showPassword) "◉" else "◎",
+                        style = MaterialTheme.typography.titleLarge
                     )
                 }
             }
