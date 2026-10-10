@@ -545,3 +545,13 @@ Before each substantial implementation batch:
 - [ ] Port full GroupEditor: group edit, composition, role assignments, balances, permissions, lifecycle
 - [ ] Validate Members API DTO shape and permission edge cases against running backend
 - [ ] Verify Kotlin compile and Android runtime locally (not run by assistant)
+
+## Android Members / GroupEditor follow-up — 2026-10-10
+
+- [x] Add group rename/description/showInNavigation editing UI
+- [x] Add/remove group members and child groups
+- [x] Assign existing available group roles to members
+- [ ] Implement creating/editing/deleting PRIVATE group roles and permission profiles/grants
+- [ ] Implement group points operations and full i18n of system role names
+- [ ] Check cycle validation and group assignment permissions against backend
+- [ ] Compile and runtime smoke-test new GroupEditor on emulator
