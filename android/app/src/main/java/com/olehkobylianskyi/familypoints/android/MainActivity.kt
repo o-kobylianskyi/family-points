@@ -25,6 +25,7 @@ import com.olehkobylianskyi.familypoints.android.auth.AuthSessionManager
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.CreateTaskRepository
 import com.olehkobylianskyi.familypoints.android.data.DashboardRepository
+import com.olehkobylianskyi.familypoints.android.data.PointsRepository
 import com.olehkobylianskyi.familypoints.android.data.RewardNegotiationRepository
 import com.olehkobylianskyi.familypoints.android.data.RewardsRepository
 import com.olehkobylianskyi.familypoints.android.data.TaskDetailsRepository
@@ -39,6 +40,7 @@ import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardDestination
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.LoginScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.PlaceholderScreen
+import com.olehkobylianskyi.familypoints.android.ui.screens.PointsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.RewardNegotiationScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.RewardsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.TaskDetailsScreen
@@ -85,6 +87,7 @@ class MainActivity : ComponentActivity() {
         val rewardNegotiationRepository =
             RewardNegotiationRepository(tokenStore)
         val rewardsRepository = RewardsRepository(tokenStore)
+        val pointsRepository = PointsRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore)
 
         setContent {
@@ -338,6 +341,18 @@ class MainActivity : ComponentActivity() {
                                 onUnauthorized = unauthorized
                             )
                         }
+                    }
+
+                    destination == AppDestination.POINTS -> {
+                        PointsScreen(
+                            language = language,
+                            currentUser = currentUser!!,
+                            repository = pointsRepository,
+                            onLanguageChange = changeLanguage,
+                            onLogout = logout,
+                            onNavigate = navigate,
+                            onUnauthorized = unauthorized
+                        )
                     }
 
                     destination == AppDestination.REWARDS -> {
