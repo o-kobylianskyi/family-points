@@ -178,3 +178,11 @@
 ## 2026-10-11 — Android Groups edit button alignment
 - Fixed screenshot issue where nested groups shift the “Змінити” action left/right: root groups retain a single Card; nested groups render as full-width rows rather than nested padded cards. Hierarchy is indicated by a left-arrow prefix, while all Edit buttons use the same trailing row alignment.
 - Source commit: `a66e20a`. Build/emulator verification pending.
+
+## 2026-10-11 — Android Settings role catalog (phase 2)
+- Compared React `RoleCatalogSettings.jsx` and `roleCatalogApi.js` with native Settings.
+- Added role sets and role definition models, Retrofit endpoints and repository for CRUD.
+- Added localized native role catalog cards/dialogs with editing of custom sets and non-system roles, delete confirmation, set assignment and management permissions.
+- Mounted RoleCatalogSection in Settings and wired repository from MainActivity.
+- Commits: `6dbfe4a`, `7c2e55e`, `469c88d`, `818b1b5`, `dfe7c1e`, `c3b02e4`, `4214943`.
+- **Compilation/runtime NOT verified.** Run Android Kotlin Gradle compilation; then test API role catalog read and CRUD. UI polish, server-side permission validation and translated system role names remain.
