@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.DashboardData
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
+import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
@@ -130,8 +131,8 @@ fun DashboardScreen(
                 item {
                     DashboardStatCard(
                         label = text.myBalance,
-                        value = dashboard.balance.toString(),
-                        description = text.points
+                        value = formatPointAmount(dashboard.balance.toLong(), language, "POINTS", text.points),
+                        description = ""
                     )
                 }
 
@@ -293,7 +294,7 @@ private fun DashboardStatCard(
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(top = 4.dp)
             )
-            Text(
+            if (description.isNotBlank()) Text(
                 text = description,
                 modifier = Modifier.padding(top = 2.dp)
             )
