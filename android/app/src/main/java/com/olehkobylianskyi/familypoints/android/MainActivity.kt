@@ -1,5 +1,6 @@
 package com.olehkobylianskyi.familypoints.android
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -55,6 +56,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window.statusBarColor = Color.WHITE
+        window.navigationBarColor = Color.WHITE
+
+        WindowCompat.getInsetsController(
+            window,
+            window.decorView
+        ).apply {
+            isAppearanceLightStatusBars = true
+            isAppearanceLightNavigationBars = true
+        }
+
         val tokenStore = TokenStore(this)
         val languageStore = LanguageStore(this)
         val dashboardRepository = DashboardRepository(tokenStore)
