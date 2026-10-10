@@ -487,6 +487,25 @@ private fun GroupEditorDialog(
                     }
                 }
                 item {
+                    Text(memberText(language, "Баланс групи", "Gruppenguthaben", "Group balances", "Баланс группы"),
+                        style = MaterialTheme.typography.titleMedium)
+                    if (group.balances.orEmpty().isEmpty()) {
+                        Text(memberText(language,
+                            "Для цієї групи балансів поки немає",
+                            "Keine Gruppenguthaben vorhanden",
+                            "No group balances yet",
+                            "Для этой группы пока нет балансов"))
+                    } else {
+                        group.balances.orEmpty().forEach { balance ->
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(balance.name?.takeIf { it.isNotBlank() } ?: balance.code ?: "#${balance.pointTypeId}",
+                                    modifier = Modifier.weight(1f))
+                                Text(balance.amount.toString())
+                            }
+                        }
+                    }
+                }
+                item {
                     Text(memberText(language, "Доступні ролі", "Verfügbare Rollen", "Available roles", "Доступные роли"),
                         style = MaterialTheme.typography.titleMedium)
                     group.roles.orEmpty().forEach { role ->
