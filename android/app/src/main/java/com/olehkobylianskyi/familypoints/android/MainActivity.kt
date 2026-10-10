@@ -25,6 +25,7 @@ import com.olehkobylianskyi.familypoints.android.auth.AuthSessionManager
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.CreateTaskRepository
 import com.olehkobylianskyi.familypoints.android.data.DashboardRepository
+import com.olehkobylianskyi.familypoints.android.data.SettingsRepository
 import com.olehkobylianskyi.familypoints.android.data.MembersRepository
 import com.olehkobylianskyi.familypoints.android.data.PointsRepository
 import com.olehkobylianskyi.familypoints.android.data.RewardNegotiationRepository
@@ -39,6 +40,7 @@ import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import com.olehkobylianskyi.familypoints.android.ui.screens.CreateTaskScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardDestination
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardScreen
+import com.olehkobylianskyi.familypoints.android.ui.screens.SettingsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.MembersScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.LoginScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.PlaceholderScreen
@@ -91,6 +93,7 @@ class MainActivity : ComponentActivity() {
         val rewardsRepository = RewardsRepository(tokenStore)
         val pointsRepository = PointsRepository(tokenStore)
         val membersRepository = MembersRepository(tokenStore)
+        val settingsRepository = SettingsRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore)
 
         setContent {
@@ -375,6 +378,19 @@ class MainActivity : ComponentActivity() {
                             language = language,
                             currentUser = currentUser!!,
                             repository = rewardsRepository,
+                            onLanguageChange = changeLanguage,
+                            onLogout = logout,
+                            onNavigate = navigate,
+                            onUnauthorized = unauthorized
+                        )
+                    }
+
+                    destination == AppDestination.SETTINGS -> {
+                        SettingsScreen(
+                            language = language,
+                            currentUser = currentUser!!,
+                            repository = settingsRepository,
+                            membersRepository = membersRepository,
                             onLanguageChange = changeLanguage,
                             onLogout = logout,
                             onNavigate = navigate,
