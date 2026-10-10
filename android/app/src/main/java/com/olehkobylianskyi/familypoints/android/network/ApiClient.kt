@@ -34,4 +34,8 @@ object ApiClient {
     val dashboardApi: DashboardApi by lazy {
         retrofit.create(DashboardApi::class.java)
     }
+
+    val taskApi: TaskApi by lazy {
+        retrofit.create(TaskApi::class.java)
+    }
 }
