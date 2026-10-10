@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -86,6 +88,7 @@ fun TasksScreen(
 
     var tab by remember { mutableStateOf(TasksPageTab.MY) }
     var managementView by remember { mutableStateOf(ManagementView.CREATED) }
+    var managementMenuOpen by remember { mutableStateOf(false) }
     var managedTasks by remember { mutableStateOf<List<TaskDefinitionResponse>>(emptyList()) }
     var participantMap by remember {
         mutableStateOf<Map<Long, List<TaskParticipantResponse>>>(emptyMap())
@@ -432,52 +435,48 @@ fun TasksScreen(
             }
         } else {
             item {
+                val currentViewLabel = when (managementView) {
+                    ManagementView.CREATED -> text.created
+                    ManagementView.ADMIN -> text.admin
+                    ManagementView.OBSERVER -> text.observer
+                    ManagementView.EXECUTOR -> text.executorView
+                }
+
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    ManagementView.entries
-                        .chunked(2)
-                        .forEach { rowViews ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                rowViews.forEach { view ->
-                                    val label = when (view) {
-                                        ManagementView.CREATED -> text.created
-                                        ManagementView.ADMIN -> text.admin
-                                        ManagementView.OBSERVER -> text.observer
-                                        ManagementView.EXECUTOR -> text.executorView
-                                    }
+                    OutlinedButton(
+                        onClick = {
+                            managementMenuOpen = true
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(currentViewLabel + " ▾")
+                    }
 
-                                    if (managementView == view) {
-                                        Button(
-                                            onClick = {},
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text(label)
-                                        }
-                                    } else {
-                                        OutlinedButton(
-                                            onClick = {
-                                                managementView = view
-                                            },
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text(label)
-                                        }
-                                    }
-                                }
-
-                                if (rowViews.size == 1) {
-                                    Text(
-                                        text = "",
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            }
+                    DropdownMenu(
+                        expanded = managementMenuOpen,
+                        onDismissRequest = {
+                            managementMenuOpen = false
                         }
+                    ) {
+                        ManagementView.entries.forEach { view ->
+                            val label = when (view) {
+                                ManagementView.CREATED -> text.created
+                                ManagementView.ADMIN -> text.admin
+                                ManagementView.OBSERVER -> text.observer
+                                ManagementView.EXECUTOR -> text.executorView
+                            }
+
+                            DropdownMenuItem(
+                                text = { Text(label) },
+                                onClick = {
+                                    managementView = view
+                                    managementMenuOpen = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
