@@ -23,6 +23,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -57,6 +61,17 @@ fun SettingsScreen(
     onUnauthorized: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val connectivity = remember(context) {
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    }
+    var online by remember { mutableStateOf(true) }
+    fun checkOnline(): Boolean {
+        val network = connectivity.activeNetwork ?: return false
+        val capabilities = connectivity.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+    LaunchedEffect(Unit) { online = checkOnline() }
     val canManage = "MANAGE_MEMBERS" in currentUser.permissions || "ADMIN_OVERRIDE" in currentUser.permissions
     var members by remember { mutableStateOf<List<WorkspaceMemberResponse>>(emptyList()) }
     var accounts by remember { mutableStateOf<List<SettingsAccountResponse>>(emptyList()) }
@@ -82,7 +97,10 @@ fun SettingsScreen(
     }
     fun failure(e: Exception) {
         if (e is HttpException && e.code() == 401) onUnauthorized()
-        else error = e.message ?: "Request failed"
+        else if (e is java.io.IOException) {
+            online = false
+            error = ""
+        } else error = e.message ?: "Request failed"
     }
     fun run(action: suspend () -> Unit) {
         scope.launch {
@@ -100,7 +118,8 @@ fun SettingsScreen(
     }
     LaunchedEffect(currentUser.workspaceId) {
         loading = true
-        try { reload() } catch (e: Exception) { failure(e) }
+        if (checkOnline()) try { reload() } catch (e: Exception) { failure(e) }
+        else online = false
         finally { loading = false }
     }
     val ownPasswordTitle = st(language, "Зміна пароля", "Passwort ändern", "Change password", "Смена пароля")
@@ -113,9 +132,17 @@ fun SettingsScreen(
             style = MaterialTheme.typography.headlineMedium)
         if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
         if (notice.isNotBlank()) Text(notice, color = MaterialTheme.colorScheme.primary)
+        if (!online) {
+            Text(st(language,
+                "Офлайн: серверні налаштування недоступні. Мову можна змінити у шапці.",
+                "Offline: Servereinstellungen nicht verfügbar. Sprache oben ändern.",
+                "Offline: server settings unavailable. Change language in the header.",
+                "Офлайн: настройки сервера недоступны. Язык можно изменить вверху."),
+                color = MaterialTheme.colorScheme.tertiary)
+        }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxSize()) {
             item {
-                Card {
+                if (online) Card {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(ownPasswordTitle, style = MaterialTheme.typography.titleMedium)
                         OutlinedTextField(oldPassword, { oldPassword = it },
@@ -151,7 +178,7 @@ fun SettingsScreen(
                     }
                 }
             }
-            item {
+            if (online) item {
                 CurrencyFormsSection(
                     language = language,
                     workspaceId = currentUser.workspaceId,
@@ -160,7 +187,7 @@ fun SettingsScreen(
                     onUnauthorized = onUnauthorized
                 )
             }
-            item {
+            if (online) item {
                 RoleCatalogSection(
                     language = language,
                     workspaceId = currentUser.workspaceId,
@@ -169,7 +196,7 @@ fun SettingsScreen(
                     onUnauthorized = onUnauthorized
                 )
             }
-            if (canManage) {
+            if (canManage && online) {
                 item {
                     Text(st(language, "Облікові записи учасників", "Mitgliedskonten",
                         "Member accounts", "Учётные записи участников"),
@@ -206,7 +233,7 @@ fun SettingsScreen(
             }
         }
     }
-    selectedMember?.let { member ->
+    if (online) selectedMember?.let { member ->
         val existing = accounts.firstOrNull { it.workspaceMemberId == member.id }
         AlertDialog(
             onDismissRequest = { if (!busy) selectedMember = null },
