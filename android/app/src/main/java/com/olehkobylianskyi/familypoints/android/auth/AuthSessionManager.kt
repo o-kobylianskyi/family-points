@@ -108,6 +108,11 @@ class AuthSessionManager(
                     bearer(token)
                 )
                 tokenStore.saveAccessToken(refreshed.accessToken)
+            } catch (_: java.io.IOException) {
+                // A temporarily unreachable server must not log out an active user.
+                // The token remains subject to the idle timeout and to server-side
+                // validation as soon as connectivity resumes.
+                return true
             } catch (_: Exception) {
                 clearSession()
                 return false
