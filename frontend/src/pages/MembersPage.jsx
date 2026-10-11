@@ -438,11 +438,9 @@ function MembersPage() {
               <div className="member-info">
                 <strong>{member.name}</strong>
 
-                <div className="member-type">
-                  {t(
-                    `memberType.${member.memberType}`
-                  )}
-                </div>
+                {(roles.find(role => role.id === member.workspaceRoleId)?.code || member.workspaceRoleCode) !== member.memberType && <div className="member-type">
+                  {t(`memberType.${member.memberType}`)}
+                </div>}
               </div>
 
               <div className="member-role">
