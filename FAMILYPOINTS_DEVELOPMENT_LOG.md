@@ -253,3 +253,9 @@
 - Fixed screenshot showing Parent and Child as raw server strings in Settings account cards. System roles now translated by workspaceRoleCode for UK/DE/EN/RU; custom role names stay unchanged.
 - Header UK PARENT label changed from plural «Батьки» to requested singular «Батько». In account lists, where the PARENT role can belong to any parent, Ukrainian label is «Батько / мати».
 - Commits `343a632`, `10f5a06`. Kotlin build/runtime verification pending.
+
+## 2026-10-11 — Web parent role and duplicate badge cleanup
+- Web app header uses individual-neutral PARENT label ('Батько / мати' in Ukrainian) rather than plural 'Батьки'. We cannot distinguish father and mother from existing PARENT role data; a per-member preferred title is still needed for gender-specific labels.
+- Added PARENT_INDIVIDUAL translations for UK/RU/DE/EN.
+- Hide redundant member type on member cards and in Settings account summaries when it equals workspaceRoleCode (e.g. PARENT/PARENT, CHILD/CHILD), preserving both for genuinely distinct custom roles/types.
+- Source only; npm build/browser test pending.
