@@ -5,6 +5,7 @@ import { getWorkspaceMembers } from '../api/workspaceApi'
 import { changeOwnPassword, createMemberAccount, getWorkspaceAccounts, resetMemberPassword, updateMemberAccount } from '../api/accountApi'
 import RoleCatalogSettings from '../components/RoleCatalogSettings'
 import CurrencyFormsSettings from '../components/CurrencyFormsSettings'
+import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
 function SettingsPage() {
   const { t } = useTranslation()
@@ -170,7 +171,7 @@ function SettingsPage() {
           <div>
             <h3>{member.name}</h3>
             <div className="account-meta">
-              {member.workspaceRoleName} · {t(`memberType.${member.memberType}`, { defaultValue: member.memberType })}
+              {workspaceRoleLabel(t, member.workspaceRoleCode, member.workspaceRoleName)} · {t(`memberType.${member.memberType}`, { defaultValue: member.memberType })}
             </div>
           </div>
           {account ? <><div className="account-login">@{account.username}</div><span className={`account-status ${account.enabled ? 'enabled' : 'disabled'}`}>{account.enabled ? t('settings.accounts.enabled') : t('settings.accounts.disabled')}</span><button onClick={() => startEdit(member, account)}>{t('settings.accounts.manage')}</button></>
