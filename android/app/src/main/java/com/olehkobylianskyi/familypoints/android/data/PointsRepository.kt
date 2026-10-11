@@ -10,7 +10,8 @@ import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.sync.Mutex
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -20,6 +21,8 @@ class PointsRepository(
     private val membersStore: OfflineMembersStore,
     private val queue: OfflinePointsQueueStore
 ) {
+    private val replayMutex = Mutex()
+
     private fun authorization(): String {
         val token = tokenStore.getAccessToken()
             ?: throw IllegalStateException("Missing access token")
@@ -46,10 +49,13 @@ class PointsRepository(
      * and de-duplicates every clientOperationId within a DB transaction.
      */
     suspend fun synchronizePending(workspaceId: Long, viewerId: Long): Int {
-        if (ServerReachability.status.value != ServerStatus.ONLINE) return 0
-        val auth = authorization()
-        var confirmed = 0
-        for (entry in queue.pending(workspaceId, viewerId)) {
+        replayMutex.lock()
+        try {
+            if (ServerReachability.status.value != ServerStatus.ONLINE) return 0
+            val auth = authorization()
+            var confirmed = 0
+            val affectedMembers = mutableSetOf<Long>()
+            for (entry in queue.pending(workspaceId, viewerId)) {
             try {
                 ApiClient.pointsApi.replayOffline(
                     auth, workspaceId, entry.memberId, entry.type,
@@ -57,6 +63,7 @@ class PointsRepository(
                 )
                 queue.confirm(entry.operationId, workspaceId, viewerId)
                 confirmed++
+                affectedMembers.add(entry.memberId)
             } catch (error: HttpException) {
                 // Keep failed operations for parental review; never silently
                 // discard denied/invalid items. 401 ends synchronization.
@@ -65,8 +72,20 @@ class PointsRepository(
             } catch (error: IOException) {
                 break
             }
+            }
+            for (memberId in affectedMembers) {
+                try {
+                    val fresh = ApiClient.pointsApi.getBalance(auth, workspaceId, memberId)
+                    offlineStore.save(workspaceId, memberId, fresh.balance)
+                } catch (_: Exception) {
+                    // Idempotent point operation was confirmed. Keep last snapshot
+                    // until the next balance fetch; never queue a duplicate.
+                }
+            }
+            return confirmed
+        } finally {
+            replayMutex.unlock()
         }
-        return confirmed
     }
 
     suspend fun prefetchBalances(
@@ -80,7 +99,7 @@ class PointsRepository(
                         ApiClient.pointsApi.getBalance(auth, workspaceId, member.id)
                     }
                     offlineStore.save(workspaceId, member.id, result.balance)
-                } catch (error: CancellationException) {
+                } catch (error: TimeoutCancellationException) {
                     // Timeout affects one member only, never the whole list.
                 } catch (_: IOException) {
                 } catch (error: HttpException) {
