@@ -29,10 +29,18 @@ class MembersRepository(
         val groups = async {
             try { ApiClient.membersApi.getGroups(auth, workspaceId) }
             catch (_: java.io.IOException) { previous?.groups.orEmpty() }
+            catch (e: retrofit2.HttpException) {
+                if (e.code() == 401) throw e
+                previous?.groups.orEmpty()
+            }
         }
         val roles = async {
             try { ApiClient.membersApi.getRoles(auth, workspaceId) }
             catch (_: java.io.IOException) { previous?.roles.orEmpty() }
+            catch (e: retrofit2.HttpException) {
+                if (e.code() == 401) throw e
+                previous?.roles.orEmpty()
+            }
         }
         MembersPageData(members, groups.await(), roles.await()).also {
             offlineStore.savePage(workspaceId, viewerId, it)
