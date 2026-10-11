@@ -86,6 +86,9 @@ fun PointsScreen(
     val quickAmounts = remember(context) { PointQuickAmountStore(context) }
     val serverStatus by ServerReachability.status.collectAsState()
     val canManage = currentUser.permissions.any { it == "MANAGE_POINTS" || it == "ADMIN_OVERRIDE" }
+    val canPurchaseRewards = currentUser.permissions.any {
+        it == "MANAGE_REWARDS" || it == "ADMIN_OVERRIDE"
+    }
     var pendingOperations by remember { mutableStateOf<List<OfflinePointsQueueStore.Pending>>(emptyList()) }
     var memberBalances by remember { mutableStateOf<Map<Long, Long>>(emptyMap()) }
     var syncMessage by remember { mutableStateOf("") }
@@ -298,9 +301,13 @@ fun PointsScreen(
             workspaceId = currentUser.workspaceId,
             viewerId = currentUser.memberId,
             quickAmounts = quickAmounts,
-            rewardCatalog = rewardCatalog.filter { it.active &&
-                it.acquisitionMode != "REQUEST" && !it.requiresApproval &&
-                pointTypes.any { type -> type.id == it.pointTypeId }
+            rewardCatalog = rewardCatalog.filter { reward ->
+                canPurchaseRewards &&
+                    serverStatus == ServerStatus.ONLINE &&
+                    reward.active &&
+                    reward.acquisitionMode != "REQUEST" &&
+                    !reward.requiresApproval &&
+                    pointTypes.any { type -> type.id == reward.pointTypeId }
             },
             onDismiss = {
                 if (!processing) {
@@ -315,7 +322,8 @@ fun PointsScreen(
                     try {
                         val kind = pointOperation!!.apiValue
                         if (selectedReward != null) {
-                            check(kind == "spend" && serverStatus == ServerStatus.ONLINE) {
+                            check(kind == "spend" && canPurchaseRewards &&
+                                serverStatus == ServerStatus.ONLINE) {
                                 "Reward purchases require an online session"
                             }
                             rewardsRepository.purchaseForMember(
