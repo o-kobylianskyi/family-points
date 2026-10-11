@@ -684,3 +684,7 @@ Before each substantial implementation batch:
 - [ ] Freshness/stale indicators, last successful sync and conservative enforcement when policy/allowance expires
 - [ ] Test airplane mode, concurrent phone/tablet usage, revoked rewards, clock changes, reboot during active time and reconnect after long offline intervals
 - [ ] Cache read-path for balance/reward catalog with UI showing explicitly offline/stale values
+
+- [x] Wire persisted display-only balance cache into Android repository and UI with offline status, user fallback, and disabled offline operations
+- [ ] Verify Kotlin compilation and emulator online/airplane-mode navigation after first successful balance sync
+- [ ] Implement offline session hydration and offline reward catalog/policy cache
