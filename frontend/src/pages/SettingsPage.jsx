@@ -171,7 +171,8 @@ function SettingsPage() {
           <div>
             <h3>{member.name}</h3>
             <div className="account-meta">
-              {workspaceRoleLabel(t, member.workspaceRoleCode, member.workspaceRoleName)} · {t(`memberType.${member.memberType}`, { defaultValue: member.memberType })}
+              {workspaceRoleLabel(t, member.workspaceRoleCode, member.workspaceRoleName)}
+              {member.workspaceRoleCode !== member.memberType && <> · {t(`memberType.${member.memberType}`, { defaultValue: member.memberType })}</>}
             </div>
           </div>
           {account ? <><div className="account-login">@{account.username}</div><span className={`account-status ${account.enabled ? 'enabled' : 'disabled'}`}>{account.enabled ? t('settings.accounts.enabled') : t('settings.accounts.disabled')}</span><button onClick={() => startEdit(member, account)}>{t('settings.accounts.manage')}</button></>
