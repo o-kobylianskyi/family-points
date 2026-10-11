@@ -72,6 +72,7 @@ fun TasksScreen(
     onUnauthorized: () -> Unit
 ) {
     val text = tasksStrings(language)
+    val scope = rememberCoroutineScope()
     val serverStatus by ServerReachability.status.collectAsState()
     var showingCachedMy by remember { mutableStateOf(false) }
     var members by remember { mutableStateOf<List<WorkspaceMemberResponse>>(emptyList()) }
