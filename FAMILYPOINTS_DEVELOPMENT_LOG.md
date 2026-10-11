@@ -236,3 +236,11 @@
 - Screenshot showed translated member type but untranslated workspace role badges (Parent / Child).
 - Added shared `workspaceRoleLabel` using stable role code, preserving custom role names; added `workspaceRoles` translations for uk/de/en/ru.
 - Applied to MembersPage badges and MemberEditor role dropdown. Changes are source-only; web build and browser verification remain pending.
+
+## 2026-10-11 — Web Settings currency editor layout and saved-state UX
+- Screenshot showed currency selector aligned beneath editor due to reuse of password form `.settings-form` grid, raw English default currency labels, and no indication whether forms were saved.
+- Reworked `CurrencyFormsSettings.jsx` into independent `currency-forms-*` grid with scoped responsive CSS in `App.css`. Picker is left and language/forms/preview on right at desktop widths; stacks on narrow screens.
+- System currency list uses localized POINTS/COPPER/SILVER/GOLD labels based on stable code; user-defined names are untouched.
+- Existing saved forms are loaded per point type, populated into inputs and marked as saved. Built-in recommended forms are shown when no saved forms exist, explicitly marked as **not saved**. Unknown/custom currencies without saved forms show **not configured**.
+- Added preview 1/2/5/11/21, load/error/saved statuses, scoped input/button styling.
+- Source commits: `c5cf837`, `6024a16`. Browser and npm build not executed by assistant.
