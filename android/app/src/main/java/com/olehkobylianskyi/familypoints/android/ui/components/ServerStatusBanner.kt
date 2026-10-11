@@ -21,10 +21,10 @@ fun ServerStatusBanner(
     onRetry: () -> Unit
 ) {
     val message = when (language) {
-        AppLanguage.UK -> "Сервер недоступний · локальні дані"
-        AppLanguage.DE -> "Server nicht erreichbar · lokale Daten"
-        AppLanguage.EN -> "Server unavailable · local data"
-        AppLanguage.RU -> "Сервер недоступен · локальные данные"
+        AppLanguage.UK -> "Сервер недоступний · офлайн"
+        AppLanguage.DE -> "Server nicht erreichbar · offline"
+        AppLanguage.EN -> "Server unavailable · offline"
+        AppLanguage.RU -> "Сервер недоступен · офлайн"
     }
     val retry = when (language) {
         AppLanguage.UK -> "Повторити"
