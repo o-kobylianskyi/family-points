@@ -105,7 +105,8 @@ class MainActivity : ComponentActivity() {
             tokenStore,
             com.olehkobylianskyi.familypoints.android.storage.OfflineBalanceStore(this),
             offlineMembersStore,
-            com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore(this)
+            com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore(this),
+            com.olehkobylianskyi.familypoints.android.storage.OfflinePointTypesStore(this)
         )
         val membersRepository = MembersRepository(tokenStore, offlineMembersStore)
         val settingsRepository = SettingsRepository(tokenStore)
