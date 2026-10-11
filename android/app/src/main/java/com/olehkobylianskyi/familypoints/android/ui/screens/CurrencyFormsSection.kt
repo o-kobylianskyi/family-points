@@ -70,7 +70,7 @@ fun CurrencyFormsSection(
         types.forEach { type ->
             TextButton(onClick = { selected = type; notice = ""; error = "" },
                 modifier = Modifier.fillMaxWidth()) {
-                Text(type.name + " (" + type.code + ")")
+                Text(localizedCurrencyName(language, type.code, type.name) + " (" + type.code + ")")
             }
         }
     }
@@ -78,7 +78,7 @@ fun CurrencyFormsSection(
     if (type != null) {
         AlertDialog(
             onDismissRequest = { if (!busy) selected = null },
-            title = { Text(type.name) },
+            title = { Text(localizedCurrencyName(language, type.code, type.name)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = { languageMenu = true }) {
@@ -109,7 +109,7 @@ fun CurrencyFormsSection(
                             "en" -> AppLanguage.EN
                             else -> AppLanguage.DE
                         }
-                        Text(formatPointAmount(number, previewLanguage, type.code, type.name, chosen))
+                        Text(formatPointAmount(number, previewLanguage, type.code, localizedCurrencyName(language, type.code, type.name), chosen))
                     }
                 }
             },
