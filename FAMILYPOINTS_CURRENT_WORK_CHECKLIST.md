@@ -645,3 +645,10 @@ Before each substantial implementation batch:
 - [ ] Android custom-form loading in all screens (not just Rewards); groups/history/negotiation/task-list/editor
 - [ ] Web point history and remaining forms; full localization and currency defaults
 - [ ] Backend V18 migration tests; Kotlin compile, JS build and live regression checks
+
+## Web Settings currency editor layout
+- [x] Separate currency editor layout from password settings grid
+- [x] Localize system currency selector labels
+- [x] Show persisted forms and distinguish them from unsaved built-in examples
+- [x] Responsive field arrangement and quantity preview
+- [ ] npm build and browser smoke test; verify GET and PUT of persisted forms
