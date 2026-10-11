@@ -352,3 +352,12 @@
 
 - Added manual "Sync now" action on the Points screen when pending entries remain and backend is ONLINE; HTTP 403/400 errors remain queued with localized explanation. Pending deltas use Long arithmetic to avoid integer overflow. Commits `92c38aa`, `4026d20`.
 - Corrected `OfflineMembersStore.cachedMembers` Kotlin expression-body return issue (commit `5af9b52`). Online cache and offline queue actions require first successful member/balance sync; remote backend migration V20 should run on backend restart.
+
+## 2026-10-11 — Currency selection for manual/offline points operations
+- User reported Android offline penalty dialog ambiguously says "10" without a currency. Added localized point-type selector in `PointsScreen` for Earn, Penalty and online Spend, including system and custom point types. The selected type is included in the quantity field label, and the modal can scroll on narrow phones.
+- New `OfflinePointTypesStore` caches active currency catalog per workspace/viewer; `PointsRepository.refreshPointTypes` loads actual backend definitions when online. Without a previously synced catalog, currency-changing operations remain disabled offline rather than assuming a default type.
+- `OfflinePointsQueueStore` migrated SQLite schema from v1 to v2 with nullable `point_type_id/code/name`; previously queued entries are preserved with NULL and retain the old default-currency replay behavior. New offline entries persist selected type, code and display name. Pending totals on UI are grouped by currency, not added across incompatible currencies.
+- Android `OfflinePointOperationRequest` now includes nullable `pointTypeId`. Backend replay endpoint passes that ID to `PointService.applyOfflineOperation`, verifies type belongs to the workspace, checks active status for new writes and includes currency ID in UUID-payload idempotency comparison.
+- Added backend `PointOperationTypedRequest` and protected `POST /workspaces/{workspaceId}/members/{memberId}/points/manual/{operation}` for currency-specific online Earn, Penalty and Spend; all require `MANAGE_POINTS` and server-side validation.
+- Existing old endpoint remains for compatibility. No new Flyway migration required (SQLite migration happens locally; server point type ID already exists).
+- GitHub source changed; Kotlin/Java builds and online/offline functional tests not run here. Verify chosen SILVER/GOLD currency balance in PostgreSQL after an offline replay and test legacy pending entries.
