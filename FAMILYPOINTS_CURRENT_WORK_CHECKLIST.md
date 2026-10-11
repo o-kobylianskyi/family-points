@@ -721,3 +721,16 @@ Before each substantial implementation batch:
 - [ ] Verify Android compilation and 6-step emulator test (online enrollment -> logout -> server down -> offline login -> cached screens -> server reconnect)
 - [ ] Add offline account chooser, manage/remove saved accounts and locally settable parent PIN
 - [ ] Encrypt remaining reward/task/dashboard/points caches and define device-removal policy
+
+## 2026-10-11 — Backend reconnect regression
+- [x] Make health check identify actual FamilyPoints backend (new /api/client-health)
+- [x] Prevent false ONLINE state from generic HTTP 200/401/403
+- [x] Preserve offline banner during unsuccessful manual Retry
+- [x] Add manual refresh on Rewards, Tasks, Dashboard
+- [x] Auto refresh opened screens every 30 seconds while backend confirmed online
+- [x] Differentiate failed catalog refresh from true offline catalog in Rewards
+- [ ] Run backend Maven tests / Android :app:compileDebugKotlin
+- [ ] Verify /api/client-health accessible without credentials via actual Android BASE_URL host
+- [ ] Emulator: backend down -> stale cache -> backend up -> indicator clears -> new Web task appears on Android within 30 s
+- [ ] Verify expired JWT displays login instead of silently showing stale data as synced
+- [ ] Protect background refresh from rapid status toggles and duplicate API calls if needed
