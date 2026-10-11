@@ -5,10 +5,12 @@ import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.LoginRequest
 import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
+import com.olehkobylianskyi.familypoints.android.storage.OfflineAccountStore
 import org.json.JSONObject
 
 class AuthSessionManager(
-    private val tokenStore: TokenStore
+    private val tokenStore: TokenStore,
+    private val offlineAccountStore: OfflineAccountStore
 ) {
     companion object {
         private const val IDLE_TIMEOUT_MS = 60 * 60 * 1000L
@@ -34,6 +36,7 @@ class AuthSessionManager(
             val user = ApiClient.authApi.getCurrentUser(
                 bearer(loginResponse.accessToken)
             )
+            offlineAccountStore.save(user)
             markActivity(force = true)
             user
         } catch (error: Exception) {
@@ -59,8 +62,13 @@ class AuthSessionManager(
             val user = ApiClient.authApi.getCurrentUser(
                 bearer(token)
             )
+            offlineAccountStore.save(user)
             markActivity(force = true)
             user
+        } catch (error: java.io.IOException) {
+            // Network unavailability is not an explicit logout or server revocation.
+            // Offline profile access still requires a future local PIN challenge.
+            null
         } catch (_: Exception) {
             clearSession()
             null
@@ -128,6 +136,7 @@ class AuthSessionManager(
 
     fun clearSession() {
         tokenStore.clear()
+        offlineAccountStore.clear()
     }
 
     fun hasToken(): Boolean =
