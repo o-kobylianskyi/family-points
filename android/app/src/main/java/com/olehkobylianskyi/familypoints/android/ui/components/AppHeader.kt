@@ -133,7 +133,7 @@ private fun localizedHeaderRole(language: AppLanguage, code: String?, fallback: 
             AppLanguage.EN -> "Family administrator"
         }
         "PARENT" -> when (language) {
-            AppLanguage.UK -> "Батьки"
+            AppLanguage.UK -> "Батько"
             AppLanguage.RU -> "Родитель"
             AppLanguage.DE -> "Elternteil"
             AppLanguage.EN -> "Parent"
