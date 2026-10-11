@@ -13,6 +13,9 @@ class MembersRepository(
     fun cached(workspaceId: Long, viewerId: Long): MembersPageData? =
         offlineStore.cachedPage(workspaceId, viewerId)
 
+    fun cachedMembers(workspaceId: Long, viewerId: Long): List<WorkspaceMemberResponse> =
+        offlineStore.cachedMembers(workspaceId, viewerId)
+
     private fun authorization(): String =
         "Bearer " + (tokenStore.getAccessToken()
             ?: throw IllegalStateException("Missing access token"))
