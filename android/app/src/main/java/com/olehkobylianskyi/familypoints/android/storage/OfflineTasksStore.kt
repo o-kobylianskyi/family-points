@@ -18,17 +18,17 @@ class OfflineTasksStore(context: Context) {
     )
     private val gson = Gson()
 
-    private fun key(workspaceId: Long, memberId: Long, date: String): String =
-        "w${workspaceId}_m${memberId}_d${date}"
+    private fun key(workspaceId: Long, viewerMemberId: Long, memberId: Long, date: String): String =
+        "w${workspaceId}_viewer${viewerMemberId}_target${memberId}_d${date}"
 
-    fun load(workspaceId: Long, memberId: Long, date: String): Snapshot? = try {
-        prefs.getString(key(workspaceId, memberId, date), null)
+    fun load(workspaceId: Long, viewerMemberId: Long, memberId: Long, date: String): Snapshot? = try {
+        prefs.getString(key(workspaceId, viewerMemberId, memberId, date), null)
             ?.let { gson.fromJson(it, Snapshot::class.java) }
     } catch (_: Exception) {
         null
     }
 
-    fun save(workspaceId: Long, memberId: Long, date: String, snapshot: Snapshot) {
-        prefs.edit().putString(key(workspaceId, memberId, date), gson.toJson(snapshot)).apply()
+    fun save(workspaceId: Long, viewerMemberId: Long, memberId: Long, date: String, snapshot: Snapshot) {
+        prefs.edit().putString(key(workspaceId, viewerMemberId, memberId, date), gson.toJson(snapshot)).apply()
     }
 }
