@@ -39,6 +39,7 @@ object ApiClient {
 
     private val probeClient: OkHttpClient by lazy {
         httpClient.newBuilder()
+            .followRedirects(false)
             .callTimeout(6, TimeUnit.SECONDS)
             .build()
     }
@@ -52,8 +53,15 @@ object ApiClient {
         val request = Request.Builder().url(BASE_URL + "api/me").get().build()
         try {
             probeClient.newCall(request).execute().use { response ->
-                ServerReachability.httpResponse(response.code)
-                ServerReachability.status.value == ServerStatus.ONLINE
+                if (response.code in listOf(200, 401, 403)) {
+                    ServerReachability.httpResponse(response.code)
+                    true
+                } else {
+                    // A redirect, a missing endpoint, or a proxy error is not
+                    // proof that our API is available.
+                    ServerReachability.transportFailure()
+                    false
+                }
             }
         } catch (_: IOException) {
             ServerReachability.transportFailure()
