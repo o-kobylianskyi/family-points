@@ -349,3 +349,6 @@
 - Android retries locally queued operations after authenticated backend reconnect or when opening Points online. Shared `Mutex` serializes local replay, successfully acknowledged UUIDs are deleted from queue and confirmed balances refreshed; failed items are retained for later intervention. Server revalidates permissions.
 - Cross-device economy safety: unconfirmed offline earn/penalty **must not be counted as spendable**; no offline purchases, spending, or confirmed balance mutation.
 - Important limitations: newly installed APK must visit Members/Points online once to populate per-member caches. Offline store is app-private but not encrypted yet; encryption, account expiry and revocation handling still need testing. Backend/Maven + Android/Kotlin builds **not executed** in this tool environment.
+
+- Added manual "Sync now" action on the Points screen when pending entries remain and backend is ONLINE; HTTP 403/400 errors remain queued with localized explanation. Pending deltas use Long arithmetic to avoid integer overflow. Commits `92c38aa`, `4026d20`.
+- Corrected `OfflineMembersStore.cachedMembers` Kotlin expression-body return issue (commit `5af9b52`). Online cache and offline queue actions require first successful member/balance sync; remote backend migration V20 should run on backend restart.
