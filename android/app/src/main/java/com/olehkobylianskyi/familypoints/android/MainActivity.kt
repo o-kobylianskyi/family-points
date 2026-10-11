@@ -458,6 +458,7 @@ class MainActivity : ComponentActivity() {
                             language = language,
                             currentUser = currentUser!!,
                             repository = pointsRepository,
+                            rewardsRepository = rewardsRepository,
                             onLanguageChange = changeLanguage,
                             onLogout = logout,
                             onNavigate = navigate,
