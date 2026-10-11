@@ -135,7 +135,8 @@ class MainActivity : ComponentActivity() {
                         ServerStatusBanner(
                             language = language,
                             onRetry = {
-                                ServerReachability.checking()
+                                // Keep the offline banner visible until the health
+                                // probe actually confirms this backend instance.
                                 connectionScope.launch { ApiClient.probeServer() }
                             }
                         )
