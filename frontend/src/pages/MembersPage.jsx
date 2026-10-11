@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { getWorkspaceMembers, createWorkspaceMember, updateWorkspaceMember, deleteWorkspaceMember, getWorkspaceRoles } from '../api/workspaceApi'
 import MemberEditor from '../components/MemberEditor'
+import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 import {
   getMemberGroups,
   createMemberGroup,
@@ -445,7 +446,9 @@ function MembersPage() {
               </div>
 
               <div className="member-role">
-                {member.workspaceRoleName}
+                {workspaceRoleLabel(t,
+                  roles.find(role => role.id === member.workspaceRoleId)?.code || member.workspaceRoleCode,
+                  member.workspaceRoleName)}
               </div>
             </div>
           ))}
