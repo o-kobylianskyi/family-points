@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
 
         val tokenStore = TokenStore(this)
         val languageStore = LanguageStore(this)
-        val dashboardRepository = DashboardRepository(tokenStore)
+        val dashboardRepository = DashboardRepository(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineDashboardStore(this))
         val tasksRepository = TasksRepository(tokenStore)
         val createTaskRepository = CreateTaskRepository(tokenStore)
         val taskDetailsRepository = TaskDetailsRepository(tokenStore)
@@ -251,6 +251,9 @@ class MainActivity : ComponentActivity() {
                             currentUser = currentUser!!,
                             loadDashboard = {
                                 dashboardRepository.load(currentUser!!)
+                            },
+                            cachedDashboard = {
+                                dashboardRepository.cached(currentUser!!)
                             },
                             onLanguageChange = changeLanguage,
                             onLogout = logout,
