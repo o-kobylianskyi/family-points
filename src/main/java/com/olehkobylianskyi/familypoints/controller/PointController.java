@@ -42,6 +42,7 @@ public class PointController {
     }
 
     @PostMapping("/earn")
+    @PreAuthorize("@workspaceSecurity.canManagePoints(#workspaceId)")
     public PointTransactionResponse earn(
             @PathVariable Long workspaceId,
             @PathVariable Long memberId,
@@ -58,6 +59,7 @@ public class PointController {
     }
 
     @PostMapping("/spend")
+    @PreAuthorize("@workspaceSecurity.canManagePoints(#workspaceId)")
     public PointTransactionResponse spend(
             @PathVariable Long workspaceId,
             @PathVariable Long memberId,
@@ -74,6 +76,7 @@ public class PointController {
     }
 
     @PostMapping("/penalty")
+    @PreAuthorize("@workspaceSecurity.canManagePoints(#workspaceId)")
     public PointTransactionResponse penalty(
             @PathVariable Long workspaceId,
             @PathVariable Long memberId,
