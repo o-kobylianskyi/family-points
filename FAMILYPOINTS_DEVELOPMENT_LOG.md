@@ -266,3 +266,10 @@
 - Remaining audit risk: custom currency forms only fetched in Android Rewards; other UI screens show built-in fallback rather than configured custom forms. Backend concurrency requires integration test; Gradle/Maven/npm builds should be run on user's laptop.
 - Started Android app-control research implementation: created read-only `AppUsageReader.kt` with explicit `Usage Access` check and usage aggregation, plus manifest `PACKAGE_USAGE_STATS`. No usage permission bypass, apps list UI, blocking or forced closing is implemented. Apps visibility/Android background execution restrictions still require design.
 - Commits `f0af88a`, `73732ba`.
+
+## 2026-10-11 — Device control, parental override, temporary child mode (phase 1)
+- Agreed architecture has STANDARD Android, DEVICE_OWNER Android, and TEMPORARY_CHILD_SESSION on a parent's handset.
+- Created Flyway V19 device-management foundation schema: managed_devices, device_installed_apps, device_app_policies, temporary_child_sessions, device_parent_override_sessions. Parent devices keep their permanent owner while a temporary child session borrows the device. A partial unique index prevents concurrent ACTIVE sessions on one device.
+- Separate admin_visible/child_visible from access_mode. Enforcement capability remains device-dependent and must not be represented as guaranteed in Standard Android.
+- Session charge modes STANDARD/FREE, bounded expiry, active/complete status and parent override audit data are foundational only. Password storage, PIN verification, call whitelist and application enforcement are NOT implemented in this commit.
+- Build, migration test and UI integration remain pending. Commit `dc07518`.
