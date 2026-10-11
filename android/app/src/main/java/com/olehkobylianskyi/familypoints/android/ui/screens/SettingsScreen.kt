@@ -81,7 +81,7 @@ fun SettingsScreen(
 
     suspend fun reload() {
         if (canManage) {
-            members = membersRepository.load(currentUser.workspaceId).members
+            members = membersRepository.load(currentUser.workspaceId, currentUser.memberId).members
             accounts = repository.loadAccounts(currentUser.workspaceId)
         }
     }
