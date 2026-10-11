@@ -83,7 +83,7 @@ fun AppHeader(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = currentUser.workspaceRoleName,
+                    text = localizedHeaderRole(language, currentUser.workspaceRoleCode, currentUser.workspaceRoleName),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -123,3 +123,26 @@ fun AppHeader(
         }
     }
 }
+
+private fun localizedHeaderRole(language: AppLanguage, code: String?, fallback: String): String =
+    when (code?.uppercase()) {
+        "FAMILY_ADMIN" -> when (language) {
+            AppLanguage.UK -> "Адміністратор сім’ї"
+            AppLanguage.RU -> "Администратор семьи"
+            AppLanguage.DE -> "Familienadministrator"
+            AppLanguage.EN -> "Family administrator"
+        }
+        "PARENT" -> when (language) {
+            AppLanguage.UK -> "Батьки"
+            AppLanguage.RU -> "Родитель"
+            AppLanguage.DE -> "Elternteil"
+            AppLanguage.EN -> "Parent"
+        }
+        "CHILD" -> when (language) {
+            AppLanguage.UK -> "Дитина"
+            AppLanguage.RU -> "Ребёнок"
+            AppLanguage.DE -> "Kind"
+            AppLanguage.EN -> "Child"
+        }
+        else -> fallback
+    }
