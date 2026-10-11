@@ -3,6 +3,7 @@ package com.olehkobylianskyi.familypoints.android.ui.screens
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -34,9 +37,11 @@ import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.PointTransactionResponse
 import com.olehkobylianskyi.familypoints.android.data.PointsRepository
+import com.olehkobylianskyi.familypoints.android.data.PointTypeResponse
 import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
+import com.olehkobylianskyi.familypoints.android.i18n.localizedCurrencyName
 import com.olehkobylianskyi.familypoints.android.i18n.createTaskStrings
 import com.olehkobylianskyi.familypoints.android.i18n.pointsStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
@@ -76,6 +81,7 @@ fun PointsScreen(
     var pendingOperations by remember { mutableStateOf<List<OfflinePointsQueueStore.Pending>>(emptyList()) }
     var memberBalances by remember { mutableStateOf<Map<Long, Long>>(emptyMap()) }
     var syncMessage by remember { mutableStateOf("") }
+    var pointTypes by remember { mutableStateOf<List<PointTypeResponse>>(emptyList()) }
 
     var members by remember {
         mutableStateOf<List<WorkspaceMemberResponse>>(emptyList())
@@ -153,6 +159,19 @@ fun PointsScreen(
             if (!hasBalance) error = exception.message ?: ""
         } finally {
             loadingPoints = false
+        }
+    }
+
+    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus) {
+        pointTypes = repository.cachedPointTypes(currentUser.workspaceId, currentUser.memberId)
+        if (serverStatus == ServerStatus.ONLINE) {
+            try {
+                pointTypes = repository.refreshPointTypes(currentUser.workspaceId, currentUser.memberId)
+            } catch (exception: HttpException) {
+                if (exception.code() == 401) onUnauthorized()
+            } catch (_: Exception) {
+                // Keep cached currencies available for offline queueing.
+            }
         }
     }
 
@@ -237,12 +256,13 @@ fun PointsScreen(
             operation = pointOperation!!,
             member = selectedMember,
             processing = processing,
+            pointTypes = pointTypes,
             onDismiss = {
                 if (!processing) {
                     pointOperation = null
                 }
             },
-            onSubmit = { amount, description ->
+            onSubmit = { amount, description, pointType ->
                 scope.launch {
                     processing = true
                     error = ""
@@ -255,6 +275,7 @@ fun PointsScreen(
                                 currentUser.workspaceId,
                                 currentUser.memberId,
                                 selectedMember.id,
+                                pointType,
                                 kind,
                                 amount,
                                 description.trim().ifBlank { null }
@@ -273,6 +294,7 @@ fun PointsScreen(
                             repository.operate(
                                 currentUser.workspaceId,
                                 selectedMember.id,
+                                pointType.id,
                                 kind,
                                 amount,
                                 description.trim().ifBlank { null }
@@ -497,18 +519,41 @@ fun PointsScreen(
 
                             pendingOperations.filter { it.memberId == selectedMember.id }
                                 .takeIf { it.isNotEmpty() }?.let { pending ->
-                                    val delta = pending.sumOf {
-                                        if (it.type == "earn") it.amount.toLong() else -it.amount.toLong()
-                                    }
                                     Text(when (language) {
-                                        AppLanguage.UK -> "Очікувані операції: ${pending.size} (зміна: ${if (delta > 0) "+" else ""}$delta)"
-                                        AppLanguage.DE -> "Ausstehend: ${pending.size} (Änderung: $delta)"
-                                        AppLanguage.EN -> "Pending: ${pending.size} (change: $delta)"
-                                        AppLanguage.RU -> "Ожидают: ${pending.size} (изменение: $delta)"
+                                        AppLanguage.UK -> "Очікують синхронізації: ${pending.size}"
+                                        AppLanguage.DE -> "Ausstehende Vorgänge: ${pending.size}"
+                                        AppLanguage.EN -> "Pending operations: ${pending.size}"
+                                        AppLanguage.RU -> "Ожидают синхронизации: ${pending.size}"
                                     }, color = MaterialTheme.colorScheme.tertiary)
+                                    pending.groupBy { it.pointTypeId }.forEach { (_, entries) ->
+                                        val first = entries.first()
+                                        val delta = entries.sumOf {
+                                            if (it.type == "earn") it.amount.toLong() else -it.amount.toLong()
+                                        }
+                                        val label = if (first.pointTypeId == null) {
+                                            when (language) {
+                                                AppLanguage.UK -> "Валюта за замовчуванням (старий запис)"
+                                                AppLanguage.DE -> "Standardwährung (älterer Eintrag)"
+                                                AppLanguage.EN -> "Default currency (legacy entry)"
+                                                AppLanguage.RU -> "Валюта по умолчанию (старая запись)"
+                                            }
+                                        } else localizedCurrencyName(
+                                            language, first.pointTypeCode, first.pointTypeName ?: first.pointTypeCode.orEmpty()
+                                        )
+                                        Text("${if (delta > 0) "+" else ""}$delta · $label",
+                                            color = MaterialTheme.colorScheme.tertiary)
+                                    }
                                 }
 
-                            if (canManage && !processing) {
+                            if (canManage && pointTypes.isEmpty()) {
+                                Text(when (language) {
+                                    AppLanguage.UK -> "Список валют не збережений. Відкрийте «Бали» з доступним сервером."
+                                    AppLanguage.DE -> "Keine Währungen gespeichert. Öffnen Sie Punkte einmal online."
+                                    AppLanguage.EN -> "Currencies not cached. Open Points once online."
+                                    AppLanguage.RU -> "Список валют не сохранён. Откройте «Баллы» онлайн."
+                                }, color = MaterialTheme.colorScheme.tertiary)
+                            }
+                            if (canManage && !processing && pointTypes.isNotEmpty()) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement =
@@ -599,10 +644,19 @@ private fun PointOperationDialog(
     operation: PointOperation,
     member: WorkspaceMemberResponse,
     processing: Boolean,
+    pointTypes: List<PointTypeResponse>,
     onDismiss: () -> Unit,
-    onSubmit: (Int, String) -> Unit
+    onSubmit: (Int, String, PointTypeResponse) -> Unit
 ) {
     val text = pointsStrings(language)
+    var selectedTypeId by remember(operation, member.id, pointTypes) {
+        mutableStateOf(
+            pointTypes.firstOrNull { it.code.equals("POINTS", ignoreCase = true) }?.id
+                ?: pointTypes.firstOrNull()?.id
+        )
+    }
+    val selectedType = pointTypes.firstOrNull { it.id == selectedTypeId }
+    var currencyMenuExpanded by remember { mutableStateOf(false) }
 
     var amount by remember(
         operation,
@@ -662,6 +716,44 @@ private fun PointOperationDialog(
                     enabled = !processing
                 )
 
+                Text(
+                    when (language) {
+                        AppLanguage.UK -> "Валюта"
+                        AppLanguage.DE -> "Währung"
+                        AppLanguage.EN -> "Currency"
+                        AppLanguage.RU -> "Валюта"
+                    },
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !processing && pointTypes.isNotEmpty(),
+                        onClick = { currencyMenuExpanded = true }
+                    ) {
+                        Text(selectedType?.let {
+                            localizedCurrencyName(language, it.code, it.name) + " (" + it.code + ") ▾"
+                        } ?: "—")
+                    }
+                    DropdownMenu(
+                        expanded = currencyMenuExpanded,
+                        onDismissRequest = { currencyMenuExpanded = false }
+                    ) {
+                        pointTypes.forEach { pointType ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(localizedCurrencyName(language, pointType.code, pointType.name)
+                                        + " (" + pointType.code + ")")
+                                },
+                                onClick = {
+                                    selectedTypeId = pointType.id
+                                    currencyMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
                 OutlinedTextField(
                     value = description,
                     onValueChange = {
@@ -696,12 +788,19 @@ private fun PointOperationDialog(
                         return@Button
                     }
 
-                    onSubmit(
-                        numericAmount,
-                        description
-                    )
+                    val currency = selectedType
+                    if (currency == null) {
+                        localError = when (language) {
+                            AppLanguage.UK -> "Оберіть валюту"
+                            AppLanguage.DE -> "Währung auswählen"
+                            AppLanguage.EN -> "Select a currency"
+                            AppLanguage.RU -> "Выберите валюту"
+                        }
+                        return@Button
+                    }
+                    onSubmit(numericAmount, description, currency)
                 },
-                enabled = !processing
+                enabled = !processing && selectedType != null
             ) {
                 Text(text.save)
             }
