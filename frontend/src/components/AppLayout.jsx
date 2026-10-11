@@ -62,7 +62,9 @@ function AppLayout() {
 
             <div className="header-user-info">
               <strong>{currentUser.memberName}</strong>
-              <span>{workspaceRoleLabel(t, currentUser.workspaceRoleCode, currentUser.workspaceRoleName)}</span>
+              <span>{currentUser.workspaceRoleCode === "PARENT"
+                ? t("workspaceRoles.PARENT_INDIVIDUAL", { defaultValue: "Батько / мати" })
+                : workspaceRoleLabel(t, currentUser.workspaceRoleCode, currentUser.workspaceRoleName)}</span>
             </div>
 
             <button
