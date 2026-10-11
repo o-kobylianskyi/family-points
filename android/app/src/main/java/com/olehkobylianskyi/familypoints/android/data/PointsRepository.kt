@@ -39,6 +39,9 @@ class PointsRepository(
         return CachedPoints(balance, history, false)
     }
 
+    suspend fun loadHistory(workspaceId: Long, memberId: Long): List<PointTransactionResponse> =
+        ApiClient.pointsApi.getHistory(authorization(), workspaceId, memberId)
+
     suspend fun loadMembers(
         workspaceId: Long
     ): List<WorkspaceMemberResponse> =
