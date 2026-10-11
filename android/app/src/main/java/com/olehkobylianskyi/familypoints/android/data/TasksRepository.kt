@@ -18,8 +18,8 @@ class TasksRepository(
     }
 
     fun cachedMyTab(
-        workspaceId: Long, memberId: Long, date: String
-    ): OfflineTasksStore.Snapshot? = offlineStore.load(workspaceId, memberId, date)
+        workspaceId: Long, viewerMemberId: Long, memberId: Long, date: String
+    ): OfflineTasksStore.Snapshot? = offlineStore.load(workspaceId, viewerMemberId, memberId, date)
 
     suspend fun loadMembers(
         workspaceId: Long
@@ -31,6 +31,7 @@ class TasksRepository(
 
     suspend fun loadMyTab(
         workspaceId: Long,
+        viewerMemberId: Long,
         memberId: Long,
         date: String
     ): Triple<
@@ -61,7 +62,7 @@ class TasksRepository(
             openTasks = open.await(),
             definitions = definitions.await()
         )
-        offlineStore.save(workspaceId, memberId, date, result)
+        offlineStore.save(workspaceId, viewerMemberId, memberId, date, result)
         Triple(result.tasks, result.openTasks, result.definitions)
     }
 
