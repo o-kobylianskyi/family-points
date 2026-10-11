@@ -6,9 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public interface PointTransactionRepository
         extends JpaRepository<PointTransaction, Long> {
+
+    Optional<PointTransaction> findByClientOperationId(UUID clientOperationId);
 
     List<PointTransaction>
     findByMemberIdOrderByCreatedAtDesc(Long memberId);
