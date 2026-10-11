@@ -44,6 +44,7 @@ import com.olehkobylianskyi.familypoints.android.ui.components.LocalizedCalendar
 import java.time.LocalDate
 import java.time.YearMonth
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 private enum class TasksPageTab {
     MY,
@@ -201,9 +202,19 @@ fun TasksScreen(
         }
     }
 
-    LaunchedEffect(tab, managementView) {
-        if (tab == TasksPageTab.MANAGEMENT) {
+    LaunchedEffect(tab, managementView, serverStatus) {
+        if (tab == TasksPageTab.MANAGEMENT && serverStatus == ServerStatus.ONLINE) {
             loadManagement()
+        }
+    }
+
+    // When the Web editor adds/updates tasks, refresh the visible Android list.
+    LaunchedEffect(tab, selectedMemberId, selectedDate, serverStatus) {
+        if (tab == TasksPageTab.MY && serverStatus == ServerStatus.ONLINE) {
+            while (true) {
+                delay(30_000L)
+                if (!loadingTasks && processingId == null) loadMyTasks()
+            }
         }
     }
 
@@ -266,11 +277,32 @@ fun TasksScreen(
         }
 
         item {
-            Text(
-                text = text.title,
-                style = MaterialTheme.typography.headlineMedium
-            )
-            Text(text.description)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text.title, style = MaterialTheme.typography.headlineMedium)
+                    Text(text.description)
+                }
+                OutlinedButton(
+                    onClick = {
+                        scope.launch {
+                            if (tab == TasksPageTab.MY) loadMyTasks() else loadManagement()
+                        }
+                    },
+                    enabled = serverStatus == ServerStatus.ONLINE &&
+                        !loadingTasks && !loadingManagement && processingId == null
+                ) {
+                    Text(when (language) {
+                        AppLanguage.UK -> "⟳ Оновити"
+                        AppLanguage.DE -> "⟳ Neu laden"
+                        AppLanguage.EN -> "⟳ Refresh"
+                        AppLanguage.RU -> "⟳ Обновить"
+                    })
+                }
+            }
         }
 
         item {
