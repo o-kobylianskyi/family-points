@@ -455,6 +455,7 @@
   "workspaceRoles": {
     "FAMILY_ADMIN": "Family administrator",
     "PARENT": "Parent",
-    "CHILD": "Child"
+    "CHILD": "Child",
+    "PARENT_INDIVIDUAL": "Parent"
   }
 }
