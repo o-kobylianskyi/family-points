@@ -736,3 +736,16 @@ Before each substantial implementation batch:
 - [ ] Protect background refresh from rapid status toggles and duplicate API calls if needed
 
 - [x] Explain why an offline-only authenticated session needs fresh online login before synchronizing
+
+## Offline participants/points (2026-10-11)
+- [x] Cache participants and last confirmed balances by workspace/viewer
+- [x] Show cached member names, roles, balances offline on Members and Points screens
+- [x] Durable UUID-based pending offline earnings and penalties, visibly separate from confirmed balance
+- [x] Flyway V20 unique operation IDs and secure idempotent backend replay endpoint
+- [x] Require MANAGE_POINTS for ordinary manual point operations as well as replay
+- [x] Reconcile pending operations only after real online auth; refresh confirmed balances
+- [ ] Run backend migration + Maven tests and Android :app:compileDebugKotlin
+- [ ] Test online cache -> offline 2 members -> queue earn and penalty -> online reauth -> repeated retry -> exactly-once server ledger
+- [ ] Test server denies expired/revoked MANAGE_POINTS; pending entries must remain visible
+- [ ] Encrypt local member/balance/operation stores before production and define removal/retention policy
+- [ ] Improve rejected-operation management UI (edit/cancel, last failure, retry)
