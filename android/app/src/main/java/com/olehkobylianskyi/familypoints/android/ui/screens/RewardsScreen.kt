@@ -313,10 +313,10 @@ fun RewardsScreen(
                 if (showingCached) {
                     Text(
                         when (language) {
-                            AppLanguage.UK -> "⟳ Збережений каталог. Оновлення із сервера…"
-                            AppLanguage.DE -> "⟳ Gespeicherter Katalog. Serveraktualisierung…"
-                            AppLanguage.EN -> "⟳ Saved catalog. Refreshing from server…"
-                            AppLanguage.RU -> "⟳ Сохранённый каталог. Обновление с сервера…"
+                            AppLanguage.UK -> if (loading) "⟳ Збережений каталог. Оновлення із сервера…" else "Офлайн: показано останній збережений каталог"
+                            AppLanguage.DE -> if (loading) "⟳ Gespeicherter Katalog. Serveraktualisierung…" else "Offline: letzter gespeicherter Katalog"
+                            AppLanguage.EN -> if (loading) "⟳ Saved catalog. Refreshing from server…" else "Offline: last saved catalog"
+                            AppLanguage.RU -> if (loading) "⟳ Сохранённый каталог. Обновление с сервера…" else "Офлайн: последний сохранённый каталог"
                         },
                         color = MaterialTheme.colorScheme.tertiary
                     )
