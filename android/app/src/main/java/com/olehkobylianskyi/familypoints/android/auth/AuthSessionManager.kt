@@ -66,8 +66,11 @@ class AuthSessionManager(
             markActivity(force = true)
             user
         } catch (error: java.io.IOException) {
-            // Network unavailability is not an explicit logout or server revocation.
+            // Transport failure is not an explicit logout or server revocation.
             // Offline profile access still requires a future local PIN challenge.
+            null
+        } catch (error: retrofit2.HttpException) {
+            if (error.code() !in listOf(502, 503, 504)) clearSession()
             null
         } catch (_: Exception) {
             clearSession()
@@ -110,9 +113,12 @@ class AuthSessionManager(
                 tokenStore.saveAccessToken(refreshed.accessToken)
             } catch (_: java.io.IOException) {
                 // A temporarily unreachable server must not log out an active user.
-                // The token remains subject to the idle timeout and to server-side
-                // validation as soon as connectivity resumes.
+                // The token remains subject to idle timeout and online validation.
                 return true
+            } catch (error: retrofit2.HttpException) {
+                if (error.code() in listOf(502, 503, 504)) return true
+                clearSession()
+                return false
             } catch (_: Exception) {
                 clearSession()
                 return false
