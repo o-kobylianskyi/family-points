@@ -92,7 +92,7 @@ class MainActivity : ComponentActivity() {
         val rewardNegotiationRepository =
             RewardNegotiationRepository(tokenStore)
         val rewardsRepository = RewardsRepository(tokenStore)
-        val pointsRepository = PointsRepository(tokenStore)
+        val pointsRepository = PointsRepository(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineBalanceStore(this))
         val membersRepository = MembersRepository(tokenStore)
         val settingsRepository = SettingsRepository(tokenStore)
         val roleCatalogRepository = RoleCatalogRepository(tokenStore)
