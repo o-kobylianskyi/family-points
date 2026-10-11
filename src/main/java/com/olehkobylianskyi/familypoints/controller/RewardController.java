@@ -115,6 +115,21 @@ public class RewardController {
         return rewardService.refreshRequest(workspaceId, requestId);
     }
 
+    /**
+     * Administrator performs a real purchase for a child. The reward service
+     * checks eligibility, approval conditions and balance, then creates both
+     * the purchase and linked REWARD_PURCHASE point transaction atomically.
+     */
+    @PostMapping("/{rewardId}/purchase-for-member/{memberId}")
+    public RewardPurchaseResponse purchaseRewardForMember(
+            @PathVariable Long workspaceId,
+            @PathVariable Long rewardId,
+            @PathVariable Long memberId
+    ) {
+        assertManage(workspaceId);
+        return rewardService.purchaseReward(workspaceId, memberId, rewardId);
+    }
+
     @PostMapping("/{rewardId}/purchase")
     public RewardPurchaseResponse purchaseReward(
             @PathVariable Long workspaceId,
