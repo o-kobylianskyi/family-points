@@ -25,13 +25,13 @@ object ServerReachability {
     }
 
     /**
-     * Ordinary API responses can confirm availability only when successful.
-     * A generic 401/403 may come from a proxy and cannot prove server health.
+     * Ordinary responses (including 200/401/403 from proxies) must never
+     * mark the backend ONLINE: only the validated /api/client-health probe
+     * is authoritative. A gateway error is evidence of an outage.
      */
     fun httpResponse(code: Int) {
-        when {
-            code in 200..299 -> mutableStatus.value = ServerStatus.ONLINE
-            code in 502..504 -> mutableStatus.value = ServerStatus.OFFLINE
+        if (code in 502..504) {
+            mutableStatus.value = ServerStatus.OFFLINE
         }
     }
 
