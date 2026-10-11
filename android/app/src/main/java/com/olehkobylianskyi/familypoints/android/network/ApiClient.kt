@@ -37,31 +37,38 @@ object ApiClient {
             .build()
     }
 
+    // Independent client: an HTTP 200 from a captive portal/proxy is not
+    // allowed to mark the actual backend ONLINE before content validation.
     private val probeClient: OkHttpClient by lazy {
-        httpClient.newBuilder()
+        OkHttpClient.Builder()
             .followRedirects(false)
             .callTimeout(6, TimeUnit.SECONDS)
             .build()
     }
 
     /**
-     * A protected backend endpoint is intentionally queried without credentials.
-     * 401/403 confirms that the API responds; 502/503/504 or IO means unavailable.
-     * This does not validate an account or extend an authentication session.
+     * Validate the identity of the actual Spring Boot API instead of trusting
+     * an unauthenticated 401 or a generic proxy response.
      */
     suspend fun probeServer(): Boolean = withContext(Dispatchers.IO) {
-        val request = Request.Builder().url(BASE_URL + "api/me").get().build()
+        val request = Request.Builder()
+            .url(BASE_URL + "api/client-health")
+            .header("Cache-Control", "no-cache")
+            .get()
+            .build()
         try {
             probeClient.newCall(request).execute().use { response ->
-                if (response.code in listOf(200, 401, 403)) {
-                    ServerReachability.httpResponse(response.code)
-                    true
-                } else {
-                    // A redirect, a missing endpoint, or a proxy error is not
-                    // proof that our API is available.
-                    ServerReachability.transportFailure()
+                val body = response.body?.string().orEmpty()
+                val valid = response.code == 200 && try {
+                    val json = org.json.JSONObject(body)
+                    json.optString("service") == "family-points" &&
+                        json.optString("status") == "UP"
+                } catch (_: Exception) {
                     false
                 }
+                if (valid) ServerReachability.verifiedProbe()
+                else ServerReachability.transportFailure()
+                valid
             }
         } catch (_: IOException) {
             ServerReachability.transportFailure()
