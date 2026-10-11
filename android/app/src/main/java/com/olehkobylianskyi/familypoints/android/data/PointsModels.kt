@@ -15,6 +15,13 @@ data class PointTransactionResponse(
 
 data class OfflinePointOperationRequest(
     val operationId: String,
+    val pointTypeId: Long?,
+    val amount: Int,
+    val description: String?
+)
+
+data class TypedPointOperationRequest(
+    val pointTypeId: Long,
     val amount: Int,
     val description: String?
 )
