@@ -6,6 +6,7 @@ import com.olehkobylianskyi.familypoints.dto.PointTransactionResponse;
 import com.olehkobylianskyi.familypoints.service.PointService;
 import jakarta.validation.Valid;
 import com.olehkobylianskyi.familypoints.dto.OfflinePointOperationRequest;
+import com.olehkobylianskyi.familypoints.dto.PointOperationTypedRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import com.olehkobylianskyi.familypoints.dto.PointBalancesResponse;
@@ -35,10 +36,24 @@ public class PointController {
         return PointTransactionResponse.from(
                 pointService.applyOfflineOperation(
                         workspaceId, memberId,
-                        request.getOperationId(), operation,
+                        request.getOperationId(), request.getPointTypeId(), operation,
                         request.getAmount(), request.getDescription()
                 )
         );
+    }
+
+    @PostMapping("/manual/{operation}")
+    @PreAuthorize("@workspaceSecurity.canManagePoints(#workspaceId)")
+    public PointTransactionResponse applyManualTyped(
+            @PathVariable Long workspaceId,
+            @PathVariable Long memberId,
+            @PathVariable String operation,
+            @Valid @RequestBody PointOperationTypedRequest request
+    ) {
+        return PointTransactionResponse.from(pointService.applyTypedManualOperation(
+                workspaceId, memberId, request.getPointTypeId(),
+                operation, request.getAmount(), request.getDescription()
+        ));
     }
 
     @PostMapping("/earn")
