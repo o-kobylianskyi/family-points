@@ -338,3 +338,5 @@
 - Android `ApiClient.probeServer` validates 200 + expected JSON identity using independent short-timeout HTTP client and `Cache-Control: no-cache`; `ServerReachability` allows only validated probe to transition into ONLINE, not arbitrary HTTP status codes. During manual retry, the offline banner stays visible until verified recovery.
 - Rewards, Tasks and Dashboard gained explicit localized refresh buttons and a 30-second online refresh while screens are visible. Rewards distinguishes "cached because offline" from "still cached after failed online refresh", and keeps read-only cache until catalog GET succeeds.
 - **Both backend and Android must be updated**. Prior Android APK polling /api/me is incompatible with the new health contract. GitHub changes require Maven/Gradle compilation and emulator tests; not yet compiled here.
+
+- Additional reconnection UX: offline-authenticated sessions without a server JWT still require interactive online login after reconnection. Android now displays a localized explanation on LoginScreen instead of silently returning to login (`add13ba`, `269c83c`).
