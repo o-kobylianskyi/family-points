@@ -297,3 +297,10 @@
 - Added `OfflineRewardsStore` display-only workspace-scoped JSON snapshot (catalog, categories, point types, tasks). Requests/purchases/obligations excluded from stored snapshot to avoid presenting stale transactions as current.
 - Android loads saved snapshot first, attempts server refresh next, and shows refreshing/offline status; auxiliary request IO failures are nonfatal to the catalog. This first-stage snapshot uses SharedPreferences and is not encrypted; review storage hardening before storing private/sensitive data.
 - No offline purchasing supported, backend still owns purchases and point balance. No authenticated offline login or UI tests yet. GitHub commits `ad37cbd`, `5d2d8af`, `ab96ab2`, `1d62651`, `fb1263a`.
+
+## 2026-10-11 — Android Settings offline guard
+- Settings uses Android ConnectivityManager to detect absent network on entry and skips loading server-only settings in that state; change-password, currency forms, role catalog and account management are hidden while offline. A localized offline notice replaces repeated timeout errors. Language switcher remains available.
+- IOException from Settings member/account load flips this screen into offline state.
+- Added ACCESS_NETWORK_STATE permission in AndroidManifest.
+- Note: Internet network presence does not prove backend availability. Currency and role widgets can still time out independently when backend is unreachable despite connectivity; a later shared API reachability state is required. Kotlin build not executed.
+- Commits `a9e4ff0`, `efc3b2a`.
