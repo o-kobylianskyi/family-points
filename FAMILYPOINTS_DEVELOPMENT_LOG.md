@@ -304,3 +304,12 @@
 - Added ACCESS_NETWORK_STATE permission in AndroidManifest.
 - Note: Internet network presence does not prove backend availability. Currency and role widgets can still time out independently when backend is unreachable despite connectivity; a later shared API reachability state is required. Kotlin build not executed.
 - Commits `a9e4ff0`, `efc3b2a`.
+
+## 2026-10-11 — Shared Android backend reachability
+- Implemented global `ServerReachability` StateFlow statuses CHECKING/ONLINE/OFFLINE. A shared OkHttp interceptor observes API responses and transport errors. Network connection alone is not treated as evidence of backend availability.
+- `ApiClient.probeServer()` checks unauthenticated GET /api/me, accepts HTTP 200/401/403 as reachable, treats unexpected redirects, gateway errors and IO failures as unavailable. Probe has 6-second call timeout. Automatic checks run every 60 seconds online and 20 seconds offline while UI is active.
+- MainActivity displays a localized shared offline banner on all routes with a manual Retry button. This banner reserves screen space rather than overlaying other controls.
+- SettingsScreen uses the shared backend status instead of Wi-Fi presence. Server-dependent controls hide while offline; settings reload when backend becomes available. Fixed a previously malformed if/else/try/finally construct from the previous Settings changes.
+- AuthSessionManager retains a still-active client session on IOException and HTTP 502/503/504 during refresh, while still rejecting unauthorized/invalid sessions and honoring the configured idle timeout.
+- No offline PIN login or cached local authentication has been enabled by this work. UI display and integration require a verified Android build.
+- Main commits: `aa94ff3`, `7000397`, `e9aba16`, `8b00757`, `d0b69ad`, `f8544c3`, `8b8f28b`, `e8318ea`.
