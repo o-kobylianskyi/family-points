@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.PointTransactionResponse
 import com.olehkobylianskyi.familypoints.android.data.PointsRepository
+import com.olehkobylianskyi.familypoints.android.data.RewardsRepository
+import com.olehkobylianskyi.familypoints.android.data.RewardDefinitionSummary
 import com.olehkobylianskyi.familypoints.android.data.PointTypeResponse
 import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
@@ -71,6 +73,7 @@ fun PointsScreen(
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     repository: PointsRepository,
+    rewardsRepository: RewardsRepository,
     onLanguageChange: (AppLanguage) -> Unit,
     onLogout: () -> Unit,
     onNavigate: (DashboardDestination) -> Unit,
@@ -87,6 +90,7 @@ fun PointsScreen(
     var memberBalances by remember { mutableStateOf<Map<Long, Long>>(emptyMap()) }
     var syncMessage by remember { mutableStateOf("") }
     var pointTypes by remember { mutableStateOf<List<PointTypeResponse>>(emptyList()) }
+    var rewardCatalog by remember { mutableStateOf<List<RewardDefinitionSummary>>(emptyList()) }
 
     var members by remember {
         mutableStateOf<List<WorkspaceMemberResponse>>(emptyList())
@@ -188,6 +192,22 @@ fun PointsScreen(
     }
 
     LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus) {
+        rewardCatalog = rewardsRepository.cached(currentUser.workspaceId, currentUser.memberId)
+            ?.rewards.orEmpty()
+        if (serverStatus == ServerStatus.ONLINE) {
+            try {
+                rewardCatalog = rewardsRepository.refreshCatalog(
+                    currentUser.workspaceId, currentUser.memberId
+                ).rewards
+            } catch (exception: HttpException) {
+                if (exception.code() == 401) onUnauthorized()
+            } catch (_: Exception) {
+                // Show existing catalog; purchases still require server confirmation.
+            }
+        }
+    }
+
+    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus) {
         loadingMembers = false
         error = ""
         pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId)
@@ -278,19 +298,32 @@ fun PointsScreen(
             workspaceId = currentUser.workspaceId,
             viewerId = currentUser.memberId,
             quickAmounts = quickAmounts,
+            rewardCatalog = rewardCatalog.filter { it.active &&
+                it.acquisitionMode != "REQUEST" && !it.requiresApproval &&
+                pointTypes.any { type -> type.id == it.pointTypeId }
+            },
             onDismiss = {
                 if (!processing) {
                     pointOperation = null
                 }
             },
-            onSubmit = { amount, description, pointType ->
+            onSubmit = { amount, description, pointType, selectedReward ->
                 scope.launch {
                     processing = true
                     error = ""
 
                     try {
                         val kind = pointOperation!!.apiValue
-                        if (serverStatus != ServerStatus.ONLINE) {
+                        if (selectedReward != null) {
+                            check(kind == "spend" && serverStatus == ServerStatus.ONLINE) {
+                                "Reward purchases require an online session"
+                            }
+                            rewardsRepository.purchaseForMember(
+                                currentUser.workspaceId, selectedMember.id, selectedReward.id
+                            )
+                            pointOperation = null
+                            loadPoints(selectedMember.id)
+                        } else if (serverStatus != ServerStatus.ONLINE) {
                             check(canManage && kind != "spend") { "Offline spending is disabled" }
                             repository.queueOffline(
                                 currentUser.workspaceId,
@@ -684,8 +717,9 @@ private fun PointOperationDialog(
     workspaceId: Long,
     viewerId: Long,
     quickAmounts: PointQuickAmountStore,
+    rewardCatalog: List<RewardDefinitionSummary>,
     onDismiss: () -> Unit,
-    onSubmit: (Int, String, PointTypeResponse) -> Unit
+    onSubmit: (Int, String, PointTypeResponse, RewardDefinitionSummary?) -> Unit
 ) {
     val text = pointsStrings(language)
     var selectedTypeId by remember(operation, member.id, pointTypes) {
@@ -696,6 +730,14 @@ private fun PointOperationDialog(
     }
     val selectedType = pointTypes.firstOrNull { it.id == selectedTypeId }
     var currencyMenuExpanded by remember { mutableStateOf(false) }
+    var rewardMenuExpanded by remember { mutableStateOf(false) }
+    var rewardId by remember(operation, member.id) { mutableStateOf<Long?>(null) }
+    val selectedReward = if (operation == PointOperation.SPEND) {
+        rewardCatalog.firstOrNull { it.id == rewardId }
+    } else null
+    val rewardCurrency = selectedReward?.let { reward ->
+        pointTypes.firstOrNull { it.id == reward.pointTypeId }
+    }
 
     // A new dialog starts at 20, or the last successfully used amount.
     // Switching currencies restores the amount last used for that currency.
@@ -744,6 +786,75 @@ private fun PointOperationDialog(
                 verticalArrangement =
                     Arrangement.spacedBy(10.dp)
             ) {
+                if (operation == PointOperation.SPEND) {
+                    Text(
+                        when (language) {
+                            AppLanguage.UK -> "На що витрачаємо?"
+                            AppLanguage.DE -> "Wofür werden Punkte ausgegeben?"
+                            AppLanguage.EN -> "What is this spending for?"
+                            AppLanguage.RU -> "На что тратим?"
+                        },
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !processing,
+                            onClick = { rewardMenuExpanded = true }
+                        ) {
+                            Text(selectedReward?.title ?: when (language) {
+                                AppLanguage.UK -> "Без нагороди · ручне списання"
+                                AppLanguage.DE -> "Ohne Belohnung · manuelle Ausgabe"
+                                AppLanguage.EN -> "No reward · manual spending"
+                                AppLanguage.RU -> "Без награды · ручное списание"
+                            })
+                        }
+                        DropdownMenu(
+                            expanded = rewardMenuExpanded,
+                            onDismissRequest = { rewardMenuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(when (language) {
+                                    AppLanguage.UK -> "Без нагороди · ручне списання"
+                                    AppLanguage.DE -> "Ohne Belohnung · manuelle Ausgabe"
+                                    AppLanguage.EN -> "No reward · manual spending"
+                                    AppLanguage.RU -> "Без награды · ручное списание"
+                                }) },
+                                onClick = { rewardId = null; rewardMenuExpanded = false }
+                            )
+                            rewardCatalog.forEach { reward ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(reward.title + " · " + reward.priceAmount +
+                                            " " + localizedCurrencyName(
+                                                language, reward.pointTypeCode, reward.pointTypeName
+                                            ))
+                                    },
+                                    onClick = {
+                                        rewardId = reward.id
+                                        rewardMenuExpanded = false
+                                        localError = ""
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (selectedReward != null) {
+                    Text(when (language) {
+                        AppLanguage.UK -> "Ціна: ${selectedReward.priceAmount} ${localizedCurrencyName(language, selectedReward.pointTypeCode, selectedReward.pointTypeName)}"
+                        AppLanguage.DE -> "Preis: ${selectedReward.priceAmount} ${localizedCurrencyName(language, selectedReward.pointTypeCode, selectedReward.pointTypeName)}"
+                        AppLanguage.EN -> "Price: ${selectedReward.priceAmount} ${localizedCurrencyName(language, selectedReward.pointTypeCode, selectedReward.pointTypeName)}"
+                        AppLanguage.RU -> "Цена: ${selectedReward.priceAmount} ${localizedCurrencyName(language, selectedReward.pointTypeCode, selectedReward.pointTypeName)}"
+                    }, color = MaterialTheme.colorScheme.primary)
+                    Text(when (language) {
+                        AppLanguage.UK -> "Буде оформлено покупку нагороди, а не окреме ручне списання. Сервер перевірить баланс та умови."
+                        AppLanguage.DE -> "Ein Belohnungskauf statt manueller Ausgabe. Der Server prüft Guthaben und Bedingungen."
+                        AppLanguage.EN -> "This creates a reward purchase, not a separate manual debit. The server checks balance and requirements."
+                        AppLanguage.RU -> "Будет оформлена покупка награды вместо ручного списания. Сервер проверит баланс и условия."
+                    }, style = MaterialTheme.typography.bodySmall)
+                } else {
                 OutlinedTextField(
                     value = amount,
                     onValueChange = {
@@ -823,6 +934,9 @@ private fun PointOperationDialog(
                     }
                 }
 
+                }
+
+                if (selectedReward == null) {
                 OutlinedTextField(
                     value = description,
                     onValueChange = {
@@ -836,6 +950,8 @@ private fun PointOperationDialog(
                     enabled = !processing
                 )
 
+                }
+
                 if (localError.isNotBlank()) {
                     Text(
                         localError,
@@ -847,6 +963,21 @@ private fun PointOperationDialog(
         confirmButton = {
             Button(
                 onClick = {
+                    val reward = selectedReward
+                    if (reward != null) {
+                        val currency = rewardCurrency
+                        if (currency == null) {
+                            localError = when (language) {
+                                AppLanguage.UK -> "Валюта нагороди недоступна"
+                                AppLanguage.DE -> "Belohnungswährung nicht verfügbar"
+                                AppLanguage.EN -> "Reward currency unavailable"
+                                AppLanguage.RU -> "Валюта награды недоступна"
+                            }
+                            return@Button
+                        }
+                        onSubmit(reward.priceAmount, "", currency, reward)
+                        return@Button
+                    }
                     val numericAmount = amount.toIntOrNull()
 
                     if (
@@ -867,9 +998,10 @@ private fun PointOperationDialog(
                         }
                         return@Button
                     }
-                    onSubmit(numericAmount, description, currency)
+                    onSubmit(numericAmount, description, currency, null)
                 },
-                enabled = !processing && selectedType != null
+                enabled = !processing &&
+                    (selectedReward?.let { rewardCurrency != null } ?: (selectedType != null))
             ) {
                 Text(text.save)
             }
