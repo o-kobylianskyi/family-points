@@ -2,20 +2,38 @@ package com.olehkobylianskyi.familypoints.android.data
 
 import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
+import com.olehkobylianskyi.familypoints.android.storage.OfflineMembersStore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
-class MembersRepository(private val tokenStore: TokenStore) {
+class MembersRepository(
+    private val tokenStore: TokenStore,
+    private val offlineStore: OfflineMembersStore
+) {
+    fun cached(workspaceId: Long, viewerId: Long): MembersPageData? =
+        offlineStore.cachedPage(workspaceId, viewerId)
+
     private fun authorization(): String =
         "Bearer " + (tokenStore.getAccessToken()
             ?: throw IllegalStateException("Missing access token"))
 
-    suspend fun load(workspaceId: Long): MembersPageData = coroutineScope {
+    suspend fun load(workspaceId: Long, viewerId: Long): MembersPageData = coroutineScope {
         val auth = authorization()
-        val members = async { ApiClient.membersApi.getMembers(auth, workspaceId) }
-        val groups = async { ApiClient.membersApi.getGroups(auth, workspaceId) }
-        val roles = async { ApiClient.membersApi.getRoles(auth, workspaceId) }
-        MembersPageData(members.await(), groups.await(), roles.await())
+        val members = ApiClient.membersApi.getMembers(auth, workspaceId)
+        // Save members immediately, even if groups or roles are delayed.
+        offlineStore.saveMembers(workspaceId, viewerId, members)
+        val previous = cached(workspaceId, viewerId)
+        val groups = async {
+            try { ApiClient.membersApi.getGroups(auth, workspaceId) }
+            catch (_: java.io.IOException) { previous?.groups.orEmpty() }
+        }
+        val roles = async {
+            try { ApiClient.membersApi.getRoles(auth, workspaceId) }
+            catch (_: java.io.IOException) { previous?.roles.orEmpty() }
+        }
+        MembersPageData(members, groups.await(), roles.await()).also {
+            offlineStore.savePage(workspaceId, viewerId, it)
+        }
     }
 
     suspend fun save(workspaceId: Long, memberId: Long?, request: MemberSaveRequest) {
