@@ -367,3 +367,9 @@
 - Fixed `PointsScreen.kt`: a single `memberBalances` map now updates on balance cache/network retrieval and after both automatic/manual offline-queue synchronization, and the visible selected-member amount uses that shared map. This removes dependence on route re-entry for the selected card to reflect confirmed balance.
 - Confirmed at source level that the branch already includes a localized currency dropdown for earn/spend/penalty; the queue persists pointTypeId/code/name (SQLite version 2), and backend typed operations/replay accept pointTypeId. The user's currency-less dialog reflects an earlier installed APK; update Android after pulling.
 - Commit `253cffa`. Android compile/device tests not verified.
+
+## 2026-10-11 — Quick manual point amounts (Android)
+- User requested faster manual earn/spend/penalty form: default 20, later use most recent amount, adjust by ±10 without keyboard.
+- Added app-private `PointQuickAmountStore` keyed by workspace, signed-in account, operation (earn/spend/penalty), and currency ID. Values are only remembered after a confirmed online operation or successfully enqueued offline operation; no points or passwords are stored in this preference.
+- Updated `PointsScreen.PointOperationDialog`: starts at saved/default amount, restores currency-specific amount on currency change; added −10/+10 buttons with non-negative/max 100000 bounds and preserved manual numeric input.
+- Commits `1f29cfc`, `5926fc9`. No backend changes; Android compile and emulator verification pending.
