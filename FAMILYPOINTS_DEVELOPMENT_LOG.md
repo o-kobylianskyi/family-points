@@ -291,3 +291,9 @@
 - Displays ⟳ refreshing, ✓ updated, or offline/last saved snapshot. Manual point operations unavailable until online balance confirmation.
 - PointsRepository separates balance from history; history fetched independently after balance to avoid slowing refresh indicator.
 - Commits `ca128ca`, `3b55c1e`, `cae00ed`, `afc0028`, `ba557e8`. Compile/runtime test pending.
+
+## 2026-10-11 — Rewards timeout mitigation and offline catalog snapshot
+- Screenshot: Android Rewards shows `timeout` and no catalog. Cause: seven aggregated concurrent requests with failure of an auxiliary request rejecting entire load.
+- Added `OfflineRewardsStore` display-only workspace-scoped JSON snapshot (catalog, categories, point types, tasks). Requests/purchases/obligations excluded from stored snapshot to avoid presenting stale transactions as current.
+- Android loads saved snapshot first, attempts server refresh next, and shows refreshing/offline status; auxiliary request IO failures are nonfatal to the catalog. This first-stage snapshot uses SharedPreferences and is not encrypted; review storage hardening before storing private/sensitive data.
+- No offline purchasing supported, backend still owns purchases and point balance. No authenticated offline login or UI tests yet. GitHub commits `ad37cbd`, `5d2d8af`, `ab96ab2`, `1d62651`, `fb1263a`.
