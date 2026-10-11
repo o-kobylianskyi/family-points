@@ -502,7 +502,7 @@ fun PointsScreen(
                             pendingOperations.filter { it.memberId == selectedMember.id }
                                 .takeIf { it.isNotEmpty() }?.let { pending ->
                                     val delta = pending.sumOf {
-                                        if (it.type == "earn") it.amount else -it.amount
+                                        if (it.type == "earn") it.amount.toLong() else -it.amount.toLong()
                                     }
                                     Text(when (language) {
                                         AppLanguage.UK -> "Очікувані операції: ${pending.size} (зміна: ${if (delta > 0) "+" else ""}$delta)"
