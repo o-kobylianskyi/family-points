@@ -23,6 +23,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,6 +40,8 @@ import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.i18n.createTaskStrings
 import com.olehkobylianskyi.familypoints.android.i18n.pointsStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -67,6 +70,7 @@ fun PointsScreen(
     val text = pointsStrings(language)
     val createText = createTaskStrings(language)
     val scope = rememberCoroutineScope()
+    val serverStatus by ServerReachability.status.collectAsState()
 
     var members by remember {
         mutableStateOf<List<WorkspaceMemberResponse>>(emptyList())
@@ -99,6 +103,19 @@ fun PointsScreen(
         repository.cachedBalance(currentUser.workspaceId, memberId)?.let { cached ->
             balance = cached
             hasBalance = true
+        }
+
+        if (serverStatus != ServerStatus.ONLINE) {
+            loadingPoints = false
+            if (!hasBalance) {
+                error = when (language) {
+                    AppLanguage.UK -> "Баланс ще не збережений на телефоні. Спочатку відкрийте його онлайн."
+                    AppLanguage.DE -> "Kontostand noch nicht gespeichert. Bitte zuerst online öffnen."
+                    AppLanguage.EN -> "Balance not cached yet. Open it online first."
+                    AppLanguage.RU -> "Баланс ещё не сохранён на телефоне. Откройте его онлайн."
+                }
+            }
+            return
         }
 
         try {
@@ -134,7 +151,7 @@ fun PointsScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId) {
+    LaunchedEffect(currentUser.workspaceId, serverStatus) {
         loadingMembers = true
         error = ""
 
@@ -151,6 +168,23 @@ fun PointsScreen(
             ))
             selectedMemberId = currentUser.memberId
             loadingMembers = false
+        }
+
+        if (serverStatus != ServerStatus.ONLINE) {
+            if (selectedMemberId == null) {
+                members = listOf(WorkspaceMemberResponse(
+                    id = currentUser.memberId,
+                    name = currentUser.memberName,
+                    memberType = currentUser.memberType,
+                    workspaceRoleId = currentUser.workspaceRoleId,
+                    workspaceRoleCode = currentUser.workspaceRoleCode,
+                    workspaceRoleName = currentUser.workspaceRoleName,
+                    workspaceId = currentUser.workspaceId
+                ))
+                selectedMemberId = currentUser.memberId
+            }
+            loadingMembers = false
+            return@LaunchedEffect
         }
 
         try {
@@ -190,7 +224,7 @@ fun PointsScreen(
         }
     }
 
-    LaunchedEffect(selectedMemberId) {
+    LaunchedEffect(selectedMemberId, serverStatus) {
         selectedMemberId?.let {
             loadPoints(it)
         }
