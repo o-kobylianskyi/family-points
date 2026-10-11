@@ -165,7 +165,7 @@ fun PointsScreen(
         error = ""
         pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId)
         val cached = repository.cachedMembers(currentUser.workspaceId, currentUser.memberId)
-        members = cached.ifEmpty { listOf(WorkspaceMemberResponse(
+        members = (if (canManage) cached else cached.filter { it.id == currentUser.memberId }).ifEmpty { listOf(WorkspaceMemberResponse(
             id = currentUser.memberId,
             name = currentUser.memberName,
             memberType = currentUser.memberType,
@@ -185,7 +185,8 @@ fun PointsScreen(
 
         if (serverStatus != ServerStatus.ONLINE) return@LaunchedEffect
         try {
-            members = repository.loadMembers(currentUser.workspaceId, currentUser.memberId)
+            val receivedMembers = repository.loadMembers(currentUser.workspaceId, currentUser.memberId)
+            members = if (canManage) receivedMembers else receivedMembers.filter { it.id == currentUser.memberId }
             if (selectedMemberId !in members.map { it.id }) {
                 selectedMemberId = currentUser.memberId
             }
