@@ -652,3 +652,13 @@ Before each substantial implementation batch:
 - [x] Show persisted forms and distinguish them from unsaved built-in examples
 - [x] Responsive field arrangement and quantity preview
 - [ ] npm build and browser smoke test; verify GET and PUT of persisted forms
+
+## 2026-10-11 — Stabilization and Android app-control
+- [x] Review build configuration, migration version uniqueness and selected high-risk backend/Kotlin paths
+- [ ] Obtain verified backend Maven test/compile output, frontend npm build output, Android Gradle compile output
+- [ ] Finish custom currency forms propagation on Android (Tasks, Groups, Points history, negotiation)
+- [ ] Inspect other UI translations / layout defects and report remaining cases by screen
+- [x] Add permission-gated, read-only Android UsageStats data access foundation
+- [ ] Android Usage Access settings handoff and app-usage inventory UI
+- [ ] Design server device-to-member binding and app-time purchase policy
+- [ ] Determine permissible kiosk/device-owner/accessibility approaches before claiming app lock or force-close ability
