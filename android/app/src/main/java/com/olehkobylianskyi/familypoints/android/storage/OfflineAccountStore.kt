@@ -80,7 +80,8 @@ class OfflineAccountStore(context: Context) {
     private fun decode(value: String): ByteArray =
         Base64.decode(value, Base64.NO_WRAP)
 
-    private fun read(username: String): AccountRecord? = try {
+    private fun read(username: String): AccountRecord? {
+        return try {
         val encoded = prefs.getString(accountKey(username), null) ?: return null
         val bytes = decode(encoded)
         if (bytes.size < 29) return null
@@ -92,8 +93,9 @@ class OfflineAccountStore(context: Context) {
             String(cipher.doFinal(bytes.copyOfRange(12, bytes.size)), Charsets.UTF_8),
             AccountRecord::class.java
         )
-    } catch (_: Exception) {
-        null
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun write(username: String, record: AccountRecord) {
