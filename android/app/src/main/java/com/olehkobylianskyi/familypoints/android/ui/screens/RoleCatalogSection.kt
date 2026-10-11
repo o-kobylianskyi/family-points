@@ -9,6 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.*
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
+import com.olehkobylianskyi.familypoints.android.i18n.localizedRoleSetName
+import com.olehkobylianskyi.familypoints.android.i18n.localizedRoleSetDescription
+import com.olehkobylianskyi.familypoints.android.i18n.localizedSystemRoleName
 import kotlinx.coroutines.launch
 
 private fun rt(language: AppLanguage, uk: String, de: String, en: String, ru: String): String =
@@ -86,16 +89,16 @@ fun RoleCatalogSection(
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(set.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                        Text(localizedRoleSetName(language, set.systemCode, set.name), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                         if (set.systemDefault) Text(rt(language, "Системний", "System", "System", "Системный"))
                         else if (canManage) TextButton(onClick = { openSet(set) }) {
                             Text(rt(language, "Змінити", "Ändern", "Edit", "Изменить"))
                         }
                     }
-                    set.description?.takeIf { it.isNotBlank() }?.let { Text(it) }
+                    localizedRoleSetDescription(language, set.systemCode, set.description)?.takeIf { it.isNotBlank() }?.let { Text(it) }
                     roles.filter { it.roleSetId == set.id }.forEach { role ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(role.name, modifier = Modifier.weight(1f))
+                            Text(localizedSystemRoleName(language, role.systemCode, role.name), modifier = Modifier.weight(1f))
                             if (canManage && !role.systemDefault) TextButton(onClick = { openRole(role, set.id) }) {
                                 Text(rt(language, "Змінити", "Ändern", "Edit", "Изменить"))
                             }
@@ -145,7 +148,7 @@ fun RoleCatalogSection(
                         modifier = Modifier.fillMaxWidth())
                     if (!isSet) {
                         OutlinedButton(onClick = { setMenu = true }, modifier = Modifier.fillMaxWidth()) {
-                            Text((sets.firstOrNull { it.id == selectedSetId }?.name
+                            Text((sets.firstOrNull { it.id == selectedSetId }?.let { localizedRoleSetName(language, it.systemCode, it.name) }
                                 ?: rt(language, "Без набору", "Ohne Set", "Without set", "Без набора")) + " ▾")
                         }
                         DropdownMenu(expanded = setMenu, onDismissRequest = { setMenu = false }) {
@@ -153,7 +156,7 @@ fun RoleCatalogSection(
                                 text = { Text(rt(language, "Без набору", "Ohne Set", "Without set", "Без набора")) },
                                 onClick = { selectedSetId = null; setMenu = false })
                             sets.forEach { set ->
-                                DropdownMenuItem(text = { Text(set.name) }, onClick = {
+                                DropdownMenuItem(text = { Text(localizedRoleSetName(language, set.systemCode, set.name)) }, onClick = {
                                     selectedSetId = set.id; setMenu = false
                                 })
                             }
