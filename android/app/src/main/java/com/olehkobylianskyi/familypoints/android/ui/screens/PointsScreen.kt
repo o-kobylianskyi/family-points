@@ -743,6 +743,9 @@ private fun PointOperationDialog(
     val selectedReward = if (operation == PointOperation.SPEND) {
         rewardCatalog.firstOrNull { it.id == rewardId }
     } else null
+    // Never silently switch a selected reward to a manual debit when the
+    // catalog changes while the dialog is open.
+    val rewardSelectionExpired = rewardId != null && selectedReward == null
     val rewardCurrency = selectedReward?.let { reward ->
         pointTypes.firstOrNull { it.id == reward.pointTypeId }
     }
@@ -847,6 +850,18 @@ private fun PointOperationDialog(
                             }
                         }
                     }
+                }
+
+                if (rewardSelectionExpired) {
+                    Text(
+                        when (language) {
+                            AppLanguage.UK -> "Нагорода більше недоступна. Оберіть іншу або ручне списання."
+                            AppLanguage.DE -> "Belohnung nicht mehr verfügbar. Bitte erneut auswählen."
+                            AppLanguage.EN -> "Reward is no longer available. Choose another or manual spending."
+                            AppLanguage.RU -> "Награда больше недоступна. Выберите другую или ручное списание."
+                        },
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
 
                 if (selectedReward != null) {
@@ -971,6 +986,7 @@ private fun PointOperationDialog(
         confirmButton = {
             Button(
                 onClick = {
+                    if (rewardSelectionExpired) return@Button
                     val reward = selectedReward
                     if (reward != null) {
                         val currency = rewardCurrency
@@ -1008,7 +1024,7 @@ private fun PointOperationDialog(
                     }
                     onSubmit(numericAmount, description, currency, null)
                 },
-                enabled = !processing &&
+                enabled = !processing && !rewardSelectionExpired &&
                     (selectedReward?.let { rewardCurrency != null } ?: (selectedType != null))
             ) {
                 Text(text.save)
