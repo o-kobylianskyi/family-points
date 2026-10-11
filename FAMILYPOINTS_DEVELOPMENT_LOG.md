@@ -313,3 +313,11 @@
 - AuthSessionManager retains a still-active client session on IOException and HTTP 502/503/504 during refresh, while still rejecting unauthorized/invalid sessions and honoring the configured idle timeout.
 - No offline PIN login or cached local authentication has been enabled by this work. UI display and integration require a verified Android build.
 - Main commits: `aa94ff3`, `7000397`, `e9aba16`, `8b00757`, `d0b69ad`, `f8544c3`, `8b8f28b`, `e8318ea`.
+
+## 2026-10-11 — Offline catalog fix and read-only dashboard/tasks snapshots
+- Investigated Rewards blank screen while API offline. Root causes: cached catalog was only saved after 7 concurrent endpoints completed; a single essential timeout or long auxiliary request prevented saving, and UI hid existing cache while loading.
+- Refactored RewardsRepository into `refreshCatalog` (fetches only rewards and immediately saves a member-scoped offline catalog of titles, descriptions, price, requirements) and `refreshSupplementary` (optional requests, categories, purchases, obligations, point types and definitions, with independent timeouts). RewardScreen now displays cache during refresh, recovers after backend reconnect and prevents offline purchases or submissions. OfflineRewardsStore no longer persists requests/purchases/obligations/tasks and keys by workspace+viewer.
+- Added OfflineDashboardStore keyed by workspace/member/date. DashboardRepository writes snapshots after successful load and DashboardScreen renders them immediately (read-only and marked cached) while checking server.
+- Added OfflineTasksStore keyed by workspace+viewer+target member/date. TasksRepository saves daily task snapshots and TasksScreen loads cache first, shows member fallback and disables create/claim/status actions while offline/stale. Management and task-detail screens are still not cached.
+- **Limits:** one successful online catalog/task/dashboard load is needed before those screens can work offline; no offline login/PIN, offline purchases or task status submissions yet. Cache snapshots currently use application-private SharedPreferences and should be protected by encryption before production, and synchronization/conflict tests remain pending.
+- Builds were NOT run in this tool environment. Main code commits: `cc0e3a7`, `62a5e2c`, `a24a6ca`, `5687526`, `d0c515d`, `d6af1fa`, `a3ed3b8`, `d13fb3b`.
