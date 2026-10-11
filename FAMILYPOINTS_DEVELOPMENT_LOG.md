@@ -220,3 +220,8 @@
 - Fixed quick action navigation title `балів` -> `Бали` in DashboardScreen; preserved declension for numeric balance content.
 - Translated current workspace role in shared AppHeader based on workspaceRoleCode (FAMILY_ADMIN, PARENT, CHILD) for UK/DE/EN/RU; custom role names remain unchanged.
 - Commits: `1be2005`, `72b0d81`. Compilation/emulator verification pending.
+
+## 2026-10-11 — Localized Android GroupEditor system role and currency labels
+- Screenshot exposed untranslated POINTS/COPPER/SILVER/GOLD in group balance rows and system roles LEADER/DEPUTY/SENIOR/EXECUTOR/ASSISTANT/REVIEWER/OBSERVER.
+- Added centralized group-editor label helpers that translate by stable `code`/`systemCode` for UK/DE/EN/RU, retaining user-defined names unchanged. Applied to overview balances, editor balance list, selection dialogs, and role listings.
+- Commit `9f12445`. Not yet compiled/runtime tested.
