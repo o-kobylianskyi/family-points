@@ -2,8 +2,6 @@ package com.olehkobylianskyi.familypoints.android.data
 
 import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 
 class PointsRepository(
     private val tokenStore: TokenStore
@@ -22,31 +20,22 @@ class PointsRepository(
             workspaceId
         )
 
+    // A failed history request must not make the current balance disappear.
     suspend fun loadMemberPoints(
         workspaceId: Long,
         memberId: Long
-    ): Pair<Long, List<PointTransactionResponse>> =
-        coroutineScope {
-            val auth = authorization()
-
-            val balance = async {
-                ApiClient.pointsApi.getBalance(
-                    auth,
-                    workspaceId,
-                    memberId
-                )
-            }
-
-            val history = async {
-                ApiClient.pointsApi.getHistory(
-                    auth,
-                    workspaceId,
-                    memberId
-                )
-            }
-
-            balance.await().balance to history.await()
+    ): Pair<Long, List<PointTransactionResponse>> {
+        val auth = authorization()
+        val balance = ApiClient.pointsApi.getBalance(auth, workspaceId, memberId).balance
+        val history = try {
+            ApiClient.pointsApi.getHistory(auth, workspaceId, memberId)
+        } catch (error: Exception) {
+            // A bad authorization must never be hidden as an empty history.
+            if (error is retrofit2.HttpException && error.code() == 401) throw error
+            emptyList()
         }
+        return balance to history
+    }
 
     suspend fun operate(
         workspaceId: Long,
