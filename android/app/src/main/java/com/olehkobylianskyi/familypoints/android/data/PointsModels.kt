@@ -13,6 +13,12 @@ data class PointTransactionResponse(
     val createdAt: String?
 )
 
+data class OfflinePointOperationRequest(
+    val operationId: String,
+    val amount: Int,
+    val description: String?
+)
+
 data class PointOperationRequest(
     val amount: Int,
     val description: String?
