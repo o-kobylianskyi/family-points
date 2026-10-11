@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import Sidebar from './Sidebar'
 import LanguageSwitcher from './LanguageSwitcher'
 import { useAuth } from '../context/AuthContext'
+import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
 function AppLayout() {
   const { t } = useTranslation()
@@ -61,7 +62,7 @@ function AppLayout() {
 
             <div className="header-user-info">
               <strong>{currentUser.memberName}</strong>
-              <span>{currentUser.workspaceRoleName}</span>
+              <span>{workspaceRoleLabel(t, currentUser.workspaceRoleCode, currentUser.workspaceRoleName)}</span>
             </div>
 
             <button
