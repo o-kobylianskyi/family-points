@@ -74,6 +74,7 @@ fun PointsScreen(
     var selectedMemberId by remember { mutableStateOf<Long?>(null) }
     var balance by remember { mutableStateOf(0L) }
     var offlineSnapshot by remember { mutableStateOf(false) }
+    var hasBalance by remember { mutableStateOf(false) }
     var history by remember {
         mutableStateOf<List<PointTransactionResponse>>(emptyList())
     }
@@ -90,7 +91,15 @@ fun PointsScreen(
     suspend fun loadPoints(memberId: Long) {
         loadingPoints = true
         error = ""
-        offlineSnapshot = false
+        history = emptyList()
+        hasBalance = false
+        offlineSnapshot = true
+
+        // Cache first: show balance immediately, then fetch a newer snapshot.
+        repository.cachedBalance(currentUser.workspaceId, memberId)?.let { cached ->
+            balance = cached
+            hasBalance = true
+        }
 
         try {
             val result = repository.loadPointsWithFallback(
@@ -99,6 +108,7 @@ fun PointsScreen(
             )
             balance = result.balance
             history = result.history
+            hasBalance = true
             offlineSnapshot = result.offline
         } catch (exception: HttpException) {
             if (exception.code() == 401) {
@@ -107,7 +117,7 @@ fun PointsScreen(
                 error = exception.message()
             }
         } catch (exception: Exception) {
-            error = exception.message ?: ""
+            if (!hasBalance) error = exception.message ?: ""
         } finally {
             loadingPoints = false
         }
@@ -302,7 +312,22 @@ fun PointsScreen(
                                 )
                             )
 
-                            if (offlineSnapshot) {
+                            if (loadingPoints) {
+                                Text("⟳ " + when (language) {
+                                    AppLanguage.UK -> "Оновлення балансу…"
+                                    AppLanguage.DE -> "Kontostand wird aktualisiert…"
+                                    AppLanguage.EN -> "Updating balance…"
+                                    AppLanguage.RU -> "Обновление баланса…"
+                                }, color = MaterialTheme.colorScheme.primary)
+                            } else if (hasBalance && !offlineSnapshot) {
+                                Text("✓ " + when (language) {
+                                    AppLanguage.UK -> "Баланс оновлено"
+                                    AppLanguage.DE -> "Kontostand aktualisiert"
+                                    AppLanguage.EN -> "Balance updated"
+                                    AppLanguage.RU -> "Баланс обновлён"
+                                }, color = MaterialTheme.colorScheme.primary)
+                            }
+                            if (offlineSnapshot && hasBalance && !loadingPoints) {
                                 Text(
                                     when (language) {
                                         AppLanguage.UK -> "Офлайн: показано останній збережений баланс. Списання недоступне."
@@ -321,7 +346,7 @@ fun PointsScreen(
                             )
 
                             Text(
-                                if (loadingPoints) {
+                                if (!hasBalance) {
                                     "—"
                                 } else {
                                     formatPointAmount(balance, language, "POINTS", text.points)
@@ -331,7 +356,7 @@ fun PointsScreen(
                             )
 
                             if (
-                                !offlineSnapshot && "MANAGE_POINTS" in
+                                !loadingPoints && hasBalance && !offlineSnapshot && "MANAGE_POINTS" in
                                     currentUser.permissions
                             ) {
                                 Row(
