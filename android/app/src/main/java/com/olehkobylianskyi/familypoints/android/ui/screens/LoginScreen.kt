@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 fun LoginScreen(
     language: AppLanguage,
     onLanguageChange: (AppLanguage) -> Unit,
+    showOnlineReauthNotice: Boolean = false,
     onLogin: suspend (String, String) -> CurrentUserResponse,
     onLoginSuccess: (CurrentUserResponse) -> Unit
 ) {
@@ -151,6 +152,18 @@ fun LoginScreen(
             }
         )
 
+        if (showOnlineReauthNotice) {
+            Text(
+                when (language) {
+                    AppLanguage.UK -> "Сервер знову доступний. Для синхронізації потрібно повторно увійти онлайн."
+                    AppLanguage.DE -> "Server wieder erreichbar. Zum Synchronisieren bitte erneut online anmelden."
+                    AppLanguage.EN -> "Server is back. Sign in online again to synchronize."
+                    AppLanguage.RU -> "Сервер снова доступен. Для синхронизации войдите онлайн повторно."
+                },
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 12.dp)
+            )
+        }
         if (serverStatus == ServerStatus.OFFLINE) {
             Text(
                 when (language) {
