@@ -3,6 +3,7 @@ package com.olehkobylianskyi.familypoints.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "point_transactions")
@@ -37,6 +38,9 @@ public class PointTransaction {
     @Column(length = 255)
     private String description;
 
+    @Column(name = "client_operation_id", columnDefinition = "uuid", unique = true)
+    private UUID clientOperationId;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -61,6 +65,9 @@ public class PointTransaction {
         this.description = description;
         this.createdAt = LocalDateTime.now();
     }
+
+    public UUID getClientOperationId() { return clientOperationId; }
+    public void setClientOperationId(UUID id) { this.clientOperationId = id; }
 
     public Long getId() {
         return id;
