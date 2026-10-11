@@ -231,3 +231,8 @@
 - Added shared `SystemCatalogLabels.kt` mapping built-in currency names, role set names/descriptions (MANAGEMENT/EXECUTION/CONTROL), and system role names (LEADER, DEPUTY, SENIOR, EXECUTOR, ASSISTANT, REVIEWER, OBSERVER) into UK/DE/EN/RU using stable system codes. Custom entries keep their own names and descriptions.
 - Applied to `CurrencyFormsSection.kt` and `RoleCatalogSection.kt`, including role set selection.
 - Commits `8391fe1`, `09a4e5d`, `7d7ea74`. Kotlin compile and emulator verification pending.
+
+## 2026-10-11 — Web Members role badge localization
+- Screenshot showed translated member type but untranslated workspace role badges (Parent / Child).
+- Added shared `workspaceRoleLabel` using stable role code, preserving custom role names; added `workspaceRoles` translations for uk/de/en/ru.
+- Applied to MembersPage badges and MemberEditor role dropdown. Changes are source-only; web build and browser verification remain pending.
