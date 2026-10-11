@@ -23,10 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
+import androidx.compose.runtime.collectAsState
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -61,17 +60,8 @@ fun SettingsScreen(
     onUnauthorized: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val connectivity = remember(context) {
-        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    }
-    var online by remember { mutableStateOf(true) }
-    fun checkOnline(): Boolean {
-        val network = connectivity.activeNetwork ?: return false
-        val capabilities = connectivity.getNetworkCapabilities(network) ?: return false
-        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-    }
-    LaunchedEffect(Unit) { online = checkOnline() }
+    val serverStatus by ServerReachability.status.collectAsState()
+    val online = serverStatus == ServerStatus.ONLINE
     val canManage = "MANAGE_MEMBERS" in currentUser.permissions || "ADMIN_OVERRIDE" in currentUser.permissions
     var members by remember { mutableStateOf<List<WorkspaceMemberResponse>>(emptyList()) }
     var accounts by remember { mutableStateOf<List<SettingsAccountResponse>>(emptyList()) }
@@ -97,12 +87,11 @@ fun SettingsScreen(
     }
     fun failure(e: Exception) {
         if (e is HttpException && e.code() == 401) onUnauthorized()
-        else if (e is java.io.IOException) {
-            online = false
-            error = ""
-        } else error = e.message ?: "Request failed"
+        else if (e is java.io.IOException) error = ""
+        else error = e.message ?: "Request failed"
     }
     fun run(action: suspend () -> Unit) {
+        if (!online) return
         scope.launch {
             busy = true
             error = ""
@@ -116,11 +105,21 @@ fun SettingsScreen(
             } finally { busy = false }
         }
     }
-    LaunchedEffect(currentUser.workspaceId) {
+    LaunchedEffect(currentUser.workspaceId, online) {
         loading = true
-        if (checkOnline()) try { reload() } catch (e: Exception) { failure(e) }
-        else online = false
-        finally { loading = false }
+        if (online) {
+            try {
+                reload()
+            } catch (e: Exception) {
+                failure(e)
+            } finally {
+                loading = false
+            }
+        } else {
+            error = ""
+            selectedMember = null
+            loading = false
+        }
     }
     val ownPasswordTitle = st(language, "Зміна пароля", "Passwort ändern", "Change password", "Смена пароля")
     val save = st(language, "Зберегти", "Speichern", "Save", "Сохранить")
@@ -132,7 +131,15 @@ fun SettingsScreen(
             style = MaterialTheme.typography.headlineMedium)
         if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
         if (notice.isNotBlank()) Text(notice, color = MaterialTheme.colorScheme.primary)
-        if (!online) {
+        if (serverStatus == ServerStatus.CHECKING) {
+            Text(st(language,
+                "Перевірка з’єднання із сервером…",
+                "Serververbindung wird geprüft…",
+                "Checking server connection…",
+                "Проверка соединения с сервером…"),
+                color = MaterialTheme.colorScheme.tertiary)
+        }
+        if (serverStatus == ServerStatus.OFFLINE) {
             Text(st(language,
                 "Офлайн: серверні налаштування недоступні. Мову можна змінити у шапці.",
                 "Offline: Servereinstellungen nicht verfügbar. Sprache oben ändern.",
