@@ -453,5 +453,10 @@
       "generatedFor": "Сгенерировано на {{date}}",
       "createdFor": "Создано на {{date}}"
     }
+  },
+  "workspaceRoles": {
+    "FAMILY_ADMIN": "Администратор семьи",
+    "PARENT": "Родитель",
+    "CHILD": "Ребёнок"
   }
 }
