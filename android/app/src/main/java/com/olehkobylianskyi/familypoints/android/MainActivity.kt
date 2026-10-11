@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
         val membersRepository = MembersRepository(tokenStore)
         val settingsRepository = SettingsRepository(tokenStore)
         val roleCatalogRepository = RoleCatalogRepository(tokenStore)
-        authSessionManager = AuthSessionManager(tokenStore)
+        authSessionManager = AuthSessionManager(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineAccountStore(this))
 
         setContent {
             FamilyPointsTheme {
