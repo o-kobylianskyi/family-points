@@ -102,7 +102,7 @@ fun TasksScreen(
     suspend fun loadMyTasks() {
         val memberId = selectedMemberId ?: return
         error = ""
-        val cached = repository.cachedMyTab(currentUser.workspaceId, memberId, selectedDate)
+        val cached = repository.cachedMyTab(currentUser.workspaceId, currentUser.memberId, memberId, selectedDate)
         showingCachedMy = cached != null
         if (cached != null) {
             tasks = cached.tasks
@@ -129,7 +129,7 @@ fun TasksScreen(
 
         try {
             val (loadedTasks, loadedOpen, loadedDefinitions) = repository.loadMyTab(
-                currentUser.workspaceId, memberId, selectedDate
+                currentUser.workspaceId, currentUser.memberId, memberId, selectedDate
             )
             tasks = loadedTasks
             openTasks = loadedOpen
