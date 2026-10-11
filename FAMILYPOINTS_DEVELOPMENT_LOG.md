@@ -273,3 +273,9 @@
 - Separate admin_visible/child_visible from access_mode. Enforcement capability remains device-dependent and must not be represented as guaranteed in Standard Android.
 - Session charge modes STANDARD/FREE, bounded expiry, active/complete status and parent override audit data are foundational only. Password storage, PIN verification, call whitelist and application enforcement are NOT implemented in this commit.
 - Build, migration test and UI integration remain pending. Commit `dc07518`.
+
+## 2026-10-11 — Android offline balance cache wired
+- Android OfflineBalanceStore (platform SQLite) now wired into PointsRepository and MainActivity. The server is always attempted first; if balance fetching fails due to IOException, last locally saved balance is displayed. History failures remain independent.
+- PointsScreen explicitly indicates offline cached balance and hides manual balance operations while using the snapshot. If member listing fails due to IOException, cached current-member balance remains viewable based on existing authenticated currentUser data.
+- Commits: `22e86d5`, `4069983`, `bb289b1`, `1852b95`. Kotlin compilation not yet verified.
+- Limitations: no offline login/session hydration, rewards/policy cache, encrypted cache, transaction queue or offline spending yet; cached balances are for display only. Session identity and logout/account-switch scoping require continued hardening.
