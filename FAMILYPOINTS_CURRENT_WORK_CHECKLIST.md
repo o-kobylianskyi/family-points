@@ -697,3 +697,15 @@ Before each substantial implementation batch:
 - [ ] Verify :app:compileDebugKotlin and emulator offline->online recovery
 - [ ] Test server unavailable while Wi-Fi remains connected; verify Settings controls hide and return
 - [ ] Separate per-screen transient operation errors from global backend outages in remaining screens
+
+## 2026-10-11 — Offline cache coverage audit
+- [x] Rewards: split essential catalog GET from seven-request aggregate; save server catalog immediately
+- [x] Rewards: show cached catalog before/during refresh, prevent offline purchases/requests
+- [x] Dashboard: date-scoped offline read-only snapshot
+- [x] Tasks (My tab): date and account-scoped read-only offline snapshot; disable mutations
+- [ ] Run Android Kotlin compile and online-then-airplane-mode smoke tests on emulator
+- [ ] Encrypt local rewards/tasks/dashboard snapshots and enforce per-account cache retention/logout policy
+- [ ] Offline local PIN authorization so snapshots can be opened after process restart/token expiry
+- [ ] Cache point type declensions, members/groups, role catalog and policy rules
+- [ ] Cache reward detail forms where applicable; task management/details still online-only
+- [ ] Verify all requests are refreshed after server reconnect and stale data never allows mutations
