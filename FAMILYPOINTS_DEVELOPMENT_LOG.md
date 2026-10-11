@@ -248,3 +248,8 @@
 ## 2026-10-11 — Web role set description localization
 - Fixed untranslated Default management/execution/control roles descriptions in React RoleCatalogSettings. The existing i18n keys roles.roleSetDescriptions already provide Ukrainian, Russian, German and English translations, but the UI displayed raw set.description from the backend. Now descriptions use systemCode and translated keys; custom set descriptions remain unchanged.
 - Commit `36413bc`. Web build and browser smoke test pending.
+
+## 2026-10-11 — Android Settings member account role labels
+- Fixed screenshot showing Parent and Child as raw server strings in Settings account cards. System roles now translated by workspaceRoleCode for UK/DE/EN/RU; custom role names stay unchanged.
+- Header UK PARENT label changed from plural «Батьки» to requested singular «Батько». In account lists, where the PARENT role can belong to any parent, Ukrainian label is «Батько / мати».
+- Commits `343a632`, `10f5a06`. Kotlin build/runtime verification pending.
