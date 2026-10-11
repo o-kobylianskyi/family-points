@@ -361,3 +361,9 @@
 - Added backend `PointOperationTypedRequest` and protected `POST /workspaces/{workspaceId}/members/{memberId}/points/manual/{operation}` for currency-specific online Earn, Penalty and Spend; all require `MANAGE_POINTS` and server-side validation.
 - Existing old endpoint remains for compatibility. No new Flyway migration required (SQLite migration happens locally; server point type ID already exists).
 - GitHub source changed; Kotlin/Java builds and online/offline functional tests not run here. Verify chosen SILVER/GOLD currency balance in PostgreSQL after an offline replay and test legacy pending entries.
+
+## 2026-10-11 — Points card stays stale while chip updated
+- Emulator report: after an offline +20 earn and server sync, Denys chip correctly showed 130 while main Points card still displayed old 110 until leaving/reopening page.
+- Fixed `PointsScreen.kt`: a single `memberBalances` map now updates on balance cache/network retrieval and after both automatic/manual offline-queue synchronization, and the visible selected-member amount uses that shared map. This removes dependence on route re-entry for the selected card to reflect confirmed balance.
+- Confirmed at source level that the branch already includes a localized currency dropdown for earn/spend/penalty; the queue persists pointTypeId/code/name (SQLite version 2), and backend typed operations/replay accept pointTypeId. The user's currency-less dialog reflects an earlier installed APK; update Android after pulling.
+- Commit `253cffa`. Android compile/device tests not verified.
