@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,6 +41,9 @@ import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.i18n.createTaskStrings
 import com.olehkobylianskyi.familypoints.android.i18n.pointsStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
+import com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import com.olehkobylianskyi.familypoints.android.network.ServerReachability
 import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import java.time.LocalDateTime
@@ -70,6 +74,11 @@ fun PointsScreen(
     val text = pointsStrings(language)
     val createText = createTaskStrings(language)
     val scope = rememberCoroutineScope()
+    val serverStatus by ServerReachability.status.collectAsState()
+    val canManage = currentUser.permissions.any { it == "MANAGE_POINTS" || it == "ADMIN_OVERRIDE" }
+    var pendingOperations by remember { mutableStateOf<List<OfflinePointsQueueStore.Pending>>(emptyList()) }
+    var memberBalances by remember { mutableStateOf<Map<Long, Long>>(emptyMap()) }
+    var syncMessage by remember { mutableStateOf("") }
     val serverStatus by ServerReachability.status.collectAsState()
 
     var members by remember {
@@ -151,76 +160,64 @@ fun PointsScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId, serverStatus) {
-        loadingMembers = true
+    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus) {
+        loadingMembers = false
         error = ""
-
-        // The authenticated member is available before the network member list.
-        if (repository.cachedBalance(currentUser.workspaceId, currentUser.memberId) != null) {
-            members = listOf(WorkspaceMemberResponse(
-                id = currentUser.memberId,
-                name = currentUser.memberName,
-                memberType = currentUser.memberType,
-                workspaceRoleId = currentUser.workspaceRoleId,
-                workspaceRoleCode = currentUser.workspaceRoleCode,
-                workspaceRoleName = currentUser.workspaceRoleName,
-                workspaceId = currentUser.workspaceId
-            ))
-            selectedMemberId = currentUser.memberId
-            loadingMembers = false
+        pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId)
+        val cached = repository.cachedMembers(currentUser.workspaceId, currentUser.memberId)
+        members = cached.ifEmpty { listOf(WorkspaceMemberResponse(
+            id = currentUser.memberId,
+            name = currentUser.memberName,
+            memberType = currentUser.memberType,
+            workspaceRoleId = currentUser.workspaceRoleId,
+            workspaceRoleCode = currentUser.workspaceRoleCode,
+            workspaceRoleName = currentUser.workspaceRoleName,
+            workspaceId = currentUser.workspaceId
+        )) }
+        if (selectedMemberId !in members.map { it.id }) {
+            selectedMemberId = members.firstOrNull { it.id == currentUser.memberId }?.id
+                ?: members.firstOrNull()?.id
         }
+        memberBalances = members.mapNotNull { member ->
+            repository.cachedConfirmedBalance(currentUser.workspaceId, member.id)
+                ?.let { member.id to it }
+        }.toMap()
 
-        if (serverStatus != ServerStatus.ONLINE) {
-            if (selectedMemberId == null) {
-                members = listOf(WorkspaceMemberResponse(
-                    id = currentUser.memberId,
-                    name = currentUser.memberName,
-                    memberType = currentUser.memberType,
-                    workspaceRoleId = currentUser.workspaceRoleId,
-                    workspaceRoleCode = currentUser.workspaceRoleCode,
-                    workspaceRoleName = currentUser.workspaceRoleName,
-                    workspaceId = currentUser.workspaceId
-                ))
-                selectedMemberId = currentUser.memberId
-            }
-            loadingMembers = false
-            return@LaunchedEffect
-        }
-
+        if (serverStatus != ServerStatus.ONLINE) return@LaunchedEffect
         try {
-            members = repository.loadMembers(
-                currentUser.workspaceId
-            )
-
-            selectedMemberId =
-                members.firstOrNull {
-                    it.id == currentUser.memberId
-                }?.id
-                    ?: members.firstOrNull()?.id
-        } catch (exception: HttpException) {
-            if (exception.code() == 401) {
-                onUnauthorized()
-            } else {
-                error = exception.message()
-            }
-        } catch (exception: Exception) {
-            if (exception is java.io.IOException &&
-                repository.cachedBalance(currentUser.workspaceId, currentUser.memberId) != null) {
-                members = listOf(WorkspaceMemberResponse(
-                    id = currentUser.memberId,
-                    name = currentUser.memberName,
-                    memberType = currentUser.memberType,
-                    workspaceRoleId = currentUser.workspaceRoleId,
-                    workspaceRoleCode = currentUser.workspaceRoleCode,
-                    workspaceRoleName = currentUser.workspaceRoleName,
-                    workspaceId = currentUser.workspaceId
-                ))
+            members = repository.loadMembers(currentUser.workspaceId, currentUser.memberId)
+            if (selectedMemberId !in members.map { it.id }) {
                 selectedMemberId = currentUser.memberId
-            } else {
-                error = exception.message ?: ""
             }
-        } finally {
-            loadingMembers = false
+            repository.prefetchBalances(currentUser.workspaceId, members)
+            memberBalances = members.mapNotNull { member ->
+                repository.cachedConfirmedBalance(currentUser.workspaceId, member.id)
+                    ?.let { member.id to it }
+            }.toMap()
+            // Replay only after a fresh online authentication confirms permissions.
+            if (canManage) {
+                val count = repository.synchronizePending(currentUser.workspaceId, currentUser.memberId)
+                pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId)
+                if (count > 0) {
+                    syncMessage = when (language) {
+                        AppLanguage.UK -> "Синхронізовано операцій: $count"
+                        AppLanguage.DE -> "Synchronisierte Vorgänge: $count"
+                        AppLanguage.EN -> "Synchronized operations: $count"
+                        AppLanguage.RU -> "Синхронизировано операций: $count"
+                    }
+                    selectedMemberId?.let { loadPoints(it) }
+                }
+            }
+        } catch (exception: HttpException) {
+            if (exception.code() == 401) onUnauthorized()
+            else syncMessage = when (language) {
+                AppLanguage.UK -> "Деякі операції очікують підтвердження сервера."
+                AppLanguage.DE -> "Einige Vorgänge warten auf Serverbestätigung."
+                AppLanguage.EN -> "Some operations await server confirmation."
+                AppLanguage.RU -> "Некоторые операции ожидают подтверждения сервера."
+            }
+        } catch (_: Exception) {
+            // Keep all cached members and pending operations visible.
         }
     }
 
@@ -254,15 +251,38 @@ fun PointsScreen(
                     error = ""
 
                     try {
-                        repository.operate(
-                            currentUser.workspaceId,
-                            selectedMember.id,
-                            pointOperation!!.apiValue,
-                            amount,
-                            description.trim().ifBlank { null }
-                        )
-                        pointOperation = null
-                        loadPoints(selectedMember.id)
+                        val kind = pointOperation!!.apiValue
+                        if (serverStatus != ServerStatus.ONLINE) {
+                            check(canManage && kind != "spend") { "Offline spending is disabled" }
+                            repository.queueOffline(
+                                currentUser.workspaceId,
+                                currentUser.memberId,
+                                selectedMember.id,
+                                kind,
+                                amount,
+                                description.trim().ifBlank { null }
+                            )
+                            pendingOperations = repository.pending(
+                                currentUser.workspaceId, currentUser.memberId
+                            )
+                            syncMessage = when (language) {
+                                AppLanguage.UK -> "Операцію збережено на телефоні. Вона очікує підтвердження сервера."
+                                AppLanguage.DE -> "Vorgang lokal gespeichert und wartet auf Serverbestätigung."
+                                AppLanguage.EN -> "Operation saved locally, awaiting server confirmation."
+                                AppLanguage.RU -> "Операция сохранена на телефоне, ожидает подтверждения сервера."
+                            }
+                            pointOperation = null
+                        } else {
+                            repository.operate(
+                                currentUser.workspaceId,
+                                selectedMember.id,
+                                kind,
+                                amount,
+                                description.trim().ifBlank { null }
+                            )
+                            pointOperation = null
+                            loadPoints(selectedMember.id)
+                        }
                     } catch (exception: HttpException) {
                         if (exception.code() == 401) {
                             onUnauthorized()
@@ -307,6 +327,20 @@ fun PointsScreen(
                 Text(text.description)
             }
 
+            if (pendingOperations.isNotEmpty() || syncMessage.isNotBlank()) {
+                item {
+                    if (pendingOperations.isNotEmpty()) {
+                        Text(when (language) {
+                            AppLanguage.UK -> "Очікують синхронізації: ${pendingOperations.size}. У підтверджений баланс не враховані."
+                            AppLanguage.DE -> "Ausstehende Vorgänge: ${pendingOperations.size}. Noch nicht im Kontostand enthalten."
+                            AppLanguage.EN -> "Pending operations: ${pendingOperations.size}. Not yet included in confirmed balance."
+                            AppLanguage.RU -> "Ожидают синхронизации: ${pendingOperations.size}. Не включены в подтверждённый баланс."
+                        }, color = MaterialTheme.colorScheme.tertiary)
+                    }
+                    if (syncMessage.isNotBlank()) Text(syncMessage, color = MaterialTheme.colorScheme.tertiary)
+                }
+            }
+
             if (error.isNotBlank()) {
                 item {
                     Text(
@@ -333,7 +367,7 @@ fun PointsScreen(
                                 Button(
                                     onClick = {}
                                 ) {
-                                    Text(member.name)
+                                    Text(member.name + (memberBalances[member.id]?.let { " · $it" } ?: ""))
                                 }
                             } else {
                                 OutlinedButton(
@@ -415,10 +449,20 @@ fun PointsScreen(
                                     MaterialTheme.typography.headlineLarge
                             )
 
-                            if (
-                                !loadingPoints && hasBalance && !offlineSnapshot && "MANAGE_POINTS" in
-                                    currentUser.permissions
-                            ) {
+                            pendingOperations.filter { it.memberId == selectedMember.id }
+                                .takeIf { it.isNotEmpty() }?.let { pending ->
+                                    val delta = pending.sumOf {
+                                        if (it.type == "earn") it.amount else -it.amount
+                                    }
+                                    Text(when (language) {
+                                        AppLanguage.UK -> "Очікувані операції: ${pending.size} (зміна: ${if (delta > 0) "+" else ""}$delta)"
+                                        AppLanguage.DE -> "Ausstehend: ${pending.size} (Änderung: $delta)"
+                                        AppLanguage.EN -> "Pending: ${pending.size} (change: $delta)"
+                                        AppLanguage.RU -> "Ожидают: ${pending.size} (изменение: $delta)"
+                                    }, color = MaterialTheme.colorScheme.tertiary)
+                                }
+
+                            if (canManage && !processing) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement =
@@ -439,6 +483,7 @@ fun PointsScreen(
                                             pointOperation =
                                                 PointOperation.SPEND
                                         },
+                                        enabled = serverStatus == ServerStatus.ONLINE && hasBalance && !offlineSnapshot,
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Text("− " + text.spend)
