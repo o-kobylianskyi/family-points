@@ -100,8 +100,14 @@ class MainActivity : ComponentActivity() {
         val rewardNegotiationRepository =
             RewardNegotiationRepository(tokenStore)
         val rewardsRepository = RewardsRepository(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineRewardsStore(this))
-        val pointsRepository = PointsRepository(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineBalanceStore(this))
-        val membersRepository = MembersRepository(tokenStore)
+        val offlineMembersStore = com.olehkobylianskyi.familypoints.android.storage.OfflineMembersStore(this)
+        val pointsRepository = PointsRepository(
+            tokenStore,
+            com.olehkobylianskyi.familypoints.android.storage.OfflineBalanceStore(this),
+            offlineMembersStore,
+            com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore(this)
+        )
+        val membersRepository = MembersRepository(tokenStore, offlineMembersStore)
         val settingsRepository = SettingsRepository(tokenStore)
         val roleCatalogRepository = RoleCatalogRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineAccountStore(this))
@@ -414,6 +420,7 @@ class MainActivity : ComponentActivity() {
                             language = language,
                             currentUser = currentUser!!,
                             repository = membersRepository,
+                            pointsRepository = pointsRepository,
                             onLanguageChange = changeLanguage,
                             onLogout = logout,
                             onNavigate = navigate,
