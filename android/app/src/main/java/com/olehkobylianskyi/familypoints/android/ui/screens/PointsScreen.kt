@@ -138,6 +138,21 @@ fun PointsScreen(
         loadingMembers = true
         error = ""
 
+        // The authenticated member is available before the network member list.
+        if (repository.cachedBalance(currentUser.workspaceId, currentUser.memberId) != null) {
+            members = listOf(WorkspaceMemberResponse(
+                id = currentUser.memberId,
+                name = currentUser.memberName,
+                memberType = currentUser.memberType,
+                workspaceRoleId = currentUser.workspaceRoleId,
+                workspaceRoleCode = currentUser.workspaceRoleCode,
+                workspaceRoleName = currentUser.workspaceRoleName,
+                workspaceId = currentUser.workspaceId
+            ))
+            selectedMemberId = currentUser.memberId
+            loadingMembers = false
+        }
+
         try {
             members = repository.loadMembers(
                 currentUser.workspaceId
