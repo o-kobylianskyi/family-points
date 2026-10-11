@@ -167,6 +167,57 @@ public class PointService {
                 .findByMemberIdOrderByCreatedAtDesc(memberId);
     }
 
+
+    /**
+     * Idempotent replay of parent-created offline entries. The target member
+     * lock serializes concurrent replays for the same account and a unique
+     * database index handles global UUID collisions.
+     */
+    @Transactional
+    public PointTransaction applyOfflineOperation(
+            Long workspaceId,
+            Long memberId,
+            java.util.UUID operationId,
+            String operation,
+            int amount,
+            String description
+    ) {
+        if (operationId == null || amount < 1 || amount > 100000
+                || !("earn".equals(operation) || "penalty".equals(operation))) {
+            throw new IllegalArgumentException("Invalid offline point operation");
+        }
+
+        WorkspaceMember member = getMemberForUpdateOrThrow(workspaceId, memberId);
+        int signedAmount = "earn".equals(operation) ? amount : -amount;
+        PointTransactionType type = "earn".equals(operation)
+                ? PointTransactionType.EARN : PointTransactionType.PENALTY;
+
+        var prior = pointTransactionRepository.findByClientOperationId(operationId);
+        if (prior.isPresent()) {
+            PointTransaction existing = prior.get();
+            if (!existing.getMember().getId().equals(memberId)
+                    || !existing.getMember().getWorkspace().getId().equals(workspaceId)
+                    || existing.getAmount() != signedAmount
+                    || existing.getType() != type
+                    || !java.util.Objects.equals(existing.getDescription(), description)) {
+                throw new IllegalArgumentException("Client operation ID reused with different data");
+            }
+            return existing;
+        }
+
+        PointTransaction transaction = new PointTransaction(
+                member,
+                getDefaultPointTypeOrThrow(workspaceId),
+                signedAmount,
+                type,
+                PointTransactionSourceType.MANUAL,
+                null,
+                description
+        );
+        transaction.setClientOperationId(operationId);
+        return pointTransactionRepository.saveAndFlush(transaction);
+    }
+
     private PointTransaction saveTransaction(
             WorkspaceMember member,
             PointType pointType,
