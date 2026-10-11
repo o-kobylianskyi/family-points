@@ -107,9 +107,20 @@ fun PointsScreen(
                 memberId
             )
             balance = result.balance
-            history = result.history
             hasBalance = true
             offlineSnapshot = result.offline
+            if (!result.offline) {
+                scope.launch {
+                    try {
+                        val recent = repository.loadHistory(currentUser.workspaceId, memberId)
+                        if (selectedMemberId == memberId) history = recent
+                    } catch (exception: HttpException) {
+                        if (exception.code() == 401) onUnauthorized()
+                    } catch (_: Exception) {
+                        // History is optional and never blocks a current balance.
+                    }
+                }
+            }
         } catch (exception: HttpException) {
             if (exception.code() == 401) {
                 onUnauthorized()
