@@ -674,3 +674,13 @@ Before each substantial implementation batch:
 - [ ] Standard/Device Owner capability negotiation and local policy enforcement
 - [ ] Incoming call screening, allowlist and approval requests; outbound restrictions need separate feasibility test
 - [ ] YouTube/browser content rules (depending on achievable enforcement level)
+
+## Offline-first child device (2026-10-11)
+- [x] Isolate balance loading from history timeout in Android PointsRepository (commit 87bfa95)
+- [ ] Room local database: device/user scoped snapshots for balances, point types + inflections, reward catalog + prices + requirements, app policies, allowed contacts, active time entitlements, synchronization state
+- [ ] Encrypted-at-rest local sensitive data using Android Keystore-backed keys, device binding and careful logout/account-switch behavior
+- [ ] Server-issued offline spending allowance/reservations (budget + expiry + signed device binding); **do not** treat last-seen server balance as automatically spendable across devices
+- [ ] Durable idempotent offline action queue with UUID client operation id, append-only local ledger, retry/reconciliation and transaction uniqueness server-side
+- [ ] Freshness/stale indicators, last successful sync and conservative enforcement when policy/allowance expires
+- [ ] Test airplane mode, concurrent phone/tablet usage, revoked rewards, clock changes, reboot during active time and reconnect after long offline intervals
+- [ ] Cache read-path for balance/reward catalog with UI showing explicitly offline/stale values
