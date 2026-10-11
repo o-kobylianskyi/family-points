@@ -662,3 +662,15 @@ Before each substantial implementation batch:
 - [ ] Android Usage Access settings handoff and app-usage inventory UI
 - [ ] Design server device-to-member binding and app-time purchase policy
 - [ ] Determine permissible kiosk/device-owner/accessibility approaches before claiming app lock or force-close ability
+
+## Device management implementation (phase 1+)
+- [x] V19 schema for managed devices, app inventory, per-app policies, temporary child sessions and parent override audit
+- [ ] Maven/Flyway migration test on PostgreSQL
+- [ ] Device registration API with ownership, workspace validation and server-side permissions
+- [ ] Android device ID enrollment and installed-app inventory upload
+- [ ] Web device/app catalog with category, visibility, access mode and pricing
+- [ ] Temporary child session start/end endpoints with parent authorization, idempotency and cross-workspace validation
+- [ ] Protected local parent PIN, timeout, rate limiting and override recovery
+- [ ] Standard/Device Owner capability negotiation and local policy enforcement
+- [ ] Incoming call screening, allowlist and approval requests; outbound restrictions need separate feasibility test
+- [ ] YouTube/browser content rules (depending on achievable enforcement level)
