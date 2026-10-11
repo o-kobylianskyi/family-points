@@ -291,7 +291,7 @@ fun RewardsScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId) {
+    LaunchedEffect(currentUser.workspaceId, serverStatus) {
         load()
     }
 
