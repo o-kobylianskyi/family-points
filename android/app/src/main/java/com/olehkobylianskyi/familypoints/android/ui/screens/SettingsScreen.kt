@@ -182,7 +182,8 @@ fun SettingsScreen(
                         Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column(Modifier.weight(1f)) {
                                 Text(member.name, style = MaterialTheme.typography.titleMedium)
-                                Text(member.workspaceRoleName, style = MaterialTheme.typography.bodySmall)
+                                Text(settingsWorkspaceRoleLabel(language, member.workspaceRoleCode, member.workspaceRoleName),
+                                    style = MaterialTheme.typography.bodySmall)
                                 Text(if (account == null) st(language, "Без акаунта", "Kein Konto", "No account", "Без аккаунта")
                                     else "@${account.username} · " + if (account.enabled)
                                         st(language, "Активний", "Aktiv", "Enabled", "Активный")
@@ -260,3 +261,12 @@ fun SettingsScreen(
         )
     }
 }
+
+private fun settingsWorkspaceRoleLabel(language: AppLanguage, code: String?, fallback: String): String =
+    when (code?.uppercase()) {
+        "FAMILY_ADMIN" -> st(language, "Адміністратор сім’ї", "Familienadministrator",
+            "Family administrator", "Администратор семьи")
+        "PARENT" -> st(language, "Батько / мати", "Elternteil", "Parent", "Родитель")
+        "CHILD" -> st(language, "Дитина", "Kind", "Child", "Ребёнок")
+        else -> fallback
+    }
