@@ -2,18 +2,24 @@ package com.olehkobylianskyi.familypoints.android.data
 
 import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
+import com.olehkobylianskyi.familypoints.android.storage.OfflineTasksStore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
 class TasksRepository(
-    private val tokenStore: TokenStore
+    private val tokenStore: TokenStore,
+    private val offlineStore: OfflineTasksStore
 ) {
     private fun authorization(): String {
         val token = tokenStore.getAccessToken()
             ?: throw IllegalStateException("Missing access token")
         return "Bearer $token"
     }
+
+    fun cachedMyTab(
+        workspaceId: Long, memberId: Long, date: String
+    ): OfflineTasksStore.Snapshot? = offlineStore.load(workspaceId, memberId, date)
 
     suspend fun loadMembers(
         workspaceId: Long
@@ -33,37 +39,30 @@ class TasksRepository(
         List<TaskDefinitionResponse>
     > = coroutineScope {
         val auth = authorization()
-
         val tasks = async {
-            ApiClient.taskApi.getMemberTasks(
-                auth,
-                workspaceId,
-                memberId,
-                date
-            )
+            ApiClient.taskApi.getMemberTasks(auth, workspaceId, memberId, date)
         }
-
         val open = async {
-            ApiClient.taskApi.getOpenTasks(
-                auth,
-                workspaceId,
-                date,
-                memberId
-            )
+            try {
+                ApiClient.taskApi.getOpenTasks(auth, workspaceId, date, memberId)
+            } catch (e: java.io.IOException) {
+                emptyList()
+            }
         }
-
         val definitions = async {
-            ApiClient.taskApi.getDefinitions(
-                auth,
-                workspaceId
-            )
+            try {
+                ApiClient.taskApi.getDefinitions(auth, workspaceId)
+            } catch (e: java.io.IOException) {
+                emptyList()
+            }
         }
-
-        Triple(
-            tasks.await(),
-            open.await(),
-            definitions.await()
+        val result = OfflineTasksStore.Snapshot(
+            tasks = tasks.await(),
+            openTasks = open.await(),
+            definitions = definitions.await()
         )
+        offlineStore.save(workspaceId, memberId, date, result)
+        Triple(result.tasks, result.openTasks, result.definitions)
     }
 
     suspend fun performAction(
