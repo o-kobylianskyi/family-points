@@ -285,3 +285,9 @@
 - `AuthSessionManager` saves the verified profile after online login/session validation and clears it on explicit logout or invalid session. Network IOException during restore no longer destroys the token/profile automatically. `MainActivity` instantiates the profile store.
 - Offline login is **not yet enabled**. Next requirements: explicit opt-in local PIN enrollment, PIN verification/rate limiting, per-account separation, offline session expiry and synchronization/revocation semantics. A cached profile alone is never proof of authentication.
 - New files/commits: `1bd0e70`, `572fa35`, `b0169cc`, `830d55c`; compile not run.
+
+## 2026-10-11 — Android cache-first balance with refresh status
+- PointsScreen shows stored current-user balance immediately while member list and new balance sync in background.
+- Displays ⟳ refreshing, ✓ updated, or offline/last saved snapshot. Manual point operations unavailable until online balance confirmation.
+- PointsRepository separates balance from history; history fetched independently after balance to avoid slowing refresh indicator.
+- Commits `ca128ca`, `3b55c1e`, `cae00ed`, `afc0028`, `ba557e8`. Compile/runtime test pending.
