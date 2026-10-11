@@ -2,6 +2,7 @@ package com.olehkobylianskyi.familypoints.android.network
 
 import com.olehkobylianskyi.familypoints.android.data.PointBalanceResponse
 import com.olehkobylianskyi.familypoints.android.data.PointOperationRequest
+import com.olehkobylianskyi.familypoints.android.data.OfflinePointOperationRequest
 import com.olehkobylianskyi.familypoints.android.data.PointTransactionResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -24,6 +25,15 @@ interface PointsApi {
         @Path("workspaceId") workspaceId: Long,
         @Path("memberId") memberId: Long
     ): List<PointTransactionResponse>
+
+    @POST("workspaces/{workspaceId}/members/{memberId}/points/offline/{operation}")
+    suspend fun replayOffline(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("memberId") memberId: Long,
+        @Path("operation") operation: String,
+        @Body request: OfflinePointOperationRequest
+    ): PointTransactionResponse
 
     @POST("workspaces/{workspaceId}/members/{memberId}/points/{operation}")
     suspend fun operate(
