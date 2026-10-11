@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +36,10 @@ import com.olehkobylianskyi.familypoints.android.data.RewardNegotiationRepositor
 import com.olehkobylianskyi.familypoints.android.data.RewardsRepository
 import com.olehkobylianskyi.familypoints.android.data.TaskDetailsRepository
 import com.olehkobylianskyi.familypoints.android.data.TasksRepository
+import com.olehkobylianskyi.familypoints.android.network.ApiClient
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
+import com.olehkobylianskyi.familypoints.android.ui.components.ServerStatusBanner
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
 import com.olehkobylianskyi.familypoints.android.i18n.strings
@@ -52,6 +59,7 @@ import com.olehkobylianskyi.familypoints.android.ui.screens.TaskDetailsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.TasksScreen
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyPointsTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private enum class AppDestination {
     DASHBOARD,
@@ -100,21 +108,46 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FamilyPointsTheme {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .safeDrawingPadding()
                 ) {
+                    var language by remember {
+                        mutableStateOf(languageStore.getLanguage())
+                    }
+                    val status by ServerReachability.status.collectAsState()
+                    val connectionScope = rememberCoroutineScope()
+
+                    // Check actual backend availability, including Wi-Fi with no API.
+                    LaunchedEffect(Unit) {
+                        while (true) {
+                            ApiClient.probeServer()
+                            delay(if (ServerReachability.status.value == ServerStatus.OFFLINE) {
+                                20_000L
+                            } else {
+                                60_000L
+                            })
+                        }
+                    }
+
+                    if (status == ServerStatus.OFFLINE) {
+                        ServerStatusBanner(
+                            language = language,
+                            onRetry = {
+                                ServerReachability.checking()
+                                connectionScope.launch { ApiClient.probeServer() }
+                            }
+                        )
+                    }
+
+                    Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 var currentUser by remember {
                     mutableStateOf<CurrentUserResponse?>(null)
                 }
 
                 var authLoading by remember {
                     mutableStateOf(true)
-                }
-
-                var language by remember {
-                    mutableStateOf(languageStore.getLanguage())
                 }
 
                 var destination by remember {
@@ -423,6 +456,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+                    }
                 }
             }
         }
