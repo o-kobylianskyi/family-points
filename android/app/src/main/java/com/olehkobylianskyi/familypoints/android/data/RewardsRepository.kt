@@ -151,6 +151,12 @@ class RewardsRepository(
         )
     )
 
+    suspend fun purchaseForMember(
+        workspaceId: Long, memberId: Long, rewardId: Long
+    ): RewardPurchaseSummary = ApiClient.rewardsApi.purchaseForMember(
+        authorization(), workspaceId, rewardId, memberId
+    )
+
     suspend fun purchaseReward(
         workspaceId: Long,
         rewardId: Long
