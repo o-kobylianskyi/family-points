@@ -113,8 +113,12 @@ fun PointsScreen(
 
         // Cache first: show balance immediately, then fetch a newer snapshot.
         repository.cachedBalance(currentUser.workspaceId, memberId)?.let { cached ->
-            balance = cached
-            hasBalance = true
+            // One shared balance snapshot drives both the member chip and card.
+            memberBalances = memberBalances + (memberId to cached)
+            if (selectedMemberId == memberId) {
+                balance = cached
+                hasBalance = true
+            }
         }
 
         if (serverStatus != ServerStatus.ONLINE) {
@@ -135,9 +139,12 @@ fun PointsScreen(
                 currentUser.workspaceId,
                 memberId
             )
-            balance = result.balance
-            hasBalance = true
-            offlineSnapshot = result.offline
+            memberBalances = memberBalances + (memberId to result.balance)
+            if (selectedMemberId == memberId) {
+                balance = result.balance
+                hasBalance = true
+                offlineSnapshot = result.offline
+            }
             if (!result.offline) {
                 scope.launch {
                     try {
@@ -222,6 +229,12 @@ fun PointsScreen(
                         AppLanguage.EN -> "Synchronized operations: $count"
                         AppLanguage.RU -> "Синхронизировано операций: $count"
                     }
+                    // Replay updates the disk cache for affected members.
+                    // Refresh the Compose state immediately, not only the cache.
+                    memberBalances = members.mapNotNull { member ->
+                        repository.cachedConfirmedBalance(currentUser.workspaceId, member.id)
+                            ?.let { member.id to it }
+                    }.toMap()
                     selectedMemberId?.let { loadPoints(it) }
                 }
             }
@@ -371,6 +384,10 @@ fun PointsScreen(
                                         pendingOperations = repository.pending(
                                             currentUser.workspaceId, currentUser.memberId
                                         )
+                                        memberBalances = members.mapNotNull { member ->
+                                            repository.cachedConfirmedBalance(currentUser.workspaceId, member.id)
+                                                ?.let { member.id to it }
+                                        }.toMap()
                                         selectedMemberId?.let { loadPoints(it) }
                                         syncMessage = when (language) {
                                             AppLanguage.UK -> "Підтверджено операцій: $synced"
@@ -509,10 +526,13 @@ fun PointsScreen(
                             )
 
                             Text(
-                                if (!hasBalance) {
+                                if (!hasBalance && memberBalances[selectedMember.id] == null) {
                                     "—"
                                 } else {
-                                    formatPointAmount(balance, language, "POINTS", text.points)
+                                    formatPointAmount(
+                                        memberBalances[selectedMember.id] ?: balance,
+                                        language, "POINTS", text.points
+                                    )
                                 },
                                 style =
                                     MaterialTheme.typography.headlineLarge
