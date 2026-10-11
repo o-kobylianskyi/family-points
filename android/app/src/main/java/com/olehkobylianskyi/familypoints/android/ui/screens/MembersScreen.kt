@@ -399,7 +399,7 @@ private fun GroupTreeRow(
             }
             if (balances.isNotEmpty()) {
                 Text(balances.joinToString(" · ") {
-                    "${it.amount} ${it.name ?: it.code ?: ""}"
+                    "${it.amount} ${memberGroupCurrencyLabel(language, it.code, it.name)}"
                 }, style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -584,7 +584,7 @@ private fun GroupEditorDialog(
                     } else {
                         group.balances.orEmpty().forEach { balance ->
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(balance.name?.takeIf { it.isNotBlank() } ?: balance.code ?: "#${balance.pointTypeId}",
+                                Text(memberGroupCurrencyLabel(language, balance.code, balance.name),
                                     modifier = Modifier.weight(1f))
                                 Text(balance.amount.toString())
                             }
@@ -596,7 +596,7 @@ private fun GroupEditorDialog(
                         style = MaterialTheme.typography.titleMedium)
                     group.roles.orEmpty().forEach { role ->
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(role.name, modifier = Modifier.weight(1f))
+                            Text(memberGroupRoleLabel(language, role), modifier = Modifier.weight(1f))
                             if (role.visibility == "PRIVATE" && role.systemDefault != true) {
                                 TextButton(enabled = !busy, onClick = {
                                     permissionRole = role
@@ -633,7 +633,7 @@ private fun GroupEditorDialog(
         val profileNames = listOf("NONE", "EXECUTOR", "SENIOR", "LEADER", "CONTROL", "CUSTOM")
         AlertDialog(
             onDismissRequest = { if (!busy) permissionRole = null },
-            title = { Text(role.name) },
+            title = { Text(memberGroupRoleLabel(language, role)) },
             text = {
                 LazyColumn {
                     item {
@@ -704,7 +704,7 @@ private fun GroupEditorDialog(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text((if (balance.pointTypeId == pointTypeId) "✓ " else "") +
-                                (balance.name ?: balance.code ?: "#${balance.pointTypeId}") +
+                                memberGroupCurrencyLabel(language, balance.code, balance.name) +
                                 " (${balance.amount})")
                         }
                     }
@@ -989,3 +989,24 @@ private fun memberWorkspaceRoleLabel(
     "CHILD" -> memberText(language, "Дитина", "Kind", "Child", "Ребёнок")
     else -> fallback
 }
+
+private fun memberGroupCurrencyLabel(language: AppLanguage, code: String?, fallback: String?): String =
+    when (code?.uppercase()) {
+        "POINTS" -> memberText(language, "Бали", "Punkte", "Points", "Баллы")
+        "COPPER" -> memberText(language, "Мідь", "Kupfer", "Copper", "Медь")
+        "SILVER" -> memberText(language, "Срібло", "Silber", "Silver", "Серебро")
+        "GOLD" -> memberText(language, "Золото", "Gold", "Gold", "Золото")
+        else -> fallback?.takeIf { it.isNotBlank() } ?: code ?: "—"
+    }
+
+private fun memberGroupRoleLabel(language: AppLanguage, role: GroupRoleResponse): String =
+    when (role.systemCode?.uppercase()) {
+        "LEADER" -> memberText(language, "Керівник", "Leiter", "Leader", "Руководитель")
+        "DEPUTY" -> memberText(language, "Заступник", "Stellvertreter", "Deputy", "Заместитель")
+        "SENIOR" -> memberText(language, "Старший", "Senior", "Senior", "Старший")
+        "EXECUTOR" -> memberText(language, "Виконавець", "Ausführender", "Executor", "Исполнитель")
+        "ASSISTANT" -> memberText(language, "Помічник", "Assistent", "Assistant", "Помощник")
+        "REVIEWER" -> memberText(language, "Перевіряльник", "Prüfer", "Reviewer", "Проверяющий")
+        "OBSERVER" -> memberText(language, "Спостерігач", "Beobachter", "Observer", "Наблюдатель")
+        else -> role.name
+    }
