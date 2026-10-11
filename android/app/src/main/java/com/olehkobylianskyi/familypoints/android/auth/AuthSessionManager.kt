@@ -6,6 +6,12 @@ import com.olehkobylianskyi.familypoints.android.data.LoginRequest
 import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import com.olehkobylianskyi.familypoints.android.storage.OfflineAccountStore
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.IOException
+import retrofit2.HttpException
 import org.json.JSONObject
 
 class AuthSessionManager(
@@ -20,29 +26,60 @@ class AuthSessionManager(
 
     private var lastActivityWrite = 0L
     private var refreshInFlight = false
+    private var offlineAuthenticated = false
+    private var activeUsername: String? = null
 
-    suspend fun login(
-        username: String,
-        password: String
-    ): CurrentUserResponse {
-        val loginResponse = ApiClient.authApi.login(
-            LoginRequest(username, password)
-        )
+    fun isOfflineAuthenticated(): Boolean = offlineAuthenticated
 
-        tokenStore.saveAccessToken(loginResponse.accessToken)
-        tokenStore.saveLastActivityAt(System.currentTimeMillis())
-
+    /**
+     * Use the same username/password online and offline. Offline authentication
+     * succeeds ONLY for accounts enrolled by a prior successful online login.
+     */
+    suspend fun login(username: String, password: String): CurrentUserResponse {
+        if (ServerReachability.status.value == ServerStatus.OFFLINE) {
+            return loginOffline(username, password)
+        }
         return try {
-            val user = ApiClient.authApi.getCurrentUser(
-                bearer(loginResponse.accessToken)
-            )
-            offlineAccountStore.save(user)
+            val loginResponse = ApiClient.authApi.login(LoginRequest(username, password))
+            tokenStore.saveAccessToken(loginResponse.accessToken)
+            val user = try {
+                ApiClient.authApi.getCurrentUser(bearer(loginResponse.accessToken))
+            } catch (error: Exception) {
+                tokenStore.clear()
+                throw error
+            }
+            // A verified online password enrolls/refreshes the local verifier.
+            withContext(Dispatchers.Default) {
+                offlineAccountStore.enroll(user, password)
+            }
+            offlineAuthenticated = false
+            activeUsername = user.username
+            tokenStore.saveLastActivityAt(System.currentTimeMillis())
             markActivity(force = true)
             user
-        } catch (error: Exception) {
-            clearSession()
-            throw error
+        } catch (error: IOException) {
+            loginOffline(username, password)
+        } catch (error: HttpException) {
+            if (error.code() in listOf(502, 503, 504)) {
+                loginOffline(username, password)
+            } else {
+                throw error
+            }
         }
+    }
+
+    private suspend fun loginOffline(username: String, password: String): CurrentUserResponse {
+        val user = withContext(Dispatchers.Default) {
+            offlineAccountStore.authenticate(username, password)
+        }
+        // Never use a previously cached JWT for writes under an offline identity.
+        tokenStore.clear()
+        tokenStore.saveLastActivityAt(System.currentTimeMillis())
+        lastActivityWrite = 0L
+        offlineAuthenticated = true
+        activeUsername = user.username
+        markActivity(force = true)
+        return user
     }
 
     suspend fun restoreSession(): CurrentUserResponse? {
@@ -62,7 +99,9 @@ class AuthSessionManager(
             val user = ApiClient.authApi.getCurrentUser(
                 bearer(token)
             )
-            offlineAccountStore.save(user)
+            withContext(Dispatchers.Default) { offlineAccountStore.refreshProfile(user) }
+            offlineAuthenticated = false
+            activeUsername = user.username
             markActivity(force = true)
             user
         } catch (error: java.io.IOException) {
@@ -79,8 +118,14 @@ class AuthSessionManager(
     }
 
     suspend fun refreshIfNeeded(): Boolean {
-        val token = tokenStore.getAccessToken() ?: return false
         val now = System.currentTimeMillis()
+        if (offlineAuthenticated) {
+            val last = tokenStore.getLastActivityAt()
+            if (last > 0L && now >= last && now - last < IDLE_TIMEOUT_MS) return true
+            clearSession()
+            return false
+        }
+        val token = tokenStore.getAccessToken() ?: return false
         val lastActivity = tokenStore.getLastActivityAt()
 
         if (
@@ -131,7 +176,7 @@ class AuthSessionManager(
     }
 
     fun markActivity(force: Boolean = false) {
-        if (tokenStore.getAccessToken() == null) return
+        if (tokenStore.getAccessToken() == null && !offlineAuthenticated) return
 
         val now = System.currentTimeMillis()
         if (
@@ -145,9 +190,17 @@ class AuthSessionManager(
         tokenStore.saveLastActivityAt(now)
     }
 
-    fun clearSession() {
+    /**
+     * Logging out ends the session but keeps encrypted offline enrollment.
+     * A server-side unauthorized response can invalidate the current enrollment.
+     */
+    fun clearSession(invalidateOfflineAccount: Boolean = false) {
         tokenStore.clear()
-        offlineAccountStore.clear()
+        if (invalidateOfflineAccount) {
+            activeUsername?.let { offlineAccountStore.remove(it) }
+        }
+        offlineAuthenticated = false
+        activeUsername = null
     }
 
     fun hasToken(): Boolean =
