@@ -250,7 +250,12 @@ fun DashboardScreen(
                                     .fillMaxWidth()
                                     .padding(top = 8.dp)
                             ) {
-                                Text(text.points)
+                                Text(when (language) {
+                                    AppLanguage.UK -> "Бали"
+                                    AppLanguage.RU -> "Баллы"
+                                    AppLanguage.DE -> "Punkte"
+                                    AppLanguage.EN -> "Points"
+                                })
                             }
 
                             OutlinedButton(
