@@ -259,3 +259,10 @@
 - Added PARENT_INDIVIDUAL translations for UK/RU/DE/EN.
 - Hide redundant member type on member cards and in Settings account summaries when it equals workspaceRoleCode (e.g. PARENT/PARENT, CHILD/CHILD), preserving both for genuinely distinct custom roles/types.
 - Source only; npm build/browser test pending.
+
+## 2026-10-11 — Build audit and Android app-control foundation
+- Current branch at audit start: `5ecca98014196ba16f09d3fb7f6a5663f0c85650`. Verified Maven/Gradle/npm project entry points and migration numbering (V18 is unique).
+- Source-checked critical Java economy permissions (`MANAGE_ECONOMY` exists), GroupPointsTest exception getters, Android Rewards/Points currency paths, AndroidManifest, compile/target SDK 37, and Android routing. This **does not constitute successful local builds**: repository is not available to the local container and remote clone was blocked by DNS; no GitHub Actions workflows exist.
+- Remaining audit risk: custom currency forms only fetched in Android Rewards; other UI screens show built-in fallback rather than configured custom forms. Backend concurrency requires integration test; Gradle/Maven/npm builds should be run on user's laptop.
+- Started Android app-control research implementation: created read-only `AppUsageReader.kt` with explicit `Usage Access` check and usage aggregation, plus manifest `PACKAGE_USAGE_STATS`. No usage permission bypass, apps list UI, blocking or forced closing is implemented. Apps visibility/Android background execution restrictions still require design.
+- Commits `f0af88a`, `73732ba`.
