@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +34,8 @@ import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
 import com.olehkobylianskyi.familypoints.android.network.ServerReachability
 import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import retrofit2.HttpException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 enum class DashboardDestination {
     DASHBOARD,
@@ -55,6 +58,7 @@ fun DashboardScreen(
     onUnauthorized: () -> Unit
 ) {
     val text = dashboardStrings(language)
+    val scope = rememberCoroutineScope()
 
     val serverStatus by ServerReachability.status.collectAsState()
     var data by remember { mutableStateOf<DashboardData?>(null) }
@@ -96,6 +100,23 @@ fun DashboardScreen(
         }
     }
 
+    LaunchedEffect(currentUser.memberId, currentUser.workspaceId, serverStatus) {
+        if (serverStatus == ServerStatus.ONLINE) {
+            while (true) {
+                delay(30_000L)
+                try {
+                    data = loadDashboard()
+                    showingCached = false
+                    error = ""
+                } catch (exception: HttpException) {
+                    if (exception.code() == 401) onUnauthorized()
+                } catch (_: Exception) {
+                    // Keep the cached home screen visible while API is unavailable.
+                }
+            }
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -114,6 +135,36 @@ fun DashboardScreen(
                 onLogout = onLogout,
                 onNavigate = onNavigate
             )
+        }
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                OutlinedButton(
+                    enabled = serverStatus == ServerStatus.ONLINE && !loading,
+                    onClick = {
+                        scope.launch {
+                            try {
+                                data = loadDashboard()
+                                showingCached = false
+                                error = ""
+                            } catch (exception: HttpException) {
+                                if (exception.code() == 401) onUnauthorized()
+                            } catch (_: Exception) {
+                                // Cached values stay on screen.
+                            }
+                        }
+                    }
+                ) {
+                    Text(when (language) {
+                        AppLanguage.UK -> "⟳ Оновити"
+                        AppLanguage.DE -> "⟳ Aktualisieren"
+                        AppLanguage.EN -> "⟳ Refresh"
+                        AppLanguage.RU -> "⟳ Обновить"
+                    })
+                }
+            }
         }
 
         if (showingCached) {
