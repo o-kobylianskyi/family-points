@@ -134,7 +134,21 @@ fun PointsScreen(
                 error = exception.message()
             }
         } catch (exception: Exception) {
-            error = exception.message ?: ""
+            if (exception is java.io.IOException &&
+                repository.cachedBalance(currentUser.workspaceId, currentUser.memberId) != null) {
+                members = listOf(WorkspaceMemberResponse(
+                    id = currentUser.memberId,
+                    name = currentUser.memberName,
+                    memberType = currentUser.memberType,
+                    workspaceRoleId = currentUser.workspaceRoleId,
+                    workspaceRoleCode = currentUser.workspaceRoleCode,
+                    workspaceRoleName = currentUser.workspaceRoleName,
+                    workspaceId = currentUser.workspaceId
+                ))
+                selectedMemberId = currentUser.memberId
+            } else {
+                error = exception.message ?: ""
+            }
         } finally {
             loadingMembers = false
         }
