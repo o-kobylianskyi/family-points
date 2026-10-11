@@ -5,6 +5,7 @@ import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import com.olehkobylianskyi.familypoints.android.storage.OfflineBalanceStore
 import com.olehkobylianskyi.familypoints.android.storage.OfflineMembersStore
 import com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore
+import com.olehkobylianskyi.familypoints.android.storage.OfflinePointTypesStore
 import com.olehkobylianskyi.familypoints.android.network.ServerReachability
 import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import kotlinx.coroutines.async
@@ -19,7 +20,8 @@ class PointsRepository(
     private val tokenStore: TokenStore,
     private val offlineStore: OfflineBalanceStore,
     private val membersStore: OfflineMembersStore,
-    private val queue: OfflinePointsQueueStore
+    private val queue: OfflinePointsQueueStore,
+    private val typesStore: OfflinePointTypesStore
 ) {
     private val replayMutex = Mutex()
 
@@ -27,6 +29,15 @@ class PointsRepository(
         val token = tokenStore.getAccessToken()
             ?: throw IllegalStateException("Missing access token")
         return "Bearer $token"
+    }
+
+    fun cachedPointTypes(workspaceId: Long, viewerId: Long): List<PointTypeResponse> =
+        typesStore.load(workspaceId, viewerId).filter { it.active }.sortedBy { it.sortOrder }
+
+    suspend fun refreshPointTypes(workspaceId: Long, viewerId: Long): List<PointTypeResponse> {
+        val types = ApiClient.createTaskApi.getPointTypes(authorization(), workspaceId)
+        typesStore.save(workspaceId, viewerId, types)
+        return types.filter { it.active }.sortedBy { it.sortOrder }
     }
 
     fun cachedMembers(workspaceId: Long, viewerId: Long): List<WorkspaceMemberResponse> =
@@ -40,9 +51,11 @@ class PointsRepository(
 
     fun queueOffline(
         workspaceId: Long, viewerId: Long, memberId: Long,
+        pointType: PointTypeResponse,
         operation: String, amount: Int, description: String?
     ): OfflinePointsQueueStore.Pending =
-        queue.enqueue(workspaceId, viewerId, memberId, operation, amount, description)
+        queue.enqueue(workspaceId, viewerId, memberId, pointType.id,
+            pointType.code, pointType.name, operation, amount, description)
 
     /**
      * Requires online authentication; the server rechecks MANAGE_POINTS
@@ -59,7 +72,7 @@ class PointsRepository(
             try {
                 ApiClient.pointsApi.replayOffline(
                     auth, workspaceId, entry.memberId, entry.type,
-                    OfflinePointOperationRequest(entry.operationId, entry.amount, entry.description)
+                    OfflinePointOperationRequest(entry.operationId, entry.pointTypeId, entry.amount, entry.description)
                 )
                 queue.confirm(entry.operationId, workspaceId, viewerId)
                 confirmed++
@@ -159,19 +172,14 @@ class PointsRepository(
     suspend fun operate(
         workspaceId: Long,
         memberId: Long,
+        pointTypeId: Long,
         operation: String,
         amount: Int,
         description: String?
     ) {
-        ApiClient.pointsApi.operate(
-            authorization(),
-            workspaceId,
-            memberId,
-            operation,
-            PointOperationRequest(
-                amount = amount,
-                description = description
-            )
+        ApiClient.pointsApi.operateTyped(
+            authorization(), workspaceId, memberId, operation,
+            TypedPointOperationRequest(pointTypeId, amount, description)
         )
     }
 }
