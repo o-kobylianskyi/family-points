@@ -457,6 +457,7 @@
   "workspaceRoles": {
     "FAMILY_ADMIN": "Адміністратор сім’ї",
     "PARENT": "Батьки",
-    "CHILD": "Дитина"
+    "CHILD": "Дитина",
+    "PARENT_INDIVIDUAL": "Батько / мати"
   }
 }
