@@ -5,6 +5,10 @@ import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import com.olehkobylianskyi.familypoints.android.storage.OfflineRewardsStore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
+import java.io.IOException
+import retrofit2.HttpException
 
 class RewardsRepository(
     private val tokenStore: TokenStore,
@@ -19,36 +23,85 @@ class RewardsRepository(
     suspend fun loadPointNameForms(workspaceId: Long, pointTypeId: Long): List<PointNameFormDto> =
         ApiClient.settingsApi.pointNameForms(authorization(), workspaceId, pointTypeId)
 
-    fun cached(workspaceId: Long): RewardsPageData? = offlineStore.load(workspaceId)
+    fun cached(workspaceId: Long, memberId: Long): RewardsPageData? =
+        offlineStore.load(workspaceId, memberId)
 
-    suspend fun load(workspaceId: Long): RewardsPageData = supervisorScope {
+    /**
+     * Fetch and persist only the essential catalog. Optional endpoints must not
+     * delay saving reward names, prices and purchase requirements.
+     */
+    suspend fun refreshCatalog(workspaceId: Long, memberId: Long): RewardsPageData {
+        val rewards = ApiClient.rewardsApi.getRewards(authorization(), workspaceId)
+        val previous = cached(workspaceId, memberId)
+        val catalog = RewardsPageData(
+            rewards = rewards,
+            categories = previous?.categories.orEmpty(),
+            requests = emptyList(),
+            purchases = emptyList(),
+            obligations = emptyList(),
+            pointTypes = previous?.pointTypes.orEmpty(),
+            tasks = emptyList()
+        )
+        offlineStore.save(workspaceId, memberId, catalog)
+        return catalog
+    }
+
+    /** Optional data is loaded separately, with an independent timeout per call. */
+    suspend fun refreshSupplementary(
+        workspaceId: Long,
+        memberId: Long,
+        catalog: RewardsPageData
+    ): RewardsPageData = supervisorScope {
         val auth = authorization()
-        // The catalog is essential. A failure in requests, purchases or tasks
-        // must not stop the price list from loading.
-        suspend fun <T> optional(block: suspend () -> T, fallback: T): T =
-            try { block() } catch (e: retrofit2.HttpException) {
-                if (e.code() == 401) throw e
+        suspend fun <T> optional(fallback: T, action: suspend () -> T): T {
+            return try {
+                withTimeout(8_000L) { action() }
+            } catch (error: TimeoutCancellationException) {
                 fallback
-            } catch (_: java.io.IOException) { fallback }
+            } catch (error: HttpException) {
+                if (error.code() == 401) throw error
+                fallback
+            } catch (_: IOException) {
+                fallback
+            }
+        }
 
-        val rewards = async { ApiClient.rewardsApi.getRewards(auth, workspaceId) }
-        val categories = async { optional({ ApiClient.rewardsApi.getCategories(auth, workspaceId) }, emptyList()) }
-        val requests = async { optional({ ApiClient.rewardsApi.getRequests(auth, workspaceId) }, emptyList()) }
-        val purchases = async { optional({ ApiClient.rewardsApi.getPurchases(auth, workspaceId) }, emptyList()) }
-        val obligations = async { optional({ ApiClient.rewardsApi.getOpenObligations(auth, workspaceId) }, emptyList()) }
-        val pointTypes = async { ApiClient.createTaskApi.getPointTypes(auth, workspaceId) }
-        val tasks = async { optional({ ApiClient.taskApi.getDefinitions(auth, workspaceId) }, emptyList()) }
+        val categories = async {
+            optional(catalog.categories) { ApiClient.rewardsApi.getCategories(auth, workspaceId) }
+        }
+        val pointTypes = async {
+            optional(catalog.pointTypes) { ApiClient.createTaskApi.getPointTypes(auth, workspaceId) }
+        }
+        val requests = async {
+            optional(emptyList<RewardRequestSummary>()) {
+                ApiClient.rewardsApi.getRequests(auth, workspaceId)
+            }
+        }
+        val purchases = async {
+            optional(emptyList<RewardPurchaseSummary>()) {
+                ApiClient.rewardsApi.getPurchases(auth, workspaceId)
+            }
+        }
+        val obligations = async {
+            optional(emptyList<RewardObligationSummary>()) {
+                ApiClient.rewardsApi.getOpenObligations(auth, workspaceId)
+            }
+        }
+        val tasks = async {
+            optional(emptyList<TaskDefinitionResponse>()) {
+                ApiClient.taskApi.getDefinitions(auth, workspaceId)
+            }
+        }
 
-        val result = RewardsPageData(
-            rewards = rewards.await(),
+        val result = catalog.copy(
             categories = categories.await(),
+            pointTypes = pointTypes.await(),
             requests = requests.await(),
             purchases = purchases.await(),
             obligations = obligations.await(),
-            pointTypes = pointTypes.await(),
             tasks = tasks.await().filter { it.active }
         )
-        offlineStore.save(workspaceId, result)
+        offlineStore.save(workspaceId, memberId, result)
         result
     }
 
