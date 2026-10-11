@@ -94,7 +94,7 @@ class MainActivity : ComponentActivity() {
         val tokenStore = TokenStore(this)
         val languageStore = LanguageStore(this)
         val dashboardRepository = DashboardRepository(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineDashboardStore(this))
-        val tasksRepository = TasksRepository(tokenStore)
+        val tasksRepository = TasksRepository(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineTasksStore(this))
         val createTaskRepository = CreateTaskRepository(tokenStore)
         val taskDetailsRepository = TaskDetailsRepository(tokenStore)
         val rewardNegotiationRepository =
