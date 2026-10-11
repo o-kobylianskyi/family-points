@@ -175,6 +175,20 @@ class MainActivity : ComponentActivity() {
                     authLoading = false
                 }
 
+                // An offline password proves access to local snapshots only.
+                // Once the API comes back, require fresh online authentication
+                // rather than silently granting server-side write permissions.
+                LaunchedEffect(status, currentUser?.memberId) {
+                    if (currentUser != null &&
+                        status == ServerStatus.ONLINE &&
+                        authSessionManager.isOfflineAuthenticated()
+                    ) {
+                        authSessionManager.clearSession()
+                        currentUser = null
+                        destination = AppDestination.DASHBOARD
+                    }
+                }
+
                 LaunchedEffect(currentUser) {
                     while (currentUser != null) {
                         delay(60_000L)
@@ -187,7 +201,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val unauthorized = {
-                    authSessionManager.clearSession()
+                    authSessionManager.clearSession(invalidateOfflineAccount = true)
                     currentUser = null
                     destination = AppDestination.DASHBOARD
                 }
