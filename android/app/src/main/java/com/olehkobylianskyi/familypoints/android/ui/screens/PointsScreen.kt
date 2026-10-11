@@ -339,6 +339,55 @@ fun PointsScreen(
                         }, color = MaterialTheme.colorScheme.tertiary)
                     }
                     if (syncMessage.isNotBlank()) Text(syncMessage, color = MaterialTheme.colorScheme.tertiary)
+                    if (pendingOperations.isNotEmpty() && canManage && serverStatus == ServerStatus.ONLINE) {
+                        OutlinedButton(
+                            enabled = !processing,
+                            onClick = {
+                                scope.launch {
+                                    processing = true
+                                    try {
+                                        val synced = repository.synchronizePending(
+                                            currentUser.workspaceId, currentUser.memberId
+                                        )
+                                        pendingOperations = repository.pending(
+                                            currentUser.workspaceId, currentUser.memberId
+                                        )
+                                        selectedMemberId?.let { loadPoints(it) }
+                                        syncMessage = when (language) {
+                                            AppLanguage.UK -> "Підтверджено операцій: $synced"
+                                            AppLanguage.DE -> "Bestätigte Vorgänge: $synced"
+                                            AppLanguage.EN -> "Confirmed operations: $synced"
+                                            AppLanguage.RU -> "Подтверждено операций: $synced"
+                                        }
+                                    } catch (e: HttpException) {
+                                        if (e.code() == 401) onUnauthorized()
+                                        else syncMessage = when (language) {
+                                            AppLanguage.UK -> "Сервер відхилив синхронізацію (HTTP ${e.code()}). Операції залишилися в черзі."
+                                            AppLanguage.DE -> "Synchronisierung abgelehnt (HTTP ${e.code()}). Vorgänge bleiben gespeichert."
+                                            AppLanguage.EN -> "Synchronization rejected (HTTP ${e.code()}). Operations remain queued."
+                                            AppLanguage.RU -> "Синхронизация отклонена (HTTP ${e.code()}). Операции остались в очереди."
+                                        }
+                                    } catch (_: Exception) {
+                                        syncMessage = when (language) {
+                                            AppLanguage.UK -> "Синхронізація не вдалася. Чергу збережено."
+                                            AppLanguage.DE -> "Synchronisierung fehlgeschlagen. Warteschlange gespeichert."
+                                            AppLanguage.EN -> "Sync failed. Queue is saved."
+                                            AppLanguage.RU -> "Синхронизация не удалась. Очередь сохранена."
+                                        }
+                                    } finally {
+                                        processing = false
+                                    }
+                                }
+                            }
+                        ) {
+                            Text(when (language) {
+                                AppLanguage.UK -> "⟳ Синхронізувати"
+                                AppLanguage.DE -> "⟳ Synchronisieren"
+                                AppLanguage.EN -> "⟳ Sync now"
+                                AppLanguage.RU -> "⟳ Синхронизировать"
+                            })
+                        }
+                    }
                 }
             }
 
