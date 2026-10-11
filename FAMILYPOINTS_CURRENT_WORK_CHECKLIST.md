@@ -752,3 +752,14 @@ Before each substantial implementation batch:
 
 - [x] Provide manual retry button for offline earning/penalty queue with clear rejection status
 - [ ] Verify security on actual device (parent online, child offline, invalidated permissions) and compile client/backend
+
+## Currency-specific offline point adjustments
+- [x] Offer actual cached/backend point type selector for manual earn/penalty/spend
+- [x] Store currency ID/code/name in offline pending operation and display pending deltas per currency
+- [x] Migrate Android SQLite queue v1 -> v2 without dropping existing pending operations
+- [x] Backend idempotent replay validates selected currency and keeps old nullable payload support
+- [x] Server typed manual point operation for online Earn/Penalty/Spend
+- [ ] Build Java backend and Android Kotlin app; run Flyway/JPA startup and functional tests
+- [ ] Test online selected currency and offline selected currency replay (other than POINTS)
+- [ ] Test legacy pending items from v1 SQLite (NULL pointTypeId) sync safely
+- [ ] Cache/display balances for each currency, not just default points
