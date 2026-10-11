@@ -42,7 +42,8 @@ class OfflineAccountStore(context: Context) {
         prefs.edit().putString("profile", encoded).apply()
     }
 
-    fun load(): CurrentUserResponse? = try {
+    fun load(): CurrentUserResponse? {
+        return try {
         val stored = prefs.getString("profile", null) ?: return null
         val data = Base64.decode(stored, Base64.NO_WRAP)
         if (data.size < 29) return null
@@ -50,8 +51,9 @@ class OfflineAccountStore(context: Context) {
         cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, data.copyOfRange(0, 12)))
         gson.fromJson(String(cipher.doFinal(data.copyOfRange(12, data.size)), Charsets.UTF_8),
             CurrentUserResponse::class.java)
-    } catch (_: Exception) {
-        null
+        } catch (_: Exception) {
+            null
+        }
     }
 
     fun clear() {
