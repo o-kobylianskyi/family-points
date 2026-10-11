@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
 function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
   const { t } = useTranslation()
@@ -53,7 +54,7 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
         </label>
         <label>{t('workspace.memberEditor.role', { defaultValue: 'Роль у просторі' })}
           <select value={workspaceRoleId} onChange={e => setWorkspaceRoleId(e.target.value)}>
-            {roles.map(role => <option key={role.id} value={role.id}>{role.name}</option>)}
+            {roles.map(role => <option key={role.id} value={role.id}>{workspaceRoleLabel(t, role.code, role.name)}</option>)}
           </select>
         </label>
         <div className="modal-actions member-editor-actions">
