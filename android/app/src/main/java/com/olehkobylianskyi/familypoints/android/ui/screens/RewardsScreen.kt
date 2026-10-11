@@ -81,6 +81,7 @@ fun RewardsScreen(
     var data by remember { mutableStateOf<RewardsPageData?>(null) }
     var nameForms by remember { mutableStateOf<Map<Long, List<PointNameFormDto>>>(emptyMap()) }
     var loading by remember { mutableStateOf(true) }
+    var showingCached by remember { mutableStateOf(false) }
     var processing by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
 
@@ -208,9 +209,14 @@ fun RewardsScreen(
     suspend fun load() {
         loading = true
         error = ""
+        repository.cached(currentUser.workspaceId)?.let { cached ->
+            data = cached
+            showingCached = true
+        }
         try {
             val loaded = repository.load(currentUser.workspaceId)
             data = loaded
+            showingCached = false
             if (rewardPointTypeId == null) {
                 rewardPointTypeId = loaded.pointTypes.firstOrNull()?.id
             }
@@ -220,11 +226,11 @@ fun RewardsScreen(
         } catch (exception: HttpException) {
             if (exception.code() == 401) {
                 onUnauthorized()
-            } else {
+            } else if (data == null) {
                 error = exception.message()
             }
         } catch (exception: Exception) {
-            error = exception.message ?: ""
+            if (data == null) error = exception.message ?: ""
         } finally {
             loading = false
         }
@@ -304,6 +310,17 @@ fun RewardsScreen(
                     style = MaterialTheme.typography.headlineMedium
                 )
                 Text(text.subtitle)
+                if (showingCached) {
+                    Text(
+                        when (language) {
+                            AppLanguage.UK -> "⟳ Збережений каталог. Оновлення із сервера…"
+                            AppLanguage.DE -> "⟳ Gespeicherter Katalog. Serveraktualisierung…"
+                            AppLanguage.EN -> "⟳ Saved catalog. Refreshing from server…"
+                            AppLanguage.RU -> "⟳ Сохранённый каталог. Обновление с сервера…"
+                        },
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
             }
 
             if (error.isNotBlank()) {
