@@ -373,3 +373,12 @@
 - Added app-private `PointQuickAmountStore` keyed by workspace, signed-in account, operation (earn/spend/penalty), and currency ID. Values are only remembered after a confirmed online operation or successfully enqueued offline operation; no points or passwords are stored in this preference.
 - Updated `PointsScreen.PointOperationDialog`: starts at saved/default amount, restores currency-specific amount on currency change; added −10/+10 buttons with non-negative/max 100000 bounds and preserved manual numeric input.
 - Commits `1f29cfc`, `5926fc9`. No backend changes; Android compile and emulator verification pending.
+
+## 2026-10-11 — Quick point amount and reward-linked spending
+- Screenshot followed by interrupted ChatGPT reasoning: "Thinking stopped" is a ChatGPT response interruption, unrelated to Android app execution.
+- The branch already contained `PointQuickAmountStore.kt` and corresponding PointOperationDialog changes: default 20 or last successfully used amount per workspace/viewer/operation/currency, step +/-10; this was verified in source.
+- Extended Android Points spend dialog with a selectable reward catalog (active, non-approval, direct-capable only), currency/price preview and normal manual debit option. A selected reward triggers a **real purchase** via an authorized parent-on-behalf API, not a second manual spend. Reward prices and currencies are server-authoritative and the underlying RewardService still validates requirements and reputation.
+- New backend endpoint `POST /workspaces/{workspaceId}/rewards/{rewardId}/purchase-for-member/{memberId}`, guarded by `MANAGE_REWARDS`/admin workspace permission. It calls existing `RewardService.purchaseReward` and links the point deduction to REWARD_PURCHASE and purchase ID. Request-required rewards are not listed in quick purchase.
+- Android RewardsApi/RewardsRepository include the parent purchase API. PointsScreen reads cached reward list first and refreshes online; reward purchases require online connection and MANAGE_REWARDS. An expired reward selection never silently becomes a manual debit.
+- Code commits `a59fb3a`, `a91081a`, `9cf0d3c`, `b27e650`, `c1b9950`, `5546fa8`, `7b3f289`. Source-level checks only; Maven/Gradle builds and emulator tests remain unverified.
+- Follow-up: idempotency/retry safety for purchase-for-member, broader reward eligibility UX, better server error text and consideration of request/approval flow.
