@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -29,6 +30,8 @@ import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import retrofit2.HttpException
 
 enum class DashboardDestination {
@@ -45,6 +48,7 @@ fun DashboardScreen(
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     loadDashboard: suspend () -> DashboardData,
+    cachedDashboard: () -> DashboardData?,
     onLanguageChange: (AppLanguage) -> Unit,
     onLogout: () -> Unit,
     onNavigate: (DashboardDestination) -> Unit,
@@ -52,24 +56,41 @@ fun DashboardScreen(
 ) {
     val text = dashboardStrings(language)
 
+    val serverStatus by ServerReachability.status.collectAsState()
     var data by remember { mutableStateOf<DashboardData?>(null) }
+    var showingCached by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
 
-    LaunchedEffect(currentUser.memberId, currentUser.workspaceId) {
-        loading = true
+    LaunchedEffect(currentUser.memberId, currentUser.workspaceId, serverStatus) {
         error = ""
-
+        cachedDashboard()?.let { snapshot ->
+            if (data == null) {
+                data = snapshot
+                showingCached = true
+            }
+        }
+        loading = data == null
+        if (serverStatus == ServerStatus.OFFLINE) {
+            if (data == null) {
+                error = when (language) {
+                    AppLanguage.UK -> "Головна ще не збережена. Відкрийте її один раз із доступним сервером."
+                    AppLanguage.DE -> "Startseite noch nicht gespeichert. Bitte einmal online öffnen."
+                    AppLanguage.EN -> "Home page not cached yet. Open it once while the server is available."
+                    AppLanguage.RU -> "Главная ещё не сохранена. Откройте её при доступном сервере."
+                }
+            }
+            loading = false
+            return@LaunchedEffect
+        }
         try {
             data = loadDashboard()
+            showingCached = false
         } catch (exception: HttpException) {
-            if (exception.code() == 401) {
-                onUnauthorized()
-            } else {
-                error = exception.message()
-            }
+            if (exception.code() == 401) onUnauthorized()
+            else if (data == null) error = exception.message()
         } catch (exception: Exception) {
-            error = exception.message ?: text.loadFailed
+            if (data == null) error = exception.message ?: text.loadFailed
         } finally {
             loading = false
         }
@@ -95,14 +116,27 @@ fun DashboardScreen(
             )
         }
 
+        if (showingCached) {
+            item {
+                Text(
+                    when (language) {
+                        AppLanguage.UK -> "⟳ Збережена копія · очікує синхронізації"
+                        AppLanguage.DE -> "⟳ Gespeicherte Daten · Synchronisierung ausstehend"
+                        AppLanguage.EN -> "⟳ Cached data · awaiting synchronization"
+                        AppLanguage.RU -> "⟳ Сохранённая копия · ожидание синхронизации"
+                    },
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+            }
+        }
         when {
-            loading -> {
+            loading && data == null -> {
                 item {
                     Text(text.loading)
                 }
             }
 
-            error.isNotBlank() -> {
+            error.isNotBlank() && data == null -> {
                 item {
                     Text(
                         text = error,
