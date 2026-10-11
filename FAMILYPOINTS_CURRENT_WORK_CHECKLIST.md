@@ -749,3 +749,6 @@ Before each substantial implementation batch:
 - [ ] Test server denies expired/revoked MANAGE_POINTS; pending entries must remain visible
 - [ ] Encrypt local member/balance/operation stores before production and define removal/retention policy
 - [ ] Improve rejected-operation management UI (edit/cancel, last failure, retry)
+
+- [x] Provide manual retry button for offline earning/penalty queue with clear rejection status
+- [ ] Verify security on actual device (parent online, child offline, invalidated permissions) and compile client/backend
