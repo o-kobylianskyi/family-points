@@ -73,6 +73,7 @@ fun PointsScreen(
     }
     var selectedMemberId by remember { mutableStateOf<Long?>(null) }
     var balance by remember { mutableStateOf(0L) }
+    var offlineSnapshot by remember { mutableStateOf(false) }
     var history by remember {
         mutableStateOf<List<PointTransactionResponse>>(emptyList())
     }
@@ -89,14 +90,16 @@ fun PointsScreen(
     suspend fun loadPoints(memberId: Long) {
         loadingPoints = true
         error = ""
+        offlineSnapshot = false
 
         try {
-            val result = repository.loadMemberPoints(
+            val result = repository.loadPointsWithFallback(
                 currentUser.workspaceId,
                 memberId
             )
-            balance = result.first
-            history = result.second
+            balance = result.balance
+            history = result.history
+            offlineSnapshot = result.offline
         } catch (exception: HttpException) {
             if (exception.code() == 401) {
                 onUnauthorized()
@@ -285,6 +288,18 @@ fun PointsScreen(
                                 )
                             )
 
+                            if (offlineSnapshot) {
+                                Text(
+                                    when (language) {
+                                        AppLanguage.UK -> "Офлайн: показано останній збережений баланс. Списання недоступне."
+                                        AppLanguage.DE -> "Offline: letzter gespeicherter Kontostand. Keine Ausgaben möglich."
+                                        AppLanguage.EN -> "Offline: last saved balance. Spending unavailable."
+                                        AppLanguage.RU -> "Офлайн: последний сохранённый баланс. Списание недоступно."
+                                    },
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+
                             Text(
                                 text.balance,
                                 style =
@@ -302,7 +317,7 @@ fun PointsScreen(
                             )
 
                             if (
-                                "MANAGE_POINTS" in
+                                !offlineSnapshot && "MANAGE_POINTS" in
                                     currentUser.permissions
                             ) {
                                 Row(
