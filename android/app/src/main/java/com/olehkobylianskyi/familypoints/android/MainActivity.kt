@@ -201,6 +201,30 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // Sync locally queued parent credits/penalties after an online
+                // authentication, even when the Points page isn't open.
+                LaunchedEffect(status, currentUser?.memberId) {
+                    val user = currentUser
+                    if (status == ServerStatus.ONLINE &&
+                        user != null &&
+                        !authSessionManager.isOfflineAuthenticated() &&
+                        (user.permissions.contains("MANAGE_POINTS") ||
+                            user.permissions.contains("ADMIN_OVERRIDE"))
+                    ) {
+                        try {
+                            pointsRepository.synchronizePending(user.workspaceId, user.memberId)
+                        } catch (e: retrofit2.HttpException) {
+                            if (e.code() == 401) {
+                                authSessionManager.clearSession(invalidateOfflineAccount = true)
+                                currentUser = null
+                                destination = AppDestination.DASHBOARD
+                            }
+                        } catch (_: Exception) {
+                            // Keep durable pending operations for next reconnect.
+                        }
+                    }
+                }
+
                 LaunchedEffect(currentUser) {
                     while (currentUser != null) {
                         delay(60_000L)
