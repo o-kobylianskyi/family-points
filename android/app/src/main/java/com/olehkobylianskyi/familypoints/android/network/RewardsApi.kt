@@ -78,6 +78,14 @@ interface RewardsApi {
         @Path("requestId") requestId: Long
     ): RewardRequestSummary
 
+    @POST("workspaces/{workspaceId}/rewards/{rewardId}/purchase-for-member/{memberId}")
+    suspend fun purchaseForMember(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("rewardId") rewardId: Long,
+        @Path("memberId") memberId: Long
+    ): RewardPurchaseSummary
+
     @POST("workspaces/{workspaceId}/rewards/{rewardId}/purchase")
     suspend fun purchaseReward(
         @Header("Authorization") authorization: String,
