@@ -2,6 +2,7 @@ package com.olehkobylianskyi.familypoints.android.network
 
 import com.olehkobylianskyi.familypoints.android.data.PointBalanceResponse
 import com.olehkobylianskyi.familypoints.android.data.PointOperationRequest
+import com.olehkobylianskyi.familypoints.android.data.TypedPointOperationRequest
 import com.olehkobylianskyi.familypoints.android.data.OfflinePointOperationRequest
 import com.olehkobylianskyi.familypoints.android.data.PointTransactionResponse
 import retrofit2.http.Body
@@ -33,6 +34,15 @@ interface PointsApi {
         @Path("memberId") memberId: Long,
         @Path("operation") operation: String,
         @Body request: OfflinePointOperationRequest
+    ): PointTransactionResponse
+
+    @POST("workspaces/{workspaceId}/members/{memberId}/points/manual/{operation}")
+    suspend fun operateTyped(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("memberId") memberId: Long,
+        @Path("operation") operation: String,
+        @Body request: TypedPointOperationRequest
     ): PointTransactionResponse
 
     @POST("workspaces/{workspaceId}/members/{memberId}/points/{operation}")
