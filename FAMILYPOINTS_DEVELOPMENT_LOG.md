@@ -225,3 +225,9 @@
 - Screenshot exposed untranslated POINTS/COPPER/SILVER/GOLD in group balance rows and system roles LEADER/DEPUTY/SENIOR/EXECUTOR/ASSISTANT/REVIEWER/OBSERVER.
 - Added centralized group-editor label helpers that translate by stable `code`/`systemCode` for UK/DE/EN/RU, retaining user-defined names unchanged. Applied to overview balances, editor balance list, selection dialogs, and role listings.
 - Commit `9f12445`. Not yet compiled/runtime tested.
+
+## 2026-10-11 — Android Settings system currency and role localization
+- Screenshot exposed raw English default point types (POINTS/COPPER/SILVER/GOLD) in currency declension settings and default role sets/roles/descriptions in Role Catalog Settings.
+- Added shared `SystemCatalogLabels.kt` mapping built-in currency names, role set names/descriptions (MANAGEMENT/EXECUTION/CONTROL), and system role names (LEADER, DEPUTY, SENIOR, EXECUTOR, ASSISTANT, REVIEWER, OBSERVER) into UK/DE/EN/RU using stable system codes. Custom entries keep their own names and descriptions.
+- Applied to `CurrencyFormsSection.kt` and `RoleCatalogSection.kt`, including role set selection.
+- Commits `8391fe1`, `09a4e5d`, `7d7ea74`. Kotlin compile and emulator verification pending.
