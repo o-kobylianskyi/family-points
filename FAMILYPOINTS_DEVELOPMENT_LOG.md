@@ -244,3 +244,7 @@
 - Existing saved forms are loaded per point type, populated into inputs and marked as saved. Built-in recommended forms are shown when no saved forms exist, explicitly marked as **not saved**. Unknown/custom currencies without saved forms show **not configured**.
 - Added preview 1/2/5/11/21, load/error/saved statuses, scoped input/button styling.
 - Source commits: `c5cf837`, `6024a16`. Browser and npm build not executed by assistant.
+
+## 2026-10-11 — Web role set description localization
+- Fixed untranslated Default management/execution/control roles descriptions in React RoleCatalogSettings. The existing i18n keys roles.roleSetDescriptions already provide Ukrainian, Russian, German and English translations, but the UI displayed raw set.description from the backend. Now descriptions use systemCode and translated keys; custom set descriptions remain unchanged.
+- Commit `36413bc`. Web build and browser smoke test pending.
