@@ -9,12 +9,16 @@ import java.util.UUID;
 public class OfflinePointOperationRequest {
     @NotNull
     private UUID operationId;
+    // Nullable only for pending entries created by older Android releases.
+    private Long pointTypeId;
     @Min(1)
     @Max(100000)
     private int amount;
     @Size(max = 255)
     private String description;
 
+    public Long getPointTypeId() { return pointTypeId; }
+    public void setPointTypeId(Long pointTypeId) { this.pointTypeId = pointTypeId; }
     public UUID getOperationId() { return operationId; }
     public void setOperationId(UUID operationId) { this.operationId = operationId; }
     public int getAmount() { return amount; }
