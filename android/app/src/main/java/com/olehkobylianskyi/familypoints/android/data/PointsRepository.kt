@@ -30,13 +30,7 @@ class PointsRepository(
             val cached = offlineStore.load(workspaceId, memberId) ?: throw error
             return CachedPoints(cached.balance, emptyList(), true)
         }
-        val history = try {
-            ApiClient.pointsApi.getHistory(auth, workspaceId, memberId)
-        } catch (error: Exception) {
-            if (error is retrofit2.HttpException && error.code() == 401) throw error
-            emptyList()
-        }
-        return CachedPoints(balance, history, false)
+        return CachedPoints(balance, emptyList(), false)
     }
 
     suspend fun loadHistory(workspaceId: Long, memberId: Long): List<PointTransactionResponse> =
