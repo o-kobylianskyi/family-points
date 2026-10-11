@@ -688,3 +688,12 @@ Before each substantial implementation batch:
 - [x] Wire persisted display-only balance cache into Android repository and UI with offline status, user fallback, and disabled offline operations
 - [ ] Verify Kotlin compilation and emulator online/airplane-mode navigation after first successful balance sync
 - [ ] Implement offline session hydration and offline reward catalog/policy cache
+
+## Android shared server reachability
+- [x] Replace connectivity-only Settings logic with shared API backend status
+- [x] Add central OkHttp status propagation, bounded backend probe, retries and global banner
+- [x] Preserve active session on transient gateway/unreachable refresh failures
+- [x] Repair Settings syntax introduced in offline mode changes
+- [ ] Verify :app:compileDebugKotlin and emulator offline->online recovery
+- [ ] Test server unavailable while Wi-Fi remains connected; verify Settings controls hide and return
+- [ ] Separate per-screen transient operation errors from global backend outages in remaining screens
