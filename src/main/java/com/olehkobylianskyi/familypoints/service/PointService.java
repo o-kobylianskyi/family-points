@@ -178,6 +178,7 @@ public class PointService {
             Long workspaceId,
             Long memberId,
             java.util.UUID operationId,
+            Long pointTypeId,
             String operation,
             int amount,
             String description
@@ -199,15 +200,22 @@ public class PointService {
                     || !existing.getMember().getWorkspace().getId().equals(workspaceId)
                     || existing.getAmount() != signedAmount
                     || existing.getType() != type
+                    || (pointTypeId != null && !existing.getPointType().getId().equals(pointTypeId))
                     || !java.util.Objects.equals(existing.getDescription(), description)) {
                 throw new IllegalArgumentException("Client operation ID reused with different data");
             }
             return existing;
         }
 
+        PointType selectedType = pointTypeId == null
+                ? getDefaultPointTypeOrThrow(workspaceId)
+                : getPointTypeOrThrow(workspaceId, pointTypeId);
+        if (!selectedType.isActive()) {
+            throw new IllegalArgumentException("Selected point type is inactive");
+        }
         PointTransaction transaction = new PointTransaction(
                 member,
-                getDefaultPointTypeOrThrow(workspaceId),
+                selectedType,
                 signedAmount,
                 type,
                 PointTransactionSourceType.MANUAL,
@@ -216,6 +224,33 @@ public class PointService {
         );
         transaction.setClientOperationId(operationId);
         return pointTransactionRepository.saveAndFlush(transaction);
+    }
+
+    /**
+     * Currency-specific manual operation. Currency must belong to the same
+     * workspace; spending is still server-only and balance-checked.
+     */
+    @Transactional
+    public PointTransaction applyTypedManualOperation(
+            Long workspaceId, Long memberId, Long pointTypeId,
+            String operation, int amount, String description
+    ) {
+        if (pointTypeId == null || amount < 1 || amount > 100000) {
+            throw new IllegalArgumentException("Invalid manual point operation");
+        }
+        PointType pointType = getPointTypeOrThrow(workspaceId, pointTypeId);
+        if (!pointType.isActive()) {
+            throw new IllegalArgumentException("Selected point type is inactive");
+        }
+        return switch (operation) {
+            case "earn" -> earn(workspaceId, memberId, pointTypeId,
+                    amount, PointTransactionSourceType.MANUAL, null, description);
+            case "penalty" -> penalty(workspaceId, memberId, pointType,
+                    amount, PointTransactionSourceType.MANUAL, null, description);
+            case "spend" -> spend(workspaceId, memberId, pointTypeId,
+                    amount, PointTransactionSourceType.MANUAL, null, description);
+            default -> throw new IllegalArgumentException("Invalid manual operation");
+        };
     }
 
     private PointTransaction saveTransaction(
