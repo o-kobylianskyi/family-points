@@ -128,18 +128,23 @@ fun MembersScreen(
         val cachedPeople = repository.cachedMembers(currentUser.workspaceId, currentUser.memberId)
         data = saved ?: MembersPageData(cachedPeople, emptyList(), emptyList())
         balances = cachedPeople.mapNotNull { member ->
-            pointsRepository.cachedConfirmedBalance(currentUser.workspaceId, member.id)
-                ?.let { member.id to it }
+            if (canManagePoints || member.id == currentUser.memberId)
+                pointsRepository.cachedConfirmedBalance(currentUser.workspaceId, member.id)
+                    ?.let { member.id to it }
+            else null
         }.toMap()
         if (!online) return@LaunchedEffect
         loading = saved == null && cachedPeople.isEmpty()
         try {
             reload()
             data?.members?.let { people ->
-                pointsRepository.prefetchBalances(currentUser.workspaceId, people)
+                pointsRepository.prefetchBalances(currentUser.workspaceId,
+                    if (canManagePoints) people else people.filter { it.id == currentUser.memberId })
                 balances = people.mapNotNull { member ->
-                    pointsRepository.cachedConfirmedBalance(currentUser.workspaceId, member.id)
-                        ?.let { member.id to it }
+                    if (canManagePoints || member.id == currentUser.memberId)
+                        pointsRepository.cachedConfirmedBalance(currentUser.workspaceId, member.id)
+                            ?.let { member.id to it }
+                    else null
                 }.toMap()
             }
         } catch (e: Exception) {
