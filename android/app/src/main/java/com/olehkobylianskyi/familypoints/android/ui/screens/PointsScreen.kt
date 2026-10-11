@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -698,6 +699,7 @@ private fun PointOperationDialog(
         },
         text = {
             Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement =
                     Arrangement.spacedBy(10.dp)
             ) {
@@ -708,7 +710,9 @@ private fun PointOperationDialog(
                         localError = ""
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text.amount) },
+                    label = { Text(text.amount + (selectedType?.let {
+                        " · " + localizedCurrencyName(language, it.code, it.name)
+                    } ?: "")) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number
