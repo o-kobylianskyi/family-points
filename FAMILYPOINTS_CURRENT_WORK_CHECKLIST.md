@@ -734,3 +734,5 @@ Before each substantial implementation batch:
 - [ ] Emulator: backend down -> stale cache -> backend up -> indicator clears -> new Web task appears on Android within 30 s
 - [ ] Verify expired JWT displays login instead of silently showing stale data as synced
 - [ ] Protect background refresh from rapid status toggles and duplicate API calls if needed
+
+- [x] Explain why an offline-only authenticated session needs fresh online login before synchronizing
