@@ -4,86 +4,154 @@ import { getPointTypes, getPointNameForms, savePointNameForms } from '../api/eco
 import { currencyQuantity } from '../utils/formatCurrencyAmount'
 
 const languages = [['uk', 'Українська'], ['ru', 'Русский'], ['en', 'English'], ['de', 'Deutsch']]
-const empty = { one: '', few: '', many: '' }
+const blank = { one: '', few: '', many: '' }
+
+const defaults = {
+  POINTS: {
+    uk: ['бал', 'бали', 'балів'], ru: ['балл', 'балла', 'баллов'],
+    en: ['point', 'points', 'points'], de: ['Punkt', 'Punkte', 'Punkte'],
+  },
+  COPPER: {
+    uk: ['мідна монета', 'мідні монети', 'мідних монет'], ru: ['медная монета', 'медные монеты', 'медных монет'],
+    en: ['copper coin', 'copper coins', 'copper coins'], de: ['Kupfermünze', 'Kupfermünzen', 'Kupfermünzen'],
+  },
+  SILVER: {
+    uk: ['срібна монета', 'срібні монети', 'срібних монет'], ru: ['серебряная монета', 'серебряные монеты', 'серебряных монет'],
+    en: ['silver coin', 'silver coins', 'silver coins'], de: ['Silbermünze', 'Silbermünzen', 'Silbermünzen'],
+  },
+  GOLD: {
+    uk: ['золота монета', 'золоті монети', 'золотих монет'], ru: ['золотая монета', 'золотые монеты', 'золотых монет'],
+    en: ['gold coin', 'gold coins', 'gold coins'], de: ['Goldmünze', 'Goldmünzen', 'Goldmünzen'],
+  },
+}
+
+const labels = {
+  uk: { heading: 'Відмінювання валют', intro: 'Задайте назви для різної кількості та мови.', currency: 'Валюта', language: 'Мова назв', choose: 'Оберіть валюту', one: 'Для 1', few: 'Для 2–4', many: 'Для 5, 11–14 та інших', save: 'Зберегти', saved: 'Збережено на сервері', recommended: 'Типові форми (не збережені)', unset: 'Не налаштовано', preview: 'Попередній перегляд', success: 'Форми збережено', loading: 'Завантаження…', retry: 'Не вдалося завантажити збережені форми.', noAccess: 'Для редагування потрібне право керування економікою.' },
+  ru: { heading: 'Склонение валют', intro: 'Настройте названия для разных количеств и языков.', currency: 'Валюта', language: 'Язык названий', choose: 'Выберите валюту', one: 'Для 1', few: 'Для 2–4', many: 'Для 5, 11–14 и других', save: 'Сохранить', saved: 'Сохранено на сервере', recommended: 'Типовые формы (не сохранены)', unset: 'Не настроено', preview: 'Предпросмотр', success: 'Формы сохранены', loading: 'Загрузка…', retry: 'Не удалось загрузить сохранённые формы.', noAccess: 'Для изменения необходимо право управления экономикой.' },
+  en: { heading: 'Currency word forms', intro: 'Configure quantity forms for each currency and language.', currency: 'Currency', language: 'Form language', choose: 'Select currency', one: 'For 1', few: 'For 2–4', many: 'For 5, 11–14 and others', save: 'Save', saved: 'Saved on server', recommended: 'Suggested forms (not saved)', unset: 'Not configured', preview: 'Preview', success: 'Forms saved', loading: 'Loading…', retry: 'Could not load saved forms.', noAccess: 'Economy management permission is needed to edit.' },
+  de: { heading: 'Währungsformen', intro: 'Wortformen je Währung, Anzahl und Sprache verwalten.', currency: 'Währung', language: 'Sprache der Formen', choose: 'Währung wählen', one: 'Für 1', few: 'Für 2–4', many: 'Für 5, 11–14 und andere', save: 'Speichern', saved: 'Auf Server gespeichert', recommended: 'Vorschlag (nicht gespeichert)', unset: 'Nicht konfiguriert', preview: 'Vorschau', success: 'Formen gespeichert', loading: 'Laden…', retry: 'Gespeicherte Formen konnten nicht geladen werden.', noAccess: 'Zum Bearbeiten werden Rechte zur Wirtschaftsverwaltung benötigt.' },
+}
+
+const currencyNames = {
+  POINTS: { uk: 'Бали', ru: 'Баллы', en: 'Points', de: 'Punkte' },
+  COPPER: { uk: 'Мідь', ru: 'Медь', en: 'Copper', de: 'Kupfer' },
+  SILVER: { uk: 'Срібло', ru: 'Серебро', en: 'Silver', de: 'Silber' },
+  GOLD: { uk: 'Золото', ru: 'Золото', en: 'Gold', de: 'Gold' },
+}
+const localizedCurrency = (type, lang) => currencyNames[type.code?.toUpperCase()]?.[lang] || type.name
 
 export default function CurrencyFormsSettings({ token, workspaceId, canManage }) {
-  const { t, i18n } = useTranslation()
+  const { i18n } = useTranslation()
+  const uiLang = i18n.language.split('-')[0]
+  const l = labels[uiLang] || labels.uk
   const [types, setTypes] = useState([])
-  const [selected, setSelected] = useState(null)
-  const [language, setLanguage] = useState(i18n.language.split('-')[0])
+  const [selectedId, setSelectedId] = useState('')
+  const [language, setLanguage] = useState(uiLang in labels ? uiLang : 'uk')
   const [forms, setForms] = useState([])
-  const [draft, setDraft] = useState(empty)
+  const [draft, setDraft] = useState(blank)
+  const [loading, setLoading] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const [dirty, setDirty] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
+  const selected = types.find(type => String(type.id) === String(selectedId))
+  const current = forms.find(form => form.language === language)
+  const suggested = defaults[selected?.code?.toUpperCase()]?.[language]
+  const status = current ? l.saved : suggested ? l.recommended : l.unset
 
   useEffect(() => {
-    let live = true
-    getPointTypes(token, workspaceId).then(data => { if (live) setTypes(data) })
-      .catch(e => { if (live) setError(e.message) })
-    return () => { live = false }
+    let alive = true
+    setSelectedId('')
+    getPointTypes(token, workspaceId)
+      .then(data => { if (alive) { setTypes(data); if (data.length) setSelectedId(String(data[0].id)) } })
+      .catch(e => { if (alive) setError(e.message) })
+    return () => { alive = false }
   }, [token, workspaceId])
 
   useEffect(() => {
-    if (!selected) return
-    let live = true
-    getPointNameForms(token, workspaceId, selected.id)
-      .then(data => { if (live) setForms(data) })
-      .catch(e => { if (live) setError(e.message) })
-    return () => { live = false }
-  }, [token, workspaceId, selected?.id])
+    let alive = true
+    setForms([])
+    setLoaded(false)
+    setLoading(Boolean(selectedId))
+    setError('')
+    setNotice('')
+    setDirty(false)
+    if (selectedId) {
+      getPointNameForms(token, workspaceId, selectedId)
+        .then(data => { if (alive) { setForms(data); setLoaded(true) } })
+        .catch(e => { if (alive) setError(e.message || l.retry) })
+        .finally(() => { if (alive) setLoading(false) })
+    }
+    return () => { alive = false }
+  }, [token, workspaceId, selectedId])
 
   useEffect(() => {
-    const form = forms.find(f => f.language === language)
-    setDraft(form ? { one: form.one, few: form.few, many: form.many } : empty)
-  }, [forms, language, selected?.id])
-
-  const copy = {
-    uk: ['Відмінювання валют', 'Форми назв валют за кількістю', 'Зберегти', 'Назва для 1', 'Назва для 2–4', 'Назва для 5+', 'Збережено'],
-    ru: ['Склонение валют', 'Формы названий валют по количеству', 'Сохранить', 'Название для 1', 'Название для 2–4', 'Название для 5+', 'Сохранено'],
-    en: ['Currency word forms', 'Quantity-sensitive currency names', 'Save', 'Name for 1', 'Name for 2–4', 'Name for 5+', 'Saved'],
-    de: ['Währungsformen', 'Wortformen je nach Menge', 'Speichern', 'Name für 1', 'Name für 2–4', 'Name für 5+', 'Gespeichert'],
-  }[i18n.language.split('-')[0]] || ['Currency word forms', '', 'Save', 'One', 'Few', 'Many', 'Saved']
+    const saved = forms.find(form => form.language === language)
+    const preset = defaults[selected?.code?.toUpperCase()]?.[language]
+    setDraft(saved ? { one: saved.one, few: saved.few, many: saved.many }
+      : preset ? { one: preset[0], few: preset[1], many: preset[2] } : blank)
+    setDirty(false)
+  }, [forms, selectedId, language])
 
   async function save(event) {
     event.preventDefault()
-    if (!selected || !canManage || Object.values(draft).some(v => !v.trim())) return
+    if (!selected || !canManage || !loaded || Object.values(draft).some(value => !value.trim())) return
     setBusy(true); setError(''); setNotice('')
     try {
       await savePointNameForms(token, workspaceId, selected.id, language, draft)
-      setForms(await getPointNameForms(token, workspaceId, selected.id))
-      setNotice(copy[6])
+      const updated = await getPointNameForms(token, workspaceId, selected.id)
+      setForms(updated)
+      setDirty(false)
+      setNotice(l.success)
     } catch (e) { setError(e.message) }
     finally { setBusy(false) }
   }
 
-  const sample = [1, 2, 5, 11, 21]
-  return <section className="settings-section">
-    <h2>{copy[0]}</h2><p>{copy[1]}</p>
-    {error && <p role="alert">{error}</p>}{notice && <p>{notice}</p>}
-    <div className="settings-form">
-      <select value={selected?.id || ''} onChange={e => {
-        setForms([]); setSelected(types.find(type => type.id === Number(e.target.value)) || null)
-      }}>
-        <option value="">—</option>
-        {types.map(type => <option key={type.id} value={type.id}>{type.name} ({type.code})</option>)}
-      </select>
-      {selected && <form onSubmit={save}>
-        <select value={language} onChange={e => setLanguage(e.target.value)}>
-          {languages.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+  return <section className="settings-section currency-forms-section">
+    <h2>{l.heading}</h2>
+    <p>{l.intro}</p>
+    {error && <div className="error-message" role="alert">{error}</div>}
+    {notice && <div className="settings-success" role="status">{notice}</div>}
+    <div className="currency-forms-layout">
+      <div className="currency-forms-picker">
+        <label htmlFor="currency-type">{l.currency}</label>
+        <select id="currency-type" value={selectedId} onChange={e => setSelectedId(e.target.value)}>
+          {types.length === 0 && <option value="">{l.choose}</option>}
+          {types.map(type => <option key={type.id} value={type.id}>
+            {localizedCurrency(type, uiLang)} ({type.code})
+          </option>)}
         </select>
-        {['one', 'few', 'many'].map((key, i) =>
-          <label key={key}>{copy[i + 3]}
-            <input maxLength={100} required value={draft[key]} disabled={!canManage}
-              onChange={e => setDraft(v => ({ ...v, [key]: e.target.value }))} />
+        {selected && <div className="currency-forms-status">
+          {loading ? l.loading : loaded ? status : l.retry}
+        </div>}
+      </div>
+      {selected && <form className="currency-forms-editor" onSubmit={save}>
+        <label className="currency-forms-language" htmlFor="currency-language">{l.language}
+          <select id="currency-language" value={language} onChange={e => setLanguage(e.target.value)} disabled={busy}>
+            {languages.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+          </select>
+        </label>
+        <div className="currency-forms-fields">
+          {['one', 'few', 'many'].map((key, i) => <label key={key}>
+            <span>{l[key]}</span>
+            <input maxLength={100} required value={draft[key]} disabled={!canManage || !loaded || busy}
+              onChange={e => { setDraft(prev => ({ ...prev, [key]: e.target.value })); setDirty(true); setNotice('') }} />
           </label>)}
-        <div className="account-meta">
-          {sample.map(n => <span key={n}>{currencyQuantity(n, {
-            code: selected.code, name: selected.name,
-            language, forms: [{ language, ...draft }],
-          })} · </span>)}
         </div>
-        {canManage && <button type="submit" disabled={busy}>{copy[2]}</button>}
+        <div className="currency-forms-preview">
+          <strong>{l.preview}</strong>
+          <div>{[1, 2, 5, 11, 21].map(n => <span key={n}>{currencyQuantity(n, {
+            code: selected.code, name: localizedCurrency(selected, language),
+            language, forms: [{ language, ...draft }],
+          })}</span>)}</div>
+        </div>
+        {canManage
+          ? <button className="primary-button currency-forms-save" type="submit"
+              disabled={busy || !loaded || Object.values(draft).some(value => !value.trim())}>
+              {busy ? l.loading : l.save}{dirty ? ' *' : ''}
+            </button>
+          : <p className="currency-forms-status">{l.noAccess}</p>}
       </form>}
     </div>
   </section>
