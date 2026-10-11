@@ -54,6 +54,7 @@ import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
 import com.olehkobylianskyi.familypoints.android.network.ServerReachability
 import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import retrofit2.HttpException
 
 private enum class RewardsTab {
@@ -295,6 +296,16 @@ fun RewardsScreen(
         load()
     }
 
+    // Refresh visible catalog after server-side edits made from Web/other devices.
+    LaunchedEffect(currentUser.workspaceId, serverStatus) {
+        if (serverStatus == ServerStatus.ONLINE) {
+            while (true) {
+                delay(30_000L)
+                if (!processing && !loading) load()
+            }
+        }
+    }
+
     LaunchedEffect(data?.pointTypes, serverStatus) {
         if (serverStatus != ServerStatus.ONLINE) return@LaunchedEffect
         val types = data?.pointTypes.orEmpty()
@@ -334,6 +345,22 @@ fun RewardsScreen(
             canManage = canManage,
             onSelect = { tab = it }
         )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            OutlinedButton(
+                onClick = { scope.launch { load() } },
+                enabled = serverStatus == ServerStatus.ONLINE && !loading && !processing
+            ) {
+                Text(when (language) {
+                    AppLanguage.UK -> if (loading) "⟳ Оновлення…" else "⟳ Оновити"
+                    AppLanguage.DE -> if (loading) "⟳ Aktualisiere…" else "⟳ Aktualisieren"
+                    AppLanguage.EN -> if (loading) "⟳ Updating…" else "⟳ Refresh"
+                    AppLanguage.RU -> if (loading) "⟳ Обновление…" else "⟳ Обновить"
+                })
+            }
+        }
 
         LazyColumn(
             modifier = Modifier
@@ -350,10 +377,10 @@ fun RewardsScreen(
                 if (showingCached) {
                     Text(
                         when (language) {
-                            AppLanguage.UK -> if (loading) "⟳ Збережений каталог. Оновлення із сервера…" else "Офлайн: показано останній збережений каталог"
-                            AppLanguage.DE -> if (loading) "⟳ Gespeicherter Katalog. Serveraktualisierung…" else "Offline: letzter gespeicherter Katalog"
-                            AppLanguage.EN -> if (loading) "⟳ Saved catalog. Refreshing from server…" else "Offline: last saved catalog"
-                            AppLanguage.RU -> if (loading) "⟳ Сохранённый каталог. Обновление с сервера…" else "Офлайн: последний сохранённый каталог"
+                            AppLanguage.UK -> if (loading) "⟳ Збережений каталог. Оновлення із сервера…" else if (serverStatus == ServerStatus.ONLINE) "Не вдалося оновити каталог · остання збережена копія" else "Офлайн: показано останній збережений каталог"
+                            AppLanguage.DE -> if (loading) "⟳ Gespeicherter Katalog. Serveraktualisierung…" else if (serverStatus == ServerStatus.ONLINE) "Aktualisierung fehlgeschlagen · gespeicherter Katalog" else "Offline: letzter gespeicherter Katalog"
+                            AppLanguage.EN -> if (loading) "⟳ Saved catalog. Refreshing from server…" else if (serverStatus == ServerStatus.ONLINE) "Refresh failed · showing saved catalog" else "Offline: last saved catalog"
+                            AppLanguage.RU -> if (loading) "⟳ Сохранённый каталог. Обновление с сервера…" else if (serverStatus == ServerStatus.ONLINE) "Не удалось обновить каталог · сохранённая копия" else "Офлайн: последний сохранённый каталог"
                         },
                         color = MaterialTheme.colorScheme.tertiary
                     )
