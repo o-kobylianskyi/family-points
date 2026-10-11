@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,6 +38,8 @@ import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
 import com.olehkobylianskyi.familypoints.android.i18n.tasksStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import com.olehkobylianskyi.familypoints.android.ui.components.LocalizedCalendarDialog
 import java.time.LocalDate
 import java.time.YearMonth
@@ -68,6 +71,8 @@ fun TasksScreen(
     onUnauthorized: () -> Unit
 ) {
     val text = tasksStrings(language)
+    val serverStatus by ServerReachability.status.collectAsState()
+    var showingCachedMy by remember { mutableStateOf(false) }
     var members by remember { mutableStateOf<List<WorkspaceMemberResponse>>(emptyList()) }
     var selectedMemberId by remember { mutableStateOf<Long?>(null) }
     var selectedDate by remember { mutableStateOf(LocalDate.now().toString()) }
@@ -96,34 +101,52 @@ fun TasksScreen(
 
     suspend fun loadMyTasks() {
         val memberId = selectedMemberId ?: return
-        loadingTasks = true
         error = ""
+        val cached = repository.cachedMyTab(currentUser.workspaceId, memberId, selectedDate)
+        showingCachedMy = cached != null
+        if (cached != null) {
+            tasks = cached.tasks
+            openTasks = cached.openTasks
+            definitions = cached.definitions
+        } else {
+            tasks = emptyList()
+            openTasks = emptyList()
+            definitions = emptyList()
+        }
+        loadingTasks = cached == null
+        if (serverStatus == ServerStatus.OFFLINE) {
+            loadingTasks = false
+            if (cached == null) {
+                error = when (language) {
+                    AppLanguage.UK -> "Для цієї дати завдання ще не збережені на телефоні."
+                    AppLanguage.DE -> "Für dieses Datum sind noch keine Aufgaben gespeichert."
+                    AppLanguage.EN -> "Tasks for this date have not been saved on this phone."
+                    AppLanguage.RU -> "Задания на эту дату ещё не сохранены на телефоне."
+                }
+            }
+            return
+        }
 
         try {
-            val (loadedTasks, loadedOpen, loadedDefinitions) =
-                repository.loadMyTab(
-                    currentUser.workspaceId,
-                    memberId,
-                    selectedDate
-                )
-
+            val (loadedTasks, loadedOpen, loadedDefinitions) = repository.loadMyTab(
+                currentUser.workspaceId, memberId, selectedDate
+            )
             tasks = loadedTasks
             openTasks = loadedOpen
             definitions = loadedDefinitions
+            showingCachedMy = false
         } catch (exception: retrofit2.HttpException) {
-            if (exception.code() == 401) {
-                onUnauthorized()
-            } else {
-                error = exception.message()
-            }
+            if (exception.code() == 401) onUnauthorized()
+            else if (cached == null) error = exception.message()
         } catch (exception: Exception) {
-            error = exception.message ?: ""
+            if (cached == null) error = exception.message ?: ""
         } finally {
             loadingTasks = false
         }
     }
 
     suspend fun loadManagement() {
+        if (serverStatus == ServerStatus.OFFLINE) return
         loadingManagement = true
         error = ""
 
@@ -149,28 +172,30 @@ fun TasksScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId) {
-        loadingMembers = true
-        try {
-            members = repository.loadMembers(currentUser.workspaceId)
-
-            selectedMemberId =
-                members.firstOrNull { it.id == currentUser.memberId }?.id
-                    ?: members.firstOrNull()?.id
-        } catch (exception: retrofit2.HttpException) {
-            if (exception.code() == 401) {
-                onUnauthorized()
-            } else {
-                error = exception.message()
+    LaunchedEffect(currentUser.workspaceId, serverStatus) {
+        members = listOf(WorkspaceMemberResponse(
+            id = currentUser.memberId,
+            name = currentUser.memberName,
+            memberType = currentUser.memberType,
+            workspaceRoleId = currentUser.workspaceRoleId,
+            workspaceRoleCode = currentUser.workspaceRoleCode,
+            workspaceRoleName = currentUser.workspaceRoleName,
+            workspaceId = currentUser.workspaceId
+        ))
+        if (selectedMemberId == null) selectedMemberId = currentUser.memberId
+        loadingMembers = false
+        if (serverStatus != ServerStatus.OFFLINE) {
+            try {
+                members = repository.loadMembers(currentUser.workspaceId)
+            } catch (exception: retrofit2.HttpException) {
+                if (exception.code() == 401) onUnauthorized()
+            } catch (_: Exception) {
+                // The current member and cached tasks remain available.
             }
-        } catch (exception: Exception) {
-            error = exception.message ?: ""
-        } finally {
-            loadingMembers = false
         }
     }
 
-    LaunchedEffect(selectedMemberId, selectedDate) {
+    LaunchedEffect(selectedMemberId, selectedDate, serverStatus) {
         if (selectedMemberId != null) {
             loadMyTasks()
         }
@@ -234,7 +259,7 @@ fun TasksScreen(
                     Text("← " + text.back)
                 }
 
-                Button(onClick = onCreateTask) {
+                Button(onClick = onCreateTask, enabled = serverStatus == ServerStatus.ONLINE) {
                     Text("+ " + text.newTask)
                 }
             }
@@ -287,6 +312,16 @@ fun TasksScreen(
         }
 
         if (tab == TasksPageTab.MY) {
+            if (showingCachedMy) {
+                item {
+                    Text(when (language) {
+                        AppLanguage.UK -> "⟳ Збережені завдання · лише перегляд"
+                        AppLanguage.DE -> "⟳ Gespeicherte Aufgaben · nur lesen"
+                        AppLanguage.EN -> "⟳ Cached tasks · read only"
+                        AppLanguage.RU -> "⟳ Сохранённые задания · только просмотр"
+                    }, color = MaterialTheme.colorScheme.tertiary)
+                }
+            }
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -361,7 +396,7 @@ fun TasksScreen(
                 }
             }
 
-            if (loadingMembers || loadingTasks) {
+            if ((loadingMembers || loadingTasks) && tasks.isEmpty() && openTasks.isEmpty()) {
                 item {
                     Text(text.loading)
                 }
@@ -386,7 +421,7 @@ fun TasksScreen(
                         language = language,
                         task = task,
                         members = members,
-                        processing = processingId == task.id,
+                        processing = processingId == task.id || showingCachedMy || serverStatus != ServerStatus.ONLINE,
                         onAction = { action ->
                             processingId = task.id
                             error = ""
@@ -412,6 +447,7 @@ fun TasksScreen(
                             }
                         },
                         onOpen = {
+                            if (showingCachedMy || serverStatus != ServerStatus.ONLINE) return@TaskInstanceCard
                             onOpenTask(
                                 task.taskDefinitionId,
                                 selectedDate
@@ -441,7 +477,7 @@ fun TasksScreen(
                         language = language,
                         definition = definition,
                         members = members,
-                        processing = processingId == -definition.id,
+                        processing = processingId == -definition.id || showingCachedMy || serverStatus != ServerStatus.ONLINE,
                         onClaim = {
                             val memberId = selectedMemberId ?: return@OpenTaskCard
                             processingId = -definition.id
