@@ -24,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -42,8 +41,6 @@ import com.olehkobylianskyi.familypoints.android.i18n.createTaskStrings
 import com.olehkobylianskyi.familypoints.android.i18n.pointsStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
 import com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore
-import com.olehkobylianskyi.familypoints.android.network.ServerReachability
-import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import com.olehkobylianskyi.familypoints.android.network.ServerReachability
 import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import java.time.LocalDateTime
@@ -79,7 +76,6 @@ fun PointsScreen(
     var pendingOperations by remember { mutableStateOf<List<OfflinePointsQueueStore.Pending>>(emptyList()) }
     var memberBalances by remember { mutableStateOf<Map<Long, Long>>(emptyMap()) }
     var syncMessage by remember { mutableStateOf("") }
-    val serverStatus by ServerReachability.status.collectAsState()
 
     var members by remember {
         mutableStateOf<List<WorkspaceMemberResponse>>(emptyList())
