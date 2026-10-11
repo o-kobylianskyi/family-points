@@ -709,3 +709,15 @@ Before each substantial implementation batch:
 - [ ] Cache point type declensions, members/groups, role catalog and policy rules
 - [ ] Cache reward detail forms where applicable; task management/details still online-only
 - [ ] Verify all requests are refreshed after server reconnect and stale data never allows mutations
+
+## Offline password login (2026-10-11)
+- [x] Add encrypted per-username profile and salted password verifier
+- [x] Allow normal login button to work offline for enrolled accounts
+- [x] Preserve enrollment across manual logout; require password every session
+- [x] Add 7-day offline credential validity and rate limiting after wrong passwords
+- [x] Differentiate offline access errors from online incorrect credentials
+- [x] Prevent offline authenticated identity from reusing old JWT; require online sign-in after reconnect
+- [x] Guard PointsScreen network requests when offline identity has no JWT
+- [ ] Verify Android compilation and 6-step emulator test (online enrollment -> logout -> server down -> offline login -> cached screens -> server reconnect)
+- [ ] Add offline account chooser, manage/remove saved accounts and locally settable parent PIN
+- [ ] Encrypt remaining reward/task/dashboard/points caches and define device-removal policy
