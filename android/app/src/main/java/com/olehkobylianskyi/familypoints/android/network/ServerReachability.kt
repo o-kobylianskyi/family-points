@@ -24,12 +24,20 @@ object ServerReachability {
         mutableStatus.value = ServerStatus.CHECKING
     }
 
+    /**
+     * Ordinary API responses can confirm availability only when successful.
+     * A generic 401/403 may come from a proxy and cannot prove server health.
+     */
     fun httpResponse(code: Int) {
-        mutableStatus.value = if (code == 502 || code == 503 || code == 504) {
-            ServerStatus.OFFLINE
-        } else {
-            ServerStatus.ONLINE
+        when {
+            code in 200..299 -> mutableStatus.value = ServerStatus.ONLINE
+            code in 502..504 -> mutableStatus.value = ServerStatus.OFFLINE
         }
+    }
+
+    /** Only a validated response from /api/client-health may confirm the probe. */
+    fun verifiedProbe() {
+        mutableStatus.value = ServerStatus.ONLINE
     }
 
     fun transportFailure() {
