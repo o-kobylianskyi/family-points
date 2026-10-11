@@ -279,3 +279,9 @@
 - PointsScreen explicitly indicates offline cached balance and hides manual balance operations while using the snapshot. If member listing fails due to IOException, cached current-member balance remains viewable based on existing authenticated currentUser data.
 - Commits: `22e86d5`, `4069983`, `bb289b1`, `1852b95`. Kotlin compilation not yet verified.
 - Limitations: no offline login/session hydration, rewards/policy cache, encrypted cache, transaction queue or offline spending yet; cached balances are for display only. Session identity and logout/account-switch scoping require continued hardening.
+
+## 2026-10-11 — Android offline identity storage (phase 1)
+- Added Android Keystore AES-GCM encrypted `OfflineAccountStore.kt` containing the last successfully authenticated `CurrentUserResponse` profile (including workspace/member IDs). No plaintext password is stored.
+- `AuthSessionManager` saves the verified profile after online login/session validation and clears it on explicit logout or invalid session. Network IOException during restore no longer destroys the token/profile automatically. `MainActivity` instantiates the profile store.
+- Offline login is **not yet enabled**. Next requirements: explicit opt-in local PIN enrollment, PIN verification/rate limiting, per-account separation, offline session expiry and synchronization/revocation semantics. A cached profile alone is never proof of authentication.
+- New files/commits: `1bd0e70`, `572fa35`, `b0169cc`, `830d55c`; compile not run.
