@@ -16,8 +16,8 @@ class OfflineMembersStore(context: Context) {
     private fun key(workspaceId: Long, viewerMemberId: Long) =
         "w${workspaceId}_viewer${viewerMemberId}"
 
-    fun cachedMembers(workspaceId: Long, viewerMemberId: Long): List<WorkspaceMemberResponse> =
-        try {
+    fun cachedMembers(workspaceId: Long, viewerMemberId: Long): List<WorkspaceMemberResponse> {
+        return try {
             val raw = prefs.getString("members_" + key(workspaceId, viewerMemberId), null)
                 ?: return emptyList()
             val type = object : TypeToken<List<WorkspaceMemberResponse>>() {}.type
@@ -25,6 +25,7 @@ class OfflineMembersStore(context: Context) {
         } catch (_: Exception) {
             emptyList()
         }
+    }
 
     fun saveMembers(workspaceId: Long, viewerMemberId: Long, members: List<WorkspaceMemberResponse>) {
         prefs.edit().putString("members_" + key(workspaceId, viewerMemberId),
