@@ -151,6 +151,10 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(true)
                 }
 
+                var showOnlineReauthNotice by remember {
+                    mutableStateOf(false)
+                }
+
                 var destination by remember {
                     mutableStateOf(AppDestination.DASHBOARD)
                 }
@@ -187,6 +191,7 @@ class MainActivity : ComponentActivity() {
                         authSessionManager.clearSession()
                         currentUser = null
                         destination = AppDestination.DASHBOARD
+                        showOnlineReauthNotice = true
                     }
                 }
 
@@ -243,6 +248,7 @@ class MainActivity : ComponentActivity() {
                     currentUser == null -> {
                         LoginScreen(
                             language = language,
+                            showOnlineReauthNotice = showOnlineReauthNotice,
                             onLanguageChange = { selected ->
                                 languageStore.saveLanguage(selected)
                                 language = selected
@@ -254,6 +260,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             },
                             onLoginSuccess = { user ->
+                                showOnlineReauthNotice = false
                                 currentUser = user
                                 destination = AppDestination.DASHBOARD
                             }
