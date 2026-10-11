@@ -3438,3 +3438,83 @@ input {
     flex-direction: column;
   }
 }
+
+
+/* Currency form settings have an independent layout; do not inherit the
+   password form's multi-column .settings-form grid. */
+.currency-forms-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.currency-forms-picker,
+.currency-forms-editor,
+.currency-forms-language,
+.currency-forms-fields label {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+.currency-forms-section label {
+  font-weight: 600;
+  font-size: 14px;
+}
+.currency-forms-section select,
+.currency-forms-section input {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  border: 1px solid #d9dce7;
+  border-radius: 9px;
+  background: #fff;
+  padding: 8px 12px;
+  font: inherit;
+}
+.currency-forms-editor {
+  gap: 16px;
+}
+.currency-forms-language {
+  max-width: 260px;
+}
+.currency-forms-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.currency-forms-status {
+  color: #777f91;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.currency-forms-preview {
+  border-radius: 10px;
+  background: #f5f6fc;
+  padding: 12px 14px;
+  color: #374161;
+  font-size: 14px;
+}
+.currency-forms-preview > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 8px;
+}
+.currency-forms-preview span {
+  white-space: nowrap;
+}
+.currency-forms-save {
+  justify-self: start;
+  min-width: 150px;
+}
+@media (max-width: 1050px) {
+  .currency-forms-layout { grid-template-columns: 1fr; }
+  .currency-forms-picker { max-width: 480px; }
+}
+@media (max-width: 700px) {
+  .currency-forms-fields { grid-template-columns: 1fr; }
+  .currency-forms-language { max-width: none; }
+  .currency-forms-save { width: 100%; }
+}
