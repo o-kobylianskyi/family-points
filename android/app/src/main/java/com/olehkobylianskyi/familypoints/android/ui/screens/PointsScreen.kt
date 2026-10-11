@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
@@ -47,6 +48,7 @@ import com.olehkobylianskyi.familypoints.android.i18n.createTaskStrings
 import com.olehkobylianskyi.familypoints.android.i18n.pointsStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
 import com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore
+import com.olehkobylianskyi.familypoints.android.storage.PointQuickAmountStore
 import com.olehkobylianskyi.familypoints.android.network.ServerReachability
 import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import java.time.LocalDateTime
@@ -77,6 +79,8 @@ fun PointsScreen(
     val text = pointsStrings(language)
     val createText = createTaskStrings(language)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val quickAmounts = remember(context) { PointQuickAmountStore(context) }
     val serverStatus by ServerReachability.status.collectAsState()
     val canManage = currentUser.permissions.any { it == "MANAGE_POINTS" || it == "ADMIN_OVERRIDE" }
     var pendingOperations by remember { mutableStateOf<List<OfflinePointsQueueStore.Pending>>(emptyList()) }
@@ -271,6 +275,9 @@ fun PointsScreen(
             member = selectedMember,
             processing = processing,
             pointTypes = pointTypes,
+            workspaceId = currentUser.workspaceId,
+            viewerId = currentUser.memberId,
+            quickAmounts = quickAmounts,
             onDismiss = {
                 if (!processing) {
                     pointOperation = null
@@ -303,6 +310,10 @@ fun PointsScreen(
                                 AppLanguage.EN -> "Operation saved locally, awaiting server confirmation."
                                 AppLanguage.RU -> "Операция сохранена на телефоне, ожидает подтверждения сервера."
                             }
+                            quickAmounts.rememberSuccessful(
+                                currentUser.workspaceId, currentUser.memberId,
+                                kind, pointType.id, amount
+                            )
                             pointOperation = null
                         } else {
                             repository.operate(
@@ -312,6 +323,10 @@ fun PointsScreen(
                                 kind,
                                 amount,
                                 description.trim().ifBlank { null }
+                            )
+                            quickAmounts.rememberSuccessful(
+                                currentUser.workspaceId, currentUser.memberId,
+                                kind, pointType.id, amount
                             )
                             pointOperation = null
                             loadPoints(selectedMember.id)
@@ -666,6 +681,9 @@ private fun PointOperationDialog(
     member: WorkspaceMemberResponse,
     processing: Boolean,
     pointTypes: List<PointTypeResponse>,
+    workspaceId: Long,
+    viewerId: Long,
+    quickAmounts: PointQuickAmountStore,
     onDismiss: () -> Unit,
     onSubmit: (Int, String, PointTypeResponse) -> Unit
 ) {
@@ -679,11 +697,14 @@ private fun PointOperationDialog(
     val selectedType = pointTypes.firstOrNull { it.id == selectedTypeId }
     var currencyMenuExpanded by remember { mutableStateOf(false) }
 
-    var amount by remember(
-        operation,
-        member.id
-    ) {
-        mutableStateOf("")
+    // A new dialog starts at 20, or the last successfully used amount.
+    // Switching currencies restores the amount last used for that currency.
+    var amount by remember(operation, member.id, selectedTypeId) {
+        mutableStateOf(
+            selectedTypeId?.let { id ->
+                quickAmounts.suggested(workspaceId, viewerId, operation.apiValue, id).toString()
+            } ?: "20"
+        )
     }
 
     var description by remember(
@@ -739,6 +760,30 @@ private fun PointOperationDialog(
                     ),
                     enabled = !processing
                 )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        enabled = !processing && (amount.toIntOrNull() ?: 0) > 10,
+                        onClick = {
+                            val current = amount.toIntOrNull() ?: 20
+                            amount = (current - 10).toString()
+                            localError = ""
+                        }
+                    ) { Text("−10") }
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        enabled = !processing && (amount.toIntOrNull() ?: 0) <= 99_990,
+                        onClick = {
+                            val current = amount.toIntOrNull() ?: 0
+                            amount = (current + 10).toString()
+                            localError = ""
+                        }
+                    ) { Text("+10") }
+                }
 
                 Text(
                     when (language) {
@@ -806,7 +851,7 @@ private fun PointOperationDialog(
 
                     if (
                         numericAmount == null ||
-                        numericAmount <= 0
+                        numericAmount !in 1..100_000
                     ) {
                         localError = text.invalidAmount
                         return@Button
