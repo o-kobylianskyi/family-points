@@ -23,6 +23,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,6 +40,10 @@ import com.olehkobylianskyi.familypoints.android.data.MemberSaveRequest
 import com.olehkobylianskyi.familypoints.android.data.MembersGroupResponse
 import com.olehkobylianskyi.familypoints.android.data.MembersPageData
 import com.olehkobylianskyi.familypoints.android.data.MembersRepository
+import com.olehkobylianskyi.familypoints.android.data.PointsRepository
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
+import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
@@ -58,12 +63,16 @@ fun MembersScreen(
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     repository: MembersRepository,
+    pointsRepository: PointsRepository,
     onLanguageChange: (AppLanguage) -> Unit,
     onLogout: () -> Unit,
     onNavigate: (DashboardDestination) -> Unit,
     onUnauthorized: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val serverStatus by ServerReachability.status.collectAsState()
+    val online = serverStatus == ServerStatus.ONLINE
+    var balances by remember { mutableStateOf<Map<Long, Long>>(emptyMap()) }
     val allowed = "MANAGE_MEMBERS" in currentUser.permissions
     val canManagePoints = currentUser.permissions.any { it == "MANAGE_POINTS" || it == "ADMIN_OVERRIDE" }
     var data by remember { mutableStateOf<MembersPageData?>(null) }
@@ -83,7 +92,7 @@ fun MembersScreen(
     var grants by remember { mutableStateOf<List<GroupPermissionGrantResponse>>(emptyList()) }
 
     suspend fun reload() {
-        data = repository.load(currentUser.workspaceId)
+        data = repository.load(currentUser.workspaceId, currentUser.memberId)
     }
     fun failure(exception: Exception) {
         if (exception is HttpException && exception.code() == 401) onUnauthorized()
@@ -98,6 +107,7 @@ fun MembersScreen(
         editorOpen = true
     }
     fun mutate(operation: suspend () -> Unit) {
+        if (!online) return
         scope.launch {
             busy = true
             error = ""
@@ -111,10 +121,30 @@ fun MembersScreen(
             }
         }
     }
-    LaunchedEffect(currentUser.workspaceId) {
-        loading = true
-        try { reload() } catch (e: Exception) { failure(e) }
-        finally { loading = false }
+    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus) {
+        loading = false
+        error = ""
+        val saved = repository.cached(currentUser.workspaceId, currentUser.memberId)
+        val cachedPeople = repository.cachedMembers(currentUser.workspaceId, currentUser.memberId)
+        data = saved ?: MembersPageData(cachedPeople, emptyList(), emptyList())
+        balances = cachedPeople.mapNotNull { member ->
+            pointsRepository.cachedConfirmedBalance(currentUser.workspaceId, member.id)
+                ?.let { member.id to it }
+        }.toMap()
+        if (!online) return@LaunchedEffect
+        loading = saved == null && cachedPeople.isEmpty()
+        try {
+            reload()
+            data?.members?.let { people ->
+                pointsRepository.prefetchBalances(currentUser.workspaceId, people)
+                balances = people.mapNotNull { member ->
+                    pointsRepository.cachedConfirmedBalance(currentUser.workspaceId, member.id)
+                        ?.let { member.id to it }
+                }.toMap()
+            }
+        } catch (e: Exception) {
+            if (data?.members.isNullOrEmpty()) failure(e)
+        } finally { loading = false }
     }
 
     val membersTitle = memberText(language, "Учасники", "Mitglieder", "Members", "Участники")
@@ -129,15 +159,25 @@ fun MembersScreen(
             OutlinedButton(onClick = { tab = "members" }) { Text(membersTitle) }
             OutlinedButton(onClick = { tab = "groups" }) { Text(groupsTitle) }
         }
+        if (!online) {
+            Text(
+                memberText(language,
+                    "Офлайн · збережені учасники й баланси. Редагування недоступне.",
+                    "Offline · gespeicherte Mitglieder und Guthaben. Bearbeitung nicht verfügbar.",
+                    "Offline · saved members and balances. Editing is unavailable.",
+                    "Офлайн · сохранённые участники и балансы. Редактирование недоступно."),
+                color = MaterialTheme.colorScheme.tertiary
+            )
+        }
         if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
         if (loading) Text(memberText(language, "Завантаження…", "Laden…", "Loading…", "Загрузка…"))
         else {
-            if (tab == "members" && allowed) {
+            if (tab == "members" && allowed && online) {
                 Button(onClick = { edit(null) }) {
                     Text(memberText(language, "Додати учасника", "Mitglied hinzufügen", "Add member", "Добавить участника"))
                 }
             }
-            if (tab == "groups" && allowed) {
+            if (tab == "groups" && allowed && online) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = groupName,
@@ -166,7 +206,7 @@ fun MembersScreen(
                 if (tab == "members") {
                     items(data?.members.orEmpty(), key = { "m" + it.id }) { member ->
                         Card(modifier = Modifier.fillMaxWidth().then(
-                            if (allowed) Modifier.clickable { edit(member) } else Modifier
+                            if (allowed && online) Modifier.clickable { edit(member) } else Modifier
                         )) {
                             Column(modifier = Modifier.padding(14.dp)) {
                                 Text(member.name, style = MaterialTheme.typography.titleMedium)
@@ -180,6 +220,12 @@ fun MembersScreen(
                                 Text(memberWorkspaceRoleLabel(language,
                                     data?.roles?.firstOrNull { it.id == member.workspaceRoleId }?.code,
                                     member.workspaceRoleName))
+                                balances[member.id]?.let { cached ->
+                                    Text(
+                                        formatPointAmount(cached, language, "POINTS", "балів"),
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
                     }
@@ -195,13 +241,14 @@ fun MembersScreen(
         }
     }
 
-    LaunchedEffect(editingGroupId) {
+    LaunchedEffect(editingGroupId, serverStatus) {
+        if (!online) return@LaunchedEffect
         val id = editingGroupId ?: return@LaunchedEffect
         try { grants = repository.getGroupPermissions(currentUser.workspaceId, id) }
         catch (e: Exception) { failure(e) }
     }
 
-    val groupToEdit = data?.groups?.firstOrNull { it.id == editingGroupId }
+    val groupToEdit = if (online) data?.groups?.firstOrNull { it.id == editingGroupId } else null
     if (groupToEdit != null && allowed) {
         GroupEditorDialog(
             group = groupToEdit,
@@ -250,7 +297,7 @@ fun MembersScreen(
         )
     }
 
-    if (editorOpen) {
+    if (editorOpen && online) {
         AlertDialog(
             onDismissRequest = { if (!busy) editorOpen = false },
             title = { Text(if (editing == null)
