@@ -3,16 +3,91 @@ package com.olehkobylianskyi.familypoints.android.data
 import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import com.olehkobylianskyi.familypoints.android.storage.OfflineBalanceStore
+import com.olehkobylianskyi.familypoints.android.storage.OfflineMembersStore
+import com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
+import kotlinx.coroutines.async
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.CancellationException
+import retrofit2.HttpException
 import java.io.IOException
 
 class PointsRepository(
     private val tokenStore: TokenStore,
-    private val offlineStore: OfflineBalanceStore
+    private val offlineStore: OfflineBalanceStore,
+    private val membersStore: OfflineMembersStore,
+    private val queue: OfflinePointsQueueStore
 ) {
     private fun authorization(): String {
         val token = tokenStore.getAccessToken()
             ?: throw IllegalStateException("Missing access token")
         return "Bearer $token"
+    }
+
+    fun cachedMembers(workspaceId: Long, viewerId: Long): List<WorkspaceMemberResponse> =
+        membersStore.cachedMembers(workspaceId, viewerId)
+
+    fun cachedConfirmedBalance(workspaceId: Long, memberId: Long): Long? =
+        offlineStore.load(workspaceId, memberId)?.balance
+
+    fun pending(workspaceId: Long, viewerId: Long): List<OfflinePointsQueueStore.Pending> =
+        queue.pending(workspaceId, viewerId)
+
+    fun queueOffline(
+        workspaceId: Long, viewerId: Long, memberId: Long,
+        operation: String, amount: Int, description: String?
+    ): OfflinePointsQueueStore.Pending =
+        queue.enqueue(workspaceId, viewerId, memberId, operation, amount, description)
+
+    /**
+     * Requires online authentication; the server rechecks MANAGE_POINTS
+     * and de-duplicates every clientOperationId within a DB transaction.
+     */
+    suspend fun synchronizePending(workspaceId: Long, viewerId: Long): Int {
+        if (ServerReachability.status.value != ServerStatus.ONLINE) return 0
+        val auth = authorization()
+        var confirmed = 0
+        for (entry in queue.pending(workspaceId, viewerId)) {
+            try {
+                ApiClient.pointsApi.replayOffline(
+                    auth, workspaceId, entry.memberId, entry.type,
+                    OfflinePointOperationRequest(entry.operationId, entry.amount, entry.description)
+                )
+                queue.confirm(entry.operationId, workspaceId, viewerId)
+                confirmed++
+            } catch (error: HttpException) {
+                // Keep failed operations for parental review; never silently
+                // discard denied/invalid items. 401 ends synchronization.
+                if (error.code() == 401 || error.code() == 403 || error.code() in 400..499) throw error
+                break
+            } catch (error: IOException) {
+                break
+            }
+        }
+        return confirmed
+    }
+
+    suspend fun prefetchBalances(
+        workspaceId: Long, members: List<WorkspaceMemberResponse>
+    ) = supervisorScope {
+        val auth = authorization()
+        members.map { member ->
+            async {
+                try {
+                    val result = withTimeout(8_000L) {
+                        ApiClient.pointsApi.getBalance(auth, workspaceId, member.id)
+                    }
+                    offlineStore.save(workspaceId, member.id, result.balance)
+                } catch (error: CancellationException) {
+                    // Timeout affects one member only, never the whole list.
+                } catch (_: IOException) {
+                } catch (error: HttpException) {
+                    if (error.code() == 401) throw error
+                }
+            }
+        }.forEach { it.await() }
     }
 
     data class CachedPoints(val balance: Long, val history: List<PointTransactionResponse>, val offline: Boolean)
@@ -37,12 +112,13 @@ class PointsRepository(
         ApiClient.pointsApi.getHistory(authorization(), workspaceId, memberId)
 
     suspend fun loadMembers(
-        workspaceId: Long
-    ): List<WorkspaceMemberResponse> =
-        ApiClient.taskApi.getWorkspaceMembers(
-            authorization(),
-            workspaceId
-        )
+        workspaceId: Long,
+        viewerId: Long
+    ): List<WorkspaceMemberResponse> {
+        val members = ApiClient.taskApi.getWorkspaceMembers(authorization(), workspaceId)
+        membersStore.saveMembers(workspaceId, viewerId, members)
+        return members
+    }
 
     // A failed history request must not make the current balance disappear.
     suspend fun loadMemberPoints(
