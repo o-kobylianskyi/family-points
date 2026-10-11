@@ -12,13 +12,16 @@ import java.util.UUID
  * removes the pending operation from the queue.
  */
 class OfflinePointsQueueStore(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "fp_pending_points.db", null, 1) {
+    SQLiteOpenHelper(context.applicationContext, "fp_pending_points.db", null, 2) {
 
     data class Pending(
         val operationId: String,
         val workspaceId: Long,
         val viewerId: Long,
         val memberId: Long,
+        val pointTypeId: Long?,
+        val pointTypeCode: String?,
+        val pointTypeName: String?,
         val type: String,
         val amount: Int,
         val description: String?,
@@ -32,6 +35,9 @@ class OfflinePointsQueueStore(context: Context) :
                 workspace_id INTEGER NOT NULL,
                 viewer_id INTEGER NOT NULL,
                 member_id INTEGER NOT NULL,
+                point_type_id INTEGER,
+                point_type_code TEXT,
+                point_type_name TEXT,
                 operation_type TEXT NOT NULL,
                 amount INTEGER NOT NULL,
                 description TEXT,
@@ -41,7 +47,13 @@ class OfflinePointsQueueStore(context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Migrate in place in future; pending operations must never be dropped.
+        if (oldVersion < 2) {
+            // Legacy entries stay NULL: they keep the original default currency
+            // semantics instead of being silently converted to another currency.
+            db.execSQL("ALTER TABLE pending_points ADD COLUMN point_type_id INTEGER")
+            db.execSQL("ALTER TABLE pending_points ADD COLUMN point_type_code TEXT")
+            db.execSQL("ALTER TABLE pending_points ADD COLUMN point_type_name TEXT")
+        }
     }
 
     @Synchronized
@@ -49,15 +61,20 @@ class OfflinePointsQueueStore(context: Context) :
         workspaceId: Long,
         viewerId: Long,
         memberId: Long,
+        pointTypeId: Long,
+        pointTypeCode: String,
+        pointTypeName: String,
         type: String,
         amount: Int,
         description: String?
     ): Pending {
         require(type == "earn" || type == "penalty") { "Only offline earn/penalty allowed" }
+        require(pointTypeId > 0 && pointTypeCode.isNotBlank())
         require(amount in 1..100_000)
         require(description == null || description.length <= 255)
         val item = Pending(
             UUID.randomUUID().toString(), workspaceId, viewerId, memberId,
+            pointTypeId, pointTypeCode, pointTypeName,
             type, amount, description, System.currentTimeMillis()
         )
         val values = ContentValues().apply {
@@ -65,6 +82,9 @@ class OfflinePointsQueueStore(context: Context) :
             put("workspace_id", item.workspaceId)
             put("viewer_id", item.viewerId)
             put("member_id", item.memberId)
+            put("point_type_id", item.pointTypeId)
+            put("point_type_code", item.pointTypeCode)
+            put("point_type_name", item.pointTypeName)
             put("operation_type", item.type)
             put("amount", item.amount)
             put("description", item.description)
@@ -88,6 +108,9 @@ class OfflinePointsQueueStore(context: Context) :
                     c.getLong(c.getColumnIndexOrThrow("workspace_id")),
                     c.getLong(c.getColumnIndexOrThrow("viewer_id")),
                     c.getLong(c.getColumnIndexOrThrow("member_id")),
+                    c.getColumnIndexOrThrow("point_type_id").let { col -> if (c.isNull(col)) null else c.getLong(col) },
+                    c.getString(c.getColumnIndexOrThrow("point_type_code")),
+                    c.getString(c.getColumnIndexOrThrow("point_type_name")),
                     c.getString(c.getColumnIndexOrThrow("operation_type")),
                     c.getInt(c.getColumnIndexOrThrow("amount")),
                     c.getString(c.getColumnIndexOrThrow("description")),
