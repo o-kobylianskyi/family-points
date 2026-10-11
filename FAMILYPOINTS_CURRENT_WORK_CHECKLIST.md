@@ -763,3 +763,14 @@ Before each substantial implementation batch:
 - [ ] Test online selected currency and offline selected currency replay (other than POINTS)
 - [ ] Test legacy pending items from v1 SQLite (NULL pointTypeId) sync safely
 - [ ] Cache/display balances for each currency, not just default points
+
+## Points quick edit and reward spending
+- [x] Default amount 20, +/-10 buttons and saved last successful amount per currency/operation
+- [x] Android spend dialog: optional reward selector; reward price/currency are fixed and shown
+- [x] Parent can create true reward purchase for child from Points without duplicate manual deduction
+- [x] Backend checks reward eligibility and permission to manage rewards
+- [x] Online-only reward purchasing; manual spend is separate and unchanged
+- [ ] Maven compile/test RewardController, Android :app:compileDebugKotlin
+- [ ] Verify parent with points permission but without reward permission sees manual spend only
+- [ ] Verify direct reward purchases create linked purchase and REWARD_PURCHASE point transaction exactly once
+- [ ] Implement idempotent retries for parent-on-behalf reward purchase operations
