@@ -46,6 +46,10 @@ export default function RoleCatalogSettings({ token, workspaceId, canManage }) {
     ? t(`roles.roleSets.${set.systemCode}`, { defaultValue: set.name })
     : set.name
 
+  const setDescription = set => set.systemCode
+    ? t(`roles.roleSetDescriptions.${set.systemCode}`, { defaultValue: set.description || '' })
+    : set.description
+
   const roleLabel = role => role.systemCode
     ? t(`roles.system.${role.systemCode}`, { defaultValue: role.name })
     : role.name
@@ -127,7 +131,7 @@ export default function RoleCatalogSettings({ token, workspaceId, canManage }) {
                 <h3>{setLabel(set)}</h3>
                 {set.systemDefault && <span className="role-system-badge">{t('roles.systemBadge')}</span>}
               </div>
-              {set.description && <p>{set.description}</p>}
+              {setDescription(set) && <p>{setDescription(set)}</p>}
             </div>
             {canManage && !set.systemDefault && <button type="button" className="secondary-button" onClick={() => editSet(set)}>{t('common.edit')}</button>}
           </div>
