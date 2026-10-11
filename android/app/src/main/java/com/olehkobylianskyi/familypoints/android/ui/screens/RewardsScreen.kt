@@ -25,6 +25,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,6 +51,8 @@ import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.i18n.createTaskStrings
 import com.olehkobylianskyi.familypoints.android.i18n.rewardsStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
@@ -72,6 +75,7 @@ fun RewardsScreen(
     val text = rewardsStrings(language)
     val createText = createTaskStrings(language)
     val scope = rememberCoroutineScope()
+    val serverStatus by ServerReachability.status.collectAsState()
 
     val canManage =
         "MANAGE_REWARDS" in currentUser.permissions ||
@@ -82,6 +86,7 @@ fun RewardsScreen(
     var nameForms by remember { mutableStateOf<Map<Long, List<PointNameFormDto>>>(emptyMap()) }
     var loading by remember { mutableStateOf(true) }
     var showingCached by remember { mutableStateOf(false) }
+    var refreshVersion by remember { mutableStateOf(0) }
     var processing by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
 
@@ -209,26 +214,56 @@ fun RewardsScreen(
     suspend fun load() {
         loading = true
         error = ""
-        repository.cached(currentUser.workspaceId)?.let { cached ->
-            data = cached
+        refreshVersion += 1
+        val thisRefresh = refreshVersion
+        val workspaceId = currentUser.workspaceId
+        val memberId = currentUser.memberId
+        repository.cached(workspaceId, memberId)?.let { snapshot ->
+            data = snapshot
             showingCached = true
         }
-        try {
-            val loaded = repository.load(currentUser.workspaceId)
-            data = loaded
-            showingCached = false
-            if (rewardPointTypeId == null) {
-                rewardPointTypeId = loaded.pointTypes.firstOrNull()?.id
+
+        // An offline catalog is read-only. Do not wait for a known-dead API.
+        if (serverStatus == ServerStatus.OFFLINE) {
+            loading = false
+            if (data == null) {
+                error = when (language) {
+                    AppLanguage.UK -> "Каталог ще не збережений. Відкрийте нагороди один раз із доступним сервером."
+                    AppLanguage.DE -> "Katalog noch nicht gespeichert. Bitte einmal mit Serververbindung öffnen."
+                    AppLanguage.EN -> "Catalog not cached yet. Open Rewards once while the server is available."
+                    AppLanguage.RU -> "Каталог ещё не сохранён. Откройте награды один раз при доступном сервере."
+                }
             }
-            if (reviewPointTypeId == null) {
-                reviewPointTypeId = loaded.pointTypes.firstOrNull()?.id
+            return
+        }
+
+        try {
+            val catalog = repository.refreshCatalog(workspaceId, memberId)
+            if (refreshVersion != thisRefresh) return
+            data = catalog
+            showingCached = false
+            loading = false
+            if (rewardPointTypeId == null) rewardPointTypeId = catalog.pointTypes.firstOrNull()?.id
+            if (reviewPointTypeId == null) reviewPointTypeId = catalog.pointTypes.firstOrNull()?.id
+
+            // Other requests may be slow; never hold back the visible catalog.
+            scope.launch {
+                try {
+                    val extra = repository.refreshSupplementary(workspaceId, memberId, catalog)
+                    if (refreshVersion == thisRefresh) {
+                        data = extra
+                        if (rewardPointTypeId == null) rewardPointTypeId = extra.pointTypes.firstOrNull()?.id
+                        if (reviewPointTypeId == null) reviewPointTypeId = extra.pointTypes.firstOrNull()?.id
+                    }
+                } catch (e: HttpException) {
+                    if (e.code() == 401) onUnauthorized()
+                } catch (_: Exception) {
+                    // Catalog, price and requirements remain usable for viewing.
+                }
             }
         } catch (exception: HttpException) {
-            if (exception.code() == 401) {
-                onUnauthorized()
-            } else if (data == null) {
-                error = exception.message()
-            }
+            if (exception.code() == 401) onUnauthorized()
+            else if (data == null) error = exception.message()
         } catch (exception: Exception) {
             if (data == null) error = exception.message ?: ""
         } finally {
@@ -237,6 +272,7 @@ fun RewardsScreen(
     }
 
     suspend fun run(action: suspend () -> Unit) {
+        if (processing || showingCached || serverStatus != ServerStatus.ONLINE) return
         processing = true
         error = ""
         try {
@@ -259,7 +295,8 @@ fun RewardsScreen(
         load()
     }
 
-    LaunchedEffect(data?.pointTypes) {
+    LaunchedEffect(data?.pointTypes, serverStatus) {
+        if (serverStatus != ServerStatus.ONLINE) return@LaunchedEffect
         val types = data?.pointTypes.orEmpty()
         val received = mutableMapOf<Long, List<PointNameFormDto>>()
         types.forEach { type ->
@@ -332,12 +369,12 @@ fun RewardsScreen(
                 }
             }
 
-            if (loading) {
+            if (loading && data == null) {
                 item { Text(text.loading) }
             }
 
             val current = data
-            if (!loading && current != null) {
+            if (current != null) {
                 if (current.obligations.isNotEmpty()) {
                     item {
                         Card(modifier = Modifier.fillMaxWidth()) {
@@ -380,7 +417,7 @@ fun RewardsScreen(
                                     configuredForms = reward.pointTypeId?.let { nameForms[it] }.orEmpty(),
                                     acquisitionLabel =
                                         acquisitionLabel(reward.acquisitionMode),
-                                    processing = processing,
+                                    processing = processing || showingCached || serverStatus != ServerStatus.ONLINE,
                                     onPurchase = {
                                         scope.launch {
                                             run {
@@ -461,7 +498,7 @@ fun RewardsScreen(
                                             }
                                         },
                                         modifier = Modifier.fillMaxWidth(),
-                                        enabled = !processing
+                                        enabled = !processing && !showingCached && serverStatus == ServerStatus.ONLINE
                                     ) {
                                         Text(text.send)
                                     }
@@ -488,7 +525,7 @@ fun RewardsScreen(
                                     pointCode = request.pointTypeCode,
                                     configuredForms = request.pointTypeId?.let { nameForms[it] }.orEmpty(),
                                     canManage = canManage,
-                                    processing = processing,
+                                    processing = processing || showingCached || serverStatus != ServerStatus.ONLINE,
                                     reviewing =
                                         reviewingRequestId == request.id,
                                     pointTypes = current.pointTypes,
@@ -668,7 +705,7 @@ fun RewardsScreen(
                                                 }
                                             },
                                             modifier = Modifier.fillMaxWidth(),
-                                            enabled = !processing
+                                            enabled = !processing && !showingCached && serverStatus == ServerStatus.ONLINE
                                         ) {
                                             Text(text.add)
                                         }
@@ -1061,7 +1098,7 @@ fun RewardsScreen(
                                                 }
                                             },
                                             modifier = Modifier.fillMaxWidth(),
-                                            enabled = !processing
+                                            enabled = !processing && !showingCached && serverStatus == ServerStatus.ONLINE
                                         ) {
                                             Text(text.createReward)
                                         }
