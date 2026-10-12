@@ -190,6 +190,15 @@ public class TaskController {
     }
 
 
+    @GetMapping("/members/{memberId}/schedule")
+    public List<TaskScheduleOccurrenceResponse> getMemberSchedule(
+            @PathVariable Long workspaceId,
+            @PathVariable Long memberId,
+            @RequestParam LocalDate date
+    ) {
+        return taskService.getMemberSchedule(workspaceId, memberId, date);
+    }
+
     @GetMapping("/open")
     public List<TaskDefinitionResponse> getOpenTasks(
             @PathVariable Long workspaceId,
