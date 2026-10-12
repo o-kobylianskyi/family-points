@@ -22,6 +22,11 @@ public interface TaskDefinitionRepository
     Optional<TaskDefinition>
     findByIdAndWorkspaceId(Long id, Long workspaceId);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select d from TaskDefinition d where d.id = :id and d.workspace.id = :workspaceId")
+    Optional<TaskDefinition> findForOccurrenceUpdate(@Param("id") Long id,
+                                                     @Param("workspaceId") Long workspaceId);
+
     Optional<TaskDefinition> findByWorkNodeId(Long workNodeId);
 
     List<TaskDefinition>
