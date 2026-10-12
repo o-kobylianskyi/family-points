@@ -118,6 +118,13 @@ public class RewardService {
         );
 
         reward.setCooldownSeconds(request.getCooldownSeconds() == null ? 30 : request.getCooldownSeconds());
+        reward.setMemberTotalLimit(request.getMemberTotalLimit());
+        reward.setMemberDailyLimit(request.getMemberDailyLimit());
+        reward.setMemberWeeklyLimit(request.getMemberWeeklyLimit());
+        reward.setWorkspaceTotalLimit(request.getWorkspaceTotalLimit());
+        reward.setWorkspaceDailyLimit(request.getWorkspaceDailyLimit());
+        reward.setWorkspaceWeeklyLimit(request.getWorkspaceWeeklyLimit());
+        reward.setExtraRequestAllowed(request.isExtraRequestAllowed());
         reward.setCategories(resolveCategories(workspaceId, request.getCategoryIds()));
         RewardDefinition saved = rewards.save(reward);
         saveRequirements(workspaceId, saved, null, request.getRequirements());
@@ -150,6 +157,13 @@ public class RewardService {
         reward.setDefaultDurationMinutes(input.getRewardKind() == RewardKind.TIME_BASED
                 ? input.getDefaultDurationMinutes() : null);
         reward.setCooldownSeconds(input.getCooldownSeconds() == null ? 30 : input.getCooldownSeconds());
+        reward.setMemberTotalLimit(input.getMemberTotalLimit());
+        reward.setMemberDailyLimit(input.getMemberDailyLimit());
+        reward.setMemberWeeklyLimit(input.getMemberWeeklyLimit());
+        reward.setWorkspaceTotalLimit(input.getWorkspaceTotalLimit());
+        reward.setWorkspaceDailyLimit(input.getWorkspaceDailyLimit());
+        reward.setWorkspaceWeeklyLimit(input.getWorkspaceWeeklyLimit());
+        reward.setExtraRequestAllowed(input.isExtraRequestAllowed());
         reward.setCategories(resolveCategories(workspaceId, input.getCategoryIds()));
 
         // Replace only this catalog definition's conditions. Approved requests keep their own conditions.
@@ -278,7 +292,7 @@ public class RewardService {
             Long rewardDefinitionId
     ) {
         WorkspaceMember member = lockMemberForPurchase(workspaceId, memberId);
-        RewardDefinition reward = rewards.findByIdAndWorkspaceId(rewardDefinitionId, workspaceId)
+        RewardDefinition reward = rewards.findForPurchase(rewardDefinitionId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reward not found: " + rewardDefinitionId));
 
         if (!reward.isActive()) {
@@ -289,6 +303,7 @@ public class RewardService {
         }
 
         requireCooldownElapsed(memberId, reward);
+        requireRedemptionLimits(memberId, reward);
         assertNotBlocked(member, reward);
 
         if (reward.getMinimumReputation() != null
@@ -360,8 +375,11 @@ public class RewardService {
         }
 
         if (request.getRewardDefinition() != null) {
-            requireCooldownElapsed(memberId, request.getRewardDefinition());
-            assertNotBlocked(member, request.getRewardDefinition());
+            RewardDefinition lockedReward = rewards.findForPurchase(request.getRewardDefinition().getId(), workspaceId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Reward not found"));
+            requireCooldownElapsed(memberId, lockedReward);
+            requireRedemptionLimits(memberId, lockedReward);
+            assertNotBlocked(member, lockedReward);
         } else {
             assertNoGlobalBlock(member);
         }
@@ -403,6 +421,32 @@ public class RewardService {
     private WorkspaceMember lockMemberForPurchase(Long workspaceId, Long memberId) {
         return members.findByIdAndWorkspaceIdForUpdate(memberId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Active member not found"));
+    }
+
+    private void requireRedemptionLimits(Long memberId, RewardDefinition reward) {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDate startOfWeek = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(
+                java.time.DayOfWeek.MONDAY));
+        checkLimit(reward, memberId, null, null, reward.getMemberTotalLimit(), "Personal total");
+        checkLimit(reward, memberId, today.atStartOfDay(), today.plusDays(1).atStartOfDay(),
+                reward.getMemberDailyLimit(), "Personal daily");
+        checkLimit(reward, memberId, startOfWeek.atStartOfDay(), startOfWeek.plusWeeks(1).atStartOfDay(),
+                reward.getMemberWeeklyLimit(), "Personal weekly");
+        checkLimit(reward, null, null, null, reward.getWorkspaceTotalLimit(), "Family total");
+        checkLimit(reward, null, today.atStartOfDay(), today.plusDays(1).atStartOfDay(),
+                reward.getWorkspaceDailyLimit(), "Family daily");
+        checkLimit(reward, null, startOfWeek.atStartOfDay(), startOfWeek.plusWeeks(1).atStartOfDay(),
+                reward.getWorkspaceWeeklyLimit(), "Family weekly");
+    }
+
+    private void checkLimit(RewardDefinition reward, Long memberId,
+                            java.time.LocalDateTime from, java.time.LocalDateTime until,
+                            Integer limit, String label) {
+        if (limit == null) return;
+        if (purchases.countForLimit(reward.getId(), memberId, from, until) >= limit) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.CONFLICT, label + " reward limit reached");
+        }
     }
 
     private void requireCooldownElapsed(Long memberId, RewardDefinition reward) {
