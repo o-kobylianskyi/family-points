@@ -19,7 +19,7 @@ class MyReputationControllerHistoryTest {
         when(current.getCurrentMemberId()).thenReturn(47L);
         when(entry.getId()).thenReturn(5L);
         when(entry.getAmount()).thenReturn(10);
-        when(entry.getSourceType()).thenReturn(ReputationTransactionSourceType.MANUAL);
+        when(entry.getSourceType()).thenReturn(ReputationTransactionSourceType.MANUAL_BONUS);
         when(entry.getDescription()).thenReturn("Helpful action");
         when(entry.getCreatedAt()).thenReturn(LocalDateTime.of(2026,10,12,18,0));
         when(history.findByMemberIdOrderByCreatedAtDesc(47L)).thenReturn(List.of(entry));
