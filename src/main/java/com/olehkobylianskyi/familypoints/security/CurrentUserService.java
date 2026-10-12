@@ -47,16 +47,11 @@ public class CurrentUserService {
     }
 
     public Long getCurrentMemberId() {
-        return getCurrentAccount()
-                .getWorkspaceMember()
-                .getId();
+        return getCurrentMember().getId();
     }
 
     public Long getCurrentWorkspaceId() {
-        return getCurrentAccount()
-                .getWorkspaceMember()
-                .getWorkspace()
-                .getId();
+        return getCurrentMember().getWorkspace().getId();
     }
 
     public boolean belongsToWorkspace(Long workspaceId) {
