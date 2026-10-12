@@ -496,3 +496,8 @@
 - Updated account creation to save the account and its `AccountWorkspaceMembership` within the existing `@Transactional` service method (`e650779`). Newly created accounts can now be returned by `GET /api/me/workspaces`; database failure should roll back the transaction.
 - Added mocked service tests (`6aefaef`) for membership creation and duplicate-account rejection. Neither test nor full Maven suite has been run in this tool environment.
 - Existing account authorization, JWT scoped-token denial, and workspace switching remain unchanged. Do not enable scoped JWT until every permission consumer is audited and multi-workspace HTTP authorization is covered.
+
+## 2026-10-12 — Existing account joins an additional workspace (internal primitive)
+- Added `AccountMembershipLinkService` in `756be44` to write a membership for an existing global UserAccount and a workspace-local active member, rejecting disabled accounts, unavailable members, already-linked members, or duplicate account membership within that Workspace.
+- Added four unit tests in `2f8dee0` for successful linking and negative cases. No public endpoint or invitation mechanism has been exposed; linking must only be called after future verified invitation/consent/authorization rules are defined. Database uniqueness enforces one account per member but **not yet** one membership per account per workspace under concurrency; a database-level constraint/locking strategy is still required before public invitations.
+- Existing JWT scoped-token guard and DEV authorization remain unchanged. New code is not locally compiled or tested; run `git pull` and `mvnw.cmd test`. Full JWT context and end-to-end two-tenant authorization remain unfinished.
