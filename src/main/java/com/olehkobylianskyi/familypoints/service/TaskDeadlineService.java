@@ -4,6 +4,7 @@ import com.olehkobylianskyi.familypoints.entity.TaskInstance;
 import com.olehkobylianskyi.familypoints.entity.TaskInstanceStatus;
 import com.olehkobylianskyi.familypoints.repository.TaskInstanceRepository;
 import com.olehkobylianskyi.familypoints.repository.TaskDefinitionRepository;
+import com.olehkobylianskyi.familypoints.repository.TaskScheduleSlotRepository;
 import com.olehkobylianskyi.familypoints.repository.WorkspaceRepository;
 import com.olehkobylianskyi.familypoints.entity.TaskDefinition;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,19 +23,22 @@ public class TaskDeadlineService {
     private final TaskDefinitionRepository definitions;
     private final WorkspaceRepository workspaces;
     private final TaskGenerationService generation;
+    private final TaskScheduleSlotRepository slots;
 
     public TaskDeadlineService(
             TaskInstanceRepository taskInstanceRepository,
             TaskService taskService,
             TaskDefinitionRepository definitions,
             WorkspaceRepository workspaces,
-            TaskGenerationService generation
+            TaskGenerationService generation,
+            TaskScheduleSlotRepository slots
     ) {
         this.taskInstanceRepository = taskInstanceRepository;
         this.taskService = taskService;
         this.definitions = definitions;
         this.workspaces = workspaces;
         this.generation = generation;
+        this.slots = slots;
     }
 
     /**
@@ -60,12 +64,21 @@ public class TaskDeadlineService {
             LocalDateTime now
     ) {
         for (TaskDefinition definition : definitions.findByWorkspaceIdAndActiveTrue(workspaceId)) {
-            if (!definition.isMandatory() || definition.getDueTime() == null
-                    || definition.getAssignedMember() == null) continue;
+            if (!definition.isMandatory() || definition.getAssignedMember() == null) continue;
             for (int daysAgo = 1; daysAgo >= 0; daysAgo--) {
                 LocalDate date = now.toLocalDate().minusDays(daysAgo);
-                if (now.isBefore(LocalDateTime.of(date, definition.getDueTime()))) continue;
-                generation.generateForDefinition(definition, date);
+                if (!generation.shouldGenerate(definition, date)) continue;
+                var definedSlots = slots.findByTaskDefinitionIdAndEnabledTrueOrderByScheduledTimeAscSlotKeyAsc(definition.getId());
+                if (definedSlots.isEmpty()) {
+                    if (definition.getDueTime() == null || now.isBefore(LocalDateTime.of(date, definition.getDueTime()))) continue;
+                    generation.generateForDefinition(definition, date);
+                } else {
+                    for (var slot : definedSlots) {
+                        if (slot.getScheduledTime() == null || now.isBefore(LocalDateTime.of(date, slot.getScheduledTime()))) continue;
+                        // Lock the definition before creating one slot; never create future instances.
+                        taskService.materializeOverdueSlot(workspaceId, definition.getId(), date, slot.getSlotKey());
+                    }
+                }
             }
         }
 
@@ -94,8 +107,7 @@ public class TaskDeadlineService {
             LocalDateTime deadline =
                     LocalDateTime.of(
                             instance.getScheduledDate(),
-                            instance.getTaskDefinition()
-                                    .getDueTime()
+                            instance.getDueTime()
                     );
 
             if (now.isBefore(deadline)) {
