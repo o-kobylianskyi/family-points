@@ -532,6 +532,28 @@ public class TaskService {
         return created;
     }
 
+    /** System-only materialization of an overdue slot; the deadline worker applies penalties separately. */
+    @Transactional
+    public TaskInstance materializeOverdueSlot(Long workspaceId, Long definitionId, LocalDate date, String slotKey) {
+        TaskDefinition definition = taskDefinitionRepository.findForOccurrenceUpdate(definitionId, workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task definition not found"));
+        if (!definition.isActive() || !definition.isMandatory()
+                || definition.getAssignedMember() == null
+                || !taskGenerationService.shouldGenerate(definition, date)) {
+            throw new InvalidTaskStateException("Task occurrence is not eligible for deadline processing");
+        }
+        var slot = taskScheduleSlots.findByTaskDefinitionIdAndSlotKeyAndEnabledTrue(definitionId, slotKey)
+                .orElseThrow(() -> new InvalidTaskStateException("Unknown scheduled slot"));
+        if (slot.getScheduledTime() == null
+                || LocalDateTime.now().isBefore(LocalDateTime.of(date, slot.getScheduledTime()))) {
+            throw new InvalidTaskStateException("Task occurrence is not overdue");
+        }
+        return taskInstanceRepository.findByTaskDefinitionIdAndScheduledDateAndSlotKey(definitionId, date, slotKey)
+                .orElseGet(() -> taskInstanceRepository.save(
+                        new TaskInstance(definition, definition.getAssignedMember(), date)
+                                .withSlot(slotKey, slot.getScheduledTime())));
+    }
+
     @Transactional
     public TaskInstance startScheduledOccurrence(Long workspaceId, Long definitionId, LocalDate date) {
         return startScheduledOccurrence(workspaceId, definitionId, date, "default");
