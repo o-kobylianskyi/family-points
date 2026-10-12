@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import CreateTaskModal from '../components/CreateTaskModal'
+import TaskScheduleEditor from '../components/TaskScheduleEditor'
 import TaskRewardNegotiationModal from '../components/TaskRewardNegotiationModal'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 import {
@@ -303,6 +304,8 @@ function TaskDetailsPage() {
           </div>
         </div>
       </section>
+
+      <TaskScheduleEditor definitionId={task.id} onChanged={load} />
 
       <section className="task-details-card">
         <h2>Історія</h2>
