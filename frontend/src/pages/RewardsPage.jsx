@@ -30,6 +30,13 @@ const emptyRewardForm = {
   pointTypeId: '',
   priceAmount: 20,
   cooldownSeconds: 30,
+  memberTotalLimit: '',
+  memberDailyLimit: '',
+  memberWeeklyLimit: '',
+  workspaceTotalLimit: '',
+  workspaceDailyLimit: '',
+  workspaceWeeklyLimit: '',
+  extraRequestAllowed: false,
   minimumReputation: '',
   acquisitionMode: 'DIRECT',
   rewardKind: 'STANDARD',
@@ -267,6 +274,13 @@ function RewardsPage() {
       pointTypeId: reward.pointTypeId,
       priceAmount: reward.priceAmount,
       cooldownSeconds: reward.cooldownSeconds ?? 30,
+      memberTotalLimit: reward.memberTotalLimit ?? '',
+      memberDailyLimit: reward.memberDailyLimit ?? '',
+      memberWeeklyLimit: reward.memberWeeklyLimit ?? '',
+      workspaceTotalLimit: reward.workspaceTotalLimit ?? '',
+      workspaceDailyLimit: reward.workspaceDailyLimit ?? '',
+      workspaceWeeklyLimit: reward.workspaceWeeklyLimit ?? '',
+      extraRequestAllowed: reward.extraRequestAllowed ?? false,
       minimumReputation: reward.minimumReputation ?? '',
       requiresApproval: reward.requiresApproval,
       acquisitionMode: reward.acquisitionMode,
@@ -298,6 +312,13 @@ function RewardsPage() {
           pointTypeId: Number(rewardForm.pointTypeId),
           priceAmount: Number(rewardForm.priceAmount || 0),
           cooldownSeconds: Number(rewardForm.cooldownSeconds ?? 30),
+          memberTotalLimit: rewardForm.memberTotalLimit === '' ? null : Number(rewardForm.memberTotalLimit),
+          memberDailyLimit: rewardForm.memberDailyLimit === '' ? null : Number(rewardForm.memberDailyLimit),
+          memberWeeklyLimit: rewardForm.memberWeeklyLimit === '' ? null : Number(rewardForm.memberWeeklyLimit),
+          workspaceTotalLimit: rewardForm.workspaceTotalLimit === '' ? null : Number(rewardForm.workspaceTotalLimit),
+          workspaceDailyLimit: rewardForm.workspaceDailyLimit === '' ? null : Number(rewardForm.workspaceDailyLimit),
+          workspaceWeeklyLimit: rewardForm.workspaceWeeklyLimit === '' ? null : Number(rewardForm.workspaceWeeklyLimit),
+          extraRequestAllowed: rewardForm.extraRequestAllowed,
           minimumReputation:
             rewardForm.minimumReputation === ''
               ? null
@@ -916,6 +937,50 @@ function RewardsPage() {
                       ...rewardForm, cooldownSeconds: event.target.value
                     })} />
                   <small>0 — без обмеження, 30 — захист від випадкового подвійного натискання.</small>
+                </label>
+
+                <div className="reward-form-grid">
+                  <label>
+                    <span>Особистий ліміт за весь час</span>
+                    <input type="number" min="1" placeholder="Без обмежень"
+                      value={rewardForm.memberTotalLimit}
+                      onChange={(event) => setRewardForm({ ...rewardForm, memberTotalLimit: event.target.value })} />
+                  </label>
+                  <label>
+                    <span>Особистий ліміт на день</span>
+                    <input type="number" min="1" placeholder="Без обмежень"
+                      value={rewardForm.memberDailyLimit}
+                      onChange={(event) => setRewardForm({ ...rewardForm, memberDailyLimit: event.target.value })} />
+                  </label>
+                  <label>
+                    <span>Особистий ліміт на тиждень</span>
+                    <input type="number" min="1" placeholder="Без обмежень"
+                      value={rewardForm.memberWeeklyLimit}
+                      onChange={(event) => setRewardForm({ ...rewardForm, memberWeeklyLimit: event.target.value })} />
+                  </label>
+                  <label>
+                    <span>Спільний ліміт сім'ї за весь час</span>
+                    <input type="number" min="1" placeholder="Без обмежень"
+                      value={rewardForm.workspaceTotalLimit}
+                      onChange={(event) => setRewardForm({ ...rewardForm, workspaceTotalLimit: event.target.value })} />
+                  </label>
+                  <label>
+                    <span>Спільний ліміт сім'ї на день</span>
+                    <input type="number" min="1" placeholder="Без обмежень"
+                      value={rewardForm.workspaceDailyLimit}
+                      onChange={(event) => setRewardForm({ ...rewardForm, workspaceDailyLimit: event.target.value })} />
+                  </label>
+                  <label>
+                    <span>Спільний ліміт сім'ї на тиждень</span>
+                    <input type="number" min="1" placeholder="Без обмежень"
+                      value={rewardForm.workspaceWeeklyLimit}
+                      onChange={(event) => setRewardForm({ ...rewardForm, workspaceWeeklyLimit: event.target.value })} />
+                  </label>
+                </div>
+                <label className="form-checkbox">
+                  <input type="checkbox" checked={rewardForm.extraRequestAllowed}
+                    onChange={event => setRewardForm({ ...rewardForm, extraRequestAllowed: event.target.checked })} />
+                  <span>Дозволяти запити на додаткове отримання понад ліміт (потребує схвалення)</span>
                 </label>
 
                 <label>
