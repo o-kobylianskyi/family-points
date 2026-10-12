@@ -1,7 +1,4 @@
-const API_URL =
-  window.location.hostname === 'dev.family-point.com'
-    ? 'https://api-dev.family-point.com:8443'
-    : `http://${window.location.hostname}:8080`
+import { API_URL } from './baseUrl'
 
 export async function login(username, password) {
   const response = await fetch(`${API_URL}/auth/login`, {
