@@ -3,12 +3,14 @@ package com.olehkobylianskyi.familypoints.controller;
 import com.olehkobylianskyi.familypoints.dto.WorkspaceRoleResponse;
 import com.olehkobylianskyi.familypoints.service.WorkspaceRoleService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/workspaces/{workspaceId}/roles")
+@PreAuthorize("@workspaceSecurity.canAccessWorkspace(#workspaceId)")
 public class WorkspaceRoleController {
 
     private final WorkspaceRoleService workspaceRoleService;
@@ -17,6 +19,7 @@ public class WorkspaceRoleController {
         this.workspaceRoleService = workspaceRoleService;
     }
 
+    @PreAuthorize("@workspaceSecurity.canManageRoles(#workspaceId)")
     @PostMapping("/defaults")
     public ResponseEntity<Void> createDefaultRoles(
             @PathVariable Long workspaceId
