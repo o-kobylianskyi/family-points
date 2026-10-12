@@ -100,8 +100,8 @@ public class TaskController {
 
 
     @GetMapping("/definitions/{definitionId}/instance")
-    public ResponseEntity<TaskInstanceResponse> getDefinitionInstance(@PathVariable Long workspaceId, @PathVariable Long definitionId, @RequestParam LocalDate date) {
-        TaskInstance instance = taskService.getInstanceForDefinitionDate(workspaceId, definitionId, date);
+    public ResponseEntity<TaskInstanceResponse> getDefinitionInstance(@PathVariable Long workspaceId, @PathVariable Long definitionId, @RequestParam LocalDate date, @RequestParam(defaultValue = "default") String slotKey) {
+        TaskInstance instance = taskService.getInstanceForDefinitionDate(workspaceId, definitionId, date, slotKey);
         return instance == null ? ResponseEntity.noContent().build() : ResponseEntity.ok(TaskInstanceResponse.from(instance));
     }
 
