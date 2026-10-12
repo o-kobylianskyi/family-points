@@ -609,3 +609,9 @@
 - Added MyReputationControllerTest (`365c699`) for selected member/workspace and balance.
 - Investigated GitHub Actions failure for previous commit `461d24f`: backend Maven RewardPurchaseCooldownTest failed because Mockito expected `findByIdAndWorkspaceIdForUpdate(8L,3L)` but implementation correctly invokes memberId first `(3L,8L)`. Fixed test setup in `1fa37b5`. Prior Android SDK setup CI also failed and remains under follow-up. The latest CI run has not been confirmed PASS.
 - Future UX parity: show reputation on dashboard/Points and Android screens. Note that rewards/catalog minimum reputation threshold already exists.
+
+## 2026-10-12 — Reputation dashboard parity and Android CI sdkmanager fix
+- Web DashboardPage `1da5953`: loads current workspace member reputation through /api/me/reputation and displays separate non-spendable metric beside points.
+- Android AuthApi `6bc69e8`, DashboardScreen `ad22cdf`, MainActivity `eee7dcc`: load active member reputation only online; verify memberId and workspaceId before showing; do not show stale reputation while offline or after switching workspace.
+- Investigated Actions run 38293200489: backend and Web passed; Android failed during setup-android with `Failed to find package 'platform-tools\\n platforms...'`; sdkmanager packages were interpreted as one multiline value. Workflow `6638c0b` now supplies a space-separated package list. Latest Android CI not yet confirmed.
+- Pending Android Gradle compilation and on-device UI smoke test; track latest run by SHA. Reputation Points-page and member-profile history still pending.
