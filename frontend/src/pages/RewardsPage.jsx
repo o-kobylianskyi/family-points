@@ -980,7 +980,7 @@ function RewardsPage() {
                 <label className="form-checkbox">
                   <input type="checkbox" checked={rewardForm.extraRequestAllowed}
                     onChange={event => setRewardForm({ ...rewardForm, extraRequestAllowed: event.target.checked })} />
-                  <span>Дозволяти запити на додаткове отримання понад ліміт (потребує схвалення)</span>
+                  <span>Дозволяти запити на додаткове отримання понад ліміт (механізм схвалення — в розробці)</span>
                 </label>
 
                 <label>
