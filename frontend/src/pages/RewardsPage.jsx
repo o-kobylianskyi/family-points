@@ -10,6 +10,7 @@ import { getTaskDefinitions } from '../api/taskApi'
 import {
   approveRewardRequest,
   createReward,
+  updateReward,
   createRewardCategory,
   createRewardRequest,
   getRewardCategories,
@@ -118,6 +119,7 @@ function RewardsPage() {
 
   const [categoryName, setCategoryName] = useState('')
   const [rewardForm, setRewardForm] = useState(emptyRewardForm)
+  const [editingRewardId, setEditingRewardId] = useState(null)
   const [customRequestTitle, setCustomRequestTitle] = useState('')
   const [customRequestDescription, setCustomRequestDescription] = useState('')
 
@@ -251,15 +253,46 @@ function RewardsPage() {
     })
   }
 
+  const beginEditReward = (reward) => {
+    const before = (reward.requirements || []).filter(r =>
+      r.phase === 'BEFORE_REWARD' && r.requirementType === 'TASK_COMPLETED' && r.taskDefinitionId != null)
+    const after = (reward.requirements || []).filter(r =>
+      r.phase === 'AFTER_REWARD' && r.requirementType === 'TASK_COMPLETED' && r.taskDefinitionId != null)
+    const blocking = after.find(r => r.blockingMode && r.blockingMode !== 'NONE')
+    setEditingRewardId(reward.id)
+    setRewardForm({
+      ...emptyRewardForm,
+      title: reward.title,
+      description: reward.description || '',
+      pointTypeId: reward.pointTypeId,
+      priceAmount: reward.priceAmount,
+      cooldownSeconds: reward.cooldownSeconds ?? 30,
+      minimumReputation: reward.minimumReputation ?? '',
+      requiresApproval: reward.requiresApproval,
+      acquisitionMode: reward.acquisitionMode,
+      rewardKind: reward.rewardKind,
+      defaultDurationMinutes: reward.defaultDurationMinutes ?? '',
+      categoryIds: (reward.categories || []).map(c => c.id),
+      beforeTaskIds: before.map(r => r.taskDefinitionId),
+      afterTaskIds: after.map(r => r.taskDefinitionId),
+      blockingMode: blocking?.blockingMode || 'NONE',
+      blockedCategoryIds: blocking?.blockedCategoryIds || [],
+      blockedRewardDefinitionIds: blocking?.blockedRewardDefinitionIds || [],
+    })
+    setPageTab('manage')
+  }
+
+  const cancelEditReward = () => {
+    setEditingRewardId(null)
+    setRewardForm({ ...emptyRewardForm, pointTypeId: pointTypes[0]?.id ?? '' })
+  }
+
   const createCatalogReward = async (event) => {
     event.preventDefault()
     if (!rewardForm.title.trim() || !rewardForm.pointTypeId) return
 
     await run(async () => {
-      await createReward(
-        getAccessToken(),
-        currentUser.workspaceId,
-        {
+      const payload = {
           title: rewardForm.title.trim(),
           description: rewardForm.description.trim() || null,
           pointTypeId: Number(rewardForm.pointTypeId),
@@ -279,7 +312,12 @@ function RewardsPage() {
           categoryIds: rewardForm.categoryIds,
           requirements: taskRequirements(rewardForm),
         }
-      )
+      if (editingRewardId != null) {
+        await updateReward(getAccessToken(), currentUser.workspaceId, editingRewardId, payload)
+      } else {
+        await createReward(getAccessToken(), currentUser.workspaceId, payload)
+      }
+      setEditingRewardId(null)
 
       setRewardForm((current) => ({
         ...emptyRewardForm,
@@ -517,6 +555,12 @@ function RewardsPage() {
                 </div>
 
                 <div className="reward-actions">
+                  {canManage && (
+                    <button type="button" className="secondary-button" disabled={processing}
+                      onClick={() => beginEditReward(reward)}>
+                      Редагувати
+                    </button>
+                  )}
                   {myRequestForReward(reward.id)?.status === 'READY_TO_PURCHASE' && (
                     <button type="button" className="primary-button" disabled={pendingPurchases.includes(`reward:${reward.id}`)}
                       onClick={() => purchaseOnce(`reward:${reward.id}`, () => purchaseRewardRequest(
@@ -808,7 +852,7 @@ function RewardsPage() {
           </section>
 
           <section className="reward-admin-panel">
-            <h2>Нова нагорода</h2>
+            <h2>{editingRewardId != null ? 'Редагування нагороди' : 'Нова нагорода'}</h2>
             <form onSubmit={createCatalogReward} className="reward-editor">
               <label>
                 <span>Назва</span>
@@ -999,8 +1043,13 @@ function RewardsPage() {
               )}
 
               <button type="submit" className="primary-button" disabled={processing}>
-                Створити нагороду
+                {editingRewardId != null ? 'Зберегти зміни' : 'Створити нагороду'}
               </button>
+              {editingRewardId != null && (
+                <button type="button" className="secondary-button" onClick={cancelEditReward} disabled={processing}>
+                  Скасувати редагування
+                </button>
+              )}
             </form>
           </section>
 
