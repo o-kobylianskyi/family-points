@@ -49,3 +49,23 @@ For a public Beta with brand-new PostgreSQL, set
 and independently verified.
 
 No DEV account/point/reward/task data should be copied to Beta.
+
+## Retry after an initial V1 was generated
+
+If `V1__baseline_schema.sql` already exists but the first Flyway validation
+failed on PostgreSQL 17 with `schema "public" already exists`, **do not
+regenerate V1 or delete the file**. Pull the latest code and run:
+
+```powershell
+.\scripts\db\generate-v1-baseline.ps1 -ValidateExisting
+```
+
+This mode skips the temporary historical Git worktree, preserves the generated
+V1, changes only an unconditional `CREATE SCHEMA public;` to
+`CREATE SCHEMA IF NOT EXISTS public;` (if present), and validates V1..V20
+on a new temporary database. The temporary V1 backup and logs are retained
+if validation fails. It never connects to the original DEV database.
+
+A Windows `git worktree remove --force` cleanup error may be caused by a
+temporary file lock; the validation-only mode avoids that historical worktree.
+Inspect `git worktree list` before deleting any local temporary folder.
