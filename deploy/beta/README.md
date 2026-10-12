@@ -79,7 +79,7 @@ Do not paste certificate private keys, auth credentials, SSH secrets or complete
 **Do NOT restore/copy the development database, its accounts or test data into Beta.** The current development data is not suitable for real users.
 
 The repo contains migrations V2–V20 but no initial compatible V1. Before launching the Beta API:
-1. Reconstruct/verify the original pre-V2 schema as a V1 migration, test V1–V20 from empty database; **or** import a *schema-only* (no rows) verified V20 snapshot into a disposable new DB with an explicit Flyway V20 baseline. No user/data rows are transferred.
+1. **Preferred: run `scripts/db/generate-v1-baseline.ps1` on the development laptop.** It creates V1 from the historical `v0.3-workspace` tag using temporary empty PostgreSQL and validates all Flyway migrations V1–V20 against a separate clean database. It does not copy DEV data. Commit V1 only after script PASS and review.
 2. Add a transactional registration flow that creates the family's workspace, initial administrator, default workspace roles, POINTS economy and onboarding state.
 3. Audit and enforce workspace isolation. `WorkspaceController` currently has cross-workspace read/update/delete risk, and several `EconomyController` endpoints do not check tenant membership. **Do not expose a multi-family Beta publicly until fixed and tested.**
 4. Add first-run Web wizard to enter family members, roles, optional example tasks and rewards, with templates independently cloned into each family's workspace.
