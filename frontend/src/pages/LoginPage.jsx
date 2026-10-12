@@ -5,6 +5,12 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 
+const LAST_USERNAME_KEY = 'familyPoints.lastUsername'
+
+function readLastUsername() {
+  try { return window.localStorage.getItem(LAST_USERNAME_KEY) || '' } catch { return '' }
+}
+
 function LoginPage() {
   const { t } = useTranslation()
 
@@ -16,7 +22,7 @@ function LoginPage() {
 
   const navigate = useNavigate()
 
-  const [username, setUsername] = useState('')
+  const [username, setUsername] = useState(readLastUsername)
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
@@ -42,6 +48,7 @@ function LoginPage() {
 
     try {
       await login(username, password)
+      try { window.localStorage.setItem(LAST_USERNAME_KEY, username.trim()) } catch { /* storage unavailable */ }
 
       setPassword('')
       navigate('/', { replace: true })
