@@ -5,3 +5,9 @@ export async function getMyReputation(token) {
   if (!response.ok) throw new Error('Не вдалося завантажити репутацію')
   return response.json()
 }
+
+export async function getMyReputationHistory(token) {
+  const response = await apiRequest('/api/me/reputation/history', { token })
+  if (!response.ok) throw new Error('Не вдалося завантажити історію репутації')
+  return response.json()
+}
