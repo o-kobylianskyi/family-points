@@ -9,10 +9,21 @@ import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
 function AppLayout() {
   const { t } = useTranslation()
-  const { currentUser, logout } = useAuth()
+  const { currentUser, logout, getAvailableWorkspaces, switchWorkspace } = useAuth()
+  const [workspaceChoices, setWorkspaceChoices] = useState([])
+  const [switching, setSwitching] = useState(false)
+  const [switchError, setSwitchError] = useState('')
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    getAvailableWorkspaces().then((choices) => {
+      if (!cancelled) setWorkspaceChoices(choices)
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [currentUser?.workspaceId])
 
   useEffect(() => {
     setMobileMenuOpen(false)
@@ -60,6 +71,31 @@ function AppLayout() {
           <div className="header-user">
             <LanguageSwitcher />
 
+            {workspaceChoices.length > 1 && (
+              <select
+                aria-label="Активна сім'я / Active workspace"
+                title="Активна сім'я"
+                value={currentUser.workspaceId}
+                disabled={switching}
+                onChange={async (event) => {
+                  setSwitching(true)
+                  setSwitchError('')
+                  try {
+                    await switchWorkspace(Number(event.target.value))
+                  } catch {
+                    setSwitchError('Не вдалося змінити сім’ю')
+                    setSwitching(false)
+                  }
+                }}
+              >
+                {workspaceChoices.map((choice) => (
+                  <option key={choice.workspaceId} value={choice.workspaceId}>
+                    {choice.workspaceName}
+                  </option>
+                ))}
+              </select>
+            )}
+            {switchError && <span role="alert">{switchError}</span>}
             <div className="header-user-info">
               <strong>{currentUser.memberName}</strong>
               <span>{currentUser.workspaceRoleCode === "PARENT"
