@@ -120,6 +120,12 @@ function RewardsPage() {
   const [reviewingRequestId, setReviewingRequestId] = useState(null)
   const [reviewForm, setReviewForm] = useState(emptyReviewForm)
 
+  const myRequestForReward = (rewardId) => requests.filter((request) =>
+    request.rewardDefinitionId === rewardId &&
+    request.requestedByMemberId === currentUser.memberId &&
+    ['REQUESTED', 'APPROVED', 'WAITING_REQUIREMENTS', 'READY_TO_PURCHASE'].includes(request.status)
+  ).sort((a, b) => b.id - a.id)[0]
+
   const canManage = currentUser.permissions?.includes('MANAGE_REWARDS')
     || currentUser.permissions?.includes('ADMIN_OVERRIDE')
 
@@ -484,6 +490,18 @@ function RewardsPage() {
                 </div>
 
                 <div className="reward-actions">
+                  {myRequestForReward(reward.id)?.status === 'READY_TO_PURCHASE' && (
+                    <button type="button" className="primary-button" disabled={processing}
+                      onClick={() => run(() => purchaseRewardRequest(
+                        getAccessToken(), currentUser.workspaceId, myRequestForReward(reward.id).id
+                      ), `Нагороду «${reward.title}» отримано. Баланс оновлено.`)}>
+                      Отримати
+                    </button>
+                  )}
+                  {myRequestForReward(reward.id) &&
+                    myRequestForReward(reward.id).status !== 'READY_TO_PURCHASE' && (
+                    <span className="reward-status">{requestStatusLabel(myRequestForReward(reward.id).status)}</span>
+                  )}
                   {reward.acquisitionMode !== 'REQUEST' && !reward.requiresApproval && (
                     <button
                       type="button"
@@ -501,7 +519,7 @@ function RewardsPage() {
                     </button>
                   )}
 
-                  {(reward.acquisitionMode !== 'DIRECT' || reward.requiresApproval) && (
+                  {!myRequestForReward(reward.id) && (reward.acquisitionMode !== 'DIRECT' || reward.requiresApproval) && (
                     <button
                       type="button"
                       className="secondary-button"
@@ -702,7 +720,7 @@ function RewardsPage() {
                 </div>
               )}
 
-              {!canManage && request.status === 'WAITING_REQUIREMENTS' && (
+              {request.requestedByMemberId === currentUser.memberId && request.status === 'WAITING_REQUIREMENTS' && (
                 <button
                   type="button"
                   className="secondary-button"
@@ -719,7 +737,7 @@ function RewardsPage() {
                 </button>
               )}
 
-              {!canManage && request.status === 'READY_TO_PURCHASE' && (
+              {request.requestedByMemberId === currentUser.memberId && request.status === 'READY_TO_PURCHASE' && (
                 <button
                   type="button"
                   className="primary-button"
@@ -729,7 +747,7 @@ function RewardsPage() {
                       getAccessToken(),
                       currentUser.workspaceId,
                       request.id
-                    )
+                    ), `Нагороду «${request.title}» отримано. Баланс оновлено.`
                   )}
                 >
                   Отримати нагороду
