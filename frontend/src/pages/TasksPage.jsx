@@ -656,7 +656,7 @@ function TasksPage() {
                     </button>
                   )}
                   <Link className="task-action-button secondary task-open-link"
-                    to={`/tasks/${item.taskDefinitionId}?date=${selectedDate}`}>
+                    to={`/tasks/${item.taskDefinitionId}?date=${selectedDate}&slotKey=${encodeURIComponent(item.occurrenceKey.split(':').at(-1))}`}>
                     Переглянути →
                   </Link>
                 </div>
