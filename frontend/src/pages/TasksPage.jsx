@@ -194,8 +194,8 @@ function TasksPage() {
     }
   }
 
-  const loadManagedTasks = async () => {
-    if (pageTab !== 'management') {
+  const loadManagedTasks = async (force = false) => {
+    if (!force && pageTab !== 'management') {
       return
     }
 
@@ -987,7 +987,9 @@ function TasksPage() {
           existingTaskDefinitions={visibleDefinitions}
           defaultMemberId={selectedMemberId}
           onClose={() => setCreateModalOpen(false)}
-          onCreated={() => loadAllTasks()}
+          onCreated={async () => {
+            await Promise.all([loadAllTasks(), loadManagedTasks(true)])
+          }}
         />
       )}
 
