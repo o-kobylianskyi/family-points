@@ -15,6 +15,7 @@ public class RewardDefinitionResponse {
     private final String pointTypeName;
     private final int priceAmount;
     private final Integer minimumReputation;
+    private final int cooldownSeconds;
     private final boolean requiresApproval;
     private final String rewardKind;
     private final Integer defaultDurationMinutes;
@@ -37,6 +38,7 @@ public class RewardDefinitionResponse {
         this.pointTypeName = reward.getPointType().getName();
         this.priceAmount = reward.getPriceAmount();
         this.minimumReputation = reward.getMinimumReputation();
+        this.cooldownSeconds = reward.getCooldownSeconds();
         this.requiresApproval = reward.isRequiresApproval();
         this.rewardKind = reward.getRewardKind().name();
         this.defaultDurationMinutes = reward.getDefaultDurationMinutes();
@@ -69,6 +71,7 @@ public class RewardDefinitionResponse {
     public String getPointTypeName() { return pointTypeName; }
     public int getPriceAmount() { return priceAmount; }
     public Integer getMinimumReputation() { return minimumReputation; }
+    public int getCooldownSeconds() { return cooldownSeconds; }
     public boolean isRequiresApproval() { return requiresApproval; }
     public String getRewardKind() { return rewardKind; }
     public Integer getDefaultDurationMinutes() { return defaultDurationMinutes; }
