@@ -282,6 +282,13 @@ fun RewardsScreen(
         } catch (exception: HttpException) {
             if (exception.code() == 401) {
                 onUnauthorized()
+            } else if (exception.code() == 409) {
+                error = when (language) {
+                    AppLanguage.UK -> "Нагороду вже отримано. Зачекайте перед повторним отриманням."
+                    AppLanguage.DE -> "Belohnung bereits erhalten. Bitte vor dem erneuten Einlösen warten."
+                    AppLanguage.EN -> "Reward already claimed. Please wait before claiming it again."
+                    AppLanguage.RU -> "Награда уже получена. Подождите перед повторным получением."
+                }
             } else {
                 error = exception.message()
             }
