@@ -1740,3 +1740,9 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - Calendar projection should list future PLANNED occurrences without TaskInstance insertion; materialize an individual occurrence transactionally on start, completion or deadline processing.
 - Stable occurrence key must include (definitionId, scheduledDate, slotKey) to support multiple daily occurrences; unique DB key and event/ledger idempotency must follow.
 - Preserve historical instances and audit, protect actor/workspace visibility, and never create 100 days of rows in advance. Read-only phase initially supports one default slot/day; multiple slots and write/miss handling require staged schema and service changes.
+
+## 2026-10-12 — Task recurrence and deadline semantics confirmed for current beta
+- The morning/evening example is not a fixed domain constraint: ScheduleSlot is an extensible rule identified by slotKey, allowing more than two executions per day in future. Frequency/cooldown/time windows are postponed until user testing.
+- Distinguish mandatory task expiry from optional tasks. Current V26 rule: explicit dueTime expires at that time on scheduledDate; mandatory task with no dueTime expires at 00:00 the following calendar day. Optional tasks are never automatically penalized.
+- Keep no more than yesterday/today catch-up after downtime, preserve existing balance/ledger history, and require one reward or penalty per persisted occurrence. Exact-once concurrency tests are still a beta gate.
+- Timezone per workspace, late grace periods and flexible rolling intervals remain future design choices; do not silently interpret a slot as an hourly cooldown.
