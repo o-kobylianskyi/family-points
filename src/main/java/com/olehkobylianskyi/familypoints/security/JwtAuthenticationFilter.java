@@ -8,6 +8,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import com.olehkobylianskyi.familypoints.repository.UserAccountRepository;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,13 +26,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final UserAccountRepository accounts;
+    private final WorkspaceSessionService workspaceSessions;
 
-    public JwtAuthenticationFilter(
-            JwtService jwtService,
-            UserDetailsService userDetailsService
-    ) {
+    @Autowired
+    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService,
+                                   UserAccountRepository accounts, WorkspaceSessionService workspaceSessions) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.accounts = accounts;
+        this.workspaceSessions = workspaceSessions;
+    }
+
+    // Kept only for existing isolated legacy-filter unit tests.
+    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+        this(jwtService, userDetailsService, null, null);
     }
 
     @Override
@@ -65,26 +76,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails =
                         userDetailsService.loadUserByUsername(username);
 
-                if (jwtService.isTokenValid(
-                        token,
-                        userDetails
-                ) && jwtService.extractWorkspaceId(token) == null) {
+                if (jwtService.isTokenValid(token, userDetails)) {
+                    Long selectedWorkspaceId = jwtService.extractWorkspaceId(token);
+                    UsernamePasswordAuthenticationToken authentication;
 
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
+                    if (selectedWorkspaceId == null) {
+                        authentication = new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    } else {
+                        // The signed claim identifies a requested workspace, not authorization.
+                        // Recheck membership on every request and use ONLY that workspace's rights.
+                        if (accounts == null || workspaceSessions == null) {
+                            throw new IllegalStateException("Scoped JWT authentication not configured");
+                        }
+                        var account = accounts.findWithSecurityDataByUsername(username)
+                                .orElseThrow(() -> new IllegalStateException("Account not found"));
+                        var session = workspaceSessions.requireSession(account, selectedWorkspaceId);
+                        var authorities = session.permissions().stream()
+                                .map(permission -> new SimpleGrantedAuthority(permission.name()))
+                                .toList();
+                        authentication = new UsernamePasswordAuthenticationToken(
+                                userDetails, null, authorities);
+                        authentication.setDetails(new WorkspaceAuthenticationDetails(
+                                session.accountId(), session.workspaceId(), session.memberId()));
+                    }
 
-                    authentication.setDetails(
-                            new WebAuthenticationDetailsSource()
-                                    .buildDetails(request)
-                    );
-
-                    SecurityContextHolder
-                            .getContext()
-                            .setAuthentication(authentication);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
 
