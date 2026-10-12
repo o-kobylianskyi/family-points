@@ -1,8 +1,51 @@
-# Flyway migrations
+# FamilyPoints Flyway migrations
 
-The current development database is adopted as Flyway baseline version 1.
-Do not edit an applied migration. Add future changes as `V2__...sql`, `V3__...sql`, etc.
+## Clean installation (Beta, no DEV records)
 
-`baseline-on-migrate=true` is transitional for adopting the existing non-empty development database. Once all environments have `flyway_schema_history`, remove it or set it to false.
+The existing migration chain starts with V2 and ends at V20.
+V1 was historically created by Hibernate before Flyway was introduced.
+The initial structure must be generated from the *historical Git tag*
+`v0.3-workspace`, which predates V2, **not** dumped from the current
+V20 production/development schema.
 
-For a clean database bootstrap, create a schema-only V1 snapshot from the current database before relying on fresh installations. See `GIT_FLYWAY_SETUP.md`.
+Run on a Windows machine with Java 21, Maven wrapper, Git and Docker Desktop:
+
+```powershell
+git pull
+.\scripts\db\generate-v1-baseline.ps1
+```
+
+The script creates disposable PostgreSQL 17 on a random localhost port,
+checks out the pre-V2 tagged source in a temporary Git worktree, uses
+Hibernate only against the temporary database to generate legacy V1,
+exports `pg_dump --schema-only` (no users, balances or task records), and
+writes `V1__baseline_schema.sql`.
+
+Then it creates a **second empty database** and starts the current code with
+Flyway V1–V20 and `ddl-auto=validate`. It only prints PASS after all
+20 migrations finish and current JPA mapping validation succeeds. On
+failure, inspect the temporary logs; **do not commit or deploy an
+unvalidated V1**. The current DEV DB is never contacted.
+
+Review and commit the generated V1 only after the PASS result:
+
+```powershell
+git status --short
+git add src/main/resources/db/migration/V1__baseline_schema.sql
+git commit -m "db: add validated clean baseline V1"
+git push
+```
+
+## Existing development database
+
+DEV was historically adopted as Flyway baseline version 1. It already
+has a `flyway_schema_history` row for V1 rather than an applied SQL
+migration, so newly committing V1 will **not replay V1 against the
+existing DEV database**. Do not edit previously applied versions V2–V20.
+
+For a public Beta with brand-new PostgreSQL, set
+`SPRING_FLYWAY_BASELINE_ON_MIGRATE=false`, which is already present in
+`deploy/beta/compose.yaml`. All schema creation should be versioned
+and independently verified.
+
+No DEV account/point/reward/task data should be copied to Beta.
