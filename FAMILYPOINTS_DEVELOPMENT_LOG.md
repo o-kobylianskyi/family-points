@@ -550,3 +550,9 @@
 - Extended the PostgreSQL Testcontainers + MockMvc workspace isolation test (`7a4bc6b`) to verify that an already-issued scoped JWT is rejected with 401 after its selected workspace member is soft-deleted, and that a legacy JWT is rejected with 401 after the global UserAccount is disabled.
 - Existing two-workspace positive/negative route and `/api/me` checks remain in the same test. These are expectations, NOT a verified passing local run; newest suite has not been executed by the user yet.
 - Workspace switching and public account/family signup remain disabled. Run `git pull` and `mvnw.cmd test`; if errors arise, review surefire output before editing code.
+
+## 2026-10-12 — GitHub Actions CI and batched development
+- Added `.github/workflows/ci.yml` (commit `6456331`): triggers on pushes to feature/task-soft-delete and main, pull requests, and manual workflow dispatch.
+- CI: ubuntu-latest, Temurin Java 21, Maven dependency cache, Docker verification, `./mvnw -B -ntp clean verify`, Surefire/Failsafe artifacts retained 14 days, read-only GitHub contents token.
+- Development workflow: commit cohesive feature batches with tests, use Actions result for each commit before marking PASS. Log commit SHA, tests, CI state (PENDING/PASS/FAIL), follow-up work; retain local Windows/Android device smoke testing as separate checks.
+- Status as of writing: workflow file committed, **CI run not yet verified**; GitHub combined commit statuses endpoint returned no status entries. Do not claim success until Actions run is inspected.
