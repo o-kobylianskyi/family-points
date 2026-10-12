@@ -791,6 +791,38 @@ public class TaskService {
         return instance;
     }
 
+    /**
+     * Parent/manager confirmation for a specific scheduled date.
+     * Never change a definition's recurrence or overwrite resolved instances.
+     */
+    @Transactional
+    public TaskInstance completeScheduledByManager(Long workspaceId, Long definitionId, LocalDate date) {
+        TaskDefinition definition = taskDefinitionRepository.findForOccurrenceUpdate(definitionId, workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task definition not found"));
+        taskAuthorizationService.requireManage(definition);
+        if (!definition.isActive() || !taskGenerationService.shouldGenerate(definition, date)
+                || definition.getAssignedMember() == null) {
+            throw new InvalidTaskStateException("Task is not scheduled for this date");
+        }
+        if (date.isAfter(LocalDate.now())) {
+            throw new InvalidTaskStateException("Future occurrences cannot be completed");
+        }
+        TaskInstance instance = taskInstanceRepository.findByTaskDefinitionIdAndScheduledDate(definitionId, date)
+                .orElseGet(() -> taskInstanceRepository.save(
+                        new TaskInstance(definition, definition.getAssignedMember(), date)));
+        if (instance.getStatus() == TaskInstanceStatus.COMPLETED) return instance;
+        if (instance.getStatus() != TaskInstanceStatus.PENDING
+                && instance.getStatus() != TaskInstanceStatus.IN_PROGRESS) {
+            throw new InvalidTaskStateException("This occurrence cannot be completed from status " + instance.getStatus());
+        }
+        instance.complete();
+        processReward(workspaceId, instance);
+        taskAuditService.recordUserEvent(definition, instance, TaskAuditEventType.INSTANCE_COMPLETED,
+                currentUserService.getCurrentMember(), null, null,
+                ActorType.MEMBER, instance.getMember().getId(), "Confirmed by task manager");
+        return instance;
+    }
+
     @Transactional
     public TaskInstance pause(Long workspaceId, Long instanceId) {
         TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
