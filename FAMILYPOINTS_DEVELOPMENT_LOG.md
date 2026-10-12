@@ -561,3 +561,8 @@
 - User supplied screenshot of FamilyPoints CI run #3 for commit `9cb5e4e` on `feature/task-soft-delete`: green success, duration 1m 5s.
 - Earlier runs #1 and #2 failed after ~13–14 seconds; adding `chmod +x ./mvnw` in workflow commit `9cb5e4e` was followed by successful third run. This supports operational CI verification for the committed backend test suite.
 - Next development workflow: coherent multi-file feature batches, CI status checked by exact commit. Keep Android/device/UI exploratory testing separate.
+
+## 2026-10-12 — Remember last successful username in Web and Android
+- Android: added LastUsernameStore with separate SharedPreferences so logout/token clearing does not erase username (b614f9d); LoginScreen no longer defaults to `oleh`, loads `initialUsername` and saves username only after successful online/offline login (2d85030); MainActivity wired persistence (690b250).
+- Web: LoginPage loads username from localStorage and updates only after successful login, with no password storage (ba0b2f0).
+- Desired parity rule: authentication form defaults to latest successfully used login per device/browser; login failures must not overwrite it. Android is not yet covered by backend-only CI; compile/test with Gradle or extend workflow. Status: code committed, Android build not verified.
