@@ -389,3 +389,9 @@
 - Prepared `frontend/src/api/baseUrl.js`: production same-origin HTTPS by default, build-time `VITE_API_URL` override; existing Vite DEV hostname routing preserved. Both auth and general HTTP clients use the new helper.
 - Android debug and release now use distinct BuildConfig API base URLs; release may override `-PfamilyPointsReleaseApiUrl`; debug still targets DEV. Disabled Android OS backup of private Beta application data.
 - Added `deploy/beta/README.md` with first read-only VPS diagnostics, install sequencing, security and smoke-test checklist. No server changes or tests run by these commits. Next prerequisite: user runs SSH diagnostics and shares nonsecret outputs so actual deployment can be safely adapted.
+
+## 2026-10-12 — Beta scope changed: empty workspace, setup wizard and templates
+- User explicitly does NOT want to copy unusable local development database into Contabo Beta. Instead wants multiple fully independent families, family setup on first launch, participants and roles, plus selectable starter task/reward templates.
+- Audit of current backend: Workspace is the family aggregate; UserAccount is tied to exactly one member/workspace. RoleCatalogBootstrapService, WorkspaceRoleService.createDefaultRoles and EconomyService default POINTS provide useful building blocks.
+- No public signup/first workspace admin route exists. WorkspaceController has authenticated but unscoped GET all, GET/PUT/DELETE by ID (critical multi-tenant vulnerability); EconomyController has several similarly unchecked endpoints. Must secure before public multi-family Beta.
+- Added docs/MULTI_FAMILY_ONBOARDING_PLAN.md containing six-step wizard, versioned localized templates, idempotent import, and development order. Updated deployment docs to remove DEV DB migration suggestion. A V1 pre-V2 schema migration still needs to be designed and tested for a blank Beta DB; schema-only V20 baseline is a carefully controlled alternative, no records.
