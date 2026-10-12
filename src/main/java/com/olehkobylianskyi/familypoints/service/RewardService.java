@@ -117,6 +117,7 @@ public class RewardService {
                         : null
         );
 
+        reward.setCooldownSeconds(request.getCooldownSeconds() == null ? 30 : request.getCooldownSeconds());
         reward.setCategories(resolveCategories(workspaceId, request.getCategoryIds()));
         RewardDefinition saved = rewards.save(reward);
         saveRequirements(workspaceId, saved, null, request.getRequirements());
@@ -246,7 +247,7 @@ public class RewardService {
             Long memberId,
             Long rewardDefinitionId
     ) {
-        WorkspaceMember member = getMember(workspaceId, memberId);
+        WorkspaceMember member = lockMemberForPurchase(workspaceId, memberId);
         RewardDefinition reward = rewards.findByIdAndWorkspaceId(rewardDefinitionId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reward not found: " + rewardDefinitionId));
 
@@ -257,6 +258,7 @@ public class RewardService {
             throw new IllegalArgumentException("This reward requires a request and approval");
         }
 
+        requireCooldownElapsed(memberId, reward);
         assertNotBlocked(member, reward);
 
         if (reward.getMinimumReputation() != null
@@ -309,7 +311,7 @@ public class RewardService {
             Long memberId,
             Long requestId
     ) {
-        WorkspaceMember member = getMember(workspaceId, memberId);
+        WorkspaceMember member = lockMemberForPurchase(workspaceId, memberId);
         RewardRequest request = getRequest(workspaceId, requestId);
 
         if (!request.getRequestedBy().getId().equals(memberId)) {
@@ -328,6 +330,7 @@ public class RewardService {
         }
 
         if (request.getRewardDefinition() != null) {
+            requireCooldownElapsed(memberId, request.getRewardDefinition());
             assertNotBlocked(member, request.getRewardDefinition());
         } else {
             assertNoGlobalBlock(member);
@@ -361,6 +364,30 @@ public class RewardService {
 
         request.markPurchased();
         return RewardPurchaseResponse.from(purchase);
+    }
+
+    /**
+     * Serialize purchases for one member across concurrent devices. The same
+     * member row is also locked when point balances are debited.
+     */
+    private WorkspaceMember lockMemberForPurchase(Long workspaceId, Long memberId) {
+        return members.findByIdAndWorkspaceIdForUpdate(memberId, workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Active member not found"));
+    }
+
+    private void requireCooldownElapsed(Long memberId, RewardDefinition reward) {
+        int seconds = reward.getCooldownSeconds();
+        if (seconds <= 0) return;
+        purchases.findFirstByMemberIdAndRewardDefinitionIdOrderByPurchasedAtDesc(memberId, reward.getId())
+                .ifPresent(previous -> {
+                    if (previous.getStatus() != RewardPurchaseStatus.CANCELLED
+                            && previous.getPurchasedAt().plusSeconds(seconds)
+                                    .isAfter(java.time.LocalDateTime.now())) {
+                        throw new org.springframework.web.server.ResponseStatusException(
+                                org.springframework.http.HttpStatus.CONFLICT,
+                                "Reward is on cooldown. Try again later.");
+                    }
+                });
     }
 
     @Transactional(readOnly = true)
