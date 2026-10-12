@@ -37,4 +37,7 @@ public class TaskScheduleSlot {
     public String getSlotKey() { return slotKey; }
     public LocalTime getScheduledTime() { return scheduledTime; }
     public boolean isEnabled() { return enabled; }
+
+    public void reschedule(LocalTime time) { this.scheduledTime = time; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
 }
