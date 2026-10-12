@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '../context/AuthContext'
 import { getPointTypes, getPointNameForms } from '../api/economyApi'
+import { getMemberBalances } from '../api/pointsApi'
 import { currencyQuantity } from '../utils/formatCurrencyAmount'
 import { useTranslation } from 'react-i18next'
 import { getTaskDefinitions } from '../api/taskApi'
@@ -94,6 +95,9 @@ function RewardsPage() {
   const { i18n } = useTranslation()
   const [currencyForms, setCurrencyForms] = useState({})
 
+  const [balances, setBalances] = useState([])
+  const [notice, setNotice] = useState('')
+  const actionLock = useRef(false)
   const [rewards, setRewards] = useState([])
   const [categories, setCategories] = useState([])
   const [requests, setRequests] = useState([])
@@ -134,6 +138,7 @@ function RewardsPage() {
         obligationData,
         pointTypeData,
         taskData,
+        balanceData,
       ] = await Promise.all([
         getRewards(token, workspaceId),
         getRewardCategories(token, workspaceId),
@@ -142,8 +147,10 @@ function RewardsPage() {
         getOpenRewardObligations(token, workspaceId),
         getPointTypes(token, workspaceId),
         getTaskDefinitions(token, workspaceId),
+        getMemberBalances(token, workspaceId, currentUser.memberId),
       ])
 
+      setBalances(balanceData.balances || [])
       setRewards(rewardData)
       setCategories(categoryData)
       setRequests(requestData)
@@ -177,15 +184,21 @@ function RewardsPage() {
     loadAll()
   }, [currentUser.workspaceId])
 
-  const run = async (action) => {
+  const run = async (action, successMessage = '') => {
+    // Synchronous guard: React state updates alone cannot stop rapid double taps.
+    if (actionLock.current) return
+    actionLock.current = true
     try {
       setProcessing(true)
       setError('')
+      setNotice('')
       await action()
+      if (successMessage) setNotice(successMessage)
       await loadAll()
     } catch (actionError) {
       setError(actionError.message)
     } finally {
+      actionLock.current = false
       setProcessing(false)
     }
   }
@@ -362,7 +375,16 @@ function RewardsPage() {
         </div>
       </div>
 
-      {error && <div className="page-error">{error}</div>}
+      {error && <div className="page-error" role="alert">{error}</div>}
+      {notice && <div className="reward-obligation-banner" role="status">✓ {notice}</div>}
+      <section className="reward-obligation-banner" aria-label="Ваш баланс">
+        <strong>Ваші поточні бали</strong>
+        <div className="reward-tags">
+          {balances.length ? balances.map((item) => (
+            <span key={item.pointTypeId}>{pointAmountLabel(item.balance, item.pointTypeId, item.code)}</span>
+          )) : <span>Баланс не завантажено</span>}
+        </div>
+      </section>
 
       {obligations.length > 0 && (
         <section className="reward-obligation-banner">
@@ -467,7 +489,7 @@ function RewardsPage() {
                           getAccessToken(),
                           currentUser.workspaceId,
                           reward.id
-                        )
+                        ), `Нагороду «${reward.title}» отримано. Баланс оновлено.`
                       )}
                     >
                       Отримати
