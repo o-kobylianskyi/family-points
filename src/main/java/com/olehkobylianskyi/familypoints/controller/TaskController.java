@@ -190,6 +190,15 @@ public class TaskController {
     }
 
 
+    @PostMapping("/definitions/{definitionId}/start-scheduled")
+    public TaskInstanceResponse startScheduledOccurrence(
+            @PathVariable Long workspaceId,
+            @PathVariable Long definitionId,
+            @RequestParam LocalDate date
+    ) {
+        return TaskInstanceResponse.from(taskService.startScheduledOccurrence(workspaceId, definitionId, date));
+    }
+
     @GetMapping("/members/{memberId}/schedule")
     public List<TaskScheduleOccurrenceResponse> getMemberSchedule(
             @PathVariable Long workspaceId,
