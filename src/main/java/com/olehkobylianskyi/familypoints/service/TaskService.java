@@ -1156,6 +1156,29 @@ public class TaskService {
         return instance;
     }
 
+    /** System-only deadline transition; no user or principal is available in a scheduled job. */
+    @Transactional
+    public TaskInstance missBySystem(Long workspaceId, Long instanceId) {
+        TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
+        if (instance.getStatus() != TaskInstanceStatus.PENDING
+                && instance.getStatus() != TaskInstanceStatus.IN_PROGRESS) return instance;
+        List<MemberExceptionPeriod> exceptions = memberExceptionPeriodRepository.findActiveForDate(
+                instance.getMember().getId(), instance.getScheduledDate());
+        if (!exceptions.isEmpty()) {
+            instance.excuse(TaskExcuseReason.EXCEPTION_PERIOD, "Automatically excused: exception period");
+            taskAuditService.recordSystemEvent(instance.getTaskDefinition(), instance,
+                    TaskAuditEventType.INSTANCE_EXCUSED, null, null,
+                    ActorType.MEMBER, instance.getMember().getId(), "Deadline exception period");
+            return instance;
+        }
+        instance.markMissed();
+        processPenalty(workspaceId, instance);
+        taskAuditService.recordSystemEvent(instance.getTaskDefinition(), instance,
+                TaskAuditEventType.INSTANCE_MISSED, null, null,
+                ActorType.MEMBER, instance.getMember().getId(), "Automatic deadline");
+        return instance;
+    }
+
     private void processPenalty(
             Long workspaceId,
             TaskInstance instance
