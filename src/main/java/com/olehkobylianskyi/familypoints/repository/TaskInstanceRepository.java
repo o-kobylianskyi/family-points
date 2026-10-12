@@ -22,6 +22,8 @@ public interface TaskInstanceRepository
             LocalDate scheduledDate
     );
 
+    Optional<TaskInstance> findByTaskDefinitionIdAndScheduledDateAndSlotKey(Long taskDefinitionId, LocalDate date, String slotKey);
+
     Optional<TaskInstance>
     findByTaskDefinitionIdAndScheduledDate(
             Long taskDefinitionId,
