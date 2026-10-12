@@ -19,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/workspaces/{workspaceId}/economy")
+@PreAuthorize("@workspaceSecurity.canAccessWorkspace(#workspaceId)")
 public class EconomyController {
 
     private final EconomyService economyService;
@@ -55,6 +56,7 @@ public class EconomyController {
                 .toList();
     }
 
+    @PreAuthorize("@workspaceSecurity.canManageEconomy(#workspaceId)")
     @PostMapping("/point-types")
     public ResponseEntity<PointTypeResponse> createPointType(
             @PathVariable Long workspaceId,
@@ -73,6 +75,7 @@ public class EconomyController {
                 .body(PointTypeResponse.from(pointType));
     }
 
+    @PreAuthorize("@workspaceSecurity.canManageEconomy(#workspaceId)")
     @PostMapping("/mode/multi")
     public EconomySettingsResponse enableMultiMode(
             @PathVariable Long workspaceId,
@@ -87,6 +90,7 @@ public class EconomyController {
         return EconomySettingsResponse.from(settings);
     }
 
+    @PreAuthorize("@workspaceSecurity.canManageEconomy(#workspaceId)")
     @PostMapping("/mode/simple")
     public EconomySettingsResponse enableSimpleMode(
             @PathVariable Long workspaceId
