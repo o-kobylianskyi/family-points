@@ -687,3 +687,10 @@
 - Actions run 38303462235 (f0f9966): Backend Java/Maven/Testcontainers PASS; Web Vite PASS; Android still FAILS installing Android API 37 on hosted runner before Kotlin compilation.
 - Added TaskManagerCompletionTest (`65277d9`): rejects manager completion of future occurrences before creating TaskInstance; checks that confirming an already COMPLETED dated instance neither creates a duplicate nor processes points/reputation a second time. Uses mocked authorization, generation and repositories.
 - Tests newly pushed; CI pending. Follow-up needs PostgreSQL integration test to exercise transaction locks, concurrency and exactly-once ledger semantics (these Mockito tests do not prove concurrency).
+
+## 2026-10-12 — TaskScheduleSlot first persistence layer (V25)
+- Introduced Flyway `V25__task_schedule_slots.sql` (`9093a7c`): reusable slots keyed by (task_definition_id, slot_key) with nullable scheduled time and enabled flag; no historical TaskInstance changes. Existing tasks retain implicit default occurrence and are not duplicated by migration.
+- TaskScheduleSlot entity (`2bf0097`) and repository (`1e01c2e`) map slot definitions.
+- TaskScheduleSlotController (`5b5a94e`): GET list requires task read authority; POST create requires task manage authority, scoped workspace task lookup, validated stable slot key. These APIs create schedule templates, NOT dated instances or rewards.
+- Controller unit tests (`00c21ad`) confirm read without writes and denied creation without manager permission.
+- CI pending. **Staged, not user-visible multi-daily execution:** task_instances still unique by definition+member+date and start-scheduled still addresses one implicit default instance. Next steps: V26 with slot_key on task_instances and revised unique key; slot-aware locking, deadlines and per-instance rewards; projection/web UI + Android parity. Do not offer multi-slot completion before these correctness checks pass.
