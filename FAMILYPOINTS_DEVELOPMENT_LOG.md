@@ -507,3 +507,10 @@
 - Updated AccountWorkspaceMembership entity (`5073478`) to persist workspace_id from the selected member, allowing continued account membership writes after V22.
 - Existing V21 records remain intact. If real DB already contains duplicate account/workspace membership rows, V22 intentionally fails rather than silently dropping data; investigate and reconcile such records.
 - IMPORTANT: Flyway V22 has NOT yet been run locally; run `git pull` + `mvnw.cmd test` against Testcontainers. No JWT switch, registration endpoint, or invitation exposure yet.
+
+## 2026-10-12 — Local Maven run: V22 succeeds, stale entity SQL in failing integration test
+- User supplied `mvnw.cmd test` log: 35 tests, 0 assertion failures, 1 error in `FamilyPointsApplicationTests.sameAccountCanBelongToTwoIndependentWorkspaces`.
+- PostgreSQL Testcontainers 17.11 successfully migrated fresh schema V1..V22; Hibernate bootstrapped and all other test classes passed.
+- Failing SQL was `insert into account_workspace_memberships (account_id,family_member_id) values (?,?)`, missing the V22 `workspace_id` column. PostgreSQL trigger correctly rejected the row (SQLSTATE 23514).
+- Current GitHub branch `AccountWorkspaceMembership.java` already declares `@JoinColumn(name = "workspace_id", nullable = false)` and sets `workspace = workspaceMember.getWorkspace()` in its constructor (commit `5073478`). This mismatch strongly suggests local source/class files were older than current branch when the test ran (or local edits overrode mapping). No Flyway rewrite is justified from this log.
+- Next validation: `git pull`, inspect local entity for `workspace_id`, rerun `mvnw.cmd clean test` (stop running backend/java process if Maven clean cannot remove target). If still failing, collect git status/diff and fresh SQL; only then change code.
