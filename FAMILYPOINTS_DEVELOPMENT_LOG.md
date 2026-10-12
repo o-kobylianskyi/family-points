@@ -545,3 +545,8 @@
 - Test builds three workspaces, assigns the same account to A and B, issues signed JWT scoped to B, expects GET B = 200, GET A = 403, GET unrelated workspace = 403, and checks `/api/me` reports B's member/workspace ID.
 - Added `@AutoConfigureMockMvc` / MockMvc injection; current JWT issuance to public clients and workspace switching remain disabled. This newly added test has NOT been executed locally; user must run `git pull` and `mvnw.cmd test` and share output.
 - Follow-ups: test revoked memberships/disabled account at HTTP level, permission-sensitive routes, cross-tenant nested resource IDs, refresh preserving selected workspace, and audit remaining legacy `getWorkspaceMember()` usages before public Beta signup.
+
+## 2026-10-12 — HTTP revocation checks added
+- Extended the PostgreSQL Testcontainers + MockMvc workspace isolation test (`7a4bc6b`) to verify that an already-issued scoped JWT is rejected with 401 after its selected workspace member is soft-deleted, and that a legacy JWT is rejected with 401 after the global UserAccount is disabled.
+- Existing two-workspace positive/negative route and `/api/me` checks remain in the same test. These are expectations, NOT a verified passing local run; newest suite has not been executed by the user yet.
+- Workspace switching and public account/family signup remain disabled. Run `git pull` and `mvnw.cmd test`; if errors arise, review surefire output before editing code.
