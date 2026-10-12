@@ -633,3 +633,9 @@
 - GlobalExceptionHandler now returns explicit structured JSON with original HTTP status for ResponseStatusException (`862473b`), avoiding fallback error-dispatch ambiguity. Unit test confirms cooldown stays 409 (`82eade8`).
 - Android RewardsScreen shows localized cooldown notice for 409 without calling onUnauthorized (`3e8663e`). Web rewardApi gives a friendly cooldown fallback for 409 (`a8cd7a5`).
 - CI status unverified for this package; confirm by repeating same reward while JWT active and inspecting browser Network response. If 401 persists, inspect the exact failed endpoint and server logs rather than assuming it is the cooldown response.
+
+## 2026-10-12 — Independent redemption controls per reward
+- User reported that buying one reward appeared to activate a global 30-second block for all others. Source audit: backend RewardService cooldown lookup was already scoped to `(memberId, rewardDefinitionId)`; Web RewardsPage incorrectly reused a single global `processing` flag and synchronous `actionLock` for all reward purchases.
+- Web commit `4021de6`: per-reward in-flight locks (`purchaseOnce`, `purchaseLocks`, `pendingPurchases`), shared key for catalog and matching approved request; distinct rewards can be purchased while another purchase is pending. Other form mutations still use the original global run lock.
+- Changed catalog label from misleading 'Повторно через 30 с' to 'Пауза для цієї нагороди: 30 с', indicating configured cooldown, not a countdown. Server continues to enforce real cooldown individually per member and reward definition.
+- CI status pending. Follow-up: server idempotency key for retries, proper remaining-time display based on timestamp, and Android UI per-reward in-flight parity. If distinct reward API returns HTTP 409, inspect precise network response rather than assuming UI-only failure.
