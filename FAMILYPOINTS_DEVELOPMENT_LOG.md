@@ -722,3 +722,8 @@
 - When explicit slots exist but all are disabled, neither future schedule projection nor deadline generator restores implicit default (48017a6, 6bbeb09). Existing dated TaskInstances remain in history.
 - Web API CRUD-like edit + activation (ab557e7), independent schedule editor component (f17b2b7), embedded in TaskDetailsPage (bcf57f7). Supports add, edit time, disable/enable, inline errors, loading states, responsive wrap; no manual API requests.
 - Controller tests expand to verify management authorization before writes and listing disabled slots (d7b228e). CI pending. Important remaining risk: time edits may affect future projections while existing PENDING instances retain their original dueTime snapshot; intended historical stability, requires product decision for already materialized future instances.
+
+### Package 2 final CI verification
+- Fixed TaskGenerationService constructor usages in TaskVirtualScheduleTest (40a12ce) after CI test compilation failure.
+- GitHub Actions run 38313245292 on 40a12ce: Java 21 / Maven / PostgreSQL Testcontainers SUCCESS; Web / Vite production build SUCCESS. Android SDK37 installation failed on hosted runner (known infrastructure issue; local Android testing agreed).
+- Backend and Web schedule editor code now builds; full interactive browser/real-user acceptance testing is still pending.
