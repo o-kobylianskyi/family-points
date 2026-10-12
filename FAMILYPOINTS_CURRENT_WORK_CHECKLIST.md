@@ -774,3 +774,16 @@ Before each substantial implementation batch:
 - [ ] Verify parent with points permission but without reward permission sees manual spend only
 - [ ] Verify direct reward purchases create linked purchase and REWARD_PURCHASE point transaction exactly once
 - [ ] Implement idempotent retries for parent-on-behalf reward purchase operations
+
+## 2026-10-12 — Contabo Beta deployment
+- [x] Reserve Contabo VPS for independent always-on family Beta; local laptop stays development environment
+- [x] Prepare React production same-origin HTTPS API routing and explicit VITE_API_URL override
+- [x] Prepare Android distinct debug/release API addresses and optional release endpoint override
+- [x] Disable Android cloud backup of app-private data
+- [x] Add step-by-step initial deployment and read-only audit notes in deploy/beta/README.md
+- [ ] Inspect real Contabo RAM/disk/listening ports/Nginx and Apache over SSH without changing them
+- [ ] Confirm Beta DNS, TLS certificate and ingress routing without breaking WireGuard/DEV
+- [ ] Provision PostgreSQL Beta role/database, backups and isolated Java 21 systemd backend
+- [ ] Deploy locally built React dist via Nginx and backend jar; verify HTTPS APIs
+- [ ] Secure and sign Android release APK for stable future updates; test on parent phone
+- [ ] Compile Maven/Gradle/npm and run migration/offline/synchronization smoke tests
