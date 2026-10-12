@@ -50,7 +50,7 @@ public final class WorkspaceIsolationFilter extends OncePerRequestFilter {
                 boolean allowed;
                 try {
                     allowed = currentUser.belongsToWorkspace(Long.parseLong(route.group(1)));
-                } catch (NumberFormatException | IllegalStateException exception) {
+                } catch (NumberFormatException | IllegalStateException | org.springframework.web.server.ResponseStatusException exception) {
                     allowed = false;
                 }
                 if (!allowed) {
