@@ -2,6 +2,7 @@ package com.olehkobylianskyi.familypoints.android
 
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Build
 import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.activity.ComponentActivity
@@ -81,11 +82,20 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var authSessionManager: AuthSessionManager
 
+    @Suppress("DEPRECATION") // Required only for Android versions before edge-to-edge enforcement.
+    private fun configureLegacySystemBars() {
+        window.statusBarColor = Color.WHITE
+        window.navigationBarColor = Color.WHITE
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        window.statusBarColor = Color.WHITE
-        window.navigationBarColor = Color.WHITE
+        // Android 15+ controls system bar surfaces using edge-to-edge drawing.
+        // Keep explicit white system bars only for older Android versions.
+        if (Build.VERSION.SDK_INT < 35) {
+            configureLegacySystemBars()
+        }
 
         WindowCompat.getInsetsController(
             window,
