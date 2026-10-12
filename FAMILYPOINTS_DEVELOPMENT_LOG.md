@@ -520,3 +520,11 @@
 - Previous failing test `sameAccountCanBelongToTwoIndependentWorkspaces` is no longer blocking the suite. This is consistent with the local entity mapping catching up to committed `AccountWorkspaceMembership.workspace` changes.
 - Confirmation covers the Maven test suite and Testcontainers Flyway V1–V22 path; it does **not** establish completed HTTP cross-workspace authorization or production readiness.
 - Next: implement coordinated selected-member JWT/CurrentUserService/permission evaluation with explicit two-tenant HTTP denial tests before activating workspace switching or registration.
+
+## 2026-10-12 — Scoped effective-member resolution behind trusted authentication details
+- Last user confirmation: Maven `BUILD SUCCESS` including Flyway V1..V22 after synchronizing local source.
+- Created `WorkspaceAuthenticationDetails` (`940436e`) holding immutable accountId/workspaceId/memberId, documented as server-only verified authentication metadata.
+- Updated `CurrentUserService.getCurrentMember()` (`e40cc72`): when trusted scoped authentication details are present, check account identity, resolve current active DB membership for workspaceId and check exact memberId; otherwise preserve legacy primary-member behavior. `getCurrentMemberId()`, `getCurrentWorkspaceId()`, `WorkspaceSecurity`, and `/api/me` already use this accessor.
+- Added unit tests (`c421807`) for valid scoped member, mismatched account/member rejection, and backward-compatible legacy context.
+- **Crucial:** JwtAuthenticationFilter still rejects workspace-scoped tokens and does not construct `WorkspaceAuthenticationDetails`. No public switching endpoint, JWT activation, or registration yet. Remaining direct primary-member lookups and tenant-facing controllers still require audit and HTTP authorization integration tests.
+- Latest package NOT run locally; run `git pull` and `mvnw.cmd test` before proceeding.
