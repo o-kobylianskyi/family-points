@@ -194,9 +194,7 @@ public class RewardController {
     }
 
     private boolean canManageRewards() {
-        var role = currentUser.getCurrentAccount()
-                .getWorkspaceMember()
-                .getWorkspaceRole();
+        var role = currentUser.getCurrentMember().getWorkspaceRole();
 
         return role.hasPermission(WorkspacePermission.MANAGE_REWARDS)
                 || role.hasPermission(WorkspacePermission.ADMIN_OVERRIDE);
