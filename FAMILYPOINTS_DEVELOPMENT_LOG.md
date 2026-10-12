@@ -583,3 +583,8 @@
 - Android AuthSessionManager commit `d99700f`: list workspaces and activate strictly online; validate `/api/me` new workspace before replacing token, refresh enrolled offline profile and activity timestamp.
 - Android WorkspaceSwitcher component `b071891`: explicit chooser, busy/error states. MainActivity wiring `8b9be79`: show only in online dashboard, clear task navigation state and update current user when switching.
 - CI checks for newest commits are PENDING/not confirmed at writing. Must validate Kotlin compile, Node build, actual Android device display, and cross-workspace cache behavior before declaring beta ready.
+
+## 2026-10-12 — Reward redemption UX: balance and duplicate-click protection
+- Web RewardsPage commit `0570932`: show currently authenticated member's per-currency balances via existing `/members/{memberId}/points/balances`, refreshed after mutations; add explicit success notice after reward purchase; add synchronous React ref lock to prevent repeat button presses while requests are in flight.
+- **Scope:** this is UI/in-flight duplicate prevention, NOT server-enforced once-only redemption. Browser reloads, parallel devices and concurrent requests may still purchase twice. A future server-side configurable cooldown and idempotency key/transaction guard are required before claiming duplicate rewards are impossible. Cooldown must be per member/workspace/reward, configurable; protect direct purchase and request purchase against concurrency; include PostgreSQL integration tests.
+- Web CI for commit pending. Android rewards UX parity not yet implemented.
