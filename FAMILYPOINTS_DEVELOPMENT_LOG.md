@@ -539,3 +539,9 @@
 - Added two filter-level tests (`2cb0e84`) proving a revoked selected workspace and a scoped session addressing another workspace both receive 403 before the request reaches its controller.
 - These are MockFilterChain tests, NOT end-to-end MockMvc HTTP/security integration tests with two real database workspaces. No switching or public registration activated.
 - Compilation and tests pending local run; use `git pull` and `mvnw.cmd test`.
+
+## 2026-10-12 — MockMvc + PostgreSQL cross-workspace HTTP isolation test
+- Added integration test `scopedJwtCannotReadAnotherFamilysHttpWorkspaceRoute` to `FamilyPointsApplicationTests` (`8dda3f3`), using the existing Testcontainers PostgreSQL database and Spring Security MockMvc filter chain.
+- Test builds three workspaces, assigns the same account to A and B, issues signed JWT scoped to B, expects GET B = 200, GET A = 403, GET unrelated workspace = 403, and checks `/api/me` reports B's member/workspace ID.
+- Added `@AutoConfigureMockMvc` / MockMvc injection; current JWT issuance to public clients and workspace switching remain disabled. This newly added test has NOT been executed locally; user must run `git pull` and `mvnw.cmd test` and share output.
+- Follow-ups: test revoked memberships/disabled account at HTTP level, permission-sensitive routes, cross-tenant nested resource IDs, refresh preserving selected workspace, and audit remaining legacy `getWorkspaceMember()` usages before public Beta signup.
