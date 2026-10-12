@@ -52,6 +52,7 @@ fun DashboardScreen(
     currentUser: CurrentUserResponse,
     loadDashboard: suspend () -> DashboardData,
     cachedDashboard: () -> DashboardData?,
+    loadReputation: suspend () -> Long,
     onLanguageChange: (AppLanguage) -> Unit,
     onLogout: () -> Unit,
     onNavigate: (DashboardDestination) -> Unit,
@@ -61,7 +62,8 @@ fun DashboardScreen(
     val scope = rememberCoroutineScope()
 
     val serverStatus by ServerReachability.status.collectAsState()
-    var data by remember { mutableStateOf<DashboardData?>(null) }
+    var data by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf<DashboardData?>(null) }
+    var reputation by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf<Long?>(null) }
     var showingCached by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
@@ -76,6 +78,7 @@ fun DashboardScreen(
         }
         loading = data == null
         if (serverStatus == ServerStatus.OFFLINE) {
+            reputation = null
             if (data == null) {
                 error = when (language) {
                     AppLanguage.UK -> "Головна ще не збережена. Відкрийте її один раз із доступним сервером."
@@ -89,6 +92,7 @@ fun DashboardScreen(
         }
         try {
             data = loadDashboard()
+            reputation = try { loadReputation() } catch (_: Exception) { null }
             showingCached = false
         } catch (exception: HttpException) {
             if (exception.code() == 401) onUnauthorized()
@@ -106,6 +110,7 @@ fun DashboardScreen(
                 delay(30_000L)
                 try {
                     data = loadDashboard()
+                    reputation = try { loadReputation() } catch (_: Exception) { null }
                     showingCached = false
                     error = ""
                 } catch (exception: HttpException) {
@@ -219,6 +224,21 @@ fun DashboardScreen(
                         value = formatPointAmount(dashboard.balance.toLong(), language, "POINTS", text.points),
                         description = ""
                     )
+                }
+
+                if (reputation != null) {
+                    item {
+                        DashboardStatCard(
+                            label = when (language) {
+                                AppLanguage.UK -> "Моя репутація"
+                                AppLanguage.DE -> "Mein Ruf"
+                                AppLanguage.EN -> "My reputation"
+                                AppLanguage.RU -> "Моя репутация"
+                            },
+                            value = reputation.toString(),
+                            description = ""
+                        )
+                    }
                 }
 
                 item {
