@@ -45,6 +45,39 @@ public class JwtService {
                 .compact();
     }
 
+    /**
+     * Reserved for the coordinated multi-workspace authorization rollout.
+     * Caller must verify membership with WorkspaceMembershipResolver first.
+     * Existing authentication filters do not consume this claim yet.
+     */
+    public String generateWorkspaceAccessToken(UserDetails userDetails, Long workspaceId) {
+        if (workspaceId == null || workspaceId <= 0) {
+            throw new IllegalArgumentException("A valid workspace ID is required");
+        }
+        Date now = new Date();
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .claim("workspaceId", workspaceId)
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + accessTokenExpiration))
+                .signWith(signingKey)
+                .compact();
+    }
+
+    /** Returns null for legacy tokens without an active workspace claim. */
+    public Long extractWorkspaceId(String token) {
+        Object value = extractAllClaims(token).get("workspaceId");
+        if (value == null) return null;
+        if (!(value instanceof Number number)) {
+            throw new IllegalArgumentException("Invalid workspace claim");
+        }
+        long workspaceId = number.longValue();
+        if (workspaceId <= 0 || number.doubleValue() != (double) workspaceId) {
+            throw new IllegalArgumentException("Invalid workspace claim");
+        }
+        return workspaceId;
+    }
+
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
     }
