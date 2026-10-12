@@ -25,6 +25,7 @@ $jwt = [BitConverter]::ToString($bytes).Replace("-", "")
 $running = $false
 $treeAdded = $false
 $validated = $false
+$createdV1 = $false
 New-Item -ItemType Directory -Path $temp -Force | Out-Null
 
 function Check-Exit([string]$what) {
@@ -118,6 +119,7 @@ try {
     if ($sql -match '(?m)^CREATE TABLE public\.task_audit_events\b') { throw "V1 contains post-V1 audit table" }
     $header = "-- PRE-V2 baseline generated using the v0.3-workspace JPA mappings; no user data." + [Environment]::NewLine
     [IO.File]::WriteAllText($output, $header + $sql + [Environment]::NewLine, (New-Object Text.UTF8Encoding $false))
+    $createdV1 = $true
     Write-Host "Created $output"
 
     & docker exec $container psql -U fp_schema -d postgres -v "ON_ERROR_STOP=1" -c "CREATE DATABASE fp_validate OWNER fp_schema"
@@ -131,11 +133,72 @@ try {
     $validated = $true
     Write-Host "PASS: clean database migrated V1..V20 and JPA schema validated."
 }
+catch {
+    # Save the original failure. A Windows git worktree cleanup error must
+    # never hide the PostgreSQL, Maven, Flyway or JPA validation error.
+    Write-Warning ("Original failure: " + $_.Exception.Message)
+    throw
+}
 finally {
-    if ($running) { & docker rm -f $container *> $null }
-    if ($treeAdded) { & git -C $repo worktree remove --force $oldTree *> $null }
+    if (-not $validated -and $createdV1 -and (Test-Path -LiteralPath $output)) {
+        # Do not leave an UNVALIDATED V1 in the migration directory. It would
+        # also make the next script execution fail the pre-existing V1 guard.
+        try {
+            $unvalidated = Join-Path $temp "V1__baseline_schema.UNVALIDATED.sql"
+            Move-Item -LiteralPath $output -Destination $unvalidated -ErrorAction Stop
+            Write-Warning "Unvalidated V1 moved to $unvalidated"
+        } catch {
+            Write-Warning ("Could not move unvalidated V1: " + $_.Exception.Message)
+        }
+    }
+    if ($running) {
+        try {
+            # Ignore only cleanup errors, not build errors.
+            & docker rm -f $container 2>$null | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "Could not remove disposable container $container"
+            }
+        } catch {
+            Write-Warning ("Docker cleanup: " + $_.Exception.Message)
+        }
+    }
+    if ($treeAdded) {
+        try {
+            # git worktree remove can fail on Windows when a file/index is
+            # briefly locked (e.g., after Maven or Java). Keep this nonfatal.
+            $originalPreference = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = "Continue"
+                & git -C $repo worktree remove --force $oldTree 2>$null | Out-Null
+                $worktreeExit = $LASTEXITCODE
+            } finally {
+                $ErrorActionPreference = $originalPreference
+            }
+            if ($worktreeExit -ne 0) {
+                Write-Warning "Git could not remove temporary worktree $oldTree (nonfatal)"
+            }
+        } catch {
+            Write-Warning ("Git worktree cleanup: " + $_.Exception.Message)
+        }
+        # Safely remove stale administrative worktree entries when possible.
+        try {
+            $originalPreference = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = "Continue"
+                & git -C $repo worktree prune 2>$null | Out-Null
+            } finally {
+                $ErrorActionPreference = $originalPreference
+            }
+        } catch {
+            Write-Warning ("Git worktree prune: " + $_.Exception.Message)
+        }
+    }
     if ($validated -and -not $KeepTemporaryFiles) {
-        Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue
+        try {
+            Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction Stop
+        } catch {
+            Write-Warning ("Temporary folder remains: " + $temp)
+        }
     } else {
         Write-Host "Diagnostic logs are in $temp"
     }
