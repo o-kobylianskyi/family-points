@@ -427,3 +427,8 @@
 - **NOT YET VERIFIED:** Maven tests/Flyway execution on current laptop; no real multi-workspace sign-in, switcher, public account registration or invitation logic yet.
 - Next: run Maven Testcontainers smoke test; introduce account membership entity/repository, transactional join/invite flow, explicit active workspace security context, migration of permission resolution and account management, two-family integration tests, and only then expose registration.
 - Future personnel management remains a template/domain evolution, not an immediate Beta rewrite. Product intent is in section 36 of `FAMILYPOINTS_CONCEPT_DISCUSSION_LOG.md`.
+
+## 2026-10-12 — V21 Java mapping
+- V21 passed local Maven tests (user-reported BUILD SUCCESS).
+- Added AccountWorkspaceMembership entity in a5077e4 and repository in 5fd0e2f.
+- These new classes are untested so far. Authorization remains legacy single-workspace; multi-workspace switch and registration are not yet implemented.
