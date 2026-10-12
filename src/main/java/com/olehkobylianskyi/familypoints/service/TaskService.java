@@ -529,6 +529,34 @@ public class TaskService {
         return created;
     }
 
+    @Transactional
+    public TaskInstance startScheduledOccurrence(Long workspaceId, Long definitionId, LocalDate date) {
+        taskAuthorizationService.requireWorkspace(workspaceId);
+        TaskDefinition definition = taskDefinitionRepository.findForOccurrenceUpdate(definitionId, workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task definition not found: " + definitionId));
+        WorkspaceMember member = taskAuthorizationService.currentMember();
+        if (definition.getAssignedMember() == null
+                || !definition.getAssignedMember().getId().equals(member.getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("Only assigned member may start this task");
+        }
+        if (!definition.isActive() || !taskGenerationService.shouldGenerate(definition, date)) {
+            throw new InvalidTaskStateException("Task is not scheduled for this date");
+        }
+        if (date.isAfter(LocalDate.now())) {
+            throw new InvalidTaskStateException("Future tasks cannot be started");
+        }
+        TaskInstance instance = taskInstanceRepository.findByTaskDefinitionIdAndScheduledDate(definitionId, date)
+                .orElseGet(() -> taskInstanceRepository.save(new TaskInstance(definition, member, date)));
+        if (instance.getStatus() == TaskInstanceStatus.PENDING) {
+            instance.start();
+            taskAuditService.recordSystemEvent(definition, instance, TaskAuditEventType.INSTANCE_STARTED,
+                    null, null, ActorType.MEMBER, member.getId(), "Started scheduled occurrence");
+        } else if (instance.getStatus() != TaskInstanceStatus.IN_PROGRESS) {
+            throw new InvalidTaskStateException("Occurrence has already been resolved");
+        }
+        return instance;
+    }
+
     @Transactional(readOnly = true)
     public TaskInstance getInstanceForDefinitionDate(Long workspaceId, Long definitionId, LocalDate date) {
         TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
