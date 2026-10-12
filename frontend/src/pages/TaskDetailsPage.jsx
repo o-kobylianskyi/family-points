@@ -32,6 +32,7 @@ function TaskDetailsPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   }
   const selectedDate = searchParams.get('date') || localToday()
+  const selectedSlotKey = searchParams.get('slotKey') || 'default'
   const { currentUser, getAccessToken } = useAuth()
   const currency = useCurrencyQuantity(getAccessToken(), currentUser.workspaceId)
   const [task, setTask] = useState(null)
@@ -60,7 +61,7 @@ function TaskDetailsPage() {
         getTaskParticipants(token, currentUser.workspaceId, definitionId),
         getTaskDefinitionHistory(token, currentUser.workspaceId, definitionId),
         getTaskSubtasks(token, currentUser.workspaceId, definitionId),
-        getTaskDefinitionInstance(token, currentUser.workspaceId, definitionId, selectedDate),
+        getTaskDefinitionInstance(token, currentUser.workspaceId, definitionId, selectedDate, selectedSlotKey),
       ])
       setTask(definition)
       setVisibleDefinitions(definitions)
@@ -74,7 +75,7 @@ function TaskDetailsPage() {
     }
   }
 
-  useEffect(() => { load() }, [definitionId, selectedDate, currentUser.workspaceId])
+  useEffect(() => { load() }, [definitionId, selectedDate, selectedSlotKey, currentUser.workspaceId])
 
   if (error && !task) return <div className="page-error">{error}</div>
   if (!task) return <div className="page-loading">Завантаження...</div>
@@ -141,7 +142,7 @@ function TaskDetailsPage() {
     try {
       setProcessing(true)
       setError('')
-      await completeScheduledTaskByManager(getAccessToken(), currentUser.workspaceId, task.id, selectedDate)
+      await completeScheduledTaskByManager(getAccessToken(), currentUser.workspaceId, task.id, selectedDate, selectedSlotKey)
       await load()
     } catch (e) { setError(e.message) } finally { setProcessing(false) }
   }
@@ -189,7 +190,7 @@ function TaskDetailsPage() {
         <section className="task-details-card task-execution-card">
           <div className="task-details-section-header">
             <div>
-              <h2>Виконання · {selectedDate}</h2>
+              <h2>Виконання · {selectedDate} · {selectedSlotKey}</h2>
               <p className="task-details-muted">Виконавець: <strong>{memberName(instance.memberId)}</strong> · Статус: <strong>{translateEnum('taskStatus', instance.status)}</strong></p>
             </div>
             <div className="task-card-actions">
@@ -294,7 +295,7 @@ function TaskDetailsPage() {
             {task.active && (!instance || ['PENDING', 'IN_PROGRESS'].includes(instance.status)) &&
               selectedDate <= localToday() && (
               <button className="task-action-button" type="button" disabled={processing}
-                onClick={confirmScheduledCompletion}>Позначити виконаним · {selectedDate}</button>
+                onClick={confirmScheduledCompletion}>Позначити виконаним · {selectedDate} · {selectedSlotKey}</button>
             )}
             <button className="task-action-button secondary" disabled={processing} onClick={toggleActive}>
               {task.active ? 'Деактивувати' : 'Активувати'}
