@@ -19,7 +19,7 @@ class RewardPurchaseCooldownTest {
         var member = mock(WorkspaceMember.class);
         var reward = mock(RewardDefinition.class);
         var previous = mock(RewardPurchase.class);
-        when(members.findByIdAndWorkspaceIdForUpdate(8L, 3L)).thenReturn(Optional.of(member));
+        when(members.findByIdAndWorkspaceIdForUpdate(3L, 8L)).thenReturn(Optional.of(member));
         when(rewards.findByIdAndWorkspaceId(11L, 8L)).thenReturn(Optional.of(reward));
         when(reward.isActive()).thenReturn(true);
         when(reward.getAcquisitionMode()).thenReturn(RewardAcquisitionMode.DIRECT);
