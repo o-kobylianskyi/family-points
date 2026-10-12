@@ -514,3 +514,9 @@
 - Failing SQL was `insert into account_workspace_memberships (account_id,family_member_id) values (?,?)`, missing the V22 `workspace_id` column. PostgreSQL trigger correctly rejected the row (SQLSTATE 23514).
 - Current GitHub branch `AccountWorkspaceMembership.java` already declares `@JoinColumn(name = "workspace_id", nullable = false)` and sets `workspace = workspaceMember.getWorkspace()` in its constructor (commit `5073478`). This mismatch strongly suggests local source/class files were older than current branch when the test ran (or local edits overrode mapping). No Flyway rewrite is justified from this log.
 - Next validation: `git pull`, inspect local entity for `workspace_id`, rerun `mvnw.cmd clean test` (stop running backend/java process if Maven clean cannot remove target). If still failing, collect git status/diff and fresh SQL; only then change code.
+
+## 2026-10-12 — V22 local verification recovered
+- User confirmed `BUILD SUCCESS` after pulling current changes and rerunning the Maven test suite following the V22 workspace_id insert failure.
+- Previous failing test `sameAccountCanBelongToTwoIndependentWorkspaces` is no longer blocking the suite. This is consistent with the local entity mapping catching up to committed `AccountWorkspaceMembership.workspace` changes.
+- Confirmation covers the Maven test suite and Testcontainers Flyway V1–V22 path; it does **not** establish completed HTTP cross-workspace authorization or production readiness.
+- Next: implement coordinated selected-member JWT/CurrentUserService/permission evaluation with explicit two-tenant HTTP denial tests before activating workspace switching or registration.
