@@ -30,6 +30,13 @@ export async function createReward(token, workspaceId, reward) {
   return handleResponse(response, 'Failed to create reward')
 }
 
+export async function updateReward(token, workspaceId, rewardId, reward) {
+  const response = await apiRequest(`/workspaces/${workspaceId}/rewards/${rewardId}`, {
+    token, method: 'PUT', body: reward,
+  })
+  return handleResponse(response, 'Failed to update reward')
+}
+
 export async function getRewardCategories(token, workspaceId) {
   const response = await apiRequest(`/workspaces/${workspaceId}/rewards/categories`, { token })
   return handleResponse(response, 'Failed to load reward categories')
