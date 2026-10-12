@@ -602,3 +602,10 @@
 - Web RewardsPage (`c50a5b5`): show «Отримати» for the current member's READY_TO_PURCHASE catalog request; display pending request state rather than duplicate request button; Requests redemption and readiness refresh are now based on request ownership, not absence of MANAGE_REWARDS permission; show success notice and refresh balance after redemption.
 - Backend RewardController (`0739224`): canManageRewards checks active CurrentUserService.getCurrentMember() rather than the account's legacy primary member to prevent cross-workspace role leakage.
 - CI status pending; need validation on logged-in owner and request not belonging to owner, including manager/parent account.
+
+## 2026-10-12 — Reputation displayed in reward balances; CI cooldown test correction
+- Added authenticated `GET /api/me/reputation` in MyReputationController (`42cfd91`) returning reputation balance for the active workspace member; no cross-member query parameter and no use of legacy primary member.
+- Web RewardsPage now loads reputation alongside current currency balances (`d99fd97`) via `reputationApi.js` (`da80924`). Reputation remains distinct and not spendable.
+- Added MyReputationControllerTest (`365c699`) for selected member/workspace and balance.
+- Investigated GitHub Actions failure for previous commit `461d24f`: backend Maven RewardPurchaseCooldownTest failed because Mockito expected `findByIdAndWorkspaceIdForUpdate(8L,3L)` but implementation correctly invokes memberId first `(3L,8L)`. Fixed test setup in `1fa37b5`. Prior Android SDK setup CI also failed and remains under follow-up. The latest CI run has not been confirmed PASS.
+- Future UX parity: show reputation on dashboard/Points and Android screens. Note that rewards/catalog minimum reputation threshold already exists.
