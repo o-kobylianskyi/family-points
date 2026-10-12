@@ -327,3 +327,11 @@ export async function startScheduledTask(token, workspaceId, definitionId, date)
   )
   return handleResponse(response, 'Не вдалося почати заплановане завдання')
 }
+
+export async function completeScheduledTaskByManager(token, workspaceId, definitionId, date) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/definitions/${definitionId}/complete-scheduled?date=${encodeURIComponent(date)}`,
+    { token, method: 'POST' }
+  )
+  return handleResponse(response, 'Не вдалося підтвердити виконання завдання')
+}
