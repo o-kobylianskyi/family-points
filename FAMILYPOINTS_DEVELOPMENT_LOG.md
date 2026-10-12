@@ -413,3 +413,8 @@
 - User confirmed PostgreSQL 17 Docker image pulled and historical Maven phase completed, but git.exe failed to delete the temporary worktree in the script's finally block with Windows "Invalid argument". This may mask a preceding Maven/JPA/DDL failure; neither schema generation nor validation is yet confirmed.
 - Patched scripts/db/generate-v1-baseline.ps1 so cleanup failures are warning-only, the original thrown error is reported, and any V1 created but not validated is archived to the per-run diagnostic directory for safe reruns.
 - Need user to inspect the previous run's stdout/stderr logs in %TEMP%/fp-v1-c05be7abe52e and check if src/main/resources/db/migration/V1__baseline_schema.sql exists before rerunning; don't claim V1 completed.
+
+## 2026-10-12 — Flyway first validation feedback: duplicate PostgreSQL public schema
+- User ran V1 generation. Java 21, Docker Desktop and PostgreSQL 17-alpine worked; generated local `V1__baseline_schema.sql`, but validation failed with PostgreSQL SQLState 42P06: `CREATE SCHEMA public` in V1 was incompatible with PostgreSQL 17's pre-created public schema. Earlier cleanup tried to delete temp Git worktree and failed with Windows `Invalid argument`.
+- Updated `scripts/db/generate-v1-baseline.ps1` with `-ValidateExisting` to preserve existing generated V1, skip the historical Git worktree, normalize `CREATE SCHEMA public;` to IF NOT EXISTS, and retry V1..V20/JPA validation against disposable PostgreSQL. Fresh generation now normalizes the schema statement too.
+- Validation success has not been reported. Do not mark V1 done or deploy Beta before user confirms PASS and SQL is committed.
