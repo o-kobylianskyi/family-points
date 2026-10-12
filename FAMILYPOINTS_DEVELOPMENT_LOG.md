@@ -657,3 +657,11 @@
 - Web RewardsPage `485305b` exposes six optional count limits and `extraRequestAllowed` in create/edit form; copy clarified in `04944c3` that approval/one-time exception issuance is NOT yet implemented.
 - Tests `5c315a2` check personal lifetime and shared-family lifetime blocking before debit. Updated existing cooldown test `5e2fe26` for locked repository lookup.
 - **Status:** PENDING CI. Not yet implemented: total-minute limits, daily/weekly minute budgets for time rewards, dedicated additional-permission approval/one-time consumption flow, Android edit and remaining quotas UI, member/workspace timezone selection and real cross-account concurrency integration tests. Do not claim those pieces are operational.
+
+## 2026-10-12 — Read-only virtual schedule for recurring tasks (first phase)
+- Diagnosis: member task list GET returned only persisted TaskInstance, while existing TaskGenerationService was called at creation for LocalDate.now(), so a DAILY definition (#39) had no instance the next day. Future dates likewise were empty.
+- New DTO TaskScheduleOccurrenceResponse (`5bf9392`) models stable `definitionId:date:default` and distinguishes virtual PLANNED (null instanceId) from persisted TaskInstance.
+- TaskService.getMemberSchedule (`443e1b6`) combines active assigned definitions valid for requested date with existing instances (existing status wins), checks target member access and per-definition read authorization, and does not insert rows. New GET `/workspaces/{workspaceId}/tasks/members/{memberId}/schedule?date=YYYY-MM-DD` (`258e6b0`).
+- Web taskApi (`90ca939`) and TasksPage (`3edb7c3`) show read-only planned cards for requested current/future days beside actual task instances; existing status/action flow unchanged. Regression tests in `123bacf`.
+- Important limitation: planned tasks are currently read-only placeholders; their start/complete actions are not materialized yet. Existing DB unique constraint (definition/member/date) still prevents multiple slots per day. Follow-up: TaskSchedule/slot entities, occurrence-key DB migration, atomic materialization and deadline processing, cross-platform Android parity and schedule exception rules. Do not claim multi-daily occurrence support yet.
+- CI pending at write time.
