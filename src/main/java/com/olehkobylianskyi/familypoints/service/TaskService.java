@@ -551,6 +551,42 @@ public class TaskService {
                 .toList();
     }
 
+    /**
+     * Read-only calendar view: recurring definitions appear on their due dates
+     * without writing an instance. Existing instance status takes precedence.
+     */
+    @Transactional(readOnly = true)
+    public List<com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse> getMemberSchedule(
+            Long workspaceId, Long memberId, LocalDate date) {
+        getWorkspaceOrThrow(workspaceId);
+        WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
+        WorkspaceMember current = taskAuthorizationService.currentMember();
+        if (!member.getId().equals(current.getId())
+                && !current.hasPermission(WorkspacePermission.VIEW_ALL_TASKS)
+                && !current.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Current user cannot inspect another member's schedule");
+        }
+
+        java.util.Map<Long, com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse> occurrences =
+                new java.util.LinkedHashMap<>();
+        for (TaskDefinition definition : taskDefinitionRepository.findByWorkspaceIdAndActiveTrueOrderByIdAsc(workspaceId)) {
+            if (definition.getAssignedMember() == null
+                    || !definition.getAssignedMember().getId().equals(memberId)
+                    || !taskAuthorizationService.canRead(definition)
+                    || !taskGenerationService.shouldGenerate(definition, date)) continue;
+            occurrences.put(definition.getId(),
+                    com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse.planned(
+                            definition, memberId, date));
+        }
+        for (TaskInstance instance : taskInstanceRepository.findByMemberIdAndScheduledDateOrderByIdAsc(memberId, date)) {
+            if (!taskAuthorizationService.canRead(instance.getTaskDefinition())) continue;
+            occurrences.put(instance.getTaskDefinition().getId(),
+                    com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse.existing(instance));
+        }
+        return List.copyOf(occurrences.values());
+    }
+
     @Transactional(readOnly = true)
     public List<TaskDefinition> getOpenDefinitions(Long workspaceId, LocalDate date, Long memberId) {
         getWorkspaceOrThrow(workspaceId);
