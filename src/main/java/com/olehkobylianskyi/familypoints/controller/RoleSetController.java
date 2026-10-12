@@ -5,11 +5,13 @@ import com.olehkobylianskyi.familypoints.dto.RoleSetResponse;
 import com.olehkobylianskyi.familypoints.service.RoleSetService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequestMapping("/workspaces/{workspaceId}/role-sets")
+@PreAuthorize("@workspaceSecurity.canAccessWorkspace(#workspaceId)")
 public class RoleSetController {
     private final RoleSetService service;
 
