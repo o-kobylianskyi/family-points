@@ -1746,3 +1746,10 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - Distinguish mandatory task expiry from optional tasks. Current V26 rule: explicit dueTime expires at that time on scheduledDate; mandatory task with no dueTime expires at 00:00 the following calendar day. Optional tasks are never automatically penalized.
 - Keep no more than yesterday/today catch-up after downtime, preserve existing balance/ledger history, and require one reward or penalty per persisted occurrence. Exact-once concurrency tests are still a beta gate.
 - Timezone per workspace, late grace periods and flexible rolling intervals remain future design choices; do not silently interpret a slot as an hourly cooldown.
+
+## 2026-10-12 — Web schedule editor behavior
+- Explicit TaskScheduleSlot keys are persistent occurrence identities; do not reuse reserved 'default'.
+- Manage schedule by adding, changing time, disabling, re-enabling; physical deletion is intentionally unavailable because dated historical TaskInstances may refer to the same slot key.
+- Explicit slots replace future implicit default projections; disabling every explicit slot suspends the generated schedule rather than returning to an implicit daily default.
+- Changing a template time does not rewrite the dueTime snapshot of an already materialized historical occurrence.
+- Future dynamic N-times-per-day, cooldown and rolling windows remain deferred until usability testing.
