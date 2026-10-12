@@ -43,7 +43,7 @@ public class TaskDeadlineService {
 
     /**
      * Catch up at most one preceding day after downtime without mass-generating future tasks.
-     * Only tasks with a due time and mandatory=true are automatically penalized.
+     * Mandatory tasks without an explicit due time expire at the end of their scheduled day.
      */
     @Scheduled(fixedDelayString = "${familypoints.deadlines.poll-ms:300000}")
     public void processAutomaticDeadlines() {
@@ -70,11 +70,11 @@ public class TaskDeadlineService {
                 if (!generation.shouldGenerate(definition, date)) continue;
                 var definedSlots = slots.findByTaskDefinitionIdAndEnabledTrueOrderByScheduledTimeAscSlotKeyAsc(definition.getId());
                 if (definedSlots.isEmpty()) {
-                    if (definition.getDueTime() == null || now.isBefore(LocalDateTime.of(date, definition.getDueTime()))) continue;
+                    if (now.isBefore(deadlineFor(date, definition.getDueTime()))) continue;
                     generation.generateForDefinition(definition, date);
                 } else {
                     for (var slot : definedSlots) {
-                        if (slot.getScheduledTime() == null || now.isBefore(LocalDateTime.of(date, slot.getScheduledTime()))) continue;
+                        if (slot.getScheduledTime() == null || now.isBefore(deadlineFor(date, slot.getScheduledTime()))) continue;
                         // Lock the definition before creating one slot; never create future instances.
                         taskService.materializeOverdueSlot(workspaceId, definition.getId(), date, slot.getSlotKey());
                     }
@@ -104,11 +104,7 @@ public class TaskDeadlineService {
                 continue;
             }
 
-            LocalDateTime deadline =
-                    LocalDateTime.of(
-                            instance.getScheduledDate(),
-                            instance.getDueTime()
-                    );
+            LocalDateTime deadline = deadlineFor(instance.getScheduledDate(), instance.getDueTime());
 
             if (now.isBefore(deadline)) {
                 continue;
@@ -124,5 +120,8 @@ public class TaskDeadlineService {
         }
 
         return processed;
+    }
+    static LocalDateTime deadlineFor(LocalDate date, java.time.LocalTime dueTime) {
+        return dueTime == null ? date.plusDays(1).atStartOfDay() : date.atTime(dueTime);
     }
 }
