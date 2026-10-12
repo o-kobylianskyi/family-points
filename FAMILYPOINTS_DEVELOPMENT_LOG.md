@@ -443,3 +443,8 @@
 - It excludes inactive members and does not expose other accounts' memberships. No client-provided account ID is accepted.
 - This is **not** workspace switching: existing JWT/current workspace authorization remains unchanged. Signup and invitation creation are still unavailable.
 - Latest changes not yet locally compiled/tested. Next: run `git pull` and `mvnw.cmd test`, then add secure server-controlled workspace selection and cross-tenant authorization tests.
+
+## 2026-10-12 — Workspace switching security gate
+- Audited `CustomUserDetailsService`, `CurrentUserService`, `WorkspaceSecurity`, `CurrentUserResponse` and JWT filters. Permissions and identity context remain linked to legacy primary WorkspaceMember. Switching workspaceId alone would be unsafe.
+- Added `AccountWorkspacesControllerTest` in commit `398b68e` to exercise signed-in account workspace-choice responses and active marker using mocks. The test has not yet been run locally.
+- Decision: defer live workspace switching until active membership, role evaluation, `/api/me`, JWT and all scoped authorization agree on the same selected workspace; integration-test unauthorized cross-workspace access. Do not expose switching before then.
