@@ -27,6 +27,7 @@ const emptyRewardForm = {
   description: '',
   pointTypeId: '',
   priceAmount: 20,
+  cooldownSeconds: 30,
   minimumReputation: '',
   acquisitionMode: 'DIRECT',
   rewardKind: 'STANDARD',
@@ -231,6 +232,7 @@ function RewardsPage() {
           description: rewardForm.description.trim() || null,
           pointTypeId: Number(rewardForm.pointTypeId),
           priceAmount: Number(rewardForm.priceAmount || 0),
+          cooldownSeconds: Number(rewardForm.cooldownSeconds ?? 30),
           minimumReputation:
             rewardForm.minimumReputation === ''
               ? null
@@ -465,6 +467,9 @@ function RewardsPage() {
                     <span key={category.id}>{category.name}</span>
                   ))}
                   <span>{acquisitionLabel(reward.acquisitionMode)}</span>
+                  {reward.cooldownSeconds > 0 && (
+                    <span>Повторно через {reward.cooldownSeconds} с</span>
+                  )}
                   {reward.minimumReputation != null && (
                     <span>Репутація ≥ {reward.minimumReputation}</span>
                   )}
@@ -813,6 +818,15 @@ function RewardsPage() {
                       priceAmount: event.target.value,
                     })}
                   />
+                </label>
+
+                <label>
+                  <span>Пауза між повторними отриманнями (секунди)</span>
+                  <input type="number" min="0" value={rewardForm.cooldownSeconds}
+                    onChange={(event) => setRewardForm({
+                      ...rewardForm, cooldownSeconds: event.target.value
+                    })} />
+                  <small>0 — без обмеження, 30 — захист від випадкового подвійного натискання.</small>
                 </label>
 
                 <label>
