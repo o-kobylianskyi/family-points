@@ -615,3 +615,8 @@
 - Android AuthApi `6bc69e8`, DashboardScreen `ad22cdf`, MainActivity `eee7dcc`: load active member reputation only online; verify memberId and workspaceId before showing; do not show stale reputation while offline or after switching workspace.
 - Investigated Actions run 38293200489: backend and Web passed; Android failed during setup-android with `Failed to find package 'platform-tools\\n platforms...'`; sdkmanager packages were interpreted as one multiline value. Workflow `6638c0b` now supplies a space-separated package list. Latest Android CI not yet confirmed.
 - Pending Android Gradle compilation and on-device UI smoke test; track latest run by SHA. Reputation Points-page and member-profile history still pending.
+
+## 2026-10-12 — Android deprecated API warnings cleanup
+- AppUsageReader (`fa431e9`): replaced deprecated `unsafeCheckOpNoThrow` with `checkOpNoThrow` (supported across app minSdk 26), preserving usage access guard.
+- MainActivity (`932fb61`): white system bar colors now explicitly set only on Android SDK <35 via a scoped legacy helper; Android 15+ relies on edge-to-edge system surfaces. Light system bar icons still configured using WindowCompat.
+- CI Android compilation not verified at time of commit; user should pull and run `gradlew.bat :app:assembleDebug`; real-device visual validation recommended due to status/navigation bar behavior changes.
