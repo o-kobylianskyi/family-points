@@ -161,7 +161,7 @@ function CreateTaskModal({
   const [recurrenceDayOfMonth, setRecurrenceDayOfMonth] =
     useState(String(initialTask?.recurrenceDayOfMonth ?? 1))
   const [dueTime, setDueTime] = useState(initialTask?.dueTime?.slice?.(0, 5) ?? '')
-  const [dailyTimes, setDailyTimes] = useState(['', ''])
+  const [dailyTimes, setDailyTimes] = useState(['09:00', '15:00'])
   const [useDailySlots, setUseDailySlots] = useState(false)
 
   const [pointTypes, setPointTypes] = useState([])
@@ -574,15 +574,15 @@ function CreateTaskModal({
             </select>
           </label>
 
-          {!editing && recurrenceType !== 'ONCE' && (
+          {!editing && (
             <section className="task-value-section">
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <input type="checkbox" checked={useDailySlots} onChange={e => setUseDailySlots(e.target.checked)} />
-                Кілька виконань протягом дня
+                Кілька виконань за вибрану дату або протягом дня
               </label>
               {useDailySlots && (
                 <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.75rem' }}>
-                  <p>Вкажіть час кожного виконання. Кожне матиме власний статус, бали та штраф.</p>
+                  <p>Вкажіть час кожного виконання. Для одноразового завдання всі виконання будуть на вибрану дату; для повторюваного — у відповідні дні.</p>
                   {dailyTimes.map((time, index) => (
                     <div key={index} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <label>Виконання {index + 1}
