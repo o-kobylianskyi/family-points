@@ -1698,3 +1698,31 @@ In the negotiation UI, selecting a TIME_BASED catalog reward reveals a duration 
 “Будь-який” in negotiation remains intentionally unspecified; it is not silently replaced by the catalog default. This allows the parent/reviewer to approve the privilege without fixing duration yet.
 
 The negotiation form is initialized from the current TaskInstance reward snapshot: current point type, point amount and reputation amount, rather than starting blank.
+
+
+---
+
+## 36. 2026-10-12 — Product direction reaffirmed: Family first, public multi-workspace platform, personnel management later
+
+**AGREED / REFINED — user clarification**
+
+- The original goal is a real family-focused FamilyPoints product, not an immediate generic enterprise/personnel manager.
+- The longer-term direction explicitly includes adapting the same reusable task, work hierarchy, roles, groups, permissions, evaluation, and economy mechanisms for managing staff, teams, offices and businesses. Keep Family and Team/Office/Business templates or feature sets distinct without cloning the underlying platform.
+- The system may be distributed among multiple unrelated families, and potentially released publicly via application stores. Independent tenant/workspace registration, onboarding, security boundaries, scalability and safe defaults therefore matter now, not only in a remote enterprise phase.
+- The sign-in experience should include an entry point for account registration and creation of a new family (initial BETA may gate actual creation by invitation/registration policy).
+- A person/account may participate in multiple families or other workspaces with different context-local permissions. Avoid equating global account identity with one permanent workspace.
+- Long-term direction includes moving members between groups/workspaces and potentially merging or splitting groups/families. These operations require explicit authorization, privacy controls, audit trail and safe handling of historical financial transactions; detailed rules are **DISCUSSED / QUESTION**, not approved implementation contracts.
+
+**Architecture reconciliation required before public signup (CURRENTLY NOT IMPLEMENTED)**
+
+- Current `UserAccount` is uniquely bound to one `WorkspaceMember`; `CurrentUserService` infers one workspace from that relation.
+- Introduce a multi-membership identity architecture as a staged migration, preserving existing DEV data and authorization, rather than breaking existing services at once. Separate global identity, membership in each workspace, member/actor and scoped roles.
+- Maintain three independent planes previously agreed: organizational/member/group graph, `WorkNode` hierarchy, and scoped authorization. Membership in a workspace must not automatically grant management privileges or cross-workspace access.
+- Decide explicit active-workspace selection/session token semantics and secure cross-workspace authorization. Include positive and negative tests for one account belonging to multiple workspaces and for unrelated accounts.
+- Reconcile the earlier onboarding-plan statement that one-workspace-per-account was acceptable for initial BETA: **SUPERSEDED as target architecture** by the user's 2026-10-12 requirement for multi-workspace accounts; staged implementation remains open.
+- Do not defer basic multi-tenant safety, but do defer complicated merge/split execution until requirements and safeguards are specified. Do not let future personnel-management ambitions delay a useful family BETA.
+
+**Preservation workflow reaffirmed**
+
+- Before product/domain architectural changes, review `FAMILYPOINTS_CONCEPT_DISCUSSION_LOG.md`, `FAMILYPOINTS_CONCEPT_CHECKLIST.md`, current code, and work/development logs.
+- Append dated product decisions to this log; append implementation results (commits, verified tests, remaining risks) to `FAMILYPOINTS_DEVELOPMENT_LOG.md`; keep implementation checklists current. Never treat proposals as already implemented or silently overwrite past decisions.
