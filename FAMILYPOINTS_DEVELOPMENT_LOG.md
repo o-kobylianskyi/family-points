@@ -571,3 +571,8 @@
 - Workflow `.github/workflows/ci.yml` updated in commit `588797f`: second independent job `android-debug` runs on Ubuntu with Java 21, Android SDK platform 37, Gradle wrapper 9.6.0, `:app:assembleDebug` and `:app:testDebugUnitTest`. Android test reports are uploaded as artifacts.
 - Backend Maven/Testcontainers job remains unchanged. Both jobs run in parallel; do not mark Android PASS until actual Actions result is available.
 - Android LoginScreen and Web LoginPage already remember the most recently successful username per device/browser (Android `b614f9d`, `2d85030`, `690b250`; Web `ba0b2f0`). Android compilation now becomes part of every push CI run.
+
+## 2026-10-12 — Web workspace switching + Android API foundation
+- Web `authApi.js` adds membership listing and activation (`e9012a0`). `AuthContext.jsx` validates `/api/me` for the new token before committing it and performs a full reload to clear React component state after switching (`84efa1c`). `AppLayout.jsx` shows the family chooser only if >1 linked workspaces (`ece9fcd`).
+- Android `AuthApi.kt` declares list/activation Retrofit contract and `AccountWorkspaceChoice` (`b31dced`), but the Android UI must NOT expose switching until all tenant-sensitive offline caches are namespaced or cleared safely; retain authenticated-offline semantics.
+- CI status PENDING / not verified for this batch. Need front-end build CI, Android API compile, tenant cache isolation review, and end-to-end switching tests. Backend + Android jobs trigger on push and run independently; no need to wait for CI to continue unrelated work.
