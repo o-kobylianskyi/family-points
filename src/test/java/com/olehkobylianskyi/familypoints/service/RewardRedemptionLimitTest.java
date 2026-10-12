@@ -53,6 +53,10 @@ class RewardRedemptionLimitTest {
         when(reward.isActive()).thenReturn(true);
         when(reward.getAcquisitionMode()).thenReturn(RewardAcquisitionMode.DIRECT);
         when(reward.getId()).thenReturn(11L);
+        // Mockito returns zero for unstubbed boxed Integer getters; production uses null for unlimited.
+        when(reward.getMemberTotalLimit()).thenReturn((Integer) null);
+        when(reward.getMemberDailyLimit()).thenReturn((Integer) null);
+        when(reward.getMemberWeeklyLimit()).thenReturn((Integer) null);
         when(reward.getWorkspaceTotalLimit()).thenReturn(2);
         when(purchases.countForLimit(eq(11L), isNull(), isNull(), isNull())).thenReturn(2L);
 
