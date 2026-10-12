@@ -115,100 +115,17 @@ try {
     if (-not $ready) { throw "Temporary PostgreSQL did not start" }
 
     if ($ValidateExisting) {
-        Write-Host "Validating existing V1; historical Git worktree and Maven build skipped."
-        $existingV1 = [IO.File]::ReadAllText($output)
-        $fixedV1 = [regex]::Replace(
-            $existingV1, '(?m)^[ \t]*CREATE SCHEMA public;[ \t]*\r?
-
-    & docker exec $container psql -U fp_schema -d postgres -v "ON_ERROR_STOP=1" -c "CREATE DATABASE fp_validate OWNER fp_schema"
-    Check-Exit "New validation database"
-    Write-Host "Compiling latest branch and validating all Flyway migrations..."
-    $nowJar = Build-Jar $repo
-    Boot-And-Stop $nowJar "fp_validate" $false $port
-    $count = (& docker exec $container psql -U fp_schema -d fp_validate -t -A -v "ON_ERROR_STOP=1" -c "SELECT count(*) FROM flyway_schema_history WHERE success=true" | Out-String).Trim()
-    Check-Exit "Flyway history"
-    if ($count -ne "20") { throw "Expected V1..V20 (20 migrations), got $count" }
-    $validated = $true
-    Write-Host "PASS: clean database migrated V1..V20 and JPA schema validated."
-}
-catch {
-    # Save the original failure. A Windows git worktree cleanup error must
-    # never hide the PostgreSQL, Maven, Flyway or JPA validation error.
-    Write-Warning ("Original failure: " + $_.Exception.Message)
-    throw
-}
-finally {
-    if (-not $validated -and $createdV1 -and (Test-Path -LiteralPath $output)) {
-        # Do not leave an UNVALIDATED V1 in the migration directory. It would
-        # also make the next script execution fail the pre-existing V1 guard.
-        try {
-            $unvalidated = Join-Path $temp "V1__baseline_schema.UNVALIDATED.sql"
-            Move-Item -LiteralPath $output -Destination $unvalidated -ErrorAction Stop
-            Write-Warning "Unvalidated V1 moved to $unvalidated"
-        } catch {
-            Write-Warning ("Could not move unvalidated V1: " + $_.Exception.Message)
-        }
-    }
-    if ($running) {
-        try {
-            # Ignore only cleanup errors, not build errors.
-            & docker rm -f $container 2>$null | Out-Null
-            if ($LASTEXITCODE -ne 0) {
-                Write-Warning "Could not remove disposable container $container"
-            }
-        } catch {
-            Write-Warning ("Docker cleanup: " + $_.Exception.Message)
-        }
-    }
-    if ($treeAdded) {
-        try {
-            # git worktree remove can fail on Windows when a file/index is
-            # briefly locked (e.g., after Maven or Java). Keep this nonfatal.
-            $originalPreference = $ErrorActionPreference
-            try {
-                $ErrorActionPreference = "Continue"
-                & git -C $repo worktree remove --force $oldTree 2>$null | Out-Null
-                $worktreeExit = $LASTEXITCODE
-            } finally {
-                $ErrorActionPreference = $originalPreference
-            }
-            if ($worktreeExit -ne 0) {
-                Write-Warning "Git could not remove temporary worktree $oldTree (nonfatal)"
-            }
-        } catch {
-            Write-Warning ("Git worktree cleanup: " + $_.Exception.Message)
-        }
-        # Safely remove stale administrative worktree entries when possible.
-        try {
-            $originalPreference = $ErrorActionPreference
-            try {
-                $ErrorActionPreference = "Continue"
-                & git -C $repo worktree prune 2>$null | Out-Null
-            } finally {
-                $ErrorActionPreference = $originalPreference
-            }
-        } catch {
-            Write-Warning ("Git worktree prune: " + $_.Exception.Message)
-        }
-    }
-    if ($validated -and -not $KeepTemporaryFiles) {
-        try {
-            Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction Stop
-        } catch {
-            Write-Warning ("Temporary folder remains: " + $temp)
-        }
-    } else {
-        Write-Host "Diagnostic logs are in $temp"
-    }
-}
-,
+        Write-Host "Validating existing V1; historical source generation skipped."
+        $existing = [IO.File]::ReadAllText($output)
+        $fixed = [regex]::Replace(
+            $existing, '(?m)^[ \t]*CREATE SCHEMA public;[ \t]*\r?$',
             'CREATE SCHEMA IF NOT EXISTS public;'
         )
-        if ($fixedV1 -ne $existingV1) {
+        if ($fixed -ne $existing) {
             $backup = Join-Path $temp "V1__baseline_schema.before-public-fix.sql"
             Copy-Item -LiteralPath $output -Destination $backup
-            [IO.File]::WriteAllText($output, $fixedV1, (New-Object Text.UTF8Encoding $false))
-            Write-Host "Changed only CREATE SCHEMA public to IF NOT EXISTS. Backup: $backup"
+            [IO.File]::WriteAllText($output, $fixed, (New-Object Text.UTF8Encoding $false))
+            Write-Host "Adjusted CREATE SCHEMA public for PostgreSQL. Temporary backup: $backup"
         }
     } else {
         Write-Host "Building original v0.3-workspace schema without DEV records..."
@@ -218,93 +135,8 @@ finally {
         $dump = (& docker exec $container pg_dump -U fp_schema -d fp_v1 --schema-only --no-owner --no-privileges --schema=public | Out-String)
         Check-Exit "pg_dump schema-only"
         $sql = (($dump -split "\r?\n") | Where-Object { $_ -notmatch '^\s*\\' }) -join [Environment]::NewLine
-        # PostgreSQL already provides public in each fresh DB. Flyway V1 must
-        # not attempt an unconditional CREATE SCHEMA public.
         $sql = [regex]::Replace(
-            $sql, '(?m)^[ \t]*CREATE SCHEMA public;[ \t]*\r?
-
-    & docker exec $container psql -U fp_schema -d postgres -v "ON_ERROR_STOP=1" -c "CREATE DATABASE fp_validate OWNER fp_schema"
-    Check-Exit "New validation database"
-    Write-Host "Compiling latest branch and validating all Flyway migrations..."
-    $nowJar = Build-Jar $repo
-    Boot-And-Stop $nowJar "fp_validate" $false $port
-    $count = (& docker exec $container psql -U fp_schema -d fp_validate -t -A -v "ON_ERROR_STOP=1" -c "SELECT count(*) FROM flyway_schema_history WHERE success=true" | Out-String).Trim()
-    Check-Exit "Flyway history"
-    if ($count -ne "20") { throw "Expected V1..V20 (20 migrations), got $count" }
-    $validated = $true
-    Write-Host "PASS: clean database migrated V1..V20 and JPA schema validated."
-}
-catch {
-    # Save the original failure. A Windows git worktree cleanup error must
-    # never hide the PostgreSQL, Maven, Flyway or JPA validation error.
-    Write-Warning ("Original failure: " + $_.Exception.Message)
-    throw
-}
-finally {
-    if (-not $validated -and $createdV1 -and (Test-Path -LiteralPath $output)) {
-        # Do not leave an UNVALIDATED V1 in the migration directory. It would
-        # also make the next script execution fail the pre-existing V1 guard.
-        try {
-            $unvalidated = Join-Path $temp "V1__baseline_schema.UNVALIDATED.sql"
-            Move-Item -LiteralPath $output -Destination $unvalidated -ErrorAction Stop
-            Write-Warning "Unvalidated V1 moved to $unvalidated"
-        } catch {
-            Write-Warning ("Could not move unvalidated V1: " + $_.Exception.Message)
-        }
-    }
-    if ($running) {
-        try {
-            # Ignore only cleanup errors, not build errors.
-            & docker rm -f $container 2>$null | Out-Null
-            if ($LASTEXITCODE -ne 0) {
-                Write-Warning "Could not remove disposable container $container"
-            }
-        } catch {
-            Write-Warning ("Docker cleanup: " + $_.Exception.Message)
-        }
-    }
-    if ($treeAdded) {
-        try {
-            # git worktree remove can fail on Windows when a file/index is
-            # briefly locked (e.g., after Maven or Java). Keep this nonfatal.
-            $originalPreference = $ErrorActionPreference
-            try {
-                $ErrorActionPreference = "Continue"
-                & git -C $repo worktree remove --force $oldTree 2>$null | Out-Null
-                $worktreeExit = $LASTEXITCODE
-            } finally {
-                $ErrorActionPreference = $originalPreference
-            }
-            if ($worktreeExit -ne 0) {
-                Write-Warning "Git could not remove temporary worktree $oldTree (nonfatal)"
-            }
-        } catch {
-            Write-Warning ("Git worktree cleanup: " + $_.Exception.Message)
-        }
-        # Safely remove stale administrative worktree entries when possible.
-        try {
-            $originalPreference = $ErrorActionPreference
-            try {
-                $ErrorActionPreference = "Continue"
-                & git -C $repo worktree prune 2>$null | Out-Null
-            } finally {
-                $ErrorActionPreference = $originalPreference
-            }
-        } catch {
-            Write-Warning ("Git worktree prune: " + $_.Exception.Message)
-        }
-    }
-    if ($validated -and -not $KeepTemporaryFiles) {
-        try {
-            Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction Stop
-        } catch {
-            Write-Warning ("Temporary folder remains: " + $temp)
-        }
-    } else {
-        Write-Host "Diagnostic logs are in $temp"
-    }
-}
-,
+            $sql, '(?m)^[ \t]*CREATE SCHEMA public;[ \t]*\r?$',
             'CREATE SCHEMA IF NOT EXISTS public;'
         )
         foreach ($table in @("families","family_members","family_roles","task_definitions","group_roles","user_accounts")) {
