@@ -132,6 +132,36 @@ public class RewardService {
     }
 
     @Transactional
+    public RewardDefinitionResponse updateReward(Long workspaceId, Long rewardId, RewardDefinitionRequest input) {
+        RewardDefinition reward = rewards.findByIdAndWorkspaceId(rewardId, workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reward not found: " + rewardId));
+        if (input.getRewardKind() == RewardKind.STANDARD && input.getDefaultDurationMinutes() != null) {
+            throw new IllegalArgumentException("Standard reward cannot have duration");
+        }
+        PointType pointType = getPointType(workspaceId, input.getPointTypeId());
+        reward.setTitle(input.getTitle().trim());
+        reward.setDescription(blankToNull(input.getDescription()));
+        reward.setPointType(pointType);
+        reward.setPriceAmount(input.getPriceAmount());
+        reward.setMinimumReputation(input.getMinimumReputation());
+        reward.setRequiresApproval(input.isRequiresApproval());
+        reward.setAcquisitionMode(input.getAcquisitionMode());
+        reward.setRewardKind(input.getRewardKind());
+        reward.setDefaultDurationMinutes(input.getRewardKind() == RewardKind.TIME_BASED
+                ? input.getDefaultDurationMinutes() : null);
+        reward.setCooldownSeconds(input.getCooldownSeconds() == null ? 30 : input.getCooldownSeconds());
+        reward.setCategories(resolveCategories(workspaceId, input.getCategoryIds()));
+
+        // Replace only this catalog definition's conditions. Approved requests keep their own conditions.
+        requirements.deleteByRewardDefinitionId(rewardId);
+        requirements.flush();
+        saveRequirements(workspaceId, reward, null, input.getRequirements());
+        return RewardDefinitionResponse.from(reward,
+                requirements.findByRewardDefinitionIdOrderBySortOrderAscIdAsc(rewardId)
+                        .stream().map(RewardRequirementResponse::from).toList());
+    }
+
+    @Transactional
     public RewardRequestResponse createRequest(
             Long workspaceId,
             Long memberId,
