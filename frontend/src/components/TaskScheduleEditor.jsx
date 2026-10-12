@@ -4,11 +4,25 @@ import { getTaskScheduleSlots, createTaskScheduleSlot, updateTaskScheduleSlot, s
 
 const normalize = (time) => time?.slice(0, 5) ?? ''
 
+
+function suggestedTime(slots) {
+  const times = slots.map(s => normalize(s.scheduledTime)).filter(t => /^([01]\d|2[0-3]):[0-5]\d$/.test(t))
+  if (!times.length) return '09:00'
+  const last = times.sort().at(-1)
+  const minutes = Number(last.slice(0, 2)) * 60 + Number(last.slice(3)) + 60
+  return `${String(Math.floor((minutes % 1440) / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+}
+function suggestedKey(slots) {
+  let number = 1
+  while (slots.some(s => s.slotKey === `slot_${number}`)) number++
+  return `slot_${number}`
+}
+
 export default function TaskScheduleEditor({ definitionId, onChanged }) {
   const { currentUser, getAccessToken } = useAuth()
   const [slots, setSlots] = useState([])
   const [newKey, setNewKey] = useState('')
-  const [newTime, setNewTime] = useState('')
+  const [newTime, setNewTime] = useState('09:00')
   const [drafts, setDrafts] = useState({})
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
@@ -16,13 +30,14 @@ export default function TaskScheduleEditor({ definitionId, onChanged }) {
   const refresh = async () => {
     const items = await getTaskScheduleSlots(getAccessToken(), workspaceId, definitionId)
     setSlots(items)
+    setNewTime(suggestedTime(items))
     setDrafts(Object.fromEntries(items.map(s => [s.id, normalize(s.scheduledTime)])))
     onChanged?.()
   }
   useEffect(() => {
     let active = true
     getTaskScheduleSlots(getAccessToken(), workspaceId, definitionId)
-      .then(items => { if (active) { setSlots(items); setDrafts(Object.fromEntries(items.map(s => [s.id, normalize(s.scheduledTime)]))) } })
+      .then(items => { if (active) { setSlots(items); setNewTime(suggestedTime(items)); setDrafts(Object.fromEntries(items.map(s => [s.id, normalize(s.scheduledTime)]))) } })
       .catch(e => { if (active) setError(e.message) })
     return () => { active = false }
   }, [definitionId, workspaceId, getAccessToken])
@@ -37,9 +52,13 @@ export default function TaskScheduleEditor({ definitionId, onChanged }) {
   }
   const add = (event) => {
     event.preventDefault()
-    const key = newKey.trim()
+    const key = newKey.trim() || suggestedKey(slots)
     if (!/^[a-zA-Z0-9_-]{1,40}$/.test(key) || key === 'default') {
       setError('Ключ має містити 1–40 латинських літер, цифр, _ або -. Назва default зарезервована.')
+      return
+    }
+    if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(newTime)) {
+      setError('Вкажіть час виконання у форматі ГГ:ХХ, наприклад 09:00.')
       return
     }
     if (slots.some(s => s.slotKey === key)) {
@@ -49,7 +68,7 @@ export default function TaskScheduleEditor({ definitionId, onChanged }) {
     run(async () => {
       await createTaskScheduleSlot(getAccessToken(), workspaceId, definitionId, key, newTime)
       setNewKey('')
-      setNewTime('')
+      setNewTime(suggestedTime([...slots, { scheduledTime: newTime }]))
     })
   }
 
@@ -75,13 +94,13 @@ export default function TaskScheduleEditor({ definitionId, onChanged }) {
           </div>
         ))}
       </div>
-      <form onSubmit={add} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'end', gap: '0.5rem', marginTop: '1rem' }}>
-        <label>Ключ слота
-          <input value={newKey} placeholder="morning / evening / third" disabled={pending}
-            onChange={e => setNewKey(e.target.value)} required maxLength={40} />
+      <form noValidate onSubmit={add} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'end', gap: '0.5rem', marginTop: '1rem' }}>
+        <label>Ключ слота (необов'язково)
+          <input value={newKey} placeholder={suggestedKey(slots)} disabled={pending}
+            onChange={e => setNewKey(e.target.value)} maxLength={40} />
         </label>
-        <label>Час (необов'язково)
-          <input type="time" value={newTime} disabled={pending} onChange={e => setNewTime(e.target.value)} />
+        <label>Час виконання
+          <input type="time" lang="uk" aria-label="Час нового виконання" value={newTime} disabled={pending} onChange={e => setNewTime(e.target.value)} />
         </label>
         <button className="task-action-button primary" disabled={pending} type="submit">Додати слот</button>
       </form>
