@@ -437,3 +437,9 @@
 - Added a transactional integration test to `FamilyPointsApplicationTests` (commit `35260cd`). It creates two independent Workspace records, per-workspace roles/members, one global account and two `AccountWorkspaceMembership` links, then queries by account/workspace in disposable PostgreSQL using Testcontainers.
 - **Not yet verified locally:** new test compilation/execution and all-suite pass. Current authentication still selects the legacy primary workspace. This test does not yet prove cross-workspace HTTP authorization.
 - Next: confirm Maven tests PASS; implement explicitly selected workspace context with scoped JWT authorization, and add negative tests before enabling signup/switching.
+
+## 2026-10-12 — Account workspace choices API
+- Added `GET /api/me/workspaces` read-only controller in commit `c7fa3e6`. It resolves authenticated account server-side, lists only its membership records, and marks the legacy active workspace.
+- It excludes inactive members and does not expose other accounts' memberships. No client-provided account ID is accepted.
+- This is **not** workspace switching: existing JWT/current workspace authorization remains unchanged. Signup and invitation creation are still unavailable.
+- Latest changes not yet locally compiled/tested. Next: run `git pull` and `mvnw.cmd test`, then add secure server-controlled workspace selection and cross-tenant authorization tests.
