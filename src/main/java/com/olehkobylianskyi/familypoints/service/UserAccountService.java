@@ -1,8 +1,10 @@
 package com.olehkobylianskyi.familypoints.service;
 
 import com.olehkobylianskyi.familypoints.entity.UserAccount;
+import com.olehkobylianskyi.familypoints.entity.AccountWorkspaceMembership;
 import com.olehkobylianskyi.familypoints.entity.WorkspaceMember;
 import com.olehkobylianskyi.familypoints.repository.UserAccountRepository;
+import com.olehkobylianskyi.familypoints.repository.AccountWorkspaceMembershipRepository;
 import com.olehkobylianskyi.familypoints.repository.WorkspaceMemberRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,15 +19,18 @@ public class UserAccountService {
     private final UserAccountRepository userAccountRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AccountWorkspaceMembershipRepository membershipRepository;
 
     public UserAccountService(
             UserAccountRepository userAccountRepository,
             WorkspaceMemberRepository workspaceMemberRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            AccountWorkspaceMembershipRepository membershipRepository
     ) {
         this.userAccountRepository = userAccountRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
         this.passwordEncoder = passwordEncoder;
+        this.membershipRepository = membershipRepository;
     }
 
     @Transactional(readOnly = true)
@@ -56,7 +61,9 @@ public class UserAccountService {
                 passwordEncoder.encode(password),
                 memberOptional.get()
         );
-        return Optional.of(userAccountRepository.save(account));
+        UserAccount saved = userAccountRepository.save(account);
+        membershipRepository.save(new AccountWorkspaceMembership(saved, memberOptional.get()));
+        return Optional.of(saved);
     }
 
     @Transactional
