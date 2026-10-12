@@ -407,7 +407,15 @@ public class TaskService {
             default -> null;
         };
         if (role == null) return all.stream().filter(taskAuthorizationService::canRead).toList();
-        return all.stream().filter(d -> participantMatchesMember(d.getId(), role, me.getId(), new java.util.HashSet<>())).toList();
+        // The 'admin' view includes effective managers, not only explicit ADMIN participants.
+        // Authors, workspace task managers and scoped group managers otherwise disappear here.
+        if (role == TaskParticipantRole.ADMIN) {
+            return all.stream().filter(taskAuthorizationService::canManage).toList();
+        }
+        return all.stream()
+                .filter(taskAuthorizationService::canRead)
+                .filter(d -> participantMatchesMember(d.getId(), role, me.getId(), new java.util.HashSet<>()))
+                .toList();
     }
 
     private boolean participantMatchesMember(
