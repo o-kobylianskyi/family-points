@@ -1,6 +1,12 @@
 package com.olehkobylianskyi.familypoints;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import com.olehkobylianskyi.familypoints.entity.*;
+import com.olehkobylianskyi.familypoints.repository.AccountWorkspaceMembershipRepository;
+import static org.junit.jupiter.api.Assertions.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -28,6 +34,47 @@ class FamilyPointsApplicationTests {
         registry.add("security.jwt.secret", () -> java.util.Base64.getEncoder().encodeToString(
                 "family-points-integration-test-jwt-secret-at-least-32-characters"
                         .getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+    }
+
+    @Autowired EntityManager entityManager;
+    @Autowired AccountWorkspaceMembershipRepository memberships;
+
+    @Test
+    @Transactional
+    void sameAccountCanBelongToTwoIndependentWorkspaces() {
+        Workspace first = new Workspace("Integration family A");
+        Workspace second = new Workspace("Integration family B");
+        entityManager.persist(first);
+        entityManager.persist(second);
+
+        WorkspaceRole firstRole = new WorkspaceRole(first, "PARENT", "Parent A", false);
+        WorkspaceRole secondRole = new WorkspaceRole(second, "PARENT", "Parent B", false);
+        entityManager.persist(firstRole);
+        entityManager.persist(secondRole);
+
+        WorkspaceMember firstMember = new WorkspaceMember("Member A",
+                WorkspaceMemberType.PARENT, firstRole, first);
+        WorkspaceMember secondMember = new WorkspaceMember("Member B",
+                WorkspaceMemberType.PARENT, secondRole, second);
+        entityManager.persist(firstMember);
+        entityManager.persist(secondMember);
+
+        UserAccount account = new UserAccount("integration-membership-account",
+                "not-used-for-login", firstMember);
+        entityManager.persist(account);
+        entityManager.persist(new AccountWorkspaceMembership(account, firstMember));
+        entityManager.persist(new AccountWorkspaceMembership(account, secondMember));
+        entityManager.flush();
+        entityManager.clear();
+
+        var linked = memberships.findAllByAccountIdOrderByIdAsc(account.getId());
+        assertEquals(2, linked.size());
+        assertTrue(memberships.existsByAccountIdAndWorkspaceMemberWorkspaceId(account.getId(), first.getId()));
+        assertTrue(memberships.existsByAccountIdAndWorkspaceMemberWorkspaceId(account.getId(), second.getId()));
+        assertEquals(firstMember.getId(), memberships.findByAccountIdAndWorkspaceMemberWorkspaceId(
+                account.getId(), first.getId()).orElseThrow().getWorkspaceMember().getId());
+        assertEquals(secondMember.getId(), memberships.findByAccountIdAndWorkspaceMemberWorkspaceId(
+                account.getId(), second.getId()).orElseThrow().getWorkspaceMember().getId());
     }
 
     @Test
