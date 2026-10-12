@@ -43,6 +43,7 @@ import com.olehkobylianskyi.familypoints.android.ui.components.ServerStatusBanne
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
 import com.olehkobylianskyi.familypoints.android.i18n.strings
+import com.olehkobylianskyi.familypoints.android.storage.LastUsernameStore
 import com.olehkobylianskyi.familypoints.android.storage.LanguageStore
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import com.olehkobylianskyi.familypoints.android.ui.screens.CreateTaskScreen
@@ -93,6 +94,7 @@ class MainActivity : ComponentActivity() {
 
         val tokenStore = TokenStore(this)
         val languageStore = LanguageStore(this)
+        val lastUsernameStore = LastUsernameStore(this)
         val dashboardRepository = DashboardRepository(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineDashboardStore(this))
         val tasksRepository = TasksRepository(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineTasksStore(this))
         val createTaskRepository = CreateTaskRepository(tokenStore)
@@ -280,6 +282,8 @@ class MainActivity : ComponentActivity() {
                         LoginScreen(
                             language = language,
                             showOnlineReauthNotice = showOnlineReauthNotice,
+                            initialUsername = lastUsernameStore.get(),
+                            onRememberUsername = { lastUsernameStore.save(it) },
                             onLanguageChange = { selected ->
                                 languageStore.saveLanguage(selected)
                                 language = selected
