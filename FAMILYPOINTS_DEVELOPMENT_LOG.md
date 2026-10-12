@@ -682,3 +682,8 @@
 - Run 38303219123 on commit 4f457f4: Web PASS. Backend compiled and ran 57 tests; 56 passed, one failed at RewardRedemptionLimitTest.workspaceLimitChecksAllMembersNotJustBuyer. In Mockito, unstubbed boxed Integer getMemberTotalLimit() returned 0, not production's null for unlimited; service consequently hit personal quota first. Corrected test's personal limit null stubs in `9e0d430`; follow-up CI not yet confirmed.
 - Android failed before compilation: sdkmanager --channel=3 still cannot locate platforms;android-37 on hosted runner. Local Android Gradle build previously reported BUILD SUCCESS; do not confuse environment setup failure with Kotlin failure.
 - Previous TaskService.findForOccurrenceUpdate missing declaration was resolved in `4f457f4`: compilation proceeds to tests.
+
+## 2026-10-12 — Scheduled task manager completion regression checks
+- Actions run 38303462235 (f0f9966): Backend Java/Maven/Testcontainers PASS; Web Vite PASS; Android still FAILS installing Android API 37 on hosted runner before Kotlin compilation.
+- Added TaskManagerCompletionTest (`65277d9`): rejects manager completion of future occurrences before creating TaskInstance; checks that confirming an already COMPLETED dated instance neither creates a duplicate nor processes points/reputation a second time. Uses mocked authorization, generation and repositories.
+- Tests newly pushed; CI pending. Follow-up needs PostgreSQL integration test to exercise transaction locks, concurrency and exactly-once ledger semantics (these Mockito tests do not prove concurrency).
