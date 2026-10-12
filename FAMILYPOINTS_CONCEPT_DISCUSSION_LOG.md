@@ -1734,3 +1734,9 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - Extra redemption requests are an optional per-reward policy, not a universal right. Parent/admin may grant a one-use, auditable exception with specific allowed quantity/duration, price/extra tasks/conditions, expiry and approval. Unauthorized or duplicate use must be impossible. Family-shared quota overrides require authorized family-level approval.
 - Ordinary quotas must remain unchanged by extra permits; per-permit consumption must be atomic. Admin may issue an unsolicited gift exception with equivalent audit.
 - Implementation is staged: initial member/family count limits first, then duration limits, then separate extra-request/approval/permit workflow and Android UX. Do not confuse the concept with deployed features.
+
+## 2026-10-12 — Task schedules: virtual occurrences rather than bulk generation
+- One TaskDefinition with recurrence schedule and optional multiple stable slots per date.
+- Calendar projection should list future PLANNED occurrences without TaskInstance insertion; materialize an individual occurrence transactionally on start, completion or deadline processing.
+- Stable occurrence key must include (definitionId, scheduledDate, slotKey) to support multiple daily occurrences; unique DB key and event/ledger idempotency must follow.
+- Preserve historical instances and audit, protect actor/workspace visibility, and never create 100 days of rows in advance. Read-only phase initially supports one default slot/day; multiple slots and write/miss handling require staged schema and service changes.
