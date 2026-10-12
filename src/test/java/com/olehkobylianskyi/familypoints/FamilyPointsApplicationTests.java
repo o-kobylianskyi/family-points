@@ -25,7 +25,9 @@ class FamilyPointsApplicationTests {
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.flyway.baseline-on-migrate", () -> "false");
-        registry.add("security.jwt.secret", () -> "family-points-integration-test-jwt-secret-at-least-32-characters");
+        registry.add("security.jwt.secret", () -> java.util.Base64.getEncoder().encodeToString(
+                "family-points-integration-test-jwt-secret-at-least-32-characters"
+                        .getBytes(java.nio.charset.StandardCharsets.UTF_8)));
     }
 
     @Test
