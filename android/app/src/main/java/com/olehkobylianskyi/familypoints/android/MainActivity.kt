@@ -3,7 +3,6 @@ package com.olehkobylianskyi.familypoints.android
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Build
-import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -568,12 +567,9 @@ class MainActivity : ComponentActivity() {
         return super.dispatchTouchEvent(event)
     }
 
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (::authSessionManager.isInitialized) {
-            authSessionManager.markActivity()
-        }
-        return super.dispatchKeyEvent(event)
-    }
+    // Key activity is already tracked by Compose interaction handlers.
+    // Do not override ComponentActivity.dispatchKeyEvent: AndroidX restricts
+    // its dispatch implementation to its own library group.
 }
 
 @Composable
