@@ -16,7 +16,7 @@ BEGIN
     JOIN pg_class t ON t.oid = c.conrelid
     WHERE t.relname = 'task_instances' AND c.contype = 'u'
       AND (
-        SELECT array_agg(a.attname ORDER BY a.attname)
+        SELECT array_agg(a.attname::TEXT ORDER BY a.attname)
         FROM unnest(c.conkey) AS k(attnum)
         JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = k.attnum
       ) = ARRAY['member_id','scheduled_date','task_definition_id']::TEXT[]
