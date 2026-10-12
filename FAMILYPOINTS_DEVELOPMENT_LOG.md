@@ -556,3 +556,8 @@
 - CI: ubuntu-latest, Temurin Java 21, Maven dependency cache, Docker verification, `./mvnw -B -ntp clean verify`, Surefire/Failsafe artifacts retained 14 days, read-only GitHub contents token.
 - Development workflow: commit cohesive feature batches with tests, use Actions result for each commit before marking PASS. Log commit SHA, tests, CI state (PENDING/PASS/FAIL), follow-up work; retain local Windows/Android device smoke testing as separate checks.
 - Status as of writing: workflow file committed, **CI run not yet verified**; GitHub combined commit statuses endpoint returned no status entries. Do not claim success until Actions run is inspected.
+
+## 2026-10-12 — First GitHub Actions CI success confirmed
+- User supplied screenshot of FamilyPoints CI run #3 for commit `9cb5e4e` on `feature/task-soft-delete`: green success, duration 1m 5s.
+- Earlier runs #1 and #2 failed after ~13–14 seconds; adding `chmod +x ./mvnw` in workflow commit `9cb5e4e` was followed by successful third run. This supports operational CI verification for the committed backend test suite.
+- Next development workflow: coherent multi-file feature batches, CI status checked by exact commit. Keep Android/device/UI exploratory testing separate.
