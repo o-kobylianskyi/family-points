@@ -620,3 +620,10 @@
 - AppUsageReader (`fa431e9`): replaced deprecated `unsafeCheckOpNoThrow` with `checkOpNoThrow` (supported across app minSdk 26), preserving usage access guard.
 - MainActivity (`932fb61`): white system bar colors now explicitly set only on Android SDK <35 via a scoped legacy helper; Android 15+ relies on edge-to-edge system surfaces. Light system bar icons still configured using WindowCompat.
 - CI Android compilation not verified at time of commit; user should pull and run `gradlew.bat :app:assembleDebug`; real-device visual validation recommended due to status/navigation bar behavior changes.
+
+## 2026-10-12 — Reputation history and non-obstructing Android workspace selector
+- Backend `MyReputationController` now exposes `GET /api/me/reputation/history` for authenticated active member; returns recent 100 transactions (id, amount, sourceType, description, createdAt), commit `fbdd57d`. Controller unit test updated (`9fcf2b8`), new history test (`72aee03`, enum correction `ed38d9f`).
+- Web API history (`ca969ff`) and Dashboard latest five entries (`af5585c`); dates, amounts and descriptions shown.
+- Android Retrofit history DTO/API (`98385ae`). Android picker moved from floating bottom overlay to dashboard top scrollable section (`ddeb322`, `3869889`) and hidden on offline-authenticated sessions (`222832c`, `fe70239`).
+- Prior CI `5011840`: Backend PASS, Web PASS, Android FAIL during SDK setup: `Failed to find package 'platforms;android-37'` on hosted sdkmanager. Local user explicitly confirmed Gradle `BUILD SUCCESS` on Windows, but CI remains unresolved for Android SDK 37 availability. Next: inspect available preview channel/runner and fix reliable SDK 37 installation or use compatible published SDK version after verifying plugin and source support.
+- New package pending CI. Android reputation history UI and history pagination are follow-ups.
