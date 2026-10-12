@@ -319,3 +319,11 @@ export async function getMemberSchedule(token, workspaceId, memberId, date) {
   return handleResponse(response, 'Не вдалося завантажити розклад завдань')
 }
 
+
+export async function startScheduledTask(token, workspaceId, definitionId, date) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/definitions/${definitionId}/start-scheduled?date=${date}`,
+    { token, method: 'POST' }
+  )
+  return handleResponse(response, 'Не вдалося почати заплановане завдання')
+}
