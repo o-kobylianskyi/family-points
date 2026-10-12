@@ -25,6 +25,7 @@ import {
   rejectTaskRewardRequest,
   setTaskDefinitionActive,
   startTask,
+  startScheduledTask,
 } from '../api/taskApi'
 
 import CreateTaskModal from '../components/CreateTaskModal'
@@ -286,6 +287,20 @@ function TasksPage() {
       }
     } catch (error) {
       setError(error.message)
+    } finally {
+      setProcessingTaskId(null)
+    }
+  }
+
+  const handleStartScheduled = async (occurrence) => {
+    try {
+      setProcessingTaskId(`planned-${occurrence.occurrenceKey}`)
+      setError('')
+      await startScheduledTask(getAccessToken(), currentUser.workspaceId,
+        occurrence.taskDefinitionId, selectedDate)
+      await loadAllTasks()
+    } catch (actionError) {
+      setError(actionError.message)
     } finally {
       setProcessingTaskId(null)
     }
@@ -632,6 +647,13 @@ function TasksPage() {
                   </div>
                 </div>
                 <div className="task-card-actions">
+                  {selectedMemberId === currentUser.memberId && selectedDate <= getToday() && (
+                    <button type="button" className="task-action-button primary"
+                      disabled={processingTaskId === `planned-${item.occurrenceKey}`}
+                      onClick={() => handleStartScheduled(item)}>
+                      Почати
+                    </button>
+                  )}
                   <Link className="task-action-button secondary task-open-link"
                     to={`/tasks/${item.taskDefinitionId}?date=${selectedDate}`}>
                     Переглянути →
