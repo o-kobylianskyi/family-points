@@ -727,3 +727,8 @@
 - Fixed TaskGenerationService constructor usages in TaskVirtualScheduleTest (40a12ce) after CI test compilation failure.
 - GitHub Actions run 38313245292 on 40a12ce: Java 21 / Maven / PostgreSQL Testcontainers SUCCESS; Web / Vite production build SUCCESS. Android SDK37 installation failed on hosted runner (known infrastructure issue; local Android testing agreed).
 - Backend and Web schedule editor code now builds; full interactive browser/real-user acceptance testing is still pending.
+
+## 2026-10-13 — Hide unauthorized schedule controls and member browsing
+- Child account screenshots showed editable schedule controls then 403. Added per-task GET /definitions/{id}/permissions (a4bc094, 91248fc); TaskDetailsPage now calls server-authoritative canManage and only mounts management controls/TaskScheduleEditor for authorized managers (923ed85, 835be83).
+- Child saw member tabs for Oleh, Denys, Maryna. TasksPage now gates member switching by VIEW_ALL_TASKS/ADMIN_OVERRIDE and task creation by CREATE_TASKS/ADMIN_OVERRIDE (d190b39). Backend getMemberTasks now independently denies viewing another member's persisted executions absent those privileges (d9951c5), matching existing getMemberSchedule protection.
+- New GitHub Actions run 38314823205 pending at time of write. Need test child login after git pull and both front/backend restart, verify own tasks only, management buttons absent, direct foreign member endpoint returns 403. Ensure authorized parent can still manage.
