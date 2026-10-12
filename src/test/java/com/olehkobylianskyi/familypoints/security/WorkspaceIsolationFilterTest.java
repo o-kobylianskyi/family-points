@@ -81,4 +81,34 @@ class WorkspaceIsolationFilterTest {
         assertNotNull(chain.getRequest());
         verifyNoInteractions(currentUser);
     }
+    @Test
+    void deniesRevokedSelectedWorkspaceBeforeController() throws Exception {
+        authenticate();
+        when(currentUser.belongsToWorkspace(200L)).thenThrow(
+                new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.FORBIDDEN, "Membership revoked"));
+        var response = new MockHttpServletResponse();
+        var chain = new MockFilterChain();
+
+        filter.doFilter(request("/workspaces/200/tasks"), response, chain);
+
+        assertEquals(403, response.getStatus());
+        assertNull(chain.getRequest());
+    }
+
+    @Test
+    void deniesDifferentWorkspaceEvenWithAuthenticatedScopedSession() throws Exception {
+        var authentication = new UsernamePasswordAuthenticationToken("family-user", "N/A", List.of());
+        authentication.setDetails(new WorkspaceAuthenticationDetails(5L, 100L, 7L));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(currentUser.belongsToWorkspace(200L)).thenReturn(false);
+        var response = new MockHttpServletResponse();
+        var chain = new MockFilterChain();
+
+        filter.doFilter(request("/workspaces/200/rewards"), response, chain);
+
+        assertEquals(403, response.getStatus());
+        assertNull(chain.getRequest());
+    }
+
 }
