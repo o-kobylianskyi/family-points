@@ -335,3 +335,23 @@ export async function completeScheduledTaskByManager(token, workspaceId, definit
   )
   return handleResponse(response, 'Не вдалося підтвердити виконання завдання')
 }
+
+export async function getTaskScheduleSlots(token, workspaceId, definitionId) {
+  const response = await apiRequest(`/workspaces/${workspaceId}/tasks/definitions/${definitionId}/schedule-slots`, { token })
+  return handleResponse(response, 'Не вдалося завантажити часові слоти')
+}
+export async function createTaskScheduleSlot(token, workspaceId, definitionId, slotKey, scheduledTime) {
+  const response = await apiRequest(`/workspaces/${workspaceId}/tasks/definitions/${definitionId}/schedule-slots`,
+    { token, method: 'POST', body: { slotKey, scheduledTime: scheduledTime || null } })
+  return handleResponse(response, 'Не вдалося створити слот')
+}
+export async function updateTaskScheduleSlot(token, workspaceId, definitionId, slotId, scheduledTime, enabled) {
+  const response = await apiRequest(`/workspaces/${workspaceId}/tasks/definitions/${definitionId}/schedule-slots/${slotId}`,
+    { token, method: 'PUT', body: { scheduledTime: scheduledTime || null, enabled } })
+  return handleResponse(response, 'Не вдалося змінити слот')
+}
+export async function setTaskScheduleSlotEnabled(token, workspaceId, definitionId, slotId, enabled) {
+  const response = await apiRequest(`/workspaces/${workspaceId}/tasks/definitions/${definitionId}/schedule-slots/${slotId}/enabled?enabled=${enabled}`,
+    { token, method: 'PATCH' })
+  return handleResponse(response, 'Не вдалося змінити активність слота')
+}
