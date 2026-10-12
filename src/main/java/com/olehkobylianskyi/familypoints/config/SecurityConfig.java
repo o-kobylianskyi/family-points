@@ -1,6 +1,8 @@
 package com.olehkobylianskyi.familypoints.config;
 
 import com.olehkobylianskyi.familypoints.security.JwtAuthenticationFilter;
+import com.olehkobylianskyi.familypoints.security.CurrentUserService;
+import com.olehkobylianskyi.familypoints.security.WorkspaceIsolationFilter;
 import com.olehkobylianskyi.familypoints.security.RestAccessDeniedHandler;
 import com.olehkobylianskyi.familypoints.security.RestAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
@@ -56,6 +58,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             JwtAuthenticationFilter jwtAuthenticationFilter,
+            CurrentUserService currentUserService,
             RestAuthenticationEntryPoint authenticationEntryPoint,
             RestAccessDeniedHandler accessDeniedHandler
     ) throws Exception {
@@ -84,6 +87,10 @@ public class SecurityConfig {
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
+                )
+                .addFilterAfter(
+                        new WorkspaceIsolationFilter(currentUserService),
+                        JwtAuthenticationFilter.class
                 );
 
         return http.build();
