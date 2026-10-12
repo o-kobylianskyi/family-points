@@ -6,6 +6,7 @@ import com.olehkobylianskyi.familypoints.entity.PointExchangeRequest;
 import com.olehkobylianskyi.familypoints.service.PointExchangeService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/workspaces/{workspaceId}/point-exchanges")
+@PreAuthorize("@workspaceSecurity.canAccessWorkspace(#workspaceId)")
 public class PointExchangeController {
 
     private final PointExchangeService pointExchangeService;
@@ -24,6 +26,7 @@ public class PointExchangeController {
     }
 
     @PostMapping("/rates")
+    @PreAuthorize("@workspaceSecurity.canManageEconomy(#workspaceId)")
     public ResponseEntity<PointExchangeRateResponse> createRate(
             @PathVariable Long workspaceId,
             @Valid @RequestBody PointExchangeRateRequest request
@@ -55,6 +58,7 @@ public class PointExchangeController {
     }
 
     @PostMapping("/members/{memberId}/requests")
+    @PreAuthorize("#memberId == @currentUser.getCurrentMemberId() || @workspaceSecurity.canManageEconomy(#workspaceId)")
     public ResponseEntity<PointExchangeResponse> createExchange(
             @PathVariable Long workspaceId,
             @PathVariable Long memberId,
@@ -74,6 +78,7 @@ public class PointExchangeController {
     }
 
     @GetMapping("/requests/pending")
+    @PreAuthorize("@workspaceSecurity.canManageEconomy(#workspaceId)")
     public List<PointExchangeResponse> getPendingRequests(
             @PathVariable Long workspaceId
     ) {
@@ -85,6 +90,7 @@ public class PointExchangeController {
     }
 
     @PostMapping("/requests/{requestId}/approve")
+    @PreAuthorize("@workspaceSecurity.canManageEconomy(#workspaceId) && #parentMemberId == @currentUser.getCurrentMemberId()")
     public PointExchangeResponse approve(
             @PathVariable Long workspaceId,
             @PathVariable Long requestId,
@@ -101,6 +107,7 @@ public class PointExchangeController {
     }
 
     @PostMapping("/requests/{requestId}/reject")
+    @PreAuthorize("@workspaceSecurity.canManageEconomy(#workspaceId) && #parentMemberId == @currentUser.getCurrentMemberId()")
     public PointExchangeResponse reject(
             @PathVariable Long workspaceId,
             @PathVariable Long requestId,
