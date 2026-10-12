@@ -17,6 +17,10 @@ public class AccountWorkspaceMembership {
     @JoinColumn(name = "family_member_id", nullable = false, unique = true)
     private WorkspaceMember workspaceMember;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "workspace_id", nullable = false)
+    private Workspace workspace;
+
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -25,10 +29,12 @@ public class AccountWorkspaceMembership {
     public AccountWorkspaceMembership(UserAccount account, WorkspaceMember workspaceMember) {
         this.account = account;
         this.workspaceMember = workspaceMember;
+        this.workspace = workspaceMember.getWorkspace();
     }
 
     public Long getId() { return id; }
     public UserAccount getAccount() { return account; }
     public WorkspaceMember getWorkspaceMember() { return workspaceMember; }
+    public Workspace getWorkspace() { return workspace; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
