@@ -14,6 +14,20 @@ public class WorkspaceSecurity {
         this.currentUserService = currentUserService;
     }
 
+    public boolean canManageMembers(Long workspaceId) {
+        if (!currentUserService.belongsToWorkspace(workspaceId)) return false;
+        var member = currentUserService.getCurrentAccount().getWorkspaceMember();
+        return member.hasPermission(WorkspacePermission.MANAGE_MEMBERS)
+                || member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE);
+    }
+
+    public boolean canManageRoles(Long workspaceId) {
+        if (!currentUserService.belongsToWorkspace(workspaceId)) return false;
+        var member = currentUserService.getCurrentAccount().getWorkspaceMember();
+        return member.hasPermission(WorkspacePermission.MANAGE_ROLES)
+                || member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE);
+    }
+
     public boolean canManageWorkspace(Long workspaceId) {
         if (!currentUserService.belongsToWorkspace(workspaceId)) return false;
         var member = currentUserService.getCurrentAccount().getWorkspaceMember();
