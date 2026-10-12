@@ -2,7 +2,9 @@ import { apiRequest } from './client'
 
 async function handleResponse(response, fallbackMessage) {
   if (!response.ok) {
-    let message = fallbackMessage
+    let message = response.status === 409
+      ? 'Нагороду вже отримано. Зачекайте перед повторним отриманням.'
+      : fallbackMessage
     try {
       const error = await response.json()
       if (error.message) message = error.message
