@@ -74,13 +74,17 @@ sudo certbot certificates
 
 Do not paste certificate private keys, auth credentials, SSH secrets or complete private configuration files in chat. Backups go into root-owned directories and must not be copied to public web roots. Check 1C NAT from an approved external client again after Docker installation; installing Docker without that check is not an acceptable rollout step.
 
-## Initial database bootstrap caveat — **must resolve before API startup**
+## Empty Beta database and family onboarding (2026-10-12 decision)
 
-This repo has Flyway migrations **V2–V20 only**, with no initial `V1` DDL. `V2` references legacy tables (e.g., `families`, `task_definitions`) absent in a fresh PostgreSQL database. Consequently the Beta API CANNOT be started against a blank database.
+**Do NOT restore/copy the development database, its accounts or test data into Beta.** The current development data is not suitable for real users.
 
-**Fastest Beta path:** take a protected full PostgreSQL dump of the current development database (including `flyway_schema_history`) and restore into the isolated Beta PostgreSQL container with `pg_restore --no-owner --no-acl`. The existing DEV DB remains intact. Confirm on the laptop that `flyway_schema_history` exists and includes successful V20, and verify Postgres dump/restore client version compatibility. Copy the dump with SSH/SCP and remove the temporary dump from the VPS after successful restore. Do not commit, email or publish database dumps. For a clean empty-database approach later, first reconstruct a compatible V1 schema from the original pre-Flyway baseline—not from V20, which would duplicate later migrations.
+The repo contains migrations V2–V20 but no initial compatible V1. Before launching the Beta API:
+1. Reconstruct/verify the original pre-V2 schema as a V1 migration, test V1–V20 from empty database; **or** import a *schema-only* (no rows) verified V20 snapshot into a disposable new DB with an explicit Flyway V20 baseline. No user/data rows are transferred.
+2. Add a transactional registration flow that creates the family's workspace, initial administrator, default workspace roles, POINTS economy and onboarding state.
+3. Audit and enforce workspace isolation. `WorkspaceController` currently has cross-workspace read/update/delete risk, and several `EconomyController` endpoints do not check tenant membership. **Do not expose a multi-family Beta publicly until fixed and tested.**
+4. Add first-run Web wizard to enter family members, roles, optional example tasks and rewards, with templates independently cloned into each family's workspace.
 
-**Before proceeding,** the family must be comfortable copying current DEV account and point balances into Beta. Otherwise derive a sanitized clone with fresh accounts and no private data.
+See `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` for the full rollout and acceptance tests.
 
 ## Deployment assets
 
@@ -92,7 +96,7 @@ This repo has Flyway migrations **V2–V20 only**, with no initial `V1` DDL. `V2
 
 1. Install Docker and Compose if the package candidates are valid, then **retest existing 1C routing and DEV** before creating any containers.
 2. Create private `/opt/familypoints/beta`; copy `compose.yaml`, prepare `.env` and `app/family-points.jar` with secure ownership. Never expose Postgres on host networking.
-3. `docker compose up -d db`; restore current DEV DB into the isolated Beta Postgres; inspect Flyway history.
+3. `docker compose up -d db`; initialize an **empty-data** Beta schema using the verified V1–V20 chain (or approved schema-only V20 baseline), then inspect Flyway history.
 4. `docker compose up -d api`; locally verify `http://127.0.0.1:18080/api/client-health` and backend logs.
 5. Build frontend on laptop via `npm ci && npm run build`; deploy `frontend/dist` to `/var/www/familypoints-beta`.
 6. Issue Let's Encrypt certificate for `family-point.com` with the previously installed Cloudflare DNS plugin; never print Cloudflare credentials. Enable only the new Nginx 443 site after `nginx -t`, then `sudo ufw allow 443/tcp` and reload Nginx. Test with mobile data; existing DEV continues on 8443.
