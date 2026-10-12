@@ -3,6 +3,7 @@ package com.olehkobylianskyi.familypoints.service;
 import com.olehkobylianskyi.familypoints.entity.*;
 import com.olehkobylianskyi.familypoints.repository.TaskDefinitionRepository;
 import com.olehkobylianskyi.familypoints.repository.TaskInstanceRepository;
+import com.olehkobylianskyi.familypoints.repository.TaskScheduleSlotRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,15 +18,18 @@ public class TaskGenerationService {
     private final TaskDefinitionRepository taskDefinitionRepository;
     private final TaskInstanceRepository taskInstanceRepository;
     private final TaskAuditService taskAuditService;
+    private final TaskScheduleSlotRepository scheduleSlots;
 
     public TaskGenerationService(
             TaskDefinitionRepository taskDefinitionRepository,
             TaskInstanceRepository taskInstanceRepository,
-            TaskAuditService taskAuditService
+            TaskAuditService taskAuditService,
+            TaskScheduleSlotRepository scheduleSlots
     ) {
         this.taskDefinitionRepository = taskDefinitionRepository;
         this.taskInstanceRepository = taskInstanceRepository;
         this.taskAuditService = taskAuditService;
+        this.scheduleSlots = scheduleSlots;
     }
 
     @Transactional
@@ -55,7 +59,8 @@ public class TaskGenerationService {
             return Optional.empty();
         }
 
-        if (!shouldGenerate(definition, date)) {
+        if (!shouldGenerate(definition, date)
+                || !scheduleSlots.findByTaskDefinitionIdOrderByScheduledTimeAscSlotKeyAsc(definition.getId()).isEmpty()) {
             return Optional.empty();
         }
 
