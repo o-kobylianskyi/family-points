@@ -588,3 +588,11 @@
 - Web RewardsPage commit `0570932`: show currently authenticated member's per-currency balances via existing `/members/{memberId}/points/balances`, refreshed after mutations; add explicit success notice after reward purchase; add synchronous React ref lock to prevent repeat button presses while requests are in flight.
 - **Scope:** this is UI/in-flight duplicate prevention, NOT server-enforced once-only redemption. Browser reloads, parallel devices and concurrent requests may still purchase twice. A future server-side configurable cooldown and idempotency key/transaction guard are required before claiming duplicate rewards are impossible. Cooldown must be per member/workspace/reward, configurable; protect direct purchase and request purchase against concurrency; include PostgreSQL integration tests.
 - Web CI for commit pending. Android rewards UX parity not yet implemented.
+
+## 2026-10-12 — V23 reward purchase cooldown + serialized redemption
+- Migration V23 (`37a399b`): reward_definitions.cooldown_seconds NOT NULL DEFAULT 30, nonnegative check and reward purchase lookup index.
+- JPA/API (`05e35cd`, `d0c0c61`, `5b92c2d`): persistent configurable cooldown and response field; defaults to 30 seconds on new catalog rewards; zero disables cooldown.
+- RewardPurchaseRepository (`3387629`) exposes most recent member/reward purchase. RewardService (`387a149`) locks member row before direct and request purchases, enforces cooldown before debit, returns HTTP 409 for retry during the interval, including other device requests. Requested and direct purchases share the definition cooldown; cancelled prior purchases excluded.
+- Web RewardsPage (`bd20f15`) supports cooldown input and displays it in catalog; retains in-flight duplicate click protection and balance/success notice from prior commit.
+- Unit test (`f5ee4c9`) asserts repeat purchase responds 409 before point spending.
+- CI STATUS: PENDING for latest commit; GitHub Actions concurrency cancels superseded intermediate pushes, so judge final batch SHA rather than old cancelled runs. Further work: formal idempotency keys for network retries, concurrent HTTP PostgreSQL test, Android UI parity, cooldown remaining time UX.
