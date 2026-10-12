@@ -21,7 +21,7 @@ class MyReputationControllerTest {
         when(workspace.getId()).thenReturn(7L);
         when(service.getBalance(42L)).thenReturn(120L);
 
-        var response = new MyReputationController(current, service).balance();
+        var response = new MyReputationController(current, service, mock(com.olehkobylianskyi.familypoints.repository.ReputationTransactionRepository.class)).balance();
 
         assertEquals(7L, response.workspaceId());
         assertEquals(42L, response.memberId());
