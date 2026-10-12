@@ -472,3 +472,9 @@
 - Added 3 Mockito tests (`eff3526`) for selected-context role, foreign role denial, and absent membership denial.
 - Deliberately NOT connected to JWT filter/WorkspaceSecurity yet. Existing request authorization and DEV login remain unchanged. New code is untested locally; run Maven suite before enabling workspace switching.
 - Future mandatory work: integrate selected workspace with JWT authentication and all permission evaluators/DTOs consistently; add two-workspace HTTP integration tests, then enable safe switching and registration.
+
+## 2026-10-12 — Centralized current member accessor (backward compatible)
+- Added `CurrentUserService.getCurrentMember()` and routed its member/workspace ID helpers through this accessor (`5357df4`, `17ac0f1`).
+- Switched `WorkspaceSecurity` permission checks to the accessor (`d476939`). Added `CurrentUserResponse.from(account, member)` while retaining legacy overload (`234d733`), and routed `/api/me` through the accessor (`c2098a5`).
+- Effective member STILL resolves `UserAccount.workspaceMember` (legacy). JWT workspace claims remain inactive: no cross-workspace switching/signup enabled. This batch prepares one controlled integration point without changing DEV authorization behavior.
+- These changes have not been compiled locally: run `git pull` and `mvnw.cmd test`. Next security prerequisite: unify all permission consumers and JWT context under verified selected member before any switching endpoint is exposed.
