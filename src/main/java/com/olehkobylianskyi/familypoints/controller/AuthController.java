@@ -3,6 +3,7 @@ package com.olehkobylianskyi.familypoints.controller;
 import com.olehkobylianskyi.familypoints.dto.LoginRequest;
 import com.olehkobylianskyi.familypoints.dto.LoginResponse;
 import com.olehkobylianskyi.familypoints.security.JwtService;
+import com.olehkobylianskyi.familypoints.security.WorkspaceAuthenticationDetails;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,7 +30,9 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refresh(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String accessToken = jwtService.generateAccessToken(userDetails);
+        String accessToken = authentication.getDetails() instanceof WorkspaceAuthenticationDetails details
+                ? jwtService.generateWorkspaceAccessToken(userDetails, details.workspaceId())
+                : jwtService.generateAccessToken(userDetails);
 
         return ResponseEntity.ok(
                 new LoginResponse(
