@@ -15,7 +15,7 @@ class TaskVirtualScheduleTest {
         var definitions = mock(TaskDefinitionRepository.class);
         var instances = mock(TaskInstanceRepository.class);
         var audit = mock(TaskAuditService.class);
-        var generator = new TaskGenerationService(definitions, instances, audit);
+        var generator = new TaskGenerationService(definitions, instances, audit, mock(TaskScheduleSlotRepository.class));
         var definition = mock(TaskDefinition.class);
         when(definition.isActive()).thenReturn(true);
         when(definition.getRecurrenceType()).thenReturn(TaskRecurrenceType.DAILY);
@@ -47,7 +47,7 @@ class TaskVirtualScheduleTest {
     @Test
     void doesNotProjectTaskBeforeStartDate() {
         var generator = new TaskGenerationService(mock(TaskDefinitionRepository.class),
-                mock(TaskInstanceRepository.class), mock(TaskAuditService.class));
+                mock(TaskInstanceRepository.class), mock(TaskAuditService.class), mock(TaskScheduleSlotRepository.class));
         var definition = mock(TaskDefinition.class);
         when(definition.isActive()).thenReturn(true);
         when(definition.getRecurrenceType()).thenReturn(TaskRecurrenceType.DAILY);
