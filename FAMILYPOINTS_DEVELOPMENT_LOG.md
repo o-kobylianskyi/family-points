@@ -694,3 +694,10 @@
 - TaskScheduleSlotController (`5b5a94e`): GET list requires task read authority; POST create requires task manage authority, scoped workspace task lookup, validated stable slot key. These APIs create schedule templates, NOT dated instances or rewards.
 - Controller unit tests (`00c21ad`) confirm read without writes and denied creation without manager permission.
 - CI pending. **Staged, not user-visible multi-daily execution:** task_instances still unique by definition+member+date and start-scheduled still addresses one implicit default instance. Next steps: V26 with slot_key on task_instances and revised unique key; slot-aware locking, deadlines and per-instance rewards; projection/web UI + Android parity. Do not offer multi-slot completion before these correctness checks pass.
+
+## 2026-10-12 — V26 per-slot occurrence identity, first execution pipeline
+- Fixed previous Mockito test compile error by declaring checked AutoCloseable exception in TaskManagerCompletionTest (`4d83913`); previous CI failed compiling tests, Web pass, Android sdkmanager API37 unavailable.
+- Flyway V26 (`ef8df88`): add task_instances.slot_key NOT NULL DEFAULT 'default', preserve historical rows and replace old unique constraint with (task_definition_id, member_id, scheduled_date, slot_key). Validate migration on CI/PostgreSQL before rollout.
+- TaskInstance slot key + snapshot due time (`cdd74bf`), repository slot query (`5916c44`), slot repository key query (`505da43`). Virtual schedule DTO includes slot identity (`404b0d0`).
+- TaskService (`f1eb5b2`) now projects each explicitly defined schedule slot rather than one default per day (unless no slots); starts concrete occurrence by slot under definition lock; legacy default action retained. REST (`b94b1af`), Web API (`d9d8843`) and TasksPage (`3045260`) use slot key for start. No speculative future TaskInstance rows are created.
+- Important still-incomplete: per-slot admin completion, independent deadline/missed handling, details page slot navigation, editing slots in Web/Android. Existing legacy default-only workflows may not cover non-default slots yet; do NOT claim full multi-slot lifecycle. CI pending.
