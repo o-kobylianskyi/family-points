@@ -576,3 +576,10 @@
 - Web `authApi.js` adds membership listing and activation (`e9012a0`). `AuthContext.jsx` validates `/api/me` for the new token before committing it and performs a full reload to clear React component state after switching (`84efa1c`). `AppLayout.jsx` shows the family chooser only if >1 linked workspaces (`ece9fcd`).
 - Android `AuthApi.kt` declares list/activation Retrofit contract and `AccountWorkspaceChoice` (`b31dced`), but the Android UI must NOT expose switching until all tenant-sensitive offline caches are namespaced or cleared safely; retain authenticated-offline semantics.
 - CI status PENDING / not verified for this batch. Need front-end build CI, Android API compile, tenant cache isolation review, and end-to-end switching tests. Backend + Android jobs trigger on push and run independently; no need to wait for CI to continue unrelated work.
+
+## 2026-10-12 — Three-platform CI and Android workspace switching
+- CI commit `362039f`: added parallel Node 22 / npm ci / Vite production build for Web, alongside Maven/Testcontainers and Android Gradle checks.
+- Offline Android store audit: dashboard/tasks/members/point-types/rewards/points and queues already namespace records using workspaceId and member/viewer IDs. OfflineAccountStore keeps one encrypted profile per username: switching replaces the cached profile with the latest verified workspace; offline selection is not allowed.
+- Android AuthSessionManager commit `d99700f`: list workspaces and activate strictly online; validate `/api/me` new workspace before replacing token, refresh enrolled offline profile and activity timestamp.
+- Android WorkspaceSwitcher component `b071891`: explicit chooser, busy/error states. MainActivity wiring `8b9be79`: show only in online dashboard, clear task navigation state and update current user when switching.
+- CI checks for newest commits are PENDING/not confirmed at writing. Must validate Kotlin compile, Node build, actual Android device display, and cross-workspace cache behavior before declaring beta ready.
