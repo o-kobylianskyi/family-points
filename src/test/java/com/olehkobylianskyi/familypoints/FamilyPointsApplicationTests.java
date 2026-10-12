@@ -134,6 +134,24 @@ class FamilyPointsApplicationTests {
                         .jsonPath("$.workspaceId").value(second.getId()))
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
                         .jsonPath("$.memberId").value(memberB.getId()));
+
+        // A previously issued token must stop working after membership revocation.
+        memberB.softDelete();
+        entityManager.flush();
+        entityManager.clear();
+        mockMvc.perform(get("/workspaces/{id}", second.getId())
+                        .header("Authorization", authorization))
+                .andExpect(status().isUnauthorized());
+
+        // Disabling the global account also invalidates its legacy JWT.
+        var storedAccount = entityManager.find(UserAccount.class, account.getId());
+        storedAccount.setEnabled(false);
+        entityManager.flush();
+        entityManager.clear();
+        String legacyToken = jwtService.generateAccessToken(principal);
+        mockMvc.perform(get("/api/me")
+                        .header("Authorization", "Bearer " + legacyToken))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
