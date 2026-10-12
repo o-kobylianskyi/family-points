@@ -15,6 +15,7 @@ import {
   getTaskParticipants,
   getTaskSubtasks,
   setTaskDefinitionActive,
+  completeScheduledTaskByManager,
 } from '../api/taskApi'
 
 function formatDateTime(value, locale) {
@@ -39,6 +40,7 @@ function TaskDetailsPage() {
   const [history, setHistory] = useState([])
   const [subtasks, setSubtasks] = useState([])
   const [createSubtaskOpen, setCreateSubtaskOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
   const [error, setError] = useState('')
   const [processing, setProcessing] = useState(false)
   const [rewardNegotiationOpen, setRewardNegotiationOpen] = useState(false)
@@ -126,6 +128,16 @@ function TaskDetailsPage() {
       setProcessing(true); setError('')
       await delegateTask(getAccessToken(), currentUser.workspaceId, instance.id, Number(delegateToMemberId))
       setDelegating(false); setDelegateToMemberId('')
+      await load()
+    } catch (e) { setError(e.message) } finally { setProcessing(false) }
+  }
+
+  const confirmScheduledCompletion = async () => {
+    if (!window.confirm(`Підтвердити виконання «${task.title}» за ${selectedDate}? Бали й репутація будуть нараховані виконавцю.`)) return
+    try {
+      setProcessing(true)
+      setError('')
+      await completeScheduledTaskByManager(getAccessToken(), currentUser.workspaceId, task.id, selectedDate)
       await load()
     } catch (e) { setError(e.message) } finally { setProcessing(false) }
   }
@@ -272,9 +284,18 @@ function TaskDetailsPage() {
       <section className="task-details-card">
         <div className="task-details-section-header">
           <h2>Керування</h2>
-          <button className="task-action-button secondary" disabled={processing} onClick={toggleActive}>
-            {task.active ? 'Деактивувати' : 'Активувати'}
-          </button>
+          <div className="task-card-actions">
+            <button className="task-action-button primary" type="button" disabled={processing}
+              onClick={() => setEditOpen(true)}>Редагувати</button>
+            {task.active && (!instance || ['PENDING', 'IN_PROGRESS'].includes(instance.status)) &&
+              selectedDate <= new Date().toLocaleDateString('en-CA') && (
+              <button className="task-action-button" type="button" disabled={processing}
+                onClick={confirmScheduledCompletion}>Позначити виконаним · {selectedDate}</button>
+            )}
+            <button className="task-action-button secondary" disabled={processing} onClick={toggleActive}>
+              {task.active ? 'Деактивувати' : 'Активувати'}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -297,6 +318,18 @@ function TaskDetailsPage() {
             setRewardNegotiationOpen(false)
             await load()
           }}
+        />
+      )}
+
+      {editOpen && (
+        <CreateTaskModal
+          members={members}
+          existingTaskDefinitions={visibleDefinitions}
+          defaultMemberId={task.assignedMemberId ?? currentUser.memberId}
+          initialTask={task}
+          initialParticipants={participants}
+          onClose={() => setEditOpen(false)}
+          onCreated={async () => { setEditOpen(false); await load() }}
         />
       )}
 
