@@ -21,6 +21,11 @@ interface AuthApi {
         @Header("Authorization") authorization: String
     ): CurrentUserResponse
 
+    @GET("api/me/reputation")
+    suspend fun getMyReputation(
+        @Header("Authorization") authorization: String
+    ): ReputationBalance
+
     @GET("api/me/workspaces")
     suspend fun listWorkspaces(
         @Header("Authorization") authorization: String
@@ -44,4 +49,10 @@ data class AccountWorkspaceChoice(
     val memberId: Long,
     val memberName: String,
     val active: Boolean
+)
+
+data class ReputationBalance(
+    val workspaceId: Long,
+    val memberId: Long,
+    val balance: Long
 )
