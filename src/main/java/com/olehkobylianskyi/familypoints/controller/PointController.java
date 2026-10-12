@@ -17,6 +17,7 @@ import java.util.List;
 @RequestMapping(
         "/workspaces/{workspaceId}/members/{memberId}/points"
 )
+@PreAuthorize("@workspaceSecurity.canAccessWorkspace(#workspaceId)")
 public class PointController {
 
     private final PointService pointService;
