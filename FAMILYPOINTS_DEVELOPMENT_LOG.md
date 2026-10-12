@@ -454,3 +454,9 @@
 - Added unit tests (`3512f69`) for permitted membership and missing, inactive, disabled, forged or null workspace membership cases.
 - These changes do NOT activate multi-workspace JWT switching, permissions or new registration routes; existing DEV authorization remains untouched.
 - New commits have not been compiled or tested locally. Next: local `git pull` + `mvnw.cmd test`, followed by coordinated active-workspace/authorization implementation and two-family HTTP integration tests.
+
+## 2026-10-12 — Signed workspace JWT foundation (not active)
+- Added `JwtService.generateWorkspaceAccessToken` and `extractWorkspaceId` (`beb1288`), leaving existing token generation and authentication filter unchanged. Tokens include a signed `workspaceId` claim when explicitly requested; legacy tokens have no such claim.
+- Added `JwtWorkspaceClaimTest` (`de303bb`) for signed claim, legacy compatibility and invalid ID guard.
+- SECURITY: These helpers do not validate membership by themselves. Do not expose token issuance until the caller verifies active membership AND all request-level identity, permissions, `/api/me` and resource isolation are consistently bound to the selected workspace. Do not trust arbitrary request IDs/headers.
+- Code changes have not been built or tested in the user's environment yet; `git pull` + Maven tests required.
