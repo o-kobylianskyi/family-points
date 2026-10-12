@@ -1,0 +1,61 @@
+# Run from /opt/familypoints/beta; application jar must already exist in ./app/.
+# Deliberately does not publish postgres or port 8080 (1C DNAT remains untouched).
+name: familypoints-beta
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: family_points_beta
+      POSTGRES_USER: fp_beta
+      POSTGRES_PASSWORD: ${BETA_DB_PASSWORD:?Set BETA_DB_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fp_beta -d family_points_beta"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  api:
+    image: eclipse-temurin:21-jre
+    restart: unless-stopped
+    user: "10001:10001"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/family_points_beta
+      DB_USERNAME: fp_beta
+      DB_PASSWORD: ${BETA_DB_PASSWORD:?Set BETA_DB_PASSWORD in .env}
+      JWT_SECRET: ${BETA_JWT_SECRET:?Set BETA_JWT_SECRET in .env}
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SERVER_PORT: "8080"
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx768m -XX:+ExitOnOutOfMemoryError"
+    volumes:
+      - ./app/family-points.jar:/app/family-points.jar:ro
+    command: ["java", "-jar", "/app/family-points.jar"]
+    ports:
+      - "127.0.0.1:18080:8080"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 1400m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  pgdata:
