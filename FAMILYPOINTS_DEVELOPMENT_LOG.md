@@ -566,3 +566,8 @@
 - Android: added LastUsernameStore with separate SharedPreferences so logout/token clearing does not erase username (b614f9d); LoginScreen no longer defaults to `oleh`, loads `initialUsername` and saves username only after successful online/offline login (2d85030); MainActivity wired persistence (690b250).
 - Web: LoginPage loads username from localStorage and updates only after successful login, with no password storage (ba0b2f0).
 - Desired parity rule: authentication form defaults to latest successfully used login per device/browser; login failures must not overwrite it. Android is not yet covered by backend-only CI; compile/test with Gradle or extend workflow. Status: code committed, Android build not verified.
+
+## 2026-10-12 — Android CI added alongside backend CI
+- Workflow `.github/workflows/ci.yml` updated in commit `588797f`: second independent job `android-debug` runs on Ubuntu with Java 21, Android SDK platform 37, Gradle wrapper 9.6.0, `:app:assembleDebug` and `:app:testDebugUnitTest`. Android test reports are uploaded as artifacts.
+- Backend Maven/Testcontainers job remains unchanged. Both jobs run in parallel; do not mark Android PASS until actual Actions result is available.
+- Android LoginScreen and Web LoginPage already remember the most recently successful username per device/browser (Android `b614f9d`, `2d85030`, `690b250`; Web `ba0b2f0`). Android compilation now becomes part of every push CI run.
