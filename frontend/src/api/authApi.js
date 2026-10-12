@@ -47,3 +47,20 @@ export async function refreshAccessToken(token) {
 
   return response.json()
 }
+
+export async function listAccountWorkspaces(token) {
+  const response = await fetch(`${API_URL}/api/me/workspaces`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!response.ok) throw new Error('Не вдалося отримати список сімей')
+  return response.json()
+}
+
+export async function activateAccountWorkspace(token, workspaceId) {
+  const response = await fetch(
+    `${API_URL}/api/me/workspaces/${encodeURIComponent(workspaceId)}/activate`,
+    { method: 'POST', headers: { Authorization: `Bearer ${token}` } }
+  )
+  if (!response.ok) throw new Error('Немає доступу до вибраної сім’ї')
+  return response.json()
+}
