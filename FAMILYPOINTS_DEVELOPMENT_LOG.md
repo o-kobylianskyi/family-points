@@ -501,3 +501,9 @@
 - Added `AccountMembershipLinkService` in `756be44` to write a membership for an existing global UserAccount and a workspace-local active member, rejecting disabled accounts, unavailable members, already-linked members, or duplicate account membership within that Workspace.
 - Added four unit tests in `2f8dee0` for successful linking and negative cases. No public endpoint or invitation mechanism has been exposed; linking must only be called after future verified invitation/consent/authorization rules are defined. Database uniqueness enforces one account per member but **not yet** one membership per account per workspace under concurrency; a database-level constraint/locking strategy is still required before public invitations.
 - Existing JWT scoped-token guard and DEV authorization remain unchanged. New code is not locally compiled or tested; run `git pull` and `mvnw.cmd test`. Full JWT context and end-to-end two-tenant authorization remain unfinished.
+
+## 2026-10-12 — Membership uniqueness at PostgreSQL boundary (V22)
+- Added Flyway V22 (`432661d`) introducing account_workspace_memberships.workspace_id, backfilling from family_members, FK, unique (account_id,workspace_id), and a trigger rejecting member/workspace mismatches.
+- Updated AccountWorkspaceMembership entity (`5073478`) to persist workspace_id from the selected member, allowing continued account membership writes after V22.
+- Existing V21 records remain intact. If real DB already contains duplicate account/workspace membership rows, V22 intentionally fails rather than silently dropping data; investigate and reconcile such records.
+- IMPORTANT: Flyway V22 has NOT yet been run locally; run `git pull` + `mvnw.cmd test` against Testcontainers. No JWT switch, registration endpoint, or invitation exposure yet.
