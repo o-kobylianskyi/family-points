@@ -596,3 +596,9 @@
 - Web RewardsPage (`bd20f15`) supports cooldown input and displays it in catalog; retains in-flight duplicate click protection and balance/success notice from prior commit.
 - Unit test (`f5ee4c9`) asserts repeat purchase responds 409 before point spending.
 - CI STATUS: PENDING for latest commit; GitHub Actions concurrency cancels superseded intermediate pushes, so judge final batch SHA rather than old cancelled runs. Further work: formal idempotency keys for network retries, concurrent HTTP PostgreSQL test, Android UI parity, cooldown remaining time UX.
+
+## 2026-10-12 — Fix approved reward not redeemable by managing member
+- Report: approved Minecraft request had status READY_TO_PURCHASE but Catalog still showed only «Попросити»; admin owner saw no redemption action in Requests.
+- Web RewardsPage (`c50a5b5`): show «Отримати» for the current member's READY_TO_PURCHASE catalog request; display pending request state rather than duplicate request button; Requests redemption and readiness refresh are now based on request ownership, not absence of MANAGE_REWARDS permission; show success notice and refresh balance after redemption.
+- Backend RewardController (`0739224`): canManageRewards checks active CurrentUserService.getCurrentMember() rather than the account's legacy primary member to prevent cross-workspace role leakage.
+- CI status pending; need validation on logged-in owner and request not belonging to owner, including manager/parent account.
