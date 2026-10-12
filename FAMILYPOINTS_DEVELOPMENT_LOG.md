@@ -418,3 +418,12 @@
 - User ran V1 generation. Java 21, Docker Desktop and PostgreSQL 17-alpine worked; generated local `V1__baseline_schema.sql`, but validation failed with PostgreSQL SQLState 42P06: `CREATE SCHEMA public` in V1 was incompatible with PostgreSQL 17's pre-created public schema. Earlier cleanup tried to delete temp Git worktree and failed with Windows `Invalid argument`.
 - Updated `scripts/db/generate-v1-baseline.ps1` with `-ValidateExisting` to preserve existing generated V1, skip the historical Git worktree, normalize `CREATE SCHEMA public;` to IF NOT EXISTS, and retry V1..V20/JPA validation against disposable PostgreSQL. Fresh generation now normalizes the schema statement too.
 - Validation success has not been reported. Do not mark V1 done or deploy Beta before user confirms PASS and SQL is committed.
+
+
+## 2026-10-12 — Multi-workspace identity refactor: additive database foundation
+- Confirmed existing one-to-one `UserAccount.workspaceMember`, and `CurrentUserService` derives current workspace from this legacy link.
+- Added Flyway `V21__account_workspace_memberships.sql` in commit `48d4a9e`: account-to-member membership join table with unique member binding, indexes and data-preserving backfill from existing user accounts.
+- Legacy `user_accounts.family_member_id`, existing authentication, group permissions, DEV data and APIs intentionally remain untouched.
+- **NOT YET VERIFIED:** Maven tests/Flyway execution on current laptop; no real multi-workspace sign-in, switcher, public account registration or invitation logic yet.
+- Next: run Maven Testcontainers smoke test; introduce account membership entity/repository, transactional join/invite flow, explicit active workspace security context, migration of permission resolution and account management, two-family integration tests, and only then expose registration.
+- Future personnel management remains a template/domain evolution, not an immediate Beta rewrite. Product intent is in section 36 of `FAMILYPOINTS_CONCEPT_DISCUSSION_LOG.md`.
