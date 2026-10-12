@@ -334,6 +334,19 @@ class MainActivity : ComponentActivity() {
                                 }
                                 response.balance
                             },
+                            loadWorkspaces = {
+                                if (authSessionManager.isOfflineAuthenticated()) emptyList()
+                                else authSessionManager.listWorkspaces()
+                            },
+                            onSwitchWorkspace = { workspaceId ->
+                                val user = authSessionManager.switchWorkspace(workspaceId)
+                                selectedTaskDefinitionId = null
+                                selectedTaskInstanceId = null
+                                selectedTaskDate = ""
+                                parentTaskDefinitionId = null
+                                currentUser = user
+                                destination = AppDestination.DASHBOARD
+                            },
                             onLanguageChange = changeLanguage,
                             onLogout = logout,
                             onNavigate = navigate,
@@ -541,26 +554,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                if (currentUser != null && status == ServerStatus.ONLINE &&
-                    !authSessionManager.isOfflineAuthenticated() &&
-                    destination == AppDestination.DASHBOARD
-                ) {
-                    WorkspaceSwitcher(
-                        activeWorkspaceId = currentUser!!.workspaceId,
-                        loadWorkspaces = { authSessionManager.listWorkspaces() },
-                        activate = { workspaceId ->
-                            val user = authSessionManager.switchWorkspace(workspaceId)
-                            // Drop all screen-local state before showing the new workspace.
-                            selectedTaskDefinitionId = null
-                            selectedTaskInstanceId = null
-                            selectedTaskDate = ""
-                            parentTaskDefinitionId = null
-                            currentUser = user
-                            destination = AppDestination.DASHBOARD
-                        },
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp)
-                    )
-                }
                     }
                 }
             }
