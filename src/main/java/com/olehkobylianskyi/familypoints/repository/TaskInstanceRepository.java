@@ -78,7 +78,7 @@ public interface TaskInstanceRepository
         join fetch ti.member m
         where ti.scheduledDate <= :date
           and ti.status in :statuses
-          and td.dueTime is not null
+          and ti.dueTime is not null
         order by ti.scheduledDate asc, ti.id asc
         """)
     List<TaskInstance> findCandidatesForDeadlineProcessing(
