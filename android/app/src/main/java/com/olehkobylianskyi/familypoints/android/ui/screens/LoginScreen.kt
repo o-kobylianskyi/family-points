@@ -46,10 +46,12 @@ fun LoginScreen(
     language: AppLanguage,
     onLanguageChange: (AppLanguage) -> Unit,
     showOnlineReauthNotice: Boolean = false,
+    initialUsername: String = "",
+    onRememberUsername: (String) -> Unit = {},
     onLogin: suspend (String, String) -> CurrentUserResponse,
     onLoginSuccess: (CurrentUserResponse) -> Unit
 ) {
-    var username by remember { mutableStateOf("oleh") }
+    var username by remember(initialUsername) { mutableStateOf(initialUsername) }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
@@ -194,6 +196,7 @@ fun LoginScreen(
 
                     try {
                         val user = onLogin(username, password)
+                        onRememberUsername(username)
                         password = ""
                         onLoginSuccess(user)
                     } catch (exception: OfflineLoginException) {
