@@ -533,3 +533,9 @@
 - Added two tests to JwtAuthenticationFilterWorkspaceScopeTest (commit d91c46e) verifying that a scoped JWT obtains only the selected workspace's privileges rather than the primary account's ADMIN_OVERRIDE, and an inaccessible workspace is rejected without authentication.
 - Existing legacy token tests are retained; scoped token test with unconfigured legacy-only filter still expects denial.
 - Pending local Maven run; HTTP controller authorization across two workspaces, direct account-member usage audit, and user-facing workspace switching remain incomplete. Latest verified BUILD SUCCESS predates commit 420c1d5 and these tests.
+
+## 2026-10-12 — Workspace route isolation handles revoked memberships
+- Updated WorkspaceIsolationFilter (`5075718`) to return HTTP 403 when CurrentUserService throws ResponseStatusException for revoked/invalid scoped memberships, rather than allowing an uncaught exception during filtering.
+- Added two filter-level tests (`2cb0e84`) proving a revoked selected workspace and a scoped session addressing another workspace both receive 403 before the request reaches its controller.
+- These are MockFilterChain tests, NOT end-to-end MockMvc HTTP/security integration tests with two real database workspaces. No switching or public registration activated.
+- Compilation and tests pending local run; use `git pull` and `mvnw.cmd test`.
