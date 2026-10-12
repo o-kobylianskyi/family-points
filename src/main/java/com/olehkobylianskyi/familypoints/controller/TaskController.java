@@ -203,9 +203,10 @@ public class TaskController {
     public TaskInstanceResponse startScheduledOccurrence(
             @PathVariable Long workspaceId,
             @PathVariable Long definitionId,
-            @RequestParam LocalDate date
+            @RequestParam LocalDate date,
+            @RequestParam(defaultValue = "default") String slotKey
     ) {
-        return TaskInstanceResponse.from(taskService.startScheduledOccurrence(workspaceId, definitionId, date));
+        return TaskInstanceResponse.from(taskService.startScheduledOccurrence(workspaceId, definitionId, date, slotKey));
     }
 
     @GetMapping("/members/{memberId}/schedule")
