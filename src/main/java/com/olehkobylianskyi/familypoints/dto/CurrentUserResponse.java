@@ -2,6 +2,7 @@ package com.olehkobylianskyi.familypoints.dto;
 
 import com.olehkobylianskyi.familypoints.entity.WorkspacePermission;
 import com.olehkobylianskyi.familypoints.entity.UserAccount;
+import com.olehkobylianskyi.familypoints.entity.WorkspaceMember;
 
 import java.util.List;
 
@@ -45,7 +46,10 @@ public class CurrentUserResponse {
 
     public static CurrentUserResponse from(UserAccount account) {
 
-        var member = account.getWorkspaceMember();
+        return from(account, account.getWorkspaceMember());
+    }
+
+    public static CurrentUserResponse from(UserAccount account, WorkspaceMember member) {
         var role = member.getWorkspaceRole();
 
         List<String> permissions = role
