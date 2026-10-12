@@ -826,3 +826,12 @@ Before each substantial implementation batch:
 - [ ] Integration test two distinct tenants across nested resource IDs and request payload references
 - [ ] Implement clean PostgreSQL baseline from empty DB
 - [ ] Implement transactional, invite-only family registration and parent setup wizard
+
+## 2026-10-12 — Reproducible clean Flyway V1 baseline
+- [x] Confirm Git annotated tag v0.3-workspace predates introduction of Flyway V2 and contains the legacy mapped schema
+- [x] Add scripts/db/generate-v1-baseline.ps1: isolated Docker PostgreSQL 17, temporary historic Git worktree, Hibernate DDL create, pg_dump schema-only, second isolated V1-V20 Flyway + Hibernate validation
+- [x] Update db/migration/README and deploy/beta/README to forbid copying current DEV data and require generated/validated V1
+- [x] Remove hardcoded username "oleh" from clean Beta login page
+- [ ] **User-run script** on laptop with Java 21 and Docker Desktop; capture PASS or validation error
+- [ ] Review generated V1 SQL; commit to feature branch only after V1..V20 and JPA validation pass
+- [ ] Implement invite-only family administrator registration and setup UI
