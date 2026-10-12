@@ -338,6 +338,7 @@ class MainActivity : ComponentActivity() {
                                 if (authSessionManager.isOfflineAuthenticated()) emptyList()
                                 else authSessionManager.listWorkspaces()
                             },
+                            canSwitchWorkspaces = !authSessionManager.isOfflineAuthenticated(),
                             onSwitchWorkspace = { workspaceId ->
                                 val user = authSessionManager.switchWorkspace(workspaceId)
                                 selectedTaskDefinitionId = null
