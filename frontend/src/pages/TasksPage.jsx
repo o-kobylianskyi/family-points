@@ -14,6 +14,7 @@ import {
   releaseTask,
   delegateTask,
   getMemberTasks,
+  getMemberSchedule,
   getOpenTasks,
   getTaskDefinitionsByView,
   getTaskDefinitions,
@@ -79,6 +80,7 @@ function TasksPage() {
   const [selectedDate, setSelectedDate] = useState(getToday())
 
   const [tasks, setTasks] = useState([])
+  const [scheduledTasks, setScheduledTasks] = useState([])
   const [openTasks, setOpenTasks] = useState([])
   const [managementView, setManagementView] = useState('created')
   const [pageTab, setPageTab] = useState('my')
@@ -162,7 +164,7 @@ function TasksPage() {
 
       const token = getAccessToken()
 
-      const [memberTasks, availableOpenTasks, definitions] =
+      const [memberTasks, availableOpenTasks, definitions, schedule] =
         await Promise.all([
           getMemberTasks(
             token,
@@ -177,9 +179,11 @@ function TasksPage() {
             selectedMemberId
           ),
           getTaskDefinitions(token, currentUser.workspaceId),
+          getMemberSchedule(token, currentUser.workspaceId, selectedMemberId, selectedDate),
         ])
 
       setTasks(memberTasks)
+      setScheduledTasks(schedule.filter((item) => item.instanceId == null))
       setOpenTasks(availableOpenTasks)
       setVisibleDefinitions(definitions)
     } catch (error) {
@@ -597,7 +601,7 @@ function TasksPage() {
             <h2>{selectedMember?.name}</h2>
             <p>
               {t('tasks.taskCount', {
-                count: tasks.length,
+                count: tasks.length + scheduledTasks.length,
               })}
             </p>
           </div>
@@ -607,13 +611,34 @@ function TasksPage() {
           <div className="empty-state">
             {t('common.loading')}
           </div>
-        ) : tasks.length === 0 ? (
+        ) : tasks.length === 0 && scheduledTasks.length === 0 ? (
           <div className="empty-state">
             <strong>{t('tasks.noTasks')}</strong>
             <p>{t('tasks.noTasksDescription')}</p>
           </div>
         ) : (
           <div className="task-list">
+            {scheduledTasks.map((item) => (
+              <article className="task-card" key={item.occurrenceKey}>
+                <div className="task-card-main">
+                  <div className="task-title-row">
+                    <h3>№{item.taskDefinitionId} · {item.title}</h3>
+                    <span className="task-status">Заплановано</span>
+                  </div>
+                  <div className="task-meta">
+                    <span>{item.scheduledDate}{item.scheduledTime ? ` · ${item.scheduledTime.slice(0, 5)}` : ''}</span>
+                    {item.rewardAmount > 0 && <span>+{item.rewardAmount} балів</span>}
+                    {item.rewardReputationAmount > 0 && <span>Репутація +{item.rewardReputationAmount}</span>}
+                  </div>
+                </div>
+                <div className="task-card-actions">
+                  <Link className="task-action-button secondary task-open-link"
+                    to={`/tasks/${item.taskDefinitionId}?date=${selectedDate}`}>
+                    Переглянути →
+                  </Link>
+                </div>
+              </article>
+            ))}
             {hierarchyRows(tasks, (task) => visibleDefinitions.find((d) => d.id === task.taskDefinitionId) || { id: task.taskDefinitionId }).map(({ item: task, depth }) => (
               <article
                 className="task-card"
