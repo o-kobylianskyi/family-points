@@ -490,3 +490,9 @@
 - Added `WorkspaceSessionServiceTest` (`aa36e00`) for workspace-local permissions, denial without membership, and immutable permission snapshot.
 - SECURITY STATUS: this class is NOT yet used by the JWT filter or regular authorization, and no scoped JWT may authenticate through the legacy filter. No user-facing workspace switch or family registration is enabled. Further audit of all `getWorkspaceMember()` and direct role permission callsites is required before activation.
 - Latest Java commits not locally tested. Run `git pull` and `./mvnw.cmd test` (Testcontainers PostgreSQL required) and share any errors.
+
+## 2026-10-12 — Fix missing membership for newly created accounts
+- Found a continuity bug in V21 rollout: migration backfilled existing accounts, but `UserAccountService.createAccount` was still writing only `user_accounts.family_member_id` and not `account_workspace_memberships`.
+- Updated account creation to save the account and its `AccountWorkspaceMembership` within the existing `@Transactional` service method (`e650779`). Newly created accounts can now be returned by `GET /api/me/workspaces`; database failure should roll back the transaction.
+- Added mocked service tests (`6aefaef`) for membership creation and duplicate-account rejection. Neither test nor full Maven suite has been run in this tool environment.
+- Existing account authorization, JWT scoped-token denial, and workspace switching remain unchanged. Do not enable scoped JWT until every permission consumer is audited and multi-workspace HTTP authorization is covered.
