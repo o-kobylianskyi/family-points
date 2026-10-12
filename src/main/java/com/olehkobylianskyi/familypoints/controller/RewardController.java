@@ -62,6 +62,16 @@ public class RewardController {
         return rewardService.createReward(workspaceId, request);
     }
 
+    @PutMapping("/{rewardId}")
+    public RewardDefinitionResponse updateReward(
+            @PathVariable Long workspaceId,
+            @PathVariable Long rewardId,
+            @Valid @RequestBody RewardDefinitionRequest request
+    ) {
+        assertManage(workspaceId);
+        return rewardService.updateReward(workspaceId, rewardId, request);
+    }
+
     @GetMapping("/requests")
     public List<RewardRequestResponse> requests(
             @PathVariable Long workspaceId
