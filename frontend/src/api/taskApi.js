@@ -355,3 +355,11 @@ export async function setTaskScheduleSlotEnabled(token, workspaceId, definitionI
     { token, method: 'PATCH' })
   return handleResponse(response, 'Не вдалося змінити активність слота')
 }
+
+export async function getTaskDefinitionPermissions(token, workspaceId, definitionId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/definitions/${definitionId}/permissions`,
+    { token }
+  )
+  return handleResponse(response, 'Не вдалося перевірити права на завдання')
+}
