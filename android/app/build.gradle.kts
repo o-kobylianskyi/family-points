@@ -20,7 +20,24 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField(
+                "String", "API_BASE_URL",
+                "\"https://api-dev.family-point.com:8443/\""
+            )
+        }
         release {
+            val releaseApiUrl = providers.gradleProperty("familyPointsReleaseApiUrl")
+                .orElse("https://family-point.com/")
+                .get()
+                .trimEnd('/') + "/"
+            require(releaseApiUrl.startsWith("https://")) {
+                "Release API must use HTTPS"
+            }
+            buildConfigField(
+                "String", "API_BASE_URL",
+                "\"$releaseApiUrl\""
+            )
             optimization {
                 enable = true
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
@@ -33,6 +50,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
