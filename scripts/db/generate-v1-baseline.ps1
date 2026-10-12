@@ -34,11 +34,16 @@ function Check-Exit([string]$what) {
 function Build-Jar([string]$folder) {
     Push-Location $folder
     try {
-        & .\mvnw.cmd "-Dmaven.test.skip=true" package
+        # PowerShell forwards all uncaptured native stdout as the function result.
+        # If Maven output is not consumed here, Build-Jar returns the entire
+        # build log alongside the JAR path, causing Start-Process -jar to fail
+        # with Windows ERROR_FILENAME_EXCED_RANGE (filename too long).
+        & .\mvnw.cmd "-Dmaven.test.skip=true" package | Out-Host
         Check-Exit "Maven package"
         $jar = Get-ChildItem target -Filter "*.jar" | Where-Object { $_.Name -notmatch 'original|sources|javadoc' } | Select-Object -First 1
         if ($null -eq $jar) { throw "No executable JAR in $folder" }
-        return $jar.FullName
+        # This must be the ONLY value emitted on the success stream.
+        return [string]$jar.FullName
     } finally { Pop-Location }
 }
 
