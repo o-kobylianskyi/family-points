@@ -595,9 +595,14 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public TaskInstance getInstanceForDefinitionDate(Long workspaceId, Long definitionId, LocalDate date) {
+        return getInstanceForDefinitionDate(workspaceId, definitionId, date, "default");
+    }
+
+    @Transactional(readOnly = true)
+    public TaskInstance getInstanceForDefinitionDate(Long workspaceId, Long definitionId, LocalDate date, String slotKey) {
         TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
         taskAuthorizationService.requireRead(definition);
-        return taskInstanceRepository.findByTaskDefinitionIdAndScheduledDateAndSlotKey(definitionId, date, "default").orElse(null);
+        return taskInstanceRepository.findByTaskDefinitionIdAndScheduledDateAndSlotKey(definitionId, date, slotKey).orElse(null);
     }
 
     @Transactional(readOnly = true)
