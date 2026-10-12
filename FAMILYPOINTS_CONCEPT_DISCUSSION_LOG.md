@@ -1726,3 +1726,11 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 
 - Before product/domain architectural changes, review `FAMILYPOINTS_CONCEPT_DISCUSSION_LOG.md`, `FAMILYPOINTS_CONCEPT_CHECKLIST.md`, current code, and work/development logs.
 - Append dated product decisions to this log; append implementation results (commits, verified tests, remaining risks) to `FAMILYPOINTS_DEVELOPMENT_LOG.md`; keep implementation checklists current. Never treat proposals as already implemented or silently overwrite past decisions.
+
+## 2026-10-12 — Reward usage quotas and optional extra requests
+- Each reward can independently define member-specific and whole-family/shared quotas.
+- Quotas may constrain number of redemptions and, for duration-based rewards, summed minutes; windows can be lifetime, daily, weekly, monthly, or configurable. Cooldown is independent.
+- One-time is expressed as total count limit = 1. Daily/weekly windows should ultimately respect the workspace timezone and clear period boundaries.
+- Extra redemption requests are an optional per-reward policy, not a universal right. Parent/admin may grant a one-use, auditable exception with specific allowed quantity/duration, price/extra tasks/conditions, expiry and approval. Unauthorized or duplicate use must be impossible. Family-shared quota overrides require authorized family-level approval.
+- Ordinary quotas must remain unchanged by extra permits; per-permit consumption must be atomic. Admin may issue an unsolicited gift exception with equivalent audit.
+- Implementation is staged: initial member/family count limits first, then duration limits, then separate extra-request/approval/permit workflow and Android UX. Do not confuse the concept with deployed features.
