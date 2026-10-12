@@ -478,3 +478,9 @@
 - Switched `WorkspaceSecurity` permission checks to the accessor (`d476939`). Added `CurrentUserResponse.from(account, member)` while retaining legacy overload (`234d733`), and routed `/api/me` through the accessor (`c2098a5`).
 - Effective member STILL resolves `UserAccount.workspaceMember` (legacy). JWT workspace claims remain inactive: no cross-workspace switching/signup enabled. This batch prepares one controlled integration point without changing DEV authorization behavior.
 - These changes have not been compiled locally: run `git pull` and `mvnw.cmd test`. Next security prerequisite: unify all permission consumers and JWT context under verified selected member before any switching endpoint is exposed.
+
+## 2026-10-12 — Deny workspace-scoped JWT in legacy authentication filter
+- Identified a privilege-boundary risk: `JwtService` already supports signed `workspaceId` claims, but legacy `JwtAuthenticationFilter` would authenticate those tokens using permissions derived from `UserAccount.workspaceMember` (the primary workspace).
+- Updated the legacy filter to authenticate only valid tokens **without** a workspace claim (`53a303d`). Signed scoped tokens are intentionally not authenticated until coordinated workspace context handling is implemented across all permission consumers.
+- Added `JwtAuthenticationFilterWorkspaceScopeTest` (`5021743`) verifying backward-compatible legacy token acceptance and fail-closed scoped-token behavior; not run in user's environment yet.
+- No user-facing workspace switching or registration. Next: `git pull`, Maven tests, then move JWT-selected member and authorization together, including HTTP cross-tenant tests.
