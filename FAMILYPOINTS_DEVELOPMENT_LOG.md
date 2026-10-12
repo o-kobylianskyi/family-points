@@ -484,3 +484,9 @@
 - Updated the legacy filter to authenticate only valid tokens **without** a workspace claim (`53a303d`). Signed scoped tokens are intentionally not authenticated until coordinated workspace context handling is implemented across all permission consumers.
 - Added `JwtAuthenticationFilterWorkspaceScopeTest` (`5021743`) verifying backward-compatible legacy token acceptance and fail-closed scoped-token behavior; not run in user's environment yet.
 - No user-facing workspace switching or registration. Next: `git pull`, Maven tests, then move JWT-selected member and authorization together, including HTTP cross-tenant tests.
+
+## 2026-10-12 — Immutable per-workspace security session foundation
+- Added `WorkspaceSessionService` (`14b0636`) constructing a permission snapshot from the *selected and verified* `WorkspaceMember` via `WorkspaceContextAuthorization`, never from the legacy primary workspace member.
+- Added `WorkspaceSessionServiceTest` (`aa36e00`) for workspace-local permissions, denial without membership, and immutable permission snapshot.
+- SECURITY STATUS: this class is NOT yet used by the JWT filter or regular authorization, and no scoped JWT may authenticate through the legacy filter. No user-facing workspace switch or family registration is enabled. Further audit of all `getWorkspaceMember()` and direct role permission callsites is required before activation.
+- Latest Java commits not locally tested. Run `git pull` and `./mvnw.cmd test` (Testcontainers PostgreSQL required) and share any errors.
