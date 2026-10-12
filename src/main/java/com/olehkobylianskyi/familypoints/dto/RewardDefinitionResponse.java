@@ -16,6 +16,13 @@ public class RewardDefinitionResponse {
     private final int priceAmount;
     private final Integer minimumReputation;
     private final int cooldownSeconds;
+    private final Integer memberTotalLimit;
+    private final Integer memberDailyLimit;
+    private final Integer memberWeeklyLimit;
+    private final Integer workspaceTotalLimit;
+    private final Integer workspaceDailyLimit;
+    private final Integer workspaceWeeklyLimit;
+    private final boolean extraRequestAllowed;
     private final boolean requiresApproval;
     private final String rewardKind;
     private final Integer defaultDurationMinutes;
@@ -39,6 +46,13 @@ public class RewardDefinitionResponse {
         this.priceAmount = reward.getPriceAmount();
         this.minimumReputation = reward.getMinimumReputation();
         this.cooldownSeconds = reward.getCooldownSeconds();
+        this.memberTotalLimit = reward.getMemberTotalLimit();
+        this.memberDailyLimit = reward.getMemberDailyLimit();
+        this.memberWeeklyLimit = reward.getMemberWeeklyLimit();
+        this.workspaceTotalLimit = reward.getWorkspaceTotalLimit();
+        this.workspaceDailyLimit = reward.getWorkspaceDailyLimit();
+        this.workspaceWeeklyLimit = reward.getWorkspaceWeeklyLimit();
+        this.extraRequestAllowed = reward.isExtraRequestAllowed();
         this.requiresApproval = reward.isRequiresApproval();
         this.rewardKind = reward.getRewardKind().name();
         this.defaultDurationMinutes = reward.getDefaultDurationMinutes();
@@ -72,6 +86,13 @@ public class RewardDefinitionResponse {
     public int getPriceAmount() { return priceAmount; }
     public Integer getMinimumReputation() { return minimumReputation; }
     public int getCooldownSeconds() { return cooldownSeconds; }
+    public Integer getMemberTotalLimit() { return memberTotalLimit; }
+    public Integer getMemberDailyLimit() { return memberDailyLimit; }
+    public Integer getMemberWeeklyLimit() { return memberWeeklyLimit; }
+    public Integer getWorkspaceTotalLimit() { return workspaceTotalLimit; }
+    public Integer getWorkspaceDailyLimit() { return workspaceDailyLimit; }
+    public Integer getWorkspaceWeeklyLimit() { return workspaceWeeklyLimit; }
+    public boolean isExtraRequestAllowed() { return extraRequestAllowed; }
     public boolean isRequiresApproval() { return requiresApproval; }
     public String getRewardKind() { return rewardKind; }
     public Integer getDefaultDurationMinutes() { return defaultDurationMinutes; }
