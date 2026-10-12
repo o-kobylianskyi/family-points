@@ -38,7 +38,7 @@ public class TaskDeadlineService {
     }
 
     /**
-     * Catch up seven days after downtime without mass-generating future tasks.
+     * Catch up at most one preceding day after downtime without mass-generating future tasks.
      * Only tasks with a due time and mandatory=true are automatically penalized.
      */
     @Scheduled(fixedDelayString = "${familypoints.deadlines.poll-ms:300000}")
@@ -62,7 +62,7 @@ public class TaskDeadlineService {
         for (TaskDefinition definition : definitions.findByWorkspaceIdAndActiveTrue(workspaceId)) {
             if (!definition.isMandatory() || definition.getDueTime() == null
                     || definition.getAssignedMember() == null) continue;
-            for (int daysAgo = 7; daysAgo >= 0; daysAgo--) {
+            for (int daysAgo = 1; daysAgo >= 0; daysAgo--) {
                 LocalDate date = now.toLocalDate().minusDays(daysAgo);
                 if (now.isBefore(LocalDateTime.of(date, definition.getDueTime()))) continue;
                 generation.generateForDefinition(definition, date);
