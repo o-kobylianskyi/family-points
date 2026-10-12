@@ -17,6 +17,7 @@ import {
   getTaskSubtasks,
   setTaskDefinitionActive,
   completeScheduledTaskByManager,
+  getTaskDefinitionPermissions,
 } from '../api/taskApi'
 
 function formatDateTime(value, locale) {
@@ -37,6 +38,7 @@ function TaskDetailsPage() {
   const { currentUser, getAccessToken } = useAuth()
   const currency = useCurrencyQuantity(getAccessToken(), currentUser.workspaceId)
   const [task, setTask] = useState(null)
+  const [canManage, setCanManage] = useState(false)
   const [visibleDefinitions, setVisibleDefinitions] = useState([])
   const [instance, setInstance] = useState(null)
   const [delegating, setDelegating] = useState(false)
@@ -55,7 +57,7 @@ function TaskDetailsPage() {
     try {
       setError('')
       const token = getAccessToken()
-      const [definition, definitions, memberList, participantList, audit, childTasks, execution] = await Promise.all([
+      const [definition, definitions, memberList, participantList, audit, childTasks, execution, permissions] = await Promise.all([
         getTaskDefinition(token, currentUser.workspaceId, definitionId),
         getTaskDefinitions(token, currentUser.workspaceId),
         getWorkspaceMembers(token, currentUser.workspaceId),
@@ -63,7 +65,9 @@ function TaskDetailsPage() {
         getTaskDefinitionHistory(token, currentUser.workspaceId, definitionId),
         getTaskSubtasks(token, currentUser.workspaceId, definitionId),
         getTaskDefinitionInstance(token, currentUser.workspaceId, definitionId, selectedDate, selectedSlotKey),
+        getTaskDefinitionPermissions(token, currentUser.workspaceId, definitionId),
       ])
+      setCanManage(permissions.canManage === true)
       setTask(definition)
       setVisibleDefinitions(definitions)
       setMembers(memberList)
@@ -287,7 +291,7 @@ function TaskDetailsPage() {
           )}</div>}
       </section>
 
-      <section className="task-details-card">
+      {canManage && <section className="task-details-card">
         <div className="task-details-section-header">
           <h2>Керування</h2>
           <div className="task-card-actions">
@@ -303,9 +307,9 @@ function TaskDetailsPage() {
             </button>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <TaskScheduleEditor definitionId={task.id} onChanged={load} />
+      {canManage && <TaskScheduleEditor definitionId={task.id} onChanged={load} />}
 
       <section className="task-details-card">
         <h2>Історія</h2>
@@ -329,7 +333,7 @@ function TaskDetailsPage() {
         />
       )}
 
-      {editOpen && (
+      {canManage && editOpen && (
         <CreateTaskModal
           members={members}
           existingTaskDefinitions={visibleDefinitions}
@@ -341,7 +345,7 @@ function TaskDetailsPage() {
         />
       )}
 
-      {createSubtaskOpen && (
+      {canManage && createSubtaskOpen && (
         <CreateTaskModal
           members={members}
           existingTaskDefinitions={visibleDefinitions}
