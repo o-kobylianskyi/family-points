@@ -57,7 +57,7 @@ export default function TaskScheduleEditor({ definitionId, onChanged }) {
       setError('Ключ має містити 1–40 латинських літер, цифр, _ або -. Назва default зарезервована.')
       return
     }
-    if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(newTime)) {
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(newTime)) {
       setError('Вкажіть час виконання у форматі ГГ:ХХ, наприклад 09:00.')
       return
     }
