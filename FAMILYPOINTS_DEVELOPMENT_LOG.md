@@ -715,3 +715,10 @@
 - Added deadlineFor null-time and explicit-time assertions, plus generator recurrence mock in TaskDeadlineRecurringTest (`e673220`).
 - CI run 38312518524: Maven PostgreSQL Testcontainers **BUILD SUCCESS, 62 tests / 0 failures / 0 errors**, Web Vite **SUCCESS**; Android SDK37 package unavailable on runner (existing infrastructure limitation).
 - Outstanding beta gates: concurrent transactional ledger test, two-slot deadline/penalty integration test, slot-management UI, timezone normalization, and old default-generation interaction with explicit slot schedules. Do not claim these are tested or finished; package 2 editor should handle slot reconciliation and update semantics safely.
+
+## 2026-10-12 — Package 2 Web TaskSchedule editor (substantial implementation)
+- TaskScheduleSlot gains editable scheduledTime and enabled state (3799f26), repository supports listing all slots including disabled, slot-scoped lookup and key lookup (511a772).
+- Secured controller PATCH /{slotId}/enabled and PUT /{slotId} (ea9ee5f), requiring manage rights and validating definition/slot association; reserves implicit key 'default' at server boundary (f6734de). No physical DELETE: preserve historical occurrence identity.
+- When explicit slots exist but all are disabled, neither future schedule projection nor deadline generator restores implicit default (48017a6, 6bbeb09). Existing dated TaskInstances remain in history.
+- Web API CRUD-like edit + activation (ab557e7), independent schedule editor component (f17b2b7), embedded in TaskDetailsPage (bcf57f7). Supports add, edit time, disable/enable, inline errors, loading states, responsive wrap; no manual API requests.
+- Controller tests expand to verify management authorization before writes and listing disabled slots (d7b228e). CI pending. Important remaining risk: time edits may affect future projections while existing PENDING instances retain their original dueTime snapshot; intended historical stability, requires product decision for already materialized future instances.
