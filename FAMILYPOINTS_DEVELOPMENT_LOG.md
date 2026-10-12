@@ -732,3 +732,9 @@
 - Child account screenshots showed editable schedule controls then 403. Added per-task GET /definitions/{id}/permissions (a4bc094, 91248fc); TaskDetailsPage now calls server-authoritative canManage and only mounts management controls/TaskScheduleEditor for authorized managers (923ed85, 835be83).
 - Child saw member tabs for Oleh, Denys, Maryna. TasksPage now gates member switching by VIEW_ALL_TASKS/ADMIN_OVERRIDE and task creation by CREATE_TASKS/ADMIN_OVERRIDE (d190b39). Backend getMemberTasks now independently denies viewing another member's persisted executions absent those privileges (d9951c5), matching existing getMemberSchedule protection.
 - New GitHub Actions run 38314823205 pending at time of write. Need test child login after git pull and both front/backend restart, verify own tasks only, management buttons absent, direct foreign member endpoint returns 403. Ensure authorized parent can still manage.
+
+## 2026-10-13 — CreateTaskModal multi-slot visibility fix
+- User showed a one-time task creation screenshot without schedule-slot controls. Existing multi-slot controls were accidentally conditional on recurrenceType != ONCE, so the default ONCE path hid the feature.
+- Removed that gate (6183c62): the option “Кілька виконань за вибрану дату або протягом дня” now appears for new ONCE and recurring tasks. Initial times 09:00 and 15:00 rather than blank. UI distinguishes one selected date from recurring active days.
+- Creation already loops through createTaskScheduleSlot for each time after creating the definition; errors surfaced in modal. **Known remaining transactional gap:** task definition creation and schedule slot creation are multiple HTTP requests, not a single transaction. Legacy creation may create initial default instance; verify one-time multi-slot generated default/historical instance interaction before production release.
+- CI run 38315539475 pending at time of documentation.
