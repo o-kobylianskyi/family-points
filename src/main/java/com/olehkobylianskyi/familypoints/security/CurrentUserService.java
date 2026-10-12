@@ -42,6 +42,10 @@ public class CurrentUserService {
                 );
     }
 
+    public com.olehkobylianskyi.familypoints.entity.WorkspaceMember getCurrentMember() {
+        return getCurrentAccount().getWorkspaceMember();
+    }
+
     public Long getCurrentMemberId() {
         return getCurrentAccount()
                 .getWorkspaceMember()
