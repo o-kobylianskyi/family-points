@@ -297,7 +297,8 @@ function TasksPage() {
       setProcessingTaskId(`planned-${occurrence.occurrenceKey}`)
       setError('')
       await startScheduledTask(getAccessToken(), currentUser.workspaceId,
-        occurrence.taskDefinitionId, selectedDate)
+        occurrence.taskDefinitionId, selectedDate,
+        occurrence.occurrenceKey.split(':').at(-1))
       await loadAllTasks()
     } catch (actionError) {
       setError(actionError.message)
