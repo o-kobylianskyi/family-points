@@ -382,3 +382,10 @@
 - Android RewardsApi/RewardsRepository include the parent purchase API. PointsScreen reads cached reward list first and refreshes online; reward purchases require online connection and MANAGE_REWARDS. An expired reward selection never silently becomes a manual debit.
 - Code commits `a59fb3a`, `a91081a`, `9cf0d3c`, `b27e650`, `c1b9950`, `5546fa8`, `7b3f289`. Source-level checks only; Maven/Gradle builds and emulator tests remain unverified.
 - Follow-up: idempotency/retry safety for purchase-for-member, broader reward eligibility UX, better server error text and consideration of request/approval flow.
+
+## 2026-10-12 — Prepare Contabo Beta deployment
+- Decision: use currently paid but underused minimal Contabo VPS for continuously running family Beta, retain local laptop as DEV. Existing Cloudflare/Nginx/WireGuard arrangement and any Apache on port 80 must be inspected before changing ports.
+- Beta plan: HTTPS `family-point.com` website + API, isolated PostgreSQL, backend Spring Boot systemd, static React build, signed release Android APK. Keep `dev.family-point.com` and Android `api-dev.family-point.com:8443` on DEV.
+- Prepared `frontend/src/api/baseUrl.js`: production same-origin HTTPS by default, build-time `VITE_API_URL` override; existing Vite DEV hostname routing preserved. Both auth and general HTTP clients use the new helper.
+- Android debug and release now use distinct BuildConfig API base URLs; release may override `-PfamilyPointsReleaseApiUrl`; debug still targets DEV. Disabled Android OS backup of private Beta application data.
+- Added `deploy/beta/README.md` with first read-only VPS diagnostics, install sequencing, security and smoke-test checklist. No server changes or tests run by these commits. Next prerequisite: user runs SSH diagnostics and shares nonsecret outputs so actual deployment can be safely adapted.
