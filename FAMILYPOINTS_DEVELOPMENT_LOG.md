@@ -448,3 +448,9 @@
 - Audited `CustomUserDetailsService`, `CurrentUserService`, `WorkspaceSecurity`, `CurrentUserResponse` and JWT filters. Permissions and identity context remain linked to legacy primary WorkspaceMember. Switching workspaceId alone would be unsafe.
 - Added `AccountWorkspacesControllerTest` in commit `398b68e` to exercise signed-in account workspace-choice responses and active marker using mocks. The test has not yet been run locally.
 - Decision: defer live workspace switching until active membership, role evaluation, `/api/me`, JWT and all scoped authorization agree on the same selected workspace; integration-test unauthorized cross-workspace access. Do not expose switching before then.
+
+## 2026-10-12 — Fail-closed membership context preparation
+- Added `WorkspaceMembershipResolver` (`cc49a2e`) to resolve account + explicit workspace into its active member after verifying ownership, account enabled, active member, and exact workspace ID. Unauthorized/missing links are rejected with 403.
+- Added unit tests (`3512f69`) for permitted membership and missing, inactive, disabled, forged or null workspace membership cases.
+- These changes do NOT activate multi-workspace JWT switching, permissions or new registration routes; existing DEV authorization remains untouched.
+- New commits have not been compiled or tested locally. Next: local `git pull` + `mvnw.cmd test`, followed by coordinated active-workspace/authorization implementation and two-family HTTP integration tests.
