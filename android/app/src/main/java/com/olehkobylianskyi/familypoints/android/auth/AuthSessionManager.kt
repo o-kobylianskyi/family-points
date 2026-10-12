@@ -68,6 +68,34 @@ class AuthSessionManager(
         }
     }
 
+    /** Switch only while online; never use a cached JWT or an offline profile to switch families. */
+    suspend fun listWorkspaces(): List<com.olehkobylianskyi.familypoints.android.network.AccountWorkspaceChoice> {
+        check(!offlineAuthenticated && ServerReachability.status.value == ServerStatus.ONLINE) {
+            "Workspace switching requires an online session"
+        }
+        val token = tokenStore.getAccessToken() ?: error("Not signed in")
+        return ApiClient.authApi.listWorkspaces(bearer(token))
+    }
+
+    suspend fun switchWorkspace(workspaceId: Long): CurrentUserResponse {
+        check(!offlineAuthenticated && ServerReachability.status.value == ServerStatus.ONLINE) {
+            "Workspace switching requires an online session"
+        }
+        val token = tokenStore.getAccessToken() ?: error("Not signed in")
+        val result = ApiClient.authApi.activateWorkspace(bearer(token), workspaceId)
+        // Verify server-side workspace identity BEFORE replacing the active JWT.
+        val next = ApiClient.authApi.getCurrentUser(bearer(result.accessToken))
+        check(next.workspaceId == workspaceId) { "Unexpected workspace identity" }
+        tokenStore.saveAccessToken(result.accessToken)
+        tokenStore.saveLastActivityAt(System.currentTimeMillis())
+        // Keep the password verifier but replace the cached offline identity with the
+        // most recently verified workspace. Never grant offline switching by JWT alone.
+        withContext(Dispatchers.Default) { offlineAccountStore.refreshProfile(next) }
+        activeUsername = next.username
+        markActivity(force = true)
+        return next
+    }
+
     private suspend fun loginOffline(username: String, password: String): CurrentUserResponse {
         val user = withContext(Dispatchers.Default) {
             offlineAccountStore.authenticate(username, password)
