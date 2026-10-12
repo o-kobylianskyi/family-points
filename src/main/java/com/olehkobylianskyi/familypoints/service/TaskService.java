@@ -645,7 +645,7 @@ public class TaskService {
                     || !taskAuthorizationService.canRead(definition)
                     || !taskGenerationService.shouldGenerate(definition, date)) continue;
             var slots = taskScheduleSlots.findByTaskDefinitionIdAndEnabledTrueOrderByScheduledTimeAscSlotKeyAsc(definition.getId());
-            if (slots.isEmpty()) {
+            if (slots.isEmpty() && taskScheduleSlots.findByTaskDefinitionIdOrderByScheduledTimeAscSlotKeyAsc(definition.getId()).isEmpty()) {
                 var occurrence = com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse.planned(definition, memberId, date);
                 occurrences.put(occurrence.occurrenceKey(), occurrence);
             } else {
