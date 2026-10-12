@@ -49,7 +49,7 @@ class TaskManagerCompletionTest {
             when(definition.isActive()).thenReturn(true);
             when(definition.getAssignedMember()).thenReturn(mock(WorkspaceMember.class));
             when(generation.shouldGenerate(definition, date)).thenReturn(true);
-            when(instances.findByTaskDefinitionIdAndScheduledDate(39L, date)).thenReturn(Optional.of(done));
+            when(instances.findByTaskDefinitionIdAndScheduledDateAndSlotKey(39L, date, "default")).thenReturn(Optional.of(done));
             when(done.getStatus()).thenReturn(TaskInstanceStatus.COMPLETED);
 
             assertSame(done, service.completeScheduledByManager(8L, 39L, date));
