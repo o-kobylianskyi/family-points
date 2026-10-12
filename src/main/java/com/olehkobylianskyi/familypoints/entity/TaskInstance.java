@@ -11,11 +11,12 @@ import java.time.LocalTime;
         name = "task_instances",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_task_instance_definition_member_date",
+                        name = "uk_task_instance_definition_member_date_slot",
                         columnNames = {
                                 "task_definition_id",
                                 "member_id",
-                                "scheduled_date"
+                                "scheduled_date",
+                                "slot_key"
                         }
                 )
         }
@@ -42,6 +43,9 @@ public class TaskInstance {
 
     @Column(nullable = false)
     private LocalDate scheduledDate;
+
+    @Column(name = "slot_key", nullable = false, length = 40)
+    private String slotKey = "default";
 
     @Column(nullable = false, length = 200)
     private String title;
@@ -139,6 +143,15 @@ public class TaskInstance {
 
         this.rewardProcessed = false;
         this.penaltyProcessed = false;
+    }
+
+    public String getSlotKey() { return slotKey; }
+
+    public TaskInstance withSlot(String slotKey, LocalTime slotTime) {
+        if (slotKey == null || !slotKey.matches("[a-zA-Z0-9_-]{1,40}")) throw new IllegalArgumentException("Invalid slot key");
+        this.slotKey = slotKey;
+        this.dueTime = slotTime;
+        return this;
     }
 
     public Long getId() {
