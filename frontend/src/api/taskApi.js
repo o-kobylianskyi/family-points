@@ -322,7 +322,7 @@ export async function getMemberSchedule(token, workspaceId, memberId, date) {
 
 export async function startScheduledTask(token, workspaceId, definitionId, date, slotKey = 'default') {
   const response = await apiRequest(
-    `/workspaces/${workspaceId}/tasks/definitions/${definitionId}/start-scheduled?date=${date}`,
+    `/workspaces/${workspaceId}/tasks/definitions/${definitionId}/start-scheduled?date=${encodeURIComponent(date)}&slotKey=${encodeURIComponent(slotKey)}`,
     { token, method: 'POST' }
   )
   return handleResponse(response, 'Не вдалося почати заплановане завдання')
