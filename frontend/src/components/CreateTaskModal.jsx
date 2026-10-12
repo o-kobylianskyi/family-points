@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext'
 import { getPointTypes } from '../api/economyApi'
-import { createTaskDefinition, updateTaskDefinition } from '../api/taskApi'
+import { createTaskDefinition, updateTaskDefinition, createTaskScheduleSlot, getTaskScheduleSlots } from '../api/taskApi'
 import { getMemberGroups } from '../api/memberGroupApi'
 
 function getTodayLocalDate() {
@@ -161,6 +161,8 @@ function CreateTaskModal({
   const [recurrenceDayOfMonth, setRecurrenceDayOfMonth] =
     useState(String(initialTask?.recurrenceDayOfMonth ?? 1))
   const [dueTime, setDueTime] = useState(initialTask?.dueTime?.slice?.(0, 5) ?? '')
+  const [dailyTimes, setDailyTimes] = useState(['', ''])
+  const [useDailySlots, setUseDailySlots] = useState(false)
 
   const [pointTypes, setPointTypes] = useState([])
 
@@ -271,7 +273,7 @@ function CreateTaskModal({
           <input
             type="number"
             min="0"
-            step={step}
+            step="1"
             aria-label={ariaLabel}
             value={value}
             onChange={(event) =>
@@ -358,6 +360,15 @@ function CreateTaskModal({
 
     if (normalizedDueTime === null) {
       setError(t('tasks.create.dueTimeInvalid'))
+      return
+    }
+
+    if (useDailySlots && dailyTimes.some(time => !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(time))) {
+      setError('Вкажіть правильний час для кожного виконання або вимкніть режим кількох виконань.')
+      return
+    }
+    if (useDailySlots && new Set(dailyTimes).size !== dailyTimes.length) {
+      setError('Час виконань не повинен дублюватися.')
       return
     }
 
@@ -457,7 +468,12 @@ function CreateTaskModal({
         ? await updateTaskDefinition(token, currentUser.workspaceId, initialTask.id, request)
         : await createTaskDefinition(token, currentUser.workspaceId, request)
 
-      onCreated?.(saved)
+      if (!editing && useDailySlots) {
+        for (let i = 0; i < dailyTimes.length; i += 1) {
+          await createTaskScheduleSlot(token, currentUser.workspaceId, saved.id, `time_${i + 1}`, dailyTimes[i])
+        }
+      }
+      await onCreated?.(saved)
       onClose()
     } catch (error) {
       setError(error.message)
@@ -557,6 +573,31 @@ function CreateTaskModal({
               </option>
             </select>
           </label>
+
+          {!editing && recurrenceType !== 'ONCE' && (
+            <section className="task-value-section">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input type="checkbox" checked={useDailySlots} onChange={e => setUseDailySlots(e.target.checked)} />
+                Кілька виконань протягом дня
+              </label>
+              {useDailySlots && (
+                <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.75rem' }}>
+                  <p>Вкажіть час кожного виконання. Кожне матиме власний статус, бали та штраф.</p>
+                  {dailyTimes.map((time, index) => (
+                    <div key={index} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <label>Виконання {index + 1}
+                        <input type="time" value={time} required onChange={e => setDailyTimes(items => items.map((value, i) => i === index ? e.target.value : value))} />
+                      </label>
+                      <button type="button" className="secondary-button" disabled={dailyTimes.length <= 2}
+                        onClick={() => setDailyTimes(items => items.filter((_, i) => i !== index))}>Прибрати</button>
+                    </div>
+                  ))}
+                  <button type="button" className="secondary-button" disabled={dailyTimes.length >= 12}
+                    onClick={() => setDailyTimes(items => [...items, ''])}>+ Ще одне виконання</button>
+                </div>
+              )}
+            </section>
+          )}
 
           <div className="form-row">
             <label className="form-field">
