@@ -801,3 +801,15 @@ Before each substantial implementation batch:
 - [ ] Install Docker and verify the existing 1C forwarding and DEV still work
 - [ ] Obtain sanitized/current DEV PostgreSQL dump and restore to Beta isolated DB
 - [ ] Build/release Java JAR and React dist; obtain Beta TLS cert and bring Nginx 443 online
+
+## 2026-10-12 — Clean Beta + multi-family onboarding decision
+- [x] Decision: NO development data/account/transaction copy into Beta
+- [x] Document tenant separation, registration, member wizard and optional task/reward templates in docs/MULTI_FAMILY_ONBOARDING_PLAN.md
+- [x] Update deployment guidance to require empty-data schema and explicit workspace security fixes
+- [ ] Fix critical cross-tenant access paths (WorkspaceController, EconomyController, other controllers and nested IDs)
+- [ ] Create and verify clean database bootstrap (V1 pre-V2 schema through V20, or controlled schema-only V20 baseline)
+- [ ] Invite-only first-family registration: initial admin + default roles, point type, settings (atomic)
+- [ ] First-run wizard with participants and permissions; resumable
+- [ ] Shared versioned template catalog for optional tasks/rewards, editable per-workspace copies, idempotent import
+- [ ] Tests with two unrelated families and cross-workspace API security
+- [ ] Only after security and bootstrap validated: Contabo Beta release and parent phone
