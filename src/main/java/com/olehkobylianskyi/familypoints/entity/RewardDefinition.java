@@ -33,6 +33,27 @@ public class RewardDefinition {
     @Column(name = "cooldown_seconds", nullable = false)
     private int cooldownSeconds = 30;
 
+    @Column(name = "member_total_limit")
+    private Integer memberTotalLimit;
+
+    @Column(name = "member_daily_limit")
+    private Integer memberDailyLimit;
+
+    @Column(name = "member_weekly_limit")
+    private Integer memberWeeklyLimit;
+
+    @Column(name = "workspace_total_limit")
+    private Integer workspaceTotalLimit;
+
+    @Column(name = "workspace_daily_limit")
+    private Integer workspaceDailyLimit;
+
+    @Column(name = "workspace_weekly_limit")
+    private Integer workspaceWeeklyLimit;
+
+    @Column(name = "extra_request_allowed", nullable = false)
+    private boolean extraRequestAllowed;
+
     @Column(name = "minimum_reputation")
     private Integer minimumReputation;
 
@@ -117,6 +138,38 @@ public class RewardDefinition {
         if (value < 0) throw new IllegalArgumentException("Cooldown must not be negative");
         cooldownSeconds = value;
     }
+    public Integer getMemberTotalLimit() { return memberTotalLimit; }
+    public void setMemberTotalLimit(Integer limit) {
+        if (limit != null && limit <= 0) throw new IllegalArgumentException("Limit must be positive");
+        this.memberTotalLimit = limit;
+    }
+    public Integer getMemberDailyLimit() { return memberDailyLimit; }
+    public void setMemberDailyLimit(Integer limit) {
+        if (limit != null && limit <= 0) throw new IllegalArgumentException("Limit must be positive");
+        this.memberDailyLimit = limit;
+    }
+    public Integer getMemberWeeklyLimit() { return memberWeeklyLimit; }
+    public void setMemberWeeklyLimit(Integer limit) {
+        if (limit != null && limit <= 0) throw new IllegalArgumentException("Limit must be positive");
+        this.memberWeeklyLimit = limit;
+    }
+    public Integer getWorkspaceTotalLimit() { return workspaceTotalLimit; }
+    public void setWorkspaceTotalLimit(Integer limit) {
+        if (limit != null && limit <= 0) throw new IllegalArgumentException("Limit must be positive");
+        this.workspaceTotalLimit = limit;
+    }
+    public Integer getWorkspaceDailyLimit() { return workspaceDailyLimit; }
+    public void setWorkspaceDailyLimit(Integer limit) {
+        if (limit != null && limit <= 0) throw new IllegalArgumentException("Limit must be positive");
+        this.workspaceDailyLimit = limit;
+    }
+    public Integer getWorkspaceWeeklyLimit() { return workspaceWeeklyLimit; }
+    public void setWorkspaceWeeklyLimit(Integer limit) {
+        if (limit != null && limit <= 0) throw new IllegalArgumentException("Limit must be positive");
+        this.workspaceWeeklyLimit = limit;
+    }
+    public boolean isExtraRequestAllowed() { return extraRequestAllowed; }
+    public void setExtraRequestAllowed(boolean allowed) { extraRequestAllowed = allowed; }
     public Integer getMinimumReputation() { return minimumReputation; }
     public boolean isRequiresApproval() { return requiresApproval; }
     public RewardKind getRewardKind() { return rewardKind; }
