@@ -644,3 +644,8 @@
 - Implemented `PUT /workspaces/{workspaceId}/rewards/{rewardId}` requiring MANAGE_REWARDS in selected workspace (`eea20ed`), handled by transactional RewardService.updateReward (`620b1f4`). Validates reward belongs to workspace and replaces definition fields, categories and definition requirements without recreating existing purchase history.
 - Web rewardApi PUT (`73f3ebe`), RewardsPage editing action (`ff03bfe`): managers can choose Edit from catalog; shared create/edit form preloads title, description, point type, price, cooldown, reputation threshold, acquisition/approval, duration, categories and task-based before/after conditions; Save updates same ID, Cancel resets form.
 - Authorization regression tests added (`acd2264`). CI not yet confirmed. Caveat: existing non-task advanced requirement types are not represented in Web task picker and must be preserved/handled before calling this a complete advanced-condition editor. Pending Android edit UI parity.
+
+## 2026-10-12 — Verified reward-edit CI; Android SDK preview-channel fix
+- GitHub Actions run 38297807371 for commit c293dd0: Backend Maven/Testcontainers PASS, Web Vite PASS, Android FAIL before compilation at setup-android: stable sdkmanager could not find `platforms;android-37`.
+- Updated Android CI (`0e9a9cd`) to provision standard platform-tools/build-tools first and install API 37 explicitly via `sdkmanager --channel=3` (preview/canary channel). This is an attempted CI-environment correction; pending new CI result.
+- Automated green builds do not yet cover full reward-edit user flows. Advanced non-task requirements may be erased on editing using current Web form and need preservation/coverage before production use.
