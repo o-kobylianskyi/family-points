@@ -24,6 +24,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.olehkobylianskyi.familypoints.android.ui.components.WorkspaceSwitcher
 import com.olehkobylianskyi.familypoints.android.auth.AuthSessionManager
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.CreateTaskRepository
@@ -517,6 +519,27 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
+                }
+
+                if (currentUser != null && status == ServerStatus.ONLINE &&
+                    !authSessionManager.isOfflineAuthenticated() &&
+                    destination == AppDestination.DASHBOARD
+                ) {
+                    WorkspaceSwitcher(
+                        activeWorkspaceId = currentUser!!.workspaceId,
+                        loadWorkspaces = { authSessionManager.listWorkspaces() },
+                        activate = { workspaceId ->
+                            val user = authSessionManager.switchWorkspace(workspaceId)
+                            // Drop all screen-local state before showing the new workspace.
+                            selectedTaskDefinitionId = null
+                            selectedTaskInstanceId = null
+                            selectedTaskDate = ""
+                            parentTaskDefinitionId = null
+                            currentUser = user
+                            destination = AppDestination.DASHBOARD
+                        },
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp)
+                    )
                 }
                     }
                 }
