@@ -5,12 +5,14 @@ import com.olehkobylianskyi.familypoints.dto.RoleDefinitionResponse;
 import com.olehkobylianskyi.familypoints.service.RoleDefinitionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/workspaces/{workspaceId}/role-definitions")
+@PreAuthorize("@workspaceSecurity.canAccessWorkspace(#workspaceId)")
 public class RoleDefinitionController {
     private final RoleDefinitionService service;
 
