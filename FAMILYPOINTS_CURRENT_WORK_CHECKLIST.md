@@ -813,3 +813,16 @@ Before each substantial implementation batch:
 - [ ] Shared versioned template catalog for optional tasks/rewards, editable per-workspace copies, idempotent import
 - [ ] Tests with two unrelated families and cross-workspace API security
 - [ ] Only after security and bootstrap validated: Contabo Beta release and parent phone
+
+## 2026-10-12 — Tenant isolation milestone 1, source committed (tests pending)
+- [x] Root GET /workspaces exposes own family only; foreign GET/PUT denied, POST and DELETE temporarily disabled
+- [x] Shared cross-family guard in Spring Security chain after JWT authentication
+- [x] MANAGE_WORKSPACE, MANAGE_MEMBERS and MANAGE_ROLES workspace-scoped predicates
+- [x] Economy and workspace role configuration protected from unprivileged family members
+- [x] Group mutations/permissions protected; scoped role delegation needs explicit future support
+- [x] Review paths for role sets/definitions, points, exception periods, exchanges
+- [x] Unit tests for filter and workspace root behavior written
+- [ ] Run Maven `-Dtest=WorkspaceIsolationFilterTest,WorkspaceControllerTest test` and verify context boot
+- [ ] Integration test two distinct tenants across nested resource IDs and request payload references
+- [ ] Implement clean PostgreSQL baseline from empty DB
+- [ ] Implement transactional, invite-only family registration and parent setup wizard
