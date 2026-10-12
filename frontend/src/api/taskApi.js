@@ -310,3 +310,12 @@ export async function cancelTaskRewardRequest(token, workspaceId, requestId) {
   )
   return handleResponse(response, 'Failed to cancel task reward request')
 }
+
+export async function getMemberSchedule(token, workspaceId, memberId, date) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/tasks/members/${memberId}/schedule?date=${date}`,
+    { token }
+  )
+  return handleResponse(response, 'Не вдалося завантажити розклад завдань')
+}
+
