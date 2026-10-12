@@ -708,3 +708,10 @@
 - DeadlineService now examines each enabled slot with its own deadline, skips unbounded slots, and calls locked system materialization (`60d607d`, `061ec0a`); unit test constructor adjusted (`7720502`). Catch-up remains yesterday+today only. Penalty/idempotency relies on existing missBySystem guards.
 - Slot-aware detail lookup implemented in Backend (`eda6b10`, `e60b7d5`), Web API (`0726d2c`), detail route/actions (`b34cc27`) and planned-card navigation (`94495ac`). This allows manager to mark morning or evening occurrence separately rather than accidentally completing the default slot.
 - CI pending. Follow-up: test with real Postgres concurrent requests, add management UI for configuring slots, include Android, check timezone and paused status semantics before beta.
+
+## 2026-10-12 — Package 1 stabilization: V26 compilation, deadline guard, CI green for Backend/Web
+- Started with failed GitHub Actions run 38311324290: Web PASS, Maven compiler FAIL because LocalDateTime was unqualified in TaskService.materializeOverdueSlot. Fixed `88c00b0`.
+- Mandatory tasks without an explicit dueTime now expire at the next calendar-day boundary instead of never being penalized (`3a57771`). Query now considers null dueTime but strictly filters mandatory snapshot (`3a913eb`, `15efebd`). This preserves the one-day bounded catch-up; no historical mass penalties.
+- Added deadlineFor null-time and explicit-time assertions, plus generator recurrence mock in TaskDeadlineRecurringTest (`e673220`).
+- CI run 38312518524: Maven PostgreSQL Testcontainers **BUILD SUCCESS, 62 tests / 0 failures / 0 errors**, Web Vite **SUCCESS**; Android SDK37 package unavailable on runner (existing infrastructure limitation).
+- Outstanding beta gates: concurrent transactional ledger test, two-slot deadline/penalty integration test, slot-management UI, timezone normalization, and old default-generation interaction with explicit slot schedules. Do not claim these are tested or finished; package 2 editor should handle slot reconciliation and update semantics safely.
