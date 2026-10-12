@@ -466,3 +466,9 @@
 - Added read-only `GET /api/me/workspaces/{workspaceId}/context` (`00fd415`) returning role/permissions of the specifically verified account membership, never those of the legacy account member. Resolver rejects missing or inactive membership; the endpoint also rejects mismatched role workspace.
 - Added two mocked controller tests (`4ac48c6`) for selected member role and foreign role rejection.
 - No switching, JWT claim activation, or family registration was exposed. Tests have NOT been run locally. Next: `git pull` + `mvnw.cmd test`; audit all permission consumers before replacing active context.
+
+## 2026-10-12 — Context-local permissions groundwork
+- Added `WorkspaceContextAuthorization` (`1cfb539`) that resolves a verified account membership in an explicit workspace and then checks that the member's role belongs to the same workspace. Role permissions and ADMIN_OVERRIDE apply only within that verified context.
+- Added 3 Mockito tests (`eff3526`) for selected-context role, foreign role denial, and absent membership denial.
+- Deliberately NOT connected to JWT filter/WorkspaceSecurity yet. Existing request authorization and DEV login remain unchanged. New code is untested locally; run Maven suite before enabling workspace switching.
+- Future mandatory work: integrate selected workspace with JWT authentication and all permission evaluators/DTOs consistently; add two-workspace HTTP integration tests, then enable safe switching and registration.
