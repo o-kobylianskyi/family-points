@@ -30,6 +30,9 @@ public class RewardDefinition {
     @Column(name = "price_amount", nullable = false)
     private int priceAmount;
 
+    @Column(name = "cooldown_seconds", nullable = false)
+    private int cooldownSeconds = 30;
+
     @Column(name = "minimum_reputation")
     private Integer minimumReputation;
 
@@ -109,6 +112,11 @@ public class RewardDefinition {
     public String getDescription() { return description; }
     public PointType getPointType() { return pointType; }
     public int getPriceAmount() { return priceAmount; }
+    public int getCooldownSeconds() { return cooldownSeconds; }
+    public void setCooldownSeconds(int value) {
+        if (value < 0) throw new IllegalArgumentException("Cooldown must not be negative");
+        cooldownSeconds = value;
+    }
     public Integer getMinimumReputation() { return minimumReputation; }
     public boolean isRequiresApproval() { return requiresApproval; }
     public RewardKind getRewardKind() { return rewardKind; }
