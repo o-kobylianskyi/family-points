@@ -467,6 +467,10 @@ public class TaskService {
                 .toList();
     }
 
+    public boolean canManageDefinition(TaskDefinition definition) {
+        return taskAuthorizationService.canManage(definition);
+    }
+
     @Transactional(readOnly = true)
     public TaskDefinition getDefinition(Long workspaceId, Long definitionId) {
         TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
