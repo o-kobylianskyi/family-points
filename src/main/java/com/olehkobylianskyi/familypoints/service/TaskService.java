@@ -612,6 +612,12 @@ public class TaskService {
             LocalDate date
     ) {
         getMemberOrThrow(workspaceId, memberId);
+        WorkspaceMember me = taskAuthorizationService.currentMember();
+        if (!memberId.equals(me.getId())
+                && !me.hasPermission(WorkspacePermission.VIEW_ALL_TASKS)
+                && !me.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) {
+            throw new org.springframework.security.access.AccessDeniedException("Cannot view another member's executions");
+        }
 
         return taskInstanceRepository
                 .findByMemberIdAndScheduledDateOrderByIdAsc(memberId, date)
