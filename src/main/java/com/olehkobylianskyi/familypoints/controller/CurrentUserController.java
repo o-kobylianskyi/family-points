@@ -22,7 +22,7 @@ public class CurrentUserController {
 
     @GetMapping
     public ResponseEntity<CurrentUserResponse> getCurrentUser() {
-        return ResponseEntity.ok(CurrentUserResponse.from(currentUserService.getCurrentAccount()));
+        return ResponseEntity.ok(CurrentUserResponse.from(currentUserService.getCurrentAccount(), currentUserService.getCurrentMember()));
     }
 
     @PutMapping("/password")
