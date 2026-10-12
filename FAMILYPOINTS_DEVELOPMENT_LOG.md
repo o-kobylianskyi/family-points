@@ -649,3 +649,11 @@
 - GitHub Actions run 38297807371 for commit c293dd0: Backend Maven/Testcontainers PASS, Web Vite PASS, Android FAIL before compilation at setup-android: stable sdkmanager could not find `platforms;android-37`.
 - Updated Android CI (`0e9a9cd`) to provision standard platform-tools/build-tools first and install API 37 explicitly via `sdkmanager --channel=3` (preview/canary channel). This is an attempted CI-environment correction; pending new CI result.
 - Automated green builds do not yet cover full reward-edit user flows. Advanced non-task requirements may be erased on editing using current Web form and need preservation/coverage before production use.
+
+## 2026-10-12 — Reward redemption count limits (staged delivery)
+- Flyway V24 `59a9838`: six nullable positive count limits (member / family × lifetime / calendar day / calendar ISO-style Monday-start week), and `extra_request_allowed` flag. NULL means unlimited; existing rewards unaffected.
+- RewardDefinition JPA mapping `529e58e`, RewardDefinitionRequest `4fefc8e`, RewardDefinitionResponse `6a81568`; create/update service now saves limit configuration.
+- RewardPurchaseRepository `5a5fc52` count query; RewardDefinitionRepository `24e321d` pessimistic reward row lock. RewardService `3c96308` checks configured member and shared-family count limits before spending points on both direct and approved-request purchases. Count excludes cancelled purchases and uses purchases' original timestamps. Weekly boundary is Monday local server date.
+- Web RewardsPage `485305b` exposes six optional count limits and `extraRequestAllowed` in create/edit form; copy clarified in `04944c3` that approval/one-time exception issuance is NOT yet implemented.
+- Tests `5c315a2` check personal lifetime and shared-family lifetime blocking before debit. Updated existing cooldown test `5e2fe26` for locked repository lookup.
+- **Status:** PENDING CI. Not yet implemented: total-minute limits, daily/weekly minute budgets for time rewards, dedicated additional-permission approval/one-time consumption flow, Android edit and remaining quotas UI, member/workspace timezone selection and real cross-account concurrency integration tests. Do not claim those pieces are operational.
