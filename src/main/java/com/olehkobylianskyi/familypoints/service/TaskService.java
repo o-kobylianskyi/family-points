@@ -545,7 +545,7 @@ public class TaskService {
         var slot = taskScheduleSlots.findByTaskDefinitionIdAndSlotKeyAndEnabledTrue(definitionId, slotKey)
                 .orElseThrow(() -> new InvalidTaskStateException("Unknown scheduled slot"));
         if (slot.getScheduledTime() == null
-                || LocalDateTime.now().isBefore(LocalDateTime.of(date, slot.getScheduledTime()))) {
+                || java.time.LocalDateTime.now().isBefore(java.time.LocalDateTime.of(date, slot.getScheduledTime()))) {
             throw new InvalidTaskStateException("Task occurrence is not overdue");
         }
         return taskInstanceRepository.findByTaskDefinitionIdAndScheduledDateAndSlotKey(definitionId, date, slotKey)
