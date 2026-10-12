@@ -10,6 +10,8 @@ import {
   getCurrentUser,
   login as loginRequest,
   refreshAccessToken,
+  listAccountWorkspaces,
+  activateAccountWorkspace,
 } from '../api/authApi'
 
 const AuthContext = createContext(null)
@@ -234,6 +236,28 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const getAvailableWorkspaces = async () => {
+    const token = localStorage.getItem('accessToken')
+    if (!token) throw new Error('Not authenticated')
+    return listAccountWorkspaces(token)
+  }
+
+  const switchWorkspace = async (workspaceId) => {
+    const token = localStorage.getItem('accessToken')
+    if (!token) throw new Error('Not authenticated')
+    const next = await activateAccountWorkspace(token, workspaceId)
+    // Verify the new identity BEFORE replacing the existing session.
+    const user = await getCurrentUser(next.accessToken)
+    if (Number(user.workspaceId) !== Number(workspaceId)) {
+      throw new Error('Unexpected workspace context')
+    }
+    localStorage.setItem('accessToken', next.accessToken)
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()))
+    setCurrentUser(user)
+    // Remount every feature store and clear in-memory state for the previous tenant.
+    window.location.replace('/')
+  }
+
   const logout = () => {
     clearSession()
   }
@@ -250,6 +274,8 @@ export function AuthProvider({ children }) {
         login,
         logout,
         getAccessToken,
+        getAvailableWorkspaces,
+        switchWorkspace,
       }}
     >
       {children}
