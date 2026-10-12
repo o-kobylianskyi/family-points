@@ -28,6 +28,9 @@ public class RewardDefinitionRequest {
     @Min(0)
     private Integer minimumReputation;
 
+    @Min(0)
+    private Integer cooldownSeconds = 30;
+
     private boolean requiresApproval;
 
     private RewardKind rewardKind = RewardKind.STANDARD;
@@ -42,6 +45,8 @@ public class RewardDefinitionRequest {
     @Valid
     private List<RewardRequirementRequest> requirements = new ArrayList<>();
 
+    public Integer getCooldownSeconds() { return cooldownSeconds; }
+    public void setCooldownSeconds(Integer value) { cooldownSeconds = value; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
