@@ -57,6 +57,7 @@ fun DashboardScreen(
     loadReputation: suspend () -> Long,
     loadWorkspaces: suspend () -> List<AccountWorkspaceChoice>,
     onSwitchWorkspace: suspend (Long) -> Unit,
+    canSwitchWorkspaces: Boolean,
     onLanguageChange: (AppLanguage) -> Unit,
     onLogout: () -> Unit,
     onNavigate: (DashboardDestination) -> Unit,
@@ -109,7 +110,7 @@ fun DashboardScreen(
     }
 
     LaunchedEffect(currentUser.memberId, currentUser.workspaceId, serverStatus) {
-        if (serverStatus == ServerStatus.ONLINE) {
+        if (serverStatus == ServerStatus.ONLINE && canSwitchWorkspaces) {
             while (true) {
                 delay(30_000L)
                 try {
