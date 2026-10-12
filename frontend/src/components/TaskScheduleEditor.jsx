@@ -5,6 +5,24 @@ import { getTaskScheduleSlots, createTaskScheduleSlot, updateTaskScheduleSlot, s
 const normalize = (time) => time?.slice(0, 5) ?? ''
 
 
+function parseTime(value) {
+  const raw = String(value ?? '').trim().replace('.', ':')
+  if (!raw) return null
+  let hour, minute
+  if (/^\d{1,2}$/.test(raw)) {
+    hour = Number(raw); minute = 0
+  } else if (/^\d{3,4}$/.test(raw)) {
+    const padded = raw.padStart(4, '0')
+    hour = Number(padded.slice(0, 2)); minute = Number(padded.slice(2))
+  } else {
+    const match = raw.match(/^(\d{1,2}):(\d{1,2})$/)
+    if (!match) return null
+    hour = Number(match[1]); minute = Number(match[2])
+  }
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+}
+
 function suggestedTime(slots) {
   const times = slots.map(s => normalize(s.scheduledTime)).filter(t => /^([01]\d|2[0-3]):[0-5]\d$/.test(t))
   if (!times.length) return '09:00'
@@ -57,7 +75,8 @@ export default function TaskScheduleEditor({ definitionId, onChanged }) {
       setError('Ключ має містити 1–40 латинських літер, цифр, _ або -. Назва default зарезервована.')
       return
     }
-    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(newTime)) {
+    const time = parseTime(newTime)
+    if (!time) {
       setError('Вкажіть час виконання у форматі ГГ:ХХ, наприклад 09:00.')
       return
     }
@@ -66,9 +85,9 @@ export default function TaskScheduleEditor({ definitionId, onChanged }) {
       return
     }
     run(async () => {
-      await createTaskScheduleSlot(getAccessToken(), workspaceId, definitionId, key, newTime)
+      await createTaskScheduleSlot(getAccessToken(), workspaceId, definitionId, key, time)
       setNewKey('')
-      setNewTime(suggestedTime([...slots, { scheduledTime: newTime }]))
+      setNewTime(suggestedTime([...slots, { scheduledTime: time }]))
     })
   }
 
@@ -82,10 +101,10 @@ export default function TaskScheduleEditor({ definitionId, onChanged }) {
         {slots.map(slot => (
           <div key={slot.id} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
             <strong style={{ minWidth: '8rem' }}>{slot.slotKey}</strong>
-            <input type="time" aria-label={`Час: ${slot.slotKey}`} value={drafts[slot.id] ?? ''}
-              disabled={pending} onChange={e => setDrafts(p => ({ ...p, [slot.id]: e.target.value }))} />
-            <button type="button" className="task-action-button" disabled={pending || normalize(slot.scheduledTime) === drafts[slot.id]}
-              onClick={() => run(() => updateTaskScheduleSlot(getAccessToken(), workspaceId, definitionId, slot.id, drafts[slot.id], slot.enabled))}>Зберегти час</button>
+            <input type="text" inputMode="numeric" placeholder="ГГ:ХХ" aria-label={`Час: ${slot.slotKey}`} value={drafts[slot.id] ?? ''}
+              disabled={pending} onChange={e => setDrafts(p => ({ ...p, [slot.id]: e.target.value }))} onBlur={() => { const time = parseTime(drafts[slot.id]); if (time) setDrafts(p => ({ ...p, [slot.id]: time })) }} />
+            <button type="button" className="task-action-button" disabled={pending || normalize(slot.scheduledTime) === parseTime(drafts[slot.id])}
+              onClick={() => { const time = parseTime(drafts[slot.id]); if (!time) { setError('Вкажіть правильний час, наприклад 16 або 16:30.'); return }; run(() => updateTaskScheduleSlot(getAccessToken(), workspaceId, definitionId, slot.id, time, slot.enabled)) }}>Зберегти час</button>
             <button type="button" className="task-action-button secondary" disabled={pending}
               onClick={() => run(() => setTaskScheduleSlotEnabled(getAccessToken(), workspaceId, definitionId, slot.id, !slot.enabled))}>
               {slot.enabled ? 'Вимкнути' : 'Увімкнути'}
@@ -100,7 +119,7 @@ export default function TaskScheduleEditor({ definitionId, onChanged }) {
             onChange={e => setNewKey(e.target.value)} maxLength={40} />
         </label>
         <label>Час виконання
-          <input type="time" lang="uk" aria-label="Час нового виконання" value={newTime} disabled={pending} onChange={e => setNewTime(e.target.value)} />
+          <input type="text" inputMode="numeric" placeholder="ГГ:ХХ" lang="uk" aria-label="Час нового виконання" value={newTime} disabled={pending} onChange={e => setNewTime(e.target.value)} onBlur={() => { const time = parseTime(newTime); if (time) setNewTime(time) }} />
         </label>
         <button className="task-action-button primary" disabled={pending} type="submit">Додати слот</button>
       </form>
