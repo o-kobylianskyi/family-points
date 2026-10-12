@@ -787,3 +787,17 @@ Before each substantial implementation batch:
 - [ ] Deploy locally built React dist via Nginx and backend jar; verify HTTPS APIs
 - [ ] Secure and sign Android release APK for stable future updates; test on parent phone
 - [ ] Compile Maven/Gradle/npm and run migration/offline/synchronization smoke tests
+
+## 2026-10-12 — Actual Contabo pre-deployment audit
+- [x] Verified 8 GiB VPS with >7 GiB available RAM and ~94 GiB free disk
+- [x] Verified active nginx port 80/8443 and active WireGuard UDP 51820
+- [x] Verified public port 443 is available for Beta, but blocked by UFW until explicitly opened
+- [x] Verified Docker and PostgreSQL not yet installed on VPS
+- [x] Verified UFW contains routed allowlist for 1C external 8080 -> laptop Apache; preserve UFW/DNAT
+- [x] Add docker compose Beta assets, environment template and Nginx HTTPS 443 config
+- [x] Discover release-critical missing Flyway V1; require restored DEV DB with migration history or compatible baseline snapshot
+- [ ] Back up UFW, Nginx and iptables NAT files to root-only path before Docker installation
+- [ ] Check actual NAT rules and apt Docker/Compose package candidates
+- [ ] Install Docker and verify the existing 1C forwarding and DEV still work
+- [ ] Obtain sanitized/current DEV PostgreSQL dump and restore to Beta isolated DB
+- [ ] Build/release Java JAR and React dist; obtain Beta TLS cert and bring Nginx 443 online
