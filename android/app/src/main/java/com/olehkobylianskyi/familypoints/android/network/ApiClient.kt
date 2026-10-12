@@ -1,5 +1,7 @@
 package com.olehkobylianskyi.familypoints.android.network
 
+import com.olehkobylianskyi.familypoints.android.BuildConfig
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
@@ -13,7 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
 
-    private const val BASE_URL = "https://api-dev.family-point.com:8443/"
+    private val BASE_URL = BuildConfig.API_BASE_URL
 
     private val httpClient: OkHttpClient by lazy {
         val logging = HttpLoggingInterceptor().apply {
