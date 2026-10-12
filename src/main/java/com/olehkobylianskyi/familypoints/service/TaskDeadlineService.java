@@ -69,7 +69,7 @@ public class TaskDeadlineService {
                 LocalDate date = now.toLocalDate().minusDays(daysAgo);
                 if (!generation.shouldGenerate(definition, date)) continue;
                 var definedSlots = slots.findByTaskDefinitionIdAndEnabledTrueOrderByScheduledTimeAscSlotKeyAsc(definition.getId());
-                if (definedSlots.isEmpty()) {
+                if (definedSlots.isEmpty() && slots.findByTaskDefinitionIdOrderByScheduledTimeAscSlotKeyAsc(definition.getId()).isEmpty()) {
                     if (now.isBefore(deadlineFor(date, definition.getDueTime()))) continue;
                     generation.generateForDefinition(definition, date);
                 } else {
