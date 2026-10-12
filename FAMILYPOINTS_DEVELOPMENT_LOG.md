@@ -528,3 +528,8 @@
 - Added unit tests (`c421807`) for valid scoped member, mismatched account/member rejection, and backward-compatible legacy context.
 - **Crucial:** JwtAuthenticationFilter still rejects workspace-scoped tokens and does not construct `WorkspaceAuthenticationDetails`. No public switching endpoint, JWT activation, or registration yet. Remaining direct primary-member lookups and tenant-facing controllers still require audit and HTTP authorization integration tests.
 - Latest package NOT run locally; run `git pull` and `mvnw.cmd test` before proceeding.
+
+## 2026-10-12 — Scoped JWT tests for live workspace selection
+- Added two tests to JwtAuthenticationFilterWorkspaceScopeTest (commit d91c46e) verifying that a scoped JWT obtains only the selected workspace's privileges rather than the primary account's ADMIN_OVERRIDE, and an inaccessible workspace is rejected without authentication.
+- Existing legacy token tests are retained; scoped token test with unconfigured legacy-only filter still expects denial.
+- Pending local Maven run; HTTP controller authorization across two workspaces, direct account-member usage audit, and user-facing workspace switching remain incomplete. Latest verified BUILD SUCCESS predates commit 420c1d5 and these tests.
