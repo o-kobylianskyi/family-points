@@ -15,6 +15,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.olehkobylianskyi.familypoints.android.ui.components.WorkspaceSwitcher
+import com.olehkobylianskyi.familypoints.android.network.AccountWorkspaceChoice
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,6 +55,8 @@ fun DashboardScreen(
     loadDashboard: suspend () -> DashboardData,
     cachedDashboard: () -> DashboardData?,
     loadReputation: suspend () -> Long,
+    loadWorkspaces: suspend () -> List<AccountWorkspaceChoice>,
+    onSwitchWorkspace: suspend (Long) -> Unit,
     onLanguageChange: (AppLanguage) -> Unit,
     onLogout: () -> Unit,
     onNavigate: (DashboardDestination) -> Unit,
@@ -140,6 +144,18 @@ fun DashboardScreen(
                 onLogout = onLogout,
                 onNavigate = onNavigate
             )
+        }
+        if (serverStatus == ServerStatus.ONLINE) {
+            item {
+                Row(modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End) {
+                    WorkspaceSwitcher(
+                        activeWorkspaceId = currentUser.workspaceId,
+                        loadWorkspaces = loadWorkspaces,
+                        activate = onSwitchWorkspace
+                    )
+                }
+            }
         }
         item {
             Row(
