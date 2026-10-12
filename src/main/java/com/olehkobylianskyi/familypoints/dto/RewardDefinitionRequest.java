@@ -31,6 +31,26 @@ public class RewardDefinitionRequest {
     @Min(0)
     private Integer cooldownSeconds = 30;
 
+    @Min(1)
+    private Integer memberTotalLimit;
+
+    @Min(1)
+    private Integer memberDailyLimit;
+
+    @Min(1)
+    private Integer memberWeeklyLimit;
+
+    @Min(1)
+    private Integer workspaceTotalLimit;
+
+    @Min(1)
+    private Integer workspaceDailyLimit;
+
+    @Min(1)
+    private Integer workspaceWeeklyLimit;
+
+    private boolean extraRequestAllowed;
+
     private boolean requiresApproval;
 
     private RewardKind rewardKind = RewardKind.STANDARD;
@@ -57,6 +77,20 @@ public class RewardDefinitionRequest {
     public void setPriceAmount(int priceAmount) { this.priceAmount = priceAmount; }
     public Integer getMinimumReputation() { return minimumReputation; }
     public void setMinimumReputation(Integer minimumReputation) { this.minimumReputation = minimumReputation; }
+    public Integer getMemberTotalLimit() { return memberTotalLimit; }
+    public void setMemberTotalLimit(Integer value) { memberTotalLimit = value; }
+    public Integer getMemberDailyLimit() { return memberDailyLimit; }
+    public void setMemberDailyLimit(Integer value) { memberDailyLimit = value; }
+    public Integer getMemberWeeklyLimit() { return memberWeeklyLimit; }
+    public void setMemberWeeklyLimit(Integer value) { memberWeeklyLimit = value; }
+    public Integer getWorkspaceTotalLimit() { return workspaceTotalLimit; }
+    public void setWorkspaceTotalLimit(Integer value) { workspaceTotalLimit = value; }
+    public Integer getWorkspaceDailyLimit() { return workspaceDailyLimit; }
+    public void setWorkspaceDailyLimit(Integer value) { workspaceDailyLimit = value; }
+    public Integer getWorkspaceWeeklyLimit() { return workspaceWeeklyLimit; }
+    public void setWorkspaceWeeklyLimit(Integer value) { workspaceWeeklyLimit = value; }
+    public boolean isExtraRequestAllowed() { return extraRequestAllowed; }
+    public void setExtraRequestAllowed(boolean allowed) { extraRequestAllowed = allowed; }
     public boolean isRequiresApproval() { return requiresApproval; }
     public void setRequiresApproval(boolean requiresApproval) { this.requiresApproval = requiresApproval; }
     public RewardKind getRewardKind() { return rewardKind; }
