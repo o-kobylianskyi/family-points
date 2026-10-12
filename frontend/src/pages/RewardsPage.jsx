@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { getPointTypes, getPointNameForms } from '../api/economyApi'
 import { getMemberBalances } from '../api/pointsApi'
+import { getMyReputation } from '../api/reputationApi'
 import { currencyQuantity } from '../utils/formatCurrencyAmount'
 import { useTranslation } from 'react-i18next'
 import { getTaskDefinitions } from '../api/taskApi'
@@ -97,6 +98,7 @@ function RewardsPage() {
   const [currencyForms, setCurrencyForms] = useState({})
 
   const [balances, setBalances] = useState([])
+  const [reputation, setReputation] = useState(null)
   const [notice, setNotice] = useState('')
   const actionLock = useRef(false)
   const [rewards, setRewards] = useState([])
@@ -146,6 +148,7 @@ function RewardsPage() {
         pointTypeData,
         taskData,
         balanceData,
+        reputationData,
       ] = await Promise.all([
         getRewards(token, workspaceId),
         getRewardCategories(token, workspaceId),
@@ -155,9 +158,11 @@ function RewardsPage() {
         getPointTypes(token, workspaceId),
         getTaskDefinitions(token, workspaceId),
         getMemberBalances(token, workspaceId, currentUser.memberId),
+        getMyReputation(token),
       ])
 
       setBalances(balanceData.balances || [])
+      setReputation(reputationData.balance)
       setRewards(rewardData)
       setCategories(categoryData)
       setRequests(requestData)
@@ -386,11 +391,12 @@ function RewardsPage() {
       {error && <div className="page-error" role="alert">{error}</div>}
       {notice && <div className="reward-obligation-banner" role="status">✓ {notice}</div>}
       <section className="reward-obligation-banner" aria-label="Ваш баланс">
-        <strong>Ваші поточні бали</strong>
+        <strong>Ваші поточні бали та репутація</strong>
         <div className="reward-tags">
           {balances.length ? balances.map((item) => (
             <span key={item.pointTypeId}>{pointAmountLabel(item.balance, item.pointTypeId, item.code)}</span>
           )) : <span>Баланс не завантажено</span>}
+          {reputation !== null && <span>Репутація: {reputation}</span>}
         </div>
       </section>
 
