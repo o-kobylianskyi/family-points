@@ -819,6 +819,11 @@ public class TaskService {
      */
     @Transactional
     public TaskInstance completeScheduledByManager(Long workspaceId, Long definitionId, LocalDate date) {
+        return completeScheduledByManager(workspaceId, definitionId, date, "default");
+    }
+
+    @Transactional
+    public TaskInstance completeScheduledByManager(Long workspaceId, Long definitionId, LocalDate date, String slotKey) {
         TaskDefinition definition = taskDefinitionRepository.findForOccurrenceUpdate(definitionId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task definition not found"));
         taskAuthorizationService.requireManage(definition);
@@ -829,9 +834,16 @@ public class TaskService {
         if (date.isAfter(LocalDate.now())) {
             throw new InvalidTaskStateException("Future occurrences cannot be completed");
         }
-        TaskInstance instance = taskInstanceRepository.findByTaskDefinitionIdAndScheduledDateAndSlotKey(definitionId, date, "default")
+        java.time.LocalTime dueTime = definition.getDueTime();
+        if (!"default".equals(slotKey)) {
+            var slot = taskScheduleSlots.findByTaskDefinitionIdAndSlotKeyAndEnabledTrue(definitionId, slotKey)
+                    .orElseThrow(() -> new InvalidTaskStateException("Unknown or disabled task slot"));
+            dueTime = slot.getScheduledTime();
+        }
+        final java.time.LocalTime selectedDueTime = dueTime;
+        TaskInstance instance = taskInstanceRepository.findByTaskDefinitionIdAndScheduledDateAndSlotKey(definitionId, date, slotKey)
                 .orElseGet(() -> taskInstanceRepository.save(
-                        new TaskInstance(definition, definition.getAssignedMember(), date)));
+                        new TaskInstance(definition, definition.getAssignedMember(), date).withSlot(slotKey, selectedDueTime)));
         if (instance.getStatus() == TaskInstanceStatus.COMPLETED) return instance;
         if (instance.getStatus() != TaskInstanceStatus.PENDING
                 && instance.getStatus() != TaskInstanceStatus.IN_PROGRESS) {
