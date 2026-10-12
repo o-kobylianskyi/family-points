@@ -22,7 +22,7 @@ class TaskDeadlineRecurringTest {
         when(definition.getAssignedMember()).thenReturn(mock(WorkspaceMember.class));
         when(instances.findCandidatesForDeadlineProcessing(any(), anyList())).thenReturn(List.of());
 
-        new TaskDeadlineService(instances, tasks, definitions, workspaces, generator)
+        new TaskDeadlineService(instances, tasks, definitions, workspaces, generator, mock(TaskScheduleSlotRepository.class))
                 .processDeadlines(8L, LocalDateTime.of(2026, 10, 12, 16, 0));
 
         verify(generator, never()).generateForDefinition(definition, LocalDate.of(2026, 10, 12));
