@@ -627,3 +627,9 @@
 - Android Retrofit history DTO/API (`98385ae`). Android picker moved from floating bottom overlay to dashboard top scrollable section (`ddeb322`, `3869889`) and hidden on offline-authenticated sessions (`222832c`, `fe70239`).
 - Prior CI `5011840`: Backend PASS, Web PASS, Android FAIL during SDK setup: `Failed to find package 'platforms;android-37'` on hosted sdkmanager. Local user explicitly confirmed Gradle `BUILD SUCCESS` on Windows, but CI remains unresolved for Android SDK 37 availability. Next: inspect available preview channel/runner and fix reliable SDK 37 installation or use compatible published SDK version after verifying plugin and source support.
 - New package pending CI. Android reputation history UI and history pagination are follow-ups.
+
+## 2026-10-12 — Reward cooldown causes Web/Android logout: fix error response
+- User reports second reward purchase redirects to login on both Web and Android. Root cause hypothesis grounded in source: RewardService throws ResponseStatusException(409) but GlobalExceptionHandler lacked specific handler; servlet error dispatch to protected `/error` could turn business conflict into unauthenticated 401.
+- GlobalExceptionHandler now returns explicit structured JSON with original HTTP status for ResponseStatusException (`862473b`), avoiding fallback error-dispatch ambiguity. Unit test confirms cooldown stays 409 (`82eade8`).
+- Android RewardsScreen shows localized cooldown notice for 409 without calling onUnauthorized (`3e8663e`). Web rewardApi gives a friendly cooldown fallback for 409 (`a8cd7a5`).
+- CI status unverified for this package; confirm by repeating same reward while JWT active and inspecting browser Network response. If 401 persists, inspect the exact failed endpoint and server logs rather than assuming it is the cooldown response.
