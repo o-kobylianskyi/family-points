@@ -27,7 +27,11 @@ function TaskDetailsPage() {
   const { t, i18n } = useTranslation()
   const { definitionId } = useParams()
   const [searchParams] = useSearchParams()
-  const selectedDate = searchParams.get('date') || new Date().toISOString().slice(0, 10)
+  const localToday = () => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  }
+  const selectedDate = searchParams.get('date') || localToday()
   const { currentUser, getAccessToken } = useAuth()
   const currency = useCurrencyQuantity(getAccessToken(), currentUser.workspaceId)
   const [task, setTask] = useState(null)
@@ -288,7 +292,7 @@ function TaskDetailsPage() {
             <button className="task-action-button primary" type="button" disabled={processing}
               onClick={() => setEditOpen(true)}>Редагувати</button>
             {task.active && (!instance || ['PENDING', 'IN_PROGRESS'].includes(instance.status)) &&
-              selectedDate <= new Date().toLocaleDateString('en-CA') && (
+              selectedDate <= localToday() && (
               <button className="task-action-button" type="button" disabled={processing}
                 onClick={confirmScheduledCompletion}>Позначити виконаним · {selectedDate}</button>
             )}
