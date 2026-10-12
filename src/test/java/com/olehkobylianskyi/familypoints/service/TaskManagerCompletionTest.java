@@ -24,7 +24,7 @@ class TaskManagerCompletionTest {
     @InjectMocks TaskService service;
 
     @Test
-    void cannotCompleteFutureOccurrenceOrCreateItsInstance() {
+    void cannotCompleteFutureOccurrenceOrCreateItsInstance() throws Exception {
         try (var ignored = MockitoAnnotations.openMocks(this)) {
             var definition = mock(TaskDefinition.class);
             when(definitions.findForOccurrenceUpdate(39L, 8L)).thenReturn(Optional.of(definition));
@@ -40,7 +40,7 @@ class TaskManagerCompletionTest {
     }
 
     @Test
-    void alreadyCompletedInstanceDoesNotDebitOrRewardAgain() {
+    void alreadyCompletedInstanceDoesNotDebitOrRewardAgain() throws Exception {
         try (var ignored = MockitoAnnotations.openMocks(this)) {
             var definition = mock(TaskDefinition.class);
             var done = mock(TaskInstance.class);
