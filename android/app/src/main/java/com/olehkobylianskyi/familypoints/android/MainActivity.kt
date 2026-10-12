@@ -314,6 +314,15 @@ class MainActivity : ComponentActivity() {
                             cachedDashboard = {
                                 dashboardRepository.cached(currentUser!!)
                             },
+                            loadReputation = {
+                                val member = currentUser!!
+                                val token = tokenStore.getAccessToken() ?: error("Not signed in")
+                                val response = ApiClient.authApi.getMyReputation("Bearer $token")
+                                check(response.memberId == member.memberId && response.workspaceId == member.workspaceId) {
+                                    "Reputation identity mismatch"
+                                }
+                                response.balance
+                            },
                             onLanguageChange = changeLanguage,
                             onLogout = logout,
                             onNavigate = navigate,
