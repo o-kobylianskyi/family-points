@@ -104,6 +104,9 @@ function TasksPage() {
   const [pendingRewardRequests, setPendingRewardRequests] = useState([])
   const [reviewingRewardRequest, setReviewingRewardRequest] = useState(null)
 
+  const canBrowseMembers = currentUser.permissions?.includes('VIEW_ALL_TASKS') || currentUser.permissions?.includes('ADMIN_OVERRIDE')
+  const canCreateTasks = currentUser.permissions?.includes('CREATE_TASKS') || currentUser.permissions?.includes('ADMIN_OVERRIDE')
+
   const canManageRewardRequests =
     currentUser.permissions?.includes('MANAGE_TASKS')
     || currentUser.permissions?.includes('MANAGE_REWARDS')
@@ -119,7 +122,7 @@ function TasksPage() {
           currentUser.workspaceId
         )
 
-        setMembers(data)
+        setMembers(canBrowseMembers ? data : data.filter(member => member.id === currentUser.memberId))
 
         if (data.length > 0) {
           const currentMemberExists = data.some(
@@ -129,7 +132,7 @@ function TasksPage() {
           setSelectedMemberId(
             currentMemberExists
               ? currentUser.memberId
-              : data[0].id
+              : currentUser.memberId
           )
         }
       } catch (error) {
@@ -562,13 +565,13 @@ function TasksPage() {
             }
           />
 
-          <button
+          {canCreateTasks && <button
             type="button"
             className="primary-button"
             onClick={() => setCreateModalOpen(true)}
           >
             + {t('tasks.createButton')}
-          </button>
+          </button>}
         </div>
       </div>
 
@@ -583,7 +586,7 @@ function TasksPage() {
         </div>
       )}
 
-      <div className={pageTab === 'my' ? 'member-selector' : 'member-selector ui-hidden'}>
+      <div className={pageTab === 'my' && canBrowseMembers ? 'member-selector' : 'member-selector ui-hidden'}>
         {members.map((member) => (
           <button
             key={member.id}
@@ -981,7 +984,7 @@ function TasksPage() {
         )}
       </section>
 
-      {createModalOpen && (
+      {canCreateTasks && createModalOpen && (
         <CreateTaskModal
           members={members}
           existingTaskDefinitions={visibleDefinitions}
