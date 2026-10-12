@@ -460,3 +460,9 @@
 - Added `JwtWorkspaceClaimTest` (`de303bb`) for signed claim, legacy compatibility and invalid ID guard.
 - SECURITY: These helpers do not validate membership by themselves. Do not expose token issuance until the caller verifies active membership AND all request-level identity, permissions, `/api/me` and resource isolation are consistently bound to the selected workspace. Do not trust arbitrary request IDs/headers.
 - Code changes have not been built or tested in the user's environment yet; `git pull` + Maven tests required.
+
+## 2026-10-12 — Verified workspace membership context preview
+- Audited legacy JWT filter, CurrentUserService and membership resolver. JWT workspace claims are not yet used for authorization; legacy account member remains active.
+- Added read-only `GET /api/me/workspaces/{workspaceId}/context` (`00fd415`) returning role/permissions of the specifically verified account membership, never those of the legacy account member. Resolver rejects missing or inactive membership; the endpoint also rejects mismatched role workspace.
+- Added two mocked controller tests (`4ac48c6`) for selected member role and foreign role rejection.
+- No switching, JWT claim activation, or family registration was exposed. Tests have NOT been run locally. Next: `git pull` + `mvnw.cmd test`; audit all permission consumers before replacing active context.
