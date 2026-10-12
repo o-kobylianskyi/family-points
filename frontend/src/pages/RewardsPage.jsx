@@ -101,6 +101,8 @@ function RewardsPage() {
   const [reputation, setReputation] = useState(null)
   const [notice, setNotice] = useState('')
   const actionLock = useRef(false)
+  const purchaseLocks = useRef(new Set())
+  const [pendingPurchases, setPendingPurchases] = useState([])
   const [rewards, setRewards] = useState([])
   const [categories, setCategories] = useState([])
   const [requests, setRequests] = useState([])
@@ -212,6 +214,25 @@ function RewardsPage() {
     } finally {
       actionLock.current = false
       setProcessing(false)
+    }
+  }
+
+  const purchaseOnce = async (rewardKey, action, rewardTitle) => {
+    // Lock only this reward, allowing another distinct reward to be obtained.
+    if (purchaseLocks.current.has(rewardKey)) return
+    purchaseLocks.current.add(rewardKey)
+    setPendingPurchases(Array.from(purchaseLocks.current))
+    setError('')
+    setNotice('')
+    try {
+      await action()
+      setNotice(`Нагороду «${rewardTitle}» отримано. Баланс оновлено.`)
+      await loadAll()
+    } catch (actionError) {
+      setError(actionError.message)
+    } finally {
+      purchaseLocks.current.delete(rewardKey)
+      setPendingPurchases(Array.from(purchaseLocks.current))
     }
   }
 
@@ -480,7 +501,7 @@ function RewardsPage() {
                   ))}
                   <span>{acquisitionLabel(reward.acquisitionMode)}</span>
                   {reward.cooldownSeconds > 0 && (
-                    <span>Повторно через {reward.cooldownSeconds} с</span>
+                    <span>Пауза для цієї нагороди: {reward.cooldownSeconds} с</span>
                   )}
                   {reward.minimumReputation != null && (
                     <span>Репутація ≥ {reward.minimumReputation}</span>
@@ -497,10 +518,10 @@ function RewardsPage() {
 
                 <div className="reward-actions">
                   {myRequestForReward(reward.id)?.status === 'READY_TO_PURCHASE' && (
-                    <button type="button" className="primary-button" disabled={processing}
-                      onClick={() => run(() => purchaseRewardRequest(
+                    <button type="button" className="primary-button" disabled={pendingPurchases.includes(`reward:${reward.id}`)}
+                      onClick={() => purchaseOnce(`reward:${reward.id}`, () => purchaseRewardRequest(
                         getAccessToken(), currentUser.workspaceId, myRequestForReward(reward.id).id
-                      ), `Нагороду «${reward.title}» отримано. Баланс оновлено.`)}>
+                      ), reward.title)}>
                       Отримати
                     </button>
                   )}
@@ -512,13 +533,13 @@ function RewardsPage() {
                     <button
                       type="button"
                       className="primary-button"
-                      disabled={processing}
-                      onClick={() => run(() =>
+                      disabled={pendingPurchases.includes(`reward:${reward.id}`)}
+                      onClick={() => purchaseOnce(`reward:${reward.id}`, () =>
                         purchaseReward(
                           getAccessToken(),
                           currentUser.workspaceId,
                           reward.id
-                        ), `Нагороду «${reward.title}» отримано. Баланс оновлено.`
+                        ), reward.title
                       )}
                     >
                       Отримати
@@ -747,13 +768,13 @@ function RewardsPage() {
                 <button
                   type="button"
                   className="primary-button"
-                  disabled={processing}
-                  onClick={() => run(() =>
+                  disabled={pendingPurchases.includes(`reward:${request.rewardDefinitionId ?? 'request:' + request.id}`)}
+                  onClick={() => purchaseOnce(`reward:${request.rewardDefinitionId ?? 'request:' + request.id}`, () =>
                     purchaseRewardRequest(
                       getAccessToken(),
                       currentUser.workspaceId,
                       request.id
-                    ), `Нагороду «${request.title}» отримано. Баланс оновлено.`
+                    ), request.title
                   )}
                 >
                   Отримати нагороду
