@@ -1,0 +1,39 @@
+package com.olehkobylianskyi.familypoints.service;
+
+import com.olehkobylianskyi.familypoints.entity.*;
+import com.olehkobylianskyi.familypoints.repository.*;
+import com.olehkobylianskyi.familypoints.security.CurrentUserService;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class TaskManagementViewTest {
+    @Mock WorkspaceRepository workspaces;
+    @Mock TaskDefinitionRepository definitions;
+    @Mock TaskAuthorizationService authorization;
+    @Mock CurrentUserService currentUser;
+    @InjectMocks TaskService tasks;
+
+    @Test
+    void adminViewContainsAuthorOrScopedManagerWithoutExplicitAdminParticipation() throws Exception {
+        try (var mocks = MockitoAnnotations.openMocks(this)) {
+            var workspace = mock(Workspace.class);
+            when(workspaces.findById(5L)).thenReturn(java.util.Optional.of(workspace));
+            var account = mock(com.olehkobylianskyi.familypoints.entity.UserAccount.class);
+            var member = mock(WorkspaceMember.class);
+            when(currentUser.getCurrentAccount()).thenReturn(account);
+            when(account.getWorkspaceMember()).thenReturn(member);
+            var manageable = mock(TaskDefinition.class);
+            var unrelated = mock(TaskDefinition.class);
+            when(definitions.findByWorkspaceIdOrderByIdAsc(5L)).thenReturn(List.of(manageable, unrelated));
+            when(authorization.canManage(manageable)).thenReturn(true);
+
+            assertEquals(List.of(manageable), tasks.getDefinitionsByParticipation(5L, "admin"));
+            verify(authorization).canManage(unrelated);
+        }
+    }
+}
