@@ -7,6 +7,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface AuthApi {
 
@@ -20,8 +21,27 @@ interface AuthApi {
         @Header("Authorization") authorization: String
     ): CurrentUserResponse
 
+    @GET("api/me/workspaces")
+    suspend fun listWorkspaces(
+        @Header("Authorization") authorization: String
+    ): List<AccountWorkspaceChoice>
+
+    @POST("api/me/workspaces/{workspaceId}/activate")
+    suspend fun activateWorkspace(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long
+    ): LoginResponse
+
     @POST("auth/refresh")
     suspend fun refresh(
         @Header("Authorization") authorization: String
     ): LoginResponse
 }
+
+data class AccountWorkspaceChoice(
+    val workspaceId: Long,
+    val workspaceName: String,
+    val memberId: Long,
+    val memberName: String,
+    val active: Boolean
+)
