@@ -123,6 +123,13 @@ public class TaskController {
         return TaskDefinitionResponse.from(taskService.getDefinition(workspaceId, definitionId));
     }
 
+    @GetMapping("/definitions/{definitionId}/permissions")
+    public java.util.Map<String, Boolean> getDefinitionPermissions(
+            @PathVariable Long workspaceId, @PathVariable Long definitionId) {
+        var definition = taskService.getDefinition(workspaceId, definitionId);
+        return java.util.Map.of("canManage", taskService.canManageDefinition(definition));
+    }
+
     @PutMapping("/definitions/{definitionId}")
     public TaskDefinitionResponse updateDefinition(
             @PathVariable Long workspaceId,
