@@ -16,35 +16,35 @@ public class WorkspaceSecurity {
 
     public boolean canManageMembers(Long workspaceId) {
         if (!currentUserService.belongsToWorkspace(workspaceId)) return false;
-        var member = currentUserService.getCurrentAccount().getWorkspaceMember();
+        var member = currentUserService.getCurrentMember();
         return member.hasPermission(WorkspacePermission.MANAGE_MEMBERS)
                 || member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE);
     }
 
     public boolean canManageRoles(Long workspaceId) {
         if (!currentUserService.belongsToWorkspace(workspaceId)) return false;
-        var member = currentUserService.getCurrentAccount().getWorkspaceMember();
+        var member = currentUserService.getCurrentMember();
         return member.hasPermission(WorkspacePermission.MANAGE_ROLES)
                 || member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE);
     }
 
     public boolean canManageWorkspace(Long workspaceId) {
         if (!currentUserService.belongsToWorkspace(workspaceId)) return false;
-        var member = currentUserService.getCurrentAccount().getWorkspaceMember();
+        var member = currentUserService.getCurrentMember();
         return member.hasPermission(WorkspacePermission.MANAGE_WORKSPACE)
                 || member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE);
     }
 
     public boolean canManageEconomy(Long workspaceId) {
         if (!currentUserService.belongsToWorkspace(workspaceId)) return false;
-        var member = currentUserService.getCurrentAccount().getWorkspaceMember();
+        var member = currentUserService.getCurrentMember();
         return member.hasPermission(WorkspacePermission.MANAGE_ECONOMY)
                 || member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE);
     }
 
     public boolean canManagePoints(Long workspaceId) {
         if (!currentUserService.belongsToWorkspace(workspaceId)) return false;
-        var member = currentUserService.getCurrentAccount().getWorkspaceMember();
+        var member = currentUserService.getCurrentMember();
         return member.hasPermission(WorkspacePermission.MANAGE_POINTS)
                 || member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE);
     }
