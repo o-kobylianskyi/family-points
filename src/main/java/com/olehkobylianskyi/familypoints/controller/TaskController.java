@@ -190,6 +190,15 @@ public class TaskController {
     }
 
 
+    @PostMapping("/definitions/{definitionId}/complete-scheduled")
+    public TaskInstanceResponse completeScheduledByManager(
+            @PathVariable Long workspaceId,
+            @PathVariable Long definitionId,
+            @RequestParam LocalDate date
+    ) {
+        return TaskInstanceResponse.from(taskService.completeScheduledByManager(workspaceId, definitionId, date));
+    }
+
     @PostMapping("/definitions/{definitionId}/start-scheduled")
     public TaskInstanceResponse startScheduledOccurrence(
             @PathVariable Long workspaceId,
