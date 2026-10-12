@@ -53,6 +53,10 @@ public class TaskScheduleSlotController {
                                @Valid @RequestBody SlotRequest input) {
         var definition = tasks.getDefinition(workspaceId, definitionId);
         authorization.requireManage(definition);
+        if ("default".equals(input.slotKey())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Reserved schedule slot key");
+        }
         return SlotResponse.from(slots.save(new TaskScheduleSlot(
                 definition, input.slotKey(), input.scheduledTime())));
     }
