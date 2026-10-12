@@ -20,6 +20,7 @@ public class TaskService {
 
     private final TaskDefinitionRepository taskDefinitionRepository;
     private final TaskInstanceRepository taskInstanceRepository;
+    private final TaskScheduleSlotRepository taskScheduleSlots;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
     private final PointTypeRepository pointTypeRepository;
@@ -43,6 +44,7 @@ public class TaskService {
     public TaskService(
             TaskDefinitionRepository taskDefinitionRepository,
             TaskInstanceRepository taskInstanceRepository,
+            TaskScheduleSlotRepository taskScheduleSlots,
             WorkspaceRepository workspaceRepository,
             WorkspaceMemberRepository workspaceMemberRepository,
             PointTypeRepository pointTypeRepository,
@@ -65,6 +67,7 @@ public class TaskService {
     ) {
         this.taskDefinitionRepository = taskDefinitionRepository;
         this.taskInstanceRepository = taskInstanceRepository;
+        this.taskScheduleSlots = taskScheduleSlots;
         this.workspaceRepository = workspaceRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
         this.pointTypeRepository = pointTypeRepository;
@@ -511,7 +514,7 @@ public class TaskService {
         }
 
         TaskInstance existing = taskInstanceRepository
-                .findByTaskDefinitionIdAndScheduledDate(definitionId, scheduledDate)
+                .findByTaskDefinitionIdAndScheduledDateAndSlotKey(definitionId, scheduledDate, "default")
                 .orElse(null);
         if (existing != null) {
             return existing;
@@ -531,6 +534,11 @@ public class TaskService {
 
     @Transactional
     public TaskInstance startScheduledOccurrence(Long workspaceId, Long definitionId, LocalDate date) {
+        return startScheduledOccurrence(workspaceId, definitionId, date, "default");
+    }
+
+    @Transactional
+    public TaskInstance startScheduledOccurrence(Long workspaceId, Long definitionId, LocalDate date, String slotKey) {
         taskAuthorizationService.requireWorkspace(workspaceId);
         TaskDefinition definition = taskDefinitionRepository.findForOccurrenceUpdate(definitionId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task definition not found: " + definitionId));
@@ -539,18 +547,24 @@ public class TaskService {
                 || !definition.getAssignedMember().getId().equals(member.getId())) {
             throw new org.springframework.security.access.AccessDeniedException("Only assigned member may start this task");
         }
-        if (!definition.isActive() || !taskGenerationService.shouldGenerate(definition, date)) {
-            throw new InvalidTaskStateException("Task is not scheduled for this date");
+        if (!definition.isActive() || !taskGenerationService.shouldGenerate(definition, date)
+                || date.isAfter(LocalDate.now())) {
+            throw new InvalidTaskStateException("Task is not available for this date");
         }
-        if (date.isAfter(LocalDate.now())) {
-            throw new InvalidTaskStateException("Future tasks cannot be started");
+        java.time.LocalTime slotTime = definition.getDueTime();
+        if (!"default".equals(slotKey)) {
+            var slot = taskScheduleSlots.findByTaskDefinitionIdAndSlotKeyAndEnabledTrue(definitionId, slotKey)
+                    .orElseThrow(() -> new InvalidTaskStateException("Unknown or disabled task schedule slot"));
+            slotTime = slot.getScheduledTime();
         }
-        TaskInstance instance = taskInstanceRepository.findByTaskDefinitionIdAndScheduledDate(definitionId, date)
-                .orElseGet(() -> taskInstanceRepository.save(new TaskInstance(definition, member, date)));
+        final java.time.LocalTime dueTime = slotTime;
+        TaskInstance instance = taskInstanceRepository.findByTaskDefinitionIdAndScheduledDateAndSlotKey(definitionId, date, slotKey)
+                .orElseGet(() -> taskInstanceRepository.save(
+                        new TaskInstance(definition, member, date).withSlot(slotKey, dueTime)));
         if (instance.getStatus() == TaskInstanceStatus.PENDING) {
             instance.start();
             taskAuditService.recordSystemEvent(definition, instance, TaskAuditEventType.INSTANCE_STARTED,
-                    null, null, ActorType.MEMBER, member.getId(), "Started scheduled occurrence");
+                    null, null, ActorType.MEMBER, member.getId(), "Started scheduled slot " + slotKey);
         } else if (instance.getStatus() != TaskInstanceStatus.IN_PROGRESS) {
             throw new InvalidTaskStateException("Occurrence has already been resolved");
         }
@@ -561,7 +575,7 @@ public class TaskService {
     public TaskInstance getInstanceForDefinitionDate(Long workspaceId, Long definitionId, LocalDate date) {
         TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
         taskAuthorizationService.requireRead(definition);
-        return taskInstanceRepository.findByTaskDefinitionIdAndScheduledDate(definitionId, date).orElse(null);
+        return taskInstanceRepository.findByTaskDefinitionIdAndScheduledDateAndSlotKey(definitionId, date, "default").orElse(null);
     }
 
     @Transactional(readOnly = true)
@@ -596,21 +610,29 @@ public class TaskService {
                     "Current user cannot inspect another member's schedule");
         }
 
-        java.util.Map<Long, com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse> occurrences =
+        java.util.Map<String, com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse> occurrences =
                 new java.util.LinkedHashMap<>();
         for (TaskDefinition definition : taskDefinitionRepository.findByWorkspaceIdAndActiveTrueOrderByIdAsc(workspaceId)) {
             if (definition.getAssignedMember() == null
                     || !definition.getAssignedMember().getId().equals(memberId)
                     || !taskAuthorizationService.canRead(definition)
                     || !taskGenerationService.shouldGenerate(definition, date)) continue;
-            occurrences.put(definition.getId(),
-                    com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse.planned(
-                            definition, memberId, date));
+            var slots = taskScheduleSlots.findByTaskDefinitionIdAndEnabledTrueOrderByScheduledTimeAscSlotKeyAsc(definition.getId());
+            if (slots.isEmpty()) {
+                var occurrence = com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse.planned(definition, memberId, date);
+                occurrences.put(occurrence.occurrenceKey(), occurrence);
+            } else {
+                for (var slot : slots) {
+                    var occurrence = com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse.plannedSlot(
+                            definition, memberId, date, slot.getSlotKey(), slot.getScheduledTime());
+                    occurrences.put(occurrence.occurrenceKey(), occurrence);
+                }
+            }
         }
         for (TaskInstance instance : taskInstanceRepository.findByMemberIdAndScheduledDateOrderByIdAsc(memberId, date)) {
             if (!taskAuthorizationService.canRead(instance.getTaskDefinition())) continue;
-            occurrences.put(instance.getTaskDefinition().getId(),
-                    com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse.existing(instance));
+            var existing = com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse.existing(instance);
+            occurrences.put(existing.occurrenceKey(), existing);
         }
         return List.copyOf(occurrences.values());
     }
@@ -650,7 +672,7 @@ public class TaskService {
             throw new InvalidTaskStateException("Task is not scheduled for this date");
         if (!isEligible(definition, member))
             throw new InvalidTaskStateException("Member is not eligible for this task");
-        TaskInstance instance = taskInstanceRepository.findByTaskDefinitionIdAndScheduledDate(definitionId, date)
+        TaskInstance instance = taskInstanceRepository.findByTaskDefinitionIdAndScheduledDateAndSlotKey(definitionId, date, "default")
                 .orElse(null);
         if (instance != null && instance.getStatus() != TaskInstanceStatus.RELEASED)
             throw new InvalidTaskStateException("Task has already been claimed for this date");
@@ -807,7 +829,7 @@ public class TaskService {
         if (date.isAfter(LocalDate.now())) {
             throw new InvalidTaskStateException("Future occurrences cannot be completed");
         }
-        TaskInstance instance = taskInstanceRepository.findByTaskDefinitionIdAndScheduledDate(definitionId, date)
+        TaskInstance instance = taskInstanceRepository.findByTaskDefinitionIdAndScheduledDateAndSlotKey(definitionId, date, "default")
                 .orElseGet(() -> taskInstanceRepository.save(
                         new TaskInstance(definition, definition.getAssignedMember(), date)));
         if (instance.getStatus() == TaskInstanceStatus.COMPLETED) return instance;
