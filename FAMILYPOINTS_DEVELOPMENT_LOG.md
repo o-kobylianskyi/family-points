@@ -838,3 +838,9 @@
 - Verified `AuthController` currently implements login/refresh only; `WorkspaceController.POST` is deliberately forbidden; `UserAccountService.createAccount` presupposes a member. `AccountWorkspaceMembership` exists but old one-to-one account/member coupling still applies.
 - Updated `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` (941cb3e) with self-service family registration, global account multi-workspace membership, optional age/composition-informed templates, separate economies and release isolation tests.
 - NEXT: implement transactional onboarding and global-account workspace-scoped security across Web/Android; no dangerous public signup shortcut or test admin SQL inserted.
+
+
+## 2026-10-13 — Delivery workflow: DEV development before Contabo BETA
+- User clarified implementation sequence: finish account registration, isolated family creation, multi-workspace identity and personalized initial templates on local DEV; verify integration, Web and Android; deploy tested revision to Contabo BETA only after backup/migration review.
+- Existing Contabo BETA remains online and unchanged during DEV work. No manual SQL first-admin insertion.
+- Deployment policy recorded in docs/MULTI_FAMILY_ONBOARDING_PLAN.md and FAMILYPOINTS_CONTABO_DEPLOYMENT_LOG.md.
