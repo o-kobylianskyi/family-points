@@ -915,3 +915,10 @@
 - Added `AdditionalFamilyService` (7a47f32) and `AdditionalFamilyController` (5284fd0): authenticated existing manager account can transactionally create a second family and its admin member/profile, with account-workspace link; does not overwrite legacy user_accounts.family_member_id. Feature toggle `familypoints.additional-family.enabled=false` is default; controller requires MANAGE_MEMBERS or ADMIN_OVERRIDE.
 - No migration added, preserves V21/V22 unique workspace membership constraints and V27 for invitation flow.
 - **NOT VERIFIED:** Maven compile, test suite, manual API switching or tenant-isolation negative tests. Must also review legacy authorities when no explicit workspace JWT and ensure all workspace-scoped endpoints enforce tenant context before exposing broader signup. DEV only, Contabo BETA unchanged.
+
+## 2026-10-13 — Larger DEV React registration package (COMMITTED; BUILD NOT VERIFIED)
+- Inspected `frontend/src/context/AuthContext.jsx`, `frontend/src/api/authApi.js`, `AppLayout.jsx`, and backend `AccountWorkspacesController`/`WorkspaceTokenController`: workspace selection and switching UI already existed and matched `/api/me/workspaces/{workspaceId}/activate`. Avoided adding duplicate functionality.
+- Added `frontend/src/api/registrationApi.js` (8f45156) and `frontend/src/pages/RegisterFamilyPage.jsx` (e4c2db2) for first-family signup plus automatic password login after successful registration.
+- Wired `/register` route into `App.jsx` (b6ed94f), conditional entry point in `LoginPage.jsx` (47d8219). UI is hidden unless `VITE_ENABLE_FAMILY_REGISTRATION=true`; backend separately defaults `familypoints.registration.enabled=false`. Both must be explicitly enabled on isolated DEV only after security review. Existing BETA is untouched.
+- Extended `scripts/dev/check-onboarding.ps1` (7955bb2) to build React frontend in addition to Java compilation and optional tests.
+- NOT YET TESTED: Maven, React build, local DEV HTTP signup, duplicate username race, abuse limits, invitation continuity, Google OIDC. Do not expose public signups.
