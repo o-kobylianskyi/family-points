@@ -762,3 +762,10 @@
 - Initial run 38370229897 failed compiling TaskScheduleSlotControllerTest: new TaskAuditService dependency absent from several test constructors/import. Repaired in f1176d5.
 - GitHub Actions run 38370322845 at f1176d5: Backend Java/Maven/PostgreSQL Testcontainers **SUCCESS**, Web Vite **SUCCESS**. Android SDK37 hosted runner failure persists (local checks agreed).
 - Management/audit batch complete for code covered by CI. User-specific 'Clean room' visibility still requires checking its actual assignment/creator/role in the user's database.
+
+## 2026-10-13 — Package 4 Android recurring schedule parity, initial implementation
+- Added TaskScheduleOccurrenceResponse Kotlin model (7513fc0), Retrofit schedule projection / start-scheduled endpoints (9d1c346), TasksRepository methods (458c1a8).
+- Android TasksScreen now loads read-only virtual recurring occurrences for the selected date, displays slot time/status and Start action for own past/current occurrence only (93efa28); graceful schedule endpoint failure keeps persisted list (e77db6a); no false empty-tasks message when only virtual schedule is present (643620e).
+- Added persisted instance slotKey to Spring TaskInstanceResponse (b6d4aec) and Android model (9a70691), preserved slotKey on task navigation (15aa258), enabled slot-specific instance lookup (5178fb8, ebd313b, 5727d8e, 08c3a70).
+- Android task list now hides other member selector without VIEW_ALL_TASKS/ADMIN_OVERRIDE and creation button without CREATE_TASKS/ADMIN_OVERRIDE; detail screen loads server task-permissions endpoint (1afb4ab, c000d4a, 274ef64) and hides management/subtask create controls for unauthorized users (60852db).
+- All Android UI behavior is **unverified by Kotlin compilation**: GitHub hosted SDK37 install fails before Kotlin build; user agreed local Android Studio testing. Backend/Web CI pending. Follow-up: offline schedule snapshots, Android editor for schedule slots, slot-specific parent confirmation, per-role auth scenario tests.
