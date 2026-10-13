@@ -47,6 +47,7 @@ class FamilyPointsApplicationTests {
     @Autowired AccountWorkspaceMembershipRepository memberships;
     @Autowired MockMvc mockMvc;
     @Autowired JwtService jwtService;
+    @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     @Test
     @Transactional
@@ -155,7 +156,38 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    void flywayAppliedAllIdentityAndInvitationMigrations() {
+        Integer version = jdbc.queryForObject("""
+            SELECT count(*) FROM flyway_schema_history
+            WHERE version IN ('27', '28', '29') AND success = true
+            """, Integer.class);
+        assertEquals(3, version);
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT count(*) FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'account_external_identities'
+            """, Integer.class));
+    }
+
+    @Test
+    @Transactional
+    void databaseRejectsRoleFromDifferentWorkspace() {
+        Workspace first = new Workspace("Role tenant A");
+        Workspace second = new Workspace("Role tenant B");
+        entityManager.persist(first);
+        entityManager.persist(second);
+        WorkspaceRole foreign = new WorkspaceRole(second, "CHILD", "Foreign role", false);
+        entityManager.persist(foreign);
+        entityManager.flush();
+
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class, () ->
+            jdbc.update("""
+                INSERT INTO family_members(name, member_type, family_role_id, family_id, active)
+                VALUES ('Cross-tenant injection', 'OTHER', ?, ?, true)
+                """, foreign.getId(), first.getId()));
+    }
+
+    @Test
     void contextLoads() {
-        // Spring starts, Flyway migrates V1..V20, and Hibernate validates the schema.
+        // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
 }
