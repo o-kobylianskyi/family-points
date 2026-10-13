@@ -958,3 +958,9 @@
 - Cause: legacy test mocked WorkspaceMember but never set isActive(), so Mockito default false caused correctly fail-closed service behavior.
 - Test fixture fixed with isActive=true; added negative tests for missing and inactive primary members (f341c26). Production authorization rules intentionally unchanged.
 - Awaiting user to rerun the consolidated tests; fix is committed but not verified locally by assistant.
+
+## 2026-10-13 — Disposable PostgreSQL integration gate added (COMMITTED / NOT YET RERUN)
+- Extended existing Testcontainers PostgreSQL 17 Spring Boot integration suite rather than introducing an independent database script. The suite creates a disposable DB and Flyway migrates from V1 to the current V29; local/Contabo DB untouched.
+- New tests: verify successful Flyway V27/V28/V29 and external-identity table (45e3948), reject role from different family on member insert (45e3948), permit family-less global account and reject foreign role in invite (4271fba), reject duplicate verified provider+subject assignment to another account (433189e).
+- Requires Docker Desktop running for integration tests. Maven/unit test PASS was reported before this package; newly added PostgreSQL tests have NOT YET been executed.
+- Public registration, Google login and Contabo release remain disabled/pending.
