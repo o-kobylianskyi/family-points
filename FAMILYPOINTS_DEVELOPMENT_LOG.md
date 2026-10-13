@@ -952,3 +952,9 @@
 - Extended `scripts/dev/check-onboarding.ps1` (066e7a8) with `-BackendOnly` and mandatory V29 inventory check; `-WithTests` still runs Maven tests, optional React build runs without `-BackendOnly`.
 - All GitHub changes are DEV-only and do not modify a running database or Contabo. Compile, Flyway migrations and tests remain UNVERIFIED without a local execution report.
 - Next hard gate: run consolidated checkpoint on laptop, fix real compiler/test failures, then run disposable PostgreSQL migration tests and two-family permission scenarios. Avoid new public registration/OIDC features until this succeeds.
+
+## 2026-10-13 — First real Maven test failure, targeted fix
+- User ran local Maven tests and reported one error: CurrentUserWorkspaceContextTest.legacyAuthenticationStillUsesPrimaryMember raised 403 at CurrentUserService.getCurrentMember:69.
+- Cause: legacy test mocked WorkspaceMember but never set isActive(), so Mockito default false caused correctly fail-closed service behavior.
+- Test fixture fixed with isActive=true; added negative tests for missing and inactive primary members (f341c26). Production authorization rules intentionally unchanged.
+- Awaiting user to rerun the consolidated tests; fix is committed but not verified locally by assistant.
