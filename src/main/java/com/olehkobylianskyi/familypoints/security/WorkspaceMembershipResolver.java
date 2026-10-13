@@ -39,6 +39,10 @@ public class WorkspaceMembershipResolver {
                 || !workspaceId.equals(member.getWorkspace().getId())) {
             throw new ResponseStatusException(FORBIDDEN, "Workspace access denied");
         }
+        if (member.getWorkspaceRole() == null || member.getWorkspaceRole().getWorkspace() == null
+                || !workspaceId.equals(member.getWorkspaceRole().getWorkspace().getId())) {
+            throw new ResponseStatusException(FORBIDDEN, "Workspace role mismatch");
+        }
         return member;
     }
 }
