@@ -880,3 +880,9 @@
 - `WorkspaceInvitationController.java` (c1fb57c; hardened 911beaf): manager-scoped issue/revoke with `MANAGE_MEMBERS`; authenticated-only POST preview with token in JSON body, not URL query. This preview is intentionally not yet usable by a visitor without an account.
 - Pending: rate limiting and abuse protection before anonymous preview; short-lived secure pending invite context across password/Google registration; explicit acceptance with transactional replay/limit checks; expiry integration tests and local Maven/Flyway V27 verification.
 - Contabo BETA remains untouched at V26. Treat these commits as development-only.
+
+## 2026-10-13 — DEV invitation pending context (COMMITTED / NOT TESTED)
+- Added short-lived server-backed invite context exchange/resume to `WorkspaceInvitationService` (852a0bd), supported by preexisting V27 `pending_invitation_sessions` schema. Only SHA-256 digest of random context handle is persisted. Both context and underlying invitation validity, revocation and use count are checked on resume.
+- Added POST `/api/workspace-invitations/context` and `/api/workspace-invitations/context/resume` (30da43d). **Both routes are authenticated-only** in this incremental build, not anonymous first-run signup; request body carries token/handle so it is not in URL query.
+- These routes do not create membership, redeem invitation, or secure OAuth/browser persistence. No automatic creation of user/family has been enabled. Future signup continuity needs browser-bound cookie/state strategy and validation before opening anonymous routes.
+- No local compile, V27 Flyway, or API test results received yet. Keep Contabo BETA at V26. Next: compile and integration tests on DEV, then gated signup/OIDC and atomic invitation acceptance.
