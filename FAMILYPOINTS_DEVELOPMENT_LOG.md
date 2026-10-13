@@ -874,3 +874,9 @@
 - Attempted to commit DEV invitation issue/preview/pending-onboarding service, but GitHub tool rejected the write; no source file was created and no runtime state changed.
 - Updated `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` in b39c811 with explicit server contract: workspace-limited issued token, digest-only storage, minimal preview, protected pending signup context through Google redirect, authenticated acceptance with replay/expiry/revocation checks, and rate-limited abuse controls.
 - Pending: actual service and controllers, multi-workspace registration, tests, Flyway V27 validation. Contabo BETA remains unchanged.
+
+## 2026-10-13 — DEV invitation issue/preview/revoke API (COMMITTED; NOT TESTED)
+- `WorkspaceInvitationService.java` (26ff7a1): issues random opaque seven-day invite tokens and persists only SHA-256 digest; previews minimal family label/expiry for valid unrevoked invitations; allows revocation by ID. No membership granted by opening invite.
+- `WorkspaceInvitationController.java` (c1fb57c; hardened 911beaf): manager-scoped issue/revoke with `MANAGE_MEMBERS`; authenticated-only POST preview with token in JSON body, not URL query. This preview is intentionally not yet usable by a visitor without an account.
+- Pending: rate limiting and abuse protection before anonymous preview; short-lived secure pending invite context across password/Google registration; explicit acceptance with transactional replay/limit checks; expiry integration tests and local Maven/Flyway V27 verification.
+- Contabo BETA remains untouched at V26. Treat these commits as development-only.
