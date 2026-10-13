@@ -751,3 +751,9 @@
 - TaskService.getOpenDefinitions now filters by TaskAuthorizationService.canRead before returning entries, preventing tasks outside caller read scope from being displayed; historical old date-only instance lookup changed to explicit 'default' slot key to avoid non-unique result with several daily occurrences (45e372c).
 - Added regression test in TaskManagementViewTest ensuring the created-by-me tab excludes a different author's task (cb82cb3). Existing regression test covers admin view using effective canManage instead of explicit ADMIN participation.
 - Remaining: comprehensive per-role HTTP access tests including child/group membership, history endpoint visibility and actual user environment reproduction for 'Clean room'; CI for current changes pending.
+
+## 2026-10-13 — Task management/audit package extension
+- Tightened TaskService.getOpenDefinitions: read permission filter before exposing eligible open definitions; default-key instance lookup used instead of non-unique definition/date lookup (45e372c).
+- Added created-by-me regression test (cb82cb3). Existing management test covers effective manager listing.
+- TaskScheduleSlotController now appends DEFINITION_UPDATED user audit events on slot creation, rescheduling and enabled toggles, with old/new values where appropriate (77ab123). Uses same task manage authorization and transaction. Controller test constructor updated (b48ec5b).
+- API/Web permission protections from earlier package remain in place. CI pending for this package; actual child/parent manual test and Clean room data root cause not yet confirmed.
