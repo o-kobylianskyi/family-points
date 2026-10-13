@@ -371,7 +371,7 @@ class FamilyPointsApplicationTests {
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(inviteRoute)
                         .header("Authorization", viewerJwt)
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                        .content("{\\"roleId\\":" + viewerRole.getId() + "}"))
+                        .content("{}"))
                 .andExpect(status().isForbidden());
     }
 
