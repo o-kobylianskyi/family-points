@@ -128,6 +128,9 @@ class TaskManagerCompletionTest {
             when(definition.getPenaltyAmount()).thenReturn(1);
             when(definition.getPenaltyReputationAmount()).thenReturn(2);
             when(member.getId()).thenReturn(7L);
+            var account = mock(UserAccount.class);
+            when(currentUser.getCurrentAccount()).thenReturn(account);
+            when(account.getWorkspaceMember()).thenReturn(member);
             when(exceptionPeriods.findActiveForDate(7L, date)).thenReturn(java.util.List.of());
             var morning = new TaskInstance(definition, member, date).withSlot("morning", java.time.LocalTime.of(9, 0));
             var evening = new TaskInstance(definition, member, date).withSlot("evening", java.time.LocalTime.of(16, 0));
