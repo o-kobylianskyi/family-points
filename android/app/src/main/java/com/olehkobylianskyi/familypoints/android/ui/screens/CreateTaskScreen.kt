@@ -703,7 +703,12 @@ fun CreateTaskScreen(
                         enabled = slotTimes.size > 2) {
                         Text("−")
                     }
-                    OutlinedButton(onClick = { if (slotTimes.size < 12) slotTimes = slotTimes + "18:00" },
+                    OutlinedButton(onClick = { if (slotTimes.size < 12) {
+                            val last = normalizeTaskTime(slotTimes.lastOrNull().orEmpty()) ?: "09:00"
+                            val segments = last.split(":")
+                            val hour = ((segments.firstOrNull()?.toIntOrNull() ?: 9) + 1) % 24
+                            slotTimes = slotTimes + ("%02d:00".format(hour))
+                        } },
                         enabled = slotTimes.size < 12) {
                         Text("+")
                     }
