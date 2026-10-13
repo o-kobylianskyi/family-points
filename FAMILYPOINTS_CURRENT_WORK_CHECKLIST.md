@@ -853,3 +853,10 @@ Before each substantial implementation batch:
 - [ ] Implement invitation token exchange and continuity through password/Google registration
 - [ ] Integration tests (workspace A/B, user with multiple memberships, invite replay)
 - [ ] DEV acceptance, then separately promote pinned commit to Contabo BETA
+
+## 2026-10-13 — Join request manager approval increment
+- [x] Transactional approval: row lock, workspace-scoped role validation, account duplicate check, member/membership insert, request review audit (2c822d7)
+- [x] Manager permission guarded approval API (0f5b051)
+- [ ] Test V27 migration, Java compile, approve/reject races, cross-workspace refusal, multi-workspace JWT switching on DEV
+- [ ] Invitation links and context persistence through password + Google signup
+- [ ] Guard public endpoint against automated join-code guessing and request flooding
