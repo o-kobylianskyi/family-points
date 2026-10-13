@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskDefinitionResponse
+import com.olehkobylianskyi.familypoints.android.data.TaskScheduleOccurrenceResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskInstanceResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskParticipantResponse
 import com.olehkobylianskyi.familypoints.android.data.TasksRepository
@@ -84,6 +85,7 @@ fun TasksScreen(
     }
 
     var tasks by remember { mutableStateOf<List<TaskInstanceResponse>>(emptyList()) }
+    var scheduledOccurrences by remember { mutableStateOf<List<TaskScheduleOccurrenceResponse>>(emptyList()) }
     var openTasks by remember { mutableStateOf<List<TaskDefinitionResponse>>(emptyList()) }
     var definitions by remember { mutableStateOf<List<TaskDefinitionResponse>>(emptyList()) }
 
@@ -100,10 +102,13 @@ fun TasksScreen(
     var loadingManagement by remember { mutableStateOf(false) }
     var processingId by remember { mutableStateOf<Long?>(null) }
     var error by remember { mutableStateOf("") }
+    val mayBrowseMembers = currentUser.permissions.contains("VIEW_ALL_TASKS") || currentUser.permissions.contains("ADMIN_OVERRIDE")
+    val mayCreateTasks = currentUser.permissions.contains("CREATE_TASKS") || currentUser.permissions.contains("ADMIN_OVERRIDE")
 
     suspend fun loadMyTasks() {
         val memberId = selectedMemberId ?: return
         error = ""
+        scheduledOccurrences = emptyList()
         val cached = repository.cachedMyTab(currentUser.workspaceId, currentUser.memberId, memberId, selectedDate)
         showingCachedMy = cached != null
         if (cached != null) {
@@ -137,6 +142,9 @@ fun TasksScreen(
             openTasks = loadedOpen
             definitions = loadedDefinitions
             showingCachedMy = false
+            // Projection is read-only; an absent/offline schedule must not hide persisted tasks.
+            scheduledOccurrences = repository.loadScheduledOccurrences(currentUser.workspaceId, memberId, selectedDate)
+                .filter { it.instanceId == null }
         } catch (exception: retrofit2.HttpException) {
             if (exception.code() == 401) onUnauthorized()
             else if (cached == null) error = exception.message()
@@ -188,7 +196,9 @@ fun TasksScreen(
         loadingMembers = false
         if (serverStatus != ServerStatus.OFFLINE) {
             try {
-                members = repository.loadMembers(currentUser.workspaceId)
+                members = if (mayBrowseMembers) repository.loadMembers(currentUser.workspaceId)
+                    else members.filter { it.id == currentUser.memberId }
+                if (!mayBrowseMembers) selectedMemberId = currentUser.memberId
             } catch (exception: retrofit2.HttpException) {
                 if (exception.code() == 401) onUnauthorized()
             } catch (_: Exception) {
@@ -271,8 +281,10 @@ fun TasksScreen(
                     Text("← " + text.back)
                 }
 
-                Button(onClick = onCreateTask, enabled = serverStatus == ServerStatus.ONLINE) {
-                    Text("+ " + text.newTask)
+                if (mayCreateTasks) {
+                    Button(onClick = onCreateTask, enabled = serverStatus == ServerStatus.ONLINE) {
+                        Text("+ " + text.newTask)
+                    }
                 }
             }
         }
@@ -404,7 +416,7 @@ fun TasksScreen(
                 }
             }
 
-            item {
+            if (mayBrowseMembers) item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -423,6 +435,63 @@ fun TasksScreen(
                                 }
                             ) {
                                 Text(member.name)
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (scheduledOccurrences.isNotEmpty()) {
+                item {
+                    Text(
+                        when (language) {
+                            AppLanguage.UK -> "Заплановані виконання"
+                            AppLanguage.DE -> "Geplante Ausführungen"
+                            AppLanguage.EN -> "Scheduled occurrences"
+                            AppLanguage.RU -> "Запланированные выполнения"
+                        },
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
+                items(scheduledOccurrences, key = { "scheduled-" + it.occurrenceKey }) { occurrence ->
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(occurrence.title, style = MaterialTheme.typography.titleMedium)
+                            Text(occurrence.date + " · " + (occurrence.time?.take(5) ?: "—"))
+                            Text(when (language) {
+                                AppLanguage.UK -> "Заплановано"
+                                AppLanguage.DE -> "Geplant"
+                                AppLanguage.EN -> "Planned"
+                                AppLanguage.RU -> "Запланировано"
+                            })
+                            if (selectedMemberId == currentUser.memberId &&
+                                selectedDate <= LocalDate.now().toString() &&
+                                serverStatus == ServerStatus.ONLINE && !showingCachedMy) {
+                                Button(enabled = processingId == null, onClick = {
+                                    scope.launch {
+                                        processingId = -occurrence.definitionId
+                                        error = ""
+                                        try {
+                                            repository.startScheduledOccurrence(
+                                                currentUser.workspaceId, occurrence.definitionId,
+                                                selectedDate, occurrence.slotKey
+                                            )
+                                            loadMyTasks()
+                                        } catch (exception: retrofit2.HttpException) {
+                                            if (exception.code() == 401) onUnauthorized()
+                                            else error = exception.message()
+                                        } catch (exception: Exception) {
+                                            error = exception.message ?: ""
+                                        } finally { processingId = null }
+                                    }
+                                }) {
+                                    Text(when (language) {
+                                        AppLanguage.UK -> "Почати"
+                                        AppLanguage.DE -> "Starten"
+                                        AppLanguage.EN -> "Start"
+                                        AppLanguage.RU -> "Начать"
+                                    })
+                                }
                             }
                         }
                     }
