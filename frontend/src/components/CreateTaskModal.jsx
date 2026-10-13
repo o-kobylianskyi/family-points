@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext'
 import { getPointTypes } from '../api/economyApi'
-import { createTaskDefinition, updateTaskDefinition, createTaskScheduleSlot, getTaskScheduleSlots } from '../api/taskApi'
+import { createTaskDefinition, updateTaskDefinition } from '../api/taskApi'
 import { getMemberGroups } from '../api/memberGroupApi'
 
 function getTodayLocalDate() {
@@ -438,6 +438,7 @@ function CreateTaskModal({
             : null,
 
         dueTime: normalizedDueTime || null,
+        initialSlotTimes: !editing && useDailySlots ? dailyTimes : [],
 
         rewardPointTypeId:
           reward !== null
@@ -468,11 +469,6 @@ function CreateTaskModal({
         ? await updateTaskDefinition(token, currentUser.workspaceId, initialTask.id, request)
         : await createTaskDefinition(token, currentUser.workspaceId, request)
 
-      if (!editing && useDailySlots) {
-        for (let i = 0; i < dailyTimes.length; i += 1) {
-          await createTaskScheduleSlot(token, currentUser.workspaceId, saved.id, `time_${i + 1}`, dailyTimes[i])
-        }
-      }
       await onCreated?.(saved)
       onClose()
     } catch (error) {
