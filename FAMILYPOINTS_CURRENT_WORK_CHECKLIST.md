@@ -844,3 +844,12 @@ Before each substantial implementation batch:
 - [ ] Authenticated invitation review, accept/decline and transactional idempotent membership creation
 - [ ] Negative tests: expired/revoked/replayed invites, wrong user, races, workspace isolation
 - [ ] DEV acceptance before Contabo BETA deployment
+
+## 2026-10-13 — Join-code API incremental implementation
+- [x] Commit V27 tables for invitations, join codes, join requests, redemptions and pending invite sessions
+- [x] Commit join-code generator/request/rejection service and permission-scoped controller (fe23c79)
+- [ ] Compile and migrate V27 on isolated local test PostgreSQL before running against existing DEV DB
+- [ ] Add rate limits, expiration/approval handling, and a safe manager workflow
+- [ ] Implement invitation token exchange and continuity through password/Google registration
+- [ ] Integration tests (workspace A/B, user with multiple memberships, invite replay)
+- [ ] DEV acceptance, then separately promote pinned commit to Contabo BETA
