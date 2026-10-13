@@ -775,3 +775,10 @@
 - TasksRepository now fetches schedule alongside persisted tasks and writes the schedule into existing workspace/viewer/target/date-scoped cache (42fc3c5), avoiding cross-account cache leakage.
 - TasksScreen shows cached planned occurrences offline as read-only and refreshes schedule after successful online sync (9c1a793). No offline queued writes are introduced.
 - Android compilation remains **UNVERIFIED** until user's local Android Studio SDK37 build; CI for Backend/Web latest snapshot pending.
+
+## 2026-10-13 — Package 4 Android slot execution parity (implementation)
+- Existing Android TasksScreen already had read-only virtual occurrence projections, slot-aware start action, offline cache and member browsing guard. Added the missing slot lifecycle functionality to TaskDetailsScreen instead of duplicating it in a new UI.
+- Retrofit TaskApi now supports manager completion by definition/date/slot (e1504cc); TaskDetailsRepository exposes slot-aware start and manager completion operations (4840567).
+- TaskDetailsScreen now reloads on selectedSlotKey changes, shows virtual PLANNED occurrence actions for an assigned member and for managers, allows manager completion on existing PENDING/IN_PROGRESS dated slots, and hides execute controls for anyone other than the actual instance member (8c959d9, 90d4cb5). Delegation button now requires actual executor or manager.
+- Android TaskDefinitionCreateRequest includes initialSlotTimes (e4953a8). CreateTaskScreen supports 2–12 time entries for ONCE and recurring schedules, localized section label, duplicate/invalid time validation, and uses the same atomic Backend create API as Web (2407790); '+' suggests the next hour (fe5e5e9).
+- Android CI cannot install SDK37 on hosted runner; do not mark Android Kotlin compilation PASS until user runs local Gradle/Android Studio. Backend/Web CI pending for latest branch head.
