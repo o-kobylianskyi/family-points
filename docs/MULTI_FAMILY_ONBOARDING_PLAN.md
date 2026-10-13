@@ -132,3 +132,16 @@ The **Join family / Join group** entry point has two distinct paths:
 7. **Workgroup future.** Reuse the same invitation/request mechanism for other Workspace types (family, team, office), with type-scoped validation and defaults. Never auto-add family members purely from link navigation.
 
 **DEV-first acceptance tests:** invite -> sign up with password -> accept; invite -> Google signup -> accept; existing user -> login -> accept; one account joins second family; join-code request -> manager approval; declined/expired/revoked/replayed invites; cross-family visibility and permissions. Do not deploy to BETA until verified.
+
+
+## 2026-10-13 — Invitation continuation implementation contract (DEV; pending)
+The next DEV implementation package MUST preserve these invariants:
+- Manager creates a random, expiry-limited invitation for exactly one workspace; URL contains an opaque secret, but PostgreSQL stores only a one-way digest. Tokens are not workspace IDs.
+- Opening an invitation yields only a minimal preview, not members, financials, permissions, addresses, or an automatically created membership.
+- Exchange incoming invitation for a short-lived, revocable onboarding context. Preserve via server-bound session through password signup, Google authorization-code redirect and login. OAuth `state` must link only to the browser session and be validated on callback.
+- Once authenticated, display destination workspace identity and require explicit Accept. The server rechecks invite validity, actor identity, membership duplication, recipient restriction and redemption count under transaction/locking before creating workspace-local membership.
+- Admin may revoke invitation. Expiration, revocation, wrong identity and failed signup must not delete an otherwise valid global account or leak a different family's data.
+- Routes for create/revoke/management require workspace-scoped `MANAGE_MEMBERS`; public preview/handle exchange require throttling and generic error behavior. No account linking solely by Google email address.
+- Avoid enabling the new endpoints until registration + integration tests exist. Test fresh account password/Google routes, existing account, invitation interrupted by reload, invite revoked during signup, concurrent redemption, second workspace membership, and cross-tenant negative access.
+
+**Implementation status:** V27 schema and manager-reviewed join-code flows are committed but not DEV-compiled yet. Attempt to add the invite lifecycle Java service was blocked before committing; invitation API remains **not implemented**. Existing Contabo BETA still uses V26.
