@@ -91,6 +91,8 @@ class TaskManagerCompletionTest {
             when(slotEvening.getScheduledTime()).thenReturn(java.time.LocalTime.of(16, 0));
             var first = new TaskInstance(definition, member, date).withSlot("morning", java.time.LocalTime.of(9, 0));
             var second = new TaskInstance(definition, member, date).withSlot("evening", java.time.LocalTime.of(16, 0));
+            org.springframework.test.util.ReflectionTestUtils.setField(first, "id", 81L);
+            org.springframework.test.util.ReflectionTestUtils.setField(second, "id", 82L);
             when(instances.findByTaskDefinitionIdAndScheduledDateAndSlotKey(39L, date, "morning"))
                     .thenReturn(Optional.of(first));
             when(instances.findByTaskDefinitionIdAndScheduledDateAndSlotKey(39L, date, "evening"))
@@ -105,9 +107,9 @@ class TaskManagerCompletionTest {
             assertTrue(second.isRewardProcessed());
 
             verify(points, times(2)).earn(eq(8L), eq(7L), eq(17L), eq(1),
-                    eq(PointTransactionSourceType.TASK), isNull(), anyString());
+                    eq(PointTransactionSourceType.TASK), anyLong(), anyString());
             verify(reputation, times(2)).add(eq(8L), eq(7L), eq(2),
-                    eq(ReputationTransactionSourceType.TASK), isNull(), anyString());
+                    eq(ReputationTransactionSourceType.TASK), anyLong(), anyString());
             verify(negotiations, times(2)).processApprovedOverride(eq(8L), any(TaskInstance.class));
         }
     }
