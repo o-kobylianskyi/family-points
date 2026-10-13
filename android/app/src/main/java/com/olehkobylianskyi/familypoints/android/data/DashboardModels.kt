@@ -37,7 +37,8 @@ data class TaskInstanceResponse(
     val scheduledDate: String,
     val status: String,
     val startedAt: String?,
-    val completedAt: String?
+    val completedAt: String?,
+    val slotKey: String = "default"
 )
 
 data class TaskDefinitionResponse(
