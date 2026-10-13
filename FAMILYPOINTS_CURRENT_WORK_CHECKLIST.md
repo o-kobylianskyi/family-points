@@ -885,3 +885,11 @@ Before each substantial implementation batch:
 - [ ] Run build locally and verify Flyway V27 on isolated PostgreSQL
 - [ ] Complete abuse protection and account signup race handling before enabling registration
 - [ ] Add browser-safe invitation continuation and Google OIDC, then full end-to-end tests
+
+## 2026-10-13 — Consolidated test gate
+- [x] Review invitation and workspace session test coverage; adjust invite JdbcTemplate mock (b25b87c)
+- [x] Single `-BackendOnly -WithTests` DEV checkpoint with V29 Flyway inventory requirement (066e7a8)
+- [ ] ACTUALLY RUN Maven compilation/tests on local checkout
+- [ ] Validate V27, V28, V29 against isolated PostgreSQL with Flyway
+- [ ] Verify two-family signed JWT and malicious cross-tenant access
+- [ ] Only after the above: onboarding registration and Google identity integration
