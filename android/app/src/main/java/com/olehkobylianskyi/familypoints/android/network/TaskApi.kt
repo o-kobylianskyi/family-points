@@ -50,6 +50,15 @@ interface TaskApi {
         @Query("slotKey") slotKey: String
     ): TaskInstanceResponse
 
+    @POST("workspaces/{workspaceId}/tasks/definitions/{definitionId}/complete-scheduled")
+    suspend fun completeScheduledByManager(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("definitionId") definitionId: Long,
+        @Query("date") date: String,
+        @Query("slotKey") slotKey: String
+    ): TaskInstanceResponse
+
     @GET("workspaces/{workspaceId}/tasks/open")
     suspend fun getOpenTasks(
         @Header("Authorization") authorization: String,
