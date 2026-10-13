@@ -166,9 +166,7 @@ function LoginPage() {
               : t('login.submit')}
           </button>
         </form>
-        {import.meta.env.VITE_ENABLE_FAMILY_REGISTRATION === 'true' && (
-          <p><Link to="/register">Створити нову сім’ю</Link></p>
-        )}
+        <p><Link to="/register">Переглянути реєстрацію нової сім’ї (демо)</Link></p>
       </div>
     </div>
   )
