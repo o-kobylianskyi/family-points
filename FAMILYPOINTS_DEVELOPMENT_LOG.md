@@ -757,3 +757,8 @@
 - Added created-by-me regression test (cb82cb3). Existing management test covers effective manager listing.
 - TaskScheduleSlotController now appends DEFINITION_UPDATED user audit events on slot creation, rescheduling and enabled toggles, with old/new values where appropriate (77ab123). Uses same task manage authorization and transaction. Controller test constructor updated (b48ec5b).
 - API/Web permission protections from earlier package remain in place. CI pending for this package; actual child/parent manual test and Clean room data root cause not yet confirmed.
+
+### CI follow-up for management/audit batch
+- Initial run 38370229897 failed compiling TaskScheduleSlotControllerTest: new TaskAuditService dependency absent from several test constructors/import. Repaired in f1176d5.
+- GitHub Actions run 38370322845 at f1176d5: Backend Java/Maven/PostgreSQL Testcontainers **SUCCESS**, Web Vite **SUCCESS**. Android SDK37 hosted runner failure persists (local checks agreed).
+- Management/audit batch complete for code covered by CI. User-specific 'Clean room' visibility still requires checking its actual assignment/creator/role in the user's database.
