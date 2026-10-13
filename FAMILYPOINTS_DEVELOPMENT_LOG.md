@@ -738,3 +738,10 @@
 - Removed that gate (6183c62): the option “Кілька виконань за вибрану дату або протягом дня” now appears for new ONCE and recurring tasks. Initial times 09:00 and 15:00 rather than blank. UI distinguishes one selected date from recurring active days.
 - Creation already loops through createTaskScheduleSlot for each time after creating the definition; errors surfaced in modal. **Known remaining transactional gap:** task definition creation and schedule slot creation are multiple HTTP requests, not a single transaction. Legacy creation may create initial default instance; verify one-time multi-slot generated default/historical instance interaction before production release.
 - CI run 38315539475 pending at time of documentation.
+
+## 2026-10-13 — Atomic task + initial multi-slot creation
+- GitHub Actions run 38315606945 (prior UI iteration): Backend/Web PASS, Android SDK37 runner setup FAIL.
+- Created initialSlotTimes request field with max 12 non-null LocalTime entries (3af03a7); TaskService.createDefinition now saves slot rows under existing @Transactional service method after persisting definition and before eager execution generation (2595c72), validating unique times and skipping eager default materialization when explicit slots supplied. Any exception rolls back task, participants, work node and slots together.
+- TaskController forwards initialSlotTimes (4295ab8); CreateTaskModal submits slots in same definition POST instead of separate follow-up POST requests (d4bf9b9).
+- GitHub Actions run 38369284773 at d4bf9b9: Backend Maven/PostgreSQL Testcontainers PASS; Web Vite PASS; Android SDK37 installation still failing on hosted runner.
+- Remaining: user acceptance smoke test for one-time two-slot and daily three-slot tasks; concurrency/ledger integration tests, slot editing with existing snapshots.
