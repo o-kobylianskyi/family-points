@@ -122,3 +122,9 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - Nginx sites-enabled were: default, familypoints-dev, familypoints-api-dev. No BETA host TLS site exists yet.
 - Certbot listed DEV frontend/API certificates only, both expiring 2027-01-06; BETA apex domain certificate is not yet issued.
 - Agreed next step: reuse host Nginx as TLS edge on 443 for `family-point.com`, proxy all paths to `127.0.0.1:18080`, preserve DEV 8443 and 1C NAT. Confirm DNS and Cloudflare credential existence without exposing secrets, issue apex certificate, configure separate server block and verify nginx -t before reload.
+
+## 2026-10-13 — Apex BETA TLS certificate issued (USER-VERIFIED CERTBOT)
+- `sudo certbot certificates` output includes `family-point.com`, ECDSA certificate expiring 2027-01-11 17:25:23 UTC. Certificate and private key reside in standard `/etc/letsencrypt/live/family-point.com/` locations; no private key contents stored in this journal.
+- Existing `dev.family-point.com` and `api-dev.family-point.com` certificates remain listed, expiration 2027-01-06.
+- This verifies certificate issuance only. BETA port 443 host Nginx listener, UFW allow 443, browser HTTPS, redirect, renewal reloading and authorization remain PENDING.
+- Next: add a separate Nginx TLS vhost for apex on 443 using loopback upstream 127.0.0.1:18080, run nginx -t then reload and local curl with --resolve; inspect DNS and UFW then enable 443 with least privilege. Preserve DEV/1C rules.
