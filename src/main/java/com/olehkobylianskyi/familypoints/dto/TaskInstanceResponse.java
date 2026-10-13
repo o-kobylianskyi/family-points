@@ -31,6 +31,7 @@ public class TaskInstanceResponse {
     private final Integer penaltyReputationAmount;
 
     private final LocalDate scheduledDate;
+    private String slotKey = "default";
     private final TaskInstanceStatus status;
     private final LocalDateTime startedAt;
     private final LocalDateTime completedAt;
@@ -111,7 +112,7 @@ public class TaskInstanceResponse {
         PointType penaltyPointType =
                 instance.getPenaltyPointType();
 
-        return new TaskInstanceResponse(
+        TaskInstanceResponse response = new TaskInstanceResponse(
                 instance.getId(),
                 instance.getTaskDefinition().getId(),
                 instance.getMember().getId(),
@@ -157,7 +158,11 @@ public class TaskInstanceResponse {
                 instance.isRewardProcessed(),
                 instance.isPenaltyProcessed()
         );
+        response.slotKey = instance.getSlotKey();
+        return response;
     }
+
+    public String getSlotKey() { return slotKey; }
 
     public Long getId() {
         return id;
