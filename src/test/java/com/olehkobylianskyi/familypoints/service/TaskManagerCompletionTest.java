@@ -176,4 +176,72 @@ class TaskManagerCompletionTest {
             verifyNoInteractions(points, reputation, audit);
         }
     }
+
+    @Test
+    void rewardFailureAfterPointsDoesNotMarkLedgerAsProcessed() throws Exception {
+        try (var ignored = MockitoAnnotations.openMocks(this)) {
+            var definition = mock(TaskDefinition.class);
+            var member = mock(WorkspaceMember.class);
+            var pointType = mock(PointType.class);
+            var date = LocalDate.now();
+            when(definition.getId()).thenReturn(39L);
+            when(definition.isActive()).thenReturn(true);
+            when(definition.getAssignedMember()).thenReturn(member);
+            when(definition.getTitle()).thenReturn("Clean room");
+            when(definition.getRewardAmount()).thenReturn(1);
+            when(definition.getRewardPointType()).thenReturn(pointType);
+            when(definition.getRewardReputationAmount()).thenReturn(2);
+            when(member.getId()).thenReturn(7L);
+            when(pointType.getId()).thenReturn(17L);
+            when(definitions.findForOccurrenceUpdate(39L, 8L)).thenReturn(Optional.of(definition));
+            when(generation.shouldGenerate(definition, date)).thenReturn(true);
+            var instance = new TaskInstance(definition, member, date).withSlot("default", null);
+            org.springframework.test.util.ReflectionTestUtils.setField(instance, "id", 81L);
+            when(instances.findByTaskDefinitionIdAndScheduledDateAndSlotKey(39L, date, "default"))
+                    .thenReturn(Optional.of(instance));
+            when(reputation.add(eq(8L), eq(7L), eq(2),
+                    eq(ReputationTransactionSourceType.TASK), eq(81L), anyString()))
+                    .thenThrow(new IllegalStateException("Injected reputation failure"));
+
+            assertThrows(IllegalStateException.class,
+                    () -> service.completeScheduledByManager(8L, 39L, date));
+            verify(points).earn(eq(8L), eq(7L), eq(17L), eq(1),
+                    eq(PointTransactionSourceType.TASK), eq(81L), anyString());
+            assertFalse(instance.isRewardProcessed(),
+                    "Do not mark the reward posted if the reputation operation failed");
+        }
+    }
+
+    @Test
+    void penaltyFailureAfterPointsDoesNotMarkLedgerAsProcessed() throws Exception {
+        try (var ignored = MockitoAnnotations.openMocks(this)) {
+            var definition = mock(TaskDefinition.class);
+            var member = mock(WorkspaceMember.class);
+            var pointType = mock(PointType.class);
+            var date = LocalDate.now().minusDays(1);
+            when(definition.getTitle()).thenReturn("Clean room");
+            when(definition.isMandatory()).thenReturn(true);
+            when(definition.getPenaltyAmount()).thenReturn(1);
+            when(definition.getPenaltyPointType()).thenReturn(pointType);
+            when(definition.getPenaltyReputationAmount()).thenReturn(2);
+            when(member.getId()).thenReturn(7L);
+            var account = mock(UserAccount.class);
+            when(currentUser.getCurrentAccount()).thenReturn(account);
+            when(account.getWorkspaceMember()).thenReturn(member);
+            when(exceptionPeriods.findActiveForDate(7L, date)).thenReturn(java.util.List.of());
+            var instance = new TaskInstance(definition, member, date).withSlot("evening", java.time.LocalTime.of(16, 0));
+            org.springframework.test.util.ReflectionTestUtils.setField(instance, "id", 72L);
+            when(instances.findByIdAndWorkspaceIdForUpdate(72L, 8L)).thenReturn(Optional.of(instance));
+            when(reputation.add(eq(8L), eq(7L), eq(-2),
+                    eq(ReputationTransactionSourceType.TASK), eq(72L), anyString()))
+                    .thenThrow(new IllegalStateException("Injected reputation failure"));
+
+            assertThrows(IllegalStateException.class, () -> service.miss(8L, 72L));
+            verify(points).penalty(eq(8L), eq(7L), same(pointType), eq(1),
+                    eq(PointTransactionSourceType.TASK), eq(72L), anyString());
+            assertFalse(instance.isPenaltyProcessed(),
+                    "Do not mark the penalty posted if the reputation operation failed");
+        }
+    }
+
 }
