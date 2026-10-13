@@ -135,3 +135,10 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - Confirms local TLS host Nginx -> BETA loopback web proxy -> Spring Boot route. Explicit DNS override means **public reachability was not tested**.
 - Dedicated host port 443 still needs UFW allowance and external network verification; independently check React HTML, login bootstrap, permissions, Android access and 1C forwarding.
 - Preserve existing DEV port 8443 and 1C DNAT; after UFW change compare NAT count and WireGuard service, then check from external client.
+
+
+## 2026-10-13 — BETA initial family onboarding policy (AGREED / NOT DEPLOYED)
+- Public HTTPS Web/API was locally verified; user reports Web opens externally, but BETA database does not yet have a safely provisioned family/account.
+- User stopped manual initial administrator SQL creation and reaffirmed original product design: a visitor registers and creates their own new tenant-isolated family; one person may belong to multiple families/workspaces. Optional initial tasks and economy templates should be customizable to family composition (age and optionally gender/preferences).
+- `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` updated in commit 941cb3e. No admin SQL was applied and no new registration API deployed on Contabo.
+- Before opening real signup to the internet implement transactional first-family creation, auth security/rate limiting, tenant isolation regression and optional bootstrap templates; preserve existing DEV and 1C services.
