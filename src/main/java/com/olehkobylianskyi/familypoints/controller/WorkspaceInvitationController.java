@@ -20,10 +20,12 @@ public class WorkspaceInvitationController {
     }
 
     // Authenticated preview for DEV; anonymous landing requires separate abuse protection.
-    @GetMapping("/preview")
+    public record PreviewRequest(String token) {}
+
+    @PostMapping("/preview")
     @PreAuthorize("isAuthenticated()")
-    public WorkspaceInvitationService.Preview preview(@RequestParam String token) {
-        return invitations.preview(token);
+    public WorkspaceInvitationService.Preview preview(@RequestBody PreviewRequest request) {
+        return invitations.preview(request.token());
     }
 
     @DeleteMapping("/workspaces/{workspaceId}/{invitationId}")
