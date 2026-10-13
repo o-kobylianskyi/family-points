@@ -941,3 +941,8 @@
 - Added Flyway V28 (a40e33e): `family_members.family_role_id` and `workspace_invitations.member_role_id` must point to roles owned by exactly the same workspace. PostgreSQL triggers reject cross-tenant inserts/updates even outside application authorization.
 - Migration explicitly checks existing rows and fails rather than silently moving or deleting mismatched tenant data.
 - **Not run** on DEV PostgreSQL; backup and validate V27/V28 on a disposable test database before touching DEV. No Contabo BETA changes. Existing visual wizard remains demo-only.
+
+## 2026-10-13 — Backend tenant hardening and regression alignment (committed, not executed)
+- Registration validation (b87572c) now rejects names over 100 characters and returns explicit client HTTP errors. Updated negative unit tests (3fc15bf) for the new error types and field length.
+- WorkspaceMembershipResolver (ec4c7a6) now also verifies that the selected member role belongs to the selected workspace. Updated existing resolver tests, including a foreign-workspace role scenario (6a93a0a).
+- No frontend updates. No tests have been run on the user laptop, no migration or deployment performed. Public registration flags remain disabled. Before rollout run Maven and Flyway verification on isolated DEV PostgreSQL.
