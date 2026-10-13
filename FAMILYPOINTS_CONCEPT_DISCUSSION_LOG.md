@@ -1794,3 +1794,9 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - Deploy BETA to a new isolated database/volume, never reuse or silently migrate/delete existing real family balances or history.
 - HTTPS origin and authorized onboarding are mandatory before external testers; limit public exposure until cross-workspace permissions, privacy and backup have been verified.
 - Current Docker Compose is a deployment scaffold, not proof of a running tested public beta. Android Beta API host must be configured deliberately.
+
+
+## 2026-10-13 — BETA APK and deployment safeguards
+- Android debug APK can target a specific HTTPS BETA API via Gradle property, preserving the existing DEV default for ordinary local builds. This is not a public-release signing mechanism.
+- Deployment scripts and Compose setup must never overwrite the existing server's 1C/BAS, IIS, Apache, WireGuard, or PostgreSQL environments; keep BETA isolated.
+- User-confirmed successful local Android compilation is distinct from CI, HTTP end-to-end connectivity, sign-in and release readiness. Real account and workspace authorization tests remain necessary.
