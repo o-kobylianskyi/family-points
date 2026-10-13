@@ -73,6 +73,50 @@ public class WorkspaceInvitationService {
         return found.get(0);
     }
 
+    public record PendingContext(String handle, OffsetDateTime expiresAt) {}
+
+    /**
+     * Exchanges the one-use invitation secret for an opaque short-lived handle.
+     * Does not consume the invitation or create a workspace membership.
+     */
+    @Transactional
+    public PendingContext begin(String invitationToken) {
+        preview(invitationToken);
+        String handle = token();
+        OffsetDateTime expires = OffsetDateTime.now().plusHours(2);
+        int count = jdbc.update("""
+                INSERT INTO pending_invitation_sessions(handle_hash, invitation_id, expires_at)
+                SELECT ?, i.id, ? FROM workspace_invitations i
+                WHERE i.token_hash=? AND i.revoked_at IS NULL
+                  AND i.expires_at>CURRENT_TIMESTAMP AND i.use_count<i.max_uses
+                """, hash(handle), expires, hash(invitationToken));
+        if (count != 1) throw unavailable();
+        return new PendingContext(handle, expires);
+    }
+
+    /** Validates both the stored session and the underlying invitation on resume. */
+    @Transactional(readOnly = true)
+    public Preview resume(String handle) {
+        if (handle == null || !handle.matches("[A-Za-z0-9_-]{43}")) throw unavailable();
+        List<Preview> found = jdbc.query("""
+                SELECT f.name, i.expires_at
+                FROM pending_invitation_sessions p
+                JOIN workspace_invitations i ON p.invitation_id=i.id
+                JOIN families f ON i.workspace_id=f.id
+                WHERE p.handle_hash=? AND p.consumed_at IS NULL
+                  AND p.expires_at>CURRENT_TIMESTAMP AND i.revoked_at IS NULL
+                  AND i.expires_at>CURRENT_TIMESTAMP AND i.use_count<i.max_uses
+                """, (rs, n) -> new Preview(rs.getString(1),
+                        rs.getObject(2, OffsetDateTime.class)), hash(handle));
+        if (found.size()!=1) throw unavailable();
+        return found.get(0);
+    }
+
+    private static org.springframework.web.server.ResponseStatusException unavailable() {
+        return new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND, "Invitation unavailable");
+    }
+
     @Transactional
     public void revoke(Long workspaceId, Long invitationId) {
         int changed = jdbc.update("""
