@@ -856,3 +856,9 @@
 - Current service depends on V27 schema. **No controller/API routes were committed**; attempt to add controller was blocked before the file was created. Thus service is not reachable over HTTP and does not enable open joining. This is a safe partial step, not a complete registration/invitation workflow.
 - Explicitly deferred: rate limiting/abuse control, code issuance verification tests, approver role mapping, secure invite redemption and cross-account identity signup continuation. Approval needs an explicitly scoped member profile/role before it can be safely implemented.
 - DEV build and Flyway V27 execution remain **NOT VERIFIED**. Contabo BETA intentionally stays at V26; do not update it yet.
+
+## 2026-10-13 — DEV API routes for workspace join requests (COMMITTED / NOT VERIFIED)
+- Added `WorkspaceJoinController` in commit `fe23c79`; POST /api/workspace-joins/requests requires auth, manager-only endpoints rotate/disable code, list and reject pending requests.
+- Checked `SecurityConfig`: all routes require authentication by default; method security enabled. Manager routes invoke `workspaceSecurity.canManageMembers(workspaceId)`. Code possession alone cannot grant membership.
+- **NOT TESTED** Maven compilation, Flyway V27, integration tests, and running DEV HTTP responses. No approval, invite redemption, signup continuity, rate-limits or user interface yet.
+- Contabo BETA intentionally remains unchanged. Next: local compile, test and implement protected invite flow and account registration; no production rollout.
