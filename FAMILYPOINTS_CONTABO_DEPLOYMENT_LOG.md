@@ -63,3 +63,10 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - Certbot listed two ECDSA DEV certificates expiring 2027-01-06; no BETA apex certificate in that output.
 - Unresolved: recent WireGuard handshake/actual 1C HTTP path, reason for requested reboot, full 443 access setup, Docker installation, PostgreSQL baseline, offsite verified backup. No VPS deployment action was performed during this review.
 - Operational safety: preserve port 8080 DNAT, current DEV HTTPS on 8443, WireGuard and UFW rules. Docker can modify firewall/forwarding rules, so snapshot then inspect Docker/UFW coexistence before enabling any public Docker bindings.
+
+
+## 2026-10-13 — Docker preflight execution preparation (COMMITTED, NOT RUN ON VPS)
+- User authorized beginning practical deployment on Contabo.
+- Added read-only `scripts/beta/contabo-docker-preflight.sh` (commit `6b622e6`) to report OS/resources/services/socket listeners, firewall config fingerprints, existing NAT 8080 count and backup directory presence without dumping secrets or full allowlists.
+- Deployment control: Docker/UFW packet-filter interactions are a material risk to existing WireGuard/1C forwarding; preserve current rules and compare before/after. Docker installation on VPS not performed by GitHub connector.
+- Requested user to run read-only preflight first. Await observed results before executing potentially disruptive package installation or daemon startup. No claims of live Docker/BETA deployment or successful external 1C check.
