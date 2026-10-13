@@ -25,3 +25,24 @@ The configuration is for a **new, disposable, isolated BETA PostgreSQL database*
 - Create a task with 2 scheduled slots; independently start/complete each; repeat action does not double-credit.
 - Reopen tasks, offline/online Android read-only schedule cache, reopen after backend restart.
 - Confirm PostgreSQL data survives `docker compose restart`; tested backup and restore.
+
+
+## Executable operational checks and Android BETA build
+
+From the Linux BETA Docker host, after the stack boots:
+```bash
+bash scripts/beta/smoke.sh http://127.0.0.1:18080
+bash scripts/beta/backup.sh
+```
+The smoke check validates Nginx's own health, SPA HTML and the backend's health route (HTTP 200). It does **not** test user login, authorization or persistence. The backup script writes to ignored `backups/` and must be supplemented by a tested restore and encrypted off-host storage.
+
+To produce a BETA-specific **debug** APK on the developer laptop, use a real, HTTPS, reachable endpoint (replace the placeholder with the actual API serving HTTPS origin):
+```powershell
+cd C:\Users\Oleh\IdeaProjects\family-points\android
+.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug -PfamilyPointsDebugApiUrl=https://YOUR-BETA-DOMAIN/
+```
+The debug API setting defaults to the previous DEV endpoint unless an override is explicitly provided. The release API setting is separate (`familyPointsReleaseApiUrl`), and a debug APK is not a production-signed Play Store artifact. Verify TLS and `/api/client-health` before installing on testers' phones.
+
+**Server prerequisite:** Determine whether the actual host is Windows Server with IIS/Apache, as discussed previously, or a Linux Docker host. This Compose file uses Linux containers and is not an IIS application. Do not uninstall or reconfigure the existing 1C/BAS, IIS, Apache, WireGuard or PostgreSQL services to deploy it. A separate Linux VM is safer when that host is Windows Server.
+
+**Flyway precaution:** The repository uses `spring.flyway.baseline-on-migrate=true` and `spring.jpa.hibernate.ddl-auto=validate`. A fresh BETA database must be validated through a real startup; passing Compose syntax validation alone does not guarantee that all Flyway migrations and JPA validation can initialize an empty database.
