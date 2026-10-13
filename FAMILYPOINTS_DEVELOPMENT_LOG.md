@@ -868,3 +868,9 @@
 - Service row-locks a pending request, validates role belongs to requested workspace, blocks elevated roles with ADMIN_OVERRIDE/MANAGE_MEMBERS/MANAGE_ROLES or FAMILY_ADMIN, rejects existing account membership, creates a new independent workspace member with type OTHER and an account-workspace link, then marks request APPROVED with reviewing account. All writes occur in one Spring transaction.
 - Does not modify legacy `user_accounts.family_member_id`; global-account multi-workspace switching must use existing membership resolver.
 - **NOT VERIFIED:** DEV Maven compile/tests, Flyway V27 applied, concurrent approval tests or full authorization negative tests. No Contabo BETA rollout. Future work: inviter flow, OAuth signup context, throttling, read UX, role/identity hardening.
+
+## 2026-10-13 — Invite lifecycle contract; implementation blocked (DOCUMENTED)
+- Reviewed committed V27 tables, existing API, Spring Security default authenticated routes and workspace join-request approval.
+- Attempted to commit DEV invitation issue/preview/pending-onboarding service, but GitHub tool rejected the write; no source file was created and no runtime state changed.
+- Updated `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` in b39c811 with explicit server contract: workspace-limited issued token, digest-only storage, minimal preview, protected pending signup context through Google redirect, authenticated acceptance with replay/expiry/revocation checks, and rate-limited abuse controls.
+- Pending: actual service and controllers, multi-workspace registration, tests, Flyway V27 validation. Contabo BETA remains unchanged.
