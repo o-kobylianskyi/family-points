@@ -455,7 +455,7 @@ fun TasksScreen(
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
-                items(scheduledOccurrences, key = { "scheduled-" + it.occurrenceKey }) { occurrence ->
+                items(scheduledOccurrences.sortedWith(compareBy({ it.time ?: "99:99" }, { it.occurrenceKey })), key = { "scheduled-" + it.occurrenceKey }) { occurrence ->
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(occurrence.title, style = MaterialTheme.typography.titleMedium)
@@ -478,7 +478,8 @@ fun TasksScreen(
                             }
                             if (selectedMemberId == currentUser.memberId &&
                                 selectedDate <= LocalDate.now().toString() &&
-                                serverStatus == ServerStatus.ONLINE && !showingCachedMy) {
+                                serverStatus == ServerStatus.ONLINE && !showingCachedMy &&
+                                occurrence.status == "PLANNED") {
                                 Button(enabled = processingId == null, onClick = {
                                     scope.launch {
                                         processingId = -occurrence.definitionId
