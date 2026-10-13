@@ -1758,3 +1758,8 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - A newly created task with explicitly configured execution times must persist definition, participants, work hierarchy and slots as a single transaction. A failing slot rejects the entire create, preventing partially configured family tasks.
 - Explicit slots suppress eager default TaskInstance generation on creation; actual instances remain on-demand or deadline-materialized. No pre-generation of future dated instances.
 - Existing tasks with no explicit slots retain their implicit default execution behavior. Slot identity remains stable across edits.
+
+## 2026-10-13 — Android tasks schedule parity
+- Mobile scheduled occurrences are read-only projections, matching Web and reusing existing Spring REST API. A saved TaskInstance is materialized only on Start or system deadline.
+- All active past/current own occurrences can be started, not future dates or other members' occurrences. Scoped task manage buttons must follow server canManage, not user type alone. Existing Android offline task snapshot remains read-only; virtual schedule offline persistence is deferred.
+- Slot identity (definitionId + date + slotKey) survives navigation to details. Persisted instance API now exposes slotKey for correct historical detail lookup.
