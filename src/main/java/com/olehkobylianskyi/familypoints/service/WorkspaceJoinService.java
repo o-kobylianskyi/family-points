@@ -1,7 +1,6 @@
 package com.olehkobylianskyi.familypoints.service;
 
 import com.olehkobylianskyi.familypoints.security.CurrentUserService;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -86,12 +85,11 @@ public class WorkspaceJoinService {
         if (exists != null && exists > 0) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Account already belongs to workspace");
         }
-        try {
-            jdbc.update("""
-                    INSERT INTO workspace_join_requests(workspace_id, requester_account_id)
-                    VALUES (?, ?) ON CONFLICT DO NOTHING
-                    """, workspaceId, accountId);
-        } catch (DuplicateKeyException ex) {
+        int created = jdbc.update("""
+                INSERT INTO workspace_join_requests(workspace_id, requester_account_id)
+                VALUES (?, ?) ON CONFLICT DO NOTHING
+                """, workspaceId, accountId);
+        if (created != 1) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Join request already exists");
         }
     }
