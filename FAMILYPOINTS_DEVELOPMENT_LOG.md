@@ -990,3 +990,10 @@
 - Added FirstFamilyOnboardingService (1625c1b): rejects disabled accounts and existing family membership, provisions first workspace using existing AdditionalFamilyService.
 - Added pessimistic account-row locking via UserAccountRepository.findByIdForUpdate (16a1d25, 0aa8001) to serialize concurrent first-family requests.
 - Added isolated unit tests (0846ab4); tests not run yet. Feature remains disabled. No Contabo deployment.
+
+## 2026-10-13 — Global account workspace chooser bug fixed
+- Existing /auth/workspaces and /auth/workspaces/{workspaceId}/select APIs already implement workspace selection and scoped JWT after live membership validation; no new duplicate endpoint created.
+- Fixed /api/me/workspaces list for globally registered accounts with zero memberships: it previously always resolved getCurrentWorkspaceId(), which returned 403 when primary member null. The active selection is now derived from a verified WorkspaceAuthenticationDetails claim on the authenticated request, or null for legacy/global unscoped sessions (838a4f7).
+- Updated AccountWorkspacesControllerTest for scoped selected family and zero-family account list (73665da).
+- Not yet built locally; user has prior unstashed changes risk and should review git status before pull.
+- Public registration/first-family flags remain OFF; Google OAuth not enabled; no BETA deployment.
