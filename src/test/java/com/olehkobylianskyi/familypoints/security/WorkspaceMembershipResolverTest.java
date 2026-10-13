@@ -20,6 +20,9 @@ class WorkspaceMembershipResolverTest {
         WorkspaceMember member = mock(WorkspaceMember.class);
         when(member.isActive()).thenReturn(true);
         when(member.getWorkspace()).thenReturn(workspace);
+        WorkspaceRole role = mock(WorkspaceRole.class);
+        when(role.getWorkspace()).thenReturn(workspace);
+        when(member.getWorkspaceRole()).thenReturn(role);
         AccountWorkspaceMembership link = mock(AccountWorkspaceMembership.class);
         when(link.getWorkspaceMember()).thenReturn(member);
         when(repository.findByAccountIdAndWorkspaceMemberWorkspaceId(10L, 20L))
@@ -65,6 +68,27 @@ class WorkspaceMembershipResolverTest {
                 () -> resolver.requireActiveMember(account, 20L)).getStatusCode().value());
         assertEquals(403, assertThrows(ResponseStatusException.class,
                 () -> resolver.requireActiveMember(account, null)).getStatusCode().value());
+    }
+
+    @Test
+    void deniesRoleFromAnotherWorkspace() {
+        UserAccount account = account(10L, true);
+        Workspace workspace = mock(Workspace.class);
+        when(workspace.getId()).thenReturn(20L);
+        Workspace foreign = mock(Workspace.class);
+        when(foreign.getId()).thenReturn(30L);
+        WorkspaceRole role = mock(WorkspaceRole.class);
+        when(role.getWorkspace()).thenReturn(foreign);
+        WorkspaceMember member = mock(WorkspaceMember.class);
+        when(member.isActive()).thenReturn(true);
+        when(member.getWorkspace()).thenReturn(workspace);
+        when(member.getWorkspaceRole()).thenReturn(role);
+        AccountWorkspaceMembership link = mock(AccountWorkspaceMembership.class);
+        when(link.getWorkspaceMember()).thenReturn(member);
+        when(repository.findByAccountIdAndWorkspaceMemberWorkspaceId(10L, 20L))
+                .thenReturn(Optional.of(link));
+        assertEquals(403, assertThrows(ResponseStatusException.class,
+                () -> resolver.requireActiveMember(account, 20L)).getStatusCode().value());
     }
 
     private UserAccount account(Long id, boolean enabled) {
