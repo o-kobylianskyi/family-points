@@ -805,3 +805,10 @@
 - Added separate missed-slot regression: instances 71 and 72 each incur one penalty of 1 point and -2 reputation; repeat miss does not charge again (c490161). Completed test actor fixture for audit path (278dc92).
 - Verified GitHub Actions 38430152420 at 278dc92: Backend Java21/PostgreSQL Testcontainers Maven tests SUCCESS, Web Vite SUCCESS. Android runner SDK37 setup still FAILS (unrelated).
 - Existing safeguards include per-instance rewardProcessed/penaltyProcessed state and row locking for instance actions or definition locking for manager completion. Further DB concurrency/fault-injection and reward negotiation tests remain open.
+
+
+## 2026-10-13 — Economy failure-injection regression (continued)
+- Reviewed the transferred economics package and actual TaskService / PointService / ReputationService behavior; prior workflow 38429755217 has cancelled Backend and Android jobs, while documented run 38430152420 at 278dc92 passed Backend and Web.
+- Added reward and penalty failure-injection unit tests in TaskManagerCompletionTest (5b552ace): reputation posting deliberately throws after the points service is called. Assert that the exception propagates and rewardProcessed / penaltyProcessed do not become true.
+- These are mocked-service unit tests, **not** proof of DB transaction rollback or exactly-once concurrency. JPA transaction boundaries, concurrent requests, database constraints and negotiations still need PostgreSQL/Testcontainers integration tests.
+- No production financial data or migration altered in this package. CI for commit 5b552ace requires verification.
