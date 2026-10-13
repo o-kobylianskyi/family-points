@@ -1763,3 +1763,7 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - Mobile scheduled occurrences are read-only projections, matching Web and reusing existing Spring REST API. A saved TaskInstance is materialized only on Start or system deadline.
 - All active past/current own occurrences can be started, not future dates or other members' occurrences. Scoped task manage buttons must follow server canManage, not user type alone. Existing Android offline task snapshot remains read-only; virtual schedule offline persistence is deferred.
 - Slot identity (definitionId + date + slotKey) survives navigation to details. Persisted instance API now exposes slotKey for correct historical detail lookup.
+
+### Android offline recurring schedule
+- Virtual dated task occurrences may be cached in a workspace/viewer/target/date-scoped snapshot for offline display only.
+- Starting or completing a planned occurrence requires an online API call and server authorization; no speculative local ledger writes.
