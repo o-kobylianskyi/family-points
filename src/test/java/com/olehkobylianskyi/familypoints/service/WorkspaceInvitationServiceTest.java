@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -34,7 +33,7 @@ class WorkspaceInvitationServiceTest {
 
     @Test
     void rejectsAdministrativeRoleDuringIssuance() {
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), any(Object[].class))).thenReturn(0);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq(15L), eq(8L))).thenReturn(0);
         assertThrows(ResponseStatusException.class, () -> invitations.issue(8L, 15L));
         verify(jdbc, never()).update(anyString(), any(Object[].class));
     }
@@ -42,7 +41,7 @@ class WorkspaceInvitationServiceTest {
     @Test
     void rejectsAlreadyConsumedOrExpiredContext() {
         String validShape = "A".repeat(43);
-        when(jdbc.query(anyString(), any(org.springframework.jdbc.core.RowMapper.class), any(Object[].class)))
+        when(jdbc.query(anyString(), any(org.springframework.jdbc.core.RowMapper.class), anyString()))
                 .thenReturn(List.of());
         assertThrows(ResponseStatusException.class, () -> invitations.resume(validShape));
     }
