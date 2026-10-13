@@ -928,3 +928,11 @@
 - `LoginPage.jsx` (8fc80f2): always shows a link to the demo registration route.
 - Intentional guard: real registration remains separately disabled in backend by default; production form can only call server if VITE_ENABLE_FAMILY_REGISTRATION=true and backend registration explicitly enabled. Do not enable during visual checks.
 - This is frontend-only; no changes to Contabo BETA. React build and browser behavior must be verified on local laptop after Git update and Vite restart. Never use real personal data in demo.
+
+## 2026-10-13 — Four-stage local visual onboarding wizard (COMMITTED; NOT BUILD-VERIFIED)
+- Replaced simplistic demo register page with 4-stage in-memory React wizard: family name/admin, optional extra members and child ages, economy POINTS with configurable example task points and illustrative screen-time limit, and summary/finish preview.
+- New responsive CSS under `frontend/src/pages/RegisterFamilyPage.css`. Changes committed as 89b260a and 9cfa3de.
+- Button fills exclusively fictional sample records; all actions are React state changes only: no fetch(), localStorage writes, account registration or PostgreSQL mutations.
+- It is intentionally a visual-only demo, including when user has a prior authenticated session. It must not be treated as a completed signup or as configured enforcement of screen-time settings/tasks.
+- Untested in local Vite build/browser; next stage: local visual review, accessibility/translation refinements, then validated mapping of approved onboarding selections into versioned server templates.
+- Contabo BETA not updated.
