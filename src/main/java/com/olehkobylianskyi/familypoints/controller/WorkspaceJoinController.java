@@ -19,6 +19,8 @@ public class WorkspaceJoinController {
 
     public record JoinRequest(@NotBlank String code) {}
     public record JoinCode(String code) {}
+    public record ApproveRequest(@jakarta.validation.constraints.NotNull Long roleId,
+                                 @NotBlank String memberName) {}
 
     @PostMapping("/requests")
     @PreAuthorize("isAuthenticated()")
@@ -43,6 +45,15 @@ public class WorkspaceJoinController {
     @PreAuthorize("@workspaceSecurity.canManageMembers(#workspaceId)")
     public List<Map<String, Object>> pending(@PathVariable Long workspaceId) {
         return service.pendingForManager(workspaceId);
+    }
+
+    @PostMapping("/workspaces/{workspaceId}/requests/{requestId}/approve")
+    @PreAuthorize("@workspaceSecurity.canManageMembers(#workspaceId)")
+    public Map<String, String> approve(@PathVariable Long workspaceId,
+                                       @PathVariable Long requestId,
+                                       @Valid @RequestBody ApproveRequest body) {
+        service.approveRequest(workspaceId, requestId, body.roleId(), body.memberName());
+        return Map.of("status", "APPROVED");
     }
 
     @PostMapping("/workspaces/{workspaceId}/requests/{requestId}/reject")
