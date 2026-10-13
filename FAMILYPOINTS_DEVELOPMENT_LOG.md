@@ -936,3 +936,8 @@
 - It is intentionally a visual-only demo, including when user has a prior authenticated session. It must not be treated as a completed signup or as configured enforcement of screen-time settings/tasks.
 - Untested in local Vite build/browser; next stage: local visual review, accessibility/translation refinements, then validated mapping of approved onboarding selections into versioned server templates.
 - Contabo BETA not updated.
+
+## 2026-10-13 — Database tenant-role integrity hardening (COMMITTED / NOT TESTED)
+- Added Flyway V28 (a40e33e): `family_members.family_role_id` and `workspace_invitations.member_role_id` must point to roles owned by exactly the same workspace. PostgreSQL triggers reject cross-tenant inserts/updates even outside application authorization.
+- Migration explicitly checks existing rows and fails rather than silently moving or deleting mismatched tenant data.
+- **Not run** on DEV PostgreSQL; backup and validate V27/V28 on a disposable test database before touching DEV. No Contabo BETA changes. Existing visual wizard remains demo-only.
