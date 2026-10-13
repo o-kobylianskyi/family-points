@@ -25,7 +25,7 @@ class TaskScheduleSlotControllerTest {
         when(tasks.getDefinition(8L,39L)).thenReturn(definition);
         when(repo.findByTaskDefinitionIdAndEnabledTrueOrderByScheduledTimeAscSlotKeyAsc(39L))
                 .thenReturn(List.of());
-        var controller = new TaskScheduleSlotController(tasks, repo, authorization);
+        var controller = new TaskScheduleSlotController(tasks, repo, authorization, mock(TaskAuditService.class));
         assertTrue(controller.list(8L,39L).isEmpty());
         verify(authorization).requireRead(definition);
         verify(repo, never()).save(any());
@@ -69,7 +69,7 @@ class TaskScheduleSlotControllerTest {
         slot.setEnabled(false);
         when(tasks.getDefinition(8L,39L)).thenReturn(definition);
         when(repo.findByTaskDefinitionIdOrderByScheduledTimeAscSlotKeyAsc(39L)).thenReturn(List.of(slot));
-        var controller = new TaskScheduleSlotController(tasks,repo,authorization);
+        var controller = new TaskScheduleSlotController(tasks,repo,authorization,mock(TaskAuditService.class));
         var result = controller.list(8L,39L);
         assertEquals(1,result.size());
         assertFalse(result.getFirst().enabled());
