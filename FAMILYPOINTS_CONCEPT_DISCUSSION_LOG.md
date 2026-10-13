@@ -1813,3 +1813,12 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - First Google login does NOT create an arbitrary shared family or grant roles. Offer create or join family as a separate explicit action. Linking existing accounts requires authenticated confirmation; Google `sub` is the external immutable key, not email alone.
 - Keep alternative login and recovery. Web/Android use platform-appropriate flows and receive FamilyPoints JWT only after backend verification.
 - Preserve DEV-first test then pinned Contabo BETA deploy. Full approach recorded in `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` (36960ea). **Not implemented**.
+
+
+## 2026-10-13 — Join workspace request vs invitation and registration continuity
+**AGREED — user refinement**
+- **Join family/workgroup** supports (a) a pending request using a shareable group identifier, requiring authorized administrator approval, or (b) an invitation link issued by an authorized member under a defined invite policy.
+- The invitation context **must persist through full account creation**, including username/password registration or Google login, redirects, verification and first authorization, so the newcomer can review and accept the invitation after signup.
+- One global account may join multiple family/workgroup workspaces with distinct member profiles/roles; the invitation never silently shares tenant resources.
+- Expiry, revocation, recipient restrictions, single-use/replay protection and atomic membership handling are necessary. Detailed implementation plan recorded in `docs/MULTI_FAMILY_ONBOARDING_PLAN.md`.
+**STATUS:** documented only; no API/UI or BETA deployment yet.
