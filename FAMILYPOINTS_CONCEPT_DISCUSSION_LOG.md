@@ -1772,3 +1772,7 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - Both Web and Android must use server-generated occurrence identities and the same definition/date/slotKey contract. Creation of multiple daily times uses a single atomic task creation request rather than post-create API loops.
 - Children execute only their own TaskInstance; scoped task managers may confirm one dated slot as completed. Disabled/removed schedule definitions do not erase historical ledger or audits.
 - Offline schedule cache remains read-only; starting or confirming an occurrence requires connectivity.
+
+## 2026-10-13 — Explicit recurrence slot isolation
+- When explicit slots exist, the legacy implicit "default" occurrence is no longer a valid entry point for start or manager completion, regardless of whether individual templates are disabled. This closes duplicate completion and reward paths; historic default instances are retained in history.
+- Mobile schedule projections are sorted by scheduled time; only PLANNED own occurrences offer Start.
