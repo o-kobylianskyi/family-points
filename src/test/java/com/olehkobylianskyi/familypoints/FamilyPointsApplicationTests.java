@@ -241,6 +241,93 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    @Transactional
+    void joinCodeRequiresManagerApprovalAndBlocksDuplicatePendingRequests() {
+        Workspace workspace = new Workspace("Join test family");
+        Workspace outsider = new Workspace("Join test outsider");
+        entityManager.persist(workspace);
+        entityManager.persist(outsider);
+        WorkspaceRole role = new WorkspaceRole(workspace, "CHILD", "Join member role", false);
+        entityManager.persist(role);
+        UserAccount applicant = new UserAccount("test-join-applicant", "hash", null);
+        UserAccount reviewer = new UserAccount("test-join-reviewer", "hash", null);
+        entityManager.persist(applicant);
+        entityManager.persist(reviewer);
+        entityManager.flush();
+
+        var identity = org.mockito.Mockito.mock(
+                com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(applicant);
+        var joins = new com.olehkobylianskyi.familypoints.service.WorkspaceJoinService(jdbc, identity);
+        String code = joins.rotateJoinCode(workspace.getId());
+        assertEquals(48, code.length());
+        joins.requestJoin(code);
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT count(*) FROM workspace_join_requests
+            WHERE requester_account_id=? AND workspace_id=? AND status='PENDING'
+            """, Integer.class, applicant.getId(), workspace.getId()));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT count(*) FROM account_workspace_memberships
+            WHERE account_id=? AND workspace_id=?
+            """, Integer.class, applicant.getId(), workspace.getId()));
+        assertEquals(409, assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> joins.requestJoin(code)).getStatusCode().value());
+
+        Long requestId = jdbc.queryForObject("""
+            SELECT id FROM workspace_join_requests
+            WHERE requester_account_id=? AND workspace_id=? AND status='PENDING'
+            """, Long.class, applicant.getId(), workspace.getId());
+        org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(reviewer);
+        joins.approveRequest(workspace.getId(), requestId, role.getId(), "Approved tester");
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT count(*) FROM account_workspace_memberships
+            WHERE account_id=? AND workspace_id=?
+            """, Integer.class, applicant.getId(), workspace.getId()));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT count(*) FROM account_workspace_memberships
+            WHERE account_id=? AND workspace_id=?
+            """, Integer.class, applicant.getId(), outsider.getId()));
+        assertEquals("APPROVED", jdbc.queryForObject("""
+            SELECT status FROM workspace_join_requests WHERE id=?
+            """, String.class, requestId));
+    }
+
+    @Test
+    @Transactional
+    void invitationContextCanBeRedeemedOnlyOnceAndOnlyInInvitingWorkspace() {
+        Workspace family = new Workspace("Invitation flow family");
+        Workspace outsider = new Workspace("Invitation flow outsider");
+        entityManager.persist(family);
+        entityManager.persist(outsider);
+        WorkspaceRole role = new WorkspaceRole(family, "CHILD", "Invite member role", false);
+        entityManager.persist(role);
+        UserAccount inviter = new UserAccount("test-invite-manager", "hash", null);
+        UserAccount invitee = new UserAccount("test-invite-user", "hash", null);
+        entityManager.persist(inviter);
+        entityManager.persist(invitee);
+        entityManager.flush();
+
+        var identity = org.mockito.Mockito.mock(
+                com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(inviter);
+        var invitations = new com.olehkobylianskyi.familypoints.service.WorkspaceInvitationService(jdbc, identity);
+        var issued = invitations.issue(family.getId(), role.getId());
+        assertEquals(family.getName(), invitations.preview(issued.token()).workspaceName());
+        var context = invitations.begin(issued.token());
+        assertEquals(family.getName(), invitations.resume(context.handle()).workspaceName());
+        org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(invitee);
+        assertEquals(family.getId(), invitations.accept(context.handle(), "Joined tester"));
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT count(*) FROM account_workspace_memberships WHERE account_id=? AND workspace_id=?
+            """, Integer.class, invitee.getId(), family.getId()));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT count(*) FROM account_workspace_memberships WHERE account_id=? AND workspace_id=?
+            """, Integer.class, invitee.getId(), outsider.getId()));
+        assertEquals(404, assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> invitations.accept(context.handle(), "Again")).getStatusCode().value());
+    }
+
+    @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
