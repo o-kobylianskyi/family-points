@@ -922,3 +922,9 @@
 - Wired `/register` route into `App.jsx` (b6ed94f), conditional entry point in `LoginPage.jsx` (47d8219). UI is hidden unless `VITE_ENABLE_FAMILY_REGISTRATION=true`; backend separately defaults `familypoints.registration.enabled=false`. Both must be explicitly enabled on isolated DEV only after security review. Existing BETA is untouched.
 - Extended `scripts/dev/check-onboarding.ps1` (7955bb2) to build React frontend in addition to Java compilation and optional tests.
 - NOT YET TESTED: Maven, React build, local DEV HTTP signup, duplicate username race, abuse limits, invitation continuity, Google OIDC. Do not expose public signups.
+
+## 2026-10-13 — Visual DEV onboarding without real user data (COMMITTED / BUILD UNVERIFIED)
+- `RegisterFamilyPage.jsx` (a6e9646): /register now renders by default as a **visual-only demo**, without needing VITE_ENABLE_FAMILY_REGISTRATION. Includes sample data button, local validation and a client-only next-step preview of family/parent/admin role/POINTS. In default mode submission does NOT call backend and does NOT save passwords, memberships or workspace records.
+- `LoginPage.jsx` (8fc80f2): always shows a link to the demo registration route.
+- Intentional guard: real registration remains separately disabled in backend by default; production form can only call server if VITE_ENABLE_FAMILY_REGISTRATION=true and backend registration explicitly enabled. Do not enable during visual checks.
+- This is frontend-only; no changes to Contabo BETA. React build and browser behavior must be verified on local laptop after Git update and Vite restart. Never use real personal data in demo.
