@@ -799,3 +799,9 @@
 - Investigated GitHub CI 38409207973: backend test `TaskManagerCompletionTest.alreadyCompletedInstanceDoesNotDebitOrRewardAgain` crashed because its mocked TaskService lacked the newly accessed TaskScheduleSlotRepository; Web passed.
 - Fixed fixture injection and added regression verifying manager completion of implicit `default` is rejected if explicit slots exist (ee5b627).
 - Verified GitHub CI 38427778510: Backend Java/Maven/PostgreSQL Testcontainers SUCCESS, Web/Vite SUCCESS; Android runner SDK37 setup still FAILS. Prior local Android assembleDebug was reported SUCCESS; latest Kotlin source requires separate local check.
+
+## 2026-10-13 — Multi-slot economy idempotency tests
+- Added two-slot regression in TaskManagerCompletionTest: separate completed occurrences earn 1 point and 2 reputation each; repeat confirmation does not repeat reward (34a366b, eb6e3ad).
+- Added separate missed-slot regression: instances 71 and 72 each incur one penalty of 1 point and -2 reputation; repeat miss does not charge again (c490161). Completed test actor fixture for audit path (278dc92).
+- Verified GitHub Actions 38430152420 at 278dc92: Backend Java21/PostgreSQL Testcontainers Maven tests SUCCESS, Web Vite SUCCESS. Android runner SDK37 setup still FAILS (unrelated).
+- Existing safeguards include per-instance rewardProcessed/penaltyProcessed state and row locking for instance actions or definition locking for manager completion. Further DB concurrency/fault-injection and reward negotiation tests remain open.
