@@ -943,3 +943,11 @@ Before each substantial implementation batch:
 - [ ] Run Maven unit and PostgreSQL integration tests; verify full identity lifecycle
 - [ ] Add real API-level onboarding tests and address any failures
 - [ ] Leave public signup and first-family flags disabled until release review
+
+## 2026-10-13 — Global account switcher fixes
+- [x] Audit existing /auth/workspaces selection and scoped JWT; avoid parallel implementation
+- [x] Fix /api/me/workspaces on account with no families
+- [x] Adapt selected-workspace unit test and add empty-list regression
+- [ ] Run local Maven tests and full Testcontainers gate after safe git pull
+- [ ] Complete signup -> first-family -> workspace-selection HTTP integration coverage
+- [ ] Implement provider-subject-verified Google identity binding, not email-only linking
