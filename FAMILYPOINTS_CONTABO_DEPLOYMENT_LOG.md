@@ -78,3 +78,11 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - This establishes component availability and unchanged count of 1C DNAT entries, **not** complete packet-level availability of the 1C route, WireGuard handshake, or firewall isolation.
 - No BETA containers, database, migrations, HTTPS BETA or Android-to-BETA connections have yet been run or verified.
 - Next: recheck UFW and existing VPN/1C external path, safely validate Compose configuration, and investigate Flyway baseline before starting backend. Preserve existing Docker/firewall/NAT behavior and do not publish new ports.
+
+## 2026-10-13 — Repository deployed as source checkout (USER-VERIFIED)
+- User created /opt/familypoints-beta, assigned owner adminfp, and cloned o-kobylianskyi/family-points branch feature/task-soft-delete via Git HTTPS.
+- Git 2.43.0; git status reported clean, up to date with origin/feature/task-soft-delete. Project deployment Docker/Compose files, scripts and all three journals present on VPS.
+- This is a **source checkout**, not running BETA containers or a released service.
+- Inspected current GIT_FLYWAY_SETUP.md: existing local DB is version-1-baselined; generating a proper initial clean-install SQL baseline needs careful reconciliation with later migrations. Fresh empty PostgreSQL startup is NOT yet proven.
+- Inspected JwtService; JWT_SECRET MUST contain sufficiently strong Base64-encoded random bytes. Corrected .env.beta.example (commit 9012064).
+- Next: pull latest commit; create private local .env with independent secrets (do not print/upload); validate Compose config syntax with --quiet; check database bootstrap plan before starting backend; maintain external 1C forwarding and VPN intact.
