@@ -128,3 +128,10 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - Existing `dev.family-point.com` and `api-dev.family-point.com` certificates remain listed, expiration 2027-01-06.
 - This verifies certificate issuance only. BETA port 443 host Nginx listener, UFW allow 443, browser HTTPS, redirect, renewal reloading and authorization remain PENDING.
 - Next: add a separate Nginx TLS vhost for apex on 443 using loopback upstream 127.0.0.1:18080, run nginx -t then reload and local curl with --resolve; inspect DNS and UFW then enable 443 with least privilege. Preserve DEV/1C rules.
+
+## 2026-10-13 — Local HTTPS 443 through host Nginx verified (USER-VERIFIED)
+- Operator reloaded host Nginx successfully (`sudo systemctl reload nginx`).
+- `curl -i --resolve family-point.com:443:127.0.0.1 https://family-point.com/api/client-health` returned HTTP/1.1 200 with JSON `{"status":"UP","service":"family-points"}`. TLS validation succeeded using curl defaults.
+- Confirms local TLS host Nginx -> BETA loopback web proxy -> Spring Boot route. Explicit DNS override means **public reachability was not tested**.
+- Dedicated host port 443 still needs UFW allowance and external network verification; independently check React HTML, login bootstrap, permissions, Android access and 1C forwarding.
+- Preserve existing DEV port 8443 and 1C DNAT; after UFW change compare NAT count and WireGuard service, then check from external client.
