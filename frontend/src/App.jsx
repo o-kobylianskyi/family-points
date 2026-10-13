@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import AppLayout from './components/AppLayout'
 
 import LoginPage from './pages/LoginPage'
+import RegisterFamilyPage from './pages/RegisterFamilyPage'
 import DashboardPage from './pages/DashboardPage'
 import MembersPage from './pages/MembersPage'
 import GroupPage from './pages/GroupPage'
@@ -27,6 +28,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/register" element={<RegisterFamilyPage />} />
           <Route
             path="/login"
             element={<LoginPage />}
