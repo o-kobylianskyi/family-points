@@ -835,3 +835,12 @@ Before each substantial implementation batch:
 - [ ] **User-run script** on laptop with Java 21 and Docker Desktop; capture PASS or validation error
 - [ ] Review generated V1 SQL; commit to feature branch only after V1..V20 and JPA validation pass
 - [ ] Implement invite-only family administrator registration and setup UI
+
+
+## 2026-10-13 — Joining another family/workspace (AGREED; TODO)
+- [ ] Public non-enumerable family/workgroup join identifier -> authenticated pending request -> authorized manager approval/decline
+- [ ] Secure expiring/revocable workspace invitation links with configurable recipient, role and uses
+- [ ] Preserve invite context across registration, Google OIDC redirect, email verification and login
+- [ ] Authenticated invitation review, accept/decline and transactional idempotent membership creation
+- [ ] Negative tests: expired/revoked/replayed invites, wrong user, races, workspace isolation
+- [ ] DEV acceptance before Contabo BETA deployment
