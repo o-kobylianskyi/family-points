@@ -19,6 +19,27 @@ class TaskManagementViewTest {
     @InjectMocks TaskService tasks;
 
     @Test
+    void createdViewDoesNotExposeTasksAuthoredByAnotherMember() throws Exception {
+        try (var mocks = MockitoAnnotations.openMocks(this)) {
+            when(workspaces.findById(5L)).thenReturn(java.util.Optional.of(mock(Workspace.class)));
+            var account = mock(UserAccount.class);
+            var me = mock(WorkspaceMember.class);
+            when(me.getId()).thenReturn(11L);
+            when(currentUser.getCurrentAccount()).thenReturn(account);
+            when(account.getWorkspaceMember()).thenReturn(me);
+            var mine = mock(TaskDefinition.class);
+            var another = mock(TaskDefinition.class);
+            var foreignAuthor = mock(WorkspaceMember.class);
+            when(foreignAuthor.getId()).thenReturn(22L);
+            when(mine.getCreatedBy()).thenReturn(me);
+            when(another.getCreatedBy()).thenReturn(foreignAuthor);
+            when(definitions.findByWorkspaceIdOrderByIdAsc(5L)).thenReturn(List.of(mine, another));
+
+            assertEquals(List.of(mine), tasks.getDefinitionsByParticipation(5L, "created"));
+        }
+    }
+
+    @Test
     void adminViewContainsAuthorOrScopedManagerWithoutExplicitAdminParticipation() throws Exception {
         try (var mocks = MockitoAnnotations.openMocks(this)) {
             var workspace = mock(Workspace.class);
