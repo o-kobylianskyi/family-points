@@ -91,3 +91,11 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - User ran `git pull --ff-only` in `/opt/familypoints-beta`, created an untracked private `.env` via cryptographic random DB password and Base64 JWT signing key, permissions 0600, and ran `sudo docker compose --env-file .env -f compose.beta.yml config --quiet`. Command completed with `BETA configuration validation completed`. Values were not shared.
 - **Correction to old Flyway warnings:** the CURRENT remote branch DOES contain `src/main/resources/db/migration/V1__baseline_schema.sql` (42,990 bytes, historical pre-V2 JPA schema, no user rows according to header) and `scripts/db/generate-v1-baseline.ps1`. Prior handover statement that V1 is absent was out of date. `GIT_FLYWAY_SETUP.md` itself has outdated pre-generation instructions. Clean V1+later migration execution remains untested on VPS; absence of V1 is no longer the blocker.
 - User has not run BETA containers or Flyway migrations yet. Next: validate full fresh DB bootstrap and actual backend startup, starting with private-only Docker network and loopback Web. Check WireGuard/1C NAT before and after. Preserve existing persistent data and never run `down -v`.
+
+## 2026-10-13 — PostgreSQL BETA started (USER-VERIFIED)
+- On VPS under /opt/familypoints-beta, operator ran `sudo docker compose --env-file .env -f compose.beta.yml up -d database`.
+- Docker pulled `postgres:17-alpine`, created `family-points-beta_internal` network and `family-points-beta_beta_postgres` persistent volume, and started `family-points-beta-database-1`.
+- Immediate `docker compose ps`: database Up, health starting, no host port binding (only internal 5432/tcp).
+- `pg_isready -U family_points -d family_points` returned `accepting connections`. This proves database listener availability, not Flyway schema correctness.
+- Backend/Web not started, migrations not tested, public HTTPS and Android not deployed.
+- NEXT: confirm database healthy and check Docker/UFW/WireGuard/1C safety; build backend and run Flyway migrations; verify migration count and HTTP readiness. Never run `down -v`.
