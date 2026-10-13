@@ -794,3 +794,8 @@
 - Server TaskService now rejects START and manager COMPLETE with implicit "default" slotKey whenever any explicit slots are configured, including disabled templates; avoids duplicate out-of-band occurrence/rewards (1f963ae).
 - Android tasks list displays planned occurrences in chronological time order, and Start button is guarded by PLANNED status as well as member/date/connectivity checks (0f6b793).
 - Local Kotlin regression/testDebugUnitTest results are not yet available for this package; Android CI remains SDK37 blocked. Manual child/parent and slot status smoke test remains mandatory.
+
+## 2026-10-13 — Regression gate for explicit slots
+- Investigated GitHub CI 38409207973: backend test `TaskManagerCompletionTest.alreadyCompletedInstanceDoesNotDebitOrRewardAgain` crashed because its mocked TaskService lacked the newly accessed TaskScheduleSlotRepository; Web passed.
+- Fixed fixture injection and added regression verifying manager completion of implicit `default` is rejected if explicit slots exist (ee5b627).
+- Verified GitHub CI 38427778510: Backend Java/Maven/PostgreSQL Testcontainers SUCCESS, Web/Vite SUCCESS; Android runner SDK37 setup still FAILS. Prior local Android assembleDebug was reported SUCCESS; latest Kotlin source requires separate local check.
