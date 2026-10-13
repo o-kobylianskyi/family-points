@@ -44,6 +44,7 @@ fun TaskDetailsScreen(
     currentUser: CurrentUserResponse,
     definitionId: Long,
     selectedDate: String,
+    selectedSlotKey: String = "default",
     repository: TaskDetailsRepository,
     onLanguageChange: (AppLanguage) -> Unit,
     onLogout: () -> Unit,
@@ -73,7 +74,8 @@ fun TaskDetailsScreen(
             data = repository.load(
                 currentUser.workspaceId,
                 definitionId,
-                selectedDate
+                selectedDate,
+                selectedSlotKey
             )
         } catch (exception: HttpException) {
             if (exception.code() == 401) onUnauthorized()
