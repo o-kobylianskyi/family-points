@@ -98,3 +98,12 @@ An identity is **global to the platform** while memberships, member profiles and
 
 ### Delivery priority
 Tenant security audit and compatible global-account multi-membership foundation -> transactional registration / family bootstrap -> responsive Web and native Android signup/setup -> default economy -> personalized optional template recommendations -> family-to-family isolation acceptance testing. Do not bypass this with manually inserted database accounts.
+
+
+## 2026-10-13 — Delivery order: DEV first, BETA second (AGREED)
+- Build and refine the public-family signup, multi-workspace membership, and optional family-composition-based onboarding templates in the existing laptop **DEV** environment first.
+- Complete backend authorization/tenant-isolation changes and Web/Android flows on DEV; test two independent families, a single account linked to more than one family, setup retry/idempotency and core task/economy scenarios.
+- Run backend integration tests, Web build and local Android build; fix regressions before any server rollout.
+- After DEV acceptance, mark a specific Git commit as the candidate, back up the BETA PostgreSQL volume/database, review pending Flyway migrations and deploy **that exact commit** to Contabo. Avoid blindly pulling and restarting the public deployment on every development commit.
+- Post-deploy smoke-check HTTPS API/Web, authenticate real BETA-created users, verify cross-family isolation, Android API connectivity, and that WireGuard/1C forwarding remains intact. Revert application image to the previous pinned version if necessary; do not roll back database migrations blindly.
+- Current Contabo BETA (already running) remains unchanged while DEV onboarding development proceeds. No manual SQL betaadmin shortcut.
