@@ -122,3 +122,6 @@ jobs:
           test -f Dockerfile.beta
           test -f frontend/Dockerfile.beta
           test -f frontend/deploy/nginx.beta.conf
+          bash -n scripts/beta/smoke.sh
+          bash -n scripts/beta/backup.sh
+          test -f .env.beta.example
