@@ -21,9 +21,18 @@ android {
 
     buildTypes {
         debug {
+            // Override only for an explicit BETA test build:
+            // ./gradlew :app:assembleDebug -PfamilyPointsDebugApiUrl=https://beta.example.com/
+            val debugApiUrl = providers.gradleProperty("familyPointsDebugApiUrl")
+                .orElse("https://api-dev.family-point.com:8443/")
+                .get()
+                .trimEnd('/') + "/"
+            require(debugApiUrl.startsWith("https://")) {
+                "Debug API URL must use HTTPS"
+            }
             buildConfigField(
                 "String", "API_BASE_URL",
-                "\"https://api-dev.family-point.com:8443/\""
+                "\"$debugApiUrl\""
             )
         }
         release {
