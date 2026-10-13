@@ -70,3 +70,11 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - Added read-only `scripts/beta/contabo-docker-preflight.sh` (commit `6b622e6`) to report OS/resources/services/socket listeners, firewall config fingerprints, existing NAT 8080 count and backup directory presence without dumping secrets or full allowlists.
 - Deployment control: Docker/UFW packet-filter interactions are a material risk to existing WireGuard/1C forwarding; preserve current rules and compare before/after. Docker installation on VPS not performed by GitHub connector.
 - Requested user to run read-only preflight first. Await observed results before executing potentially disruptive package installation or daemon startup. No claims of live Docker/BETA deployment or successful external 1C check.
+
+## 2026-10-13 — Docker installed on Contabo (USER-VERIFIED CLI)
+- User installed Ubuntu distribution packages: Docker Engine 29.1.3 and Docker Compose 2.40.3.
+- Commands and reported outputs: `sudo docker --version` Docker version 29.1.3; `sudo docker compose version` version 2.40.3; `systemctl is-active docker` active; `systemctl is-active wg-quick@wg0` active; `sudo nginx -t` syntax and configuration test successful.
+- Existing 1C PREROUTING TCP 8080 NAT entry count stayed at 2 after Docker install.
+- This establishes component availability and unchanged count of 1C DNAT entries, **not** complete packet-level availability of the 1C route, WireGuard handshake, or firewall isolation.
+- No BETA containers, database, migrations, HTTPS BETA or Android-to-BETA connections have yet been run or verified.
+- Next: recheck UFW and existing VPN/1C external path, safely validate Compose configuration, and investigate Flyway baseline before starting backend. Preserve existing Docker/firewall/NAT behavior and do not publish new ports.
