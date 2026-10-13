@@ -917,3 +917,13 @@ Before each substantial implementation batch:
 - [ ] Run `scripts/dev/check-onboarding.ps1 -BackendOnly -WithTests` locally
 - [ ] Investigate any test failure before changing Flyway/production code
 - [ ] Add concurrency/idempotency tests only after complete suite passes
+
+## 2026-10-13 — Invitation/join development phase closed for now
+- [x] Join codes, manager review/approve/reject, expiring/revocable invitations, pending invitation context, workspace-local membership and permission isolation implemented in DEV branch.
+- [x] Unit and Testcontainers integration scenarios added for happy path, repeat use, revoke/reject, role isolation, manager HTTP access.
+- [ ] Full suite after latest commits NOT CONFIRMED. Keep as final release gate, not an ongoing feature development thread.
+- [ ] Concurrency edge cases (simultaneous approve/invite acceptance, revoke vs accept) need explicit test and robust conflict handling before public rollout.
+- [ ] Email-bound invitations and rate limiting remain out of public-release scope until identity/login work completes.
+- [ ] User has local uncommitted FamilyPointsApplicationTests.java edits. Preserve them in stash before git pull; compare after update, do not blindly pop.
+- [ ] No Contabo deployment, registration/public invite enablement until integration tests and security review pass.
+**Next main development:** account identity lifecycle, password registration, account without family, Google OAuth subject binding, workspace selection; UI updates only to verify completed workflows.
