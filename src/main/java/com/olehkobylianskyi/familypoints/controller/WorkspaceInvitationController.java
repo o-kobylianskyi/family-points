@@ -13,10 +13,19 @@ public class WorkspaceInvitationController {
         this.invitations = invitations;
     }
 
+    public record IssueRequest(Long roleId) {}
+    public record AcceptRequest(String handle, String memberName) {}
+
+    @PostMapping("/accept")
+    @PreAuthorize("isAuthenticated()")
+    public java.util.Map<String, Long> accept(@RequestBody AcceptRequest body) {
+        return java.util.Map.of("workspaceId", invitations.accept(body.handle(), body.memberName()));
+    }
+
     @PostMapping("/workspaces/{workspaceId}")
     @PreAuthorize("@workspaceSecurity.canManageMembers(#workspaceId)")
-    public WorkspaceInvitationService.Invitation issue(@PathVariable Long workspaceId) {
-        return invitations.issue(workspaceId);
+    public WorkspaceInvitationService.Invitation issue(@PathVariable Long workspaceId, @RequestBody IssueRequest body) {
+        return invitations.issue(workspaceId, body.roleId());
     }
 
     // Authenticated preview for DEV; anonymous landing requires separate abuse protection.
