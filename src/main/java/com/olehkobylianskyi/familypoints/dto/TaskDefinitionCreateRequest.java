@@ -117,6 +117,14 @@ public class TaskDefinitionCreateRequest {
      */
     private LocalTime dueTime;
 
+    @Size(max = 12)
+    private java.util.List<@NotNull LocalTime> initialSlotTimes = new java.util.ArrayList<>();
+
+
+    public java.util.List<LocalTime> getInitialSlotTimes() { return initialSlotTimes; }
+    public void setInitialSlotTimes(java.util.List<LocalTime> value) {
+        this.initialSlotTimes = value == null ? new java.util.ArrayList<>() : value;
+    }
 
     public TaskDefinitionCreateRequest() {
     }
