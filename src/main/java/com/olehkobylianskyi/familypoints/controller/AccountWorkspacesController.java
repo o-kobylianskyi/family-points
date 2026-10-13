@@ -29,15 +29,22 @@ public class AccountWorkspacesController {
     @Transactional(readOnly = true)
     public ResponseEntity<List<WorkspaceChoice>> list() {
         var account = currentUser.getCurrentAccount();
-        var activeWorkspaceId = currentUser.getCurrentWorkspaceId();
+        Long activeWorkspaceId = null;
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getDetails() instanceof
+                com.olehkobylianskyi.familypoints.security.WorkspaceAuthenticationDetails details) {
+            activeWorkspaceId = details.workspaceId();
+        }
+        final Long selectedWorkspaceId = activeWorkspaceId;
         var choices = memberships.findAllByAccountIdOrderByIdAsc(account.getId())
                 .stream()
-                .filter(link -> link.getWorkspaceMember().isActive())
+                .filter(link -> link.getWorkspaceMember().isActive()
+                        && link.getWorkspaceMember().getDeletedAt() == null)
                 .map(link -> {
                     var member = link.getWorkspaceMember();
                     var workspace = member.getWorkspace();
                     return new WorkspaceChoice(workspace.getId(), workspace.getName(),
-                            member.getId(), member.getName(), workspace.getId().equals(activeWorkspaceId));
+                            member.getId(), member.getName(), workspace.getId().equals(selectedWorkspaceId));
                 })
                 .toList();
         return ResponseEntity.ok(choices);
