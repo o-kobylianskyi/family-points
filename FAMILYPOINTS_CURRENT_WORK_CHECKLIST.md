@@ -893,3 +893,11 @@ Before each substantial implementation batch:
 - [ ] Validate V27, V28, V29 against isolated PostgreSQL with Flyway
 - [ ] Verify two-family signed JWT and malicious cross-tenant access
 - [ ] Only after the above: onboarding registration and Google identity integration
+
+## 2026-10-13 — Isolated PostgreSQL test gate
+- [x] Add Testcontainers migration V27–V29 verification
+- [x] Add cross-workspace DB role integrity checks (member + invitation)
+- [x] Add family-less global identity persistence and provider-subject uniqueness tests
+- [ ] Rerun full Maven test suite with Docker Desktop available; inspect surefire-reports for failures
+- [ ] Confirm clean PASS before enabling new registration or Google auth
+- [ ] Run invite/join HTTP API multi-family functional tests in disposable DB
