@@ -99,3 +99,13 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - `pg_isready -U family_points -d family_points` returned `accepting connections`. This proves database listener availability, not Flyway schema correctness.
 - Backend/Web not started, migrations not tested, public HTTPS and Android not deployed.
 - NEXT: confirm database healthy and check Docker/UFW/WireGuard/1C safety; build backend and run Flyway migrations; verify migration count and HTTP readiness. Never run `down -v`.
+
+## 2026-10-13 — BETA backend first successful start (USER-VERIFIED LOG)
+- Operator supplied Docker Compose backend log for server-side startup at 2026-10-13 18:14–18:15 UTC.
+- Spring Boot 4.1.1 with Java 21.0.12.1 started using `beta` profile. Tomcat started on internal HTTP port 8080; application completed startup in 18.304 seconds. Log says process running at startup; continuous health still needs a fresh check.
+- Hikari acquired PostgreSQL connection via `jdbc:postgresql://database:5432/family_points`; DB reports PostgreSQL 17.11.
+- Flyway validated and executed 26 migrations on the fresh, previously empty schema: V1 initial baseline schema through V26 task-instance occurrence slot; log explicitly states `Successfully applied 26 migrations ... version v26`.
+- Hibernate 7.4.5.Final initialized JPA EntityManagerFactory; no schema validation error in supplied startup log. Historic assumption that missing V1 blocks fresh database deployment is decisively **SUPERSEDED**.
+- Non-fatal warnings: custom AuthenticationProvider bypassing auto UserDetailsService configuration; spring.jpa.open-in-view enabled by default. Review before public beta.
+- Still unverified: remote REST health response, initial user bootstrap, external HTTPS, React Web routing, Android access, persistence across reboot and actual external 1C forwarding.
+- Next: start the BETA Web/Nginx container on loopback only; run host-local `/healthz` and `/api/client-health` smoke tests; inspect UFW/WireGuard/1C after Docker network creation; proceed to isolated HTTPS edge and controlled account provisioning.
