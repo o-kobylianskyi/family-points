@@ -976,3 +976,11 @@
 - Extended Testcontainers PostgreSQL tests: invitation created and pending context established, then revoked; subsequent resume/accept returns 404 and cannot create membership. Rejected join request drops from pending queue, cannot subsequently be approved and does not create membership (99cf990).
 - Coverage now includes manager-only HTTP join-code rotation, cross-workspace deny, duplicate joins, approvals, redemptions, revocation and rejection. These are automated test definitions, not yet confirmed passing.
 - No real data and no Contabo BETA changes. Await local Maven full suite.
+
+## 2026-10-13 — Global-account-only signup foundation (PARTIAL, UNTESTED)
+- Implemented `GlobalAccountRegistrationService` (2d12637): validates credentials, hashes password and saves a global UserAccount without a primary family; relies on existing V29 nullable family_member_id.
+- Added `GlobalAccountRegistrationController` (6ff086d) on POST /auth/register-account, gated by `familypoints.global-account-registration.enabled:false` (default OFF).
+- Added isolated service tests (56562dd) for invalid/duplicate username and no implicit family membership; NOT RUN.
+- **Blocking issue:** SecurityConfig still requires authentication for /auth/register-account. Attempts to update SecurityConfig were blocked; anonymous registration is not operational even if flag enabled. Keep the flag OFF.
+- AdditionalFamilyController still requires workspace manager authority, so family-less accounts cannot yet create first family. Must complete cohesive account creation/first-family flow after authorization and test review.
+- No deployment, database migration or frontend changes. Contabo BETA unchanged.
