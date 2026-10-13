@@ -782,3 +782,9 @@
 - TaskDetailsScreen now reloads on selectedSlotKey changes, shows virtual PLANNED occurrence actions for an assigned member and for managers, allows manager completion on existing PENDING/IN_PROGRESS dated slots, and hides execute controls for anyone other than the actual instance member (8c959d9, 90d4cb5). Delegation button now requires actual executor or manager.
 - Android TaskDefinitionCreateRequest includes initialSlotTimes (e4953a8). CreateTaskScreen supports 2–12 time entries for ONCE and recurring schedules, localized section label, duplicate/invalid time validation, and uses the same atomic Backend create API as Web (2407790); '+' suggests the next hour (fe5e5e9).
 - Android CI cannot install SDK37 on hosted runner; do not mark Android Kotlin compilation PASS until user runs local Gradle/Android Studio. Backend/Web CI pending for latest branch head.
+
+## 2026-10-13 — Android virtual schedule REST contract hardening
+- Examined current Android screen and actual Spring TaskScheduleOccurrenceResponse record. Android Kotlin model wrongly expected fields definitionId/date/time while backend emits taskDefinitionId/scheduledDate/scheduledTime; Gson would silently leave members at defaults. Fixed with @SerializedName mappings (c5347f8).
+- Added JVM Gson deserialization regression for virtual occurrence with exact JSON field names, date, time, occurrence key and null instanceId (ed89223).
+- Schedule retrieval failure now falls back to workspace/viewer/member/date-scoped cached schedule without hiding persisted task list. HTTP 401 still triggers normal reauthentication (4bff391).
+- Android :app:assembleDebug was reported BUILD SUCCESSFUL by user before this batch. Re-run :app:testDebugUnitTest :app:assembleDebug locally after pulling these new changes, because hosted CI cannot provision Android SDK 37. No claim of successful post-change Kotlin tests until their result.
