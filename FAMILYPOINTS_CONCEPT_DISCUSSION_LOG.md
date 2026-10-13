@@ -1806,3 +1806,10 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 **AGREED:** User clarifies first BETA-run should present registration and creation of a **new isolated family**; FamilyPoints is intended as a public multi-tenant service. One global user/account may participate in multiple independent families, later also workgroups/business spaces, with different memberships, profiles and rights. Initialization templates are optional recommendations informed by family composition, members' ages and optional gender/preferences, producing editable tasks and economy defaults. Avoid compulsory attributes, intrusive collection or automatic gender stereotyping.
 **SUPERSEDED:** proposed manual SQL `betaadmin` bootstrap and architecture limited to one workspace per account. A temporary gated rollout may exist but cannot replace genuine signup.
 **STATUS:** design affirmed; no registration endpoint or wizard implementation was executed. Detailed plan updated in `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` (941cb3e).
+
+## 2026-10-13 — Optional Google sign-in for FamilyPoints
+**PROPOSED / PLANNED — user suggested adding Google registration**
+- Support traditional username/password login plus optional Google OpenID Connect for a platform-global identity, reusable across separate family workspaces.
+- First Google login does NOT create an arbitrary shared family or grant roles. Offer create or join family as a separate explicit action. Linking existing accounts requires authenticated confirmation; Google `sub` is the external immutable key, not email alone.
+- Keep alternative login and recovery. Web/Android use platform-appropriate flows and receive FamilyPoints JWT only after backend verification.
+- Preserve DEV-first test then pinned Contabo BETA deploy. Full approach recorded in `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` (36960ea). **Not implemented**.
