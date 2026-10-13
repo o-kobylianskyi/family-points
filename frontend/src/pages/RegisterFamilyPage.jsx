@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import { registerFirstFamily } from '../api/registrationApi'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 
-const ENABLED = import.meta.env.VITE_ENABLE_FAMILY_REGISTRATION === 'true'
+const LIVE_REGISTRATION = import.meta.env.VITE_ENABLE_FAMILY_REGISTRATION === 'true'
+const DEMO = { username: 'demo_parent', password: 'DemoPassword123!', ownerName: 'Тестовий учасник', familyName: 'Демонстраційна сім’я' }
 
 export default function RegisterFamilyPage() {
   const { currentUser, login } = useAuth()
@@ -12,9 +13,9 @@ export default function RegisterFamilyPage() {
   const [form, setForm] = useState({ username: '', password: '', ownerName: '', familyName: '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [preview, setPreview] = useState(false)
 
-  if (currentUser) return <Navigate to="/" replace />
-  if (!ENABLED) return <Navigate to="/login" replace />
+  if (currentUser && LIVE_REGISTRATION) return <Navigate to="/" replace />
 
   const change = (key) => (event) => setForm((previous) => ({ ...previous, [key]: event.target.value }))
   const submit = async (event) => {
@@ -30,6 +31,10 @@ export default function RegisterFamilyPage() {
     }
     if (!form.ownerName.trim() || !form.familyName.trim()) {
       setError('Введіть ім’я та назву сім’ї.')
+      return
+    }
+    if (!LIVE_REGISTRATION) {
+      setPreview(true)
       return
     }
     setBusy(true)
@@ -52,6 +57,15 @@ export default function RegisterFamilyPage() {
         <div className="brand"><div className="brand-icon">FP</div>
           <div><h1>FamilyPoints</h1><p>Створення першої сім’ї</p></div>
         </div>
+        {!LIVE_REGISTRATION && (
+          <div role="status" style={{ marginBottom: 16, padding: 12, border: "1px solid #9aa9b8", borderRadius: 8 }}>
+            <strong>ДЕМО — без запису в базу даних.</strong>
+            <p>Можна переглянути форму й наступний крок. Реальний акаунт не створюється.</p>
+            <button type="button" onClick={() => { setForm(DEMO); setPreview(false); setError("") }}>
+              Заповнити тестовими даними
+            </button>
+          </div>
+        )}
         <form onSubmit={submit}>
           <label>Назва сім’ї
             <input required maxLength={100} autoComplete="organization"
@@ -72,9 +86,20 @@ export default function RegisterFamilyPage() {
           </label>
           {error && <div className="error-message" role="alert">{error}</div>}
           <button type="submit" disabled={busy}>
-            {busy ? 'Створюємо сім’ю…' : 'Зареєструватися'}
+            {busy ? 'Створюємо сім’ю…' : LIVE_REGISTRATION ? 'Зареєструватися' : 'Переглянути результат (демо)'}
           </button>
         </form>
+        {preview && !LIVE_REGISTRATION && (
+          <div role="status" style={{ marginTop: 16, padding: 16, border: "1px solid #9aa9b8", borderRadius: 8 }}>
+            <h2>Попередній перегляд сім’ї</h2>
+            <p><strong>Сім’я:</strong> {form.familyName}</p>
+            <p><strong>Перший учасник:</strong> {form.ownerName}</p>
+            <p><strong>Роль:</strong> Адміністратор сім’ї</p>
+            <p><strong>Економіка:</strong> POINTS</p>
+            <p><strong>Статус:</strong> Лише перегляд. Жодних даних не збережено.</p>
+            <button type="button" onClick={() => setPreview(false)}>Повернутися до форми</button>
+          </div>
+        )}
         <p><Link to="/login">Уже маєте акаунт? Увійти</Link></p>
       </div>
     </div>
