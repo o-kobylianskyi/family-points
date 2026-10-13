@@ -23,6 +23,7 @@ class TaskManagerCompletionTest {
     @Mock ReputationService reputation;
     @Mock TaskAuditService audit;
     @Mock TaskRewardNegotiationService negotiations;
+    @Mock MemberExceptionPeriodRepository exceptionPeriods;
     @Mock com.olehkobylianskyi.familypoints.security.CurrentUserService currentUser;
     @InjectMocks TaskService service;
 
@@ -108,6 +109,46 @@ class TaskManagerCompletionTest {
             verify(reputation, times(2)).add(eq(8L), eq(7L), eq(2),
                     eq(ReputationTransactionSourceType.TASK), isNull(), anyString());
             verify(negotiations, times(2)).processApprovedOverride(eq(8L), any(TaskInstance.class));
+        }
+    }
+
+    @Test
+    void eachMissedSlotPenalizesOnlyOnceAndKeepsOtherSlotIndependent() throws Exception {
+        try (var ignored = MockitoAnnotations.openMocks(this)) {
+            var definition = mock(TaskDefinition.class);
+            var member = mock(WorkspaceMember.class);
+            var pointType = mock(PointType.class);
+            var date = LocalDate.now().minusDays(1);
+            when(definition.getAssignedMember()).thenReturn(member);
+            when(definition.getTitle()).thenReturn("Clean room");
+            when(definition.isMandatory()).thenReturn(true);
+            when(definition.getPenaltyPointType()).thenReturn(pointType);
+            when(definition.getPenaltyAmount()).thenReturn(1);
+            when(definition.getPenaltyReputationAmount()).thenReturn(2);
+            when(member.getId()).thenReturn(7L);
+            when(exceptionPeriods.findActiveForDate(7L, date)).thenReturn(java.util.List.of());
+            var morning = new TaskInstance(definition, member, date).withSlot("morning", java.time.LocalTime.of(9, 0));
+            var evening = new TaskInstance(definition, member, date).withSlot("evening", java.time.LocalTime.of(16, 0));
+            org.springframework.test.util.ReflectionTestUtils.setField(morning, "id", 71L);
+            org.springframework.test.util.ReflectionTestUtils.setField(evening, "id", 72L);
+            when(instances.findByIdAndWorkspaceIdForUpdate(71L, 8L)).thenReturn(Optional.of(morning));
+            when(instances.findByIdAndWorkspaceIdForUpdate(72L, 8L)).thenReturn(Optional.of(evening));
+
+            assertSame(morning, service.miss(8L, 71L));
+            assertEquals(TaskInstanceStatus.MISSED, morning.getStatus());
+            assertEquals(TaskInstanceStatus.PENDING, evening.getStatus());
+            assertSame(morning, service.miss(8L, 71L));
+            assertSame(evening, service.miss(8L, 72L));
+            assertTrue(morning.isPenaltyProcessed());
+            assertTrue(evening.isPenaltyProcessed());
+            verify(points).penalty(eq(8L), eq(7L), same(pointType), eq(1),
+                    eq(PointTransactionSourceType.TASK), eq(71L), anyString());
+            verify(points).penalty(eq(8L), eq(7L), same(pointType), eq(1),
+                    eq(PointTransactionSourceType.TASK), eq(72L), anyString());
+            verify(reputation).add(eq(8L), eq(7L), eq(-2),
+                    eq(ReputationTransactionSourceType.TASK), eq(71L), anyString());
+            verify(reputation).add(eq(8L), eq(7L), eq(-2),
+                    eq(ReputationTransactionSourceType.TASK), eq(72L), anyString());
         }
     }
 
