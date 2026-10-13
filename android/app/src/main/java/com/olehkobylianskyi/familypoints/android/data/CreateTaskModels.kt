@@ -48,7 +48,8 @@ data class TaskDefinitionCreateRequest(
     val penaltyAmount: Int?,
     val rewardReputationAmount: Int?,
     val penaltyReputationAmount: Int?,
-    val dueTime: String?
+    val dueTime: String?,
+    val initialSlotTimes: List<String> = emptyList()
 )
 
 data class CreateTaskReferenceData(
