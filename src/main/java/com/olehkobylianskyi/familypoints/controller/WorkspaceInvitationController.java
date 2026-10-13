@@ -28,6 +28,20 @@ public class WorkspaceInvitationController {
         return invitations.preview(request.token());
     }
 
+    public record ContextRequest(String value) {}
+
+    @PostMapping("/context")
+    @PreAuthorize("isAuthenticated()")
+    public WorkspaceInvitationService.PendingContext begin(@RequestBody ContextRequest request) {
+        return invitations.begin(request.value());
+    }
+
+    @PostMapping("/context/resume")
+    @PreAuthorize("isAuthenticated()")
+    public WorkspaceInvitationService.Preview resume(@RequestBody ContextRequest request) {
+        return invitations.resume(request.value());
+    }
+
     @DeleteMapping("/workspaces/{workspaceId}/{invitationId}")
     @PreAuthorize("@workspaceSecurity.canManageMembers(#workspaceId)")
     public void revoke(@PathVariable Long workspaceId, @PathVariable Long invitationId) {
