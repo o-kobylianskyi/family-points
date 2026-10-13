@@ -1776,3 +1776,8 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 ## 2026-10-13 — Explicit recurrence slot isolation
 - When explicit slots exist, the legacy implicit "default" occurrence is no longer a valid entry point for start or manager completion, regardless of whether individual templates are disabled. This closes duplicate completion and reward paths; historic default instances are retained in history.
 - Mobile schedule projections are sorted by scheduled time; only PLANNED own occurrences offer Start.
+
+## 2026-10-13 — Multi-occurrence economy isolation
+- Every execution of a task on a date with a distinct slotKey has independent rewardProcessed and penaltyProcessed flags and ledger source ID.
+- Manager confirmation is idempotent for already COMPLETED execution. A MISSED mandatory execution debits points/reputation once; another slot remains independent.
+- New tests cover distinct persisted instance IDs and repeat calls. Database-level concurrency and transaction rollback verification remain a later beta-readiness gate.
