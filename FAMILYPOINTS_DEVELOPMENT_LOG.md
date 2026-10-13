@@ -897,3 +897,9 @@
 - Added `WorkspaceInvitationServiceTest` (775ce82): invalid invite and session handles fail before DB query; privileged role issuance refused; expired/consumed invite context refused; invalid member name/handle rejected on acceptance.
 - These are fast unit-level negative tests. They do NOT prove race safety, correct membership creation, Google redirect persistence, V27 schema migration, or full tenant isolation.
 - **Not yet run** in CI/DEV; local user should fetch branch and run Maven targeted test first. Contabo BETA remains unchanged.
+
+## 2026-10-13 — Consolidated DEV onboarding validation checkpoint (COMMITTED / NOT EXECUTED)
+- Inspected existing `UserAccount`, `CustomUserDetailsService`, JWT and `FamilyWorkspaceProvisioningService`. Current account still has non-null legacy `family_member_id`, and default authentication authorities derive from that membership. Full global-identity decoupling requires coordinated migration and authorization updates, not a standalone registration endpoint.
+- Attempted commit of gated account-creation service, but GitHub action blocked the write. That Java file was NOT created; no registration API was exposed.
+- Added `scripts/dev/check-onboarding.ps1` (a48f372): single command displays git working tree, checks Flyway version inventory for V27 and duplicate numbers, compiles Java without touching DB; optional `-WithTests` runs Maven tests.
+- Script has NOT been executed on user's laptop. Run in DEV first, inspect results, then implement coordinated identity/registration with integration tests before BETA deployment. Contabo BETA unchanged.
