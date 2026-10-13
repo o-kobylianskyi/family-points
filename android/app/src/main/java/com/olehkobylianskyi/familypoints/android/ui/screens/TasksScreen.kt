@@ -505,11 +505,11 @@ fun TasksScreen(
                 }
             }
 
-            if ((loadingMembers || loadingTasks) && tasks.isEmpty() && openTasks.isEmpty()) {
+            if ((loadingMembers || loadingTasks) && tasks.isEmpty() && openTasks.isEmpty() && scheduledOccurrences.isEmpty()) {
                 item {
                     Text(text.loading)
                 }
-            } else if (tasks.isEmpty()) {
+            } else if (tasks.isEmpty() && scheduledOccurrences.isEmpty()) {
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
