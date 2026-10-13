@@ -10,6 +10,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+!.env.beta.example
 
 # IDE
 .idea/
@@ -33,3 +34,7 @@ Thumbs.db
 # Local secrets / generated archives
 *.local.properties
 *.zip
+
+# Server-side BETA database dumps (sensitive)
+backups/
+*.dump
