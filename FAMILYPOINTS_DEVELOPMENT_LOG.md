@@ -1005,3 +1005,10 @@
 - Added isolated disabled/allowed controller regression tests (0affbff), NOT RUN.
 - **Scope:** no Google account creation or association UI, no account-link flow or browser Google OAuth redirect in this package. Provisioning must require secure proof of authenticated account ownership and verified Google subject.
 - Maven build and integration tests must be run before enabling flag; existing tests from earlier packets are also unverified. Contabo BETA unchanged.
+
+## 2026-10-13 — Google account-link package completed in code (tests not yet executed)
+- Implemented authenticated POST /api/account/google/link, gated by familypoints.google.linking-enabled:false (b202120); requires current password and verified Google ID token before linking.
+- Refactored GoogleIdentityService to use the same GoogleTokenVerifier as GoogleAccountLinkService rather than maintaining separate validation logic (0b43b07).
+- Added isolated GoogleAccountLinkService and GoogleIdentityService tests for password check, unlinked subject rejection and enabled account lookup (19cd5a3, fbbdc58).
+- DB V29 unique constraints remain authoritative against duplicate provider-subject and multiple Google identities per account. Email never used for implicit linking.
+- Code committed, Maven/containers have NOT yet been executed. Flags remain disabled. No Contabo BETA change.
