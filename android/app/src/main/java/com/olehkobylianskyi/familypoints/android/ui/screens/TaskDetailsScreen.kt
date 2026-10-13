@@ -479,10 +479,10 @@ fun TaskDetailsScreen(
                                 text.subtasks,
                                 style = MaterialTheme.typography.titleLarge
                             )
-                            Button(
-                                onClick = { onCreateSubtask(task.id) }
-                            ) {
-                                Text("+ " + text.create)
+                            if (details.canManage) {
+                                Button(onClick = { onCreateSubtask(task.id) }) {
+                                    Text("+ " + text.create)
+                                }
                             }
                         }
 
@@ -540,7 +540,7 @@ fun TaskDetailsScreen(
                 }
             }
 
-            item {
+            if (details.canManage) item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
