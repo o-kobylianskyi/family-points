@@ -812,3 +812,12 @@
 - Added reward and penalty failure-injection unit tests in TaskManagerCompletionTest (5b552ace): reputation posting deliberately throws after the points service is called. Assert that the exception propagates and rewardProcessed / penaltyProcessed do not become true.
 - These are mocked-service unit tests, **not** proof of DB transaction rollback or exactly-once concurrency. JPA transaction boundaries, concurrent requests, database constraints and negotiations still need PostgreSQL/Testcontainers integration tests.
 - No production financial data or migration altered in this package. CI for commit 5b552ace requires verification.
+
+
+## 2026-10-13 — BETA deployment vertical slice (priority shift)
+- User explicitly requested stopping excessively fragmented economics packages and prioritizing a large practical Web/Android BETA deployment package.
+- Inspected actual project Spring Boot 4.1.1/Java21, Vite same-origin production API base, security routing, Android debug/release API configuration, CI and backend environment variables.
+- Added `Dockerfile.beta`, `frontend/Dockerfile.beta`, `frontend/deploy/nginx.beta.conf`, `compose.beta.yml`, `.env.beta.example` and `BETA_DEPLOYMENT.md` (commits 6ae7642, 792d2d2, 3c7fda5, b86e77d, ddaa157, ae0faa0).
+- Added Compose syntax validation CI job in bd0c84a. The stack deliberately exposes web only on 127.0.0.1:18080, uses an isolated PostgreSQL named volume and separate internal Docker network, and requires an external HTTPS reverse proxy. No user server, database or balances were modified.
+- CURRENT STATUS: files committed, server build/start/network/HTTPS/Android Beta linkage unverified. Public registration, bootstrap, cross-workspace isolation, backup/restore and external network hardening remain BETA gates.
+- NEXT: inspect actual target server OS/container support and reverse proxy; deploy to isolated host/VM; verify Flyway startup and API smoke tests; enable deliberate invitation/bootstrap and Android Beta endpoint; real family end-to-end acceptance tests.
