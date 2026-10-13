@@ -50,3 +50,16 @@ Append a dated entry after every server/deployment package. Preserve old entries
 
 ## 2026-10-13 — Log preservation decision
 User requested a dedicated, permanently maintained Contabo deployment history in GitHub. Historical descriptions are not live-state assertions.
+
+
+## 2026-10-13 — Reconciliation with captured Contabo commands from 2026-10-12 (EVIDENCE REVIEWED; NO LIVE SSH IN THIS SESSION)
+- Ubuntu 24.04.5 x86_64, approx. 7.8 GiB RAM (7.3 GiB available) and 96 GB root filesystem (94 GB free), recorded by ssh/free/df. Login with admin SSH key succeeded. Shell banner reported restart required.
+- nginx and wg-quick@wg0 were active; apache2, PostgreSQL and Docker services inactive. `nginx -t` succeeded. UFW was active with deny incoming, allow outgoing and deny routed defaults.
+- `docker --version` and `docker compose version` returned command not found. Apt package candidates at the time: docker.io 29.1.3 and docker-compose-v2 2.40.3; `docker-compose-plugin` not found under that package name in configured Ubuntu repositories. Docker installation is still PENDING.
+- Listening sockets observed: nginx TCP 80 and 8443, WireGuard UDP 51820; no listener recorded for 443/18080/5432. Absence of socket listener 8080 does NOT by itself disprove 1C DNAT forwarding, which acts in NAT instead of a local service.
+- Observed UFW FORWARD rules covered eight main external source addresses **plus one additional test source**, not just the eight in the submitted report. No full external 1C route test was provided; do not mark end-to-end forwarding VERIFIED.
+- `iptables -t nat -S PREROUTING` output listed the same 1C DNAT rule **twice**. Possible duplication requires comparison with persisted /etc/ufw/before.rules and other ruleset sources, not blind deletion.
+- The operator ran commands to create /root/fp-before-docker and capture an iptables rules snapshot, and copy /etc/ufw and /etc/nginx. Commands returned to prompt without visible errors; confirm the snapshot files exist and their access restrictions before modifying Docker/UFW.
+- Certbot listed two ECDSA DEV certificates expiring 2027-01-06; no BETA apex certificate in that output.
+- Unresolved: recent WireGuard handshake/actual 1C HTTP path, reason for requested reboot, full 443 access setup, Docker installation, PostgreSQL baseline, offsite verified backup. No VPS deployment action was performed during this review.
+- Operational safety: preserve port 8080 DNAT, current DEV HTTPS on 8443, WireGuard and UFW rules. Docker can modify firewall/forwarding rules, so snapshot then inspect Docker/UFW coexistence before enabling any public Docker bindings.
