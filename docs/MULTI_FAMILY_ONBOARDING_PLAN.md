@@ -72,3 +72,29 @@ Each template needs localized name/description, sensible default points, recurre
 ## Recommended implementation order
 
 **Secure tenant isolation -> clean bootstrap -> transactional admin signup -> basic member wizard -> optional task/reward templates -> Beta activation**. The original code can keep serving local DEV while these are completed. The first Beta may launch after M3 with optional templates postponed, but multi-family isolation and clean bootstrap cannot be postponed.
+
+## 2026-10-13 — Onboarding strategy clarified for server BETA (AGREED / NOT YET IMPLEMENTED)
+
+The actual first-run experience is **self-service family registration**, not manual SQL creation of a fixed `betaadmin`. The public-facing product must let a new visitor create an entirely new isolated Family Workspace and its first administrator through a registration page. Controlled invitation flags/rate limits may temporarily restrict initial BETA *availability*, but must not become a permanent identity architecture. A previously proposed manual `bootstrap-first-admin.sql` was stopped before creation; do not implement a global shared default-family administrator.
+
+An identity is **global to the platform** while memberships, member profiles and permissions are **scoped to each Workspace**. One person must be able to join several unrelated families (and later offices, teams or businesses) through separate memberships. Login identifies the global account; the user chooses an active Workspace, and the backend verifies both its membership and action permission on every request. Current DB has `account_workspace_memberships` and some switching infrastructure, but older one-to-one `UserAccount.workspaceMember` mapping remains a transitional compatibility constraint. Do not label multi-workspace UX/authorization complete before integration tests.
+
+### First-run onboarding workflow
+1. Landing: Login / Register / Create family; language choice.
+2. Register global user account or sign in as existing user and create an additional family; verify login uniqueness and enforce password policy, abuse controls and anti-enumeration.
+3. In ONE transaction create the isolated family Workspace, administrator membership/profile, default rights and initial economy settings. No client-supplied arbitrary admin role IDs.
+4. Family composition: optionally add adults/children, selecting role, approximate age or birth-year/age range and optional gender/other relevant preferences with privacy-minimal fields. These inputs affect **suggestions only**, never intrinsic permissions, task eligibility or fixed stereotypes. Editing/skipping is allowed; no age/gender field should be mandatory where unnecessary.
+5. Recommend versioned family-template bundles, individual tasks, goals, habits, point currencies, price ranges and time-based rewards according to composition and preferences. Display selection with recurrence, responsible participants, starting prices, optional quality/approval and prerequisites, and explain which inputs influenced suggestions.
+6. Review/edit proposed economics (starting point type, task reward/penalty defaults, prices, duration rules), assignments, roles, and template choices. Never auto-charge, credit, or assign work from an unreviewed suggested template.
+7. Atomically import only explicitly accepted templates as independent Workspace-owned objects, with stable catalog codes/versions and idempotency keys; skip or resume, re-run later without duplication. Template evolution must not overwrite edits in existing families.
+8. Open Dashboard, allowing the admin to continue the setup wizard later; all Android/Web functionality observes the active Workspace boundary.
+
+### Tenant isolation and release gates
+- Shared PostgreSQL + strict `workspace_id` authorization is acceptable to start; families must be logically independent on every row/read/write/reference, including indirectly linked member/group/task/point/reward/device IDs. Re-check API endpoints and negative two-family/one-multimembership integration tests before general public exposure.
+- Global platform template catalog contains no actual family/child data. No cross-family shared balances, role privileges, history or actor inheritance; a shared account grants no access to other families beyond explicit membership.
+- Family administrative authority is distinct from platform administration. Login/user creation, invite linking, session workspace switching and authorization must not assume account equals workspace.
+- Later workgroups/office templates reuse the underlying Workspace engine, but the immediate BETA concentrates on families.
+- Age and gender should influence **optional, editable suggestions**, not create mandatory or discriminatory role defaults. Privacy-minimal handling for children is a release requirement.
+
+### Delivery priority
+Tenant security audit and compatible global-account multi-membership foundation -> transactional registration / family bootstrap -> responsive Web and native Android signup/setup -> default economy -> personalized optional template recommendations -> family-to-family isolation acceptance testing. Do not bypass this with manually inserted database accounts.
