@@ -909,3 +909,11 @@ Before each substantial implementation batch:
 - [ ] Run full Maven Testcontainers suite on laptop; resolve actual failures
 - [ ] Add HTTP security/manager-authorization checks to join/invite controller suite
 - [ ] Preserve BETA isolation until complete test gate
+
+## 2026-10-13 — Join/invite safety gate
+- [x] Fix invalid MockMvc JSON test content
+- [x] Add disposable PostgreSQL invitation revoke-after-context test
+- [x] Add disposable PostgreSQL join rejection and deny-later-approval test
+- [ ] Run `scripts/dev/check-onboarding.ps1 -BackendOnly -WithTests` locally
+- [ ] Investigate any test failure before changing Flyway/production code
+- [ ] Add concurrency/idempotency tests only after complete suite passes
