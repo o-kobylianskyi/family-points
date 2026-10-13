@@ -106,7 +106,8 @@ interface TaskApi {
         @Header("Authorization") authorization: String,
         @Path("workspaceId") workspaceId: Long,
         @Path("definitionId") definitionId: Long,
-        @Query("date") date: String
+        @Query("date") date: String,
+        @Query("slotKey") slotKey: String = "default"
     ): Response<TaskInstanceResponse>
 
     @GET("workspaces/{workspaceId}/tasks/definitions/{definitionId}/history")
