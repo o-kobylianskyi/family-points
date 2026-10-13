@@ -119,6 +119,8 @@ data class TaskAuditEventResponse(
     val details: String?
 )
 
+data class TaskPermissionsResponse(val canManage: Boolean)
+
 data class TaskDetailsData(
     val task: TaskDefinitionResponse,
     val visibleDefinitions: List<TaskDefinitionResponse>,
@@ -126,7 +128,8 @@ data class TaskDetailsData(
     val members: List<WorkspaceMemberResponse>,
     val participants: List<TaskParticipantResponse>,
     val history: List<TaskAuditEventResponse>,
-    val subtasks: List<TaskDefinitionResponse>
+    val subtasks: List<TaskDefinitionResponse>,
+    val canManage: Boolean = false
 )
 
 data class TaskDelegationRequest(
