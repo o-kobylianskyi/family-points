@@ -5,6 +5,7 @@ import com.olehkobylianskyi.familypoints.android.data.TaskDefinitionResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskDelegationRequest
 import com.olehkobylianskyi.familypoints.android.data.TaskScheduleOccurrenceResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskInstanceResponse
+import com.olehkobylianskyi.familypoints.android.data.TaskPermissionsResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskParticipantResponse
 import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import retrofit2.Response
@@ -69,6 +70,13 @@ interface TaskApi {
         @Path("workspaceId") workspaceId: Long,
         @Path("view") view: String
     ): List<TaskDefinitionResponse>
+
+    @GET("workspaces/{workspaceId}/tasks/definitions/{definitionId}/permissions")
+    suspend fun getDefinitionPermissions(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("definitionId") definitionId: Long
+    ): TaskPermissionsResponse
 
     @GET("workspaces/{workspaceId}/tasks/definitions/{definitionId}/participants")
     suspend fun getParticipants(
