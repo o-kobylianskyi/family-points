@@ -17,7 +17,8 @@ class TaskDetailsRepository(
     suspend fun load(
         workspaceId: Long,
         definitionId: Long,
-        date: String
+        date: String,
+        slotKey: String = "default"
     ): TaskDetailsData = coroutineScope {
         val auth = authorization()
 
@@ -72,7 +73,8 @@ class TaskDetailsRepository(
                 auth,
                 workspaceId,
                 definitionId,
-                date
+                date,
+                slotKey
             )
 
             if (response.code() == 204) {
