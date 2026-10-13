@@ -40,6 +40,11 @@ public class GoogleIdentityService {
             decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
                     new JwtTimestampValidator(), issuer, audience));
             Jwt verified = decoder.decode(idToken);
+            // With more than one audience, Google requires the authorized party to match this client.
+            if (verified.getAudience().size() > 1
+                    && !clientId.equals(verified.getClaimAsString("azp"))) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Google authorized party");
+            }
             String subject = verified.getSubject();
             if (subject == null || subject.isBlank() || subject.length() > 255) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Google subject");
