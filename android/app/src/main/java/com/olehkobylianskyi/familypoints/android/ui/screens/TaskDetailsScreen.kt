@@ -108,7 +108,27 @@ fun TaskDetailsScreen(
         }
     }
 
-    LaunchedEffect(definitionId, selectedDate) {
+    suspend fun runScheduledAction(managerConfirmation: Boolean) {
+        processing = true
+        error = ""
+        try {
+            if (managerConfirmation) {
+                repository.completeScheduledByManager(currentUser.workspaceId, definitionId, selectedDate, selectedSlotKey)
+            } else {
+                repository.startScheduledOccurrence(currentUser.workspaceId, definitionId, selectedDate, selectedSlotKey)
+            }
+            load()
+        } catch (exception: HttpException) {
+            if (exception.code() == 401) onUnauthorized()
+            else error = exception.message()
+        } catch (exception: Exception) {
+            error = exception.message ?: ""
+        } finally {
+            processing = false
+        }
+    }
+
+    LaunchedEffect(definitionId, selectedDate, selectedSlotKey) {
         load()
     }
 
@@ -210,6 +230,40 @@ fun TaskDetailsScreen(
                 }
             }
 
+            if (instance == null && task.active && selectedDate <= java.time.LocalDate.now().toString()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text(text.execution + " · " + selectedDate + " · " + selectedSlotKey,
+                                style = MaterialTheme.typography.titleLarge)
+                            Text(when (language) {
+                                AppLanguage.UK -> "Заплановано"
+                                AppLanguage.DE -> "Geplant"
+                                AppLanguage.EN -> "Planned"
+                                AppLanguage.RU -> "Запланировано"
+                            })
+                            if (task.assignedMemberId == currentUser.memberId) {
+                                Button(enabled = !processing, onClick = {
+                                    scope.launch { runScheduledAction(false) }
+                                }) { Text(text.start) }
+                            }
+                            if (details.canManage && task.assignedMemberId != null) {
+                                OutlinedButton(enabled = !processing, onClick = {
+                                    scope.launch { runScheduledAction(true) }
+                                }) {
+                                    Text(when (language) {
+                                        AppLanguage.UK -> "Підтвердити виконання"
+                                        AppLanguage.DE -> "Erledigung bestätigen"
+                                        AppLanguage.EN -> "Confirm completion"
+                                        AppLanguage.RU -> "Подтвердить выполнение"
+                                    })
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             if (instance != null) {
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
@@ -234,7 +288,7 @@ fun TaskDetailsScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                when (instance.status) {
+                                if (instance.memberId == currentUser.memberId) when (instance.status) {
                                     "PENDING" -> Button(
                                         onClick = {
                                             scope.launch { runAction("start") }
