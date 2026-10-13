@@ -272,7 +272,7 @@ fun TaskDetailsScreen(
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Text(
-                                text.execution + " · " + selectedDate,
+                                text.execution + " · " + selectedDate + " · " + selectedSlotKey,
                                 style = MaterialTheme.typography.titleLarge
                             )
                             Text(
@@ -329,6 +329,19 @@ fun TaskDetailsScreen(
                                 }
                             }
 
+                            if (details.canManage && instance.status in listOf("PENDING", "IN_PROGRESS")) {
+                                OutlinedButton(enabled = !processing, onClick = {
+                                    scope.launch { runScheduledAction(true) }
+                                }) {
+                                    Text(when (language) {
+                                        AppLanguage.UK -> "Підтвердити виконання"
+                                        AppLanguage.DE -> "Erledigung bestätigen"
+                                        AppLanguage.EN -> "Confirm completion"
+                                        AppLanguage.RU -> "Подтвердить выполнение"
+                                    })
+                                }
+                            }
+
                             if (
                                 instance.memberId == currentUser.memberId &&
                                 instance.status in listOf(
@@ -347,6 +360,7 @@ fun TaskDetailsScreen(
 
                             if (
                                 instance.delegationAllowed &&
+                                (instance.memberId == currentUser.memberId || details.canManage) &&
                                 instance.status in listOf(
                                     "PENDING",
                                     "IN_PROGRESS",
