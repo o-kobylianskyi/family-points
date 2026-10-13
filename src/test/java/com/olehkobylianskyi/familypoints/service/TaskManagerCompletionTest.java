@@ -22,6 +22,8 @@ class TaskManagerCompletionTest {
     @Mock PointService points;
     @Mock ReputationService reputation;
     @Mock TaskAuditService audit;
+    @Mock TaskRewardNegotiationService negotiations;
+    @Mock com.olehkobylianskyi.familypoints.security.CurrentUserService currentUser;
     @InjectMocks TaskService service;
 
     @Test
@@ -57,6 +59,55 @@ class TaskManagerCompletionTest {
             assertThrows(InvalidTaskStateException.class,
                     () -> service.completeScheduledByManager(8L, 39L, date, "default"));
             verifyNoInteractions(instances, points, reputation, audit);
+        }
+    }
+
+    @Test
+    void distinctSlotsEarnIndependentlyAndRepeatConfirmationDoesNotRewardAgain() throws Exception {
+        try (var ignored = MockitoAnnotations.openMocks(this)) {
+            var definition = mock(TaskDefinition.class);
+            var member = mock(WorkspaceMember.class);
+            var pointType = mock(PointType.class);
+            var slotMorning = mock(TaskScheduleSlot.class);
+            var slotEvening = mock(TaskScheduleSlot.class);
+            var date = LocalDate.now();
+            when(definition.getId()).thenReturn(39L);
+            when(definition.isActive()).thenReturn(true);
+            when(definition.getAssignedMember()).thenReturn(member);
+            when(definition.getTitle()).thenReturn("Clean room");
+            when(definition.getRewardAmount()).thenReturn(1);
+            when(definition.getRewardPointType()).thenReturn(pointType);
+            when(definition.getRewardReputationAmount()).thenReturn(2);
+            when(member.getId()).thenReturn(7L);
+            when(pointType.getId()).thenReturn(17L);
+            when(definitions.findForOccurrenceUpdate(39L, 8L)).thenReturn(Optional.of(definition));
+            when(generation.shouldGenerate(definition, date)).thenReturn(true);
+            when(taskScheduleSlots.findByTaskDefinitionIdAndSlotKeyAndEnabledTrue(39L, "morning"))
+                    .thenReturn(Optional.of(slotMorning));
+            when(taskScheduleSlots.findByTaskDefinitionIdAndSlotKeyAndEnabledTrue(39L, "evening"))
+                    .thenReturn(Optional.of(slotEvening));
+            when(slotMorning.getScheduledTime()).thenReturn(java.time.LocalTime.of(9, 0));
+            when(slotEvening.getScheduledTime()).thenReturn(java.time.LocalTime.of(16, 0));
+            var first = new TaskInstance(definition, member, date).withSlot("morning", java.time.LocalTime.of(9, 0));
+            var second = new TaskInstance(definition, member, date).withSlot("evening", java.time.LocalTime.of(16, 0));
+            when(instances.findByTaskDefinitionIdAndScheduledDateAndSlotKey(39L, date, "morning"))
+                    .thenReturn(Optional.of(first));
+            when(instances.findByTaskDefinitionIdAndScheduledDateAndSlotKey(39L, date, "evening"))
+                    .thenReturn(Optional.of(second));
+
+            assertSame(first, service.completeScheduledByManager(8L, 39L, date, "morning"));
+            assertEquals(TaskInstanceStatus.COMPLETED, first.getStatus());
+            assertEquals(TaskInstanceStatus.PENDING, second.getStatus());
+            assertSame(first, service.completeScheduledByManager(8L, 39L, date, "morning"));
+            assertSame(second, service.completeScheduledByManager(8L, 39L, date, "evening"));
+            assertTrue(first.isRewardProcessed());
+            assertTrue(second.isRewardProcessed());
+
+            verify(points, times(2)).earn(eq(8L), eq(7L), eq(17L), eq(1),
+                    eq(PointTransactionSourceType.TASK), isNull(), anyString());
+            verify(reputation, times(2)).add(eq(8L), eq(7L), eq(2),
+                    eq(ReputationTransactionSourceType.TASK), isNull(), anyString());
+            verify(negotiations, times(2)).processApprovedOverride(eq(8L), any(TaskInstance.class));
         }
     }
 
