@@ -66,6 +66,18 @@ class TasksRepository(
         Triple(result.tasks, result.openTasks, result.definitions)
     }
 
+    suspend fun loadScheduledOccurrences(
+        workspaceId: Long, memberId: Long, date: String
+    ): List<TaskScheduleOccurrenceResponse> =
+        ApiClient.taskApi.getMemberSchedule(authorization(), workspaceId, memberId, date)
+
+    suspend fun startScheduledOccurrence(
+        workspaceId: Long, definitionId: Long, date: String, slotKey: String
+    ): TaskInstanceResponse =
+        ApiClient.taskApi.startScheduledOccurrence(
+            authorization(), workspaceId, definitionId, date, slotKey
+        )
+
     suspend fun performAction(
         workspaceId: Long,
         instanceId: Long,
