@@ -60,6 +60,10 @@ class TaskDetailsRepository(
             )
         }
 
+        val permissions = async {
+            ApiClient.taskApi.getDefinitionPermissions(auth, workspaceId, definitionId)
+        }
+
         val subtasks = async {
             ApiClient.taskApi.getSubtasks(
                 auth,
@@ -93,7 +97,8 @@ class TaskDetailsRepository(
             members = members.await(),
             participants = participants.await(),
             history = history.await(),
-            subtasks = subtasks.await()
+            subtasks = subtasks.await(),
+            canManage = permissions.await().canManage
         )
     }
 
