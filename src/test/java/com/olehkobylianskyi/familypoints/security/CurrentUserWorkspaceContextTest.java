@@ -58,10 +58,29 @@ class CurrentUserWorkspaceContextTest {
     }
 
     @Test
+    void legacyAuthenticationRejectsMissingPrimaryMember() {
+        signIn(null);
+        assertEquals(403, assertThrows(ResponseStatusException.class,
+                current::getCurrentMember).getStatusCode().value());
+        verifyNoInteractions(resolver);
+    }
+
+    @Test
+    void legacyAuthenticationRejectsInactivePrimaryMember() {
+        var account = signIn(null);
+        var member = mock(WorkspaceMember.class);
+        when(account.getWorkspaceMember()).thenReturn(member);
+        assertEquals(403, assertThrows(ResponseStatusException.class,
+                current::getCurrentMember).getStatusCode().value());
+        verifyNoInteractions(resolver);
+    }
+
+    @Test
     void legacyAuthenticationStillUsesPrimaryMember() {
         var account = signIn(null);
         var member = mock(WorkspaceMember.class);
         when(account.getWorkspaceMember()).thenReturn(member);
+        when(member.isActive()).thenReturn(true);
         assertSame(member, current.getCurrentMember());
         verifyNoInteractions(resolver);
     }
