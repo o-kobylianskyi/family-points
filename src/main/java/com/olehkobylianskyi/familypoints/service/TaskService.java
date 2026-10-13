@@ -598,6 +598,9 @@ public class TaskService {
                 || date.isAfter(LocalDate.now())) {
             throw new InvalidTaskStateException("Task is not available for this date");
         }
+        if ("default".equals(slotKey) && !taskScheduleSlots.findByTaskDefinitionIdOrderByScheduledTimeAscSlotKeyAsc(definitionId).isEmpty()) {
+            throw new InvalidTaskStateException("Implicit default occurrence is disabled when explicit slots exist");
+        }
         java.time.LocalTime slotTime = definition.getDueTime();
         if (!"default".equals(slotKey)) {
             var slot = taskScheduleSlots.findByTaskDefinitionIdAndSlotKeyAndEnabledTrue(definitionId, slotKey)
@@ -892,6 +895,9 @@ public class TaskService {
         }
         if (date.isAfter(LocalDate.now())) {
             throw new InvalidTaskStateException("Future occurrences cannot be completed");
+        }
+        if ("default".equals(slotKey) && !taskScheduleSlots.findByTaskDefinitionIdOrderByScheduledTimeAscSlotKeyAsc(definitionId).isEmpty()) {
+            throw new InvalidTaskStateException("Implicit default occurrence is disabled when explicit slots exist");
         }
         java.time.LocalTime dueTime = definition.getDueTime();
         if (!"default".equals(slotKey)) {
