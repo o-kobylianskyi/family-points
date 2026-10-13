@@ -5,6 +5,7 @@ import com.olehkobylianskyi.familypoints.entity.TaskScheduleSlot;
 import com.olehkobylianskyi.familypoints.repository.TaskScheduleSlotRepository;
 import com.olehkobylianskyi.familypoints.service.TaskAuthorizationService;
 import com.olehkobylianskyi.familypoints.service.TaskService;
+import com.olehkobylianskyi.familypoints.service.TaskAuditService;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalTime;
@@ -39,7 +40,7 @@ class TaskScheduleSlotControllerTest {
         var definition = mock(TaskDefinition.class);
         when(tasks.getDefinition(8L,39L)).thenReturn(definition);
         doThrow(new AccessDeniedException("Not a manager")).when(authorization).requireManage(definition);
-        var controller = new TaskScheduleSlotController(tasks, repo, authorization);
+        var controller = new TaskScheduleSlotController(tasks, repo, authorization, mock(TaskAuditService.class));
         assertThrows(AccessDeniedException.class, () -> controller.create(8L,39L,
                 new TaskScheduleSlotController.SlotRequest("morning", LocalTime.of(8,0))));
         verify(repo, never()).save(any());
@@ -53,7 +54,7 @@ class TaskScheduleSlotControllerTest {
         var definition = mock(TaskDefinition.class);
         when(tasks.getDefinition(8L,39L)).thenReturn(definition);
         doThrow(new AccessDeniedException("Denied")).when(authorization).requireManage(definition);
-        var controller = new TaskScheduleSlotController(tasks, repo, authorization);
+        var controller = new TaskScheduleSlotController(tasks, repo, authorization, mock(TaskAuditService.class));
         assertThrows(AccessDeniedException.class, () -> controller.update(8L,39L,7L,
                 new TaskScheduleSlotController.SlotUpdateRequest(LocalTime.of(9,0),false)));
         verifyNoInteractions(repo);
