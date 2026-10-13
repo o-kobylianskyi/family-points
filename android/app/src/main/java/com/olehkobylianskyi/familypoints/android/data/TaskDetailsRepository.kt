@@ -102,6 +102,18 @@ class TaskDetailsRepository(
         )
     }
 
+    suspend fun startScheduledOccurrence(
+        workspaceId: Long, definitionId: Long, date: String, slotKey: String
+    ) {
+        ApiClient.taskApi.startScheduledOccurrence(authorization(), workspaceId, definitionId, date, slotKey)
+    }
+
+    suspend fun completeScheduledByManager(
+        workspaceId: Long, definitionId: Long, date: String, slotKey: String
+    ) {
+        ApiClient.taskApi.completeScheduledByManager(authorization(), workspaceId, definitionId, date, slotKey)
+    }
+
     suspend fun runInstanceAction(
         workspaceId: Long,
         instanceId: Long,
