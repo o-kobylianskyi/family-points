@@ -6,6 +6,9 @@ import com.olehkobylianskyi.familypoints.repository.UserAccountRepository;
 import com.olehkobylianskyi.familypoints.repository.WorkspaceMemberRepository;
 import com.olehkobylianskyi.familypoints.repository.AccountWorkspaceMembershipRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,11 +36,11 @@ public class FamilyRegistrationService {
     public CreatedFamily register(String username, String password, String familyName, String ownerName) {
         if (username == null || !username.matches("[A-Za-z0-9._-]{3,50}")
                 || password == null || password.length() < 12 || password.length() > 128
-                || familyName == null || familyName.isBlank()
-                || ownerName == null || ownerName.isBlank())
-            throw new IllegalArgumentException("Invalid registration values");
+                || familyName == null || familyName.isBlank() || familyName.length() > 100
+                || ownerName == null || ownerName.isBlank() || ownerName.length() > 100)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid registration values");
         if (accounts.existsByUsername(username))
-            throw new IllegalArgumentException("Username unavailable");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Registration unavailable");
 
         var family = provisioning.provision(familyName, ownerName);
         var member = members.findByIdAndWorkspaceId(family.ownerMemberId(), family.workspaceId())
