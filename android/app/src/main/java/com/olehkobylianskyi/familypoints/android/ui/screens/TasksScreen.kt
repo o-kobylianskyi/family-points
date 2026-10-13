@@ -115,6 +115,7 @@ fun TasksScreen(
             tasks = cached.tasks
             openTasks = cached.openTasks
             definitions = cached.definitions
+            scheduledOccurrences = cached.schedule.orEmpty().filter { it.instanceId == null }
         } else {
             tasks = emptyList()
             openTasks = emptyList()
@@ -143,15 +144,9 @@ fun TasksScreen(
             definitions = loadedDefinitions
             showingCachedMy = false
             // Projection is read-only; an absent/offline schedule must not hide persisted tasks.
-            scheduledOccurrences = try {
-                repository.loadScheduledOccurrences(currentUser.workspaceId, memberId, selectedDate)
-                    .filter { it.instanceId == null }
-            } catch (exception: retrofit2.HttpException) {
-                if (exception.code() == 401) onUnauthorized()
-                emptyList()
-            } catch (_: Exception) {
-                emptyList()
-            }
+            scheduledOccurrences = repository.cachedMyTab(
+                currentUser.workspaceId, currentUser.memberId, memberId, selectedDate
+            )?.schedule.orEmpty().filter { it.instanceId == null }
         } catch (exception: retrofit2.HttpException) {
             if (exception.code() == 401) onUnauthorized()
             else if (cached == null) error = exception.message()
