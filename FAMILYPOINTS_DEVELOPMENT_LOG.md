@@ -821,3 +821,13 @@
 - Added Compose syntax validation CI job in bd0c84a. The stack deliberately exposes web only on 127.0.0.1:18080, uses an isolated PostgreSQL named volume and separate internal Docker network, and requires an external HTTPS reverse proxy. No user server, database or balances were modified.
 - CURRENT STATUS: files committed, server build/start/network/HTTPS/Android Beta linkage unverified. Public registration, bootstrap, cross-workspace isolation, backup/restore and external network hardening remain BETA gates.
 - NEXT: inspect actual target server OS/container support and reverse proxy; deploy to isolated host/VM; verify Flyway startup and API smoke tests; enable deliberate invitation/bootstrap and Android Beta endpoint; real family end-to-end acceptance tests.
+
+
+## 2026-10-13 — BETA operational follow-through after reported Android BUILD SUCCESSFUL
+- User reported local Android `BUILD SUCCESSFUL`. Exact Gradle command/build revision not supplied; record as user-confirmed local assembly, not CI or release APK verification.
+- Prepared configurable HTTPS Android debug API origin via `familyPointsDebugApiUrl` (c962ce1), replacing the hardcoded debug-only URL while preserving its default.
+- Added BETA Web+Backend smoke check `scripts/beta/smoke.sh` (955445f) and PostgreSQL backup script `scripts/beta/backup.sh` (ee62cf6); ignored backups and dump files in Git (faf9478).
+- Extended `BETA_DEPLOYMENT.md` (a5ad51c) with Windows server/Linux VM separation, localhost smoke/backup instructions, explicit Android endpoint selection and Flyway fresh-database caveat.
+- Extended CI Compose-validation job to syntax-check both scripts and verify sample environment file (720bd69).
+- No remote deployment, container build, complete authenticated E2E test, migration-on-empty-DB verification, or backup restore has been run; these remain gates. The project may share a Windows Server with IIS/Apache/1C; do not touch those services during BETA deployment.
+- NEXT decisive action: establish target OS/VM and HTTPS reverse proxy, run isolated BETA stack and smoke, validate migrations and bootstrap identities, configure Android APK against verified BETA URL, family acceptance tests.
