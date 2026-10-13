@@ -187,6 +187,41 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    @Transactional
+    void globalAccountMayExistWithoutPrimaryFamily() {
+        UserAccount account = new UserAccount("no-family-test-user", "password-hash", null);
+        entityManager.persist(account);
+        entityManager.flush();
+        assertNotNull(account.getId());
+        assertNull(account.getWorkspaceMember());
+    }
+
+    @Test
+    @Transactional
+    void databaseRejectsInvitationWithRoleFromOtherWorkspace() {
+        Workspace first = new Workspace("Invite tenant A");
+        Workspace second = new Workspace("Invite tenant B");
+        entityManager.persist(first);
+        entityManager.persist(second);
+        WorkspaceRole foreign = new WorkspaceRole(second, "CHILD", "Foreign invite role", false);
+        entityManager.persist(foreign);
+        WorkspaceRole own = new WorkspaceRole(first, "PARENT", "Inviter", false);
+        entityManager.persist(own);
+        WorkspaceMember member = new WorkspaceMember("Inviter", WorkspaceMemberType.PARENT, own, first);
+        entityManager.persist(member);
+        UserAccount issuer = new UserAccount("invitation-issuer-test", "hash", member);
+        entityManager.persist(issuer);
+        entityManager.flush();
+
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class, () ->
+            jdbc.update("""
+                INSERT INTO workspace_invitations
+                (workspace_id, created_by_account_id, token_hash, expires_at, member_role_id)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP + interval '7 days', ?)
+                """, first.getId(), issuer.getId(), "f".repeat(64), foreign.getId()));
+    }
+
+    @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
