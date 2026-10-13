@@ -876,3 +876,12 @@ Before each substantial implementation batch:
 - [ ] Compile/backend unit tests, PostgreSQL Flyway V27 and two-tenant HTTP isolation tests
 - [ ] Review all role-scoped routes for use of selected workspace context, not legacy primary member
 - [ ] Web/Android family switch UI; fully global identity and Google OIDC; invitation continuation
+
+## 2026-10-13 — Web onboarding and consolidated validation
+- [x] React signup page and API client with error/validation state
+- [x] Route and login entry point, disabled by default through Vite env flag
+- [x] Confirm existing React family selector/backend routes; do not duplicate
+- [x] Consolidated Java + React build script; optional Maven tests
+- [ ] Run build locally and verify Flyway V27 on isolated PostgreSQL
+- [ ] Complete abuse protection and account signup race handling before enabling registration
+- [ ] Add browser-safe invitation continuation and Google OIDC, then full end-to-end tests
