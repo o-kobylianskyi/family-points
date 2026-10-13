@@ -143,8 +143,15 @@ fun TasksScreen(
             definitions = loadedDefinitions
             showingCachedMy = false
             // Projection is read-only; an absent/offline schedule must not hide persisted tasks.
-            scheduledOccurrences = repository.loadScheduledOccurrences(currentUser.workspaceId, memberId, selectedDate)
-                .filter { it.instanceId == null }
+            scheduledOccurrences = try {
+                repository.loadScheduledOccurrences(currentUser.workspaceId, memberId, selectedDate)
+                    .filter { it.instanceId == null }
+            } catch (exception: retrofit2.HttpException) {
+                if (exception.code() == 401) onUnauthorized()
+                emptyList()
+            } catch (_: Exception) {
+                emptyList()
+            }
         } catch (exception: retrofit2.HttpException) {
             if (exception.code() == 401) onUnauthorized()
             else if (cached == null) error = exception.message()
@@ -192,7 +199,7 @@ fun TasksScreen(
             workspaceRoleName = currentUser.workspaceRoleName,
             workspaceId = currentUser.workspaceId
         ))
-        if (selectedMemberId == null) selectedMemberId = currentUser.memberId
+        if (selectedMemberId == null || !mayBrowseMembers) selectedMemberId = currentUser.memberId
         loadingMembers = false
         if (serverStatus != ServerStatus.OFFLINE) {
             try {
