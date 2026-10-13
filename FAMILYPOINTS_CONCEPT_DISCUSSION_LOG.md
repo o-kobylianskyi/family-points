@@ -1800,3 +1800,9 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - Android debug APK can target a specific HTTPS BETA API via Gradle property, preserving the existing DEV default for ordinary local builds. This is not a public-release signing mechanism.
 - Deployment scripts and Compose setup must never overwrite the existing server's 1C/BAS, IIS, Apache, WireGuard, or PostgreSQL environments; keep BETA isolated.
 - User-confirmed successful local Android compilation is distinct from CI, HTTP end-to-end connectivity, sign-in and release readiness. Real account and workspace authorization tests remain necessary.
+
+
+## 2026-10-13 — Registration/onboarding strategy confirmed after first Contabo BETA start
+**AGREED:** User clarifies first BETA-run should present registration and creation of a **new isolated family**; FamilyPoints is intended as a public multi-tenant service. One global user/account may participate in multiple independent families, later also workgroups/business spaces, with different memberships, profiles and rights. Initialization templates are optional recommendations informed by family composition, members' ages and optional gender/preferences, producing editable tasks and economy defaults. Avoid compulsory attributes, intrusive collection or automatic gender stereotyping.
+**SUPERSEDED:** proposed manual SQL `betaadmin` bootstrap and architecture limited to one workspace per account. A temporary gated rollout may exist but cannot replace genuine signup.
+**STATUS:** design affirmed; no registration endpoint or wizard implementation was executed. Detailed plan updated in `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` (941cb3e).
