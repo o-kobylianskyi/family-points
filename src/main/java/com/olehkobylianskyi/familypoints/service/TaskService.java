@@ -707,10 +707,11 @@ public class TaskService {
             throw new org.springframework.security.access.AccessDeniedException("Current user cannot inspect open tasks for another member");
         }
         return taskDefinitionRepository.findByWorkspaceIdAndActiveTrueOrderByIdAsc(workspaceId).stream()
+                .filter(taskAuthorizationService::canRead)
                 .filter(d -> d.getAssignmentPolicy() != AssignmentPolicy.SINGLE_MEMBER)
                 .filter(d -> d.getAssignmentPolicy() != AssignmentPolicy.GROUP_SHARED)
                 .filter(d -> taskGenerationService.shouldGenerate(d, date))
-                .filter(d -> taskInstanceRepository.findByTaskDefinitionIdAndScheduledDate(d.getId(), date)
+                .filter(d -> taskInstanceRepository.findByTaskDefinitionIdAndScheduledDateAndSlotKey(d.getId(), date, "default")
                         .map(i -> i.getStatus() == TaskInstanceStatus.RELEASED)
                         .orElse(true))
                 .filter(d -> member == null || isEligible(d, member))
