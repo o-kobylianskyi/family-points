@@ -850,3 +850,9 @@
 - Invitation secrets and pending browser handles are represented by hashes; transactional API validation, cookie/OAuth state binding, login/signup screens and invitation redemption logic are **not implemented**. No public invitation endpoint is enabled.
 - **NOT VERIFIED:** Migration V27 has not yet been run on local DEV/test PostgreSQL. Do not promote to BETA before local validation and functional implementation. Existing Contabo BETA remains on Flyway V26.
 - NEXT: add server-side authenticated invitation/join request services with workspace membership authorization and HTTP interface, safe invitation-handle exchange and account registration continuity; test on isolated DEV PostgreSQL.
+
+## 2026-10-13 — DEV workspace join request service (COMMITTED / NOT TESTED)
+- Added `WorkspaceJoinService.java` in commit `412936b`: secure random one-time shareable join-code generation; hashed join-code persistence/rotation and disable; authenticated account may submit manager-reviewed join request; member managers may query pending requests or reject. No membership granted by knowing a code.
+- Current service depends on V27 schema. **No controller/API routes were committed**; attempt to add controller was blocked before the file was created. Thus service is not reachable over HTTP and does not enable open joining. This is a safe partial step, not a complete registration/invitation workflow.
+- Explicitly deferred: rate limiting/abuse control, code issuance verification tests, approver role mapping, secure invite redemption and cross-account identity signup continuation. Approval needs an explicitly scoped member profile/role before it can be safely implemented.
+- DEV build and Flyway V27 execution remain **NOT VERIFIED**. Contabo BETA intentionally stays at V26; do not update it yet.
