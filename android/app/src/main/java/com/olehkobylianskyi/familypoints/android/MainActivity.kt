@@ -188,6 +188,8 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf("")
                 }
 
+                var selectedTaskSlotKey by remember { mutableStateOf("default") }
+
                 var selectedTaskInstanceId by remember {
                     mutableStateOf<Long?>(null)
                 }
@@ -365,9 +367,10 @@ class MainActivity : ComponentActivity() {
                             onBack = {
                                 destination = AppDestination.DASHBOARD
                             },
-                            onOpenTask = { definitionId, date ->
+                            onOpenTask = { definitionId, date, slotKey ->
                                 selectedTaskDefinitionId = definitionId
                                 selectedTaskDate = date
+                                selectedTaskSlotKey = slotKey
                                 destination = AppDestination.TASK_DETAILS
                             },
                             onCreateTask = {
@@ -388,6 +391,7 @@ class MainActivity : ComponentActivity() {
                                 currentUser = currentUser!!,
                                 definitionId = definitionId,
                                 selectedDate = selectedTaskDate,
+                                selectedSlotKey = selectedTaskSlotKey,
                                 repository = taskDetailsRepository,
                                 onLanguageChange = changeLanguage,
                                 onLogout = logout,
@@ -398,6 +402,7 @@ class MainActivity : ComponentActivity() {
                                 onOpenTask = { childId, date ->
                                     selectedTaskDefinitionId = childId
                                     selectedTaskDate = date
+                                    selectedTaskSlotKey = "default"
                                 },
                                 onCreateSubtask = { parentId ->
                                     parentTaskDefinitionId = parentId
