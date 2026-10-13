@@ -106,3 +106,19 @@ jobs:
         run: npm ci
       - name: Compile frontend
         run: npm run build
+
+  beta-compose-validation:
+    name: BETA / Docker Compose configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify compose and secrets placeholders
+        env:
+          DB_PASSWORD: ci-placeholder-not-a-real-secret
+          JWT_SECRET: ci-placeholder-jwt-secret-not-real
+        run: |
+          docker compose -f compose.beta.yml config --quiet
+          test -f Dockerfile.beta
+          test -f frontend/Dockerfile.beta
+          test -f frontend/deploy/nginx.beta.conf
