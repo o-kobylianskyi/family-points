@@ -997,3 +997,11 @@
 - Updated AccountWorkspacesControllerTest for scoped selected family and zero-family account list (73665da).
 - Not yet built locally; user has prior unstashed changes risk and should review git status before pull.
 - Public registration/first-family flags remain OFF; Google OAuth not enabled; no BETA deployment.
+
+## 2026-10-13 — Google ID token verification foundation (COMMITTED, NOT YET RUN)
+- Added managed `spring-security-oauth2-jose` dependency (a779e30) for Google JWT cryptographic verification.
+- New `GoogleIdentityService` (a2007e4, 1301ea3): validates Google JWK signature, expiry, issuer, audience (=configured Google client ID), authorized party for multi-audience tokens, then selects global account ONLY via `account_external_identities(provider='google',provider_subject=sub)`. An unknown or unlinked Google subject is rejected. Email alone never links accounts.
+- Added `POST /auth/google` for already-linked enabled accounts, returning existing application JWT and gated by `familypoints.google.enabled:false`; default OFF (252e4c8, f806042).
+- Added isolated disabled/allowed controller regression tests (0affbff), NOT RUN.
+- **Scope:** no Google account creation or association UI, no account-link flow or browser Google OAuth redirect in this package. Provisioning must require secure proof of authenticated account ownership and verified Google subject.
+- Maven build and integration tests must be run before enabling flag; existing tests from earlier packets are also unverified. Contabo BETA unchanged.
