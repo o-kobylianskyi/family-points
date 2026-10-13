@@ -328,6 +328,54 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    @Transactional
+    void joinManagementHttpRequiresCorrectWorkspaceAndManageMembers() throws Exception {
+        Workspace managed = new Workspace("HTTP managed join family");
+        Workspace foreign = new Workspace("HTTP foreign join family");
+        entityManager.persist(managed);
+        entityManager.persist(foreign);
+        WorkspaceRole adminRole = new WorkspaceRole(managed, "FAMILY_ADMIN", "Admin", false);
+        adminRole.addPermission(WorkspacePermission.MANAGE_MEMBERS);
+        WorkspaceRole viewerRole = new WorkspaceRole(foreign, "CHILD", "Viewer", false);
+        entityManager.persist(adminRole);
+        entityManager.persist(viewerRole);
+        WorkspaceMember adminMember = new WorkspaceMember("Admin", WorkspaceMemberType.PARENT, adminRole, managed);
+        WorkspaceMember viewerMember = new WorkspaceMember("Viewer", WorkspaceMemberType.CHILD, viewerRole, foreign);
+        entityManager.persist(adminMember);
+        entityManager.persist(viewerMember);
+        UserAccount admin = new UserAccount("http-join-admin-test", "hash", adminMember);
+        UserAccount viewer = new UserAccount("http-join-viewer-test", "hash", viewerMember);
+        entityManager.persist(admin);
+        entityManager.persist(viewer);
+        entityManager.persist(new AccountWorkspaceMembership(admin, adminMember));
+        entityManager.persist(new AccountWorkspaceMembership(viewer, viewerMember));
+        entityManager.flush();
+        entityManager.clear();
+
+        String adminJwt = "Bearer " + jwtService.generateWorkspaceAccessToken(
+                User.withUsername(admin.getUsername()).password("hash").authorities("USER").build(), managed.getId());
+        String viewerJwt = "Bearer " + jwtService.generateWorkspaceAccessToken(
+                User.withUsername(viewer.getUsername()).password("hash").authorities("USER").build(), foreign.getId());
+        String route = "/api/workspace-joins/workspaces/" + managed.getId() + "/join-code";
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(route))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(route)
+                        .header("Authorization", viewerJwt))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(route)
+                        .header("Authorization", adminJwt))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.code").isString());
+        String inviteRoute = "/api/workspace-invitations/workspaces/" + managed.getId();
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(inviteRoute)
+                        .header("Authorization", viewerJwt)
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\\"roleId\\":" + viewerRole.getId() + "}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
