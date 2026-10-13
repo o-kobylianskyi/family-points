@@ -1753,3 +1753,8 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - Explicit slots replace future implicit default projections; disabling every explicit slot suspends the generated schedule rather than returning to an implicit daily default.
 - Changing a template time does not rewrite the dueTime snapshot of an already materialized historical occurrence.
 - Future dynamic N-times-per-day, cooldown and rolling windows remain deferred until usability testing.
+
+## 2026-10-13 — Atomic scheduled task creation
+- A newly created task with explicitly configured execution times must persist definition, participants, work hierarchy and slots as a single transaction. A failing slot rejects the entire create, preventing partially configured family tasks.
+- Explicit slots suppress eager default TaskInstance generation on creation; actual instances remain on-demand or deadline-materialized. No pre-generation of future dated instances.
+- Existing tasks with no explicit slots retain their implicit default execution behavior. Slot identity remains stable across edits.
