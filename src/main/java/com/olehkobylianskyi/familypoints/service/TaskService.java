@@ -118,7 +118,8 @@ public class TaskService {
             Integer penaltyAmount,
             Integer rewardReputationAmount,
             Integer penaltyReputationAmount,
-            LocalTime dueTime
+            LocalTime dueTime,
+            java.util.List<LocalTime> initialSlotTimes
     ) {
         taskAuthorizationService.requireCreate(workspaceId);
         Workspace workspace = getWorkspaceOrThrow(workspaceId);
@@ -202,8 +203,20 @@ public class TaskService {
                 null, null, null, null, null
         );
 
-        if (policy == AssignmentPolicy.SINGLE_MEMBER)
+        // Persist schedule templates before any execution is generated.
+        // No default execution must be created for definitions with explicit slots.
+        if (initialSlotTimes != null && !initialSlotTimes.isEmpty()) {
+            if (initialSlotTimes.size() > 12 || new java.util.HashSet<>(initialSlotTimes).size() != initialSlotTimes.size()
+                    || initialSlotTimes.contains(null)) {
+                throw new IllegalArgumentException("Slot times must be unique and non-null (max 12)");
+            }
+            for (int index = 0; index < initialSlotTimes.size(); index++) {
+                taskScheduleSlots.save(new TaskScheduleSlot(savedDefinition,
+                        "time_" + (index + 1), initialSlotTimes.get(index)));
+            }
+        } else if (policy == AssignmentPolicy.SINGLE_MEMBER) {
             taskGenerationService.generateForDefinition(savedDefinition, LocalDate.now());
+        }
 
         return savedDefinition;
     }
