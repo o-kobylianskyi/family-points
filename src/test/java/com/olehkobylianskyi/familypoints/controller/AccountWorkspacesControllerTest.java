@@ -4,11 +4,18 @@ import com.olehkobylianskyi.familypoints.entity.*;
 import com.olehkobylianskyi.familypoints.repository.AccountWorkspaceMembershipRepository;
 import com.olehkobylianskyi.familypoints.security.CurrentUserService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.olehkobylianskyi.familypoints.security.WorkspaceAuthenticationDetails;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class AccountWorkspacesControllerTest {
+    @AfterEach
+    void clear() { SecurityContextHolder.clearContext(); }
+
     @Test
     void listsOnlySignedInAccountsActiveWorkspaceMemberships() {
         var current = mock(CurrentUserService.class);
@@ -27,7 +34,9 @@ class AccountWorkspacesControllerTest {
         setId(account, 3L);
 
         when(current.getCurrentAccount()).thenReturn(account);
-        when(current.getCurrentWorkspaceId()).thenReturn(101L);
+        var auth = new UsernamePasswordAuthenticationToken("userA", null, List.of());
+        auth.setDetails(new WorkspaceAuthenticationDetails(3L, 101L, 11L));
+        SecurityContextHolder.getContext().setAuthentication(auth);
         when(repository.findAllByAccountIdOrderByIdAsc(3L)).thenReturn(List.of(
                 new AccountWorkspaceMembership(account, memberA),
                 new AccountWorkspaceMembership(account, memberB)
@@ -43,6 +52,20 @@ class AccountWorkspacesControllerTest {
         assertEquals(202L, choices.get(1).workspaceId());
         assertFalse(choices.get(1).active());
         verify(repository).findAllByAccountIdOrderByIdAsc(3L);
+    }
+
+    @Test
+    void returnsEmptyWorkspaceListForFamilylessGlobalAccount() {
+        var current = mock(CurrentUserService.class);
+        var repository = mock(AccountWorkspaceMembershipRepository.class);
+        var account = new UserAccount("new-user", "hash", null);
+        setId(account, 42L);
+        when(current.getCurrentAccount()).thenReturn(account);
+        when(repository.findAllByAccountIdOrderByIdAsc(42L)).thenReturn(List.of());
+        var response = new AccountWorkspacesController(current, repository).list();
+        assertEquals(200, response.getStatusCode().value());
+        assertTrue(response.getBody().isEmpty());
+        verify(current, never()).getCurrentWorkspaceId();
     }
 
     private static void setId(Object entity, Long id) {
