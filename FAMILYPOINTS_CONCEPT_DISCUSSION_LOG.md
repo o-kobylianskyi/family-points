@@ -1767,3 +1767,8 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 ### Android offline recurring schedule
 - Virtual dated task occurrences may be cached in a workspace/viewer/target/date-scoped snapshot for offline display only.
 - Starting or completing a planned occurrence requires an online API call and server authorization; no speculative local ledger writes.
+
+## 2026-10-13 — Android schedule parity
+- Both Web and Android must use server-generated occurrence identities and the same definition/date/slotKey contract. Creation of multiple daily times uses a single atomic task creation request rather than post-create API loops.
+- Children execute only their own TaskInstance; scoped task managers may confirm one dated slot as completed. Disabled/removed schedule definitions do not erase historical ledger or audits.
+- Offline schedule cache remains read-only; starting or confirming an occurrence requires connectivity.
