@@ -901,3 +901,11 @@ Before each substantial implementation batch:
 - [ ] Rerun full Maven test suite with Docker Desktop available; inspect surefire-reports for failures
 - [ ] Confirm clean PASS before enabling new registration or Google auth
 - [ ] Run invite/join HTTP API multi-family functional tests in disposable DB
+
+## 2026-10-13 — Join/invitation integration follow-through
+- [x] Detect/reject duplicate pending join request (HTTP 409)
+- [x] Add disposable database tests of join application and manager approval
+- [x] Add disposable database tests of invite context and one-use redemption
+- [ ] Run full Maven Testcontainers suite on laptop; resolve actual failures
+- [ ] Add HTTP security/manager-authorization checks to join/invite controller suite
+- [ ] Preserve BETA isolation until complete test gate
