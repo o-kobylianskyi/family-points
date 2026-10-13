@@ -1,5 +1,5 @@
 # DEV-only consolidated onboarding check. Does not access or migrate any database.
-param([switch]$WithTests)
+param([switch]$WithTests, [switch]$BackendOnly)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -14,7 +14,7 @@ try {
         if ($_.Name -match '^V([0-9]+)__') { [int]$Matches[1] }
     } | Sort-Object)
     if ($versions.Count -eq 0) { throw 'No Flyway migrations found' }
-    if ($versions[-1] -lt 27) { throw 'Expected V27 invitation tables' }
+    if ($versions[-1] -lt 29) { throw 'Expected V27-V29 onboarding and identity migrations' }
     if (@($versions | Group-Object | Where-Object Count -gt 1).Count -gt 0) {
         throw 'Duplicate Flyway versions found'
     }
@@ -26,6 +26,7 @@ try {
     & $wrapper '-DskipTests' 'compile'
     if ($LASTEXITCODE -ne 0) { throw 'Backend compilation failed' }
 
+    if (-not $BackendOnly) {
     Write-Host 'Building React frontend...'
     Push-Location (Join-Path $root 'frontend')
     try {
@@ -40,12 +41,14 @@ try {
         Pop-Location
     }
 
+    }
+
     if ($WithTests) {
         Write-Host 'Running existing unit tests (integration tests may require Docker)...'
         & $wrapper 'test'
         if ($LASTEXITCODE -ne 0) { throw 'Backend tests failed' }
     }
-    Write-Host 'PASS: static Flyway inventory and backend compilation'
+    Write-Host 'PASS: static Flyway inventory, backend compilation and requested checks'
 } finally {
     Pop-Location
 }
