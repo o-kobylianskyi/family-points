@@ -892,3 +892,8 @@
 - `WorkspaceInvitationController` (a96480d): issued invitation endpoint now requires JSON `{"roleId":123}` (breaking DEV API change); added POST `/api/workspace-invitations/accept` with JSON `{"handle":"...","memberName":"..."}`.
 - Explicitly excludes email-targeted invitations for now (the current issue endpoint creates only unaddressed invites); recipient restrictions and account identity linking need separate implementation. No account is created by acceptance: authenticated existing user only.
 - **NOT VERIFIED:** compile, V27 migration, concurrency tests, security test coverage, OAuth continuation or Web UI. Before rollout check error handling, user role mapping and integration tests. Contabo BETA unchanged at V26.
+
+## 2026-10-13 — DEV invitation security unit tests (COMMITTED, EXECUTION PENDING)
+- Added `WorkspaceInvitationServiceTest` (775ce82): invalid invite and session handles fail before DB query; privileged role issuance refused; expired/consumed invite context refused; invalid member name/handle rejected on acceptance.
+- These are fast unit-level negative tests. They do NOT prove race safety, correct membership creation, Google redirect persistence, V27 schema migration, or full tenant isolation.
+- **Not yet run** in CI/DEV; local user should fetch branch and run Maven targeted test first. Contabo BETA remains unchanged.
