@@ -769,3 +769,9 @@
 - Added persisted instance slotKey to Spring TaskInstanceResponse (b6d4aec) and Android model (9a70691), preserved slotKey on task navigation (15aa258), enabled slot-specific instance lookup (5178fb8, ebd313b, 5727d8e, 08c3a70).
 - Android task list now hides other member selector without VIEW_ALL_TASKS/ADMIN_OVERRIDE and creation button without CREATE_TASKS/ADMIN_OVERRIDE; detail screen loads server task-permissions endpoint (1afb4ab, c000d4a, 274ef64) and hides management/subtask create controls for unauthorized users (60852db).
 - All Android UI behavior is **unverified by Kotlin compilation**: GitHub hosted SDK37 install fails before Kotlin build; user agreed local Android Studio testing. Backend/Web CI pending. Follow-up: offline schedule snapshots, Android editor for schedule slots, slot-specific parent confirmation, per-role auth scenario tests.
+
+### Android schedule offline snapshot extension
+- OfflineTasksStore.Snapshot now includes nullable schedule field (8157148); nullable for backward compatibility with existing cached JSON.
+- TasksRepository now fetches schedule alongside persisted tasks and writes the schedule into existing workspace/viewer/target/date-scoped cache (42fc3c5), avoiding cross-account cache leakage.
+- TasksScreen shows cached planned occurrences offline as read-only and refreshes schedule after successful online sync (9c1a793). No offline queued writes are introduced.
+- Android compilation remains **UNVERIFIED** until user's local Android Studio SDK37 build; CI for Backend/Web latest snapshot pending.
