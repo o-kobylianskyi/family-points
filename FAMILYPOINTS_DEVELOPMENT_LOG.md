@@ -844,3 +844,9 @@
 - User clarified implementation sequence: finish account registration, isolated family creation, multi-workspace identity and personalized initial templates on local DEV; verify integration, Web and Android; deploy tested revision to Contabo BETA only after backup/migration review.
 - Existing Contabo BETA remains online and unchanged during DEV work. No manual SQL first-admin insertion.
 - Deployment policy recorded in docs/MULTI_FAMILY_ONBOARDING_PLAN.md and FAMILYPOINTS_CONTABO_DEPLOYMENT_LOG.md.
+
+## 2026-10-13 — DEV-first invitation persistence package (COMMITTED / NOT TESTED)
+- Added `V27__workspace_invitations_and_join_requests.sql` (e35eea5, refined ec70a0f), a schema-only foundation for workspace invitation records (hashed token, expiry, optional recipient and role, limits/revocation), non-enumerable hashed join codes, manager-reviewed join requests, invitation redemption ledger, and durable short-lived pending invitation sessions that can survive registration and Google redirects.
+- Invitation secrets and pending browser handles are represented by hashes; transactional API validation, cookie/OAuth state binding, login/signup screens and invitation redemption logic are **not implemented**. No public invitation endpoint is enabled.
+- **NOT VERIFIED:** Migration V27 has not yet been run on local DEV/test PostgreSQL. Do not promote to BETA before local validation and functional implementation. Existing Contabo BETA remains on Flyway V26.
+- NEXT: add server-side authenticated invitation/join request services with workspace membership authorization and HTTP interface, safe invitation-handle exchange and account registration continuity; test on isolated DEV PostgreSQL.
