@@ -831,3 +831,10 @@
 - Extended CI Compose-validation job to syntax-check both scripts and verify sample environment file (720bd69).
 - No remote deployment, container build, complete authenticated E2E test, migration-on-empty-DB verification, or backup restore has been run; these remain gates. The project may share a Windows Server with IIS/Apache/1C; do not touch those services during BETA deployment.
 - NEXT decisive action: establish target OS/VM and HTTPS reverse proxy, run isolated BETA stack and smoke, validate migrations and bootstrap identities, configure Android APK against verified BETA URL, family acceptance tests.
+
+
+## 2026-10-13 — Family registration strategy correction
+- Public Contabo BETA backend has a freshly migrated database; first-user SQL bootstrap proposal was explicitly stopped before file creation or DB mutation.
+- Verified `AuthController` currently implements login/refresh only; `WorkspaceController.POST` is deliberately forbidden; `UserAccountService.createAccount` presupposes a member. `AccountWorkspaceMembership` exists but old one-to-one account/member coupling still applies.
+- Updated `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` (941cb3e) with self-service family registration, global account multi-workspace membership, optional age/composition-informed templates, separate economies and release isolation tests.
+- NEXT: implement transactional onboarding and global-account workspace-scoped security across Web/Android; no dangerous public signup shortcut or test admin SQL inserted.
