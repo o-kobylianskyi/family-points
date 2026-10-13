@@ -26,6 +26,20 @@ try {
     & $wrapper '-DskipTests' 'compile'
     if ($LASTEXITCODE -ne 0) { throw 'Backend compilation failed' }
 
+    Write-Host 'Building React frontend...'
+    Push-Location (Join-Path $root 'frontend')
+    try {
+        if (-not (Test-Path 'node_modules')) {
+            Write-Host 'Installing locked frontend dependencies...'
+            & npm.cmd ci
+            if ($LASTEXITCODE -ne 0) { throw 'Frontend npm ci failed' }
+        }
+        & npm.cmd run build
+        if ($LASTEXITCODE -ne 0) { throw 'Frontend build failed' }
+    } finally {
+        Pop-Location
+    }
+
     if ($WithTests) {
         Write-Host 'Running existing unit tests (integration tests may require Docker)...'
         & $wrapper 'test'
