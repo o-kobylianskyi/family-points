@@ -60,8 +60,11 @@ class TasksRepository(
         val schedule = async {
             try {
                 ApiClient.taskApi.getMemberSchedule(auth, workspaceId, memberId, date)
+            } catch (exception: retrofit2.HttpException) {
+                if (exception.code() == 401) throw exception
+                offlineStore.load(workspaceId, viewerMemberId, memberId, date)?.schedule.orEmpty()
             } catch (_: java.io.IOException) {
-                emptyList<TaskScheduleOccurrenceResponse>()
+                offlineStore.load(workspaceId, viewerMemberId, memberId, date)?.schedule.orEmpty()
             }
         }
         val result = OfflineTasksStore.Snapshot(
