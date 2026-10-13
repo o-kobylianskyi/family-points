@@ -222,6 +222,25 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    @Transactional
+    void verifiedProviderSubjectCannotBeAssignedToTwoAccounts() {
+        UserAccount first = new UserAccount("external-identity-first", "hash", null);
+        UserAccount second = new UserAccount("external-identity-second", "hash", null);
+        entityManager.persist(first);
+        entityManager.persist(second);
+        entityManager.flush();
+        jdbc.update("""
+            INSERT INTO account_external_identities(account_id, provider, provider_subject)
+            VALUES (?, 'google', 'provider-subject-123')
+            """, first.getId());
+        assertThrows(org.springframework.dao.DuplicateKeyException.class, () ->
+            jdbc.update("""
+                INSERT INTO account_external_identities(account_id, provider, provider_subject)
+                VALUES (?, 'google', 'provider-subject-123')
+                """, second.getId()));
+    }
+
+    @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
