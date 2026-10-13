@@ -107,6 +107,64 @@ public class WorkspaceJoinService {
     }
 
     /**
+     * Approve a pending join as a new independent member of this workspace.
+     * The caller's workspace and MANAGE_MEMBERS permission are checked by the controller.
+     * SQL locks the request so concurrent approvals cannot create duplicate links.
+     */
+    @Transactional
+    public void approveRequest(Long workspaceId, Long requestId, Long roleId, String memberName) {
+        if (workspaceId == null || requestId == null || roleId == null
+                || memberName == null || memberName.isBlank() || memberName.length() > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid membership details");
+        }
+        List<Long> accounts = jdbc.queryForList("""
+                SELECT requester_account_id FROM workspace_join_requests
+                WHERE workspace_id = ? AND id = ? AND status = 'PENDING'
+                FOR UPDATE
+                """, Long.class, workspaceId, requestId);
+        if (accounts.size() != 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pending request not found");
+        }
+        Long accountId = accounts.get(0);
+        var roleInfo = jdbc.queryForList("""
+                SELECT code FROM family_roles WHERE id = ? AND family_id = ?
+                """, roleId, workspaceId);
+        if (roleInfo.size() != 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid workspace role");
+        }
+        // Never elevate a new member to family administrator via a join request.
+        String roleCode = String.valueOf(roleInfo.get(0).get("code"));
+        Integer elevated = jdbc.queryForObject("""
+                SELECT count(*) FROM family_role_permissions
+                WHERE role_id = ? AND permission IN ('ADMIN_OVERRIDE', 'MANAGE_MEMBERS', 'MANAGE_ROLES')
+                """, Integer.class, roleId);
+        if ("FAMILY_ADMIN".equals(roleCode) || (elevated != null && elevated > 0)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Privileged roles require a separate invitation policy");
+        }
+        Integer links = jdbc.queryForObject("""
+                SELECT count(*) FROM account_workspace_memberships
+                WHERE account_id = ? AND workspace_id = ?
+                """, Integer.class, accountId, workspaceId);
+        if (links != null && links > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Account already belongs to workspace");
+        }
+        Long memberId = jdbc.queryForObject("""
+                INSERT INTO family_members (name, member_type, family_role_id, family_id, active)
+                VALUES (?, 'OTHER', ?, ?, true) RETURNING id
+                """, Long.class, memberName.trim(), roleId, workspaceId);
+        jdbc.update("""
+                INSERT INTO account_workspace_memberships (account_id, family_member_id, workspace_id)
+                VALUES (?, ?, ?)
+                """, accountId, memberId, workspaceId);
+        int changed = jdbc.update("""
+                UPDATE workspace_join_requests
+                SET status = 'APPROVED', reviewed_at = CURRENT_TIMESTAMP, reviewed_by_account_id = ?
+                WHERE id = ? AND workspace_id = ? AND status = 'PENDING'
+                """, currentUser.getCurrentAccount().getId(), requestId, workspaceId);
+        if (changed != 1) throw new ResponseStatusException(HttpStatus.CONFLICT, "Request was already reviewed");
+    }
+
+    /**
      * Approval requires mapping to a workspace-local member profile and role.
      * Never assign a default membership automatically here.
      */
