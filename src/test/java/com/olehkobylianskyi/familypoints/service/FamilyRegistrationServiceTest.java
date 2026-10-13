@@ -2,6 +2,7 @@ package com.olehkobylianskyi.familypoints.service;
 
 import com.olehkobylianskyi.familypoints.repository.*;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -17,7 +18,7 @@ class FamilyRegistrationServiceTest {
 
     @Test
     void refusesWeakPasswordsWithoutWritingAnything() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ResponseStatusException.class,
                 () -> registration.register("someone", "short", "Household", "Parent"));
         verifyNoInteractions(provisioning, accounts, members, links, encoder);
     }
@@ -25,14 +26,21 @@ class FamilyRegistrationServiceTest {
     @Test
     void refusesDuplicateUsernameBeforeProvisioningFamily() {
         when(accounts.existsByUsername("someone")).thenReturn(true);
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ResponseStatusException.class,
                 () -> registration.register("someone", "long-enough-password", "Household", "Parent"));
         verifyNoInteractions(provisioning, members, links, encoder);
     }
 
     @Test
+    void refusesOversizedFamilyNameBeforeWriting() {
+        assertThrows(ResponseStatusException.class,
+                () -> registration.register("someone", "long-enough-password", "x".repeat(101), "Parent"));
+        verifyNoInteractions(provisioning, accounts, members, links, encoder);
+    }
+
+    @Test
     void refusesInvalidAccountNames() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ResponseStatusException.class,
                 () -> registration.register("bad username", "long-enough-password", "Household", "Parent"));
         verifyNoInteractions(provisioning, accounts, members, links, encoder);
     }
