@@ -970,3 +970,9 @@
 - Added disposable PostgreSQL integration scenarios (79ee290): 48-hex join code -> pending request only -> duplicate 409 -> manager approval -> membership in only target workspace, plus invitation issue -> preview -> short-lived context -> acceptance -> one-use-only -> no outsider workspace membership.
 - Tests use existing Spring Boot + Testcontainers PostgreSQL 17 setup; they do not send HTTP through MockMvc for join/invite operations. Controller authorization integration still requires separate tests.
 - No running database, frontend, Android or Contabo BETA modified. Maven tests NOT run against new commits.
+
+## 2026-10-13 — HTTP and revocation regression package (COMMITTED; NOT RUN)
+- Fixed Java test request-body escaping in existing MockMvc manager-authorization scenario (006d4e5).
+- Extended Testcontainers PostgreSQL tests: invitation created and pending context established, then revoked; subsequent resume/accept returns 404 and cannot create membership. Rejected join request drops from pending queue, cannot subsequently be approved and does not create membership (99cf990).
+- Coverage now includes manager-only HTTP join-code rotation, cross-workspace deny, duplicate joins, approvals, redemptions, revocation and rejection. These are automated test definitions, not yet confirmed passing.
+- No real data and no Contabo BETA changes. Await local Maven full suite.
