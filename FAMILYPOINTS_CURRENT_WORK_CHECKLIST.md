@@ -951,3 +951,13 @@ Before each substantial implementation batch:
 - [ ] Run local Maven tests and full Testcontainers gate after safe git pull
 - [ ] Complete signup -> first-family -> workspace-selection HTTP integration coverage
 - [ ] Implement provider-subject-verified Google identity binding, not email-only linking
+
+## 2026-10-13 — Google identity milestone
+- [x] Add Google ID-token signature, issuer, expiry, audience and azp validation.
+- [x] Resolve existing linked account exclusively using provider+subject, never email.
+- [x] Feature-gate POST /auth/google disabled by default; avoid assigning a workspace automatically.
+- [x] Add initial controller tests.
+- [ ] Execute Maven build/tests and resolve any compilation/integration errors.
+- [ ] Implement authenticated, ownership-confirmed Google account linking with uniqueness-conflict behavior and tests.
+- [ ] Implement optional Google account creation with secure registration/onboarding integration only when ready.
+- [ ] Never enable Google or deploy BETA until full verification.
