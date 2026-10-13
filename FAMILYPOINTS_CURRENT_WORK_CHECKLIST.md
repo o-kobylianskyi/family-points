@@ -935,3 +935,11 @@ Before each substantial implementation batch:
 - [ ] Enable authenticated family-less account to create its first family without preexisting workspace authority
 - [ ] Add Spring MVC/JWT lifecycle tests and check duplicate username races
 - [ ] Do not enable public registration, Google/OIDC or BETA deployment until safety gates pass
+
+## 2026-10-13 — First family implementation gate
+- [x] Feature-gated POST /api/onboarding/first-family for authenticated global accounts
+- [x] Reject accounts with existing family and serialize parallel first-family requests
+- [x] Initial unit tests for successful first family / existing family conflict
+- [ ] Run Maven unit and PostgreSQL integration tests; verify full identity lifecycle
+- [ ] Add real API-level onboarding tests and address any failures
+- [ ] Leave public signup and first-family flags disabled until release review
