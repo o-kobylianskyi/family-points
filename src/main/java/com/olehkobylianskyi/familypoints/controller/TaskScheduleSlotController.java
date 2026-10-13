@@ -1,8 +1,10 @@
 package com.olehkobylianskyi.familypoints.controller;
 
 import com.olehkobylianskyi.familypoints.entity.TaskScheduleSlot;
+import com.olehkobylianskyi.familypoints.entity.TaskAuditEventType;
 import com.olehkobylianskyi.familypoints.repository.TaskScheduleSlotRepository;
 import com.olehkobylianskyi.familypoints.service.TaskAuthorizationService;
+import com.olehkobylianskyi.familypoints.service.TaskAuditService;
 import com.olehkobylianskyi.familypoints.service.TaskService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -20,12 +22,14 @@ public class TaskScheduleSlotController {
     private final TaskService tasks;
     private final TaskScheduleSlotRepository slots;
     private final TaskAuthorizationService authorization;
+    private final TaskAuditService audit;
 
     public TaskScheduleSlotController(TaskService tasks, TaskScheduleSlotRepository slots,
-                                      TaskAuthorizationService authorization) {
+                                      TaskAuthorizationService authorization, TaskAuditService audit) {
         this.tasks = tasks;
         this.slots = slots;
         this.authorization = authorization;
+        this.audit = audit;
     }
 
     public record SlotRequest(
@@ -57,8 +61,11 @@ public class TaskScheduleSlotController {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.BAD_REQUEST, "Reserved schedule slot key");
         }
-        return SlotResponse.from(slots.save(new TaskScheduleSlot(
-                definition, input.slotKey(), input.scheduledTime())));
+        var slot = slots.save(new TaskScheduleSlot(definition, input.slotKey(), input.scheduledTime()));
+        audit.recordUserEvent(definition, null, TaskAuditEventType.DEFINITION_UPDATED,
+                authorization.currentMember(), null, null, null, null,
+                "Schedule slot created: " + slot.getSlotKey() + " at " + slot.getScheduledTime());
+        return SlotResponse.from(slot);
     }
 
     public record SlotUpdateRequest(LocalTime scheduledTime, boolean enabled) {}
@@ -73,9 +80,18 @@ public class TaskScheduleSlotController {
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
                         org.springframework.http.HttpStatus.NOT_FOUND, "Schedule slot not found"));
         // Keep identity stable: completed/missed historical instances retain their own dueTime snapshot.
+        var oldTime = slot.getScheduledTime();
+        var oldEnabled = slot.isEnabled();
         slot.reschedule(input.scheduledTime());
         slot.setEnabled(input.enabled());
-        return SlotResponse.from(slots.save(slot));
+        var saved = slots.save(slot);
+        if (!java.util.Objects.equals(oldTime, saved.getScheduledTime()) || oldEnabled != saved.isEnabled()) {
+            audit.recordUserEvent(definition, null, TaskAuditEventType.DEFINITION_UPDATED,
+                    authorization.currentMember(), null, null, null, null,
+                    "Schedule slot " + slot.getSlotKey() + ": " + oldTime + " -> " + saved.getScheduledTime()
+                            + ", enabled " + oldEnabled + " -> " + saved.isEnabled());
+        }
+        return SlotResponse.from(saved);
     }
 
     @PatchMapping("/{slotId}/enabled")
@@ -87,7 +103,14 @@ public class TaskScheduleSlotController {
         var slot = slots.findByIdAndTaskDefinitionId(slotId, definitionId)
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
                         org.springframework.http.HttpStatus.NOT_FOUND, "Schedule slot not found"));
+        boolean previous = slot.isEnabled();
         slot.setEnabled(enabled);
-        return SlotResponse.from(slots.save(slot));
+        var saved = slots.save(slot);
+        if (previous != enabled) {
+            audit.recordUserEvent(definition, null, TaskAuditEventType.DEFINITION_UPDATED,
+                    authorization.currentMember(), null, null, null, null,
+                    "Schedule slot " + slot.getSlotKey() + " enabled " + previous + " -> " + enabled);
+        }
+        return SlotResponse.from(saved);
     }
 }
