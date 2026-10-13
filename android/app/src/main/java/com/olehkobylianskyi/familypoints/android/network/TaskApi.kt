@@ -3,6 +3,7 @@ package com.olehkobylianskyi.familypoints.android.network
 import com.olehkobylianskyi.familypoints.android.data.TaskAuditEventResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskDefinitionResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskDelegationRequest
+import com.olehkobylianskyi.familypoints.android.data.TaskScheduleOccurrenceResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskInstanceResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskParticipantResponse
 import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
@@ -30,6 +31,23 @@ interface TaskApi {
         @Path("memberId") memberId: Long,
         @Query("date") date: String
     ): List<TaskInstanceResponse>
+
+    @GET("workspaces/{workspaceId}/tasks/members/{memberId}/schedule")
+    suspend fun getMemberSchedule(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("memberId") memberId: Long,
+        @Query("date") date: String
+    ): List<TaskScheduleOccurrenceResponse>
+
+    @POST("workspaces/{workspaceId}/tasks/definitions/{definitionId}/start-scheduled")
+    suspend fun startScheduledOccurrence(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("definitionId") definitionId: Long,
+        @Query("date") date: String,
+        @Query("slotKey") slotKey: String
+    ): TaskInstanceResponse
 
     @GET("workspaces/{workspaceId}/tasks/open")
     suspend fun getOpenTasks(
