@@ -984,3 +984,9 @@
 - **Blocking issue:** SecurityConfig still requires authentication for /auth/register-account. Attempts to update SecurityConfig were blocked; anonymous registration is not operational even if flag enabled. Keep the flag OFF.
 - AdditionalFamilyController still requires workspace manager authority, so family-less accounts cannot yet create first family. Must complete cohesive account creation/first-family flow after authorization and test review.
 - No deployment, database migration or frontend changes. Contabo BETA unchanged.
+
+## 2026-10-13 — First-family onboarding implemented, pending verification
+- Added POST /api/onboarding/first-family (ec73aab), authenticated and gated by familypoints.first-family.enabled:false.
+- Added FirstFamilyOnboardingService (1625c1b): rejects disabled accounts and existing family membership, provisions first workspace using existing AdditionalFamilyService.
+- Added pessimistic account-row locking via UserAccountRepository.findByIdForUpdate (16a1d25, 0aa8001) to serialize concurrent first-family requests.
+- Added isolated unit tests (0846ab4); tests not run yet. Feature remains disabled. No Contabo deployment.
