@@ -375,6 +375,74 @@ class FamilyPointsApplicationTests {
                 .andExpect(status().isForbidden());
     }
 
+
+    @Test
+    @Transactional
+    void revokedInvitationCannotBeAcceptedEvenWithExistingContext() {
+        Workspace family = new Workspace("Revoked invitation family");
+        entityManager.persist(family);
+        WorkspaceRole role = new WorkspaceRole(family, "CHILD", "Invite child role", false);
+        entityManager.persist(role);
+        UserAccount issuer = new UserAccount("revoke-inviter-test", "hash", null);
+        UserAccount recipient = new UserAccount("revoke-recipient-test", "hash", null);
+        entityManager.persist(issuer);
+        entityManager.persist(recipient);
+        entityManager.flush();
+
+        var identity = org.mockito.Mockito.mock(
+                com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(issuer);
+        var invitations = new com.olehkobylianskyi.familypoints.service.WorkspaceInvitationService(jdbc, identity);
+        var issued = invitations.issue(family.getId(), role.getId());
+        var context = invitations.begin(issued.token());
+        Long inviteId = jdbc.queryForObject(
+                "SELECT id FROM workspace_invitations WHERE workspace_id=?", Long.class, family.getId());
+        invitations.revoke(family.getId(), inviteId);
+        org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(recipient);
+        assertEquals(404, assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> invitations.resume(context.handle())).getStatusCode().value());
+        assertEquals(404, assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> invitations.accept(context.handle(), "Rejected join")).getStatusCode().value());
+        assertEquals(0, jdbc.queryForObject(
+                "SELECT count(*) FROM account_workspace_memberships WHERE account_id=? AND workspace_id=?",
+                Integer.class, recipient.getId(), family.getId()));
+    }
+
+    @Test
+    @Transactional
+    void rejectingJoinRequestDoesNotCreateMembershipAndCannotBeApprovedLater() {
+        Workspace family = new Workspace("Rejected request family");
+        entityManager.persist(family);
+        WorkspaceRole role = new WorkspaceRole(family, "CHILD", "Member", false);
+        entityManager.persist(role);
+        UserAccount applicant = new UserAccount("rejected-join-applicant", "hash", null);
+        UserAccount reviewer = new UserAccount("rejected-join-manager", "hash", null);
+        entityManager.persist(applicant);
+        entityManager.persist(reviewer);
+        entityManager.flush();
+
+        var identity = org.mockito.Mockito.mock(
+                com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(applicant);
+        var joins = new com.olehkobylianskyi.familypoints.service.WorkspaceJoinService(jdbc, identity);
+        String code = joins.rotateJoinCode(family.getId());
+        joins.requestJoin(code);
+        Long requestId = jdbc.queryForObject(
+                "SELECT id FROM workspace_join_requests WHERE workspace_id=? AND requester_account_id=?",
+                Long.class, family.getId(), applicant.getId());
+        org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(reviewer);
+        joins.rejectRequest(family.getId(), requestId);
+        assertEquals("REJECTED", jdbc.queryForObject(
+                "SELECT status FROM workspace_join_requests WHERE id=?", String.class, requestId));
+        assertTrue(joins.pendingForManager(family.getId()).isEmpty());
+        assertEquals(404, assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> joins.approveRequest(family.getId(), requestId, role.getId(), "Must not join"))
+                .getStatusCode().value());
+        assertEquals(0, jdbc.queryForObject(
+                "SELECT count(*) FROM account_workspace_memberships WHERE account_id=? AND workspace_id=?",
+                Integer.class, applicant.getId(), family.getId()));
+    }
+
     @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
