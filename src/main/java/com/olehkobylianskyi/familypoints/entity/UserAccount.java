@@ -27,10 +27,10 @@ public class UserAccount {
     @Column(nullable = false)
     private boolean enabled = true;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(
             name = "family_member_id",
-            nullable = false,
+            nullable = true,
             unique = true
     )
     private WorkspaceMember workspaceMember;
