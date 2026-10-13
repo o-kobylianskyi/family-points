@@ -1,0 +1,52 @@
+name: family-points-beta
+services:
+  database:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: family_points
+      POSTGRES_USER: family_points
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - beta_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U family_points -d family_points"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    networks: [internal]
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.beta
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://database:5432/family_points
+      DB_USERNAME: family_points
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      SPRING_PROFILES_ACTIVE: beta
+    depends_on:
+      database:
+        condition: service_healthy
+    networks: [internal]
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.beta
+      args:
+        VITE_API_URL: ""
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${BETA_HTTP_PORT:-18080}:80"
+    depends_on: [backend]
+    networks: [internal]
+
+volumes:
+  beta_postgres:
+
+networks:
+  internal:
+    driver: bridge
