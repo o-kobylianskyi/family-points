@@ -682,7 +682,7 @@ fun TasksScreen(
                         task = task,
                         participants = participantMap[task.id].orEmpty(),
                         onOpen = {
-                            onOpenTask(task.id, selectedDate)
+                            onOpenTask(task.id, selectedDate, "default")
                         }
                     )
                 }
