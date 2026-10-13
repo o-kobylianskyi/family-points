@@ -1787,3 +1787,10 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - A processing flag must not be set until both point and reputation operations (and any approved override path) finish successfully.
 - Mock-level failure-injection tests can detect premature flags or swallowed errors, but **cannot** establish database rollback or concurrency safety. Those require transactional PostgreSQL integration tests with concurrent connections.
 - Keep manual and distinct source-event ledger operations legal; any future uniqueness constraint needs an explicit operation kind and a pre-migration duplicate audit, not a blanket unique(sourceType, sourceId).
+
+
+## 2026-10-13 — BETA delivery priority and isolation
+- Prioritize a working family BETA (Web + Android + Spring + PostgreSQL) over isolated micro-packages of minor economy tests. Safety-critical ledger invariants remain release gates, not abandoned.
+- Deploy BETA to a new isolated database/volume, never reuse or silently migrate/delete existing real family balances or history.
+- HTTPS origin and authorized onboarding are mandatory before external testers; limit public exposure until cross-workspace permissions, privacy and backup have been verified.
+- Current Docker Compose is a deployment scaffold, not proof of a running tested public beta. Android Beta API host must be configured deliberately.
