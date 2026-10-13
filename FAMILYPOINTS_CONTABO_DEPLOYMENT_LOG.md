@@ -115,3 +115,10 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - HTTP 200 was reported, but it was not stated whether **both** endpoints separately returned 200; full response headers and `docker compose ps` were not supplied. Record internal HTTP smoke as **PARTIALLY VERIFIED**, not both endpoints independently proven.
 - No public HTTPS on host Nginx, authenticated onboarding, external 1C forwarding test or Android BETA verification yet.
 - NEXT: repeat labeled health checks, inspect existing host Nginx 80/443 sites and certificate availability, create separate HTTPS host for BETA with no changes to existing DEV 8443 and 1C NAT 8080.
+
+## 2026-10-13 — BETA internal HTTP and HTTPS readiness verified (USER-VERIFIED CLI)
+- Host-loopback GET `http://127.0.0.1:18080/api/client-health` returned HTTP 200, JSON `{"status":"UP","service":"family-points"}` through Nginx. Confirms Web proxy to Spring Boot; this is not authenticated end-to-end functionality.
+- Host sockets: Nginx listening TCP 80 and 8443; Docker BETA Web bound only to `127.0.0.1:18080`. No TCP 443 listener at this time. Existing 1C DNAT 8080 should be preserved.
+- Nginx sites-enabled were: default, familypoints-dev, familypoints-api-dev. No BETA host TLS site exists yet.
+- Certbot listed DEV frontend/API certificates only, both expiring 2027-01-06; BETA apex domain certificate is not yet issued.
+- Agreed next step: reuse host Nginx as TLS edge on 443 for `family-point.com`, proxy all paths to `127.0.0.1:18080`, preserve DEV 8443 and 1C NAT. Confirm DNS and Cloudflare credential existence without exposing secrets, issue apex certificate, configure separate server block and verify nginx -t before reload.
