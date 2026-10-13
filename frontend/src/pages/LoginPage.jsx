@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext'
@@ -166,6 +166,9 @@ function LoginPage() {
               : t('login.submit')}
           </button>
         </form>
+        {import.meta.env.VITE_ENABLE_FAMILY_REGISTRATION === 'true' && (
+          <p><Link to="/register">Створити нову сім’ю</Link></p>
+        )}
       </div>
     </div>
   )
