@@ -96,6 +96,8 @@ fun CreateTaskScreen(
     var recurrenceDayOfWeek by remember { mutableStateOf(1) }
     var recurrenceDayOfMonth by remember { mutableStateOf("1") }
     var dueTime by remember { mutableStateOf("") }
+    var useMultipleTimes by remember { mutableStateOf(false) }
+    var slotTimes by remember { mutableStateOf(listOf("09:00", "15:00")) }
 
     var administrators by remember {
         mutableStateOf<Set<String>>(emptySet())
@@ -251,6 +253,18 @@ fun CreateTaskScreen(
             return
         }
 
+        val normalizedSlots = if (useMultipleTimes) slotTimes.map { normalizeTaskTime(it) } else emptyList()
+        if (useMultipleTimes && (normalizedSlots.any { it == null || it.isBlank() }
+                    || normalizedSlots.distinct().size != normalizedSlots.size)) {
+            error = when (language) {
+                AppLanguage.UK -> "Вкажіть унікальний правильний час для кожного виконання."
+                AppLanguage.DE -> "Gültige unterschiedliche Zeiten für jede Ausführung eingeben."
+                AppLanguage.EN -> "Enter distinct valid times for each occurrence."
+                AppLanguage.RU -> "Укажите корректное уникальное время каждого выполнения."
+            }
+            return
+        }
+
         val monthlyDay = recurrenceDayOfMonth.toIntOrNull()
 
         if (
@@ -340,10 +354,8 @@ fun CreateTaskScreen(
                 penaltyReputation
                     .toIntOrNull()
                     ?.takeIf { it > 0 },
-            dueTime =
-                normalizedTime.takeIf {
-                    it.isNotBlank()
-                }
+            dueTime = normalizedTime.takeIf { it.isNotBlank() },
+            initialSlotTimes = normalizedSlots.filterNotNull()
         )
 
         scope.launch {
@@ -652,6 +664,50 @@ fun CreateTaskScreen(
                     ),
                     singleLine = true
                 )
+            }
+        }
+
+        item {
+            CheckRow(
+                checked = useMultipleTimes,
+                label = when (language) {
+                    AppLanguage.UK -> "Кілька виконань за дату"
+                    AppLanguage.DE -> "Mehrere Ausführungen pro Tag"
+                    AppLanguage.EN -> "Multiple occurrences per day"
+                    AppLanguage.RU -> "Несколько выполнений за день"
+                },
+                onCheckedChange = { useMultipleTimes = it }
+            )
+            if (useMultipleTimes) {
+                slotTimes.forEachIndexed { index, time ->
+                    OutlinedTextField(
+                        value = time,
+                        onValueChange = { changed ->
+                            slotTimes = slotTimes.mapIndexed { i, existing ->
+                                if (i == index) changed.take(5) else existing
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        label = { Text(when (language) {
+                            AppLanguage.UK -> "Виконання ${index + 1}"
+                            AppLanguage.DE -> "Ausführung ${index + 1}"
+                            AppLanguage.EN -> "Occurrence ${index + 1}"
+                            AppLanguage.RU -> "Выполнение ${index + 1}"
+                        }) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { if (slotTimes.size > 2) slotTimes = slotTimes.dropLast(1) },
+                        enabled = slotTimes.size > 2) {
+                        Text("−")
+                    }
+                    OutlinedButton(onClick = { if (slotTimes.size < 12) slotTimes = slotTimes + "18:00" },
+                        enabled = slotTimes.size < 12) {
+                        Text("+")
+                    }
+                }
             }
         }
 
