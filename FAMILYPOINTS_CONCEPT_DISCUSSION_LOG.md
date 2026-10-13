@@ -1781,3 +1781,9 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - Every execution of a task on a date with a distinct slotKey has independent rewardProcessed and penaltyProcessed flags and ledger source ID.
 - Manager confirmation is idempotent for already COMPLETED execution. A MISSED mandatory execution debits points/reputation once; another slot remains independent.
 - New tests cover distinct persisted instance IDs and repeat calls. Database-level concurrency and transaction rollback verification remain a later beta-readiness gate.
+
+
+## 2026-10-13 — Economic atomicity test boundary clarification
+- A processing flag must not be set until both point and reputation operations (and any approved override path) finish successfully.
+- Mock-level failure-injection tests can detect premature flags or swallowed errors, but **cannot** establish database rollback or concurrency safety. Those require transactional PostgreSQL integration tests with concurrent connections.
+- Keep manual and distinct source-event ledger operations legal; any future uniqueness constraint needs an explicit operation kind and a pre-migration duplicate audit, not a blanket unique(sourceType, sourceId).
