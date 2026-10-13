@@ -57,10 +57,18 @@ class TasksRepository(
                 emptyList()
             }
         }
+        val schedule = async {
+            try {
+                ApiClient.taskApi.getMemberSchedule(auth, workspaceId, memberId, date)
+            } catch (_: java.io.IOException) {
+                emptyList<TaskScheduleOccurrenceResponse>()
+            }
+        }
         val result = OfflineTasksStore.Snapshot(
             tasks = tasks.await(),
             openTasks = open.await(),
-            definitions = definitions.await()
+            definitions = definitions.await(),
+            schedule = schedule.await()
         )
         offlineStore.save(workspaceId, viewerMemberId, memberId, date, result)
         Triple(result.tasks, result.openTasks, result.definitions)
