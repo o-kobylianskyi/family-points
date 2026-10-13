@@ -927,3 +927,11 @@ Before each substantial implementation batch:
 - [ ] User has local uncommitted FamilyPointsApplicationTests.java edits. Preserve them in stash before git pull; compare after update, do not blindly pop.
 - [ ] No Contabo deployment, registration/public invite enablement until integration tests and security review pass.
 **Next main development:** account identity lifecycle, password registration, account without family, Google OAuth subject binding, workspace selection; UI updates only to verify completed workflows.
+
+## 2026-10-13 — Global registration next gate
+- [x] Account-only registration service and disabled-by-default endpoint
+- [x] Initial service tests for account without family
+- [ ] Permit account-only endpoint anonymously in SecurityConfig while preserving feature gate (write temporarily blocked)
+- [ ] Enable authenticated family-less account to create its first family without preexisting workspace authority
+- [ ] Add Spring MVC/JWT lifecycle tests and check duplicate username races
+- [ ] Do not enable public registration, Google/OIDC or BETA deployment until safety gates pass
