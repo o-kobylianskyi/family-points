@@ -964,3 +964,9 @@
 - New tests: verify successful Flyway V27/V28/V29 and external-identity table (45e3948), reject role from different family on member insert (45e3948), permit family-less global account and reject foreign role in invite (4271fba), reject duplicate verified provider+subject assignment to another account (433189e).
 - Requires Docker Desktop running for integration tests. Maven/unit test PASS was reported before this package; newly added PostgreSQL tests have NOT YET been executed.
 - Public registration, Google login and Contabo release remain disabled/pending.
+
+## 2026-10-13 — Join/invitation end-to-end service tests (COMMITTED; EXECUTION PENDING)
+- Fixed WorkspaceJoinService duplicate pending request handling: INSERT ON CONFLICT DO NOTHING previously returned success; now checks affected rows and returns HTTP 409 (8749f56).
+- Added disposable PostgreSQL integration scenarios (79ee290): 48-hex join code -> pending request only -> duplicate 409 -> manager approval -> membership in only target workspace, plus invitation issue -> preview -> short-lived context -> acceptance -> one-use-only -> no outsider workspace membership.
+- Tests use existing Spring Boot + Testcontainers PostgreSQL 17 setup; they do not send HTTP through MockMvc for join/invite operations. Controller authorization integration still requires separate tests.
+- No running database, frontend, Android or Contabo BETA modified. Maven tests NOT run against new commits.
