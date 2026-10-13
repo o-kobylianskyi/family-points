@@ -65,7 +65,9 @@ public class CurrentUserService {
             }
             return member;
         }
-        return getCurrentAccount().getWorkspaceMember();
+        var member = getCurrentAccount().getWorkspaceMember();
+        if (member == null || !member.isActive()) throw new ResponseStatusException(FORBIDDEN);
+        return member;
     }
 
     public Long getCurrentMemberId() {
