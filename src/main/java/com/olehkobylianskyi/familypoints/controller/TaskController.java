@@ -75,7 +75,8 @@ public class TaskController {
                         request.getPenaltyAmount(),
                         request.getRewardReputationAmount(),
                         request.getPenaltyReputationAmount(),
-                        request.getDueTime()
+                        request.getDueTime(),
+                        request.getInitialSlotTimes()
                 );
 
         return ResponseEntity
