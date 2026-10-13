@@ -68,7 +68,7 @@ fun TasksScreen(
     onLogout: () -> Unit,
     onNavigate: (DashboardDestination) -> Unit,
     onBack: () -> Unit,
-    onOpenTask: (Long, String) -> Unit,
+    onOpenTask: (Long, String, String) -> Unit,
     onCreateTask: () -> Unit,
     onUnauthorized: () -> Unit
 ) {
@@ -471,6 +471,16 @@ fun TasksScreen(
                                 AppLanguage.EN -> "Planned"
                                 AppLanguage.RU -> "Запланировано"
                             })
+                            OutlinedButton(onClick = {
+                                onOpenTask(occurrence.definitionId, selectedDate, occurrence.slotKey)
+                            }) {
+                                Text(when (language) {
+                                    AppLanguage.UK -> "Переглянути"
+                                    AppLanguage.DE -> "Ansehen"
+                                    AppLanguage.EN -> "View"
+                                    AppLanguage.RU -> "Посмотреть"
+                                })
+                            }
                             if (selectedMemberId == currentUser.memberId &&
                                 selectedDate <= LocalDate.now().toString() &&
                                 serverStatus == ServerStatus.ONLINE && !showingCachedMy) {
@@ -559,7 +569,8 @@ fun TasksScreen(
                             if (showingCachedMy || serverStatus != ServerStatus.ONLINE) return@TaskInstanceCard
                             onOpenTask(
                                 task.taskDefinitionId,
-                                selectedDate
+                                selectedDate,
+                                task.slotKey
                             )
                         }
                     )
