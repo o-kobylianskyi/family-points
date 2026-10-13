@@ -109,3 +109,9 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - Non-fatal warnings: custom AuthenticationProvider bypassing auto UserDetailsService configuration; spring.jpa.open-in-view enabled by default. Review before public beta.
 - Still unverified: remote REST health response, initial user bootstrap, external HTTPS, React Web routing, Android access, persistence across reboot and actual external 1C forwarding.
 - Next: start the BETA Web/Nginx container on loopback only; run host-local `/healthz` and `/api/client-health` smoke tests; inspect UFW/WireGuard/1C after Docker network creation; proceed to isolated HTTPS edge and controlled account provisioning.
+
+## 2026-10-13 — Web/API internal smoke result (USER-REPORTED)
+- After instructions to build Web and check loopback `/healthz` and `/api/client-health`, the operator replied `200`.
+- HTTP 200 was reported, but it was not stated whether **both** endpoints separately returned 200; full response headers and `docker compose ps` were not supplied. Record internal HTTP smoke as **PARTIALLY VERIFIED**, not both endpoints independently proven.
+- No public HTTPS on host Nginx, authenticated onboarding, external 1C forwarding test or Android BETA verification yet.
+- NEXT: repeat labeled health checks, inspect existing host Nginx 80/443 sites and certificate availability, create separate HTTPS host for BETA with no changes to existing DEV 8443 and 1C NAT 8080.
