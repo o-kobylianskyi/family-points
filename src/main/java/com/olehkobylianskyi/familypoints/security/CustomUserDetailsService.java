@@ -35,14 +35,17 @@ public class CustomUserDetailsService implements UserDetailsService {
                         )
                 );
 
+        // A global account without a workspace cannot inherit any tenant authority.
+        var primaryMember = account.getWorkspaceMember();
         List<SimpleGrantedAuthority> authorities =
-                account.getWorkspaceMember()
-                        .getWorkspaceRole()
-                        .getPermissions()
-                        .stream()
-                        .map(WorkspacePermission::name)
-                        .map(SimpleGrantedAuthority::new)
-                        .toList();
+                primaryMember != null && primaryMember.isActive()
+                        && primaryMember.getDeletedAt() == null
+                        && primaryMember.getWorkspaceRole() != null
+                        ? primaryMember.getWorkspaceRole().getPermissions().stream()
+                            .map(WorkspacePermission::name)
+                            .map(SimpleGrantedAuthority::new)
+                            .toList()
+                        : List.of();
 
         return User.builder()
                 .username(account.getUsername())
