@@ -868,3 +868,11 @@ Before each substantial implementation batch:
 - [ ] Invitation acceptance and atomic membership / use-limit / role controls
 - [ ] Compile/test V27 migration and API against DEV test database
 - [ ] Full multitenant negative tests, abuse throttling and BETA promotion after DEV acceptance
+
+## 2026-10-13 — DEV multi-family milestone
+- [x] List current account's active workspace memberships (`GET /auth/workspaces`)
+- [x] Issue selected workspace JWT after membership authorization (`POST /auth/workspaces/{workspaceId}/select`)
+- [x] Add second-family creation service and role-checked opt-in route, default disabled
+- [ ] Compile/backend unit tests, PostgreSQL Flyway V27 and two-tenant HTTP isolation tests
+- [ ] Review all role-scoped routes for use of selected workspace context, not legacy primary member
+- [ ] Web/Android family switch UI; fully global identity and Google OIDC; invitation continuation
