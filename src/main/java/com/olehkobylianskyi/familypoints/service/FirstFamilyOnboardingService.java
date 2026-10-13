@@ -32,7 +32,7 @@ public class FirstFamilyOnboardingService {
         var account = currentUser.getCurrentAccount();
         if (!account.isEnabled()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         // Serialize concurrent requests for the same global identity.
-        var locked = accounts.findById(account.getId()).orElseThrow();
+        var locked = accounts.findByIdForUpdate(account.getId()).orElseThrow();
         if (locked.getWorkspaceMember() != null ||
                 !memberships.findAllByAccountIdOrderByIdAsc(account.getId()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "First family already exists");
