@@ -142,3 +142,10 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - User stopped manual initial administrator SQL creation and reaffirmed original product design: a visitor registers and creates their own new tenant-isolated family; one person may belong to multiple families/workspaces. Optional initial tasks and economy templates should be customizable to family composition (age and optionally gender/preferences).
 - `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` updated in commit 941cb3e. No admin SQL was applied and no new registration API deployed on Contabo.
 - Before opening real signup to the internet implement transactional first-family creation, auth security/rate limiting, tenant isolation regression and optional bootstrap templates; preserve existing DEV and 1C services.
+
+
+## 2026-10-13 — Release policy confirmed: DEVELOP → ACCEPT → DEPLOY → TEST
+- User directed that remaining registration/multi-family/onboarding work be completed and tested locally on DEV first, then promoted to BETA on Contabo for end-to-end testing.
+- Existing BETA containers and public HTTPS must not be automatically updated from ongoing DEV commits. Pin and deploy a tested revision only, after backup and migration review.
+- DEV acceptance must include one login with multiple workspace memberships, two unrelated families unable to read or mutate each other's resources, registration/setup and template initialization.
+- No server deployment was executed by this policy documentation change.
