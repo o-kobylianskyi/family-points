@@ -788,3 +788,9 @@
 - Added JVM Gson deserialization regression for virtual occurrence with exact JSON field names, date, time, occurrence key and null instanceId (ed89223).
 - Schedule retrieval failure now falls back to workspace/viewer/member/date-scoped cached schedule without hiding persisted task list. HTTP 401 still triggers normal reauthentication (4bff391).
 - Android :app:assembleDebug was reported BUILD SUCCESSFUL by user before this batch. Re-run :app:testDebugUnitTest :app:assembleDebug locally after pulling these new changes, because hosted CI cannot provision Android SDK 37. No claim of successful post-change Kotlin tests until their result.
+
+## 2026-10-13 — Android schedule consistency and default-slot guard
+- Verified prior run 38404016400: backend/postgres and web successful; Android hosted runner SDK37 install failure.
+- Server TaskService now rejects START and manager COMPLETE with implicit "default" slotKey whenever any explicit slots are configured, including disabled templates; avoids duplicate out-of-band occurrence/rewards (1f963ae).
+- Android tasks list displays planned occurrences in chronological time order, and Start button is guarded by PLANNED status as well as member/date/connectivity checks (0f6b793).
+- Local Kotlin regression/testDebugUnitTest results are not yet available for this package; Android CI remains SDK37 blocked. Manual child/parent and slot status smoke test remains mandatory.
