@@ -862,3 +862,9 @@
 - Checked `SecurityConfig`: all routes require authentication by default; method security enabled. Manager routes invoke `workspaceSecurity.canManageMembers(workspaceId)`. Code possession alone cannot grant membership.
 - **NOT TESTED** Maven compilation, Flyway V27, integration tests, and running DEV HTTP responses. No approval, invite redemption, signup continuity, rate-limits or user interface yet.
 - Contabo BETA intentionally remains unchanged. Next: local compile, test and implement protected invite flow and account registration; no production rollout.
+
+## 2026-10-13 — DEV join request approval (COMMITTED / NOT YET TESTED)
+- Added transactional manager approval in `WorkspaceJoinService` (2c822d7) and POST `/api/workspace-joins/workspaces/{workspaceId}/requests/{requestId}/approve` (0f5b051). Request takes `roleId`, `memberName`.
+- Service row-locks a pending request, validates role belongs to requested workspace, blocks elevated roles with ADMIN_OVERRIDE/MANAGE_MEMBERS/MANAGE_ROLES or FAMILY_ADMIN, rejects existing account membership, creates a new independent workspace member with type OTHER and an account-workspace link, then marks request APPROVED with reviewing account. All writes occur in one Spring transaction.
+- Does not modify legacy `user_accounts.family_member_id`; global-account multi-workspace switching must use existing membership resolver.
+- **NOT VERIFIED:** DEV Maven compile/tests, Flyway V27 applied, concurrent approval tests or full authorization negative tests. No Contabo BETA rollout. Future work: inviter flow, OAuth signup context, throttling, read UX, role/identity hardening.
