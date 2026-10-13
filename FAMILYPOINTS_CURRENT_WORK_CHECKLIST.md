@@ -961,3 +961,12 @@ Before each substantial implementation batch:
 - [ ] Implement authenticated, ownership-confirmed Google account linking with uniqueness-conflict behavior and tests.
 - [ ] Implement optional Google account creation with secure registration/onboarding integration only when ready.
 - [ ] Never enable Google or deploy BETA until full verification.
+
+## 2026-10-13 — Google account link integration
+- [x] Signed-in and current-password-confirmed Google linking controller
+- [x] Shared token verifier for Google login and linking
+- [x] Subject-based account resolution; no email matching
+- [x] Unit tests for linking and resolution failure paths
+- [ ] Run full backend Maven tests on DEV and fix any failures
+- [ ] Add provider verifier tests and duplicate/conflict integration tests before enabling
+- [ ] Google front-end consent/onboarding flow and public activation deferred
