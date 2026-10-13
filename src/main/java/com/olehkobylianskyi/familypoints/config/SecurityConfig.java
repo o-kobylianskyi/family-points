@@ -80,7 +80,7 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/register-family", "/auth/register-account", "/api/client-health").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register-family", "/auth/register-account", "/auth/google", "/api/client-health").permitAll()
                         .anyRequest().authenticated()
                 )
 
