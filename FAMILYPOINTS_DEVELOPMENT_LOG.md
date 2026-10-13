@@ -745,3 +745,9 @@
 - TaskController forwards initialSlotTimes (4295ab8); CreateTaskModal submits slots in same definition POST instead of separate follow-up POST requests (d4bf9b9).
 - GitHub Actions run 38369284773 at d4bf9b9: Backend Maven/PostgreSQL Testcontainers PASS; Web Vite PASS; Android SDK37 installation still failing on hosted runner.
 - Remaining: user acceptance smoke test for one-time two-slot and daily three-slot tasks; concurrency/ledger integration tests, slot editing with existing snapshots.
+
+## 2026-10-13 — Management permissions and legacy default-query safeguards
+- Verified GitHub Actions 38369437726: Backend Maven/PostgreSQL PASS, Web Vite PASS; Android hosted runner still fails before Kotlin compilation due to SDK37.
+- TaskService.getOpenDefinitions now filters by TaskAuthorizationService.canRead before returning entries, preventing tasks outside caller read scope from being displayed; historical old date-only instance lookup changed to explicit 'default' slot key to avoid non-unique result with several daily occurrences (45e372c).
+- Added regression test in TaskManagementViewTest ensuring the created-by-me tab excludes a different author's task (cb82cb3). Existing regression test covers admin view using effective canManage instead of explicit ADMIN participation.
+- Remaining: comprehensive per-role HTTP access tests including child/group membership, history endpoint visibility and actual user environment reproduction for 'Clean room'; CI for current changes pending.
