@@ -946,3 +946,9 @@
 - Registration validation (b87572c) now rejects names over 100 characters and returns explicit client HTTP errors. Updated negative unit tests (3fc15bf) for the new error types and field length.
 - WorkspaceMembershipResolver (ec4c7a6) now also verifies that the selected member role belongs to the selected workspace. Updated existing resolver tests, including a foreign-workspace role scenario (6a93a0a).
 - No frontend updates. No tests have been run on the user laptop, no migration or deployment performed. Public registration flags remain disabled. Before rollout run Maven and Flyway verification on isolated DEV PostgreSQL.
+
+## 2026-10-13 — Consolidated DEV regression checkpoint (code committed, tests NOT run)
+- Audited V27–V29 onboarding/membership services and current Java unit tests. Fixed the invitation test JdbcTemplate mock signatures (b25b87c) to match actual method arguments; existing workspace session isolation tests already covered selected member permissions and forbidden foreign workspace.
+- Extended `scripts/dev/check-onboarding.ps1` (066e7a8) with `-BackendOnly` and mandatory V29 inventory check; `-WithTests` still runs Maven tests, optional React build runs without `-BackendOnly`.
+- All GitHub changes are DEV-only and do not modify a running database or Contabo. Compile, Flyway migrations and tests remain UNVERIFIED without a local execution report.
+- Next hard gate: run consolidated checkpoint on laptop, fix real compiler/test failures, then run disposable PostgreSQL migration tests and two-family permission scenarios. Avoid new public registration/OIDC features until this succeeds.
