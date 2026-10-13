@@ -860,3 +860,11 @@ Before each substantial implementation batch:
 - [ ] Test V27 migration, Java compile, approve/reject races, cross-workspace refusal, multi-workspace JWT switching on DEV
 - [ ] Invitation links and context persistence through password + Google signup
 - [ ] Guard public endpoint against automated join-code guessing and request flooding
+
+## 2026-10-13 — Invite context increment
+- [x] Server-side pending invitation handle storage and resumed preview (852a0bd)
+- [x] Authenticated DEV API context begin/resume (30da43d)
+- [ ] Browser-bound, anti-CSRF invitation preservation for unauthenticated signup and Google OIDC
+- [ ] Invitation acceptance and atomic membership / use-limit / role controls
+- [ ] Compile/test V27 migration and API against DEV test database
+- [ ] Full multitenant negative tests, abuse throttling and BETA promotion after DEV acceptance
