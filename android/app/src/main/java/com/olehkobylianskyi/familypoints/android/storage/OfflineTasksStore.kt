@@ -3,6 +3,7 @@ package com.olehkobylianskyi.familypoints.android.storage
 import android.content.Context
 import com.google.gson.Gson
 import com.olehkobylianskyi.familypoints.android.data.TaskDefinitionResponse
+import com.olehkobylianskyi.familypoints.android.data.TaskScheduleOccurrenceResponse
 import com.olehkobylianskyi.familypoints.android.data.TaskInstanceResponse
 
 /** A dated read-only snapshot of the current member's visible tasks. */
@@ -10,7 +11,8 @@ class OfflineTasksStore(context: Context) {
     data class Snapshot(
         val tasks: List<TaskInstanceResponse>,
         val openTasks: List<TaskDefinitionResponse>,
-        val definitions: List<TaskDefinitionResponse>
+        val definitions: List<TaskDefinitionResponse>,
+        val schedule: List<TaskScheduleOccurrenceResponse>? = null
     )
 
     private val prefs = context.applicationContext.getSharedPreferences(
