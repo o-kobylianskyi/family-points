@@ -9,10 +9,15 @@ import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
 function AppLayout() {
   const { t } = useTranslation()
-  const { currentUser, logout, getAvailableWorkspaces, switchWorkspace } = useAuth()
+  const { currentUser, logout, getAvailableWorkspaces, switchWorkspace, createAdditionalFamily } = useAuth()
   const [workspaceChoices, setWorkspaceChoices] = useState([])
   const [switching, setSwitching] = useState(false)
   const [switchError, setSwitchError] = useState('')
+  const [showCreateFamily, setShowCreateFamily] = useState(false)
+  const [newFamilyName, setNewFamilyName] = useState('')
+  const [newOwnerName, setNewOwnerName] = useState('')
+  const canCreateFamily = currentUser?.permissions?.includes('MANAGE_MEMBERS') ||
+    currentUser?.permissions?.includes('ADMIN_OVERRIDE')
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -95,6 +100,12 @@ function AppLayout() {
                 ))}
               </select>
             )}
+            {canCreateFamily && (
+              <button type="button" disabled={switching}
+                onClick={() => { setSwitchError(''); setShowCreateFamily(true) }}>
+                + Створити сім’ю
+              </button>
+            )}
             {switchError && <span role="alert">{switchError}</span>}
             <div className="header-user-info">
               <strong>{currentUser.memberName}</strong>
@@ -110,6 +121,55 @@ function AppLayout() {
             >{t('common.logout')}</button>
           </div>
         </header>
+
+        {showCreateFamily && (
+          <div role="presentation" style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center',
+            padding: 16,
+          }}>
+            <section role="dialog" aria-modal="true" aria-labelledby="new-family-title"
+              style={{
+                background: 'var(--surface, #fff)', color: 'var(--text-primary, #172033)',
+                padding: 24, borderRadius: 14, width: 'min(100%, 430px)',
+                maxHeight: '90vh', overflowY: 'auto',
+              }}>
+              <h2 id="new-family-title">Створити сім’ю</h2>
+              <form onSubmit={async (event) => {
+                event.preventDefault()
+                setSwitching(true)
+                setSwitchError('')
+                try {
+                  await createAdditionalFamily(newFamilyName, newOwnerName)
+                } catch (error) {
+                  setSwitchError(error.message || 'Не вдалося створити сім’ю')
+                  setSwitching(false)
+                }
+              }}>
+                <label style={{ display: 'block', marginBottom: 12 }}>
+                  Назва сім’ї
+                  <input autoFocus required maxLength={100} value={newFamilyName}
+                    disabled={switching} onChange={(e) => setNewFamilyName(e.target.value)}
+                    style={{ display: 'block', width: '100%' }} />
+                </label>
+                <label style={{ display: 'block', marginBottom: 12 }}>
+                  Ім’я власника
+                  <input required maxLength={100} value={newOwnerName}
+                    disabled={switching} onChange={(e) => setNewOwnerName(e.target.value)}
+                    style={{ display: 'block', width: '100%' }} />
+                </label>
+                {switchError && <p role="alert" className="error-message">{switchError}</p>}
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <button type="submit" disabled={switching || !newFamilyName.trim() || !newOwnerName.trim()}>
+                    {switching ? 'Створюємо…' : 'Створити'}
+                  </button>
+                  <button type="button" disabled={switching}
+                    onClick={() => setShowCreateFamily(false)}>Скасувати</button>
+                </div>
+              </form>
+            </section>
+          </div>
+        )}
 
         <main className="page-content">
           <Outlet />
