@@ -5,7 +5,7 @@ Source changes are committed, **not locally compiled or end-to-end tested**.
 Email and Google registration are opt-in, OFF by default. Do not deploy this package to BETA yet.
 
 ## Password account registration
-- `POST /auth/register-account` now requires `username`, `email`, and a password of 12–128 characters.
+- `POST /auth/register-account` now requires `username`, `email`, and a password of 8–128 characters.
 - Newly created user_accounts are `enabled=false` until email confirmation.
 - A SHA-256 hash of a random 256-bit token is stored in account_email_tokens; confirmation expires after 24 hours.
 - `POST /auth/email/verify` accepts `{"token":"..."}`; only then is the account enabled.
