@@ -11,7 +11,7 @@ BEGIN
     AND c.contype = 'u';
 
   IF actual_definition IS NOT NULL THEN
-    IF regexp_replace(actual_definition, '\\s+', '', 'g')
+    IF replace(actual_definition, ' ', '')
        <> 'UNIQUE(task_definition_id,scheduled_date)' THEN
       RAISE EXCEPTION 'Unexpected legacy constraint definition: %', actual_definition;
     END IF;
