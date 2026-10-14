@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { registerGlobalAccount } from '../api/authApi'
 import { useAuth } from '../context/AuthContext'
+import GoogleAuthButton from '../components/GoogleAuthButton'
 
 export default function RegisterAccountPage() {
-  const { currentUser, needsWorkspace } = useAuth()
+  const { currentUser, needsWorkspace, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -53,6 +54,18 @@ export default function RegisterAccountPage() {
       {error && <p className="error-message" role="alert">{error}</p>}
       <button type="submit" disabled={busy}>Створити акаунт</button>
     </form>
+    <GoogleAuthButton disabled={busy} onCredential={async idToken => {
+      setBusy(true)
+      setError('')
+      try {
+        const user = await loginWithGoogle(idToken, true)
+        navigate(user ? '/' : '/choose-family', { replace: true })
+      } catch (e) {
+        setError(e.message || 'Не вдалося створити Google-акаунт')
+      } finally {
+        setBusy(false)
+      }
+    }} />
     <p><Link to="/login">Повернутися до входу</Link></p>
   </div></div>
 }
