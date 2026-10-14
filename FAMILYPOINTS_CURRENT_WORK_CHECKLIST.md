@@ -997,3 +997,12 @@ Before each substantial implementation batch:
 - [ ] Run Android Gradle assembleDebug and Web npm run build locally
 - [ ] Test /auth/login -> workspace choice -> /api/me with real DEV backend
 - [ ] Only then enable DEV registration and first-family flags; never enable in BETA by default
+
+## 2026-10-14 — Additional family creation
+- [x] Web header button accessible with one family
+- [x] Form validates nonblank family and owner, sends authenticated API request
+- [x] Permission gate in UI; backend authorization unchanged
+- [x] Select and verify newly created family after creation
+- [ ] Confirm npm run build on local DEV
+- [ ] Explicitly enable familypoints.additional-family.enabled only in DEV if testing creation
+- [ ] Manually verify creating and switching families without sharing task/points data
