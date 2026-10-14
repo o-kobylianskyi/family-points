@@ -1148,3 +1148,9 @@
 - Web member editor now limits height to viewport, scrolls form content, and keeps actions sticky (71d5a46); prior request from user small window screenshot.
 - Android MembersScreen no longer calls logout for any individual members API 401; displays HTTP status and keeps session (209f135). Aligns with established policy to avoid unrequested forced logout on feature failures.
 - Pending: local npm run build + gradlew :app:assembleDebug, emulator/mobile viewport tests, and real invite flow only after V33 safe DB approval.
+
+## 2026-10-15 — Invitation onboarding error visibility
+- Inspected targeted invitation issue/accept code and Web members editor. The API failure was handled on MembersPage but displayed only behind the still-open modal, so parents had no visible explanation.
+- Passed API error into MemberEditor and rendered inside dialog (7d6bf8a, 00c6437). Clear stale errors whenever opening new/existing member editor (a2703a8).
+- Existing invite feature remains server-gated OFF. Not yet verified by Maven/Frontend local build; no DEV DB migrations applied and no Contabo deployment.
+- Remaining security/consistency gates: E2E invitation issue/consume, duplicates, concurrency and rollback after failed SMTP; do not enable on public server without these tests.
