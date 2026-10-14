@@ -7,6 +7,8 @@ export default function RegisterAccountPage() {
   const { currentUser, needsWorkspace } = useAuth()
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
+  const [sent, setSent] = useState(false)
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -19,14 +21,17 @@ export default function RegisterAccountPage() {
     setError('')
     setBusy(true)
     try {
-      await registerGlobalAccount(username.trim(), password)
-      navigate('/login', { replace: true })
+      await registerGlobalAccount(username.trim(), email.trim(), password)
+      setPassword('')
+      setSent(true)
     } catch (e) {
       setError(e.message || 'Не вдалося зареєструватися')
     } finally {
       setBusy(false)
     }
   }
+  if (sent) return <div className="login-page"><div className="login-card"><h1>Перевір пошту</h1><p>Ми надіслали лист із посиланням для підтвердження email. Після підтвердження можеш увійти.</p><Link to="/login">До входу</Link></div></div>
+
   return <div className="login-page"><div className="login-card">
     <h1>Новий акаунт FamilyPoints</h1>
     <p>Спочатку створіть акаунт. Після входу зможете створити або вибрати сім’ю.</p>
@@ -35,6 +40,10 @@ export default function RegisterAccountPage() {
         <input value={username} minLength={3} maxLength={50} pattern="[A-Za-z0-9._-]{3,50}"
           autoComplete="username" required disabled={busy}
           onChange={e => setUsername(e.target.value)} />
+      </label>
+      <label>Email (обов’язково)
+        <input type="email" value={email} maxLength={254} autoComplete="email" required disabled={busy}
+          onChange={e => setEmail(e.target.value)} />
       </label>
       <label>Пароль (12–128 символів)
         <input type="password" value={password} minLength={12} maxLength={128}
