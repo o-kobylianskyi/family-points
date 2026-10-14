@@ -18,6 +18,10 @@ public interface UserAccountRepository
 
     boolean existsByUsername(String username);
 
+    boolean existsByEmailIgnoreCase(String email);
+
+    Optional<UserAccount> findByEmailIgnoreCase(String email);
+
     Optional<UserAccount> findByWorkspaceMemberId(Long workspaceMemberId);
 
     boolean existsByWorkspaceMemberId(Long workspaceMemberId);
