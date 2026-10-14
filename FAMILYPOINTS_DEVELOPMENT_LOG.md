@@ -1160,3 +1160,8 @@
 - Found TaskService.getDefinitionsByParticipation() and 13 other task management/audit call sites still calling legacy currentUserService.getCurrentAccount().getWorkspaceMember() which is null for a new global account with workspace-scoped membership.
 - Replaced all 14 references with currentUserService.getCurrentMember() in TaskService, commit 9caeb894. Existing workspace permission checks remain intact.
 - Maven build/DEV runtime smoke test pending. No database or Contabo changes.
+
+## 2026-10-15 — Maven test failure after TaskService member context refactor
+- User Maven clean test log: 117 tests run, 0 assertions failed, 1 error at TaskManagementViewTest.createdViewDoesNotExposeTasksAuthoredByAnotherMember due to null getCurrentMember mock after TaskService replaced old account.workspaceMember.
+- Updated both TaskManagementViewTest scenarios to stub currentUser.getCurrentMember() and removed obsolete account mock setup, commit 9236ba9. Maven rerun pending.
+- Flyway successfully applied V1–V33 to disposable PostgreSQL 17 Testcontainers test DB; NOT evidence of migration on actual DEV PostgreSQL; no Contabo changes.
