@@ -51,12 +51,13 @@ fun LoginScreen(
     onRememberUsername: (String) -> Unit = {},
     onLogin: suspend (String, String) -> CurrentUserResponse,
     onLoginSuccess: (CurrentUserResponse) -> Unit,
-    onRegister: suspend (String, String) -> Unit = { _, _ -> }
+    onRegister: suspend (String, String, String) -> Unit = { _, _, _ -> }
 ) {
     var username by remember(initialUsername) { mutableStateOf(initialUsername) }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var registrationMode by remember { mutableStateOf(false) }
+    var email by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
     var languageMenuOpen by remember { mutableStateOf(false) }
@@ -126,6 +127,18 @@ fun LoginScreen(
             singleLine = true,
             enabled = !loading
         )
+
+        if (registrationMode) {
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                label = { Text("Email (обов’язково)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                singleLine = true,
+                enabled = !loading
+            )
+        }
 
         OutlinedTextField(
             value = password,
@@ -199,10 +212,10 @@ fun LoginScreen(
 
                     try {
                         if (registrationMode) {
-                            onRegister(username, password)
+                            onRegister(username, email.trim(), password)
                             registrationMode = false
                             password = ""
-                            error = "Акаунт створено. Увійдіть із новим паролем."
+                            error = "Перевірте пошту та підтвердьте email перед входом."
                         } else {
                             val user = onLogin(username, password)
                             onRememberUsername(username)
