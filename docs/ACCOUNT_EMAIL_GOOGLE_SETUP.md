@@ -53,3 +53,10 @@ Existing password users must authenticate and explicitly link Google using
 - Verify account-enumeration resistance, SMTP downtime behavior, resend throttling and anti-automation controls (IP/email).
 - Complete Android native Google Credential Manager sign-in with platform OAuth client mapping; Android currently only supports email/password signup.
 - Set up a verified sender before enabling email registration. Keep Contabo unchanged.
+
+## Shared parent/child contact email (2026-10-14)
+- Email is **not unique**. Multiple separate usernames may use the same parent/guardian contact email, each with its own account ID, verification state and tokens.
+- The `username` remains unique. Flyway V31 drops the V30 email unique index and adds a nonunique lookup index; do not edit an already applied Flyway V30 checksum.
+- Resend verification and password recovery now require both username and email; token redemption always identifies one specific account ID.
+- Google subject is unique per linked Google identity, not per email. Google registration may coexist with password child accounts using the same contact email; it never automatically links them.
+- This is a shared **contact address**, not proof that each child owns an email inbox. Parental consent/child account governance and restricted password recovery should be reviewed before exposing public child signup.
