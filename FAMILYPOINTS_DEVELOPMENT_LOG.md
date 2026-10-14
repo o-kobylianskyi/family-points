@@ -1123,3 +1123,10 @@
 - IMPORTANT: parent-contact email is NOT saved; existing UserAccountController accepts username/password only. Child-targeted email invitations are NOT supported by existing generic WorkspaceInvitationService: acceptance creates another family_member, so must not be wired to child profile.
 - Future: implement atomic provisioning or retry with same member, verified parent-contact-email flow and time-limited targeted invitation bound to existing member ID; add tests and child consent/access governance.
 - No PostgreSQL migrations, no Contabo deployments. Changes not yet locally built.
+
+## 2026-10-14 — Radio layout regression; invitation still blocked
+- User screenshots confirmed full-width radio input/column-label CSS caused displaced options in MemberEditor.
+- Fixed JSX row styling and scoped radio CSS, commits 0fe054f and ef6951f.
+- Disabled selectable unfinished email-invitation option to avoid misleading users and dead-end form, commit 19127af.
+- IMPORTANT: addressed email invitations for an existing member remain unimplemented; do not claim sending works. Backend must bind invitation to existing member, verify email ownership, prevent account takeover/double-member creation, and handle expiration/revocation.
+- No Contabo/DB changes. Frontend build/browser test pending.
