@@ -5,6 +5,7 @@ import { getWorkspaceMembers } from '../api/workspaceApi'
 import { changeOwnPassword, createMemberAccount, getWorkspaceAccounts, resetMemberPassword, updateMemberAccount } from '../api/accountApi'
 import RoleCatalogSettings from '../components/RoleCatalogSettings'
 import CurrencyFormsSettings from '../components/CurrencyFormsSettings'
+import GoogleAccountLink from '../components/GoogleAccountLink'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
 function SettingsPage() {
@@ -163,6 +164,8 @@ function SettingsPage() {
         <button className="primary-button" disabled={busy}>{t('settings.password.change')}</button>
       </form>
     </section>
+
+    <GoogleAccountLink />
 
     {canManage && <section className="settings-section">
       <h2>{t('settings.accounts.title')}</h2><p>{t('settings.accounts.description')}</p>
