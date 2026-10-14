@@ -416,7 +416,7 @@ function MembersPage() {
           <button
             type="button"
             className="add-member-button"
-            onClick={() => setEditingMember(null)}
+            onClick={() => { setError(''); setEditingMember(null) }}
           >
             {t('workspace.addMember')}
           </button>
@@ -441,7 +441,7 @@ function MembersPage() {
             <div
               className="member-card"
               key={member.id}
-              onClick={() => canManageMembers && setEditingMember(member)}
+              onClick={() => { if (canManageMembers) { setError(''); setEditingMember(member) } }}
               role={canManageMembers ? "button" : undefined}
               tabIndex={canManageMembers ? 0 : undefined}
             >
