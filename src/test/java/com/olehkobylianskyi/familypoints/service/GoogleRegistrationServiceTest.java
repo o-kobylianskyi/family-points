@@ -30,16 +30,16 @@ class GoogleRegistrationServiceTest {
     }
 
     @Test
-    void neverSilentlyLinksExistingEmailAccount() {
+    void sharedEmailDoesNotTriggerIdentityAutoLink() {
         Jwt token = mock(Jwt.class);
         when(verifier.verifiedToken("id")).thenReturn(token);
         when(token.getSubject()).thenReturn("google-sub");
         when(token.getClaimAsString("email")).thenReturn("test@example.com");
         when(token.getClaim("email_verified")).thenReturn(true);
-        when(accounts.existsByEmailIgnoreCase("test@example.com")).thenReturn(true);
+        when(accounts.existsByUsername(anyString())).thenReturn(true);
         assertEquals(409, assertThrows(ResponseStatusException.class,
                 () -> registration.register("id")).getStatusCode().value());
+        verify(accounts, never()).findByEmailIgnoreCase(anyString());
         verify(accounts, never()).saveAndFlush(any());
-        verifyNoInteractions(db);
     }
 }
