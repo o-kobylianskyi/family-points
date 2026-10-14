@@ -1135,3 +1135,9 @@ Before each substantial implementation batch:
 - [ ] Verify Android compile with :app:assembleDebug and small-screen emulator UI
 - [ ] Test new/existing profile access, duplicate login, failed email, no duplicate member
 - [ ] DEV database backup + V33 tests before enabling email invite; Contabo untouched
+
+## 2026-10-14 UI regression updates
+- [x] Web compact member editor scroll region and fixed bottom action bar
+- [x] Android members feature API errors no longer always trigger logout
+- [ ] Verify Web compact browser (height 450px), phone responsive, footer accessible
+- [ ] Verify Android assembly and account/email invite UI behavior
