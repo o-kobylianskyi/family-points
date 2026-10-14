@@ -3659,3 +3659,42 @@ button:focus-visible {
   background: transparent;
   font-weight: 500;
 }
+
+/* Member onboarding: override the generic column labels/full-width inputs for radio choices. */
+.modal-card.member-editor .member-access-options {
+  min-width: 0;
+  margin: 14px 0 0;
+  padding: 12px;
+  border: 1px solid #d9deeb;
+  border-radius: 10px;
+}
+.modal-card.member-editor .member-access-options legend {
+  padding: 0 5px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.modal-card.member-editor .member-access-options .member-access-option {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 3px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.modal-card.member-editor .member-access-options .member-access-option input[type="radio"] {
+  display: inline-block;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  margin: 1px 0 0;
+  padding: 0;
+  accent-color: #5865f2;
+  box-shadow: none;
+}
+.modal-card.member-editor .member-access-options .member-access-option span {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.4;
+}
