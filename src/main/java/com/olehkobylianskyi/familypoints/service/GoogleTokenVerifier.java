@@ -28,6 +28,10 @@ public class GoogleTokenVerifier {
     }
 
     public String verifiedSubject(String idToken) {
+        return verifiedToken(idToken).getSubject();
+    }
+
+    public Jwt verifiedToken(String idToken) {
         if (clientId.isBlank() || idToken == null || idToken.isBlank())
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Google verification unavailable");
         try {
@@ -38,7 +42,7 @@ public class GoogleTokenVerifier {
             String sub = token.getSubject();
             if (sub == null || sub.isBlank() || sub.length() > 255)
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Google identity");
-            return sub;
+            return token;
         } catch (JwtException | IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Google token");
         }
