@@ -129,3 +129,17 @@ export async function resetAccountPassword(token, password) {
   })
   if (!response.ok) throw new Error('Посилання недійсне або термін його дії минув')
 }
+
+export async function googleAuth(idToken, createAccount = false) {
+  const response = await fetch(`${API_URL}/auth/google${createAccount ? '/register' : ''}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken }),
+  })
+  if (!response.ok) {
+    if (response.status === 503) throw new Error('Google-авторизація ще не налаштована на сервері')
+    if (response.status === 409) throw new Error('Цей email уже використовується. Увійдіть за паролем і прив’яжіть Google у налаштуваннях.')
+    if (response.status === 403) throw new Error('Google-акаунт ще не зареєстровано. Перейдіть на сторінку реєстрації.')
+    throw new Error('Не вдалося підтвердити Google-акаунт')
+  }
+  return response.json()
+}
