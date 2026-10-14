@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.olehkobylianskyi.familypoints.android.auth.WorkspaceSelectionRequiredException
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.strings
@@ -208,6 +209,9 @@ fun LoginScreen(
                             password = ""
                             onLoginSuccess(user)
                         }
+                    } catch (_: WorkspaceSelectionRequiredException) {
+                        password = ""
+                        // Parent screen has already opened workspace selection.
                     } catch (exception: OfflineLoginException) {
                         error = when (exception.reason) {
                             OfflineLoginError.NOT_ENROLLED -> when (language) {
