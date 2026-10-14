@@ -1044,3 +1044,10 @@ Before each substantial implementation batch:
 - [x] Recovery/resend require username plus email; Web and unit tests adapted
 - [ ] Run Maven clean test, confirm V30→V31 Flyway migration on disposable PostgreSQL, then Web build
 - [ ] Decide parent-managed child account ownership and safeguards before public registration
+
+## 2026-10-14 — Password minimum 8
+- [x] Align registration, reset, legacy family signup controllers and services to 8–128 characters
+- [x] Align Web registration and reset forms and public configuration docs
+- [x] Add 7-vs-8 character boundary tests
+- [ ] Run local Maven test and Web production build; Android smoke test
+- [ ] SMTP sender and Google OAuth client IDs still require external provisioning; native Android Google credential flow outstanding
