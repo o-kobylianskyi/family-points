@@ -24,6 +24,12 @@ public class UserAccount {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    @Column(length = 254)
+    private String email;
+
+    @Column(name = "email_verified_at")
+    private java.time.OffsetDateTime emailVerifiedAt;
+
     @Column(nullable = false)
     private boolean enabled = true;
 
@@ -59,6 +65,14 @@ public class UserAccount {
     public String getPasswordHash() {
         return passwordHash;
     }
+
+    public String getEmail() { return email; }
+
+    public void setEmail(String email) { this.email = email; }
+
+    public java.time.OffsetDateTime getEmailVerifiedAt() { return emailVerifiedAt; }
+
+    public void setEmailVerifiedAt(java.time.OffsetDateTime value) { this.emailVerifiedAt = value; }
 
     public boolean isEnabled() {
         return enabled;
