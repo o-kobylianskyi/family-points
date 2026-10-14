@@ -1006,3 +1006,9 @@ Before each substantial implementation batch:
 - [ ] Confirm npm run build on local DEV
 - [ ] Explicitly enable familypoints.additional-family.enabled only in DEV if testing creation
 - [ ] Manually verify creating and switching families without sharing task/points data
+
+## 2026-10-14 — Additional-family DEV smoke
+- [x] Diagnosed 503 feature flag on local DEV screenshot
+- [x] Added explicit local-only Spring Boot launcher; default flag remains false
+- [ ] Restart DEV backend with appropriate DEV credentials, not BETA credentials
+- [ ] Create test family, verify auto-switch and member/task/points isolation
