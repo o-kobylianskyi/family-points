@@ -1137,3 +1137,9 @@
 - Frontend MemberEditor offers invitation email for new or existing profiles; member creation and subsequent invitation are two separate requests, so if mail fails the existing profile remains, and user must retry from that profile.
 - Added accept-member-invite page, routes and account API; gated using familypoints.member-email-invitations.enabled=false by default. Config tracked example stays OFF. No Contabo BETA deployment or DEV DB changes.
 - IMPORTANT: compile/build, Flyway V33 backup/review, Chrome flow and security race/duplicate tests pending before enabling on local DEV. Avoid sharing invitation tokens, JWT, secrets or public enrollment links.
+
+## 2026-10-14 — Android member onboarding parity (COMMITTED; Android build pending)
+- User screenshot confirmed Android MembersScreen still had legacy member creation dialog after Web changes. Added access modes profile-only, separate username/password, invite-by-email in Android Compose MembersScreen; dialog text scrolls vertically in compact emulator.
+- MembersApi supports scoped POST /workspaces/{workspaceId}/members/{memberId}/account and /email-invitation; MembersRepository creates/updates member, then configures requested access. Failing account/invite provisioning preserves member and reports retry via existing profile (avoid duplicates).
+- Email invite still requires Backend V33 + familypoints.member-email-invitations.enabled=true; not yet applied in DEV/BETA, no server deployment.
+- Android code requires local gradlew :app:assembleDebug and emulator test before acceptance.
