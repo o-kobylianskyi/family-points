@@ -1068,3 +1068,10 @@
 - Password and Google registrations no longer reject email reuse, but retain unique username / Google-sub identity constraints.
 - Recovery and verification resend now require username+email, preventing ambiguous email-only account selection. Web forms and tests updated.
 - Build / Flyway V31 tests not yet run. No Contabo deployment or flags changed.
+
+## 2026-10-14 — Eight-character minimum password
+- Password registration and password recovery use 8–128 characters consistently in controllers/services and Web forms.
+- Legacy gated family registration now also accepts 8–128; account profile password changes already required 8 minimum.
+- Added boundary tests for 7-character rejection and 8-character acceptance in global signup.
+- Android registration delegates validation to server; no local 12-char constraint.
+- Requires laptop Maven/Vite/Android build verification. Existing SMTP and Google provisioning remain configuration-dependent; Contabo unchanged.
