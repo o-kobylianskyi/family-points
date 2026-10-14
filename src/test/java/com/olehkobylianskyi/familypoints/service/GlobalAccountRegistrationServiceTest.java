@@ -38,6 +38,29 @@ class GlobalAccountRegistrationServiceTest {
     }
 
     @Test
+    void acceptsEightCharacterPassword() {
+        when(encoder.encode("abcdefgh")).thenReturn("encoded");
+        when(accounts.saveAndFlush(any(UserAccount.class))).thenAnswer(invocation -> {
+            UserAccount account = invocation.getArgument(0);
+            try {
+                var id = UserAccount.class.getDeclaredField("id");
+                id.setAccessible(true);
+                id.set(account, 10L);
+            } catch (ReflectiveOperationException e) { throw new AssertionError(e); }
+            return account;
+        });
+        service.register("newname", "parent@example.com", "abcdefgh");
+        verify(email).sendVerification(10L, "parent@example.com");
+    }
+
+    @Test
+    void rejectsSevenCharacterPassword() {
+        assertThrows(ResponseStatusException.class,
+                () -> service.register("demo", "demo@example.com", "abcdefg"));
+        verifyNoInteractions(accounts, encoder, email);
+    }
+
+    @Test
     void newAccountDisabledUntilEmailVerification() {
         when(encoder.encode(anyString())).thenReturn("encoded-password");
         when(accounts.saveAndFlush(any(UserAccount.class))).thenAnswer(invocation -> {
