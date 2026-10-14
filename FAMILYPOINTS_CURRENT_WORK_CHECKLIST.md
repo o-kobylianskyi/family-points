@@ -1036,3 +1036,11 @@ Before each substantial implementation batch:
 - [ ] Configure verified SMTP sender and Google OAuth client IDs; manually test real emails and Google login
 - [ ] Add abuse/IP throttling, transaction/outbox behavior, duplicate-race and end-to-end HTTP integration tests
 - [ ] Keep flags OFF in Contabo BETA, preserve DEV database and legacy accounts
+
+## 2026-10-14 — Shared email account model
+- [x] Nonunique email via additive V31 (V30 preserved)
+- [x] Username remains unique, tokens belong to account ID
+- [x] Password and Google signup allow email reuse without identity auto-link
+- [x] Recovery/resend require username plus email; Web and unit tests adapted
+- [ ] Run Maven clean test, confirm V30→V31 Flyway migration on disposable PostgreSQL, then Web build
+- [ ] Decide parent-managed child account ownership and safeguards before public registration
