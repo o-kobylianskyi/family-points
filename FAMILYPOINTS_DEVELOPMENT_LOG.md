@@ -1048,3 +1048,8 @@
 - Moved family selector and create-family button to the left header section; kept language switcher, member identity and logout on the right.
 - Family select now shares .language-switcher styling, with width/overflow limits and wrapping at narrow viewport widths. Commits: 368d187, 1b2e915.
 - No BETA deployment; frontend build to be verified on local DEV.
+
+## 2026-10-14 — Compact Web buttons and chooser footer (BUILD PENDING)
+- The workspace chooser now presents families top-left and logout independently at bottom-right (f72e81a).
+- Added a common compact, neutral outlined button treatment for ordinary Web actions and login/chooser actions, preserving selected navigation, icon-only and destructive controls (23dec37).
+- React build and screenshot regression checks outstanding; Android/Backend/Contabo untouched.
