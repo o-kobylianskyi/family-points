@@ -14,6 +14,8 @@ import java.io.IOException
 import retrofit2.HttpException
 import org.json.JSONObject
 
+class WorkspaceSelectionRequiredException : Exception("Choose a family to continue")
+
 class AuthSessionManager(
     private val tokenStore: TokenStore,
     private val offlineAccountStore: OfflineAccountStore
@@ -42,8 +44,20 @@ class AuthSessionManager(
         return try {
             val loginResponse = ApiClient.authApi.login(LoginRequest(username, password))
             tokenStore.saveAccessToken(loginResponse.accessToken)
+            // Global JWT authenticates an account, not a member profile.
+            // Do not call /api/me until a workspace-scoped JWT is selected.
+            val choices = try {
+                ApiClient.authApi.listWorkspaces(bearer(loginResponse.accessToken))
+            } catch (error: Exception) {
+                tokenStore.clear()
+                throw error
+            }
+            offlineAuthenticated = false
+            activeUsername = username
+            tokenStore.saveLastActivityAt(System.currentTimeMillis())
+            if (choices.isEmpty() || choices.size > 1) throw WorkspaceSelectionRequiredException()
             val user = try {
-                ApiClient.authApi.getCurrentUser(bearer(loginResponse.accessToken))
+                switchWorkspace(choices.single().workspaceId)
             } catch (error: Exception) {
                 tokenStore.clear()
                 throw error
@@ -57,6 +71,8 @@ class AuthSessionManager(
             tokenStore.saveLastActivityAt(System.currentTimeMillis())
             markActivity(force = true)
             user
+        } catch (error: WorkspaceSelectionRequiredException) {
+            throw error
         } catch (error: IOException) {
             loginOffline(username, password)
         } catch (error: HttpException) {
@@ -67,6 +83,33 @@ class AuthSessionManager(
             }
         }
     }
+
+    suspend fun registerAccount(username: String, password: String) {
+        check(ServerReachability.status.value == ServerStatus.ONLINE) { "Registration requires network" }
+        ApiClient.authApi.registerAccount(
+            com.olehkobylianskyi.familypoints.android.network.AccountRegistrationRequest(username, password)
+        )
+    }
+
+    suspend fun createFirstFamily(familyName: String, ownerName: String): CurrentUserResponse {
+        check(!offlineAuthenticated && ServerReachability.status.value == ServerStatus.ONLINE)
+        val token = tokenStore.getAccessToken() ?: error("Not signed in")
+        val created = ApiClient.authApi.createFirstFamily(
+            bearer(token),
+            com.olehkobylianskyi.familypoints.android.network.FirstFamilyRequest(familyName, ownerName)
+        )
+        return switchWorkspace(created.workspaceId)
+    }
+
+    fun hasUnselectedWorkspace(): Boolean = !offlineAuthenticated &&
+            tokenStore.getAccessToken()?.let { getSelectedWorkspaceId(it) == null } == true
+
+    private fun getSelectedWorkspaceId(token: String): Long? = try {
+        val segment = token.split(".").getOrNull(1) ?: return null
+        val payload = JSONObject(String(Base64.decode(segment,
+                Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)))
+        if (payload.has("workspaceId")) payload.getLong("workspaceId") else null
+    } catch (_: Exception) { null }
 
     /** Switch only while online; never use a cached JWT or an offline profile to switch families. */
     suspend fun listWorkspaces(): List<com.olehkobylianskyi.familypoints.android.network.AccountWorkspaceChoice> {
@@ -124,6 +167,10 @@ class AuthSessionManager(
         }
 
         return try {
+            if (getSelectedWorkspaceId(token) == null) {
+                ApiClient.authApi.listWorkspaces(bearer(token))
+                return null
+            }
             val user = ApiClient.authApi.getCurrentUser(
                 bearer(token)
             )
