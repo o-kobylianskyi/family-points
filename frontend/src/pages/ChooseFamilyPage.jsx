@@ -48,7 +48,7 @@ export default function ChooseFamilyPage() {
   }
 
   return <div className="login-page">
-    <div className="login-card">
+    <div className="login-card family-choice-card">
       <h1>Вибір сім’ї</h1>
       {choices.length > 0 ? <>
         <p>Оберіть сім’ю, з якою хочете працювати.</p>
@@ -60,10 +60,6 @@ export default function ChooseFamilyPage() {
                 {choice.workspaceName} — {choice.memberName}
               </button>)}
           </div>
-          <button className="family-choice-logout" type="button" disabled={busy}
-            onClick={() => { logout(); navigate('/login') }}>
-            Вийти
-          </button>
         </div>
       </> : <>
         <p>Акаунт створено. Тепер можна створити першу сім’ю.</p>
@@ -80,10 +76,10 @@ export default function ChooseFamilyPage() {
         </form>
       </>}
       {error && <p className="error-message" role="alert">{error}</p>}
-      {choices.length === 0 && (
+      <div className="family-choice-footer">
         <button className="family-choice-logout" type="button" disabled={busy}
           onClick={() => { logout(); navigate('/login') }}>Вийти</button>
-      )}
+      </div>
     </div>
   </div>
 }
