@@ -67,6 +67,8 @@ function MembersPage() {
       setError('')
       if (editingMember) {
         await updateWorkspaceMember(getAccessToken(), currentUser.workspaceId, editingMember.id, body)
+        if (inviteEmail) await issueMemberEmailInvitation(getAccessToken(), currentUser.workspaceId, editingMember.id, inviteEmail)
+        else if (account) await createMemberAccount(getAccessToken(), currentUser.workspaceId, editingMember.id, account)
       } else {
         const created = await createWorkspaceMember(getAccessToken(), currentUser.workspaceId, body)
         if (account || inviteEmail) {
