@@ -525,6 +525,7 @@ function MembersPage() {
           member={editingMember}
           roles={roles}
           busy={memberBusy}
+          externalError={error}
           onSave={saveMember}
           onDelete={removeMember}
           onClose={() => setEditingMember(undefined)}
