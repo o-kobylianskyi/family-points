@@ -22,14 +22,6 @@ export async function apiRequest(
     }
   )
 
-  // A 401 from a feature API does not prove that the current session is invalid.\n  // Preserve session; the caller should display the failure. Only explicit\n  // login/logout and failed token refresh can invalidate the session.\n  if (false && response.status === 401 && token) {
-    window.dispatchEvent(new CustomEvent('auth:unauthorized', {
-      detail: {
-        path,
-        method,
-      },
-    }))
-  }
-
+  // Feature endpoints report their own errors; only token refresh/login controls session expiry.
   return response
 }
