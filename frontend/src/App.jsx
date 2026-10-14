@@ -13,6 +13,7 @@ import LoginPage from './pages/LoginPage'
 import ChooseFamilyPage from './pages/ChooseFamilyPage'
 import RegisterAccountPage from './pages/RegisterAccountPage'
 import EmailActionPage from './pages/EmailActionPage'
+import AcceptMemberInvitePage from './pages/AcceptMemberInvitePage'
 import RegisterFamilyPage from './pages/RegisterFamilyPage'
 import DashboardPage from './pages/DashboardPage'
 import MembersPage from './pages/MembersPage'
@@ -34,6 +35,7 @@ function App() {
           <Route path="/register" element={<RegisterFamilyPage />} />
           <Route path="/choose-family" element={<ChooseFamilyPage />} />
           <Route path="/register-account" element={<RegisterAccountPage />} />
+          <Route path="/accept-member-invite" element={<AcceptMemberInvitePage />} />
           <Route path="/verify-email" element={<EmailActionPage action="verify" />} />
           <Route path="/forgot-password" element={<EmailActionPage action="request" />} />
           <Route path="/reset-password" element={<EmailActionPage action="reset" />} />
