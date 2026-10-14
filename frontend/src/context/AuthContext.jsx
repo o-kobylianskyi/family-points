@@ -50,6 +50,7 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [needsWorkspace, setNeedsWorkspace] = useState(false)
+  const [sessionError, setSessionError] = useState('')
   const refreshInFlight = useRef(false)
   const lastActivityWrite = useRef(0)
 
@@ -58,6 +59,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(LAST_ACTIVITY_KEY)
     setCurrentUser(null)
     setNeedsWorkspace(false)
+    setSessionError('')
   }
 
   const markActivity = () => {
@@ -125,8 +127,10 @@ export function AuthProvider({ children }) {
         setCurrentUser(user)
         setNeedsWorkspace(!user)
         markActivity()
-      } catch {
-        clearSession()
+      } catch (error) {
+        // Keep token on transport/server failure. Show a retryable error instead of logout.
+        setSessionError(error.message || 'Не вдалося відновити сесію. Спробуйте оновити сторінку.')
+        setNeedsWorkspace(true)
       } finally {
         setLoading(false)
       }
@@ -213,8 +217,9 @@ export function AuthProvider({ children }) {
             'accessToken',
             refreshed.accessToken
           )
-        } catch {
-          clearSession()
+        } catch (error) {
+          // Do not destroy a valid session on network outages or HTTP 5xx.
+          setSessionError(error.message || 'Не вдалося оновити токен')
         } finally {
           refreshInFlight.current = false
         }
@@ -265,7 +270,8 @@ export function AuthProvider({ children }) {
       setNeedsWorkspace(true)
       return null
     } catch (error) {
-      clearSession()
+      setSessionError(error.message || 'Не вдалося завантажити сім’ї')
+      setNeedsWorkspace(true)
       throw error
     }
   }
@@ -290,7 +296,8 @@ export function AuthProvider({ children }) {
       setNeedsWorkspace(true)
       return null
     } catch (error) {
-      clearSession()
+      setSessionError(error.message || 'Не вдалося завантажити сім’ї')
+      setNeedsWorkspace(true)
       throw error
     }
   }
@@ -346,6 +353,7 @@ export function AuthProvider({ children }) {
         currentUser,
         loading,
         needsWorkspace,
+        sessionError,
         login,
         loginWithGoogle,
         logout,
