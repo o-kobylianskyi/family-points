@@ -87,10 +87,10 @@ class AuthSessionManager(
         }
     }
 
-    suspend fun registerAccount(username: String, password: String) {
+    suspend fun registerAccount(username: String, email: String, password: String) {
         check(ServerReachability.status.value == ServerStatus.ONLINE) { "Registration requires network" }
         ApiClient.authApi.registerAccount(
-            com.olehkobylianskyi.familypoints.android.network.AccountRegistrationRequest(username, password)
+            com.olehkobylianskyi.familypoints.android.network.AccountRegistrationRequest(username, email, password)
         )
     }
 
