@@ -22,11 +22,9 @@ class TaskManagementViewTest {
     void createdViewDoesNotExposeTasksAuthoredByAnotherMember() throws Exception {
         try (var mocks = MockitoAnnotations.openMocks(this)) {
             when(workspaces.findById(5L)).thenReturn(java.util.Optional.of(mock(Workspace.class)));
-            var account = mock(UserAccount.class);
             var me = mock(WorkspaceMember.class);
             when(me.getId()).thenReturn(11L);
-            when(currentUser.getCurrentAccount()).thenReturn(account);
-            when(account.getWorkspaceMember()).thenReturn(me);
+            when(currentUser.getCurrentMember()).thenReturn(me);
             var mine = mock(TaskDefinition.class);
             var another = mock(TaskDefinition.class);
             var foreignAuthor = mock(WorkspaceMember.class);
@@ -44,10 +42,8 @@ class TaskManagementViewTest {
         try (var mocks = MockitoAnnotations.openMocks(this)) {
             var workspace = mock(Workspace.class);
             when(workspaces.findById(5L)).thenReturn(java.util.Optional.of(workspace));
-            var account = mock(com.olehkobylianskyi.familypoints.entity.UserAccount.class);
             var member = mock(WorkspaceMember.class);
-            when(currentUser.getCurrentAccount()).thenReturn(account);
-            when(account.getWorkspaceMember()).thenReturn(member);
+            when(currentUser.getCurrentMember()).thenReturn(member);
             var manageable = mock(TaskDefinition.class);
             var unrelated = mock(TaskDefinition.class);
             when(definitions.findByWorkspaceIdOrderByIdAsc(5L)).thenReturn(List.of(manageable, unrelated));
