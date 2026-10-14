@@ -1116,3 +1116,10 @@
 - Old uniqueness causes TaskDeadlineService repeated-slot inserts to fail; Flyway V32 drops only legacy named constraint after checking exact definition. Preserve newer constraint, all instances and history.
 - Commits b0cd9f6 and 750da63; migration not run against any database and no Contabo deployment.
 - Next: user backup/approval and Maven tests; only then restart DEV Spring Boot/Flyway and verify migration history and distinct slot occurrences.
+
+## 2026-10-14 — Member onboarding access modes (PARTIAL IMPLEMENTATION; NOT TESTED)
+- Web MemberEditor now offers profile-only, parent-managed separate username/password login, and a clearly disabled email-invitation option (49d9a1d).
+- MembersPage uses existing secured POST /workspaces/{workspaceId}/members/{memberId}/account after creating the member (dfe6680). If account creation fails, it retains the created member and reports that the operator should manage that member in Settings; does not silently retry profile creation.
+- IMPORTANT: parent-contact email is NOT saved; existing UserAccountController accepts username/password only. Child-targeted email invitations are NOT supported by existing generic WorkspaceInvitationService: acceptance creates another family_member, so must not be wired to child profile.
+- Future: implement atomic provisioning or retry with same member, verified parent-contact-email flow and time-limited targeted invitation bound to existing member ID; add tests and child consent/access governance.
+- No PostgreSQL migrations, no Contabo deployments. Changes not yet locally built.
