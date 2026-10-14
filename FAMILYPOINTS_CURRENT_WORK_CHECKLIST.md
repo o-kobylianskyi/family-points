@@ -1091,3 +1091,11 @@ Before each substantial implementation batch:
 - [ ] User runs Maven tests and restarts DEV backend, tests newly created family task GETs
 - [ ] Investigate duplicate scheduled task instance DB unique index vs slot_key migration, no DB modifications without approval
 - [ ] Add regression integration test for new global account with scoped member and no primary member
+
+## 2026-10-14 — V32 migration
+- [x] Confirmed old and new task_instances unique constraints via user pgAdmin output
+- [x] V32 committed: safe removal of named old definition/date uniqueness with shape check
+- [ ] Maven tests on laptop
+- [ ] DEV database backup, operator approval before migration on restart
+- [ ] Verify Flyway V32 applied, new constraint retained, multiple slots work
+- [ ] Regression test for two slots same task/date and deadline worker idempotence
