@@ -1038,3 +1038,8 @@
 - Button appears also for one-family accounts if current member has MANAGE_MEMBERS or ADMIN_OVERRIDE; existing workspace selector still appears only if 2+ choices.
 - On success, verifies and activates newly created workspace JWT and reloads feature context. Backend API already existed and continues to enforce permissions and familypoints.additional-family.enabled:false default.
 - Commits a8f3212, 14bc4c9, cff656e. No frontend build executed here, no DEV flag enabled, no Contabo deployment.
+
+## 2026-10-14 — Additional-family local DEV flag
+- Screenshot confirms Web creation dialog works and backend returns 503 when familypoints.additional-family.enabled remains OFF.
+- Added scripts/dev/run-backend-with-family-creation.ps1 (936f9bb) to explicitly launch local DEV Spring backend with FAMILYPOINTS_ADDITIONAL_FAMILY_ENABLED=true only in process environment; requires existing DEV DB_PASSWORD and JWT_SECRET.
+- BETA/Contabo unchanged; end-to-end family creation and isolation not verified.
