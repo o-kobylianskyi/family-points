@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
-function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
+function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, onClose }) {
   const { t } = useTranslation()
   const editing = Boolean(member)
   const [name, setName] = useState(member?.name ?? '')
@@ -66,7 +66,7 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
         <button type="button" className="modal-close" onClick={onClose} disabled={busy}>×</button>
       </div>
       <form onSubmit={submit}>
-        {error && <div className="error-message">{error}</div>}
+        {(error || externalError) && <div className="error-message" role="alert">{error || externalError}</div>}
         <label>{t('workspace.memberEditor.name', { defaultValue: 'Ім’я' })}<input value={name} onChange={e => setName(e.target.value)} autoFocus /></label>
         <label>{t('workspace.memberEditor.type', { defaultValue: 'Тип' })}
           <select value={memberType} onChange={e => setMemberType(e.target.value)}>
