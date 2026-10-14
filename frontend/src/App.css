@@ -3518,3 +3518,47 @@ input {
   .currency-forms-language { max-width: none; }
   .currency-forms-save { width: 100%; }
 }
+
+/* Two-zone workspace/account header (2026-10-14). */
+.header-workspace {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.header-workspace .workspace-switcher {
+  flex: 0 1 auto;
+  max-width: min(280px, 38vw);
+  min-width: 125px;
+  height: 36px;
+  text-overflow: ellipsis;
+}
+.header-create-family {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #dfe2ea;
+  border-radius: 8px;
+  color: #454b5e;
+  background: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.header-create-family:hover { background: #f5f6f9; }
+.header-create-family:focus-visible,
+.header-workspace .workspace-switcher:focus-visible {
+  outline: 2px solid #5865f2;
+  outline-offset: 2px;
+}
+.header-user { flex: 0 1 auto; }
+@media (max-width: 1100px) {
+  .app-header { height: auto; min-height: 72px; flex-wrap: wrap; gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+  .header-workspace { order: 1; flex: 1 1 100%; }
+  .header-user { order: 0; }
+}
+@media (max-width: 560px) {
+  .header-workspace { gap: 8px; flex-wrap: wrap; }
+  .header-workspace .workspace-switcher { max-width: 100%; min-width: 0; flex: 1 1 130px; }
+  .header-create-family { flex: 0 1 auto; }
+}
