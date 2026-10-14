@@ -1043,3 +1043,8 @@
 - Screenshot confirms Web creation dialog works and backend returns 503 when familypoints.additional-family.enabled remains OFF.
 - Added scripts/dev/run-backend-with-family-creation.ps1 (936f9bb) to explicitly launch local DEV Spring backend with FAMILYPOINTS_ADDITIONAL_FAMILY_ENABLED=true only in process environment; requires existing DEV DB_PASSWORD and JWT_SECRET.
 - BETA/Contabo unchanged; end-to-end family creation and isolation not verified.
+
+## 2026-10-14 — Web header family controls layout
+- Moved family selector and create-family button to the left header section; kept language switcher, member identity and logout on the right.
+- Family select now shares .language-switcher styling, with width/overflow limits and wrapping at narrow viewport widths. Commits: 368d187, 1b2e915.
+- No BETA deployment; frontend build to be verified on local DEV.
