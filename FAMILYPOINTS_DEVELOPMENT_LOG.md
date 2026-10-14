@@ -1110,3 +1110,9 @@
 - Changed TaskAuthorizationService.currentMember() to CurrentUserService.getCurrentMember(), which resolves workspace authentication details and checks membership; commit 9eebacb. This addresses task reads without weakening authorization or changing DEV DB.
 - Separate background TaskDeadlineService duplicate uk_task_instance_definition_date (definition 40, date 2026-10-13) persists: requires schema/migration + slot generation audit, not blindly removing constraints.
 - User must git pull, run tests and restart local backend; test GET /workspaces/{id}/tasks/members/{id} and /tasks/open; no Contabo BETA deployment.
+
+## 2026-10-14 — DEV scheduled task legacy unique constraint (COMMITTED / NOT APPLIED)
+- pgAdmin screenshot confirms task_instances has old UNIQUE(task_definition_id, scheduled_date) named uk_task_instance_definition_date and newer slot-aware uk_task_instance_definition_member_date_slot.
+- Old uniqueness causes TaskDeadlineService repeated-slot inserts to fail; Flyway V32 drops only legacy named constraint after checking exact definition. Preserve newer constraint, all instances and history.
+- Commits b0cd9f6 and 750da63; migration not run against any database and no Contabo deployment.
+- Next: user backup/approval and Maven tests; only then restart DEV Spring Boot/Flyway and verify migration history and distinct slot occurrences.
