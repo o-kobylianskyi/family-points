@@ -1012,3 +1012,11 @@
 - Added isolated GoogleAccountLinkService and GoogleIdentityService tests for password check, unlinked subject rejection and enabled account lookup (19cd5a3, fbbdc58).
 - DB V29 unique constraints remain authoritative against duplicate provider-subject and multiple Google identities per account. Email never used for implicit linking.
 - Code committed, Maven/containers have NOT yet been executed. Flags remain disabled. No Contabo BETA change.
+
+## 2026-10-14 — Web global account onboarding and Android API contracts (BUILD PENDING)
+- Web AuthContext now treats password login as global identity, fetches workspace choices, and routes to /choose-family instead of immediately requiring /api/me. Restored unscoped/global tokens can remain authenticated with no selected family.
+- Web added /register-account and /choose-family pages and API calls for feature-gated global account signup and first-family creation. A selected family is verified by /api/me before saving a scoped JWT and remounting tenant state.
+- Web login page and ProtectedRoute redirect users without an active workspace to the chooser; existing legacy application views are unchanged.
+- Android AuthApi gained typed registerAccount and createFirstFamily contracts. Android Compose UI and login session handling for family-less/multiple-choice users remain unfinished; do not claim Android flow complete.
+- Backend public registration and first-family creation remain OFF by default. No production or Contabo deployment.
+- Frontend build and Android Gradle build NOT executed by assistant. Require laptop smoke test and resolve failures before enabling.
