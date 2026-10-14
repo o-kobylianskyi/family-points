@@ -1154,3 +1154,9 @@
 - Passed API error into MemberEditor and rendered inside dialog (7d6bf8a, 00c6437). Clear stale errors whenever opening new/existing member editor (a2703a8).
 - Existing invite feature remains server-gated OFF. Not yet verified by Maven/Frontend local build; no DEV DB migrations applied and no Contabo deployment.
 - Remaining security/consistency gates: E2E invitation issue/consume, duplicates, concurrency and rollback after failed SMTP; do not enable on public server without these tests.
+
+## 2026-10-15 — Task management 401 for newly created family
+- User screenshot showed “Authentication is required” in Tasks → Management even though current family/member accessible in other pages.
+- Found TaskService.getDefinitionsByParticipation() and 13 other task management/audit call sites still calling legacy currentUserService.getCurrentAccount().getWorkspaceMember() which is null for a new global account with workspace-scoped membership.
+- Replaced all 14 references with currentUserService.getCurrentMember() in TaskService, commit 9caeb894. Existing workspace permission checks remain intact.
+- Maven build/DEV runtime smoke test pending. No database or Contabo changes.
