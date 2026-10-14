@@ -88,3 +88,20 @@ export async function createFirstFamily(token, familyName, ownerName) {
     : 'Не вдалося створити сім’ю')
   return response.json()
 }
+
+export async function createAdditionalFamily(token, familyName, ownerName) {
+  const response = await fetch(`${API_URL}/api/account/families`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ familyName: familyName.trim(), ownerName: ownerName.trim() }),
+  })
+  if (!response.ok) {
+    if (response.status === 503) throw new Error('Створення додаткових сімей вимкнено на сервері')
+    if (response.status === 403) throw new Error('Недостатньо прав для створення сім’ї')
+    throw new Error('Не вдалося створити сім’ю')
+  }
+  return response.json()
+}
