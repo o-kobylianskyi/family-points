@@ -41,8 +41,8 @@ class EmailAccountControllerTest {
     @Test
     void resetRequestForUnknownAccountDoesNotRevealItsExistence() {
         new EmailAccountController(tokens, accounts, encoder, true)
-                .requestReset(new EmailAccountController.ResetRequest("notfound@example.com"));
-        verify(accounts).findByEmailIgnoreCase("notfound@example.com");
+                .requestReset(new EmailAccountController.ResetRequest("unknown", "notfound@example.com"));
+        verify(accounts).findByUsername("unknown");
         verifyNoInteractions(tokens);
     }
 }
