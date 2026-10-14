@@ -1060,3 +1060,10 @@ Before each substantial implementation batch:
 - [ ] Choose/configure SMTP provider, verify sender domain SPF DKIM DMARC and test mail delivery
 - [ ] Create Google Cloud Web client and configure authorized JavaScript origins / ID token audience
 - [ ] Native Google credential manager Android flow and release security checks pending
+
+## 2026-10-14 — Consolidated service configuration
+- [x] Central Git-tracked DEV service settings template
+- [x] Gitignored local override for secrets; optional Spring import
+- [x] README including IntelliJ working directory and environment precedence
+- [ ] User copies template, populates local values, restarts DEV and verifies first family creation
+- [ ] Never upload SMTP/JWT/database secrets to GitHub
