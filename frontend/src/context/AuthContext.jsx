@@ -102,20 +102,26 @@ export function AuthProvider({ children }) {
 
       try {
         const choices = await listAccountWorkspaces(token)
+        // Keep a valid current workspace when already selected.
+        let user = null
         if (choices.length && getTokenExpirationMs(token)) {
-          // Scoped tokens already select a workspace; legacy JWTs need selection.
           try {
-            const user = await getCurrentUser(token)
-            setCurrentUser(user)
-            setNeedsWorkspace(false)
+            user = await getCurrentUser(token)
           } catch {
-            setCurrentUser(null)
-            setNeedsWorkspace(true)
+            // Global account sessions have no member context yet.
           }
-        } else {
-          setCurrentUser(null)
-          setNeedsWorkspace(true)
         }
+        if (!user && choices.length === 1) {
+          const selected = await activateAccountWorkspace(token, choices[0].workspaceId)
+          const verified = await getCurrentUser(selected.accessToken)
+          if (Number(verified.workspaceId) !== Number(choices[0].workspaceId)) {
+            throw new Error('Unexpected workspace context')
+          }
+          localStorage.setItem('accessToken', selected.accessToken)
+          user = verified
+        }
+        setCurrentUser(user)
+        setNeedsWorkspace(!user)
         markActivity()
       } catch {
         clearSession()
@@ -239,8 +245,20 @@ export function AuthProvider({ children }) {
     )
 
     try {
-      // A global login identifies an account, not a selected family.
-      await listAccountWorkspaces(loginResponse.accessToken)
+      const choices = await listAccountWorkspaces(loginResponse.accessToken)
+      if (choices.length === 1) {
+        const selected = await activateAccountWorkspace(
+          loginResponse.accessToken, choices[0].workspaceId
+        )
+        const user = await getCurrentUser(selected.accessToken)
+        if (Number(user.workspaceId) !== Number(choices[0].workspaceId)) {
+          throw new Error('Unexpected workspace context')
+        }
+        localStorage.setItem('accessToken', selected.accessToken)
+        setCurrentUser(user)
+        setNeedsWorkspace(false)
+        return user
+      }
       setCurrentUser(null)
       setNeedsWorkspace(true)
       return null
