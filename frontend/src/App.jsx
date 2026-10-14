@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import AppLayout from './components/AppLayout'
 
 import LoginPage from './pages/LoginPage'
+import ChooseFamilyPage from './pages/ChooseFamilyPage'
 import RegisterFamilyPage from './pages/RegisterFamilyPage'
 import DashboardPage from './pages/DashboardPage'
 import MembersPage from './pages/MembersPage'
@@ -29,6 +30,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/register" element={<RegisterFamilyPage />} />
+          <Route path="/choose-family" element={<ChooseFamilyPage />} />
           <Route
             path="/login"
             element={<LoginPage />}
