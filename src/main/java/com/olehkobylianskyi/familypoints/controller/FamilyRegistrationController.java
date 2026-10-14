@@ -22,7 +22,7 @@ public class FamilyRegistrationController {
 
     public record Request(
             @NotBlank @Pattern(regexp = "[A-Za-z0-9._-]{3,50}") String username,
-            @NotBlank @Size(min = 12, max = 128) String password,
+            @NotBlank @Size(min = 8, max = 128) String password,
             @NotBlank @Size(max = 100) String familyName,
             @NotBlank @Size(max = 100) String ownerName) {}
 
