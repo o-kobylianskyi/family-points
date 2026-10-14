@@ -89,7 +89,7 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
               <span>Створити окремий логін для дитини</span>
             </label>
             <label className="member-access-option">
-              <input type="radio" name="member-access" value="invite" checked={accessMode === 'invite'} onChange={() => setAccessMode('invite')} />
+              <input type="radio" name="member-access" value="invite" disabled aria-disabled="true" />
               <span>Запрошення на особистий email (ще недоступне)</span>
             </label>
           </fieldset>
