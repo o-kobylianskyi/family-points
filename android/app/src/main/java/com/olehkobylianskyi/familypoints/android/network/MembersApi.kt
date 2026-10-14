@@ -20,7 +20,26 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 
+data class AndroidMemberAccountRequest(val username: String, val password: String)
+data class AndroidMemberInvitationRequest(val email: String)
+
 interface MembersApi {
+    @POST("workspaces/{workspaceId}/members/{memberId}/account")
+    suspend fun createMemberAccount(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("memberId") memberId: Long,
+        @Body request: AndroidMemberAccountRequest
+    ): retrofit2.Response<Unit>
+
+    @POST("workspaces/{workspaceId}/members/{memberId}/email-invitation")
+    suspend fun inviteMemberEmail(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("memberId") memberId: Long,
+        @Body request: AndroidMemberInvitationRequest
+    ): retrofit2.Response<Unit>
+
     @GET("workspaces/{workspaceId}/members")
     suspend fun getMembers(
         @Header("Authorization") authorization: String,
