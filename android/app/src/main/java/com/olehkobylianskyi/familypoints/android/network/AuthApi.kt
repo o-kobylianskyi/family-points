@@ -16,6 +16,15 @@ interface AuthApi {
         @Body request: LoginRequest
     ): LoginResponse
 
+    @POST("auth/register-account")
+    suspend fun registerAccount(@Body request: AccountRegistrationRequest): AccountRegistrationResult
+
+    @POST("api/onboarding/first-family")
+    suspend fun createFirstFamily(
+        @Header("Authorization") authorization: String,
+        @Body request: FirstFamilyRequest
+    ): FirstFamilyResult
+
     @GET("api/me")
     suspend fun getCurrentUser(
         @Header("Authorization") authorization: String
@@ -69,3 +78,8 @@ data class ReputationEntry(
     val description: String?,
     val createdAt: String
 )
+
+data class AccountRegistrationRequest(val username: String, val password: String)
+data class AccountRegistrationResult(val accountId: Long)
+data class FirstFamilyRequest(val familyName: String, val ownerName: String)
+data class FirstFamilyResult(val workspaceId: Long, val memberId: Long)
