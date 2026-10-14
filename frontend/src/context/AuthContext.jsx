@@ -13,6 +13,7 @@ import {
   listAccountWorkspaces,
   activateAccountWorkspace,
   createFirstFamily as createFirstFamilyRequest,
+  createAdditionalFamily as createAdditionalFamilyRequest,
 } from '../api/authApi'
 
 const AuthContext = createContext(null)
@@ -298,6 +299,13 @@ export function AuthProvider({ children }) {
     await switchWorkspace(created.workspaceId)
   }
 
+  const createAdditionalFamily = async (familyName, ownerName) => {
+    const token = localStorage.getItem('accessToken')
+    if (!token || !currentUser) throw new Error('Not authenticated in a family')
+    const created = await createAdditionalFamilyRequest(token, familyName, ownerName)
+    await switchWorkspace(created.workspaceId)
+  }
+
   const logout = () => {
     clearSession()
   }
@@ -318,6 +326,7 @@ export function AuthProvider({ children }) {
         getAvailableWorkspaces,
         switchWorkspace,
         createFirstFamily,
+        createAdditionalFamily,
       }}
     >
       {children}
