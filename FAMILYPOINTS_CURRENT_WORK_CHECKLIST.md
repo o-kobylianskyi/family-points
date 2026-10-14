@@ -1018,3 +1018,8 @@ Before each substantial implementation batch:
 - [x] Language, member name, logout aligned right
 - [x] Family selection style matches language selection
 - [ ] Verify npm run build and mobile header visually
+
+## 2026-10-14 — Web buttons / chooser
+- [x] Logout separate at bottom-right of chooser
+- [x] Compact neutral shared button styling for ordinary actions
+- [ ] Run frontend npm run build and visually check forms, destructive actions, mobile layout
