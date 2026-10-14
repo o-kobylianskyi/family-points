@@ -1088,3 +1088,11 @@
 - Spring imports optional untracked config/familypoints.dev.local.properties relative to project working directory; .gitignore explicitly prevents committing secrets.
 - Usage in config/README.md. Frontend Google public client ID stays in frontend/.env.local; Contabo BETA unaffected.
 - Committed configuration changes, not yet re-tested with local IntelliJ runtime.
+
+## 2026-10-14 — Google account linking in Web settings (COMMITTED / NOT YET VERIFIED)
+- Introduced Google identity linking in account settings: authenticated workspace session + current-password confirmation + Google Identity Services verified ID token; existing backend POST /api/account/google/link remains the authorization boundary.
+- Shared email does NOT auto-link accounts: Google provider subject is tied explicitly to the signed-in user. Backend Google login/signup and existing per-family selection remain separate.
+- Added Web client request in frontend/src/api/authApi.js, GoogleAccountLink component, and SettingsPage section. UI appears only when VITE_GOOGLE_CLIENT_ID is configured.
+- Corrected outdated Google signup conflict message (email reuse is allowed).
+- No BETA deployment, no Google Cloud OAuth client configured, no Android native Google flow yet.
+- Requires npm run build and browser test after real Google OAuth client configuration.
