@@ -27,7 +27,7 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
       setError(t('workspace.memberEditor.required', { defaultValue: 'Заповніть ім’я та роль' }))
       return
     }
-    if (!editing && accessMode === 'account') {
+    if (accessMode === 'account') {
       if (!/^[a-zA-Z0-9._-]{3,64}$/.test(childUsername.trim())) {
         setError('Логін: 3–64 символи, латинські літери, цифри, крапка, _ або -')
         return
@@ -37,16 +37,16 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
         return
       }
     }
-    if (!editing && accessMode === 'invite' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())) {
+    if (accessMode === 'invite' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())) {
       setError('Вкажіть правильну адресу email для запрошення')
       return
     }
     setError('')
     await onSave({ name: name.trim(), memberType, workspaceRoleId: Number(workspaceRoleId) },
-      !editing && accessMode === 'account'
+      accessMode === 'account'
         ? { username: childUsername.trim(), password: childPassword }
         : null,
-      !editing && accessMode === 'invite' ? inviteEmail.trim() : null)
+      accessMode === 'invite' ? inviteEmail.trim() : null)
   }
 
   const remove = async () => {
@@ -80,11 +80,11 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
             {roles.map(role => <option key={role.id} value={role.id}>{workspaceRoleLabel(t, role.code, role.name)}</option>)}
           </select>
         </label>
-        {!editing && <>
+        {<>
           <fieldset className="member-access-options"><legend>Доступ учасника</legend>
             <label className="member-access-option">
               <input type="radio" name="member-access" value="profile" checked={accessMode === 'profile'} onChange={() => setAccessMode('profile')} />
-              <span>Лише профіль, без входу</span>
+              <span>Без змін доступу</span>
             </label>
             <label className="member-access-option">
               <input type="radio" name="member-access" value="account" checked={accessMode === 'account'} onChange={() => setAccessMode('account')} />
