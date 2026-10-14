@@ -1085,3 +1085,9 @@ Before each substantial implementation batch:
 - [ ] Confirm if account was created and if family membership exists before retrying POST
 - [ ] Test expired-token/session-revocation policy separately; avoid indefinite invalid token loops
 - [ ] Test 401/403/409/500/network-error scenarios and no erroneous logout
+
+## 2026-10-14 Task authorization fix
+- [x] Replace TaskAuthorizationService.currentMember legacy nullable account.workspaceMember with context-aware getCurrentMember (9eebacb)
+- [ ] User runs Maven tests and restarts DEV backend, tests newly created family task GETs
+- [ ] Investigate duplicate scheduled task instance DB unique index vs slot_key migration, no DB modifications without approval
+- [ ] Add regression integration test for new global account with scoped member and no primary member
