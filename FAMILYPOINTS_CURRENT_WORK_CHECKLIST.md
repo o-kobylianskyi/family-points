@@ -1127,3 +1127,11 @@ Before each substantial implementation batch:
 - [ ] Validate link reuse, expired link, duplicate username, cross-family roles, failed SMTP and concurrent submissions
 - [ ] Existing account invitation binding is NOT implemented; only new logins
 - [ ] Improve provisioning atomicity and parent-managed address/consent flow
+
+## Android member onboarding parity (2026-10-14)
+- [x] Android member dialog adds radio modes (profile / child login / email invite)
+- [x] Scrollable compact-screen dialog with username/password/email fields
+- [x] Retrofit API calls and preserve existing profile on partial failure
+- [ ] Verify Android compile with :app:assembleDebug and small-screen emulator UI
+- [ ] Test new/existing profile access, duplicate login, failed email, no duplicate member
+- [ ] DEV database backup + V33 tests before enabling email invite; Contabo untouched
