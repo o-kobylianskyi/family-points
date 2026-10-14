@@ -84,7 +84,7 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
           <fieldset className="member-access-options"><legend>Доступ учасника</legend>
             <label className="member-access-option">
               <input type="radio" name="member-access" value="profile" checked={accessMode === 'profile'} onChange={() => setAccessMode('profile')} />
-              <span>Без змін доступу</span>
+              <span>{editing ? 'Без змін доступу' : 'Лише профіль, без входу'}</span>
             </label>
             <label className="member-access-option">
               <input type="radio" name="member-access" value="account" checked={accessMode === 'account'} onChange={() => setAccessMode('account')} />
@@ -105,9 +105,7 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
             <label>Пароль<input type="password" autoComplete="new-password" value={childPassword} onChange={e => setChildPassword(e.target.value)} minLength={8} required /></label>
             <label>Повторіть пароль<input type="password" autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} minLength={8} required /></label>
           </div>}
-          {accessMode === 'invite' && <p className="error-message" role="status">
-            Запрошення, прив’язане до цього профілю й email, потребує окремого захищеного API. Поточне універсальне запрошення створює дубль учасника, тому воно тут вимкнене.
-          </p>}
+
         </>}
         <div className="modal-actions member-editor-actions">
           {editing && <button type="button" className="danger-button" onClick={remove} disabled={busy}>{t('common.delete', { defaultValue: 'Видалити' })}</button>}
