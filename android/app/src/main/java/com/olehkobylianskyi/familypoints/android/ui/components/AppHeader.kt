@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
@@ -33,25 +34,23 @@ fun AppHeader(
     var navigationMenuOpen by remember { mutableStateOf(false) }
     var languageMenuOpen by remember { mutableStateOf(false) }
 
-    Row(
+    // Narrow phones: identity occupies its own line; controls never squeeze text into letters.
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
             Column {
-                OutlinedButton(
-                    onClick = { navigationMenuOpen = true }
-                ) {
+                OutlinedButton(onClick = { navigationMenuOpen = true }) {
                     Text("☰")
                 }
-
                 DropdownMenu(
                     expanded = navigationMenuOpen,
-                    onDismissRequest = {
-                        navigationMenuOpen = false
-                    }
+                    onDismissRequest = { navigationMenuOpen = false }
                 ) {
                     listOf(
                         DashboardDestination.DASHBOARD to text.dashboard,
@@ -76,34 +75,33 @@ fun AppHeader(
                     }
                 }
             }
-
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = currentUser.memberName,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = localizedHeaderRole(language, currentUser.workspaceRoleCode, currentUser.workspaceRoleName),
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
-
         Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
             Column {
-                OutlinedButton(
-                    onClick = { languageMenuOpen = true }
-                ) {
-                    Text(language.label)
+                OutlinedButton(onClick = { languageMenuOpen = true }) {
+                    Text(language.label, maxLines = 1, softWrap = false)
                 }
-
                 DropdownMenu(
                     expanded = languageMenuOpen,
-                    onDismissRequest = {
-                        languageMenuOpen = false
-                    }
+                    onDismissRequest = { languageMenuOpen = false }
                 ) {
                     AppLanguage.entries.forEach { item ->
                         DropdownMenuItem(
@@ -116,9 +114,8 @@ fun AppHeader(
                     }
                 }
             }
-
             OutlinedButton(onClick = onLogout) {
-                Text(text.logout)
+                Text(text.logout, maxLines = 1, softWrap = false)
             }
         }
     }
