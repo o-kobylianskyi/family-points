@@ -1108,3 +1108,10 @@ Before each substantial implementation batch:
 - [ ] Implement email-verified parent contact (currently not stored or verified)
 - [ ] Implement email invitation bound to pre-existing member, no duplication, TTL/revoke
 - [ ] Ensure atomic retry/idempotence for member+account provisioning
+
+## MemberEditor regression (2026-10-14)
+- [x] Fix label/radio alignment with scoped flex row and fixed-size inputs
+- [x] Disable unimplemented email invitation choice (no fake selectable action)
+- [ ] Run frontend npm build and visually test member modal on desktop/mobile
+- [ ] Implement targeted existing-member invitation backend + mail delivery + account acceptance
+- [ ] Add security and idempotency tests before enabling invitation radio
