@@ -46,8 +46,8 @@ export default function EmailActionPage({ action }) {
         <input type="email" autoComplete="email" required value={email}
           onChange={e => setEmail(e.target.value)} />
       </label>}
-      {action === 'reset' && <label>Новий пароль (від 12 символів)
-        <input type="password" autoComplete="new-password" minLength={12} maxLength={128}
+      {action === 'reset' && <label>Новий пароль (від 8 символів)
+        <input type="password" autoComplete="new-password" minLength={8} maxLength={128}
           required value={password} onChange={e => setPassword(e.target.value)} />
       </label>}
       {action !== 'request' && !token && <p className="error-message">У посиланні відсутній токен.</p>}
