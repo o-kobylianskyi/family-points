@@ -74,9 +74,12 @@ class AuthSessionManager(
         } catch (error: WorkspaceSelectionRequiredException) {
             throw error
         } catch (error: IOException) {
+            // Never substitute an offline login after a successful online
+            // authentication and a subsequent workspace-selection network error.
+            if (tokenStore.getAccessToken() != null) throw error
             loginOffline(username, password)
         } catch (error: HttpException) {
-            if (error.code() in listOf(502, 503, 504)) {
+            if (error.code() in listOf(502, 503, 504) && tokenStore.getAccessToken() == null) {
                 loginOffline(username, password)
             } else {
                 throw error
