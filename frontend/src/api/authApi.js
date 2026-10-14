@@ -64,3 +64,27 @@ export async function activateAccountWorkspace(token, workspaceId) {
   if (!response.ok) throw new Error('Немає доступу до вибраної сім’ї')
   return response.json()
 }
+
+export async function registerGlobalAccount(username, password) {
+  const response = await fetch(`${API_URL}/auth/register-account`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  })
+  if (!response.ok) throw new Error(response.status === 503
+    ? 'Реєстрація ще не увімкнена на сервері'
+    : 'Не вдалося створити акаунт')
+  return response.json()
+}
+
+export async function createFirstFamily(token, familyName, ownerName) {
+  const response = await fetch(`${API_URL}/api/onboarding/first-family`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ familyName, ownerName }),
+  })
+  if (!response.ok) throw new Error(response.status === 503
+    ? 'Створення першої сім’ї ще не увімкнене на сервері'
+    : 'Не вдалося створити сім’ю')
+  return response.json()
+}
