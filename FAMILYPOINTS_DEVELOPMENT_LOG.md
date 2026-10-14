@@ -1096,3 +1096,11 @@
 - Corrected outdated Google signup conflict message (email reuse is allowed).
 - No BETA deployment, no Google Cloud OAuth client configured, no Android native Google flow yet.
 - Requires npm run build and browser test after real Google OAuth client configuration.
+
+## 2026-10-14 — CRITICAL: onboarding unexpectedly logs user out (UI containment; backend cause unverified)
+- User reports: after enabling first-family feature and submitting the first family, redirected to login and cannot log back in. Exact HTTP status and server exception not yet supplied; do NOT assume no family was created or mutate DEV DB.
+- Found Web api/client.js globally dispatched 'auth:unauthorized' on any 401, causing session deletion even for feature-level errors (601f377, refined 73f7021).
+- Web AuthContext now preserves token during workspace/load failures and exposes error; only explicit logout/idle clears it (631671a). Requires acceptance testing of expired/invalid tokens.
+- Choose-family page distinguishes failed workspace list from zero-family list, adds retry and error details (4cfd444).
+- Login distinguishes real invalid credentials (401) from other HTTP failures (aac5b9b, fe9d8dd).
+- No database or BETA/Contabo changes. Need user DEV backend request status/exception for POST /api/onboarding/first-family and POST /auth/login, then verify existing memberships.
