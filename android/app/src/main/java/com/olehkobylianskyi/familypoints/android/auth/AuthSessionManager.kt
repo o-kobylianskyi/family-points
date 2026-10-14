@@ -104,12 +104,14 @@ class AuthSessionManager(
     fun hasUnselectedWorkspace(): Boolean = !offlineAuthenticated &&
             tokenStore.getAccessToken()?.let { getSelectedWorkspaceId(it) == null } == true
 
-    private fun getSelectedWorkspaceId(token: String): Long? = try {
+    private fun getSelectedWorkspaceId(token: String): Long? {
+        return try {
         val segment = token.split(".").getOrNull(1) ?: return null
         val payload = JSONObject(String(Base64.decode(segment,
                 Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)))
         if (payload.has("workspaceId")) payload.getLong("workspaceId") else null
-    } catch (_: Exception) { null }
+        } catch (_: Exception) { null }
+    }
 
     /** Switch only while online; never use a cached JWT or an offline profile to switch families. */
     suspend fun listWorkspaces(): List<com.olehkobylianskyi.familypoints.android.network.AccountWorkspaceChoice> {
