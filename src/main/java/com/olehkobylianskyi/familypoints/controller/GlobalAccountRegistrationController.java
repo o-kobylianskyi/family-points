@@ -23,7 +23,7 @@ public class GlobalAccountRegistrationController {
 
     public record RegisterRequest(@NotBlank String username,
                                   @NotBlank @jakarta.validation.constraints.Email String email,
-                                  @NotBlank @Size(min=12,max=128) String password) {}
+                                  @NotBlank @Size(min=8,max=128) String password) {}
 
     @PostMapping("/register-account")
     public GlobalAccountRegistrationService.Created create(@Valid @RequestBody RegisterRequest body) {
