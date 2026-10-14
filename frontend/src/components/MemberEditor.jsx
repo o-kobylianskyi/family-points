@@ -13,6 +13,7 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
   const [childUsername, setChildUsername] = useState('')
   const [childPassword, setChildPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [inviteEmail, setInviteEmail] = useState('')
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape' && !busy) onClose() }
@@ -36,15 +37,16 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
         return
       }
     }
-    if (!editing && accessMode === 'invite') {
-      setError('Адресне запрошення ще не реалізоване на сервері. Учасника не створено.')
+    if (!editing && accessMode === 'invite' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())) {
+      setError('Вкажіть правильну адресу email для запрошення')
       return
     }
     setError('')
     await onSave({ name: name.trim(), memberType, workspaceRoleId: Number(workspaceRoleId) },
       !editing && accessMode === 'account'
         ? { username: childUsername.trim(), password: childPassword }
-        : null)
+        : null,
+      !editing && accessMode === 'invite' ? inviteEmail.trim() : null)
   }
 
   const remove = async () => {
@@ -89,10 +91,14 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
               <span>Створити окремий логін для дитини</span>
             </label>
             <label className="member-access-option">
-              <input type="radio" name="member-access" value="invite" disabled aria-disabled="true" />
-              <span>Запрошення на особистий email (ще недоступне)</span>
+              <input type="radio" name="member-access" value="invite" checked={accessMode === 'invite'} onChange={() => setAccessMode('invite')} />
+              <span>Надіслати запрошення на email</span>
             </label>
           </fieldset>
+          {accessMode === 'invite' && <label style={{ marginTop: 12 }}>Email для запрошення
+            <input type="email" autoComplete="email" required value={inviteEmail}
+              onChange={e => setInviteEmail(e.target.value)} />
+          </label>}
           {accessMode === 'account' && <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
             <p>Логін і пароль задають батьки. Підтвердження через email батьків буде додано окремо; зараз цей спосіб не використовує пошту.</p>
             <label>Логін дитини<input autoComplete="off" value={childUsername} onChange={e => setChildUsername(e.target.value)} required /></label>
@@ -107,7 +113,7 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
           {editing && <button type="button" className="danger-button" onClick={remove} disabled={busy}>{t('common.delete', { defaultValue: 'Видалити' })}</button>}
           <span className="member-editor-spacer" />
           <button type="button" className="secondary-button" onClick={onClose} disabled={busy}>{t('common.cancel')}</button>
-          <button type="submit" className="primary-button" disabled={busy || (!editing && accessMode === 'invite')}>{busy ? t('common.saving') : t('common.save', { defaultValue: 'Зберегти' })}</button>
+          <button type="submit" className="primary-button" disabled={busy}>{busy ? t('common.saving') : t('common.save', { defaultValue: 'Зберегти' })}</button>
         </div>
       </form>
     </div>
