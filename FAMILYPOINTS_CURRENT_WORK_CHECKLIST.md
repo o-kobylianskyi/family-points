@@ -1012,3 +1012,9 @@ Before each substantial implementation batch:
 - [x] Added explicit local-only Spring Boot launcher; default flag remains false
 - [ ] Restart DEV backend with appropriate DEV credentials, not BETA credentials
 - [ ] Create test family, verify auto-switch and member/task/points isolation
+
+## 2026-10-14 — Web header
+- [x] Family selector + create button aligned left
+- [x] Language, member name, logout aligned right
+- [x] Family selection style matches language selection
+- [ ] Verify npm run build and mobile header visually
