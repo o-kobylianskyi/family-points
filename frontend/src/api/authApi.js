@@ -143,3 +143,13 @@ export async function googleAuth(idToken, createAccount = false) {
   }
   return response.json()
 }
+
+export async function requestEmailVerification(email) {
+  const response = await fetch(`${API_URL}/auth/email/request-verification`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  if (!response.ok) throw new Error(response.status === 429
+    ? 'Повторне надсилання доступне через дві хвилини'
+    : 'Не вдалося відправити лист. Спробуйте пізніше')
+}
