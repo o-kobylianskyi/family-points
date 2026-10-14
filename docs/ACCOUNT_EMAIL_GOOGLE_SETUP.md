@@ -69,3 +69,12 @@ After setting non-secret values and secrets privately in your local terminal:
 This checks presence only; it does not send messages or authenticate with Google.
 Verification/reset links now require HTTPS except `http://localhost` and `http://127.0.0.1` for local development.
 Provider provisioning and DNS ownership verification must be completed outside of GitHub; never commit credentials.
+
+## Web account linking
+Settings now includes a Google linking section (only when VITE_GOOGLE_CLIENT_ID is set).
+A signed-in user must provide the **current account password**, then choose Google.
+The backend validates its ID token and links only the current identity via
+`POST /api/account/google/link` (enabled with
+`FAMILYPOINTS_GOOGLE_LINKING_ENABLED=true` on local DEV after testing).
+An email shared by multiple users does not cause an automatic account merge.
+Do not enable linking in public BETA before race/security and logout/login testing.
