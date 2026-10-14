@@ -1076,3 +1076,12 @@ Before each substantial implementation batch:
 - [ ] Test second user sharing email cannot hijack linked Google identity
 - [ ] Configure OAuth client in Google Cloud and authorize local/DEV JS origins
 - [ ] Complete Android native Google sign-in and linked account handling
+
+## CRITICAL — first-family login regression (2026-10-14)
+- [x] Removed unconditional client-wide 401 logout event
+- [x] Keep global session on workspace-loading failure and show retry/error
+- [x] Display real login HTTP error and distinguish failed list from zero families
+- [ ] Rebuild Web locally; inspect DEV Backend logs for actual create-first-family response/status
+- [ ] Confirm if account was created and if family membership exists before retrying POST
+- [ ] Test expired-token/session-revocation policy separately; avoid indefinite invalid token loops
+- [ ] Test 401/403/409/500/network-error scenarios and no erroneous logout
