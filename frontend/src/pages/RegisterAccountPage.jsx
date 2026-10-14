@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { registerGlobalAccount } from '../api/authApi'
+import { registerGlobalAccount, requestEmailVerification } from '../api/authApi'
 import { useAuth } from '../context/AuthContext'
 import GoogleAuthButton from '../components/GoogleAuthButton'
 
@@ -10,6 +10,7 @@ export default function RegisterAccountPage() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
+  const [resendMessage, setResendMessage] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -31,7 +32,15 @@ export default function RegisterAccountPage() {
       setBusy(false)
     }
   }
-  if (sent) return <div className="login-page"><div className="login-card"><h1>Перевір пошту</h1><p>Ми надіслали лист із посиланням для підтвердження email. Після підтвердження можеш увійти.</p><Link to="/login">До входу</Link></div></div>
+  if (sent) return <div className="login-page"><div className="login-card"><h1>Перевір пошту</h1><p>Ми надіслали лист із посиланням для підтвердження email. Після підтвердження можеш увійти.</p><button type="button" onClick={async () => {
+      setResendMessage('')
+      try {
+        await requestEmailVerification(email)
+        setResendMessage('Лист надіслано повторно.')
+      } catch (error) { setResendMessage(error.message) }
+    }}>Надіслати повторно</button>
+    {resendMessage && <p role="status">{resendMessage}</p>}
+    <Link to="/login">До входу</Link></div></div>
 
   return <div className="login-page"><div className="login-card">
     <h1>Новий акаунт FamilyPoints</h1>
