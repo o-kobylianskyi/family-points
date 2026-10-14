@@ -38,3 +38,6 @@ Thumbs.db
 # Server-side BETA database dumps (sensitive)
 backups/
 *.dump
+
+# Local service configuration with database/JWT/SMTP secrets
+/config/familypoints.dev.local.properties
