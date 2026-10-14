@@ -26,7 +26,7 @@ class GoogleLoginControllerTest {
     @Test
     void enabledIssuesFamilylessSessionOnlyAfterVerifiedSubjectLookup() {
         when(google.resolveUsername("verified-google-id-token")).thenReturn("global-account");
-        var principal = User.withUsername("global-account").password("hash").authorities().build();
+        var principal = User.withUsername("global-account").password("hash").authorities("USER").build();
         when(users.loadUserByUsername("global-account")).thenReturn(principal);
         when(jwt.generateAccessToken(principal)).thenReturn("signed-familyless-jwt");
         when(jwt.getAccessTokenExpirationSeconds()).thenReturn(3600L);
