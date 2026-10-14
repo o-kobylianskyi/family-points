@@ -1115,3 +1115,15 @@ Before each substantial implementation batch:
 - [ ] Run frontend npm build and visually test member modal on desktop/mobile
 - [ ] Implement targeted existing-member invitation backend + mail delivery + account acceptance
 - [ ] Add security and idempotency tests before enabling invitation radio
+
+## 2026-10-14 — Targeted email invitations
+- [x] V33 targeted member invitation schema
+- [x] Hash-only 24h single-use invitation creation, rate limit, revoke prior outstanding invite, workspace rights check
+- [x] Brevo mail send, public accept form and existing-member-only account provisioning
+- [x] MemberEditor invitation mode for new AND existing profile, with aligned radios
+- [x] Feature flag default false, no Contabo or DB operations
+- [ ] Review/build Spring Maven tests and frontend Vite build
+- [ ] Verify local DEV backup and Flyway V33 before enabling
+- [ ] Validate link reuse, expired link, duplicate username, cross-family roles, failed SMTP and concurrent submissions
+- [ ] Existing account invitation binding is NOT implemented; only new logins
+- [ ] Improve provisioning atomicity and parent-managed address/consent flow
