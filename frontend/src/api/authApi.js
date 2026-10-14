@@ -65,11 +65,11 @@ export async function activateAccountWorkspace(token, workspaceId) {
   return response.json()
 }
 
-export async function registerGlobalAccount(username, password) {
+export async function registerGlobalAccount(username, email, password) {
   const response = await fetch(`${API_URL}/auth/register-account`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, email, password }),
   })
   if (!response.ok) throw new Error(response.status === 503
     ? 'Реєстрація ще не увімкнена на сервері'
@@ -104,4 +104,28 @@ export async function createAdditionalFamily(token, familyName, ownerName) {
     throw new Error('Не вдалося створити сім’ю')
   }
   return response.json()
+}
+
+export async function verifyAccountEmail(token) {
+  const response = await fetch(`${API_URL}/auth/email/verify`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+  })
+  if (!response.ok) throw new Error('Посилання недійсне або термін його дії минув')
+}
+
+export async function requestPasswordReset(email) {
+  const response = await fetch(`${API_URL}/auth/email/request-reset`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  if (!response.ok) throw new Error('Наразі не вдалося надіслати запит')
+}
+
+export async function resetAccountPassword(token, password) {
+  const response = await fetch(`${API_URL}/auth/email/reset-password`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password }),
+  })
+  if (!response.ok) throw new Error('Посилання недійсне або термін його дії минув')
 }
