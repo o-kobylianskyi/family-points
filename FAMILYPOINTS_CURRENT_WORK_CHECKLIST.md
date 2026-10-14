@@ -1067,3 +1067,12 @@ Before each substantial implementation batch:
 - [x] README including IntelliJ working directory and environment precedence
 - [ ] User copies template, populates local values, restarts DEV and verifies first family creation
 - [ ] Never upload SMTP/JWT/database secrets to GitHub
+
+## 2026-10-14 — Google link Web UI
+- [x] Authenticated Google linking form requiring current password
+- [x] No implicit merge based on email; clear link failure messages
+- [x] Google UI conditional on configured Web OAuth Client ID
+- [ ] Browser smoke: existing account, Google consent, link, logout/login, family chooser
+- [ ] Test second user sharing email cannot hijack linked Google identity
+- [ ] Configure OAuth client in Google Cloud and authorize local/DEV JS origins
+- [ ] Complete Android native Google sign-in and linked account handling
