@@ -35,7 +35,7 @@ export default function RegisterAccountPage() {
   if (sent) return <div className="login-page"><div className="login-card"><h1>Перевір пошту</h1><p>Ми надіслали лист із посиланням для підтвердження email. Після підтвердження можеш увійти.</p><button type="button" onClick={async () => {
       setResendMessage('')
       try {
-        await requestEmailVerification(email)
+        await requestEmailVerification(username, email)
         setResendMessage('Лист надіслано повторно.')
       } catch (error) { setResendMessage(error.message) }
     }}>Надіслати повторно</button>
