@@ -1082,3 +1082,9 @@
 - Added initial EmailTokenService tests for malformed/expired tokens, token hashing, cooldown and URL safety (165c86b).
 - Added read-only scripts/dev/check-auth-config.ps1 to verify SMTP/Google environment presence without displaying secrets (9b4a3d2).
 - These new changes are committed but NOT freshly compiled/tested. No SMTP account, OAuth client, DNS or Contabo settings created or modified.
+
+## 2026-10-14 — Central DEV service configuration
+- Added tracked safe template config/familypoints.dev.example.properties with PostgreSQL, JWT, Brevo SMTP, account/family flags and Google server settings.
+- Spring imports optional untracked config/familypoints.dev.local.properties relative to project working directory; .gitignore explicitly prevents committing secrets.
+- Usage in config/README.md. Frontend Google public client ID stays in frontend/.env.local; Contabo BETA unaffected.
+- Committed configuration changes, not yet re-tested with local IntelliJ runtime.
