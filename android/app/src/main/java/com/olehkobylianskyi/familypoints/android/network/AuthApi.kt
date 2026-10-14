@@ -79,7 +79,7 @@ data class ReputationEntry(
     val createdAt: String
 )
 
-data class AccountRegistrationRequest(val username: String, val password: String)
+data class AccountRegistrationRequest(val username: String, val email: String, val password: String)
 data class AccountRegistrationResult(val accountId: Long)
 data class FirstFamilyRequest(val familyName: String, val ownerName: String)
 data class FirstFamilyResult(val workspaceId: Long, val memberId: Long)
