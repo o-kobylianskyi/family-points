@@ -114,10 +114,10 @@ export async function verifyAccountEmail(token) {
   if (!response.ok) throw new Error('Посилання недійсне або термін його дії минув')
 }
 
-export async function requestPasswordReset(email) {
+export async function requestPasswordReset(username, email) {
   const response = await fetch(`${API_URL}/auth/email/request-reset`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ username, email }),
   })
   if (!response.ok) throw new Error('Наразі не вдалося надіслати запит')
 }
@@ -144,10 +144,10 @@ export async function googleAuth(idToken, createAccount = false) {
   return response.json()
 }
 
-export async function requestEmailVerification(email) {
+export async function requestEmailVerification(username, email) {
   const response = await fetch(`${API_URL}/auth/email/request-verification`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ username, email }),
   })
   if (!response.ok) throw new Error(response.status === 429
     ? 'Повторне надсилання доступне через дві хвилини'
