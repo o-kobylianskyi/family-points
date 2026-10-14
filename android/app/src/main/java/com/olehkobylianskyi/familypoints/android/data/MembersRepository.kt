@@ -1,6 +1,8 @@
 package com.olehkobylianskyi.familypoints.android.data
 
 import com.olehkobylianskyi.familypoints.android.network.ApiClient
+import com.olehkobylianskyi.familypoints.android.network.AndroidMemberAccountRequest
+import com.olehkobylianskyi.familypoints.android.network.AndroidMemberInvitationRequest
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import com.olehkobylianskyi.familypoints.android.storage.OfflineMembersStore
 import kotlinx.coroutines.async
@@ -47,12 +49,33 @@ class MembersRepository(
         }
     }
 
-    suspend fun save(workspaceId: Long, memberId: Long?, request: MemberSaveRequest) {
+    suspend fun save(workspaceId: Long, memberId: Long?, request: MemberSaveRequest,
+                     accessMode: String = "profile", username: String = "",
+                     password: String = "", invitationEmail: String = "") {
         val auth = authorization()
-        if (memberId == null) {
+        val created = if (memberId == null)
             ApiClient.membersApi.createMember(auth, workspaceId, request)
-        } else {
+        else
             ApiClient.membersApi.updateMember(auth, workspaceId, memberId, request)
+        val targetId = created.id
+        try {
+            when (accessMode) {
+                "account" -> {
+                    val response = ApiClient.membersApi.createMemberAccount(
+                        auth, workspaceId, targetId, AndroidMemberAccountRequest(username, password))
+                    if (!response.isSuccessful) throw retrofit2.HttpException(response)
+                }
+                "invite" -> {
+                    val response = ApiClient.membersApi.inviteMemberEmail(
+                        auth, workspaceId, targetId, AndroidMemberInvitationRequest(invitationEmail))
+                    if (!response.isSuccessful) throw retrofit2.HttpException(response)
+                }
+            }
+        } catch (error: Exception) {
+            throw IllegalStateException(
+                "Профіль учасника вже збережено (ID $targetId), але доступ не налаштовано: " +
+                    (error.message ?: "Помилка сервера") +
+                    ". Відкрийте цього учасника повторно, не створюйте дубль.", error)
         }
     }
 
