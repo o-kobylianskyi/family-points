@@ -1020,3 +1020,8 @@
 - Android AuthApi gained typed registerAccount and createFirstFamily contracts. Android Compose UI and login session handling for family-less/multiple-choice users remain unfinished; do not claim Android flow complete.
 - Backend public registration and first-family creation remain OFF by default. No production or Contabo deployment.
 - Frontend build and Android Gradle build NOT executed by assistant. Require laptop smoke test and resolve failures before enabling.
+
+## 2026-10-14 — Android onboarding implemented (build not yet verified)
+- Added global-login workspace choice, first-family Compose screen and Android signup mode; unscoped JWT no longer calls /api/me before workspace selection.
+- Android changes committed as 455e931, 563303d, 7126a15, a46a190, 27a2058 and 30811a2.
+- Gradle build and emulator tests outstanding. Server registration flags stay OFF. Contabo unchanged.
