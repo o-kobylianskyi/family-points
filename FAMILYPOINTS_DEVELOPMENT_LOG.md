@@ -1130,3 +1130,10 @@
 - Disabled selectable unfinished email-invitation option to avoid misleading users and dead-end form, commit 19127af.
 - IMPORTANT: addressed email invitations for an existing member remain unimplemented; do not claim sending works. Backend must bind invitation to existing member, verify email ownership, prevent account takeover/double-member creation, and handle expiration/revocation.
 - No Contabo/DB changes. Frontend build/browser test pending.
+
+## 2026-10-14 — Targeted member invitations through Brevo (COMMITTED, NOT APPLIED/TESTED)
+- Added V33 member_email_invitations with hashed one-use token, 24h expiry, revocation and member/workspace foreign keys; schema not applied to any database.
+- Added MemberEmailInvitationService and MemberEmailInvitationController: issue only with workspace MANAGE_MEMBERS; send through configured Brevo SMTP to nominated email; accept token creates a NEW login bound to EXISTING family member and verified email; no new family_members row. Cannot attach an existing login yet.
+- Frontend MemberEditor offers invitation email for new or existing profiles; member creation and subsequent invitation are two separate requests, so if mail fails the existing profile remains, and user must retry from that profile.
+- Added accept-member-invite page, routes and account API; gated using familypoints.member-email-invitations.enabled=false by default. Config tracked example stays OFF. No Contabo BETA deployment or DEV DB changes.
+- IMPORTANT: compile/build, Flyway V33 backup/review, Chrome flow and security race/duplicate tests pending before enabling on local DEV. Avoid sharing invitation tokens, JWT, secrets or public enrollment links.
