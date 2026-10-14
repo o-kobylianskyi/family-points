@@ -51,10 +51,15 @@ class GlobalAccountRegistrationServiceTest {
             assertEquals("demo@example.com", account.getEmail());
             assertFalse(account.isEnabled());
             assertNull(account.getEmailVerifiedAt());
+            try {
+                var id = UserAccount.class.getDeclaredField("id");
+                id.setAccessible(true);
+                id.set(account, 123L);
+            } catch (ReflectiveOperationException e) { throw new AssertionError(e); }
             return account;
         });
         var created = service.register("demo", "DEMO@EXAMPLE.COM", "long-enough-password");
-        assertNull(created.accountId());
-        verify(email).sendVerification(isNull(), eq("demo@example.com"));
+        assertEquals(123L, created.accountId());
+        verify(email).sendVerification(123L, "demo@example.com");
     }
 }
