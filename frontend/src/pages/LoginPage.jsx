@@ -57,8 +57,8 @@ function LoginPage() {
 
       setPassword('')
       navigate(selectedUser ? '/' : '/choose-family', { replace: true })
-    } catch {
-      setError(t('login.invalidCredentials'))
+    } catch (e) {
+      setError(e.message || t('login.invalidCredentials'))
     } finally {
       setLoading(false)
     }
