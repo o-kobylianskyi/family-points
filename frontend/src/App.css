@@ -3562,3 +3562,36 @@ input {
   .header-workspace .workspace-switcher { max-width: 100%; min-width: 0; flex: 1 1 130px; }
   .header-create-family { flex: 0 1 auto; }
 }
+
+/* Workspace chooser: family actions at left, independent exit action at right. */
+.family-choice-layout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  margin-top: 16px;
+}
+.family-choice-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.family-choice-list button {
+  display: block;
+  max-width: 100%;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.family-choice-logout {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+@media (max-width: 480px) {
+  .family-choice-layout { gap: 10px; }
+  .family-choice-list { min-width: 0; }
+}
