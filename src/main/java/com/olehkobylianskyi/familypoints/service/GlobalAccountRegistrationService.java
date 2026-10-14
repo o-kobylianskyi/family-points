@@ -34,8 +34,8 @@ public class GlobalAccountRegistrationService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid registration values");
         }
         String normalized = email.trim().toLowerCase(Locale.ROOT);
-        if (accounts.existsByUsername(username) || accounts.existsByEmailIgnoreCase(normalized))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username or email unavailable");
+        if (accounts.existsByUsername(username))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username unavailable");
 
         var account = new UserAccount(username, encoder.encode(password), null);
         account.setEmail(normalized);
