@@ -11,6 +11,7 @@ import AppLayout from './components/AppLayout'
 
 import LoginPage from './pages/LoginPage'
 import ChooseFamilyPage from './pages/ChooseFamilyPage'
+import RegisterAccountPage from './pages/RegisterAccountPage'
 import RegisterFamilyPage from './pages/RegisterFamilyPage'
 import DashboardPage from './pages/DashboardPage'
 import MembersPage from './pages/MembersPage'
@@ -31,6 +32,7 @@ function App() {
         <Routes>
           <Route path="/register" element={<RegisterFamilyPage />} />
           <Route path="/choose-family" element={<ChooseFamilyPage />} />
+          <Route path="/register-account" element={<RegisterAccountPage />} />
           <Route
             path="/login"
             element={<LoginPage />}
