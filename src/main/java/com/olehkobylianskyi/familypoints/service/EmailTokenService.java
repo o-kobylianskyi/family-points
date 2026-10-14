@@ -51,7 +51,7 @@ public class EmailTokenService {
     }
 
     public void sendVerification(long accountId, String email) {
-        if (from.isBlank()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "SMTP is not configured");
+        requireMailConfigured();
         String token = generateToken(accountId, "VERIFY_EMAIL", 24 * 60);
         send(email, "Confirm your FamilyPoints email",
                 "Open this link to verify your address:\n" +
@@ -64,6 +64,21 @@ public class EmailTokenService {
         send(email, "Reset your FamilyPoints password",
                 "Open this link to reset your password:\n" +
                 publicWebUrl + "/reset-password?token=" + token + "\n\nExpires in 30 minutes.");
+    }
+
+    private void requireMailConfigured() {
+        if (from.isBlank() || publicWebUrl.isBlank())
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Mail sender not configured");
+        try {
+            var uri = java.net.URI.create(publicWebUrl);
+            boolean local = "localhost".equalsIgnoreCase(uri.getHost()) ||
+                    "127.0.0.1".equals(uri.getHost());
+            if (uri.getHost() == null || !(("https".equalsIgnoreCase(uri.getScheme()))
+                    || (local && "http".equalsIgnoreCase(uri.getScheme()))))
+                throw new IllegalArgumentException("Invalid mail callback URL");
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Invalid mail callback URL");
+        }
     }
 
     private void send(String to, String subject, String body) {
