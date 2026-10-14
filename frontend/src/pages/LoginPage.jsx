@@ -16,6 +16,7 @@ function LoginPage() {
 
   const {
     currentUser,
+    needsWorkspace,
     loading: authLoading,
     login,
   } = useAuth()
@@ -36,6 +37,8 @@ function LoginPage() {
     )
   }
 
+  if (needsWorkspace) return <Navigate to="/choose-family" replace />
+
   if (currentUser) {
     return <Navigate to="/" replace />
   }
@@ -51,7 +54,7 @@ function LoginPage() {
       try { window.localStorage.setItem(LAST_USERNAME_KEY, username.trim()) } catch { /* storage unavailable */ }
 
       setPassword('')
-      navigate('/', { replace: true })
+      navigate('/choose-family', { replace: true })
     } catch {
       setError(t('login.invalidCredentials'))
     } finally {
