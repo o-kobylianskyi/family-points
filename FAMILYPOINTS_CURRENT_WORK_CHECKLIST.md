@@ -1023,3 +1023,16 @@ Before each substantial implementation batch:
 - [x] Logout separate at bottom-right of chooser
 - [x] Compact neutral shared button styling for ordinary actions
 - [ ] Run frontend npm run build and visually check forms, destructive actions, mobile layout
+
+## 2026-10-14 — Registration closure (large package; still pending verification)
+- [x] Additive email/verification-token schema V30 preserving pre-existing users
+- [x] New email/password signup blocked until email confirmation
+- [x] One-time verification, resend throttle, email-based password recovery and Web routes
+- [x] Google Web button plus backend verified Google email/subject registration (no email auto-link)
+- [x] Android signup email field and API payload
+- [x] README for SMTP and Google Cloud OAuth configuration
+- [ ] Maven clean test / Vite build / Android assembleDebug on local DEV
+- [ ] Complete Google native Android Credential Manager (not implemented yet)
+- [ ] Configure verified SMTP sender and Google OAuth client IDs; manually test real emails and Google login
+- [ ] Add abuse/IP throttling, transaction/outbox behavior, duplicate-race and end-to-end HTTP integration tests
+- [ ] Keep flags OFF in Contabo BETA, preserve DEV database and legacy accounts
