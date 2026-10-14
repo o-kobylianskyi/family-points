@@ -170,6 +170,7 @@ function LoginPage() {
           </button>
         </form>
         <p><Link to="/register-account">Створити акаунт</Link></p>
+        <p><Link to="/forgot-password">Забули пароль?</Link></p>
         <p><Link to="/register">Демо реєстрації сім’ї</Link></p>
       </div>
     </div>
