@@ -43,9 +43,6 @@ public class GoogleRegistrationService {
                 || email.length() > 254)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Verified Google email required");
         email = email.toLowerCase(Locale.ROOT);
-        if (accounts.existsByEmailIgnoreCase(email))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Email already belongs to an account; sign in and link Google");
         String username = "g_" + subjectDigest(subject).substring(0, 32);
         if (accounts.existsByUsername(username))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Google identity already registered");
