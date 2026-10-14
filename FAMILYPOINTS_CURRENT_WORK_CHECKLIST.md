@@ -1147,3 +1147,9 @@ Before each substantial implementation batch:
 - [x] Reset previous editor errors on new/edit action
 - [ ] Local npm run build; simulate disabled invite (503) and username conflict (409) with clear visible feedback
 - [ ] Full invitation E2E tests pending; V33 and feature flag not approved/applied to DEV
+
+## Task management workspace-member context — 2026-10-15
+- [x] Replace 14 TaskService legacy member lookups with workspace-scoped current member
+- [ ] Run Maven tests and restart local Backend
+- [ ] Verify Tasks → Management tabs: created/administered/observed/executed; create/edit task audit
+- [ ] Check server logs and exact 401 path if any error persists
