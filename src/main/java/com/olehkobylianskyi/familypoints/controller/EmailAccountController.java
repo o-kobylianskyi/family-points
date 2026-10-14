@@ -34,7 +34,7 @@ public class EmailAccountController {
 
     public record TokenRequest(@NotBlank String token) {}
     public record ResetRequest(@NotBlank String username, @NotBlank @Email String email) {}
-    public record NewPasswordRequest(@NotBlank String token, @NotBlank @Size(min=12,max=128) String password) {}
+    public record NewPasswordRequest(@NotBlank String token, @NotBlank @Size(min=8,max=128) String password) {}
 
     @PostMapping("/verify")
     @Transactional
