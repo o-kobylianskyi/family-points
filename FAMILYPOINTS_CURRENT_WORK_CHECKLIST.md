@@ -1099,3 +1099,12 @@ Before each substantial implementation batch:
 - [ ] DEV database backup, operator approval before migration on restart
 - [ ] Verify Flyway V32 applied, new constraint retained, multiple slots work
 - [ ] Regression test for two slots same task/date and deadline worker idempotence
+
+## 2026-10-14 — Child member access
+- [x] Member editor profile-only or parent-managed separate login
+- [x] Existing member-account API used, no new backend privilege surfaces
+- [x] Addressed invitation mode explicitly blocked to prevent duplicate child profiles
+- [ ] Build frontend and test creating profile/child account, login as child, access isolation
+- [ ] Implement email-verified parent contact (currently not stored or verified)
+- [ ] Implement email invitation bound to pre-existing member, no duplication, TTL/revoke
+- [ ] Ensure atomic retry/idempotence for member+account provisioning
