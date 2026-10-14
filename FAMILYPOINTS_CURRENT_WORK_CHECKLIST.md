@@ -989,3 +989,11 @@ Before each substantial implementation batch:
 - [ ] Run ./gradlew :app:assembleDebug and fix Kotlin compile errors
 - [ ] Test single family, zero families, two families, revoked workspace, offline login, and first-family flags disabled on emulator/phone
 - [ ] No Google credential UI and no BETA deployment until backend feature tests and credentials configured
+
+## 2026-10-14 — Onboarding stabilization
+- [x] Prevent Android workspace-selection network failure from silent offline fallback
+- [x] Suppress expected Android workspace-navigation exception error message
+- [x] Apply Web session idle/refresh checks for workspace-less account
+- [ ] Run Android Gradle assembleDebug and Web npm run build locally
+- [ ] Test /auth/login -> workspace choice -> /api/me with real DEV backend
+- [ ] Only then enable DEV registration and first-family flags; never enable in BETA by default
