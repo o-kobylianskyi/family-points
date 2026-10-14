@@ -1025,3 +1025,10 @@
 - Added global-login workspace choice, first-family Compose screen and Android signup mode; unscoped JWT no longer calls /api/me before workspace selection.
 - Android changes committed as 455e931, 563303d, 7126a15, a46a190, 27a2058 and 30811a2.
 - Gradle build and emulator tests outstanding. Server registration flags stay OFF. Contabo unchanged.
+
+## 2026-10-14 — Post-onboarding guard fixes, awaiting local build
+- Android: successful global authentication followed by workspace-selection network failure no longer silently downgrades to offline login (38c79e4).
+- Android: expected WorkspaceSelectionRequiredException no longer flashes a generic login error during navigation (d4ea687).
+- Web: global account with no selected workspace now also participates in idle expiry/token refresh checks, not only accounts with active /api/me context (d9b2e22).
+- Source reviewed against JwtService: workspace JWT claim is precisely workspaceId.
+- Android assembleDebug and Web npm build NOT run in this environment. Do not assume BUILD SUCCESS. No Contabo BETA changes.
