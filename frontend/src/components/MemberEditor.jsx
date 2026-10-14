@@ -9,6 +9,10 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
   const [memberType, setMemberType] = useState(member?.memberType ?? 'CHILD')
   const [workspaceRoleId, setWorkspaceRoleId] = useState(member?.workspaceRoleId ?? roles[0]?.id ?? '')
   const [error, setError] = useState('')
+  const [accessMode, setAccessMode] = useState('profile')
+  const [childUsername, setChildUsername] = useState('')
+  const [childPassword, setChildPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape' && !busy) onClose() }
@@ -22,8 +26,25 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
       setError(t('workspace.memberEditor.required', { defaultValue: 'Заповніть ім’я та роль' }))
       return
     }
+    if (!editing && accessMode === 'account') {
+      if (!/^[a-zA-Z0-9._-]{3,64}$/.test(childUsername.trim())) {
+        setError('Логін: 3–64 символи, латинські літери, цифри, крапка, _ або -')
+        return
+      }
+      if (childPassword.length < 8 || childPassword !== confirmPassword) {
+        setError('Пароль має містити щонайменше 8 символів і збігатися з підтвердженням')
+        return
+      }
+    }
+    if (!editing && accessMode === 'invite') {
+      setError('Адресне запрошення ще не реалізоване на сервері. Учасника не створено.')
+      return
+    }
     setError('')
-    await onSave({ name: name.trim(), memberType, workspaceRoleId: Number(workspaceRoleId) })
+    await onSave({ name: name.trim(), memberType, workspaceRoleId: Number(workspaceRoleId) },
+      !editing && accessMode === 'account'
+        ? { username: childUsername.trim(), password: childPassword }
+        : null)
   }
 
   const remove = async () => {
@@ -57,11 +78,37 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
             {roles.map(role => <option key={role.id} value={role.id}>{workspaceRoleLabel(t, role.code, role.name)}</option>)}
           </select>
         </label>
+        {!editing && <>
+          <fieldset style={{ border: '1px solid var(--border-color, #d9deeb)', borderRadius: 10, padding: 12, marginTop: 14 }}>
+            <legend>Доступ учасника</legend>
+            <label style={{ display: 'block', marginBottom: 8 }}>
+              <input type="radio" name="member-access" value="profile" checked={accessMode === 'profile'} onChange={() => setAccessMode('profile')} />
+              {' '}Лише профіль, без входу
+            </label>
+            <label style={{ display: 'block', marginBottom: 8 }}>
+              <input type="radio" name="member-access" value="account" checked={accessMode === 'account'} onChange={() => setAccessMode('account')} />
+              {' '}Створити окремий логін для дитини
+            </label>
+            <label style={{ display: 'block' }}>
+              <input type="radio" name="member-access" value="invite" checked={accessMode === 'invite'} onChange={() => setAccessMode('invite')} />
+              {' '}Запрошення на особистий email (у розробці)
+            </label>
+          </fieldset>
+          {accessMode === 'account' && <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+            <p>Логін і пароль задають батьки. Підтвердження через email батьків буде додано окремо; зараз цей спосіб не використовує пошту.</p>
+            <label>Логін дитини<input autoComplete="off" value={childUsername} onChange={e => setChildUsername(e.target.value)} required /></label>
+            <label>Пароль<input type="password" autoComplete="new-password" value={childPassword} onChange={e => setChildPassword(e.target.value)} minLength={8} required /></label>
+            <label>Повторіть пароль<input type="password" autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} minLength={8} required /></label>
+          </div>}
+          {accessMode === 'invite' && <p className="error-message" role="status">
+            Запрошення, прив’язане до цього профілю й email, потребує окремого захищеного API. Поточне універсальне запрошення створює дубль учасника, тому воно тут вимкнене.
+          </p>}
+        </>}
         <div className="modal-actions member-editor-actions">
           {editing && <button type="button" className="danger-button" onClick={remove} disabled={busy}>{t('common.delete', { defaultValue: 'Видалити' })}</button>}
           <span className="member-editor-spacer" />
           <button type="button" className="secondary-button" onClick={onClose} disabled={busy}>{t('common.cancel')}</button>
-          <button type="submit" className="primary-button" disabled={busy}>{busy ? t('common.saving') : t('common.save', { defaultValue: 'Зберегти' })}</button>
+          <button type="submit" className="primary-button" disabled={busy || (!editing && accessMode === 'invite')}>{busy ? t('common.saving') : t('common.save', { defaultValue: 'Зберегти' })}</button>
         </div>
       </form>
     </div>
