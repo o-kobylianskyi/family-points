@@ -137,7 +137,7 @@ export async function googleAuth(idToken, createAccount = false) {
   })
   if (!response.ok) {
     if (response.status === 503) throw new Error('Google-авторизація ще не налаштована на сервері')
-    if (response.status === 409) throw new Error('Цей email уже використовується. Увійдіть за паролем і прив’яжіть Google у налаштуваннях.')
+    if (response.status === 409) throw new Error('Ця Google-ідентичність уже зареєстрована. Увійдіть через Google або зверніться до підтримки.')
     if (response.status === 403) throw new Error('Google-акаунт ще не зареєстровано. Перейдіть на сторінку реєстрації.')
     throw new Error('Не вдалося підтвердити Google-акаунт')
   }
@@ -152,4 +152,22 @@ export async function requestEmailVerification(username, email) {
   if (!response.ok) throw new Error(response.status === 429
     ? 'Повторне надсилання доступне через дві хвилини'
     : 'Не вдалося відправити лист. Спробуйте пізніше')
+}
+
+export async function linkGoogleAccount(accessToken, idToken, currentPassword) {
+  const response = await fetch(`${API_URL}/api/account/google/link`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ idToken, currentPassword }),
+  })
+  if (!response.ok) {
+    if (response.status === 503) throw new Error('Прив’язка Google ще не увімкнена на сервері')
+    if (response.status === 409) throw new Error('Цей Google-акаунт уже прив’язаний')
+    if (response.status === 401 || response.status === 403)
+      throw new Error('Не вдалося підтвердити облікові дані або недостатньо прав')
+    throw new Error('Не вдалося прив’язати Google-акаунт')
+  }
 }
