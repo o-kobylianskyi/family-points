@@ -48,6 +48,16 @@ public class EmailAccountController {
         accounts.save(account);
     }
 
+    @PostMapping("/request-verification")
+    @Transactional
+    public void requestVerification(@Valid @RequestBody ResetRequest body) {
+        requireEnabled();
+        accounts.findByEmailIgnoreCase(body.email().trim()).ifPresent(account -> {
+            if (!account.isEnabled() && account.getEmailVerifiedAt() == null)
+                tokens.sendVerification(account.getId(), account.getEmail());
+        });
+    }
+
     @PostMapping("/request-reset")
     @Transactional
     public void requestReset(@Valid @RequestBody ResetRequest body) {
