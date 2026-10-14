@@ -161,7 +161,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    if (!currentUser) return
+    if (!currentUser && !needsWorkspace) return
 
     const checkSession = async () => {
       const token = localStorage.getItem('accessToken')
@@ -221,7 +221,7 @@ export function AuthProvider({ children }) {
     checkSession()
 
     return () => window.clearInterval(intervalId)
-  }, [currentUser])
+  }, [currentUser, needsWorkspace])
 
   const login = async (username, password) => {
     const loginResponse = await loginRequest(
