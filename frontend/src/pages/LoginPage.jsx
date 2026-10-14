@@ -169,7 +169,8 @@ function LoginPage() {
               : t('login.submit')}
           </button>
         </form>
-        <p><Link to="/register">Переглянути реєстрацію нової сім’ї (демо)</Link></p>
+        <p><Link to="/register-account">Створити акаунт</Link></p>
+        <p><Link to="/register">Демо реєстрації сім’ї</Link></p>
       </div>
     </div>
   )
