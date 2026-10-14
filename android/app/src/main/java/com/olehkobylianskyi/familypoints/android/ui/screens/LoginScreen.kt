@@ -49,11 +49,13 @@ fun LoginScreen(
     initialUsername: String = "",
     onRememberUsername: (String) -> Unit = {},
     onLogin: suspend (String, String) -> CurrentUserResponse,
-    onLoginSuccess: (CurrentUserResponse) -> Unit
+    onLoginSuccess: (CurrentUserResponse) -> Unit,
+    onRegister: suspend (String, String) -> Unit = { _, _ -> }
 ) {
     var username by remember(initialUsername) { mutableStateOf(initialUsername) }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
+    var registrationMode by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
     var languageMenuOpen by remember { mutableStateOf(false) }
@@ -195,10 +197,17 @@ fun LoginScreen(
                     loading = true
 
                     try {
-                        val user = onLogin(username, password)
-                        onRememberUsername(username)
-                        password = ""
-                        onLoginSuccess(user)
+                        if (registrationMode) {
+                            onRegister(username, password)
+                            registrationMode = false
+                            password = ""
+                            error = "Акаунт створено. Увійдіть із новим паролем."
+                        } else {
+                            val user = onLogin(username, password)
+                            onRememberUsername(username)
+                            password = ""
+                            onLoginSuccess(user)
+                        }
                     } catch (exception: OfflineLoginException) {
                         error = when (exception.reason) {
                             OfflineLoginError.NOT_ENROLLED -> when (language) {
@@ -257,7 +266,8 @@ fun LoginScreen(
             enabled = !loading
         ) {
             Text(
-                if (loading) text.loggingIn else if (serverStatus == ServerStatus.OFFLINE) {
+                if (loading) text.loggingIn else if (registrationMode) "Створити акаунт"
+                else if (serverStatus == ServerStatus.OFFLINE) {
                     when (language) {
                         AppLanguage.UK -> "Увійти офлайн"
                         AppLanguage.DE -> "Offline anmelden"
@@ -266,6 +276,13 @@ fun LoginScreen(
                     }
                 } else text.login
             )
+        }
+        if (serverStatus == ServerStatus.ONLINE) {
+            OutlinedButton(
+                onClick = { registrationMode = !registrationMode; error = "" },
+                enabled = !loading,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+            ) { Text(if (registrationMode) "Повернутися до входу" else "Створити акаунт") }
         }
     }
 }
