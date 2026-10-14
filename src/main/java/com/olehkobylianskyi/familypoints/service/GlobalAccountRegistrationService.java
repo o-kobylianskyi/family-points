@@ -30,7 +30,7 @@ public class GlobalAccountRegistrationService {
         if (username == null || !username.matches("[A-Za-z0-9._-]{3,50}")
                 || email == null || !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
                 || email.length() > 254
-                || password == null || password.length() < 12 || password.length() > 128) {
+                || password == null || password.length() < 8 || password.length() > 128) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid registration values");
         }
         String normalized = email.trim().toLowerCase(Locale.ROOT);
