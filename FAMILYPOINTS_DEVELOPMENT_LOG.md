@@ -1075,3 +1075,10 @@
 - Added boundary tests for 7-character rejection and 8-character acceptance in global signup.
 - Android registration delegates validation to server; no local 12-char constraint.
 - Requires laptop Maven/Vite/Android build verification. Existing SMTP and Google provisioning remain configuration-dependent; Contabo unchanged.
+
+## 2026-10-14 — Auth provider hardening and DEV preflight
+- Previous user local build gate confirmed: Backend Maven tests PASS, Web Vite PASS and Android assembleDebug PASS before this packet.
+- Added HTTPS-only callback URL policy for email links, with explicit HTTP exception for localhost/127.0.0.1 local development (21b4a25).
+- Added initial EmailTokenService tests for malformed/expired tokens, token hashing, cooldown and URL safety (165c86b).
+- Added read-only scripts/dev/check-auth-config.ps1 to verify SMTP/Google environment presence without displaying secrets (9b4a3d2).
+- These new changes are committed but NOT freshly compiled/tested. No SMTP account, OAuth client, DNS or Contabo settings created or modified.
