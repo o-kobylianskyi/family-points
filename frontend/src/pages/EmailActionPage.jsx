@@ -6,6 +6,7 @@ export default function EmailActionPage({ action }) {
   const [params] = useSearchParams()
   const token = params.get('token') || ''
   const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [pending, setPending] = useState(false)
   const [done, setDone] = useState(false)
@@ -21,7 +22,7 @@ export default function EmailActionPage({ action }) {
     setError('')
     try {
       if (action === 'verify') await verifyAccountEmail(token)
-      else if (action === 'request') await requestPasswordReset(email)
+      else if (action === 'request') await requestPasswordReset(username, email)
       else await resetAccountPassword(token, password)
       setDone(true)
     } catch (e) {
@@ -37,6 +38,10 @@ export default function EmailActionPage({ action }) {
         'Операцію завершено. Тепер можна увійти.'}</p>
       <Link to="/login">До входу</Link>
     </> : <form onSubmit={submit}>
+      {action === 'request' && <label>Логін
+        <input autoComplete="username" required value={username}
+          onChange={e => setUsername(e.target.value)} />
+      </label>}
       {action === 'request' && <label>Email
         <input type="email" autoComplete="email" required value={email}
           onChange={e => setEmail(e.target.value)} />
