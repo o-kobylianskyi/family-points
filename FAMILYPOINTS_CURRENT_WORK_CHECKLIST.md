@@ -1051,3 +1051,12 @@ Before each substantial implementation batch:
 - [x] Add 7-vs-8 character boundary tests
 - [ ] Run local Maven test and Web production build; Android smoke test
 - [ ] SMTP sender and Google OAuth client IDs still require external provisioning; native Android Google credential flow outstanding
+
+## 2026-10-14 — Auth external provider gate
+- [x] Verify local Maven, Vite, Android baseline builds (user confirmed before new hardening changes)
+- [x] Reject insecure non-local mail verification link base URL
+- [x] Add initial mail token tests and read-only local SMTP/Google config preflight
+- [ ] Re-run Maven tests after new mail token tests
+- [ ] Choose/configure SMTP provider, verify sender domain SPF DKIM DMARC and test mail delivery
+- [ ] Create Google Cloud Web client and configure authorized JavaScript origins / ID token audience
+- [ ] Native Google credential manager Android flow and release security checks pending
