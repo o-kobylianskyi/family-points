@@ -12,6 +12,7 @@ import {
   refreshAccessToken,
   listAccountWorkspaces,
   activateAccountWorkspace,
+  createFirstFamily as createFirstFamilyRequest,
 } from '../api/authApi'
 
 const AuthContext = createContext(null)
@@ -46,6 +47,7 @@ function getTokenExpirationMs(token) {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [needsWorkspace, setNeedsWorkspace] = useState(false)
   const refreshInFlight = useRef(false)
   const lastActivityWrite = useRef(0)
 
@@ -53,6 +55,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('accessToken')
     localStorage.removeItem(LAST_ACTIVITY_KEY)
     setCurrentUser(null)
+    setNeedsWorkspace(false)
   }
 
   const markActivity = () => {
@@ -98,8 +101,21 @@ export function AuthProvider({ children }) {
       }
 
       try {
-        const user = await getCurrentUser(token)
-        setCurrentUser(user)
+        const choices = await listAccountWorkspaces(token)
+        if (choices.length && getTokenExpirationMs(token)) {
+          // Scoped tokens already select a workspace; legacy JWTs need selection.
+          try {
+            const user = await getCurrentUser(token)
+            setCurrentUser(user)
+            setNeedsWorkspace(false)
+          } catch {
+            setCurrentUser(null)
+            setNeedsWorkspace(true)
+          }
+        } else {
+          setCurrentUser(null)
+          setNeedsWorkspace(true)
+        }
         markActivity()
       } catch {
         clearSession()
@@ -223,13 +239,11 @@ export function AuthProvider({ children }) {
     )
 
     try {
-      const user = await getCurrentUser(
-        loginResponse.accessToken
-      )
-
-      setCurrentUser(user)
-
-      return user
+      // A global login identifies an account, not a selected family.
+      await listAccountWorkspaces(loginResponse.accessToken)
+      setCurrentUser(null)
+      setNeedsWorkspace(true)
+      return null
     } catch (error) {
       clearSession()
       throw error
@@ -254,8 +268,16 @@ export function AuthProvider({ children }) {
     localStorage.setItem('accessToken', next.accessToken)
     localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()))
     setCurrentUser(user)
+    setNeedsWorkspace(false)
     // Remount every feature store and clear in-memory state for the previous tenant.
     window.location.replace('/')
+  }
+
+  const createFirstFamily = async (familyName, ownerName) => {
+    const token = localStorage.getItem('accessToken')
+    if (!token) throw new Error('Not authenticated')
+    const created = await createFirstFamilyRequest(token, familyName, ownerName)
+    await switchWorkspace(created.workspaceId)
   }
 
   const logout = () => {
@@ -271,11 +293,13 @@ export function AuthProvider({ children }) {
       value={{
         currentUser,
         loading,
+        needsWorkspace,
         login,
         logout,
         getAccessToken,
         getAvailableWorkspaces,
         switchWorkspace,
+        createFirstFamily,
       }}
     >
       {children}
