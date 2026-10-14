@@ -4,21 +4,23 @@ import { useAuth } from '../context/AuthContext'
 
 export default function ChooseFamilyPage() {
   const { currentUser, loading, needsWorkspace, getAvailableWorkspaces,
-    switchWorkspace, createFirstFamily, logout } = useAuth()
+    switchWorkspace, createFirstFamily, logout, sessionError } = useAuth()
   const [choices, setChoices] = useState([])
   const [familyName, setFamilyName] = useState('')
   const [ownerName, setOwnerName] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
+  const [choicesLoaded, setChoicesLoaded] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
     if (!needsWorkspace) return
     let alive = true
-    getAvailableWorkspaces().then(value => { if (alive) setChoices(value) })
-      .catch(() => { if (alive) setError('Не вдалося завантажити сім’ї') })
+    getAvailableWorkspaces().then(value => { if (alive) { setChoices(value); setChoicesLoaded(true); setError('') } })
+      .catch(e => { if (alive) { setChoicesLoaded(false); setError(e.message || 'Не вдалося завантажити сім’ї') } })
     return () => { alive = false }
-  }, [needsWorkspace])
+  }, [needsWorkspace, retryKey])
 
   if (loading) return <div className="app-loading">Завантаження…</div>
   if (currentUser && !needsWorkspace) return <Navigate to="/" replace />
@@ -50,7 +52,10 @@ export default function ChooseFamilyPage() {
   return <div className="login-page">
     <div className="login-card family-choice-card">
       <h1>Вибір сім’ї</h1>
-      {choices.length > 0 ? <>
+      {(error || sessionError) && <p className="error-message" role="alert">{error || sessionError}</p>}
+      {!choicesLoaded && <button type="button" disabled={busy}
+        onClick={() => setRetryKey(value => value + 1)}>Повторити завантаження сімей</button>}
+      {choicesLoaded && choices.length > 0 ? <>
         <p>Оберіть сім’ю, з якою хочете працювати.</p>
         <div className="family-choice-layout">
           <div className="family-choice-list">
@@ -61,7 +66,7 @@ export default function ChooseFamilyPage() {
               </button>)}
           </div>
         </div>
-      </> : <>
+      </> : choicesLoaded ? <>
         <p>Акаунт створено. Тепер можна створити першу сім’ю.</p>
         <form onSubmit={create}>
           <label>Назва сім’ї
@@ -74,8 +79,7 @@ export default function ChooseFamilyPage() {
           </label>
           <button type="submit" disabled={busy}>Створити сім’ю</button>
         </form>
-      </>}
-      {error && <p className="error-message" role="alert">{error}</p>}
+      </> : null}
       <div className="family-choice-footer">
         <button className="family-choice-logout" type="button" disabled={busy}
           onClick={() => { logout(); navigate('/login') }}>Вийти</button>
