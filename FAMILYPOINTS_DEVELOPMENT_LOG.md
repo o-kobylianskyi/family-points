@@ -1061,3 +1061,10 @@
 - Web now has email registration/verification/password reset pages and conditional Google Identity Services button controlled by VITE_GOOGLE_CLIENT_ID. Android registration now requires email but native Google sign-in remains outstanding.
 - SMTP and Google client IDs require configuration; see docs/ACCOUNT_EMAIL_GOOGLE_SETUP.md. All public feature flags remain OFF by default. No changes to Contabo.
 - Local Maven/Vite/Android builds and full DB integration were not run in this assistant session; do not enable public signup or deploy until release gate passes.
+
+## 2026-10-14 — Email is shared contact, username remains unique
+- Product decision: parents can create accounts for children using one guardian email; username is the unique login.
+- Added V31 to drop V30 unique email index safely if V30 was already migrated (28ae4e1).
+- Password and Google registrations no longer reject email reuse, but retain unique username / Google-sub identity constraints.
+- Recovery and verification resend now require username+email, preventing ambiguous email-only account selection. Web forms and tests updated.
+- Build / Flyway V31 tests not yet run. No Contabo deployment or flags changed.
