@@ -3698,3 +3698,39 @@ button:focus-visible {
   min-width: 0;
   line-height: 1.4;
 }
+
+/* Compact window: member form scrolls while header and action buttons stay accessible. */
+.modal-backdrop:has(.member-editor) {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.modal-card.member-editor {
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+.modal-card.member-editor > .modal-header {
+  flex: 0 0 auto;
+}
+.modal-card.member-editor > form {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 2px 4px 2px 0;
+}
+.modal-card.member-editor .member-editor-actions {
+  position: sticky;
+  bottom: 0;
+  flex: 0 0 auto;
+  background: white;
+  padding: 12px 0 3px;
+  border-top: 1px solid #e8eaf0;
+  z-index: 1;
+}
+@media (max-height: 500px) {
+  .modal-card.member-editor { max-height: calc(100dvh - 12px); padding: 12px; }
+  .modal-card.member-editor > .modal-header { margin-bottom: 8px; }
+}
