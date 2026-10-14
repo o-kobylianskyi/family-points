@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import GoogleAuthButton from '../components/GoogleAuthButton'
 
 const LAST_USERNAME_KEY = 'familyPoints.lastUsername'
 
@@ -19,6 +20,7 @@ function LoginPage() {
     needsWorkspace,
     loading: authLoading,
     login,
+    loginWithGoogle,
   } = useAuth()
 
   const navigate = useNavigate()
@@ -169,6 +171,18 @@ function LoginPage() {
               : t('login.submit')}
           </button>
         </form>
+        <GoogleAuthButton disabled={loading} onCredential={async idToken => {
+          setError('')
+          setLoading(true)
+          try {
+            const user = await loginWithGoogle(idToken)
+            navigate(user ? '/' : '/choose-family', { replace: true })
+          } catch (e) {
+            setError(e.message || 'Не вдалося увійти через Google')
+          } finally {
+            setLoading(false)
+          }
+        }} />
         <p><Link to="/register-account">Створити акаунт</Link></p>
         <p><Link to="/forgot-password">Забули пароль?</Link></p>
         <p><Link to="/register">Демо реєстрації сім’ї</Link></p>
