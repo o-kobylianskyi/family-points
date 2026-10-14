@@ -33,6 +33,13 @@ public class EmailTokenService {
     }
 
     public String generateToken(long accountId, String purpose, int validityMinutes) {
+        Integer recent = db.queryForObject("""
+            SELECT count(*) FROM account_email_tokens
+            WHERE account_id = ? AND purpose = ?
+              AND created_at > CURRENT_TIMESTAMP - INTERVAL '2 minutes'
+            """, Integer.class, accountId, purpose);
+        if (recent != null && recent > 0)
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Try again later");
         byte[] entropy = new byte[32];
         random.nextBytes(entropy);
         String token = HexFormat.of().formatHex(entropy);
