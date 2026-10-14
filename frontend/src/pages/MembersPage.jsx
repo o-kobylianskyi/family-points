@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { getWorkspaceMembers, createWorkspaceMember, updateWorkspaceMember, deleteWorkspaceMember, getWorkspaceRoles } from '../api/workspaceApi'
 import MemberEditor from '../components/MemberEditor'
-import { createMemberAccount } from '../api/accountApi'
+import { createMemberAccount, issueMemberEmailInvitation } from '../api/accountApi'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 import {
   getMemberGroups,
@@ -61,7 +61,7 @@ function MembersPage() {
     setMembers(await getWorkspaceMembers(getAccessToken(), currentUser.workspaceId))
   }
 
-  const saveMember = async (body, account = null) => {
+  const saveMember = async (body, account = null, inviteEmail = null) => {
     try {
       setMemberBusy(true)
       setError('')
@@ -69,13 +69,15 @@ function MembersPage() {
         await updateWorkspaceMember(getAccessToken(), currentUser.workspaceId, editingMember.id, body)
       } else {
         const created = await createWorkspaceMember(getAccessToken(), currentUser.workspaceId, body)
-        if (account) {
+        if (account || inviteEmail) {
           try {
+            if (inviteEmail) await issueMemberEmailInvitation(getAccessToken(), currentUser.workspaceId, created.id, inviteEmail)
+            else
             await createMemberAccount(getAccessToken(), currentUser.workspaceId, created.id, account)
           } catch (accountError) {
             await refreshMembers()
             setEditingMember(created)
-            throw new Error(`Учасника створено, але акаунт не створено: ${accountError.message}. Перейдіть у Налаштування → Акаунти, щоб створити логін для вже наявного учасника. Не додавайте учасника вдруге.`)
+            throw new Error(`Учасника створено, але доступ ще не налаштовано: ${accountError.message}. Профіль уже існує; не створюйте його вдруге.`)
           }
         }
       }
