@@ -79,19 +79,18 @@ function MemberEditor({ member, roles, busy, onSave, onDelete, onClose }) {
           </select>
         </label>
         {!editing && <>
-          <fieldset style={{ border: '1px solid var(--border-color, #d9deeb)', borderRadius: 10, padding: 12, marginTop: 14 }}>
-            <legend>Доступ учасника</legend>
-            <label style={{ display: 'block', marginBottom: 8 }}>
+          <fieldset className="member-access-options"><legend>Доступ учасника</legend>
+            <label className="member-access-option">
               <input type="radio" name="member-access" value="profile" checked={accessMode === 'profile'} onChange={() => setAccessMode('profile')} />
-              {' '}Лише профіль, без входу
+              <span>Лише профіль, без входу</span>
             </label>
-            <label style={{ display: 'block', marginBottom: 8 }}>
+            <label className="member-access-option">
               <input type="radio" name="member-access" value="account" checked={accessMode === 'account'} onChange={() => setAccessMode('account')} />
-              {' '}Створити окремий логін для дитини
+              <span>Створити окремий логін для дитини</span>
             </label>
-            <label style={{ display: 'block' }}>
+            <label className="member-access-option">
               <input type="radio" name="member-access" value="invite" checked={accessMode === 'invite'} onChange={() => setAccessMode('invite')} />
-              {' '}Запрошення на особистий email (у розробці)
+              <span>Запрошення на особистий email (ще недоступне)</span>
             </label>
           </fieldset>
           {accessMode === 'account' && <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
