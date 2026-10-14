@@ -33,7 +33,7 @@ public class EmailAccountController {
     }
 
     public record TokenRequest(@NotBlank String token) {}
-    public record ResetRequest(@NotBlank @Email String email) {}
+    public record ResetRequest(@NotBlank String username, @NotBlank @Email String email) {}
     public record NewPasswordRequest(@NotBlank String token, @NotBlank @Size(min=12,max=128) String password) {}
 
     @PostMapping("/verify")
@@ -52,7 +52,8 @@ public class EmailAccountController {
     @Transactional
     public void requestVerification(@Valid @RequestBody ResetRequest body) {
         requireEnabled();
-        accounts.findByEmailIgnoreCase(body.email().trim()).ifPresent(account -> {
+        accounts.findByUsername(body.username()).filter(account -> account.getEmail() != null &&
+                account.getEmail().equalsIgnoreCase(body.email().trim())).ifPresent(account -> {
             if (!account.isEnabled() && account.getEmailVerifiedAt() == null)
                 tokens.sendVerification(account.getId(), account.getEmail());
         });
@@ -62,7 +63,8 @@ public class EmailAccountController {
     @Transactional
     public void requestReset(@Valid @RequestBody ResetRequest body) {
         requireEnabled();
-        accounts.findByEmailIgnoreCase(body.email().trim()).ifPresent(account -> {
+        accounts.findByUsername(body.username()).filter(account -> account.getEmail() != null &&
+                account.getEmail().equalsIgnoreCase(body.email().trim())).ifPresent(account -> {
             if (account.getEmailVerifiedAt() != null && account.isEnabled())
                 tokens.sendReset(account.getId(), account.getEmail());
         });
