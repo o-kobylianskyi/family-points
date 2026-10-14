@@ -13,7 +13,7 @@ export async function login(username, password) {
   })
 
   if (!response.ok) {
-    throw new Error('Неправильний логін або пароль')
+    throw new Error(response.status === 401 ? 'Неправильний логін або пароль' : `Помилка входу (${response.status}). Спробуйте пізніше або перевірте Backend.`)
   }
 
   return response.json()
