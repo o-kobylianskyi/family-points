@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.RadioButton
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -85,6 +89,11 @@ fun MembersScreen(
     var name by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("CHILD") }
     var roleId by remember { mutableStateOf<Long?>(null) }
+    var accessMode by remember { mutableStateOf("profile") }
+    var childLogin by remember { mutableStateOf("") }
+    var childPassword by remember { mutableStateOf("") }
+    var confirmChildPassword by remember { mutableStateOf("") }
+    var invitationEmail by remember { mutableStateOf("") }
     var menu by remember { mutableStateOf("") }
     var confirmDelete by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
@@ -100,6 +109,11 @@ fun MembersScreen(
     }
     fun edit(member: WorkspaceMemberResponse?) {
         editing = member
+        accessMode = "profile"
+        childLogin = ""
+        childPassword = ""
+        confirmChildPassword = ""
+        invitationEmail = ""
         name = member?.name ?: ""
         type = member?.memberType ?: "CHILD"
         roleId = member?.workspaceRoleId ?: data?.roles?.firstOrNull { it.code == "CHILD" }?.id
@@ -309,7 +323,7 @@ fun MembersScreen(
                 memberText(language, "Новий учасник", "Neues Mitglied", "New member", "Новый участник")
                 else memberText(language, "Редагувати учасника", "Mitglied bearbeiten", "Edit member", "Редактировать участника")) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(value = name, onValueChange = { name = it }, label = {
                         Text(memberText(language, "Ім’я", "Name", "Name", "Имя"))
                     }, singleLine = true)
@@ -336,6 +350,42 @@ fun MembersScreen(
                                 onClick = { roleId = role.id; menu = "" })
                         }
                     }
+                    Text(memberText(language, "Доступ учасника", "Mitgliedszugang", "Member access", "Доступ участника"),
+                        style = MaterialTheme.typography.titleSmall)
+                    listOf(
+                        "profile" to memberText(language, "Лише профіль / без змін доступу", "Nur Profil / kein Zugang", "Profile only / no access change", "Только профиль / без изменений"),
+                        "account" to memberText(language, "Створити окремий логін", "Eigenes Login erstellen", "Create separate login", "Создать отдельный логин"),
+                        "invite" to memberText(language, "Запросити через email", "Per E-Mail einladen", "Invite by email", "Пригласить по email")
+                    ).forEach { (option, title) ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().clickable { accessMode = option },
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            RadioButton(selected = accessMode == option, onClick = { accessMode = option })
+                            Text(title, modifier = Modifier.weight(1f))
+                        }
+                    }
+                    if (accessMode == "account") {
+                        OutlinedTextField(value = childLogin, onValueChange = { childLogin = it },
+                            label = { Text(memberText(language, "Логін", "Benutzername", "Username", "Логин")) },
+                            singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(value = childPassword, onValueChange = { childPassword = it },
+                            label = { Text(memberText(language, "Пароль", "Passwort", "Password", "Пароль")) },
+                            visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(value = confirmChildPassword, onValueChange = { confirmChildPassword = it },
+                            label = { Text(memberText(language, "Повторіть пароль", "Passwort wiederholen", "Confirm password", "Повторите пароль")) },
+                            visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+                    }
+                    if (accessMode == "invite") {
+                        OutlinedTextField(value = invitationEmail, onValueChange = { invitationEmail = it },
+                            label = { Text("Email") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        Text(memberText(language,
+                            "Запрошення працює тільки якщо цю функцію ввімкнено на сервері.",
+                            "Einladung nur bei aktivierter Serverfunktion.",
+                            "Invitations require the server feature to be enabled.",
+                            "Приглашения требуют включения функции на сервере."),
+                            style = MaterialTheme.typography.bodySmall)
+                    }
                     if (editing != null) TextButton(enabled = !busy, onClick = { confirmDelete = true }) {
                         Text(memberText(language, "Видалити", "Löschen", "Delete", "Удалить"),
                             color = MaterialTheme.colorScheme.error)
@@ -343,11 +393,13 @@ fun MembersScreen(
                 }
             },
             confirmButton = {
-                Button(enabled = !busy && name.isNotBlank() && roleId != null, onClick = {
+                Button(enabled = !busy && name.isNotBlank() && roleId != null &&
+                    (accessMode != "account" || (childLogin.matches(Regex("[a-zA-Z0-9._-]{3,64}")) && childPassword.length in 8..128 && childPassword == confirmChildPassword)) &&
+                    (accessMode != "invite" || android.util.Patterns.EMAIL_ADDRESS.matcher(invitationEmail).matches()), onClick = {
                     val request = MemberSaveRequest(name.trim(), type, roleId!!)
                     val id = editing?.id
                     mutate {
-                        repository.save(currentUser.workspaceId, id, request)
+                        repository.save(currentUser.workspaceId, id, request, accessMode, childLogin.trim(), childPassword, invitationEmail.trim())
                         editorOpen = false
                     }
                 }) { Text(saveTitle) }
