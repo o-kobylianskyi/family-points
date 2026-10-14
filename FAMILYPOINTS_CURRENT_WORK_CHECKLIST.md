@@ -1141,3 +1141,9 @@ Before each substantial implementation batch:
 - [x] Android members feature API errors no longer always trigger logout
 - [ ] Verify Web compact browser (height 450px), phone responsive, footer accessible
 - [ ] Verify Android assembly and account/email invite UI behavior
+
+## 2026-10-15 — Member invite API errors
+- [x] Display invitation/account API errors inside open Web member form (not behind modal)
+- [x] Reset previous editor errors on new/edit action
+- [ ] Local npm run build; simulate disabled invite (503) and username conflict (409) with clear visible feedback
+- [ ] Full invitation E2E tests pending; V33 and feature flag not approved/applied to DEV
