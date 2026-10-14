@@ -73,11 +73,10 @@ function AppLayout() {
             <span />
           </button>
 
-          <div className="header-user">
-            <LanguageSwitcher />
-
+          <div className="header-workspace">
             {workspaceChoices.length > 1 && (
               <select
+                className="language-switcher workspace-switcher"
                 aria-label="Активна сім'я / Active workspace"
                 title="Активна сім'я"
                 value={currentUser.workspaceId}
@@ -101,12 +100,15 @@ function AppLayout() {
               </select>
             )}
             {canCreateFamily && (
-              <button type="button" disabled={switching}
+              <button className="header-create-family" type="button" disabled={switching}
                 onClick={() => { setSwitchError(''); setShowCreateFamily(true) }}>
                 + Створити сім’ю
               </button>
             )}
             {switchError && <span role="alert">{switchError}</span>}
+          </div>
+          <div className="header-user">
+            <LanguageSwitcher />
             <div className="header-user-info">
               <strong>{currentUser.memberName}</strong>
               <span>{currentUser.workspaceRoleCode === "PARENT"
