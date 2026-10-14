@@ -1104,3 +1104,9 @@
 - Choose-family page distinguishes failed workspace list from zero-family list, adds retry and error details (4cfd444).
 - Login distinguishes real invalid credentials (401) from other HTTP failures (aac5b9b, fe9d8dd).
 - No database or BETA/Contabo changes. Need user DEV backend request status/exception for POST /api/onboarding/first-family and POST /auth/login, then verify existing memberships.
+
+## 2026-10-14 — Fixed new-family task authorization null member (COMMITTED; test pending)
+- User-provided backend stack traces confirm TaskService.getOpenDefinitions NPE at line 707 because TaskAuthorizationService.currentMember() resolves legacy UserAccount.workspaceMember, null for fresh global multi-family accounts.
+- Changed TaskAuthorizationService.currentMember() to CurrentUserService.getCurrentMember(), which resolves workspace authentication details and checks membership; commit 9eebacb. This addresses task reads without weakening authorization or changing DEV DB.
+- Separate background TaskDeadlineService duplicate uk_task_instance_definition_date (definition 40, date 2026-10-13) persists: requires schema/migration + slot generation audit, not blindly removing constraints.
+- User must git pull, run tests and restart local backend; test GET /workspaces/{id}/tasks/members/{id} and /tasks/open; no Contabo BETA deployment.
