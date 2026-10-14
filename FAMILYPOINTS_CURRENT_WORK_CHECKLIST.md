@@ -980,3 +980,12 @@ Before each substantial implementation batch:
 - [ ] Build Android and implement Compose account registration / initial family chooser flow
 - [ ] Add end-to-end browser tests for both zero and multiple workspaces
 - [ ] Public flags stay disabled, no Contabo changes
+
+## 2026-10-14 — Android account and workspace onboarding
+- [x] Global login returns workspace choice state instead of treating missing /api/me as failed credentials
+- [x] Restore global JWT to chooser, without allowing unselected family feature access
+- [x] Compose chooser for existing families and first-family form
+- [x] Android online account registration mode and API callback
+- [ ] Run ./gradlew :app:assembleDebug and fix Kotlin compile errors
+- [ ] Test single family, zero families, two families, revoked workspace, offline login, and first-family flags disabled on emulator/phone
+- [ ] No Google credential UI and no BETA deployment until backend feature tests and credentials configured
