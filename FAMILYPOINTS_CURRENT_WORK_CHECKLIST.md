@@ -970,3 +970,13 @@ Before each substantial implementation batch:
 - [ ] Run full backend Maven tests on DEV and fix any failures
 - [ ] Add provider verifier tests and duplicate/conflict integration tests before enabling
 - [ ] Google front-end consent/onboarding flow and public activation deferred
+
+## 2026-10-14 — Web/Android onboarding
+- [x] Web: global account registration screen, explicit workspace chooser and first-family screen
+- [x] Web: avoid /api/me on global login before selecting a workspace
+- [x] Web: verify scoped JWT before replacing active workspace session
+- [x] Android: typed registration and first-family API endpoints
+- [ ] Build React and smoke-test older family member sessions
+- [ ] Build Android and implement Compose account registration / initial family chooser flow
+- [ ] Add end-to-end browser tests for both zero and multiple workspaces
+- [ ] Public flags stay disabled, no Contabo changes
