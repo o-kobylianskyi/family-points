@@ -50,11 +50,11 @@ function LoginPage() {
     setLoading(true)
 
     try {
-      await login(username, password)
+      const selectedUser = await login(username, password)
       try { window.localStorage.setItem(LAST_USERNAME_KEY, username.trim()) } catch { /* storage unavailable */ }
 
       setPassword('')
-      navigate('/choose-family', { replace: true })
+      navigate(selectedUser ? '/' : '/choose-family', { replace: true })
     } catch {
       setError(t('login.invalidCredentials'))
     } finally {
