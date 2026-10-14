@@ -333,6 +333,7 @@ class MainActivity : ComponentActivity() {
                                     throw error
                                 }
                             },
+                            onRegister = { name, pass -> authSessionManager.registerAccount(name, pass) },
                             onLoginSuccess = { user ->
                                 showOnlineReauthNotice = false
                                 currentUser = user
