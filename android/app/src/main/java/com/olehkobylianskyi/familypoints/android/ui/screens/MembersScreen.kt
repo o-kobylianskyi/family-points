@@ -104,8 +104,7 @@ fun MembersScreen(
         data = repository.load(currentUser.workspaceId, currentUser.memberId)
     }
     fun failure(exception: Exception) {
-        if (exception is HttpException && exception.code() == 401) onUnauthorized()
-        else error = exception.message ?: "Request failed"
+        // A feature endpoint 401 does not prove the login session expired.\n        // Keep the user on this screen and display the actual failure.\n        error = if (exception is HttpException)\n            "Помилка запиту HTTP ${exception.code()}: ${exception.message()}"\n        else exception.message ?: "Request failed"
     }
     fun edit(member: WorkspaceMemberResponse?) {
         editing = member
