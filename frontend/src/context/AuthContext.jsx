@@ -14,6 +14,7 @@ import {
   activateAccountWorkspace,
   createFirstFamily as createFirstFamilyRequest,
   createAdditionalFamily as createAdditionalFamilyRequest,
+  googleAuth as googleAuthRequest,
 } from '../api/authApi'
 
 const AuthContext = createContext(null)
@@ -269,6 +270,31 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const loginWithGoogle = async (idToken, createAccount = false) => {
+    const result = await googleAuthRequest(idToken, createAccount)
+    localStorage.setItem('accessToken', result.accessToken)
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()))
+    try {
+      const choices = await listAccountWorkspaces(result.accessToken)
+      if (choices.length === 1) {
+        const selected = await activateAccountWorkspace(result.accessToken, choices[0].workspaceId)
+        const user = await getCurrentUser(selected.accessToken)
+        if (Number(user.workspaceId) !== Number(choices[0].workspaceId))
+          throw new Error('Unexpected workspace context')
+        localStorage.setItem('accessToken', selected.accessToken)
+        setCurrentUser(user)
+        setNeedsWorkspace(false)
+        return user
+      }
+      setCurrentUser(null)
+      setNeedsWorkspace(true)
+      return null
+    } catch (error) {
+      clearSession()
+      throw error
+    }
+  }
+
   const getAvailableWorkspaces = async () => {
     const token = localStorage.getItem('accessToken')
     if (!token) throw new Error('Not authenticated')
@@ -321,6 +347,7 @@ export function AuthProvider({ children }) {
         loading,
         needsWorkspace,
         login,
+        loginWithGoogle,
         logout,
         getAccessToken,
         getAvailableWorkspaces,
