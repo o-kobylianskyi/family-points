@@ -1143,3 +1143,8 @@
 - MembersApi supports scoped POST /workspaces/{workspaceId}/members/{memberId}/account and /email-invitation; MembersRepository creates/updates member, then configures requested access. Failing account/invite provisioning preserves member and reports retry via existing profile (avoid duplicates).
 - Email invite still requires Backend V33 + familypoints.member-email-invitations.enabled=true; not yet applied in DEV/BETA, no server deployment.
 - Android code requires local gradlew :app:assembleDebug and emulator test before acceptance.
+
+## 2026-10-14 — Compact Web member dialog + Android member API errors
+- Web member editor now limits height to viewport, scrolls form content, and keeps actions sticky (71d5a46); prior request from user small window screenshot.
+- Android MembersScreen no longer calls logout for any individual members API 401; displays HTTP status and keeps session (209f135). Aligns with established policy to avoid unrequested forced logout on feature failures.
+- Pending: local npm run build + gradlew :app:assembleDebug, emulator/mobile viewport tests, and real invite flow only after V33 safe DB approval.
