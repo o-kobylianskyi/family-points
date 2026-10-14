@@ -60,3 +60,12 @@ Existing password users must authenticate and explicitly link Google using
 - Resend verification and password recovery now require both username and email; token redemption always identifies one specific account ID.
 - Google subject is unique per linked Google identity, not per email. Google registration may coexist with password child accounts using the same contact email; it never automatically links them.
 - This is a shared **contact address**, not proof that each child owns an email inbox. Parental consent/child account governance and restricted password recovery should be reviewed before exposing public child signup.
+
+## Read-only DEV configuration check
+After setting non-secret values and secrets privately in your local terminal:
+```powershell
+.\scripts\dev\check-auth-config.ps1 -RequireSmtp -RequireGoogle
+```
+This checks presence only; it does not send messages or authenticate with Google.
+Verification/reset links now require HTTPS except `http://localhost` and `http://127.0.0.1` for local development.
+Provider provisioning and DNS ownership verification must be completed outside of GitHub; never commit credentials.
