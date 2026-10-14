@@ -1153,3 +1153,10 @@ Before each substantial implementation batch:
 - [ ] Run Maven tests and restart local Backend
 - [ ] Verify Tasks → Management tabs: created/administered/observed/executed; create/edit task audit
 - [ ] Check server logs and exact 401 path if any error persists
+
+## 2026-10-15 — TaskManagementViewTest recovery
+- [x] Fix test to mock CurrentUserService.getCurrentMember instead of legacy global member
+- [x] Confirm Flyway V1–V33 apply cleanly to disposable Testcontainers PostgreSQL 17
+- [ ] User git pull, rerun .\\mvnw.cmd clean test and report result
+- [ ] Run frontend npm build / Android assembleDebug separately
+- [ ] Do not assume DEV DB V32–V33 applied
