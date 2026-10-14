@@ -1053,3 +1053,11 @@
 - The workspace chooser now presents families top-left and logout independently at bottom-right (f72e81a).
 - Added a common compact, neutral outlined button treatment for ordinary Web actions and login/chooser actions, preserving selected navigation, icon-only and destructive controls (23dec37).
 - React build and screenshot regression checks outstanding; Android/Backend/Contabo untouched.
+
+## 2026-10-14 — Email verification / Google Web signup integration (COMMITTED, NOT BUILD-VERIFIED)
+- New additive Flyway V30 with nullable account email, email_verified_at, case-insensitive unique email index and hashed one-time verification/reset tokens (c0c7fac). Legacy accounts retain access.
+- Normal password registration now mandates email and creates a disabled account until confirmation (a28ba70, d94e91f); SMTP sender, 24h confirmation, 30min reset and resend with 2min per-account throttle implemented (9c3c124, da6ff12, 42f135d, 6f4f712).
+- Google verified-token signup creates a new global account only with verified Google email; matches to existing emails are blocked and never auto-linked. Public Google registration endpoint feature-gated OFF (c892434, 8ad0b31).
+- Web now has email registration/verification/password reset pages and conditional Google Identity Services button controlled by VITE_GOOGLE_CLIENT_ID. Android registration now requires email but native Google sign-in remains outstanding.
+- SMTP and Google client IDs require configuration; see docs/ACCOUNT_EMAIL_GOOGLE_SETUP.md. All public feature flags remain OFF by default. No changes to Contabo.
+- Local Maven/Vite/Android builds and full DB integration were not run in this assistant session; do not enable public signup or deploy until release gate passes.
