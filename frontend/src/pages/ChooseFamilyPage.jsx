@@ -52,11 +52,19 @@ export default function ChooseFamilyPage() {
       <h1>Вибір сім’ї</h1>
       {choices.length > 0 ? <>
         <p>Оберіть сім’ю, з якою хочете працювати.</p>
-        {choices.map(choice =>
-          <button type="button" key={choice.workspaceId} disabled={busy}
-            onClick={() => activate(choice.workspaceId)}>
-            {choice.workspaceName} — {choice.memberName}
-          </button>)}
+        <div className="family-choice-layout">
+          <div className="family-choice-list">
+            {choices.map(choice =>
+              <button type="button" key={choice.workspaceId} disabled={busy}
+                onClick={() => activate(choice.workspaceId)}>
+                {choice.workspaceName} — {choice.memberName}
+              </button>)}
+          </div>
+          <button className="family-choice-logout" type="button" disabled={busy}
+            onClick={() => { logout(); navigate('/login') }}>
+            Вийти
+          </button>
+        </div>
       </> : <>
         <p>Акаунт створено. Тепер можна створити першу сім’ю.</p>
         <form onSubmit={create}>
@@ -72,9 +80,10 @@ export default function ChooseFamilyPage() {
         </form>
       </>}
       {error && <p className="error-message" role="alert">{error}</p>}
-      <button type="button" disabled={busy} onClick={() => { logout(); navigate('/login') }}>
-        Вийти
-      </button>
+      {choices.length === 0 && (
+        <button className="family-choice-logout" type="button" disabled={busy}
+          onClick={() => { logout(); navigate('/login') }}>Вийти</button>
+      )}
     </div>
   </div>
 }
