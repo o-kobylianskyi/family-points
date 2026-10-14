@@ -27,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.ui.components.WorkspaceSwitcher
+import com.olehkobylianskyi.familypoints.android.auth.WorkspaceSelectionRequiredException
+import com.olehkobylianskyi.familypoints.android.ui.screens.WorkspaceOnboardingScreen
 import com.olehkobylianskyi.familypoints.android.auth.AuthSessionManager
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.CreateTaskRepository
@@ -168,6 +170,8 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf<CurrentUserResponse?>(null)
                 }
 
+                var needsWorkspaceSelection by remember { mutableStateOf(false) }
+
                 var authLoading by remember {
                     mutableStateOf(true)
                 }
@@ -200,6 +204,7 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(Unit) {
                     currentUser = authSessionManager.restoreSession()
+                    needsWorkspaceSelection = authSessionManager.hasUnselectedWorkspace()
                     authLoading = false
                 }
 
@@ -292,6 +297,24 @@ class MainActivity : ComponentActivity() {
                         LoadingScreen(language)
                     }
 
+                    needsWorkspaceSelection -> {
+                        WorkspaceOnboardingScreen(
+                            loadChoices = { authSessionManager.listWorkspaces() },
+                            choose = { id -> authSessionManager.switchWorkspace(id) },
+                            create = { family, owner -> authSessionManager.createFirstFamily(family, owner) },
+                            onReady = { user ->
+                                needsWorkspaceSelection = false
+                                currentUser = user
+                                destination = AppDestination.DASHBOARD
+                            },
+                            onLogout = {
+                                authSessionManager.clearSession()
+                                needsWorkspaceSelection = false
+                                currentUser = null
+                            }
+                        )
+                    }
+
                     currentUser == null -> {
                         LoginScreen(
                             language = language,
@@ -303,10 +326,12 @@ class MainActivity : ComponentActivity() {
                                 language = selected
                             },
                             onLogin = { username, password ->
-                                authSessionManager.login(
-                                    username,
-                                    password
-                                )
+                                try {
+                                    authSessionManager.login(username, password)
+                                } catch (error: WorkspaceSelectionRequiredException) {
+                                    needsWorkspaceSelection = true
+                                    throw error
+                                }
                             },
                             onLoginSuccess = { user ->
                                 showOnlineReauthNotice = false
