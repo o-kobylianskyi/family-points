@@ -1032,3 +1032,9 @@
 - Web: global account with no selected workspace now also participates in idle expiry/token refresh checks, not only accounts with active /api/me context (d9b2e22).
 - Source reviewed against JwtService: workspace JWT claim is precisely workspaceId.
 - Android assembleDebug and Web npm build NOT run in this environment. Do not assume BUILD SUCCESS. No Contabo BETA changes.
+
+## 2026-10-14 — Additional family creation in Web (verification pending)
+- Added POST /api/account/families client, AuthContext createAdditionalFamily and header button '+ Створити сім’ю' with a dialog for family name and owner name.
+- Button appears also for one-family accounts if current member has MANAGE_MEMBERS or ADMIN_OVERRIDE; existing workspace selector still appears only if 2+ choices.
+- On success, verifies and activates newly created workspace JWT and reloads feature context. Backend API already existed and continues to enforce permissions and familypoints.additional-family.enabled:false default.
+- Commits a8f3212, 14bc4c9, cff656e. No frontend build executed here, no DEV flag enabled, no Contabo deployment.
