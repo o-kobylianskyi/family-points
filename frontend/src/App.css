@@ -3595,3 +3595,67 @@ input {
   .family-choice-layout { gap: 10px; }
   .family-choice-list { min-width: 0; }
 }
+
+/* Family chooser — list at top-left, independent logout at bottom-right. */
+.family-choice-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 315px;
+  max-width: 480px;
+}
+.family-choice-card .family-choice-layout { justify-content: flex-start; }
+.family-choice-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 24px;
+}
+/* Shared compact Web button treatment. State/intent colors are preserved for
+   destructive, selected navigation and disabled controls. */
+:root {
+  --fp-button-bg: #f8fafc;
+  --fp-button-border: #d6dce5;
+  --fp-button-text: #344054;
+  --fp-button-hover: #eef2f7;
+}
+button:not(.password-toggle):not(.mobile-menu-button):not(.mobile-sidebar-backdrop):not(.page-tab):not(.nav-link) {
+  font-size: 13px;
+  line-height: 1.25;
+  min-height: 32px;
+  padding: 7px 11px;
+  border-radius: 7px;
+}
+.login-card button:not(.password-toggle),
+.add-member-button,
+.primary-button,
+.task-action-button.primary,
+.header-create-family {
+  background: var(--fp-button-bg);
+  color: var(--fp-button-text);
+  border: 1px solid var(--fp-button-border);
+  font-weight: 600;
+  box-shadow: none;
+}
+.login-card button:not(.password-toggle):hover:not(:disabled),
+.add-member-button:hover:not(:disabled),
+.primary-button:hover:not(:disabled),
+.task-action-button.primary:hover:not(:disabled),
+.header-create-family:hover:not(:disabled) {
+  background: var(--fp-button-hover);
+}
+button:focus-visible {
+  outline: 2px solid #526b92;
+  outline-offset: 2px;
+}
+.family-choice-card .family-choice-list button {
+  width: 100%;
+  text-align: left;
+}
+.family-choice-card .family-choice-list {
+  width: 100%;
+  align-items: stretch;
+}
+.family-choice-card .family-choice-logout {
+  background: transparent;
+  font-weight: 500;
+}
