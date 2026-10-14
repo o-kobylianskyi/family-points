@@ -55,8 +55,8 @@ export default function RegisterAccountPage() {
         <input type="email" value={email} maxLength={254} autoComplete="email" required disabled={busy}
           onChange={e => setEmail(e.target.value)} />
       </label>
-      <label>Пароль (12–128 символів)
-        <input type="password" value={password} minLength={12} maxLength={128}
+      <label>Пароль (8–128 символів)
+        <input type="password" value={password} minLength={8} maxLength={128}
           autoComplete="new-password" required disabled={busy}
           onChange={e => setPassword(e.target.value)} />
       </label>
