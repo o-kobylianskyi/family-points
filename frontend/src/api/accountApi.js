@@ -28,3 +28,12 @@ export async function changeOwnPassword(token, currentPassword, newPassword) {
   const r = await apiRequest('/api/me/password', { token, method: 'PUT', body: { currentPassword, newPassword } })
   if (!r.ok) throw new Error(await readError(r, 'Failed to change password'))
 }
+
+export async function issueMemberEmailInvitation(token, workspaceId, memberId, email) {
+  const r = await apiRequest(`/workspaces/${workspaceId}/members/${memberId}/email-invitation`,
+    { token, method: 'POST', body: { email } })
+  if (!r.ok) throw new Error(await readError(r,
+    r.status === 503 ? 'Email-запрошення ще вимкнені на сервері' :
+    r.status === 429 ? 'Повторіть спробу через дві хвилини' :
+    'Не вдалося надіслати запрошення'))
+}
