@@ -34,6 +34,7 @@ class GoogleLoginControllerTest {
                 .login(new GoogleLoginController.Request("verified-google-id-token"));
         assertEquals("signed-familyless-jwt", response.getAccessToken());
         verify(jwt).generateAccessToken(principal);
+        verify(google).resolveUsername("verified-google-id-token");
         verifyNoMoreInteractions(google);
     }
 }
