@@ -151,7 +151,7 @@ public class TaskService {
                 recurrenceType, startDate, endDate, recurrenceDayOfWeek, recurrenceDayOfMonth,
                 rewardPointType, rewardAmount, penaltyPointType, penaltyAmount, dueTime);
 
-        WorkspaceMember creator = currentUserService.getCurrentAccount().getWorkspaceMember();
+        WorkspaceMember creator = currentUserService.getCurrentMember();
         if (!creator.getWorkspace().getId().equals(workspaceId))
             throw new IllegalArgumentException("Creator does not belong to task workspace");
 
@@ -299,7 +299,7 @@ public class TaskService {
         TaskDefinition saved = taskDefinitionRepository.save(definition);
         taskAuditService.recordUserEvent(
                 saved, null, TaskAuditEventType.DEFINITION_UPDATED,
-                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                currentUserService.getCurrentMember(),
                 null, null, null, null, null
         );
         if (policy == AssignmentPolicy.SINGLE_MEMBER && saved.isActive())
@@ -316,7 +316,7 @@ public class TaskService {
         if (definition.getWorkNode() != null) definition.getWorkNode().setActive(active);
         TaskDefinition saved = taskDefinitionRepository.save(definition);
         if (changed) {
-            WorkspaceMember performedBy = currentUserService.getCurrentAccount().getWorkspaceMember();
+            WorkspaceMember performedBy = currentUserService.getCurrentMember();
             taskAuditService.recordUserEvent(
                     saved, null,
                     active ? TaskAuditEventType.DEFINITION_ACTIVATED : TaskAuditEventType.DEFINITION_DEACTIVATED,
@@ -410,7 +410,7 @@ public class TaskService {
     @Transactional(readOnly = true)
     public java.util.List<TaskDefinition> getDefinitionsByParticipation(Long workspaceId, String view) {
         getWorkspaceOrThrow(workspaceId);
-        WorkspaceMember me = currentUserService.getCurrentAccount().getWorkspaceMember();
+        WorkspaceMember me = currentUserService.getCurrentMember();
         var all = taskDefinitionRepository.findByWorkspaceIdOrderByIdAsc(workspaceId);
         if ("created".equalsIgnoreCase(view)) return all.stream().filter(d -> d.getCreatedBy()!=null && d.getCreatedBy().getId().equals(me.getId())).toList();
         TaskParticipantRole role = switch (view == null ? "" : view.toLowerCase()) {
@@ -550,7 +550,7 @@ public class TaskService {
         );
         taskAuditService.recordUserEvent(
                 definition, created, TaskAuditEventType.INSTANCE_CREATED,
-                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                currentUserService.getCurrentMember(),
                 null, null, ActorType.MEMBER, created.getMember().getId(),
                 "Created for " + scheduledDate
         );
@@ -766,7 +766,7 @@ public class TaskService {
             throw new InvalidTaskStateException("Target member is not eligible for delegation");
         WorkspaceMember from = instance.getMember();
         if (from.getId().equals(target.getId())) return instance;
-        WorkspaceMember delegatedBy = currentUserService.getCurrentAccount().getWorkspaceMember();
+        WorkspaceMember delegatedBy = currentUserService.getCurrentMember();
         taskDelegationRepository.save(new TaskDelegation(instance, from, target, delegatedBy, reason));
         boolean wasInProgress = instance.getStatus() == TaskInstanceStatus.IN_PROGRESS;
         instance.changeExecutor(target);
@@ -868,7 +868,7 @@ public class TaskService {
         instance.start();
         taskAuditService.recordUserEvent(
                 instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_STARTED,
-                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                currentUserService.getCurrentMember(),
                 null, null, ActorType.MEMBER, instance.getMember().getId(), null
         );
 
@@ -934,7 +934,7 @@ public class TaskService {
         instance.pause();
         taskAuditService.recordUserEvent(
                 instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_PAUSED,
-                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                currentUserService.getCurrentMember(),
                 ActorType.MEMBER, instance.getMember().getId(),
                 ActorType.MEMBER, instance.getMember().getId(), null
         );
@@ -956,7 +956,7 @@ public class TaskService {
         instance.resume();
         taskAuditService.recordUserEvent(
                 instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_RESUMED,
-                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                currentUserService.getCurrentMember(),
                 ActorType.MEMBER, instance.getMember().getId(),
                 ActorType.MEMBER, instance.getMember().getId(), null
         );
@@ -982,7 +982,7 @@ public class TaskService {
         instance.cancel();
         taskAuditService.recordUserEvent(
                 instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_CANCELLED,
-                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                currentUserService.getCurrentMember(),
                 ActorType.MEMBER, instance.getMember().getId(),
                 ActorType.MEMBER, instance.getMember().getId(), null
         );
@@ -1009,7 +1009,7 @@ public class TaskService {
         instance.release();
         taskAuditService.recordUserEvent(
                 definition, instance, TaskAuditEventType.INSTANCE_RELEASED,
-                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                currentUserService.getCurrentMember(),
                 ActorType.MEMBER, from.getId(), null, null, null
         );
         return instance;
@@ -1053,7 +1053,7 @@ public class TaskService {
 
         taskAuditService.recordUserEvent(
                 instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_COMPLETED,
-                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                currentUserService.getCurrentMember(),
                 null, null, ActorType.MEMBER, instance.getMember().getId(), null
         );
 
@@ -1280,7 +1280,7 @@ public class TaskService {
 
         taskAuditService.recordUserEvent(
                 instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_MISSED,
-                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                currentUserService.getCurrentMember(),
                 null, null, ActorType.MEMBER, instance.getMember().getId(), null
         );
 
@@ -1399,7 +1399,7 @@ public class TaskService {
 
         taskAuditService.recordUserEvent(
                 instance.getTaskDefinition(), instance, TaskAuditEventType.INSTANCE_EXCUSED,
-                currentUserService.getCurrentAccount().getWorkspaceMember(),
+                currentUserService.getCurrentMember(),
                 null, null, ActorType.MEMBER, instance.getMember().getId(),
                 reason + (comment == null || comment.isBlank() ? "" : ": " + comment)
         );
