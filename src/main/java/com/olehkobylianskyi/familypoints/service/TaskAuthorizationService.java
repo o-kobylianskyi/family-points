@@ -40,7 +40,7 @@ public class TaskAuthorizationService {
     }
 
     public WorkspaceMember currentMember() {
-        return currentUserService.getCurrentAccount().getWorkspaceMember();
+        return currentUserService.getCurrentMember();
     }
 
     public void requireWorkspace(Long workspaceId) {
