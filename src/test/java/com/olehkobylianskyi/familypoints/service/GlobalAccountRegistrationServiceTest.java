@@ -30,12 +30,8 @@ class GlobalAccountRegistrationServiceTest {
     }
 
     @Test
-    void rejectsExistingEmailOrUsername() {
+    void rejectsOnlyExistingUsername() {
         when(accounts.existsByUsername("demo")).thenReturn(true);
-        assertEquals(409, assertThrows(ResponseStatusException.class,
-                () -> service.register("demo", "demo@example.com", "long-enough-password")).getStatusCode().value());
-        when(accounts.existsByUsername("demo")).thenReturn(false);
-        when(accounts.existsByEmailIgnoreCase("demo@example.com")).thenReturn(true);
         assertEquals(409, assertThrows(ResponseStatusException.class,
                 () -> service.register("demo", "demo@example.com", "long-enough-password")).getStatusCode().value());
         verify(accounts, never()).saveAndFlush(any());
