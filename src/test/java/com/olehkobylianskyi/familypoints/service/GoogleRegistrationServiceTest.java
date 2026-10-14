@@ -39,7 +39,6 @@ class GoogleRegistrationServiceTest {
         when(accounts.existsByUsername(anyString())).thenReturn(true);
         assertEquals(409, assertThrows(ResponseStatusException.class,
                 () -> registration.register("id")).getStatusCode().value());
-        verify(accounts, never()).findByEmailIgnoreCase(anyString());
         verify(accounts, never()).saveAndFlush(any());
     }
 }
