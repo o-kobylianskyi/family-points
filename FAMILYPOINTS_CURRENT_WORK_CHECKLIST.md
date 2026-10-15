@@ -1169,3 +1169,7 @@ Before each substantial implementation batch:
 - [ ] Add/verify targeted email invitation security/integration tests (reuse, expiry, username duplicates, concurrency, failed SMTP)
 - [ ] Backup and explicitly approve DEV V32–V33 migration BEFORE restarting DEV Spring Boot with Flyway
 - [ ] Keep Contabo BETA unchanged and invitation feature gate off until acceptance
+
+## 2026-10-15 — DEV Flyway verification
+- [x] Operator pgAdmin SELECT confirms flyway_schema_history V32 and V33 both success=true in DEV.
+- [ ] Verify effective member invitation feature flag and test invite security paths before enabling; preserve existing Test2 member.
