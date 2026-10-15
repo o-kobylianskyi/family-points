@@ -1165,3 +1165,10 @@
 - User Maven clean test log: 117 tests run, 0 assertions failed, 1 error at TaskManagementViewTest.createdViewDoesNotExposeTasksAuthoredByAnotherMember due to null getCurrentMember mock after TaskService replaced old account.workspaceMember.
 - Updated both TaskManagementViewTest scenarios to stub currentUser.getCurrentMember() and removed obsolete account mock setup, commit 9236ba9. Maven rerun pending.
 - Flyway successfully applied V1–V33 to disposable PostgreSQL 17 Testcontainers test DB; NOT evidence of migration on actual DEV PostgreSQL; no Contabo changes.
+
+## 2026-10-15 — User-confirmed three-platform builds
+- Backend `./mvnw.cmd clean test`: BUILD SUCCESS, 117 tests, 0 failures/errors/skips; Testcontainers PostgreSQL 17 successfully applied V1–V33 on disposable test database only.
+- Web `frontend/npm run build`: Vite 8.3.2 BUILD SUCCESS (104 modules); non-blocking >500 kB JS chunk advisory.
+- Android `android/gradlew.bat :app:assembleDebug`: BUILD SUCCESS, 38 actionable tasks (8 executed, 30 up-to-date).
+- Local DEV database V32–V33 application and live invitation flow are NOT verified by these builds; member email invitations remain disabled by default. No Contabo BETA or DEV DB operations performed.
+- Next: runtime smoke of task-management authorization and member account access, then invitation security/integration tests; backup and explicit approval before DEV Flyway migration/restart.
