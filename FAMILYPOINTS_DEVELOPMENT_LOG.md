@@ -1172,3 +1172,7 @@
 - Android `android/gradlew.bat :app:assembleDebug`: BUILD SUCCESS, 38 actionable tasks (8 executed, 30 up-to-date).
 - Local DEV database V32–V33 application and live invitation flow are NOT verified by these builds; member email invitations remain disabled by default. No Contabo BETA or DEV DB operations performed.
 - Next: runtime smoke of task-management authorization and member account access, then invitation security/integration tests; backup and explicit approval before DEV Flyway migration/restart.
+
+## 2026-10-15 — DEV migration read-only verification
+- Operator pgAdmin screenshot of flyway_schema_history confirms installed_rank 32/V32 and 33/V33 both success=true in existing DEV PostgreSQL.
+- This is read-only verification, not an authorized mutation. Invitation gate remains disabled; Test2 already exists and must not be duplicated.
