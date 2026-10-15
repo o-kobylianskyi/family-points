@@ -1160,3 +1160,12 @@ Before each substantial implementation batch:
 - [ ] User git pull, rerun .\\mvnw.cmd clean test and report result
 - [ ] Run frontend npm build / Android assembleDebug separately
 - [ ] Do not assume DEV DB V32–V33 applied
+
+## 2026-10-15 — Build verification confirmed by operator
+- [x] Backend clean test: 117/117, BUILD SUCCESS (including corrected TaskManagementViewTest)
+- [x] Web Vite production build: BUILD SUCCESS; chunk-size warning nonblocking
+- [x] Android :app:assembleDebug: BUILD SUCCESS
+- [ ] Run Web/Android runtime smoke, including Tasks → Management and child-account access
+- [ ] Add/verify targeted email invitation security/integration tests (reuse, expiry, username duplicates, concurrency, failed SMTP)
+- [ ] Backup and explicitly approve DEV V32–V33 migration BEFORE restarting DEV Spring Boot with Flyway
+- [ ] Keep Contabo BETA unchanged and invitation feature gate off until acceptance
