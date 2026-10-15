@@ -1173,3 +1173,8 @@ Before each substantial implementation batch:
 ## 2026-10-15 — DEV Flyway verification
 - [x] Operator pgAdmin SELECT confirms flyway_schema_history V32 and V33 both success=true in DEV.
 - [ ] Verify effective member invitation feature flag and test invite security paths before enabling; preserve existing Test2 member.
+
+## 2026-10-15 — Member invitation presentation
+- [x] Implement Ukrainian HTML email with plain fallback and FamilyPoints display name (4b63edb)
+- [ ] Verify compilation and send a fresh local DEV test email, inspect Gmail rendering and spam/authentication headers
+- [ ] Check token acceptance and membership count; do not paste tokens into chat
