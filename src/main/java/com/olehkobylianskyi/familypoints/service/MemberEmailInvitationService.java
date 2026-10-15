@@ -9,7 +9,8 @@ import com.olehkobylianskyi.familypoints.security.CurrentUserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mail.SimpleMailMessage;
+import jakarta.mail.MessagingException;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -74,6 +75,11 @@ public class MemberEmailInvitationService {
         }
     }
 
+    private static String escapeHtml(String value) {
+        return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                .replace("\"", "&quot;").replace("'", "&#39;");
+    }
+
     private static String hash(String token) {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
@@ -115,15 +121,60 @@ public class MemberEmailInvitationService {
             INSERT INTO member_email_invitations(workspace_id,member_id,invited_email,issued_by_account_id,token_hash,expires_at)
             VALUES(?,?,?,?,?,?)
             """, workspaceId, memberId, email.trim(), current.getCurrentAccount().getId(), hash(secret), expires);
-        var message = new SimpleMailMessage();
-        message.setFrom(from);
-        message.setTo(email.trim());
-        message.setSubject("FamilyPoints: invitation for " + member.getName());
-        message.setText("You have been invited to activate a FamilyPoints login for " + member.getName()
-                + ".\nUse this one-time link within 24 hours:\n"
-                + webUrl.replaceAll("/+$", "") + "/accept-member-invite?token=" + secret
-                + "\nIf you did not expect this, ignore the message.");
-        mail.send(message);
+        String link = webUrl.replaceAll("/+$", "") + "/accept-member-invite?token=" + secret;
+        String memberName = member.getName();
+        String plain = """
+                Вас запрошують до FamilyPoints!
+
+                Вітаємо!
+
+                Для учасника «%s» створено профіль у FamilyPoints — застосунку для
+                сімейних завдань, балів і винагород.
+
+                Щоб налаштувати особистий вхід, перейдіть за посиланням і створіть
+                логін та пароль:
+
+                %s
+
+                Посилання одноразове та дійсне протягом 24 годин.
+                Якщо ви не очікували цього запрошення, просто проігноруйте лист.
+
+                Команда FamilyPoints
+                """.formatted(memberName, link);
+        String safeName = escapeHtml(memberName);
+        String safeLink = escapeHtml(link);
+        String html = """
+                <!doctype html>
+                <html lang="uk">
+                  <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+                  <body style="margin:0;padding:32px 16px;background:#f3f5f9;font-family:Arial,Helvetica,sans-serif;color:#202938">
+                    <div style="max-width:560px;margin:0 auto;background:white;border:1px solid #e4e8f0;border-radius:14px;overflow:hidden">
+                      <div style="padding:24px 32px;background:#273f89;color:white;font-size:23px;font-weight:bold">FamilyPoints</div>
+                      <div style="padding:32px">
+                        <h1 style="font-size:24px;line-height:1.3;margin:0 0 18px">Вас запрошують до FamilyPoints!</h1>
+                        <p style="font-size:16px;line-height:1.6">Вітаємо!</p>
+                        <p style="font-size:16px;line-height:1.6">Для учасника <strong>«%s»</strong> створено профіль у FamilyPoints — застосунку для сімейних завдань, балів і винагород.</p>
+                        <p style="font-size:16px;line-height:1.6">Щоб отримати особистий доступ, натисніть кнопку нижче та створіть логін і пароль.</p>
+                        <p style="margin:30px 0"><a href="%s" style="display:inline-block;padding:15px 24px;background:#3659c9;color:#ffffff;text-decoration:none;border-radius:8px;font-size:16px;font-weight:bold">Прийняти запрошення</a></p>
+                        <p style="font-size:14px;line-height:1.6;color:#657087">Посилання діє 24 години та може бути використане лише один раз.</p>
+                        <p style="font-size:14px;line-height:1.6;color:#657087">Якщо кнопка не працює, скопіюйте посилання у браузер:<br><a href="%s" style="color:#3659c9;overflow-wrap:anywhere;word-break:break-all">%s</a></p>
+                      </div>
+                      <div style="padding:20px 32px;border-top:1px solid #e4e8f0;background:#fafbfe;font-size:13px;line-height:1.6;color:#657087">Якщо ви не очікували запрошення, просто проігноруйте цей лист.<br>Команда FamilyPoints</div>
+                    </div>
+                  </body>
+                </html>
+                """.formatted(safeName, safeLink, safeLink, safeLink);
+        try {
+            var message = mail.createMimeMessage();
+            var helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(from, "FamilyPoints");
+            helper.setTo(email.trim());
+            helper.setSubject("Запрошення до FamilyPoints — " + memberName);
+            helper.setText(plain, html);
+            mail.send(message);
+        } catch (MessagingException | java.io.UnsupportedEncodingException ex) {
+            throw new IllegalStateException("Could not prepare member invitation email", ex);
+        }
     }
 
     /** Creates a new global account with verified email ownership proven by possession of the mail token. */
