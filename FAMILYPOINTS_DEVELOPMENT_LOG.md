@@ -1176,3 +1176,8 @@
 ## 2026-10-15 — DEV migration read-only verification
 - Operator pgAdmin screenshot of flyway_schema_history confirms installed_rank 32/V32 and 33/V33 both success=true in existing DEV PostgreSQL.
 - This is read-only verification, not an authorized mutation. Invitation gate remains disabled; Test2 already exists and must not be duplicated.
+
+## 2026-10-15 — Ukrainian member invitation email template (committed, test pending)
+- Replaced plain English SimpleMailMessage with branded Ukrainian UTF-8 MIME HTML invitation with multipart plain-text fallback, actionable button, expiration note and readable sender name. Escapes dynamic member names and invitation links in HTML. Commit 4b63edb.
+- User observed first DEV invite delivered to Gmail spam; this change improves presentation but does not prove deliverability (SPF/DKIM/DMARC and localhost links still need review).
+- Requires local Maven build, backend restart, and new test invite; no Contabo changes.
