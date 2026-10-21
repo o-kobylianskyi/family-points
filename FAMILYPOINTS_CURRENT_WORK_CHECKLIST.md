@@ -1211,3 +1211,12 @@ Before each substantial implementation batch:
 - [x] Show persistent status/reason code alongside Google login/registration failure; localize explanation UK/DE/EN/RU
 - [x] Do not expose Google ID tokens or raw server response body
 - [ ] User pull, build, retry and report HTTP status/reason shown in UI
+
+## 2026-10-21 — Google + password concurrent sign-in
+- [x] Linked Google account persists independently from local password hash (provider subject unchanged)
+- [x] Add POST /api/account/google/set-password requiring authenticated session, fresh verified Google ID token, exact pre-linked Google subject, password length 8–128
+- [x] Add Web account settings form to establish conventional password and show exact login username
+- [x] Localize user-owned password setup and MemberEditor in UK/DE/EN/RU
+- [ ] Full CI / Maven and Web build verification after commits; no runtime success claimed
+- [ ] User acceptance: Google registration -> create workspace -> Settings verify linked Google -> set password -> sign out -> login with displayed username/password -> Google login still works
+- [ ] Verify response for token from different Google identity is 403; no DEV DB or Contabo deployments without approval
