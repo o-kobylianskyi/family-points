@@ -15,4 +15,7 @@ public interface AccountWorkspaceMembershipRepository extends JpaRepository<Acco
 
     boolean existsByAccountIdAndWorkspaceMemberWorkspaceId(Long accountId, Long workspaceId);
     boolean existsByWorkspaceMemberId(Long workspaceMemberId);
+
+    @EntityGraph(attributePaths = {"account", "workspaceMember"})
+    List<AccountWorkspaceMembership> findAllByWorkspaceId(Long workspaceId);
 }
