@@ -6,6 +6,7 @@ import { changeOwnPassword, createMemberAccount, getWorkspaceAccounts, resetMemb
 import RoleCatalogSettings from '../components/RoleCatalogSettings'
 import CurrencyFormsSettings from '../components/CurrencyFormsSettings'
 import GoogleAccountLink from '../components/GoogleAccountLink'
+import GooglePasswordSetup from '../components/GooglePasswordSetup'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
 function SettingsPage() {
@@ -166,6 +167,7 @@ function SettingsPage() {
     </section>
 
     <GoogleAccountLink />
+    <GooglePasswordSetup />
 
     {canManage && <section className="settings-section">
       <h2>{t('settings.accounts.title')}</h2><p>{t('settings.accounts.description')}</p>
