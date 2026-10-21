@@ -241,7 +241,8 @@
     "EXCUSED": "Звільнено",
     "PAUSED": "Призупинено",
     "CANCELLED": "Скасовано",
-    "RELEASED": "Відмовлено"
+    "RELEASED": "Відмовлено",
+    "WAITING_APPROVAL": "Очікує підтвердження дорослого"
   },
   "weekdays": {
     "monday": "Понеділок",
