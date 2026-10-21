@@ -183,3 +183,10 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - Android release Gradle supports environment-supplied persistent signing key and incrementing versionCode/versionName; scripts/android/build-beta-release.ps1 builds a signed installable release APK with default API URL https://family-point.com/. No signing key committed or generated.
 - Next: operator review current VPS state; create off-host encrypted copy of BETA database backup, inspect migrations V27–V34 and registration/public flags, choose approved tested SHA, run controlled script. Then create/store release keystore securely (backup required) and build/install Android APK, verify on cellular with laptop off.
 - STATUS: COMMITTED ONLY. No VPS deployment, database migration, external Android installation or secret rotation performed.
+
+## 2026-10-21 — Verified Windows SSH command for Contabo
+- User confirmed the correct PowerShell SSH command (Windows user profile key):
+  `ssh -i "$env:USERPROFILE\.ssh\contabo_admin_ed25519" adminfp@184.174.37.206`
+- Plain `ssh adminfp@184.174.37.206` failed with `Permission denied (publickey)` because the custom private key was not selected.
+- For future Contabo connection instructions, ALWAYS provide the full `-i` command above. Do not ask user to regenerate SSH keys or use `id_ed25519` without evidence.
+- Record key *path/name only*, never private key content. This log update performs no SSH connection and no VPS changes.
