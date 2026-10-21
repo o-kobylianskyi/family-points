@@ -73,7 +73,13 @@ export default function RegisterAccountPage() {
         const user = await loginWithGoogle(idToken, true)
         navigate(user ? '/' : '/choose-family', { replace: true })
       } catch (e) {
-        setError(e.message || t('authUi.googleRegistrationError'))
+        setError(e.googleAuthStatus
+              ? `${t('authUi.googleVerifyFailed')} — ${t('authUi.googleHttpDetails', {
+                  status: e.googleAuthStatus,
+                  reason: e.googleAuthReason,
+                })}`
+              : e instanceof TypeError ? t('authUi.googleNetworkError')
+              : e.message || t('authUi.googleRegistrationError'))
       } finally {
         setBusy(false)
       }
