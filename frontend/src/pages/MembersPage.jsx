@@ -452,9 +452,20 @@ function MembersPage() {
               <div className="member-info">
                 <strong>{member.name}</strong>
 
-                {canManageMembers && member.accountEmail && (
-                  <div className="member-email" title={member.accountEmail}>
-                    Email: {member.accountEmail}
+                {canManageMembers && (member.accountEmail || member.invitationEmail) && (
+                  <div className="member-email" title={member.accountEmail || member.invitationEmail}>
+                    Email: {member.accountEmail || member.invitationEmail}
+                  </div>
+                )}
+
+                {canManageMembers && member.accessStatus && (
+                  <div className={member.accessStatus === 'PENDING_INVITATION' ? 'member-access-status pending' : 'member-access-status'}>
+                    {{
+                      ACTIVE: 'Акаунт активний',
+                      DISABLED: 'Акаунт вимкнено',
+                      PENDING_INVITATION: 'Запрошення очікує підтвердження',
+                      NO_ACCOUNT: 'Без акаунта',
+                    }[member.accessStatus] || member.accessStatus}
                   </div>
                 )}
 
