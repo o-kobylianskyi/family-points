@@ -989,5 +989,24 @@
     "delete": "Delete",
     "save": "Save",
     "saving": "Saving…"
+  },
+  "taskSuggestionUi": {
+    "suggestTask": "Suggest task",
+    "suggestTitle": "I'd like a task",
+    "suggestDescription": "Describe what you'd like to do. An adult will review the idea and decide about any reward.",
+    "title": "Task name",
+    "description": "Description (optional)",
+    "submit": "Send to adults",
+    "sent": "Suggestion submitted. Points are not awarded automatically.",
+    "requests": "Task suggestions",
+    "pending": "Awaiting review",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "approve": "Approve",
+    "reject": "Reject",
+    "noRequests": "No suggestions yet",
+    "close": "Close",
+    "error": "Operation failed",
+    "approvalReminder": "Approving a suggestion does not create a paid task. An adult creates and funds it separately."
   }
 }
