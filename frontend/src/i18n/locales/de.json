@@ -1038,5 +1038,13 @@
     "occurrence": "Ausführung {{count}}",
     "remove": "Entfernen",
     "add": "+ Weitere Ausführung"
+  },
+  "rewardTaskUi": {
+    "choose": "Aufgabe auswählen",
+    "noTasks": "In dieser Familie sind noch keine Aufgaben verfügbar",
+    "add": "Hinzufügen",
+    "remove": "Aufgabe entfernen",
+    "create": "+ Neue Aufgabe erstellen",
+    "unavailable": "Nicht verfügbare Aufgabe Nr. {{id}}"
   }
 }
