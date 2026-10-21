@@ -649,7 +649,8 @@
     "statusReplaced": "Dieser Link wurde durch eine neuere Einladung ersetzt. Bitte die letzte E-Mail öffnen.",
     "statusUnknown": "Einladung nicht gefunden. Prüfen Sie die letzte E-Mail.",
     "statusInvalid": "Ungültiger Einladungslink.",
-    "statusChecking": "Einladung wird geprüft…"
+    "statusChecking": "Einladung wird geprüft…",
+    "usernameInvalid": "Der Benutzername muss 3–64 Zeichen enthalten: lateinische Buchstaben, Zahlen, Punkt, _ oder -. Leerzeichen sind nicht erlaubt."
   },
   "groupPageUi": {
     "description": "Gruppenbereich",
