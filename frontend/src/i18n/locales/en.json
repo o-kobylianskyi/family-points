@@ -239,7 +239,8 @@
     "EXCUSED": "Excused",
     "PAUSED": "Paused",
     "CANCELLED": "Cancelled",
-    "RELEASED": "Released"
+    "RELEASED": "Released",
+    "WAITING_APPROVAL": "Waiting for adult approval"
   },
   "weekdays": {
     "monday": "Monday",
