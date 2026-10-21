@@ -1008,5 +1008,15 @@
     "close": "Schließen",
     "error": "Vorgang fehlgeschlagen",
     "approvalReminder": "Eine Genehmigung erstellt keine bezahlte Aufgabe. Ein Erwachsener erstellt und finanziert sie separat."
+  },
+  "multiTime": {
+    "invalid": "Gültige Uhrzeiten eingeben oder Mehrfachausführungen deaktivieren.",
+    "duplicate": "Ausführungszeiten dürfen nicht doppelt sein.",
+    "subtask": "Unteraufgabe zu Nr. {{id}}",
+    "multiple": "Mehrere Ausführungen am selben Tag",
+    "description": "Geben Sie die Uhrzeiten an. Einmalige Aufgaben werden am gewählten Datum ausgeführt; wiederkehrende Aufgaben an den jeweiligen Tagen.",
+    "occurrence": "Ausführung {{count}}",
+    "remove": "Entfernen",
+    "add": "+ Weitere Ausführung"
   }
 }
