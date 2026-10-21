@@ -52,20 +52,6 @@
       "addRole": "Rolle hinzufügen",
       "rolePrompt": "Name der neuen Rolle",
       "noCandidates": "Alle Familienmitglieder sind bereits in dieser Gruppe"
-    ,
-  "androidDownload": {
-    "nav": "Android-App herunterladen",
-    "title": "FamilyPoints für Android",
-    "description": "Installieren Sie die Testversion auf Ihrem Smartphone. Die App verbindet sich mit family-point.com.",
-    "button": "APK herunterladen",
-    "unavailable": "Die APK ist noch nicht veröffentlicht. Der Download erscheint nach dem ersten signierten Build.",
-    "installTitle": "Installation",
-    "stepOne": "Laden Sie die APK auf Ihr Android-Gerät herunter.",
-    "stepTwo": "Öffnen Sie die Datei und erlauben Sie die Installation aus dieser Quelle, falls Android danach fragt.",
-    "stepThree": "Bestätigen Sie die Installation und melden Sie sich an.",
-    "updateNote": "Updates können ohne Datenverlust über die installierte Version gespielt werden, wenn derselbe Signaturschlüssel und ein höherer versionCode verwendet werden.",
-    "login": "Zur Anmeldung"
-  }
 }
 
   },
@@ -1071,5 +1057,18 @@
     "taken": "Benutzername vergeben",
     "invalid": "3–64 lateinische Buchstaben, Zahlen, Punkt, _ oder -",
     "error": "Prüfung nicht möglich. Bitte erneut versuchen."
+  },
+  "androidDownload": {
+    "nav": "Android-App herunterladen",
+    "title": "FamilyPoints für Android",
+    "description": "Installieren Sie die Testversion auf Ihrem Smartphone. Die App verbindet sich mit family-point.com.",
+    "button": "APK herunterladen",
+    "unavailable": "Die APK ist noch nicht veröffentlicht. Der Download erscheint nach dem ersten signierten Build.",
+    "installTitle": "Installation",
+    "stepOne": "Laden Sie die APK auf Ihr Android-Gerät herunter.",
+    "stepTwo": "Öffnen Sie die Datei und erlauben Sie die Installation aus dieser Quelle, falls Android danach fragt.",
+    "stepThree": "Bestätigen Sie die Installation und melden Sie sich an.",
+    "updateNote": "Updates können ohne Datenverlust über die installierte Version gespielt werden, wenn derselbe Signaturschlüssel und ein höherer versionCode verwendet werden.",
+    "login": "Zur Anmeldung"
   }
 }
