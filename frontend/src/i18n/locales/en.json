@@ -481,7 +481,10 @@
     "googleNotConfigured": "Google sign-in is not configured yet. An OAuth Client ID is required.",
     "googleSecureOrigin": "Google requires HTTPS or localhost. Open the app at a secure address.",
     "googleLogin": "Sign in with Google",
-    "googleRegister": "Sign up with Google"
+    "googleRegister": "Sign up with Google",
+    "googleVerifyFailed": "Could not verify Google account",
+    "googleHttpDetails": "HTTP {{status}} · {{reason}}",
+    "googleNetworkError": "Network error during Google sign-in"
   },
   "familyChoice": {
     "title": "Choose a family",
