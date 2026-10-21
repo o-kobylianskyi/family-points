@@ -196,3 +196,7 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - Use independently persistent DB, TLS/secrets and deploy configurations after split. Existing developer DEV remains isolated via 8443.
 - The Android app built now uses family-point.com; future split requires explicit beta/stable API targets. Do not automatically copy personal/family data between stages.
 - No DNS, Nginx, Docker, database or signing changes executed here.
+
+## 2026-10-21 — Compose config for public BETA registration (COMMITTED; NOT DEPLOYED)
+- Added optional opt-in env pass-through in compose.beta.yml for public global registration, email invitations, SMTP settings, Google token validation, linking and registration; Vite now receives PUBLIC VITE_GOOGLE_CLIENT_ID at build. Public web URL defaults https://family-point.com. .env.beta.example documents variables without real credentials.
+- All feature flags remain false by default; private .env must be reviewed and set before allowing test users. The public HTTPS origin must be authorized in Google Cloud. No current Contabo process changed or restarted and no DB migration run by this commit.
