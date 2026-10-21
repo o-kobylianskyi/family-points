@@ -31,16 +31,16 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
     }
     if (accessMode === 'account') {
       if (!/^[a-zA-Z0-9._-]{3,64}$/.test(childUsername.trim())) {
-        setError('Логін: 3–64 символи, латинські літери, цифри, крапка, _ або -')
+        setError(t('memberEditorUi.usernameInvalid'))
         return
       }
       if (childPassword.length < 8 || childPassword !== confirmPassword) {
-        setError('Пароль має містити щонайменше 8 символів і збігатися з підтвердженням')
+        setError(t('memberEditorUi.passwordInvalid'))
         return
       }
     }
     if (accessMode === 'invite' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())) {
-      setError('Вкажіть правильну адресу email для запрошення')
+      setError(t('memberEditorUi.emailInvalid'))
       return
     }
     setError('')
@@ -83,37 +83,35 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
           </select>
         </label>
         {<>
-          <fieldset className="member-access-options"><legend>Доступ учасника</legend>
+          <fieldset className="member-access-options"><legend>{t('memberEditorUi.access')}</legend>
             {hasAccount && <p className="member-access-hint">
-              {member.accessStatus === 'DISABLED' ? 'Акаунт вимкнено.' : 'Акаунт уже створено.'}
-              {' '}Повторно створити логін або надіслати запрошення для цього профілю неможливо.
+              {t(member.accessStatus === 'DISABLED' ? 'memberEditorUi.disabledAccount' : 'memberEditorUi.hasAccount')}
             </p>}
             {invitePending && <p className="member-access-hint">
-              Запрошення надіслано на {member.invitationEmail}. Можна надіслати нове
-              (не частіше ніж раз на 2 хвилини); попереднє посилання перестане діяти.
+              {t('memberEditorUi.pendingNotice', { email: member.invitationEmail })}
             </p>}
             <label className="member-access-option">
               <input type="radio" name="member-access" value="profile" checked={accessMode === 'profile'} onChange={() => setAccessMode('profile')} />
-              <span>{editing ? 'Без змін доступу' : 'Лише профіль, без входу'}</span>
+              <span>{t(editing ? 'memberEditorUi.unchanged' : 'memberEditorUi.profile')}</span>
             </label>
             {!hasAccount && <label className="member-access-option">
               <input type="radio" name="member-access" value="account" checked={accessMode === 'account'} onChange={() => setAccessMode('account')} />
-              <span>Створити окремий логін для дитини</span>
+              <span>{t('memberEditorUi.createLogin')}</span>
             </label>}
             {!hasAccount && <label className="member-access-option">
               <input type="radio" name="member-access" value="invite" checked={accessMode === 'invite'} onChange={() => setAccessMode('invite')} />
-              <span>{invitePending ? 'Надіслати запрошення повторно' : 'Надіслати запрошення на email'}</span>
+              <span>{t(invitePending ? 'memberEditorUi.resend' : 'memberEditorUi.invite')}</span>
             </label>}
           </fieldset>
-          {accessMode === 'invite' && <label style={{ marginTop: 12 }}>Email для запрошення
+          {accessMode === 'invite' && <label style={{ marginTop: 12 }}>{t('memberEditorUi.inviteEmail')}
             <input type="email" autoComplete="email" required value={inviteEmail}
               onChange={e => setInviteEmail(e.target.value)} />
           </label>}
           {accessMode === 'account' && <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-            <p>Логін і пароль задають батьки. Підтвердження через email батьків буде додано окремо; зараз цей спосіб не використовує пошту.</p>
-            <label>Логін дитини<input autoComplete="off" value={childUsername} onChange={e => setChildUsername(e.target.value)} required /></label>
-            <label>Пароль<input type="password" autoComplete="new-password" value={childPassword} onChange={e => setChildPassword(e.target.value)} minLength={8} required /></label>
-            <label>Повторіть пароль<input type="password" autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} minLength={8} required /></label>
+            <p>{t('memberEditorUi.loginInfo')}</p>
+            <label>{t('memberEditorUi.childUsername')}<input autoComplete="off" value={childUsername} onChange={e => setChildUsername(e.target.value)} required /></label>
+            <label>{t('memberEditorUi.password')}<input type="password" autoComplete="new-password" value={childPassword} onChange={e => setChildPassword(e.target.value)} minLength={8} required /></label>
+            <label>{t('memberEditorUi.confirmPassword')}<input type="password" autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} minLength={8} required /></label>
           </div>}
 
         </>}
