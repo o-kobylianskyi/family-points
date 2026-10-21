@@ -190,3 +190,9 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - Plain `ssh adminfp@184.174.37.206` failed with `Permission denied (publickey)` because the custom private key was not selected.
 - For future Contabo connection instructions, ALWAYS provide the full `-i` command above. Do not ask user to regenerate SSH keys or use `id_ed25519` without evidence.
 - Record key *path/name only*, never private key content. This log update performs no SSH connection and no VPS changes.
+
+## 2026-10-21 — Domain/environment hierarchy clarified (AGREED; NO VPS CHANGE)
+- Operator requests PUBLIC BETA at final family-point.com domain now. Only later split into testing at beta.family-point.com and stable production at family-point.com.
+- Use independently persistent DB, TLS/secrets and deploy configurations after split. Existing developer DEV remains isolated via 8443.
+- The Android app built now uses family-point.com; future split requires explicit beta/stable API targets. Do not automatically copy personal/family data between stages.
+- No DNS, Nginx, Docker, database or signing changes executed here.
