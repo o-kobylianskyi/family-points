@@ -1205,3 +1205,9 @@
 ## 2026-10-21 — Inline Google login diagnostics
 - User cannot capture Google login Network status in time; added safe HTTP status and normalized reason code directly in Login and Registration error message. No tokens or raw server response leaked. Localized failure for UK/DE/EN/RU.
 - Not yet locally build-verified; no DEV DB, backend, or Contabo changes.
+
+## 2026-10-21 — Concurrent Google and conventional credentials
+- User confirmed initial Google registration and first family creation work. Requested to retain Google sign-in and add user-defined password, with localization fixes in participant editor.
+- Backend GoogleRegistrationService creates a random password hash placeholder; Google access itself is stored in account_external_identities by subject (not a second stored Google password). New authenticated POST /api/account/google/set-password uses the exact linked Google subject, fresh verified Google ID token, enabled account and password 8–128 to replace placeholder hash. Google external identity stays unchanged. No account merge by email and no migration.
+- React settings add GooglePasswordSetup with Google verification and new/confirm password fields; user's actual username displayed to facilitate standard login. API + four locales added. MemberEditor Ukrainian hardcoded fallback strings removed.
+- Changes to feature/task-soft-delete only. No changes to DEV PostgreSQL data or Contabo. CI/browser verification pending.
