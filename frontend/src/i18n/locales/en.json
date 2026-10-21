@@ -1038,5 +1038,13 @@
     "occurrence": "Execution {{count}}",
     "remove": "Remove",
     "add": "+ Another execution"
+  },
+  "rewardTaskUi": {
+    "choose": "Select a task",
+    "noTasks": "No available tasks in this family yet",
+    "add": "Add",
+    "remove": "Remove task",
+    "create": "+ Create new task",
+    "unavailable": "Unavailable task #{{id}}"
   }
 }
