@@ -1,9 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
+import { useAuth } from '../context/AuthContext'
+import GooglePasswordSetup from './GooglePasswordSetup'
+
+function hasSameMemberId(a, b) { return a != null && b != null && String(a) === String(b) }
 
 function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, onClose }) {
   const { t } = useTranslation()
+  const { currentUser } = useAuth()
+  const isOwnAccount = Boolean(member && hasSameMemberId(member.id, currentUser?.memberId))
+  const [showPasswordSetup, setShowPasswordSetup] = useState(false)
   const editing = Boolean(member)
   const hasAccount = member?.accessStatus === 'ACTIVE' || member?.accessStatus === 'DISABLED'
   const invitePending = member?.accessStatus === 'PENDING_INVITATION'
@@ -85,6 +92,12 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
             {hasAccount && <p className="member-access-hint">
               {t(member.accessStatus === 'DISABLED' ? 'memberEditorUi.disabledAccount' : 'memberEditorUi.hasAccount')}
             </p>}
+            {hasAccount && isOwnAccount && <>
+              <button type="button" className="secondary-button" onClick={() => setShowPasswordSetup(value => !value)}>
+                {t('googlePassword.title')}
+              </button>
+              {showPasswordSetup && <GooglePasswordSetup />}
+            </>}
             {invitePending && <p className="member-access-hint">
               {t('memberEditorUi.pendingNotice', { email: member.invitationEmail })}
             </p>}
