@@ -3763,3 +3763,23 @@ button:focus-visible {
   .modal-card.member-editor { max-height: calc(100dvh - 12px); padding: 12px; }
   .modal-card.member-editor > .modal-header { margin-bottom: 8px; }
 }
+
+/* Google renders its own iframe: let it fill the available form width. */
+.google-auth-button {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.google-auth-button-frame {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.google-auth-button-frame > div,
+.google-auth-button-frame iframe {
+  max-width: 100%;
+}
