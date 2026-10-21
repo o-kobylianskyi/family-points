@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '../context/AuthContext'
+import { useTranslation } from 'react-i18next'
 import { getPointTypes } from '../api/economyApi'
 import { getRewards } from '../api/rewardApi'
 import {
@@ -15,6 +16,7 @@ function TaskRewardNegotiationModal({
   onClose,
   onSaved,
 }) {
+  const { t } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
   const reviewing = mode === 'review'
 
@@ -153,7 +155,7 @@ function TaskRewardNegotiationModal({
       && !payload.rewardDefinitionId
       && !payload.customRewardTitle
     ) {
-      setError('Вкажіть хоча б один варіант винагороди.')
+      setError(t('rewardNegUi.needReward'))
       return
     }
 
@@ -194,8 +196,8 @@ function TaskRewardNegotiationModal({
           <div>
             <h2>
               {reviewing
-                ? 'Розглянути зміну винагороди'
-                : 'Запросити іншу винагороду'}
+                ? t('rewardNegUi.review')
+                : t('rewardNegUi.request')}
             </h2>
             <p>{title}</p>
           </div>
@@ -203,23 +205,23 @@ function TaskRewardNegotiationModal({
             type="button"
             className="modal-close-button"
             onClick={onClose}
-            aria-label="Закрити"
+            aria-label={t("rewardNegUi.close")}
           >
             ×
           </button>
         </div>
 
         {loading ? (
-          <div className="page-loading">Завантаження…</div>
+          <div className="page-loading">{t("common.loading")}</div>
         ) : (
           <form className="task-reward-negotiation-form" onSubmit={submit}>
             {error && <div className="page-error">{error}</div>}
 
             <section>
-              <h3>Бали</h3>
+              <h3>{t('rewardNegUi.points')}</h3>
               <div className="form-row">
                 <label className="form-field">
-                  <span>Тип балів</span>
+                  <span>{t('rewardNegUi.type')}</span>
                   <select
                     value={pointTypeId}
                     onChange={(event) => setPointTypeId(event.target.value)}
@@ -233,7 +235,7 @@ function TaskRewardNegotiationModal({
                 </label>
 
                 <label className="form-field">
-                  <span>Кількість</span>
+                  <span>{t('rewardNegUi.amount')}</span>
                   <input
                     type="number"
                     min="0"
@@ -246,7 +248,7 @@ function TaskRewardNegotiationModal({
             </section>
 
             <section>
-              <h3>Репутація</h3>
+              <h3>{t('rewardNegUi.reputation')}</h3>
               <label className="form-field">
                 <span>Кількість</span>
                 <input
@@ -260,9 +262,9 @@ function TaskRewardNegotiationModal({
             </section>
 
             <section>
-              <h3>Нагорода</h3>
+              <h3>{t('rewardNegUi.reward')}</h3>
               <label className="form-field">
-                <span>З каталогу</span>
+                <span>{t('rewardNegUi.catalog')}</span>
                 <select
                   value={rewardDefinitionId}
                   onChange={(event) => {
@@ -270,7 +272,7 @@ function TaskRewardNegotiationModal({
                     if (event.target.value) setCustomRewardTitle('')
                   }}
                 >
-                  <option value="">Без нагороди з каталогу</option>
+                  <option value="">{t('rewardNegUi.none')}</option>
                   {rewards.map((reward) => (
                     <option key={reward.id} value={reward.id}>
                       {reward.title}
@@ -283,10 +285,10 @@ function TaskRewardNegotiationModal({
                 <small className="role-muted">
                   {selectedReward.title}
                   {selectedReward.priceAmount != null
-                    ? ` · звичайна ціна ${selectedReward.priceAmount}`
+                    ? ` · ${t('rewardNegUi.price', { amount: selectedReward.priceAmount })}`
                     : ''}
                   {selectedReward.rewardKind === 'TIME_BASED'
-                    ? ` · часова нагорода${selectedReward.defaultDurationMinutes ? ` · типово ${selectedReward.defaultDurationMinutes} хв` : ''}`
+                    ? ` · ${t('rewardNegUi.timeReward')}${selectedReward.defaultDurationMinutes ? ` · ${t('rewardNegUi.defaultDuration', { minutes: selectedReward.defaultDurationMinutes })}` : ''}`
                     : ''}
                 </small>
               )}
@@ -294,25 +296,25 @@ function TaskRewardNegotiationModal({
               {selectedReward?.rewardKind === 'TIME_BASED' && (
                 <div className="form-row task-reward-duration-row">
                   <label className="form-field">
-                    <span>Час</span>
+                    <span>{t('rewardNegUi.duration')}</span>
                     <select
                       value={durationPreset}
                       onChange={(event) => setDurationPreset(event.target.value)}
                     >
-                      <option value="ANY">Будь-який</option>
-                      <option value="15">15 хв</option>
-                      <option value="30">30 хв</option>
-                      <option value="45">45 хв</option>
-                      <option value="60">1 година</option>
-                      <option value="90">1 год 30 хв</option>
-                      <option value="120">2 години</option>
-                      <option value="CUSTOM">Інший час…</option>
+                      <option value="ANY">{t("rewardNegUi.any")}</option>
+                      <option value="15">{t("rewardNegUi.minute", { count: 15 })}</option>
+                      <option value="30">{t("rewardNegUi.minute", { count: 30 })}</option>
+                      <option value="45">{t("rewardNegUi.minute", { count: 45 })}</option>
+                      <option value="60">{t("rewardNegUi.oneHour")}</option>
+                      <option value="90">{t("rewardNegUi.hourHalf")}</option>
+                      <option value="120">{t("rewardNegUi.twoHours")}</option>
+                      <option value="CUSTOM">{t("rewardNegUi.customTime")}</option>
                     </select>
                   </label>
 
                   {durationPreset === 'CUSTOM' && (
                     <label className="form-field">
-                      <span>Хвилин</span>
+                      <span>{t('rewardNegUi.minutes')}</span>
                       <input
                         type="number"
                         min="1"
@@ -325,12 +327,12 @@ function TaskRewardNegotiationModal({
               )}
 
               <label className="form-field">
-                <span>Або свій варіант</span>
+                <span>{t('rewardNegUi.custom')}</span>
                 <input
                   type="text"
                   maxLength={150}
                   value={customRewardTitle}
-                  placeholder="Наприклад: ще 30 хвилин гри"
+                  placeholder={t("rewardNegUi.customPlaceholder")}
                   onChange={(event) => {
                     setCustomRewardTitle(event.target.value)
                     if (event.target.value) setRewardDefinitionId('')
@@ -342,8 +344,8 @@ function TaskRewardNegotiationModal({
             <label className="form-field">
               <span>
                 {reviewing
-                  ? 'Коментар / умови від дорослого'
-                  : 'Коментар'}
+                  ? t('rewardNegUi.adultComment')
+                  : t('rewardNegUi.comment')}
               </span>
               <textarea
                 rows={3}
@@ -351,8 +353,8 @@ function TaskRewardNegotiationModal({
                 value={comment}
                 placeholder={
                   reviewing
-                    ? 'Наприклад: добре, але максимум 30 балів'
-                    : 'Наприклад: зроблю, якщо дозволиш ще пограти'
+                    ? t('rewardNegUi.adultPlaceholder')
+                    : t('rewardNegUi.commentPlaceholder')
                 }
                 onChange={(event) => setComment(event.target.value)}
               />
@@ -360,21 +362,21 @@ function TaskRewardNegotiationModal({
 
             {reviewing && request && (
               <div className="task-reward-original-request">
-                <strong>Просив виконавець:</strong>
+                <strong>{t('rewardNegUi.requested')}</strong>
                 <span>
                   {request.requestedPointAmount
-                    ? `${request.requestedPointAmount} балів`
-                    : 'без балів'}
+                    ? `${request.requestedPointAmount} ${t('rewardNegUi.points')}`
+                    : t('rewardNegUi.noPoints')}
                   {request.requestedReputationAmount
-                    ? ` · +${request.requestedReputationAmount} репутації`
+                    ? ` · +${request.requestedReputationAmount} ${t('rewardNegUi.reputation')}`
                     : ''}
                   {request.requestedRewardTitle
                     ? ` · ${request.requestedRewardTitle}`
                     : ''}
                   {request.requestedDurationMinutes
-                    ? ` · ${request.requestedDurationMinutes} хв`
+                    ? ` · ${t('rewardNegUi.minute', { count: request.requestedDurationMinutes })}`
                     : request.requestedRewardDefinitionId
-                      ? ' · час: будь-який'
+                      ? ` · ${t('rewardNegUi.anyTime')}`
                       : ''}
                   {request.requestedCustomRewardTitle
                     ? ` · ${request.requestedCustomRewardTitle}`
@@ -390,7 +392,7 @@ function TaskRewardNegotiationModal({
                 onClick={onClose}
                 disabled={saving}
               >
-                Скасувати
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
@@ -398,10 +400,10 @@ function TaskRewardNegotiationModal({
                 disabled={saving}
               >
                 {saving
-                  ? 'Збереження…'
+                  ? t('rewardNegUi.saving')
                   : reviewing
-                    ? 'Схвалити умови'
-                    : 'Надіслати запит'}
+                    ? t('rewardNegUi.approve')
+                    : t('rewardNegUi.send')}
               </button>
             </div>
           </form>
