@@ -12,7 +12,10 @@ data class WorkspaceMemberResponse(
     val workspaceRoleId: Long,
     val workspaceRoleCode: String,
     val workspaceRoleName: String,
-    val workspaceId: Long
+    val workspaceId: Long,
+    val accountEmail: String? = null,
+    val invitationEmail: String? = null,
+    val accessStatus: String? = null
 )
 
 data class TaskInstanceResponse(
