@@ -1181,3 +1181,10 @@
 - Replaced plain English SimpleMailMessage with branded Ukrainian UTF-8 MIME HTML invitation with multipart plain-text fallback, actionable button, expiration note and readable sender name. Escapes dynamic member names and invitation links in HTML. Commit 4b63edb.
 - User observed first DEV invite delivered to Gmail spam; this change improves presentation but does not prove deliverability (SPF/DKIM/DMARC and localhost links still need review).
 - Requires local Maven build, backend restart, and new test invite; no Contabo changes.
+
+## 2026-10-21 — Linked email in Web member cards (COMMITTED; local tests pending)
+- User confirmed family/member invitation flow works and requested to show email directly in participant cards.
+- GET /workspaces/{workspaceId}/members now includes optional `accountEmail` for MANAGE_MEMBERS only, using workspace-scoped membership and legacy account lookup. VIEW_WORKSPACE-only users receive no contact email. Pending invitation addresses are not misrepresented as linked accounts. No migrations or DB writes.
+- Web MembersPage renders account email beneath member name with wrap-safe styling only for member managers; members without linked contact email show no extra row.
+- Added unit regression tests for admin scoped linked account, legacy fallback and VIEW_WORKSPACE privacy; local Maven/Vite tests not yet run.
+- No changes to Contabo BETA or DEV PostgreSQL; Android member-card parity remains separate (Android cache includes sensitive data, so assess before extending DTO/client storage).
