@@ -1233,3 +1233,15 @@ Before each substantial implementation batch:
 
 - [x] Invitation form rejects username with spaces before submission and shows translated credentials error instead of generic expired-link notice (screenshot had `Denys K`)
 - [ ] Confirm real rejected-link status with refreshed server, no assumptions that link expires in 5 minutes
+
+## 2026-10-21 — Security: children cannot mint task rewards
+- [x] Backend deny CHILD direct task creation even if role has CREATE_TASKS (self-funding escrow not yet supported)
+- [x] Backend child complete() goes WAITING_APPROVAL with no points/reputation awarded
+- [x] Backend parent/authorized adult approve-completion endpoint awards once; child cannot approve or manage existing tasks
+- [x] Block child scheduled manager-complete bypass for historical definitions
+- [x] V34 task_suggestions migration; child simplified "I want a task" form, adult review (PENDING/APPROVED/REJECTED), no reward transfer or task creation
+- [x] Localize CreateTaskModal multi-execution checkbox + labels and WAITING_APPROVAL status in UK/DE/EN/RU
+- [x] Add unit tests for child authorization; update mock current member setup in existing tests
+- [ ] Confirm latest CI success and local runtime after pulling; V34 applies on first local DEV start (do not modify DB manually)
+- [ ] Later: implement child-funded task escrow and debit, adult setup from approved suggestion, robust approval UX/history
+- [ ] Review any points self-awarded prior to patch manually; no automatic transaction reversals
