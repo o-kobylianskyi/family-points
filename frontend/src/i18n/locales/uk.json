@@ -848,5 +848,33 @@
     "activate": "Активувати",
     "history": "Історія",
     "noHistory": "Історія поки порожня."
+  },
+  "tasksUi": {
+    "myTasks": "Мої завдання",
+    "manage": "Керування",
+    "scheduled": "Заплановано",
+    "points": "{{value}} балів",
+    "reputation": "Репутація +{{value}}",
+    "start": "Почати",
+    "preview": "Переглянути →",
+    "resume": "Продовжити",
+    "open": "Відкрити →",
+    "historyDefinition": "Історія Definition №{{id}}",
+    "noHistory": "Історія поки порожня.",
+    "rewardRequests": "Запити на зміну винагороди",
+    "rewardHelp": "Виконавець пропонує іншу винагороду за конкретне виконання завдання.",
+    "noPoints": "без балів",
+    "minute": "{{value}} хв",
+    "anyTime": "час: будь-який",
+    "review": "Розглянути",
+    "reject": "Відхилити",
+    "system": "Система",
+    "historyPause": "призупинив(ла) виконання",
+    "historyResume": "продовжив(ла) виконання",
+    "historyCancel": "відмінив(ла) виконання",
+    "historyDefinitionCreated": "створив(ла) завдання",
+    "historyDefinitionUpdated": "змінив(ла) завдання",
+    "historyDefinitionActivated": "активував(ла) завдання",
+    "historyDefinitionDeactivated": "деактивував(ла) завдання"
   }
 }
