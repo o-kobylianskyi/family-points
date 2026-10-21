@@ -16,6 +16,12 @@ interface AuthApi {
         @Body request: LoginRequest
     ): LoginResponse
 
+    @POST("auth/google")
+    suspend fun googleLogin(@Body request: GoogleTokenRequest): LoginResponse
+
+    @POST("auth/google/register")
+    suspend fun googleRegister(@Body request: GoogleTokenRequest): LoginResponse
+
     @POST("auth/register-account")
     suspend fun registerAccount(@Body request: AccountRegistrationRequest): AccountRegistrationResult
 
@@ -78,6 +84,8 @@ data class ReputationEntry(
     val description: String?,
     val createdAt: String
 )
+
+data class GoogleTokenRequest(val idToken: String)
 
 data class AccountRegistrationRequest(val username: String, val email: String, val password: String)
 data class AccountRegistrationResult(val accountId: Long)
