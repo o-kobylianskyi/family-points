@@ -14,7 +14,8 @@ async function handleResponse(response, fallbackMessage) {
       // Backend не повернув JSON
     }
 
-    throw new Error(message)
+    const requestPath = new URL(response.url).pathname
+    throw new Error(`${message} — HTTP ${response.status} · ${requestPath}`)
   }
 
   return response.json()
