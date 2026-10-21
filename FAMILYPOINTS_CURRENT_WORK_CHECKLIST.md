@@ -1178,3 +1178,12 @@ Before each substantial implementation batch:
 - [x] Implement Ukrainian HTML email with plain fallback and FamilyPoints display name (4b63edb)
 - [ ] Verify compilation and send a fresh local DEV test email, inspect Gmail rendering and spam/authentication headers
 - [ ] Check token acceptance and membership count; do not paste tokens into chat
+
+## 2026-10-21 — Participant card contact email
+- [x] Extend manager-only members API with optional linked `accountEmail` (not pending invitation)
+- [x] Show email in Web member card without extra API requests; wrap long addresses safely
+- [x] Add unit tests covering MANAGE_MEMBERS / VIEW_WORKSPACE visibility and legacy account mapping
+- [ ] User runs Maven test + Web build, restarts local backend and checks email appears for Test2 after invitation accepted
+- [ ] Confirm no accountEmail in member GET when signed in as ordinary child/member
+- [ ] Consider Android parity with offline-cache privacy handling in separate batch
+- [ ] Do not deploy to Contabo BETA without approval
