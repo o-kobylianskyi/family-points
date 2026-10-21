@@ -1008,5 +1008,15 @@
     "close": "Close",
     "error": "Operation failed",
     "approvalReminder": "Approving a suggestion does not create a paid task. An adult creates and funds it separately."
+  },
+  "multiTime": {
+    "invalid": "Enter valid times for each occurrence or disable multiple executions.",
+    "duplicate": "Execution times must not repeat.",
+    "subtask": "Subtask of #{{id}}",
+    "multiple": "Multiple executions on the selected date or during the day",
+    "description": "Enter the time of each execution. One-time tasks will use the selected date; recurring tasks will use their respective dates.",
+    "occurrence": "Execution {{count}}",
+    "remove": "Remove",
+    "add": "+ Another execution"
   }
 }
