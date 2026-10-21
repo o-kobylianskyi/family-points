@@ -783,7 +783,6 @@ function RewardsPage() {
                   <TaskConditionPicker
                     title={t("rewardsUi.beforeTask")}
                     tasks={tasks}
-                onCreateTask={() => navigate('/tasks?create=1')}
                     onCreateTask={() => navigate('/tasks?create=1')}
                     selected={reviewForm.beforeTaskIds}
                     onToggle={(id) => setReviewForm({
@@ -795,7 +794,6 @@ function RewardsPage() {
                   <TaskConditionPicker
                     title={t("rewardsUi.afterTask")}
                     tasks={tasks}
-                onCreateTask={() => navigate('/tasks?create=1')}
                     onCreateTask={() => navigate('/tasks?create=1')}
                     selected={reviewForm.afterTaskIds}
                     onToggle={(id) => setReviewForm({
