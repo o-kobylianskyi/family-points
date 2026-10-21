@@ -211,7 +211,18 @@
       "description": "Änderungen gelten für die Aufgabendefinition und zukünftige Ausführungen. Bereits erstellte Ausführungen werden nicht rückwirkend geändert.",
       "save": "Speichern"
     },
-    "reputation": "Reputation"
+    "reputation": "Reputation",
+    "history": {
+      "system": "System",
+      "created": "Aufgabenausführung erstellt",
+      "generated": "Aufgabenausführung automatisch erzeugt",
+      "claimed": "hat die Aufgabe übernommen",
+      "started": "hat die Ausführung begonnen",
+      "completed": "hat die Aufgabe abgeschlossen",
+      "missed": "hat die Aufgabe als verpasst markiert",
+      "excused": "hat von der Ausführung befreit",
+      "delegated": "hat die Aufgabe delegiert"
+    }
   },
   "taskRecurrence": {
     "ONCE": "Einmalig",
