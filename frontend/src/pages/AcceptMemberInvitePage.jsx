@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { API_URL } from '../api/baseUrl'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +15,38 @@ export default function AcceptMemberInvitePage() {
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  const [inviteStatus, setInviteStatus] = useState('CHECKING')
+
+  useEffect(() => {
+    if (!token) { setInviteStatus('INVALID'); return }
+    let alive = true
+    fetch(`${API_URL}/auth/member-invitations/check`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    }).then(async response => {
+      if (!response.ok) throw new Error('status unavailable')
+      return response.json()
+    }).then(body => {
+      if (alive) setInviteStatus(body.status || 'UNKNOWN')
+    }).catch(() => { if (alive) setInviteStatus('UNAVAILABLE') })
+    return () => { alive = false }
+  }, [token])
+
+  const checkStatus = async () => {
+    try {
+      const response = await fetch(`${API_URL}/auth/member-invitations/check`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      })
+      if (response.ok) {
+        const body = await response.json()
+        setInviteStatus(body.status || 'UNKNOWN')
+        return body.status
+      }
+    } catch { /* offline */ }
+    return null
+  }
+
 
   const responseError = async response => {
     let code = ''
@@ -22,7 +54,11 @@ export default function AcceptMemberInvitePage() {
       const body = await response.json()
       code = typeof body.detail === 'string' ? body.detail : ''
     } catch { /* no structured error body */ }
-    if (response.status === 410) return t('inviteAcceptUi.gone')
+    if (response.status === 410) {
+      const state = await checkStatus()
+      if (state) return t(`inviteAcceptUi.status${state.charAt(0) + state.slice(1).toLowerCase()}`)
+      return t('inviteAcceptUi.gone')
+    }
     if (code.includes('INVITED_EMAIL_MISMATCH')) return t('inviteAcceptUi.googleMismatch')
     if (code.includes('GOOGLE_ACCOUNT_ALREADY_REGISTERED')) return t('inviteAcceptUi.googleExisting')
     if (response.status === 503) return t('inviteAcceptUi.disabled')
@@ -78,6 +114,9 @@ export default function AcceptMemberInvitePage() {
   return <div className="login-page"><div className="login-card">
     <LanguageSwitcher />
     <h1>{t("inviteAcceptUi.title")}</h1>
+    {!done && !['UNAVAILABLE','CHECKING'].includes(inviteStatus) && <p className={inviteStatus === 'VALID' ? 'settings-success' : 'error-message'} role="status">
+      {t(`inviteAcceptUi.status${inviteStatus.charAt(0) + inviteStatus.slice(1).toLowerCase()}`)}
+    </p>}
     {done ? <>
       <p>{t('inviteAcceptUi.success')}</p>
       <Link to="/login">{t("inviteAcceptUi.login")}</Link>
@@ -98,9 +137,9 @@ export default function AcceptMemberInvitePage() {
       </label>
       {!token && <p className="error-message">{t('inviteAcceptUi.noToken')}</p>}
       {error && <p className="error-message" role="alert">{error}</p>}
-      <button disabled={busy || !token}>{busy ? t('inviteAcceptUi.creating') : t('inviteAcceptUi.accept')}</button>
+      <button disabled={busy || !token || ['EXPIRED','USED','REPLACED','UNKNOWN','INVALID'].includes(inviteStatus)}>{busy ? t('inviteAcceptUi.creating') : t('inviteAcceptUi.accept')}</button>
     </form>}
-    {!done && token && <>
+    {!done && token && !['EXPIRED','USED','REPLACED','UNKNOWN','INVALID'].includes(inviteStatus) && <>
       <p>{t('inviteAcceptUi.googleOption')}</p>
       <GoogleAuthButton onCredential={acceptGoogle} disabled={busy} />
     </>}
