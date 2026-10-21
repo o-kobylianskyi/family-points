@@ -42,7 +42,7 @@ function Sidebar() {
       <NavLink to="/rewards" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.rewards')}</NavLink>
       {roots.length > 0 && <div className="sidebar-dynamic-groups">{roots.map(g => renderGroup(g))}</div>}
     </nav>
-    <div className="sidebar-bottom"><NavLink to="/settings" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.settings')}</NavLink></div>
+    <div className="sidebar-bottom"><NavLink to="/download" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('androidDownload.nav')}</NavLink><NavLink to="/settings" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.settings')}</NavLink></div>
   </aside>
 }
 export default Sidebar
