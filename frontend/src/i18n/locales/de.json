@@ -1048,5 +1048,13 @@
     "remove": "Aufgabe entfernen",
     "create": "+ Neue Aufgabe erstellen",
     "unavailable": "Nicht verfügbare Aufgabe Nr. {{id}}"
+  },
+  "usernameCheck": {
+    "button": "Benutzername prüfen",
+    "checking": "Prüfung…",
+    "available": "Benutzername verfügbar",
+    "taken": "Benutzername vergeben",
+    "invalid": "3–64 lateinische Buchstaben, Zahlen, Punkt, _ oder -",
+    "error": "Prüfung nicht möglich. Bitte erneut versuchen."
   }
 }
