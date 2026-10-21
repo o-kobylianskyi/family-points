@@ -1284,3 +1284,13 @@ Before each substantial implementation batch:
 - [x] Clear prior check result when input changes; final creation/rename validations remain server-side
 - [x] Normalize signup username validation to 3–64 characters
 - [ ] Verify CI + browser; no DEV DB or Contabo changes
+
+## 2026-10-21 — TOP PRIORITY: Contabo public BETA + installable Android
+- [x] Plan update: public BETA family-point.com first; installable Android connected to Contabo second; parallel bug fixes continue
+- [x] Add guarded SHA-pinned server deployment script with pre-backup and health checks
+- [x] Add Android release versioning, environment-only signing config, reproducible APK PowerShell build
+- [ ] Live VPS preflight: running containers, backend Flyway version, HTTPS, free disk, working tree and backup/restore plan; preserve wg0/wg1, NAT 8080, client IP:9443, DEV :8443
+- [ ] Operator approves and runs exact tested SHA on Contabo; inspect Flyway V27–V34 and public registration before promotion
+- [ ] Validate phone login, family creation, role isolation, TLS from cellular with local DEV offline
+- [ ] Create and securely back up signing keystore (outside repo), build first APK versionCode=1, store signed artifact and checksum
+- [ ] Future: repeat deploy with approved Git SHA, Android update using same signing key and incremented versionCode; do not claim automatic background push/update system
