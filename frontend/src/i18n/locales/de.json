@@ -874,7 +874,8 @@
     "deactivate": "Deaktivieren",
     "activate": "Aktivieren",
     "history": "Verlauf",
-    "noHistory": "Verlauf noch leer."
+    "noHistory": "Verlauf noch leer.",
+    "approveChildCompletion": "Erledigung des Kindes bestätigen und Punkte gutschreiben"
   },
   "tasksUi": {
     "myTasks": "Meine Aufgaben",
