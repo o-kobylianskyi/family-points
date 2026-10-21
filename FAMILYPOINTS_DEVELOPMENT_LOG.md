@@ -1201,3 +1201,7 @@
 - User screenshot: Google Sign-In iframe appeared narrow (250px) and Russian even when FamilyPoints UI was Deutsch.
 - Fixed frontend/src/components/GoogleAuthButton.jsx: load GIS script with language-specific ?hl plus renderButton locale; recreate button on language switch; responsive iframe width up to Google's 400px maximum via ResizeObserver. CSS centers and stretches the Google button container.
 - GitHub commits 4fad553 and b3e3153. Local manual browser and Vite build still pending.
+
+## 2026-10-21 — Inline Google login diagnostics
+- User cannot capture Google login Network status in time; added safe HTTP status and normalized reason code directly in Login and Registration error message. No tokens or raw server response leaked. Localized failure for UK/DE/EN/RU.
+- Not yet locally build-verified; no DEV DB, backend, or Contabo changes.
