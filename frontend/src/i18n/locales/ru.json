@@ -848,5 +848,33 @@
     "activate": "Активировать",
     "history": "История",
     "noHistory": "История пока пустая."
+  },
+  "tasksUi": {
+    "myTasks": "Мои задания",
+    "manage": "Управление",
+    "scheduled": "Запланировано",
+    "points": "{{value}} баллов",
+    "reputation": "Репутация +{{value}}",
+    "start": "Начать",
+    "preview": "Посмотреть →",
+    "resume": "Продолжить",
+    "open": "Открыть →",
+    "historyDefinition": "История Definition №{{id}}",
+    "noHistory": "История пока пуста.",
+    "rewardRequests": "Запросы на изменение награды",
+    "rewardHelp": "Исполнитель предлагает другую награду за конкретное выполнение задания.",
+    "noPoints": "без баллов",
+    "minute": "{{value}} мин",
+    "anyTime": "время: любое",
+    "review": "Рассмотреть",
+    "reject": "Отклонить",
+    "system": "Система",
+    "historyPause": "приостановил(а) выполнение",
+    "historyResume": "продолжил(а) выполнение",
+    "historyCancel": "отменил(а) выполнение",
+    "historyDefinitionCreated": "создал(а) задание",
+    "historyDefinitionUpdated": "изменил(а) задание",
+    "historyDefinitionActivated": "активировал(а) задание",
+    "historyDefinitionDeactivated": "деактивировал(а) задание"
   }
 }
