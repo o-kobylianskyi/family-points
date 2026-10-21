@@ -1245,3 +1245,10 @@ Before each substantial implementation batch:
 - [ ] Confirm latest CI success and local runtime after pulling; V34 applies on first local DEV start (do not modify DB manually)
 - [ ] Later: implement child-funded task escrow and debit, adult setup from approved suggestion, robust approval UX/history
 - [ ] Review any points self-awarded prior to patch manually; no automatic transaction reversals
+
+## 2026-10-21 — Account card password / Tasks auth regression
+- [x] Current account member editor now exposes Google-verified personal password setup (only if member.id == authenticated memberId); other account passwords cannot be modified from this form
+- [x] Task reward negotiation uses scoped current workspace member instead of legacy `account.workspaceMember` (5 locations)
+- [x] Task API failure messages now include HTTP status and endpoint for precise diagnosis of `Authentication is required`
+- [ ] User pull + backend restart + inspect precise task endpoint error; successful password setup/login check
+- [ ] CI recheck after latest commits
