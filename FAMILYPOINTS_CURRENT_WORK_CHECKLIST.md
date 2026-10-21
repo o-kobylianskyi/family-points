@@ -1308,3 +1308,9 @@ Before each substantial implementation batch:
 - [x] Fixed release workflow Android SDK setup to install explicit platform-tools and build-tools 36.0.0, aligning with main CI
 - [ ] Wait for new branch CI then create v0.1.0-beta.2 at its approved SHA; NEVER move/reuse beta.1
 - [ ] Do not deploy Contabo until tag-scoped release gate succeeds
+
+## 2026-10-21 — Public BETA CORS regression
+- [x] Confirm browser POST /auth/google/register returns 403 body `Invalid CORS request` although no-Origin curl returns expected invalid-token 401
+- [x] Add exact allowlisted HTTPS origins family-point.com, beta.family-point.com to Spring Security CORS; no wildcard
+- [x] Add regression tests for allowed/denied origins
+- [ ] Confirm CI and ship as new immutable v0.1.0-beta.3 tag, then controlled Contabo rollout
