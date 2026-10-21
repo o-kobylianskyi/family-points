@@ -1249,3 +1249,10 @@
 
 ## 2026-10-21 — Checking login availability
 - User requests an explicit check availability action beside any username field that creates or changes credentials. Added shared GET /auth/username-availability with case-insensitive lookup and syntax validation, plus reusable UsernameAvailability UI with translations UK/DE/EN/RU. Added to global signup, invitation signup, child's account creation, and Google account local login/password. Existing username of current account accepted as unchanged. A check is advisory; the backend still enforces at save time. No DB migration or Contabo changes. CI/browser verification pending.
+
+## 2026-10-21 — Verified Windows SSH command for Contabo
+- User confirmed the correct PowerShell SSH command (Windows user profile key):
+  `ssh -i "$env:USERPROFILE\.ssh\contabo_admin_ed25519" adminfp@184.174.37.206`
+- Plain `ssh adminfp@184.174.37.206` failed with `Permission denied (publickey)` because the custom private key was not selected.
+- For future Contabo connection instructions, ALWAYS provide the full `-i` command above. Do not ask user to regenerate SSH keys or use `id_ed25519` without evidence.
+- Record key *path/name only*, never private key content. This log update performs no SSH connection and no VPS changes.
