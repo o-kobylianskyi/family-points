@@ -974,7 +974,8 @@
     "mismatch": "Passwords do not match",
     "invalid": "Password must be 8 to 128 characters long",
     "error": "Could not set password (HTTP {{status}}). Verify you selected the linked Google account.",
-    "username": "Username for sign-in without Google"
+    "username": "Username for sign-in without Google",
+    "options": "Google account actions"
   },
   "memberFormUi": {
     "editTitle": "Edit member",
