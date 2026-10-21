@@ -1217,3 +1217,5 @@
 - Added POST /auth/member-invitations/accept-google. Requires Google JWT verified cryptographically, verified email exactly equal to invited email, new Google subject (not linked to another global account), and active member with no existing account. Creates new global login and membership for that existing member only; random password placeholder stays unguessable, later custom password setup is separate. Both invite acceptance methods consume one-use token in same database transaction.
 - New invitation acceptance UI supports password-based registration or Google without password, and localized statuses UK/DE/EN/RU; inspect status endpoint before attempting acceptance. No new Flyway migration needed.
 - Changes committed on feature/task-soft-delete, not yet local build/runtime verified. No live DEV DB edits or Contabo updates.
+
+- Screenshot showed invited username `Denys K` (contains a space). Existing backend regex allows only [a-zA-Z0-9._-] and 3–64 chars; generic 400 error was being mislabeled as expired invitation. Added specific localized validation/client-side check; this may explain observed error, although token's actual state remains unverified.
