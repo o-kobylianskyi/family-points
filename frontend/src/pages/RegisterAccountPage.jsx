@@ -3,8 +3,11 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { registerGlobalAccount, requestEmailVerification } from '../api/authApi'
 import { useAuth } from '../context/AuthContext'
 import GoogleAuthButton from '../components/GoogleAuthButton'
+import { useTranslation } from 'react-i18next'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 export default function RegisterAccountPage() {
+  const { t } = useTranslation()
   const { currentUser, needsWorkspace, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
@@ -27,41 +30,41 @@ export default function RegisterAccountPage() {
       setPassword('')
       setSent(true)
     } catch (e) {
-      setError(e.message || 'Не вдалося зареєструватися')
+      setError(e.message || t('accountRegisterUi.registrationError'))
     } finally {
       setBusy(false)
     }
   }
-  if (sent) return <div className="login-page"><div className="login-card"><h1>Перевір пошту</h1><p>Ми надіслали лист із посиланням для підтвердження email. Після підтвердження можеш увійти.</p><button type="button" onClick={async () => {
+  if (sent) return <div className="login-page"><div className="login-card"><h1>{t('accountRegisterUi.verifyTitle')}</h1><p>{t('accountRegisterUi.verifyDescription')}</p><button type="button" onClick={async () => {
       setResendMessage('')
       try {
         await requestEmailVerification(username, email)
-        setResendMessage('Лист надіслано повторно.')
+        setResendMessage(t('accountRegisterUi.resendDone'))
       } catch (error) { setResendMessage(error.message) }
-    }}>Надіслати повторно</button>
+    }}>{t('accountRegisterUi.resend')}</button>
     {resendMessage && <p role="status">{resendMessage}</p>}
-    <Link to="/login">До входу</Link></div></div>
+    <Link to="/login">{t("accountRegisterUi.login")}</Link></div></div>
 
   return <div className="login-page"><div className="login-card">
-    <h1>Новий акаунт FamilyPoints</h1>
-    <p>Спочатку створіть акаунт. Після входу зможете створити або вибрати сім’ю.</p>
+    <LanguageSwitcher /><h1>{t("accountRegisterUi.title")}</h1>
+    <p>{t('accountRegisterUi.description')}</p>
     <form onSubmit={submit}>
-      <label>Логін
+      <label>{t('accountRegisterUi.username')}
         <input value={username} minLength={3} maxLength={50} pattern="[A-Za-z0-9._-]{3,50}"
           autoComplete="username" required disabled={busy}
           onChange={e => setUsername(e.target.value)} />
       </label>
-      <label>Email (обов’язково)
+      <label>{t('accountRegisterUi.email')}
         <input type="email" value={email} maxLength={254} autoComplete="email" required disabled={busy}
           onChange={e => setEmail(e.target.value)} />
       </label>
-      <label>Пароль (8–128 символів)
+      <label>{t('accountRegisterUi.password')}
         <input type="password" value={password} minLength={8} maxLength={128}
           autoComplete="new-password" required disabled={busy}
           onChange={e => setPassword(e.target.value)} />
       </label>
       {error && <p className="error-message" role="alert">{error}</p>}
-      <button type="submit" disabled={busy}>Створити акаунт</button>
+      <button type="submit" disabled={busy}>{t("accountRegisterUi.create")}</button>
     </form>
     <GoogleAuthButton disabled={busy} onCredential={async idToken => {
       setBusy(true)
@@ -70,11 +73,11 @@ export default function RegisterAccountPage() {
         const user = await loginWithGoogle(idToken, true)
         navigate(user ? '/' : '/choose-family', { replace: true })
       } catch (e) {
-        setError(e.message || 'Не вдалося створити Google-акаунт')
+        setError(e.message || t('authUi.googleRegistrationError'))
       } finally {
         setBusy(false)
       }
     }} />
-    <p><Link to="/login">Повернутися до входу</Link></p>
+    <p><Link to="/login">{t("accountRegisterUi.return")}</Link></p>
   </div></div>
 }
