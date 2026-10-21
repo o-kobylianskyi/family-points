@@ -1226,3 +1226,6 @@
 - Fixed CreateTaskModal untranslated Ukrainian multi-occurrence checkbox/labels and status WAITING_APPROVAL for all locales; task list routes child creation to suggestion panel.
 - Regression test TaskAuthorizationChildSafetyTest, updated TaskManagerCompletionTest fixtures for adult current user; CI not fully reverified.
 - Keep DEV DB and Contabo untouched manually. New migration runs only on explicit local backend startup. Previously credited points not silently rolled back.
+
+## 2026-10-21 — UI regressions after Google registration
+- Screenshot: family owner account signed in after Google registration, Tasks management shows `Authentication is required` despite valid currentUser; member editor offers no password setup. Added GooglePasswordSetup in existing-member editor for current member ONLY, requiring fresh Google proof; preserved Settings fallback. Fixed five legacy getCurrentAccount().getWorkspaceMember() usages in TaskRewardNegotiationService to scoped getCurrentMember(). Task API error includes HTTP status and request path to identify true failing endpoint. UI-only diagnosis is not conclusive until runtime verification; no DEV DB/Contabo actions.
