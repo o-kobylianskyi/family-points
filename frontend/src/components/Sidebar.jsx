@@ -33,10 +33,10 @@ function Sidebar() {
   }
 
   return <aside className="sidebar">
-    <div className="sidebar-logo"><div className="brand-icon">FP</div><div><strong>FamilyPoints</strong><span>Workspace</span></div></div>
+    <div className="sidebar-logo"><div className="brand-icon">FP</div><div><strong>FamilyPoints</strong><span>{t('workspaceUi.brandSubtitle')}</span></div></div>
     <nav className="sidebar-nav">
       <NavLink to="/" end className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.dashboard')}</NavLink>
-      <NavLink to="/members" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Учасники</NavLink>
+      <NavLink to="/members" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('workspaceUi.members')}</NavLink>
       <NavLink to="/tasks" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.tasks')}</NavLink>
       <NavLink to="/points" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.points')}</NavLink>
       <NavLink to="/rewards" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.rewards')}</NavLink>
