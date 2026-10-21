@@ -481,7 +481,10 @@
     "googleNotConfigured": "Google-Anmeldung ist noch nicht eingerichtet. Eine OAuth-Client-ID wird benötigt.",
     "googleSecureOrigin": "Google erfordert HTTPS oder localhost. Öffnen Sie die App über eine sichere Adresse.",
     "googleLogin": "Mit Google anmelden",
-    "googleRegister": "Mit Google registrieren"
+    "googleRegister": "Mit Google registrieren",
+    "googleVerifyFailed": "Google-Konto konnte nicht bestätigt werden",
+    "googleHttpDetails": "HTTP {{status}} · {{reason}}",
+    "googleNetworkError": "Netzwerkfehler bei der Google-Anmeldung"
   },
   "familyChoice": {
     "title": "Familie auswählen",
