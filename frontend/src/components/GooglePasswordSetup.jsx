@@ -1,3 +1,4 @@
+import UsernameAvailability from './UsernameAvailability'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
@@ -49,7 +50,7 @@ export default function GooglePasswordSetup() {
     <div className="google-password-form">
       <label className="google-password-field"><span>{t('googlePassword.username')}</span>
         <input type="text" autoComplete="username" value={username} maxLength={64} disabled={busy}
-          onChange={e => setUsername(e.target.value)} />
+          onChange={e => setUsername(e.target.value)} /><UsernameAvailability username={username} currentUsername={currentUser?.username} />
       </label>
       <label className="google-password-field"><span>{t('googlePassword.new')}</span>
         <input type="password" autoComplete="new-password" minLength={8} maxLength={128}
