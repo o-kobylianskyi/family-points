@@ -846,5 +846,33 @@
     "activate": "Activate",
     "history": "History",
     "noHistory": "No history yet."
+  },
+  "tasksUi": {
+    "myTasks": "My tasks",
+    "manage": "Management",
+    "scheduled": "Scheduled",
+    "points": "{{value}} points",
+    "reputation": "Reputation +{{value}}",
+    "start": "Start",
+    "preview": "View →",
+    "resume": "Resume",
+    "open": "Open →",
+    "historyDefinition": "Definition #{{id}} history",
+    "noHistory": "History is empty.",
+    "rewardRequests": "Reward change requests",
+    "rewardHelp": "An assignee proposes a different reward for a specific task execution.",
+    "noPoints": "no points",
+    "minute": "{{value}} min",
+    "anyTime": "duration: any",
+    "review": "Review",
+    "reject": "Reject",
+    "system": "System",
+    "historyPause": "paused execution",
+    "historyResume": "resumed execution",
+    "historyCancel": "cancelled execution",
+    "historyDefinitionCreated": "created the task",
+    "historyDefinitionUpdated": "updated the task",
+    "historyDefinitionActivated": "activated the task",
+    "historyDefinitionDeactivated": "deactivated the task"
   }
 }
