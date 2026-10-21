@@ -15,6 +15,11 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
+        // Public Web OAuth client ID (audience validated by Spring GoogleTokenVerifier).
+        // Set via -PfamilyPointsGoogleWebClientId=... or a local gradle.properties.
+        val googleWebClientId = providers.gradleProperty("familyPointsGoogleWebClientId")
+            .orElse("").get().trim()
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -77,6 +82,9 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play)
+    implementation(libs.googleid)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
