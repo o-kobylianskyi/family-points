@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext'
 import { getPointTypes } from '../api/economyApi'
-import { createTaskDefinition, updateTaskDefinition } from '../api/taskApi'
+import { createTaskDefinition, updateTaskDefinition, getNextDefaultTaskNumber } from '../api/taskApi'
 import { getMemberGroups } from '../api/memberGroupApi'
 
 function getTodayLocalDate() {
@@ -120,15 +120,9 @@ function CreateTaskModal({
   const editing = Boolean(initialTask)
 
   const firstFreeTaskTitle = () => {
-    const base = t('tasks.create.defaultTitleBase')
-    const used = new Set(
-      existingTaskDefinitions
-        .filter(task => task.id !== initialTask?.id)
-        .map(task => (task.title || '').trim().toLocaleLowerCase())
-    )
-    let number = 1
-    while (used.has(`${base} ${number}`.toLocaleLowerCase())) number += 1
-    return `${base} ${number}`
+    // A provisional family-local name while the authoritative count loads.
+    const number = existingTaskDefinitions.length + 1
+    return `${t('tasks.create.defaultTitleBase')} №${number}`
   }
   const [memberGroups, setMemberGroups] = useState([])
   const participantKeys = (role) => initialParticipants
@@ -145,6 +139,18 @@ function CreateTaskModal({
 
   const [title, setTitle] = useState(() => initialTask?.title ?? firstFreeTaskTitle())
   const [titleTouched, setTitleTouched] = useState(Boolean(initialTask))
+  useEffect(() => {
+    if (editing) return
+    let active = true
+    getNextDefaultTaskNumber(getAccessToken(), currentUser.workspaceId)
+      .then(({ number }) => {
+        if (!active || !Number.isSafeInteger(number) || number < 1) return
+        setTitle(current => titleTouched ? current : `${t('tasks.create.defaultTitleBase')} №${number}`)
+      })
+      .catch(() => { /* Provisional name is retained if numbering endpoint is unavailable. */ })
+    return () => { active = false }
+  }, [currentUser.workspaceId, editing, getAccessToken, t, titleTouched])
+
   const [description, setDescription] = useState(initialTask?.description ?? '')
   const [mandatory, setMandatory] = useState(initialTask?.mandatory ?? false)
   const [delegationAllowed, setDelegationAllowed] = useState(initialTask?.delegationAllowed ?? false)
@@ -526,6 +532,7 @@ function CreateTaskModal({
               value={title}
               maxLength={150}
               onChange={(event) => {
+                setTitleTouched(true)
                 setTitleTouched(true)
                 setTitle(event.target.value)
               }}
