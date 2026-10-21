@@ -1320,3 +1320,9 @@ Before each substantial implementation batch:
 - [x] Document .env flag; operator controls actual BETA value (true)
 - [ ] Confirm container recreation picks up flag and onboarding works on public site
 - [ ] Before next release reconcile host uncommitted Compose with Git; never overwrite secrets or blindly switch with dirty working tree
+
+## 2026-10-21 — Invitation via Google rejected before controller
+- [x] Root cause: SecurityConfig permitted /auth/member-invitations/accept but omitted sibling /auth/member-invitations/accept-google and /auth/member-invitations/check, both used anonymously by invitation page
+- [x] Explicitly permitted check and accept-google; backend still validates invitation, verified Google email and uniqueness
+- [ ] Confirm CI and release via new immutable BETA tag; no direct server edits
+- [ ] Retest invitation Google flow without logging any tokens; verify 403/401 gone and acceptance links correct account
