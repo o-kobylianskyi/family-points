@@ -642,7 +642,14 @@
     "googleExisting": "Dieses Google-Konto ist bereits registriert.",
     "gone": "Einladung ungültig oder ersetzt. Bitte eine neue Einladung anfordern.",
     "googleFailure": "Google-Einladung konnte nicht angenommen werden (HTTP {{status}})",
-    "methodPassword": "Registrierung mit Passwort"
+    "methodPassword": "Registrierung mit Passwort",
+    "statusValid": "Einladung ist gültig (bis zu 24 Stunden nach Versand).",
+    "statusExpired": "Die Einladung ist abgelaufen. Bitte eine neue anfordern.",
+    "statusUsed": "Einladung wurde bereits angenommen. Bitte anmelden.",
+    "statusReplaced": "Dieser Link wurde durch eine neuere Einladung ersetzt. Bitte die letzte E-Mail öffnen.",
+    "statusUnknown": "Einladung nicht gefunden. Prüfen Sie die letzte E-Mail.",
+    "statusInvalid": "Ungültiger Einladungslink.",
+    "statusChecking": "Einladung wird geprüft…"
   },
   "groupPageUi": {
     "description": "Gruppenbereich",
