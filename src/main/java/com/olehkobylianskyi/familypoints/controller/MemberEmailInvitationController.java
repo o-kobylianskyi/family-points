@@ -27,6 +27,13 @@ public class MemberEmailInvitationController {
         invitations.issue(workspaceId, memberId, request.email());
     }
 
+    public record AcceptGoogleRequest(@NotBlank String token, @NotBlank String idToken) {}
+
+    @PostMapping("/auth/member-invitations/accept-google")
+    public void acceptGoogle(@Valid @RequestBody AcceptGoogleRequest request) {
+        invitations.acceptWithGoogle(request.token(), request.idToken());
+    }
+
     @PostMapping("/auth/member-invitations/accept")
     public void accept(@Valid @RequestBody AcceptRequest request) {
         invitations.accept(request.token(), request.username(), request.password());
