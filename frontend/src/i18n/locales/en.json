@@ -555,7 +555,8 @@
     "pending": "Invitation pending",
     "noAccount": "No account",
     "groupTitle": "Groups",
-    "memberAdd": "Add member"
+    "memberAdd": "Add member",
+    "createdNoAccess": "Member created, but access could not be configured: {{error}}. The profile exists; do not create it again."
   },
   "memberEditorUi": {
     "access": "Member access",
@@ -575,7 +576,16 @@
     "nameRequired": "Enter a name and role",
     "usernameInvalid": "Username: 3–64 characters, Latin letters, numbers, period, _ or -",
     "passwordInvalid": "Password must have at least 8 characters and match confirmation",
-    "emailInvalid": "Enter a valid email invitation address"
+    "emailInvalid": "Enter a valid email invitation address",
+    "required": "Enter name and role",
+    "deleteConfirm": "Delete member? Task, points, and reward history will remain, showing the member as Deleted.",
+    "editTitle": "Edit member",
+    "createTitle": "New member",
+    "name": "Name",
+    "type": "Type",
+    "role": "Workspace role",
+    "delete": "Delete",
+    "save": "Save"
   },
   "accountRegisterUi": {
     "title": "New FamilyPoints account",
@@ -903,7 +913,15 @@
     "historyDefinitionCreated": "created the task",
     "historyDefinitionUpdated": "updated the task",
     "historyDefinitionActivated": "activated the task",
-    "historyDefinitionDeactivated": "deactivated the task"
+    "historyDefinitionDeactivated": "deactivated the task",
+    "slotsInvalid": "Enter a valid time for each execution or disable multiple executions.",
+    "slotsDuplicate": "Execution times must not repeat.",
+    "subtaskFor": "Subtask for #{{id}}",
+    "slotsToggle": "Multiple executions on selected date or throughout the day",
+    "slotsHint": "Specify the time for each execution. One-time tasks use the selected date; recurring tasks use their respective days.",
+    "occurrence": "Execution {{count}}",
+    "removeSlot": "Remove",
+    "anotherSlot": "+ Add another execution"
   },
   "familyDemoUi": {
     "sampleFamily": "Demo family",
