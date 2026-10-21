@@ -1326,3 +1326,12 @@ Before each substantial implementation batch:
 - [x] Explicitly permitted check and accept-google; backend still validates invitation, verified Google email and uniqueness
 - [ ] Confirm CI and release via new immutable BETA tag; no direct server edits
 - [ ] Retest invitation Google flow without logging any tokens; verify 403/401 gone and acceptance links correct account
+
+## 2026-10-22 — Android first direct distribution without Google Play
+- [x] Create localized public /download landing (UA/DE/EN/RU) linked from login and Sidebar
+- [x] Stage APK endpoint /downloads/familypoints-beta.apk served as proper APK MIME, 404 when absent
+- [x] Bind separate ./downloads:/usr/share/nginx/html/downloads:ro in BETA Compose; ignore APKs and signing keys in Git
+- [x] Document Android signed release, versionCode, repeatable manual publish and SHA-256
+- [ ] CI check and tag next approved beta release
+- [ ] Operator generate and securely back up permanent signing key, build signed release APK, verify device compatibility
+- [ ] Publish APK to VPS only after full web release, confirm link/status/checksum and test actual phone install/update
