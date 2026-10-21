@@ -27,6 +27,8 @@ export default function GoogleAuthButton({ onCredential, disabled = false }) {
       if (cancelled || !window.google?.accounts?.id) return
       window.google.accounts.id.initialize({
         client_id: clientId,
+        ux_mode: 'popup',
+        auto_select: false,
         callback: result => { if (!cancelled && result.credential) callback.current(result.credential) },
       })
 
