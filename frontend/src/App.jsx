@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import AppLayout from './components/AppLayout'
 
 import LoginPage from './pages/LoginPage'
+import DownloadAppPage from './pages/DownloadAppPage'
 import ChooseFamilyPage from './pages/ChooseFamilyPage'
 import RegisterAccountPage from './pages/RegisterAccountPage'
 import EmailActionPage from './pages/EmailActionPage'
@@ -32,6 +33,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/download" element={<DownloadAppPage />} />
           <Route path="/register" element={<RegisterFamilyPage />} />
           <Route path="/choose-family" element={<ChooseFamilyPage />} />
           <Route path="/register-account" element={<RegisterAccountPage />} />
