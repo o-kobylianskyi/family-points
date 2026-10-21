@@ -1252,3 +1252,6 @@ Before each substantial implementation batch:
 - [x] Task API failure messages now include HTTP status and endpoint for precise diagnosis of `Authentication is required`
 - [ ] User pull + backend restart + inspect precise task endpoint error; successful password setup/login check
 - [ ] CI recheck after latest commits
+
+- [x] TaskSuggestionPanel UI: replace unstyled `.modal-overlay/.modal-content` layout with existing modal-backdrop/modal-card shell, stacked full-width fields, spaced submit, scrollable content, responsive mobile sizing and separated footer
+- [ ] Confirm browser rendering after pull + Vite build; no backend/DB changes needed
