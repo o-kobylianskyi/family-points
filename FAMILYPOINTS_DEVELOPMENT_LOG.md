@@ -1188,3 +1188,11 @@
 - Web MembersPage renders account email beneath member name with wrap-safe styling only for member managers; members without linked contact email show no extra row.
 - Added unit regression tests for admin scoped linked account, legacy fallback and VIEW_WORKSPACE privacy; local Maven/Vite tests not yet run.
 - No changes to Contabo BETA or DEV PostgreSQL; Android member-card parity remains separate (Android cache includes sensitive data, so assess before extending DTO/client storage).
+
+## 2026-10-21 — Participant account status + email across Web/Android (COMMITTED, NOT BUILD-VERIFIED)
+- Continued after operator confirmed working member invitation flow and requested the next packet. Expanded manager-only `GET /workspaces/{workspaceId}/members` with `accessStatus` (ACTIVE, DISABLED, PENDING_INVITATION, NO_ACCOUNT), optional linked `accountEmail` and separate pending `invitationEmail`. Non-managers get neither statuses nor contact addresses. Pending invitation state comes only from unconsumed/unrevoked/unexpired V33 rows; status/email are not persisted to family member table.
+- Web participant cards display status plus linked or invited email. Web member editor explicitly allows resend for pending invite using the existing issue API, prepopulates pending address, states the two-minute cooldown/old-link revocation, and hides invalid second-account/invite choices after account linkage.
+- Android MembersScreen displays the same manager-only email/status when online and presents pending-resend/linked-account UI with translations. Kotlin WorkspaceMemberResponse accepts optional server fields.
+- Security: Android OfflineMembersStore strips accountEmail/invitationEmail/accessStatus from BOTH offline members and page snapshot SharedPreferences. Offline member cards do not display private contacts or stale invitation state.
+- Added/extended Java controller tests for status mapping, no-account/pending cases and manager-only privacy; compile/run pending operator local Maven + Vite + Android build. Previous Maven full suite attempt on 2026-10-21 was blocked by Docker Desktop Linux Engine unavailable, not assertion failures.
+- No Flyway changes, no DEV database writes, no Contabo BETA modifications, no Docker operations from GitHub integration.
