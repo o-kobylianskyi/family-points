@@ -1196,3 +1196,8 @@
 - Security: Android OfflineMembersStore strips accountEmail/invitationEmail/accessStatus from BOTH offline members and page snapshot SharedPreferences. Offline member cards do not display private contacts or stale invitation state.
 - Added/extended Java controller tests for status mapping, no-account/pending cases and manager-only privacy; compile/run pending operator local Maven + Vite + Android build. Previous Maven full suite attempt on 2026-10-21 was blocked by Docker Desktop Linux Engine unavailable, not assertion failures.
 - No Flyway changes, no DEV database writes, no Contabo BETA modifications, no Docker operations from GitHub integration.
+
+## 2026-10-21 — Google Sign-In button localization and layout
+- User screenshot: Google Sign-In iframe appeared narrow (250px) and Russian even when FamilyPoints UI was Deutsch.
+- Fixed frontend/src/components/GoogleAuthButton.jsx: load GIS script with language-specific ?hl plus renderButton locale; recreate button on language switch; responsive iframe width up to Google's 400px maximum via ResizeObserver. CSS centers and stretches the Google button container.
+- GitHub commits 4fad553 and b3e3153. Local manual browser and Vite build still pending.
