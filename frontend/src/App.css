@@ -327,6 +327,23 @@ input {
   overflow-wrap: anywhere;
 }
 
+.member-access-status {
+  margin-top: 4px;
+  color: #73798c;
+  font-size: 12px;
+}
+
+.member-access-status.pending {
+  color: #91651c;
+}
+
+.member-access-hint {
+  margin: 6px 0 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #6d7485;
+}
+
 .member-type {
   margin-top: 3px;
   color: #7b8192;
