@@ -874,7 +874,8 @@
     "deactivate": "Deactivate",
     "activate": "Activate",
     "history": "History",
-    "noHistory": "No history yet."
+    "noHistory": "No history yet.",
+    "approveChildCompletion": "Approve child's completion and award points"
   },
   "tasksUi": {
     "myTasks": "My tasks",
