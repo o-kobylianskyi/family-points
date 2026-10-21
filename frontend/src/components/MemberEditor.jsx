@@ -1,3 +1,4 @@
+import UsernameAvailability from './UsernameAvailability'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
@@ -120,7 +121,7 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
           </label>}
           {accessMode === 'account' && <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
             <p>{t('memberEditorUi.loginInfo')}</p>
-            <label>{t('memberEditorUi.childUsername')}<input autoComplete="off" value={childUsername} onChange={e => setChildUsername(e.target.value)} required /></label>
+            <label>{t('memberEditorUi.childUsername')}<input autoComplete="off" value={childUsername} onChange={e => setChildUsername(e.target.value)} required /><UsernameAvailability username={childUsername} /></label>
             <label>{t('memberEditorUi.password')}<input type="password" autoComplete="new-password" value={childPassword} onChange={e => setChildPassword(e.target.value)} minLength={8} required /></label>
             <label>{t('memberEditorUi.confirmPassword')}<input type="password" autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} minLength={8} required /></label>
           </div>}
