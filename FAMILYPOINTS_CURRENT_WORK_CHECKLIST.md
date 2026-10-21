@@ -1255,3 +1255,11 @@ Before each substantial implementation batch:
 
 - [x] TaskSuggestionPanel UI: replace unstyled `.modal-overlay/.modal-content` layout with existing modal-backdrop/modal-card shell, stacked full-width fields, spaced submit, scrollable content, responsive mobile sizing and separated footer
 - [ ] Confirm browser rendering after pull + Vite build; no backend/DB changes needed
+
+## 2026-10-21 — Rewards cross-family task picker
+- [x] Replace list of task checkboxes with repeatable single-select dropdown + Add and remove chosen tasks
+- [x] Add Create New Task link opening the task editor from Rewards
+- [x] Reset tasks/reward form on workspace switch, reject stale asynchronous load results and check workspaceId if returned
+- [x] Localize all picker states in UK/DE/EN/RU; CSS responsive
+- [ ] Confirm why task #42 appeared in a supposedly task-free family (server repository scopes workspaceId; user needs to verify selected family and current request)
+- [ ] CI after latest commits and browser verification
