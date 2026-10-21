@@ -1232,3 +1232,8 @@
 
 ## 2026-10-21 — Task suggestion modal layout
 - User screenshot shows inline labels, narrow input, misplaced textarea/submit and unstyled layout. Rebuilt TaskSuggestionPanel using scoped task-suggestion-* classes, existing modal-backdrop/modal-card conventions and responsive full-width form, list and footer. CSS in frontend/src/App.css. No server/DB/deployment changes. Await Web CI and browser check.
+
+## 2026-10-21 — Reward task conditions and workspace selection
+- User screenshot shows task #42 inside BEFORE/AFTER reward conditions, despite claiming no tasks in selected family. Backend getDefinitions(workspaceId) already queries findByWorkspaceIdAndActiveTrueOrderByIdAsc and applies canRead. Actual source of displayed ID not yet verified (possible family selection/old async result); no unsupported claim that DB leaks across workspace.
+- RewardsPage now resets stale task options on workspace changes and ignores responses from prior workspace; options filter by returned workspaceId when available. Replaced all task checkboxes with a repeatable task dropdown + Add, selected removable items, and a create-task button routing to /tasks?create=1 where an authorized user can open new task editor.
+- All localized UK/DE/EN/RU, responsive styles. No DB changes or Contabo deployment. Browser/CI check pending.
