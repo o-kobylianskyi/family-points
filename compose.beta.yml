@@ -57,6 +57,8 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:${BETA_HTTP_PORT:-18080}:80"
+    volumes:
+      - ./downloads:/usr/share/nginx/html/downloads:ro
     depends_on: [backend]
     networks: [internal]
 
