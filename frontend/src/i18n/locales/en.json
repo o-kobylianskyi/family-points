@@ -960,5 +960,17 @@
     "mismatch": "Passwords do not match",
     "invalid": "Password must be 8 to 128 characters long",
     "error": "Could not set password (HTTP {{status}}). Verify you selected the linked Google account."
+  },
+  "memberFormUi": {
+    "editTitle": "Edit member",
+    "createTitle": "New member",
+    "name": "Name",
+    "type": "Type",
+    "role": "Workspace role",
+    "required": "Enter name and role",
+    "deleteConfirm": "Delete member? History will be retained.",
+    "delete": "Delete",
+    "save": "Save",
+    "saving": "Saving…"
   }
 }
