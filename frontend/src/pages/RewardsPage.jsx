@@ -235,7 +235,7 @@ function RewardsPage() {
     setNotice('')
     try {
       await action()
-      setNotice(`Нагороду «${rewardTitle}» отримано. Баланс оновлено.`)
+      setNotice(t('rewardsUi.received', { title: rewardTitle }))
       await loadAll()
     } catch (actionError) {
       setError(actionError.message)
@@ -440,55 +440,55 @@ function RewardsPage() {
   }
 
   const requestStatusLabel = (status) => ({
-    REQUESTED: 'Очікує рішення',
-    APPROVED: 'Схвалено',
-    WAITING_REQUIREMENTS: 'Очікує виконання умов',
-    READY_TO_PURCHASE: 'Можна отримати',
-    PURCHASED: 'Отримано',
-    REJECTED: 'Відхилено',
-    CANCELLED: 'Скасовано',
+    REQUESTED: t('rewardsUi.statusRequested'),
+    APPROVED: t('rewardsUi.statusApproved'),
+    WAITING_REQUIREMENTS: t('rewardsUi.statusWait'),
+    READY_TO_PURCHASE: t('rewardsUi.statusReady'),
+    PURCHASED: t('rewardsUi.statusPurchased'),
+    REJECTED: t('rewardsUi.statusRejected'),
+    CANCELLED: t('rewardsUi.statusCancelled'),
   }[status] || status)
 
   const acquisitionLabel = (mode) => ({
-    DIRECT: 'Без запиту',
-    REQUEST: 'Тільки за запитом',
-    DIRECT_OR_REQUEST: 'Напряму або за запитом',
+    DIRECT: t('rewardsUi.acquisitionDirect'),
+    REQUEST: t('rewardsUi.acquisitionRequest'),
+    DIRECT_OR_REQUEST: t('rewardsUi.acquisitionEither'),
   }[mode] || mode)
 
   if (loading) {
-    return <div className="page-loading">Завантаження…</div>
+    return <div className="page-loading">{t('common.loading')}</div>
   }
 
   return (
     <div className="rewards-page">
       <div className="page-title">
         <div>
-          <h1>Нагороди</h1>
-          <p>Каталог винагород, запити, умови та авансові домовленості.</p>
+          <h1>{t('rewardsUi.title')}</h1>
+          <p>{t('rewardsUi.description')}</p>
         </div>
       </div>
 
       {error && <div className="page-error" role="alert">{error}</div>}
       {notice && <div className="reward-obligation-banner" role="status">✓ {notice}</div>}
-      <section className="reward-obligation-banner" aria-label="Ваш баланс">
-        <strong>Ваші поточні бали та репутація</strong>
+      <section className="reward-obligation-banner" aria-label={t("rewardsUi.yourBalance")}>
+        <strong>{t('rewardsUi.yourPoints')}</strong>
         <div className="reward-tags">
           {balances.length ? balances.map((item) => (
             <span key={item.pointTypeId}>{pointAmountLabel(item.balance, item.pointTypeId, item.code)}</span>
-          )) : <span>Баланс не завантажено</span>}
-          {reputation !== null && <span>Репутація: {reputation}</span>}
+          )) : <span>{t('rewardsUi.balanceNotLoaded')}</span>}
+          {reputation !== null && <span>{t('rewardsUi.reputation')}: {reputation}</span>}
         </div>
       </section>
 
       {obligations.length > 0 && (
         <section className="reward-obligation-banner">
-          <strong>Невиконані домовленості після нагород</strong>
+          <strong>{t('rewardsUi.outstanding')}</strong>
           {obligations.map((obligation) => (
             <div key={obligation.id} className="reward-obligation-row">
               <span>
                 {obligation.memberName}: {obligation.title}
                 {' · '}
-                після «{obligation.rewardTitle}»
+                {t('rewardsUi.afterReward', { title: obligation.rewardTitle })}
               </span>
               <span>{obligation.blockingMode}</span>
             </div>
@@ -502,14 +502,14 @@ function RewardsPage() {
           className={pageTab === 'catalog' ? 'page-tab active' : 'page-tab'}
           onClick={() => setPageTab('catalog')}
         >
-          Каталог
+          {t('rewardsUi.catalog')}
         </button>
         <button
           type="button"
           className={pageTab === 'requests' ? 'page-tab active' : 'page-tab'}
           onClick={() => setPageTab('requests')}
         >
-          Запити ({requests.length})
+          {t('rewardsUi.requests', { count: requests.length })}
         </button>
         {canManage && (
           <button
@@ -517,7 +517,7 @@ function RewardsPage() {
             className={pageTab === 'manage' ? 'page-tab active' : 'page-tab'}
             onClick={() => setPageTab('manage')}
           >
-            Налаштування
+            {t('rewardsUi.settings')}
           </button>
         )}
       </div>
@@ -527,8 +527,8 @@ function RewardsPage() {
           <section className="rewards-grid">
             {rewards.length === 0 ? (
               <div className="empty-state">
-                <strong>Нагород ще немає</strong>
-                <p>Батьки можуть створити перші нагороди у вкладці «Налаштування».</p>
+                <strong>{t('rewardsUi.emptyRewards')}</strong>
+                <p>{t('rewardsUi.emptyRewardsHelp')}</p>
               </div>
             ) : rewards.map((reward) => (
               <article className="reward-card" key={reward.id}>
@@ -544,10 +544,10 @@ function RewardsPage() {
 
                 {reward.requirements?.length > 0 && (
                   <div className="reward-requirements-summary">
-                    <strong>Умови:</strong>
+                    <strong>{t('rewardsUi.conditions')}</strong>
                     {reward.requirements.map((requirement) => (
                       <div key={requirement.id}>
-                        {requirement.phase === 'AFTER_REWARD' ? 'Після нагороди: ' : 'До нагороди: '}
+                        {requirement.phase === 'AFTER_REWARD' ? t('rewardsUi.after') : t('rewardsUi.before')}
                         {requirement.taskTitle || requirement.description || requirement.requirementType}
                       </div>
                     ))}
@@ -560,17 +560,17 @@ function RewardsPage() {
                   ))}
                   <span>{acquisitionLabel(reward.acquisitionMode)}</span>
                   {reward.cooldownSeconds > 0 && (
-                    <span>Пауза для цієї нагороди: {reward.cooldownSeconds} с</span>
+                    <span>{t('rewardsUi.cooldown', { seconds: reward.cooldownSeconds })}</span>
                   )}
                   {reward.minimumReputation != null && (
-                    <span>Репутація ≥ {reward.minimumReputation}</span>
+                    <span>{t('rewardsUi.reputationMin', { value: reward.minimumReputation })}</span>
                   )}
                   {reward.rewardKind === 'TIME_BASED' && (
                     <span>
-                      Часова
+                      {t('rewardsUi.timeBased')}
                       {reward.defaultDurationMinutes
-                        ? ` · ${reward.defaultDurationMinutes} хв`
-                        : ' · за домовленістю'}
+                        ? ` · ${t('rewardsUi.minuteSuffix', { value: reward.defaultDurationMinutes })}`
+                        : ` · ${t('rewardsUi.byAgreement')}`}
                     </span>
                   )}
                 </div>
@@ -579,7 +579,7 @@ function RewardsPage() {
                   {canManage && (
                     <button type="button" className="secondary-button" disabled={processing}
                       onClick={() => beginEditReward(reward)}>
-                      Редагувати
+                      {t('rewardsUi.edit')}
                     </button>
                   )}
                   {myRequestForReward(reward.id)?.status === 'READY_TO_PURCHASE' && (
@@ -587,7 +587,7 @@ function RewardsPage() {
                       onClick={() => purchaseOnce(`reward:${reward.id}`, () => purchaseRewardRequest(
                         getAccessToken(), currentUser.workspaceId, myRequestForReward(reward.id).id
                       ), reward.title)}>
-                      Отримати
+                      {t('rewardsUi.receive')}
                     </button>
                   )}
                   {myRequestForReward(reward.id) &&
@@ -607,7 +607,7 @@ function RewardsPage() {
                         ), reward.title
                       )}
                     >
-                      Отримати
+                      {t('rewardsUi.receive')}
                     </button>
                   )}
 
@@ -618,7 +618,7 @@ function RewardsPage() {
                       disabled={processing}
                       onClick={() => requestCatalogReward(reward)}
                     >
-                      Попросити
+                      {t('rewardsUi.ask')}
                     </button>
                   )}
                 </div>
@@ -627,24 +627,24 @@ function RewardsPage() {
           </section>
 
           <section className="reward-request-box">
-            <h2>Хочу іншу нагороду</h2>
-            <p>Наприклад: «хочу велосипед» або «хочу ще 30 хвилин пограти».</p>
+            <h2>{t('rewardsUi.customTitle')}</h2>
+            <p>{t('rewardsUi.customExample')}</p>
             <form onSubmit={createCustomRequest} className="reward-request-form">
               <input
                 value={customRequestTitle}
                 maxLength={150}
-                placeholder="Що ви хочете?"
+                placeholder={t("rewardsUi.whatWant")}
                 onChange={(event) => setCustomRequestTitle(event.target.value)}
               />
               <textarea
                 value={customRequestDescription}
                 rows={2}
                 maxLength={1000}
-                placeholder="Коментар (необов'язково)"
+                placeholder={t("rewardsUi.commentOptional")}
                 onChange={(event) => setCustomRequestDescription(event.target.value)}
               />
               <button type="submit" className="primary-button" disabled={processing}>
-                Надіслати запит
+                {t('rewardsUi.send')}
               </button>
             </form>
           </section>
@@ -654,7 +654,7 @@ function RewardsPage() {
       {pageTab === 'requests' && (
         <section className="reward-request-list">
           {requests.length === 0 ? (
-            <div className="empty-state">Запитів поки немає.</div>
+            <div className="empty-state">{t('rewardsUi.requestsEmpty')}</div>
           ) : requests.map((request) => (
             <article className="reward-request-card" key={request.id}>
               <div className="reward-request-head">
@@ -669,22 +669,22 @@ function RewardsPage() {
 
               {request.priceAmount != null && (
                 <div className="reward-request-price">
-                  Ціна: <strong>{pointAmountLabel(request.priceAmount, request.pointTypeId, request.pointTypeCode)}</strong>
+                  {t('rewardsUi.price')} <strong>{pointAmountLabel(request.priceAmount, request.pointTypeId, request.pointTypeCode)}</strong>
                   {request.durationMinutes
-                    ? <span> · {request.durationMinutes} хв</span>
+                    ? <span> · {t('rewardsUi.minuteSuffix', { value: request.durationMinutes })}</span>
                     : ''}
                 </div>
               )}
 
               {request.requirements?.length > 0 && (
                 <div className="reward-requirements-summary">
-                  <strong>Умови:</strong>
+                  <strong>{t('rewardsUi.conditions')}</strong>
                   {request.requirements.map((requirement) => (
                     <div key={requirement.id}>
-                      {requirement.phase === 'AFTER_REWARD' ? 'Після нагороди: ' : 'До нагороди: '}
+                      {requirement.phase === 'AFTER_REWARD' ? t('rewardsUi.after') : t('rewardsUi.before')}
                       {requirement.taskTitle || requirement.description || requirement.requirementType}
                       {requirement.phase === 'AFTER_REWARD' && requirement.blockingMode !== 'NONE'
-                        ? ` · блокування: ${requirement.blockingMode}`
+                        ? ` · ${t('rewardsUi.blocking', { mode: requirement.blockingMode })}`
                         : ''}
                     </div>
                   ))}
@@ -694,7 +694,7 @@ function RewardsPage() {
               {canManage && request.status === 'REQUESTED' && reviewingRequestId !== request.id && (
                 <div className="reward-actions">
                   <button type="button" className="primary-button" onClick={() => beginReview(request)}>
-                    Налаштувати й схвалити
+                    {t('rewardsUi.reviewApprove')}
                   </button>
                   <button
                     type="button"
@@ -708,7 +708,7 @@ function RewardsPage() {
                       )
                     )}
                   >
-                    Відхилити
+                    {t('rewardsUi.reject')}
                   </button>
                 </div>
               )}
@@ -717,7 +717,7 @@ function RewardsPage() {
                 <div className="reward-review-panel">
                   <div className="reward-form-grid">
                     <label>
-                      <span>Тип балів</span>
+                      <span>{t('rewardsUi.pointType')}</span>
                       <select
                         value={reviewForm.pointTypeId}
                         onChange={(event) => setReviewForm({
@@ -731,7 +731,7 @@ function RewardsPage() {
                       </select>
                     </label>
                     <label>
-                      <span>Ціна</span>
+                      <span>{t('rewardsUi.priceLabel')}</span>
                       <input
                         type="number"
                         min="0"
@@ -743,12 +743,12 @@ function RewardsPage() {
                       />
                     </label>
                     <label>
-                      <span>Мінімальна репутація</span>
+                      <span>{t('rewardsUi.minimumReputation')}</span>
                       <input
                         type="number"
                         min="0"
                         value={reviewForm.minimumReputation}
-                        placeholder="Без обмеження"
+                        placeholder={t("rewardsUi.unrestricted")}
                         onChange={(event) => setReviewForm({
                           ...reviewForm,
                           minimumReputation: event.target.value,
@@ -757,12 +757,12 @@ function RewardsPage() {
                     </label>
                     {rewards.find((item) => item.id === request.rewardDefinitionId)?.rewardKind === 'TIME_BASED' && (
                       <label>
-                        <span>Тривалість, хв</span>
+                        <span>{t('rewardsUi.durationMinutes')}</span>
                         <input
                           type="number"
                           min="1"
                           value={reviewForm.durationMinutes}
-                          placeholder="Будь-яка"
+                          placeholder={t("rewardsUi.any")}
                           onChange={(event) => setReviewForm({
                             ...reviewForm,
                             durationMinutes: event.target.value,
@@ -773,7 +773,7 @@ function RewardsPage() {
                   </div>
 
                   <TaskConditionPicker
-                    title="Виконати ДО нагороди"
+                    title={t("rewardsUi.beforeTask")}
                     tasks={tasks}
                     selected={reviewForm.beforeTaskIds}
                     onToggle={(id) => setReviewForm({
@@ -783,7 +783,7 @@ function RewardsPage() {
                   />
 
                   <TaskConditionPicker
-                    title="Виконати ПІСЛЯ нагороди (аванс)"
+                    title={t("rewardsUi.afterTask")}
                     tasks={tasks}
                     selected={reviewForm.afterTaskIds}
                     onToggle={(id) => setReviewForm({
@@ -803,10 +803,10 @@ function RewardsPage() {
 
                   <div className="reward-actions">
                     <button type="button" className="primary-button" disabled={processing} onClick={() => approveRequest(request.id)}>
-                      Схвалити
+                      {t('rewardsUi.approve')}
                     </button>
                     <button type="button" className="secondary-button" onClick={() => setReviewingRequestId(null)}>
-                      Скасувати
+                      {t('rewardsUi.cancel')}
                     </button>
                   </div>
                 </div>
@@ -825,7 +825,7 @@ function RewardsPage() {
                     )
                   )}
                 >
-                  Перевірити умови
+                  {t('rewardsUi.checkConditions')}
                 </button>
               )}
 
@@ -842,7 +842,7 @@ function RewardsPage() {
                     ), request.title
                   )}
                 >
-                  Отримати нагороду
+                  {t('rewardsUi.claim')}
                 </button>
               )}
             </article>
@@ -853,7 +853,7 @@ function RewardsPage() {
       {pageTab === 'manage' && canManage && (
         <div className="reward-manage-layout">
           <section className="reward-admin-panel">
-            <h2>Категорії</h2>
+            <h2>{t('rewardsUi.categories')}</h2>
             <div className="reward-tags">
               {categories.map((category) => (
                 <span key={category.id}>{category.name}</span>
@@ -862,21 +862,21 @@ function RewardsPage() {
             <form onSubmit={createCategory} className="reward-inline-form">
               <input
                 value={categoryName}
-                placeholder="Нова категорія"
+                placeholder={t("rewardsUi.newCategory")}
                 maxLength={100}
                 onChange={(event) => setCategoryName(event.target.value)}
               />
               <button type="submit" className="secondary-button" disabled={processing}>
-                Додати
+                {t('rewardsUi.add')}
               </button>
             </form>
           </section>
 
           <section className="reward-admin-panel">
-            <h2>{editingRewardId != null ? 'Редагування нагороди' : 'Нова нагорода'}</h2>
+            <h2>{editingRewardId != null ? t('rewardsUi.editReward') : t('rewardsUi.newReward')}</h2>
             <form onSubmit={createCatalogReward} className="reward-editor">
               <label>
-                <span>Назва</span>
+                <span>{t('rewardsUi.name')}</span>
                 <input
                   required
                   maxLength={150}
@@ -889,7 +889,7 @@ function RewardsPage() {
               </label>
 
               <label>
-                <span>Опис</span>
+                <span>{t('rewardsUi.descriptionLabel')}</span>
                 <textarea
                   rows={2}
                   maxLength={1000}
@@ -903,7 +903,7 @@ function RewardsPage() {
 
               <div className="reward-form-grid">
                 <label>
-                  <span>Тип балів</span>
+                  <span>{t('rewardsUi.pointType')}</span>
                   <select
                     value={rewardForm.pointTypeId}
                     onChange={(event) => setRewardForm({
@@ -918,7 +918,7 @@ function RewardsPage() {
                 </label>
 
                 <label>
-                  <span>Ціна</span>
+                  <span>{t('rewardsUi.priceLabel')}</span>
                   <input
                     type="number"
                     min="0"
@@ -931,48 +931,48 @@ function RewardsPage() {
                 </label>
 
                 <label>
-                  <span>Пауза між повторними отриманнями (секунди)</span>
+                  <span>{t('rewardsUi.cooldownLabel')}</span>
                   <input type="number" min="0" value={rewardForm.cooldownSeconds}
                     onChange={(event) => setRewardForm({
                       ...rewardForm, cooldownSeconds: event.target.value
                     })} />
-                  <small>0 — без обмеження, 30 — захист від випадкового подвійного натискання.</small>
+                  <small>{t('rewardsUi.cooldownHelp')}</small>
                 </label>
 
                 <div className="reward-form-grid">
                   <label>
-                    <span>Особистий ліміт за весь час</span>
-                    <input type="number" min="1" placeholder="Без обмежень"
+                    <span>{t('rewardsUi.memberTotal')}</span>
+                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.memberTotalLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, memberTotalLimit: event.target.value })} />
                   </label>
                   <label>
-                    <span>Особистий ліміт на день</span>
-                    <input type="number" min="1" placeholder="Без обмежень"
+                    <span>{t('rewardsUi.memberDaily')}</span>
+                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.memberDailyLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, memberDailyLimit: event.target.value })} />
                   </label>
                   <label>
-                    <span>Особистий ліміт на тиждень</span>
-                    <input type="number" min="1" placeholder="Без обмежень"
+                    <span>{t('rewardsUi.memberWeekly')}</span>
+                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.memberWeeklyLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, memberWeeklyLimit: event.target.value })} />
                   </label>
                   <label>
-                    <span>Спільний ліміт сім'ї за весь час</span>
-                    <input type="number" min="1" placeholder="Без обмежень"
+                    <span>{t('rewardsUi.workspaceTotal')}</span>
+                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.workspaceTotalLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, workspaceTotalLimit: event.target.value })} />
                   </label>
                   <label>
-                    <span>Спільний ліміт сім'ї на день</span>
-                    <input type="number" min="1" placeholder="Без обмежень"
+                    <span>{t('rewardsUi.workspaceDaily')}</span>
+                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.workspaceDailyLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, workspaceDailyLimit: event.target.value })} />
                   </label>
                   <label>
-                    <span>Спільний ліміт сім'ї на тиждень</span>
-                    <input type="number" min="1" placeholder="Без обмежень"
+                    <span>{t('rewardsUi.workspaceWeekly')}</span>
+                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.workspaceWeeklyLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, workspaceWeeklyLimit: event.target.value })} />
                   </label>
@@ -980,16 +980,16 @@ function RewardsPage() {
                 <label className="form-checkbox">
                   <input type="checkbox" checked={rewardForm.extraRequestAllowed}
                     onChange={event => setRewardForm({ ...rewardForm, extraRequestAllowed: event.target.checked })} />
-                  <span>Дозволяти запити на додаткове отримання понад ліміт (механізм схвалення — в розробці)</span>
+                  <span>{t('rewardsUi.extraRequests')}</span>
                 </label>
 
                 <label>
-                  <span>Мінімальна репутація</span>
+                  <span>{t('rewardsUi.minimumReputation')}</span>
                   <input
                     type="number"
                     min="0"
                     value={rewardForm.minimumReputation}
-                    placeholder="Без обмеження"
+                    placeholder={t("rewardsUi.unrestricted")}
                     onChange={(event) => setRewardForm({
                       ...rewardForm,
                       minimumReputation: event.target.value,
@@ -998,7 +998,7 @@ function RewardsPage() {
                 </label>
 
                 <label>
-                  <span>Отримання</span>
+                  <span>{t('rewardsUi.acquisition')}</span>
                   <select
                     value={rewardForm.acquisitionMode}
                     onChange={(event) => setRewardForm({
@@ -1006,14 +1006,14 @@ function RewardsPage() {
                       acquisitionMode: event.target.value,
                     })}
                   >
-                    <option value="DIRECT">Без запиту</option>
-                    <option value="REQUEST">Тільки за запитом</option>
-                    <option value="DIRECT_OR_REQUEST">Напряму або за запитом</option>
+                    <option value="DIRECT">{t('rewardsUi.acquisitionDirect')}</option>
+                    <option value="REQUEST">{t('rewardsUi.acquisitionRequest')}</option>
+                    <option value="DIRECT_OR_REQUEST">{t('rewardsUi.acquisitionEither')}</option>
                   </select>
                 </label>
 
                 <label>
-                  <span>Тип нагороди</span>
+                  <span>{t('rewardsUi.rewardKind')}</span>
                   <select
                     value={rewardForm.rewardKind}
                     onChange={(event) => setRewardForm({
@@ -1025,19 +1025,19 @@ function RewardsPage() {
                           : '',
                     })}
                   >
-                    <option value="STANDARD">Звичайна / предмет</option>
-                    <option value="TIME_BASED">Часова</option>
+                    <option value="STANDARD">{t("rewardsUi.standard")}</option>
+                    <option value="TIME_BASED">{t("rewardsUi.timeBased")}</option>
                   </select>
                 </label>
 
                 {rewardForm.rewardKind === 'TIME_BASED' && (
                   <label>
-                    <span>Типова тривалість, хв</span>
+                    <span>{t('rewardsUi.defaultDuration')}</span>
                     <input
                       type="number"
                       min="1"
                       value={rewardForm.defaultDurationMinutes}
-                      placeholder="За домовленістю"
+                      placeholder={t("rewardsUi.byAgreement")}
                       onChange={(event) => setRewardForm({
                         ...rewardForm,
                         defaultDurationMinutes: event.target.value,
@@ -1056,11 +1056,11 @@ function RewardsPage() {
                     requiresApproval: event.target.checked,
                   })}
                 />
-                <span>Потрібне підтвердження дорослим</span>
+                <span>{t('rewardsUi.requiresApproval')}</span>
               </label>
 
               <div>
-                <strong>Категорії</strong>
+                <strong>{t('rewardsUi.categories')}</strong>
                 <div className="reward-checkbox-grid">
                   {categories.map((category) => (
                     <label className="form-checkbox" key={category.id}>
@@ -1108,20 +1108,20 @@ function RewardsPage() {
               )}
 
               <button type="submit" className="primary-button" disabled={processing}>
-                {editingRewardId != null ? 'Зберегти зміни' : 'Створити нагороду'}
+                {editingRewardId != null ? t('rewardsUi.saveChanges') : t('rewardsUi.createReward')}
               </button>
               {editingRewardId != null && (
                 <button type="button" className="secondary-button" onClick={cancelEditReward} disabled={processing}>
-                  Скасувати редагування
+                  {t('rewardsUi.cancelEditing')}
                 </button>
               )}
             </form>
           </section>
 
           <section className="reward-admin-panel">
-            <h2>Останні отримання</h2>
+            <h2>{t('rewardsUi.recentPurchases')}</h2>
             {purchases.length === 0 ? (
-              <p>Ще немає.</p>
+              <p>{t('rewardsUi.noneYet')}</p>
             ) : purchases.slice(0, 10).map((purchase) => (
               <div className="reward-purchase-row" key={purchase.id}>
                 <strong>{purchase.rewardTitle}</strong>
@@ -1137,10 +1137,11 @@ function RewardsPage() {
 }
 
 function TaskConditionPicker({ title, tasks, selected, onToggle }) {
+  const { t } = useTranslation()
   return (
     <div className="reward-condition-picker">
       <strong>{title}</strong>
-      <small>У початковій версії перевірка виконується для сьогоднішнього TaskInstance.</small>
+      <small>{t('rewardsUi.taskTodayNote')}</small>
       <div className="reward-checkbox-grid">
         {tasks.map((task) => (
           <label className="form-checkbox" key={task.id}>
@@ -1158,9 +1159,10 @@ function TaskConditionPicker({ title, tasks, selected, onToggle }) {
 }
 
 function BlockingEditor({ categories, rewards, form, setForm }) {
+  const { t } = useTranslation()
   return (
     <div className="reward-blocking-editor">
-      <strong>Що робити, поки післяумова не виконана?</strong>
+      <strong>{t('rewardsUi.blockingQuestion')}</strong>
       <select
         value={form.blockingMode}
         onChange={(event) => setForm({
@@ -1168,11 +1170,11 @@ function BlockingEditor({ categories, rewards, form, setForm }) {
           blockingMode: event.target.value,
         })}
       >
-        <option value="NONE">Не блокувати</option>
-        <option value="WARN_ONLY">Лише попереджати</option>
-        <option value="ALL_REWARDS">Блокувати всі нагороди</option>
-        <option value="CATEGORIES">Блокувати вибрані категорії</option>
-        <option value="SPECIFIC_REWARDS">Блокувати конкретні нагороди</option>
+        <option value="NONE">{t('rewardsUi.blockNone')}</option>
+        <option value="WARN_ONLY">{t('rewardsUi.blockWarn')}</option>
+        <option value="ALL_REWARDS">{t('rewardsUi.blockAll')}</option>
+        <option value="CATEGORIES">{t('rewardsUi.blockCategories')}</option>
+        <option value="SPECIFIC_REWARDS">{t('rewardsUi.blockSpecific')}</option>
       </select>
 
       {form.blockingMode === 'CATEGORIES' && (
