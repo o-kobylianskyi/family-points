@@ -311,8 +311,20 @@ input {
   font-weight: 700;
 }
 
+.member-info {
+  flex: 1;
+  min-width: 0;
+}
+
 .member-info strong {
   display: block;
+}
+
+.member-email {
+  margin-top: 4px;
+  color: #626879;
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .member-type {
