@@ -1246,3 +1246,6 @@
 
 ## 2026-10-21 — Editable username for Google-born account
 - Google registration creates random technical `g_UUID` account login, shown unhelpfully in the personal password setup panel. Added username selection to the same Google-verified set-password request; username validation uses 3–64 Latin letters/digits/._-, case-insensitive uniqueness checked. Password and login updated atomically, external Google subject identity unchanged. Existing JWT is invalid after username change; sign out and sign in again. Styled layout in member editor to avoid cramped horizontal labels/password boxes. No DEV DB/Contabo operations. Await CI/user testing.
+
+## 2026-10-21 — Checking login availability
+- User requests an explicit check availability action beside any username field that creates or changes credentials. Added shared GET /auth/username-availability with case-insensitive lookup and syntax validation, plus reusable UsernameAvailability UI with translations UK/DE/EN/RU. Added to global signup, invitation signup, child's account creation, and Google account local login/password. Existing username of current account accepted as unchanged. A check is advisory; the backend still enforces at save time. No DB migration or Contabo changes. CI/browser verification pending.
