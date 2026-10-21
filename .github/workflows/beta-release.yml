@@ -1,0 +1,85 @@
+name: FamilyPoints BETA release gate
+on:
+  push:
+    tags:
+      - 'v*-beta.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate annotated beta tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]] || exit 1
+          git fetch --force --tags
+          [[ "$(git cat-file -t "refs/tags/$GITHUB_REF_NAME")" == "tag" ]] || {
+            echo "BETA releases require annotated tags"; exit 1;
+          }
+
+  backend:
+    needs: validate-tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: chmod +x ./mvnw && ./mvnw -B -ntp clean verify
+
+  web:
+    needs: validate-tag
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run i18n:check
+      - run: npm run build
+
+  android:
+    needs: validate-tag
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-36"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: chmod +x ./gradlew && ./gradlew --no-daemon -PfamilyPointsCiAndroidSdk=36 :app:assembleDebug :app:testDebugUnitTest
+
+  compose:
+    needs: validate-tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate BETA configuration
+        env:
+          DB_PASSWORD: ci-not-a-secret
+          JWT_SECRET: ci-not-a-secret
+        run: |
+          docker compose -f compose.beta.yml config --quiet
+          bash -n scripts/beta/deploy-release.sh
+          bash -n scripts/beta/backup.sh
+          bash -n scripts/beta/smoke.sh
