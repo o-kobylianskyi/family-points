@@ -1079,7 +1079,7 @@ function RewardsPage() {
               </div>
 
               <TaskConditionPicker
-                title="Умови ДО нагороди"
+                title={t("rewardsUi.beforeTask")}
                 tasks={tasks}
                 selected={rewardForm.beforeTaskIds}
                 onToggle={(id) => setRewardForm({
@@ -1089,7 +1089,7 @@ function RewardsPage() {
               />
 
               <TaskConditionPicker
-                title="Умови ПІСЛЯ нагороди (аванс)"
+                title={t("rewardsUi.afterTask")}
                 tasks={tasks}
                 selected={rewardForm.afterTaskIds}
                 onToggle={(id) => setRewardForm({
