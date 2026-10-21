@@ -974,7 +974,8 @@
     "mismatch": "Passwörter stimmen nicht überein",
     "invalid": "Das Passwort muss 8 bis 128 Zeichen lang sein",
     "error": "Passwort konnte nicht festgelegt werden (HTTP {{status}}). Prüfen Sie das verknüpfte Google-Konto.",
-    "username": "Benutzername für Anmeldung ohne Google"
+    "username": "Benutzername für Anmeldung ohne Google",
+    "options": "Google-Kontoverwaltung"
   },
   "memberFormUi": {
     "editTitle": "Mitglied bearbeiten",
