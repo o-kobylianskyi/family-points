@@ -87,6 +87,32 @@ class AuthSessionManager(
         }
     }
 
+    /**
+     * Native Google Credential Manager supplies a Google ID token. Spring verifies
+     * its signature, issuer, audience and subject. Never link accounts by email.
+     * Google users do not gain a local offline password verifier.
+     */
+    suspend fun loginWithGoogle(idToken: String, register: Boolean): CurrentUserResponse {
+        check(ServerReachability.status.value == ServerStatus.ONLINE) {
+            "Google authentication requires an online connection"
+        }
+        val request = com.olehkobylianskyi.familypoints.android.network.GoogleTokenRequest(idToken)
+        val global = if (register) ApiClient.authApi.googleRegister(request)
+            else ApiClient.authApi.googleLogin(request)
+        tokenStore.saveAccessToken(global.accessToken)
+        tokenStore.saveLastActivityAt(System.currentTimeMillis())
+        offlineAuthenticated = false
+        activeUsername = null
+        val choices = try {
+            ApiClient.authApi.listWorkspaces(bearer(global.accessToken))
+        } catch (e: Exception) {
+            tokenStore.clear()
+            throw e
+        }
+        if (choices.size != 1) throw WorkspaceSelectionRequiredException()
+        return switchWorkspace(choices.single().workspaceId)
+    }
+
     suspend fun registerAccount(username: String, email: String, password: String) {
         check(ServerReachability.status.value == ServerStatus.ONLINE) { "Registration requires network" }
         ApiClient.authApi.registerAccount(
