@@ -114,8 +114,8 @@ function LoginPage() {
                 className="password-toggle"
                 onClick={() => setShowPassword((value) => !value)}
                 disabled={loading}
-                aria-label={showPassword ? 'Приховати пароль' : 'Показати пароль'}
-                title={showPassword ? 'Приховати пароль' : 'Показати пароль'}
+                aria-label={showPassword ? t('authUi.hidePassword') : t('authUi.showPassword')}
+                title={showPassword ? t('authUi.hidePassword') : t('authUi.showPassword')}
               >
                 {showPassword ? (
                   /* eye-off */
@@ -178,14 +178,14 @@ function LoginPage() {
             const user = await loginWithGoogle(idToken)
             navigate(user ? '/' : '/choose-family', { replace: true })
           } catch (e) {
-            setError(e.message || 'Не вдалося увійти через Google')
+            setError(e.message || t('authUi.googleLoginError'))
           } finally {
             setLoading(false)
           }
         }} />
-        <p><Link to="/register-account">Створити акаунт</Link></p>
-        <p><Link to="/forgot-password">Забули пароль?</Link></p>
-        <p><Link to="/register">Демо реєстрації сім’ї</Link></p>
+        <p><Link to="/register-account">{t("authUi.createAccount")}</Link></p>
+        <p><Link to="/forgot-password">{t("authUi.forgotPassword")}</Link></p>
+        <p><Link to="/register">{t("authUi.familyDemo")}</Link></p>
       </div>
     </div>
   )
