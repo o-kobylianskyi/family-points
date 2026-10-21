@@ -1,3 +1,4 @@
+import { API_URL } from '../api/baseUrl'
 import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -295,6 +296,19 @@ function TaskDetailsPage() {
         <div className="task-details-section-header">
           <h2>{t('taskDetailsUi.management')}</h2>
           <div className="task-card-actions">
+            {instance?.status === 'WAITING_APPROVAL' && currentUser.memberType !== 'CHILD' && (
+              <button className="task-action-button primary" type="button" disabled={processing}
+                onClick={async () => {
+                  try {
+                    setProcessing(true); setError('')
+                    const response = await fetch(`${API_URL}/workspaces/${currentUser.workspaceId}/tasks/instances/${instance.id}/approve-completion`, {
+                      method: 'POST', headers: { Authorization: `Bearer ${getAccessToken()}` },
+                    })
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+                    await load()
+                  } catch (e) { setError(e.message) } finally { setProcessing(false) }
+                }}>{t('taskDetailsUi.approveChildCompletion')}</button>
+            )}
             <button className="task-action-button primary" type="button" disabled={processing}
               onClick={() => setEditOpen(true)}>{t('taskDetailsUi.edit')}</button>
             {task.active && (!instance || ['PENDING', 'IN_PROGRESS'].includes(instance.status)) &&
