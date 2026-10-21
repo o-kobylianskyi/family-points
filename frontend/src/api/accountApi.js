@@ -37,3 +37,14 @@ export async function issueMemberEmailInvitation(token, workspaceId, memberId, e
     r.status === 429 ? 'Повторіть спробу через дві хвилини' :
     'Не вдалося надіслати запрошення'))
 }
+
+export async function setPasswordWithGoogle(token, idToken, newPassword) {
+  const r = await apiRequest('/api/account/google/set-password', {
+    token, method: 'POST', body: { idToken, newPassword },
+  })
+  if (!r.ok) {
+    const error = new Error('GOOGLE_PASSWORD_SETUP_FAILED')
+    error.status = r.status
+    throw error
+  }
+}
