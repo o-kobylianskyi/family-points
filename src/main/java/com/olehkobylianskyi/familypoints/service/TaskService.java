@@ -889,6 +889,8 @@ public class TaskService {
         TaskDefinition definition = taskDefinitionRepository.findForOccurrenceUpdate(definitionId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task definition not found"));
         taskAuthorizationService.requireManage(definition);
+        if (currentUserService.getCurrentMember().getMemberType() == WorkspaceMemberType.CHILD)
+            throw new org.springframework.security.access.AccessDeniedException("ADULT_TASK_APPROVAL_REQUIRED");
         if (!definition.isActive() || !taskGenerationService.shouldGenerate(definition, date)
                 || definition.getAssignedMember() == null) {
             throw new InvalidTaskStateException("Task is not scheduled for this date");
