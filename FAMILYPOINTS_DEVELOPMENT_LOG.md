@@ -1229,3 +1229,6 @@
 
 ## 2026-10-21 — UI regressions after Google registration
 - Screenshot: family owner account signed in after Google registration, Tasks management shows `Authentication is required` despite valid currentUser; member editor offers no password setup. Added GooglePasswordSetup in existing-member editor for current member ONLY, requiring fresh Google proof; preserved Settings fallback. Fixed five legacy getCurrentAccount().getWorkspaceMember() usages in TaskRewardNegotiationService to scoped getCurrentMember(). Task API error includes HTTP status and request path to identify true failing endpoint. UI-only diagnosis is not conclusive until runtime verification; no DEV DB/Contabo actions.
+
+## 2026-10-21 — Task suggestion modal layout
+- User screenshot shows inline labels, narrow input, misplaced textarea/submit and unstyled layout. Rebuilt TaskSuggestionPanel using scoped task-suggestion-* classes, existing modal-backdrop/modal-card conventions and responsive full-width form, list and footer. CSS in frontend/src/App.css. No server/DB/deployment changes. Await Web CI and browser check.
