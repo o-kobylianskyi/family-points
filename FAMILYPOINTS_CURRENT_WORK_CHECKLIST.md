@@ -1271,3 +1271,9 @@ Before each substantial implementation batch:
 - [x] CreateTaskModal pre-fills localized `<task title> №N` from backend; user-edited titles never overwritten by async reply
 - [ ] Verify CI + first task in new empty family gets №1, second №2 even if global PK differs; old task #42 and historical reward transaction untouched
 - [ ] Follow-up UX: decide whether task list should also show a separate family-local number instead of global #42; this is a distinct display requirement
+
+## 2026-10-21 — Human-readable login after Google registration
+- [x] Let the owner choose a normal unique username along with setting a password after fresh linked Google proof
+- [x] Reject invalid usernames and duplicates (case-insensitive pre-check); keep Google provider-subject link intact
+- [x] Correct stacked fields in narrow member editor, translate errors and instructions in four locales
+- [ ] Verify Backend/Web CI and manual sign out/sign in after username change; existing JWT with old username is invalid until new login
