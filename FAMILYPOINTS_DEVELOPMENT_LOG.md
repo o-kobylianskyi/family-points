@@ -1219,3 +1219,10 @@
 - Changes committed on feature/task-soft-delete, not yet local build/runtime verified. No live DEV DB edits or Contabo updates.
 
 - Screenshot showed invited username `Denys K` (contains a space). Existing backend regex allows only [a-zA-Z0-9._-] and 3–64 chars; generic 400 error was being mislabeled as expired invitation. Added specific localized validation/client-side check; this may explain observed error, although token's actual state remains unverified.
+
+## 2026-10-21 — Child reward abuse protection / task suggestions
+- Reproduction: newly registered child with CREATE_TASKS created their own task with point reward, completed it and was immediately credited. This breaks economy. Hardened TaskAuthorizationService: child cannot create/reconfigure task definitions or invoke scheduled manager completion, regardless of create/manage permission. Child can still execute existing tasks; completing transitions to WAITING_APPROVAL without awarding points or reputation. New adult-only approve completion endpoint releases the reward once after independent confirmation. Existing historical self-created tasks cannot be edited by child.
+- Added V34 task_suggestions and endpoint/UI for simple child-origin task proposal (title/description, no point amount). Adult with approval/management permission can mark APPROVED/REJECTED; review does not mint points or automatically create a definition. Child-funded reward tasks blocked until funding/debit escrow is explicitly implemented.
+- Fixed CreateTaskModal untranslated Ukrainian multi-occurrence checkbox/labels and status WAITING_APPROVAL for all locales; task list routes child creation to suggestion panel.
+- Regression test TaskAuthorizationChildSafetyTest, updated TaskManagerCompletionTest fixtures for adult current user; CI not fully reverified.
+- Keep DEV DB and Contabo untouched manually. New migration runs only on explicit local backend startup. Previously credited points not silently rolled back.
