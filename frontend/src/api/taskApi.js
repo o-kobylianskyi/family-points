@@ -185,6 +185,11 @@ export async function delegateTask(
   )
 }
 
+export async function getNextDefaultTaskNumber(token, workspaceId) {
+  const response = await apiRequest(`/workspaces/${workspaceId}/tasks/definitions/next-default-number`, { token })
+  return handleResponse(response, 'Failed to calculate family task number')
+}
+
 export async function getTaskDefinitions(token, workspaceId) {
   const response = await apiRequest(`/workspaces/${workspaceId}/tasks/definitions`, { token })
   return handleResponse(response, 'Failed to load task definitions')
