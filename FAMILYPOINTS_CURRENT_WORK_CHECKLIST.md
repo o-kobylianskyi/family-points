@@ -1277,3 +1277,10 @@ Before each substantial implementation batch:
 - [x] Reject invalid usernames and duplicates (case-insensitive pre-check); keep Google provider-subject link intact
 - [x] Correct stacked fields in narrow member editor, translate errors and instructions in four locales
 - [ ] Verify Backend/Web CI and manual sign out/sign in after username change; existing JWT with old username is invalid until new login
+
+## 2026-10-21 — Username availability everywhere
+- [x] Read-only public `/auth/username-availability?username=...` with 3–64 char validation and case-insensitive lookup
+- [x] Reusable localized Check Username button in global registration, member invitation acceptance, child login creation and Google-linked username/password setup
+- [x] Clear prior check result when input changes; final creation/rename validations remain server-side
+- [x] Normalize signup username validation to 3–64 characters
+- [ ] Verify CI + browser; no DEV DB or Contabo changes
