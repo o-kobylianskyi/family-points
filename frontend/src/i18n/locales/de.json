@@ -239,7 +239,8 @@
     "EXCUSED": "Entschuldigt",
     "PAUSED": "Pausiert",
     "CANCELLED": "Abgebrochen",
-    "RELEASED": "Freigegeben"
+    "RELEASED": "Freigegeben",
+    "WAITING_APPROVAL": "Wartet auf Freigabe durch Erwachsene"
   },
   "weekdays": {
     "monday": "Montag",
