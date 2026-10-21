@@ -112,7 +112,7 @@ fun MembersScreen(
         childLogin = ""
         childPassword = ""
         confirmChildPassword = ""
-        invitationEmail = ""
+        invitationEmail = member?.invitationEmail ?: ""
         name = member?.name ?: ""
         type = member?.memberType ?: "CHILD"
         roleId = member?.workspaceRoleId ?: data?.roles?.firstOrNull { it.code == "CHILD" }?.id
@@ -238,6 +238,27 @@ fun MembersScreen(
                                 Text(memberWorkspaceRoleLabel(language,
                                     data?.roles?.firstOrNull { it.id == member.workspaceRoleId }?.code,
                                     member.workspaceRoleName))
+                                if (allowed && online) {
+                                    (member.accountEmail ?: member.invitationEmail)?.let { contact ->
+                                        Text("Email: $contact", style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    val status = when (member.accessStatus) {
+                                        "ACTIVE" -> memberText(language, "Акаунт активний", "Konto aktiv",
+                                            "Account active", "Аккаунт активен")
+                                        "DISABLED" -> memberText(language, "Акаунт вимкнено", "Konto deaktiviert",
+                                            "Account disabled", "Аккаунт отключён")
+                                        "PENDING_INVITATION" -> memberText(language, "Запрошення очікує підтвердження",
+                                            "Einladung ausstehend", "Invitation pending", "Приглашение ожидает подтверждения")
+                                        "NO_ACCOUNT" -> memberText(language, "Без акаунта", "Kein Konto",
+                                            "No account", "Без аккаунта")
+                                        else -> null
+                                    }
+                                    status?.let {
+                                        Text(it, style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
                                 balances[member.id]?.let { cached ->
                                     Text(
                                         formatPointAmount(cached, language, "POINTS", "балів"),
@@ -351,11 +372,31 @@ fun MembersScreen(
                     }
                     Text(memberText(language, "Доступ учасника", "Mitgliedszugang", "Member access", "Доступ участника"),
                         style = MaterialTheme.typography.titleSmall)
+                    val hasAccount = editing?.accessStatus in listOf("ACTIVE", "DISABLED")
+                    val invitePending = editing?.accessStatus == "PENDING_INVITATION"
+                    if (hasAccount) {
+                        Text(memberText(language,
+                            "Акаунт уже прив'язано. Створення другого логіна або повторне запрошення недоступні.",
+                            "Konto bereits verknüpft. Neues Login oder Einladung nicht verfügbar.",
+                            "Account already linked. New login or invitation unavailable.",
+                            "Аккаунт уже привязан. Новый логин или приглашение недоступны."),
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (invitePending) {
+                        Text(memberText(language,
+                            "Запрошення очікує підтвердження. Повторити можна через 2 хвилини; старе посилання стане недійсним.",
+                            "Einladung ausstehend. Nach 2 Minuten erneut senden; alter Link wird ungültig.",
+                            "Invitation pending. Resend after 2 minutes; previous link will be revoked.",
+                            "Приглашение ожидает подтверждения. Повторить через 2 минуты; старая ссылка станет недействительной."),
+                            style = MaterialTheme.typography.bodySmall)
+                    }
                     listOf(
                         "profile" to memberText(language, "Лише профіль / без змін доступу", "Nur Profil / kein Zugang", "Profile only / no access change", "Только профиль / без изменений"),
                         "account" to memberText(language, "Створити окремий логін", "Eigenes Login erstellen", "Create separate login", "Создать отдельный логин"),
-                        "invite" to memberText(language, "Запросити через email", "Per E-Mail einladen", "Invite by email", "Пригласить по email")
-                    ).forEach { (option, title) ->
+                        "invite" to if (invitePending) memberText(language,
+                            "Надіслати запрошення повторно", "Einladung erneut senden", "Resend invitation", "Отправить приглашение повторно")
+                            else memberText(language, "Запросити через email", "Per E-Mail einladen", "Invite by email", "Пригласить по email")
+                    ).filter { !hasAccount || it.first == "profile" }.forEach { (option, title) ->
                         Row(
                             modifier = Modifier.fillMaxWidth().clickable { accessMode = option },
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
