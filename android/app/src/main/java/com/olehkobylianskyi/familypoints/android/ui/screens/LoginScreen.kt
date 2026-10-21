@@ -343,7 +343,7 @@ fun LoginScreen(
                                     .getCredential(context = context, request = request).credential
                                 if (credential !is CustomCredential ||
                                     credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-                                ) error("Invalid Google credential")
+                                ) throw IllegalStateException("Invalid Google credential")
                                 val idToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
                                 val user = onGoogleAuth(idToken, registrationMode)
                                 onLoginSuccess(user)
