@@ -29,6 +29,14 @@ public class MemberEmailInvitationController {
 
     public record AcceptGoogleRequest(@NotBlank String token, @NotBlank String idToken) {}
 
+    public record CheckRequest(@NotBlank String token) {}
+    public record CheckResponse(String status) {}
+
+    @PostMapping("/auth/member-invitations/check")
+    public CheckResponse check(@Valid @RequestBody CheckRequest request) {
+        return new CheckResponse(invitations.invitationStatus(request.token()));
+    }
+
     @PostMapping("/auth/member-invitations/accept-google")
     public void acceptGoogle(@Valid @RequestBody AcceptGoogleRequest request) {
         invitations.acceptWithGoogle(request.token(), request.idToken());
