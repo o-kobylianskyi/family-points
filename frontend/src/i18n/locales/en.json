@@ -949,5 +949,16 @@
     "next": "Next",
     "finishDemo": "Finish demo",
     "login": "Back to sign in"
+  },
+  "googlePassword": {
+    "title": "Password for sign-in without Google",
+    "description": "For an account created through Google, verify your Google identity and set a password. You can then sign in with username and password.",
+    "new": "New password",
+    "confirm": "Confirm password",
+    "button": "Verify Google and set password",
+    "success": "Password set. You can now sign in with username and password.",
+    "mismatch": "Passwords do not match",
+    "invalid": "Password must be 8 to 128 characters long",
+    "error": "Could not set password (HTTP {{status}}). Verify you selected the linked Google account."
   }
 }
