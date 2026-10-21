@@ -27,7 +27,7 @@ public class GlobalAccountRegistrationService {
 
     @Transactional
     public Created register(String username, String email, String password) {
-        if (username == null || !username.matches("[A-Za-z0-9._-]{3,50}")
+        if (username == null || !username.matches("[A-Za-z0-9._-]{3,64}")
                 || email == null || !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
                 || email.length() > 254
                 || password == null || password.length() < 8 || password.length() > 128) {
