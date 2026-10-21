@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { API_URL } from '../api/baseUrl'
+import { useTranslation } from 'react-i18next'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 export default function AcceptMemberInvitePage() {
+  const { t } = useTranslation()
   const [query] = useSearchParams()
   const token = query.get('token') || ''
   const [username, setUsername] = useState('')
@@ -15,8 +18,8 @@ export default function AcceptMemberInvitePage() {
   const submit = async event => {
     event.preventDefault()
     setError('')
-    if (password !== confirmation) return setError('Паролі не збігаються')
-    if (!token) return setError('Посилання не містить токена запрошення')
+    if (password !== confirmation) return setError(t('inviteAcceptUi.passwordMismatch'))
+    if (!token) return setError(t('inviteAcceptUi.noToken'))
     setBusy(true)
     try {
       const response = await fetch(`${API_URL}/auth/member-invitations/accept`, {
@@ -25,45 +28,46 @@ export default function AcceptMemberInvitePage() {
         body: JSON.stringify({ token, username: username.trim(), password }),
       })
       if (!response.ok) {
-        let message = response.status === 503 ? 'Запрошення ще не увімкнені на сервері' :
-          response.status === 409 ? 'Такий логін уже зайнятий або профіль має акаунт' :
-          'Посилання недійсне, використане або минув термін дії'
-        if (response.status >= 500 && response.status !== 503) message = 'Помилка сервера. Спробуйте пізніше'
+        let message = response.status === 503 ? t('inviteAcceptUi.disabled') :
+          response.status === 409 ? t('inviteAcceptUi.conflict') :
+          t('inviteAcceptUi.invalid')
+        if (response.status >= 500 && response.status !== 503) message = t('inviteAcceptUi.server')
         throw new Error(message)
       }
       setDone(true)
       setPassword('')
       setConfirmation('')
     } catch (e) {
-      setError(e.message || 'Не вдалося прийняти запрошення')
+      setError(e.message || t('inviteAcceptUi.failed'))
     } finally {
       setBusy(false)
     }
   }
 
   return <div className="login-page"><div className="login-card">
-    <h1>Запрошення у FamilyPoints</h1>
+    <LanguageSwitcher />
+    <h1>{t("inviteAcceptUi.title")}</h1>
     {done ? <>
-      <p>Акаунт створено й прив’язано до існуючого учасника сім’ї.</p>
-      <Link to="/login">Перейти до входу</Link>
+      <p>{t('inviteAcceptUi.success')}</p>
+      <Link to="/login">{t("inviteAcceptUi.login")}</Link>
     </> : <form onSubmit={submit}>
-      <p>Створіть власний логін і пароль. Посилання дійсне лише один раз протягом 24 годин.</p>
-      <label>Логін
+      <p>{t('inviteAcceptUi.description')}</p>
+      <label>{t('inviteAcceptUi.username')}
         <input required minLength={3} maxLength={64} autoComplete="username"
           pattern="[a-zA-Z0-9._-]{3,64}" value={username} onChange={e => setUsername(e.target.value)} />
       </label>
-      <label>Пароль
+      <label>{t('inviteAcceptUi.password')}
         <input required type="password" autoComplete="new-password" minLength={8} maxLength={128}
           value={password} onChange={e => setPassword(e.target.value)} />
       </label>
-      <label>Повторіть пароль
+      <label>{t('inviteAcceptUi.confirm')}
         <input required type="password" autoComplete="new-password" minLength={8} maxLength={128}
           value={confirmation} onChange={e => setConfirmation(e.target.value)} />
       </label>
-      {!token && <p className="error-message">У посиланні відсутній токен</p>}
+      {!token && <p className="error-message">{t('inviteAcceptUi.noToken')}</p>}
       {error && <p className="error-message" role="alert">{error}</p>}
-      <button disabled={busy || !token}>{busy ? 'Створюємо…' : 'Прийняти запрошення'}</button>
+      <button disabled={busy || !token}>{busy ? t('inviteAcceptUi.creating') : t('inviteAcceptUi.accept')}</button>
     </form>}
-    <p><Link to="/login">Повернутися до входу</Link></p>
+    <p><Link to="/login">{t("inviteAcceptUi.return")}</Link></p>
   </div></div>
 }
