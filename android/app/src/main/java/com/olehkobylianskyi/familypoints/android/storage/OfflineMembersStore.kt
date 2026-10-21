@@ -13,6 +13,11 @@ class OfflineMembersStore(context: Context) {
     )
     private val gson = Gson()
 
+    // Contact emails and invitation details are private and should not be
+    // persisted to unencrypted offline SharedPreferences snapshots.
+    private fun withoutAccountDetails(member: WorkspaceMemberResponse): WorkspaceMemberResponse =
+        member.copy(accountEmail = null, invitationEmail = null, accessStatus = null)
+
     private fun key(workspaceId: Long, viewerMemberId: Long) =
         "w${workspaceId}_viewer${viewerMemberId}"
 
@@ -29,7 +34,7 @@ class OfflineMembersStore(context: Context) {
 
     fun saveMembers(workspaceId: Long, viewerMemberId: Long, members: List<WorkspaceMemberResponse>) {
         prefs.edit().putString("members_" + key(workspaceId, viewerMemberId),
-            gson.toJson(members)).apply()
+            gson.toJson(members.map(::withoutAccountDetails))).apply()
     }
 
     fun cachedPage(workspaceId: Long, viewerMemberId: Long): MembersPageData? = try {
@@ -40,8 +45,9 @@ class OfflineMembersStore(context: Context) {
     }
 
     fun savePage(workspaceId: Long, viewerMemberId: Long, page: MembersPageData) {
-        saveMembers(workspaceId, viewerMemberId, page.members)
+        val safePage = page.copy(members = page.members.map(::withoutAccountDetails))
+        saveMembers(workspaceId, viewerMemberId, safePage.members)
         prefs.edit().putString("page_" + key(workspaceId, viewerMemberId),
-            gson.toJson(page)).apply()
+            gson.toJson(safePage)).apply()
     }
 }
