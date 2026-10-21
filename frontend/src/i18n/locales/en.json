@@ -1048,5 +1048,13 @@
     "remove": "Remove task",
     "create": "+ Create new task",
     "unavailable": "Unavailable task #{{id}}"
+  },
+  "usernameCheck": {
+    "button": "Check username",
+    "checking": "Checking…",
+    "available": "Username available",
+    "taken": "Username already taken",
+    "invalid": "Use 3–64 Latin letters, digits, period, _ or -",
+    "error": "Could not check. Try again."
   }
 }
