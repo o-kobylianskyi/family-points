@@ -211,7 +211,18 @@
       "description": "Changes apply to the task definition and future executions. Existing execution history is not rewritten.",
       "save": "Save"
     },
-    "reputation": "Reputation"
+    "reputation": "Reputation",
+    "history": {
+      "system": "System",
+      "created": "created task occurrence",
+      "generated": "task occurrence generated automatically",
+      "claimed": "claimed the task",
+      "started": "started task",
+      "completed": "completed the task",
+      "missed": "marked task as missed",
+      "excused": "excused task",
+      "delegated": "delegated task"
+    }
   },
   "taskRecurrence": {
     "ONCE": "Once",
