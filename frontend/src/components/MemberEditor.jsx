@@ -26,7 +26,7 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
   const submit = async (e) => {
     e.preventDefault()
     if (!name.trim() || !workspaceRoleId) {
-      setError(t('workspace.memberEditor.required', { defaultValue: 'Заповніть ім’я та роль' }))
+      setError(t('memberFormUi.required'))
       return
     }
     if (accessMode === 'account') {
@@ -52,9 +52,7 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
   }
 
   const remove = async () => {
-    const ok = window.confirm(t('workspace.memberEditor.deleteConfirm', {
-      defaultValue: 'Видалити учасника? Історія завдань, балів і покупок залишиться, але учасник у ній відображатиметься як «Видалено».'
-    }))
+    const ok = window.confirm(t('memberFormUi.deleteConfirm'))
     if (ok) await onDelete()
   }
 
@@ -62,22 +60,22 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
     <div className="modal-card member-editor" role="dialog" aria-modal="true">
       <div className="modal-header">
         <div>
-          <h2>{editing ? t('workspace.memberEditor.editTitle', { defaultValue: 'Редагувати учасника' }) : t('workspace.memberEditor.createTitle', { defaultValue: 'Новий учасник' })}</h2>
+          <h2>{editing ? t('memberFormUi.editTitle') : t('memberFormUi.createTitle')}</h2>
           {editing && <p>{member.name}</p>}
         </div>
         <button type="button" className="modal-close" onClick={onClose} disabled={busy}>×</button>
       </div>
       <form onSubmit={submit}>
         {(error || externalError) && <div className="error-message" role="alert">{error || externalError}</div>}
-        <label>{t('workspace.memberEditor.name', { defaultValue: 'Ім’я' })}<input value={name} onChange={e => setName(e.target.value)} autoFocus /></label>
-        <label>{t('workspace.memberEditor.type', { defaultValue: 'Тип' })}
+        <label>{t('memberFormUi.name')}<input value={name} onChange={e => setName(e.target.value)} autoFocus /></label>
+        <label>{t('memberFormUi.type')}
           <select value={memberType} onChange={e => setMemberType(e.target.value)}>
             <option value="PARENT">{t('memberType.PARENT')}</option>
             <option value="CHILD">{t('memberType.CHILD')}</option>
             <option value="OTHER">{t('memberType.OTHER')}</option>
           </select>
         </label>
-        <label>{t('workspace.memberEditor.role', { defaultValue: 'Роль у просторі' })}
+        <label>{t('memberFormUi.role')}
           <select value={workspaceRoleId} onChange={e => setWorkspaceRoleId(e.target.value)}>
             {roles.map(role => <option key={role.id} value={role.id}>{workspaceRoleLabel(t, role.code, role.name)}</option>)}
           </select>
@@ -116,10 +114,10 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
 
         </>}
         <div className="modal-actions member-editor-actions">
-          {editing && <button type="button" className="danger-button" onClick={remove} disabled={busy}>{t('common.delete', { defaultValue: 'Видалити' })}</button>}
+          {editing && <button type="button" className="danger-button" onClick={remove} disabled={busy}>{t('memberFormUi.delete')}</button>}
           <span className="member-editor-spacer" />
           <button type="button" className="secondary-button" onClick={onClose} disabled={busy}>{t('common.cancel')}</button>
-          <button type="submit" className="primary-button" disabled={busy}>{busy ? t('common.saving') : t('common.save', { defaultValue: 'Зберегти' })}</button>
+          <button type="submit" className="primary-button" disabled={busy}>{busy ? t('memberFormUi.saving') : t('memberFormUi.save')}</button>
         </div>
       </form>
     </div>
