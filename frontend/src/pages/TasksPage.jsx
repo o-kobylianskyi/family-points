@@ -432,21 +432,21 @@ function TasksPage() {
   }
 
   const auditEventText = (event) => {
-    const actor = event.performedByName || t('tasks.history.system', { defaultValue: 'Система' })
+    const actor = event.performedByName || t('tasks.history.system')
     const target = event.toActorName || ''
 
     switch (event.eventType) {
-      case 'INSTANCE_CREATED': return `${actor}: ${t('tasks.history.created', { defaultValue: 'створено виконання завдання' })}`
-      case 'INSTANCE_GENERATED': return `${actor}: ${t('tasks.history.generated', { defaultValue: 'автоматично створено виконання завдання' })}`
-      case 'INSTANCE_CLAIMED': return `${actor}: ${t('tasks.history.claimed', { defaultValue: 'прийняв(ла) завдання' })}`
-      case 'INSTANCE_STARTED': return `${actor}: ${t('tasks.history.started', { defaultValue: 'почав(ла) виконання' })}`
+      case 'INSTANCE_CREATED': return `${actor}: ${t('tasks.history.created')}`
+      case 'INSTANCE_GENERATED': return `${actor}: ${t('tasks.history.generated')}`
+      case 'INSTANCE_CLAIMED': return `${actor}: ${t('tasks.history.claimed')}`
+      case 'INSTANCE_STARTED': return `${actor}: ${t('tasks.history.started')}`
       case 'INSTANCE_PAUSED': return `${actor}: ${t('tasksUi.historyPause')}`
       case 'INSTANCE_RESUMED': return `${actor}: ${t('tasksUi.historyResume')}`
       case 'INSTANCE_CANCELLED': return `${actor}: ${t('tasksUi.historyCancel')}`
-      case 'INSTANCE_COMPLETED': return `${actor}: ${t('tasks.history.completed', { defaultValue: 'завершив(ла) завдання' })}`
-      case 'INSTANCE_MISSED': return `${actor}: ${t('tasks.history.missed', { defaultValue: 'позначив(ла) завдання пропущеним' })}`
-      case 'INSTANCE_EXCUSED': return `${actor}: ${t('tasks.history.excused', { defaultValue: 'звільнив(ла) від виконання' })}`
-      case 'INSTANCE_DELEGATED': return `${actor}: ${t('tasks.history.delegated', { defaultValue: 'передав(ла) завдання' })} ${event.fromActorName || ''} → ${target}`
+      case 'INSTANCE_COMPLETED': return `${actor}: ${t('tasks.history.completed')}`
+      case 'INSTANCE_MISSED': return `${actor}: ${t('tasks.history.missed')}`
+      case 'INSTANCE_EXCUSED': return `${actor}: ${t('tasks.history.excused')}`
+      case 'INSTANCE_DELEGATED': return `${actor}: ${t('tasks.history.delegated')} ${event.fromActorName || ''} → ${target}`
       case 'DEFINITION_CREATED': return `${actor}: ${t('tasksUi.historyDefinitionCreated')}`
       case 'DEFINITION_UPDATED': return `${actor}: ${t('tasksUi.historyDefinitionUpdated')}`
       case 'DEFINITION_ACTIVATED': return `${actor}: ${t('tasksUi.historyDefinitionActivated')}`
