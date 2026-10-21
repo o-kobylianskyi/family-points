@@ -136,8 +136,10 @@ public class MemberEmailInvitationService {
                 Для учасника «%s» створено профіль у FamilyPoints — застосунку для
                 сімейних завдань, балів і винагород.
 
-                Щоб налаштувати особистий вхід, перейдіть за посиланням і створіть
-                логін та пароль:
+                Щоб отримати особистий доступ, перейдіть за посиланням.
+                Ви можете зареєструватися за допомогою Google без пароля
+                (Google email має збігатися з адресою запрошення)
+                або створити логін та пароль:
 
                 %s
 
@@ -159,7 +161,7 @@ public class MemberEmailInvitationService {
                         <h1 style="font-size:24px;line-height:1.3;margin:0 0 18px">Вас запрошують до FamilyPoints!</h1>
                         <p style="font-size:16px;line-height:1.6">Вітаємо!</p>
                         <p style="font-size:16px;line-height:1.6">Для учасника <strong>«%s»</strong> створено профіль у FamilyPoints — застосунку для сімейних завдань, балів і винагород.</p>
-                        <p style="font-size:16px;line-height:1.6">Щоб отримати особистий доступ, натисніть кнопку нижче та створіть логін і пароль.</p>
+                        <p style="font-size:16px;line-height:1.6">Щоб отримати особистий доступ, натисніть кнопку нижче. Можна прийняти запрошення через Google без пароля, якщо адреса Google збігається з адресою запрошення, або створити логін та пароль.</p>
                         <p style="margin:30px 0"><a href="%s" style="display:inline-block;padding:15px 24px;background:#3659c9;color:#ffffff;text-decoration:none;border-radius:8px;font-size:16px;font-weight:bold">Прийняти запрошення</a></p>
                         <p style="font-size:14px;line-height:1.6;color:#657087">Посилання діє 24 години та може бути використане лише один раз.</p>
                         <p style="font-size:14px;line-height:1.6;color:#657087">Якщо кнопка не працює, скопіюйте посилання у браузер:<br><a href="%s" style="color:#3659c9;overflow-wrap:anywhere;word-break:break-all">%s</a></p>
