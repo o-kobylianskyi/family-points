@@ -67,14 +67,15 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           packages: "platform-tools build-tools;36.0.0"
-      - name: Install Android API 37 from preview SDK channel
-        run: sdkmanager --channel=3 "platforms;android-37"
+      - name: Install stable Android SDK 36 for CI fallback
+        run: sdkmanager "platforms;android-36"
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Compile Android and run unit tests
         run: |
           chmod +x ./gradlew
-          ./gradlew --no-daemon --stacktrace :app:assembleDebug :app:testDebugUnitTest
+          # The local Android Studio build remains on API 37; CI fallback compiles API 36.
+          ./gradlew --no-daemon --stacktrace -PfamilyPointsCiAndroidSdk=36 :app:assembleDebug :app:testDebugUnitTest
       - name: Publish Android test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -104,6 +105,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: Check locale completeness
+        run: npm run i18n:check
       - name: Compile frontend
         run: npm run build
 
