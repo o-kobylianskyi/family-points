@@ -14,6 +14,7 @@ export default function AcceptMemberInvitePage() {
   const [confirmation, setConfirmation] = useState('')
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(false)
+  const [completedViaGoogle, setCompletedViaGoogle] = useState(false)
   const [error, setError] = useState('')
   const [inviteStatus, setInviteStatus] = useState('CHECKING')
 
@@ -78,6 +79,7 @@ export default function AcceptMemberInvitePage() {
         body: JSON.stringify({ token, idToken }),
       })
       if (!response.ok) throw new Error(await responseError(response))
+      setCompletedViaGoogle(true)
       setDone(true)
       setPassword('')
       setConfirmation('')
@@ -118,7 +120,7 @@ export default function AcceptMemberInvitePage() {
       {t(`inviteAcceptUi.status${inviteStatus.charAt(0) + inviteStatus.slice(1).toLowerCase()}`)}
     </p>}
     {done ? <>
-      <p>{t('inviteAcceptUi.success')}</p>
+      <p>{t(completedViaGoogle ? 'inviteAcceptUi.googleSuccess' : 'inviteAcceptUi.success')}</p>
       <Link to="/login">{t("inviteAcceptUi.login")}</Link>
     </> : <form onSubmit={submit}>
       <p>{t('inviteAcceptUi.description')}</p>
