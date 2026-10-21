@@ -5,6 +5,8 @@ import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, onClose }) {
   const { t } = useTranslation()
   const editing = Boolean(member)
+  const hasAccount = member?.accessStatus === 'ACTIVE' || member?.accessStatus === 'DISABLED'
+  const invitePending = member?.accessStatus === 'PENDING_INVITATION'
   const [name, setName] = useState(member?.name ?? '')
   const [memberType, setMemberType] = useState(member?.memberType ?? 'CHILD')
   const [workspaceRoleId, setWorkspaceRoleId] = useState(member?.workspaceRoleId ?? roles[0]?.id ?? '')
@@ -13,7 +15,7 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
   const [childUsername, setChildUsername] = useState('')
   const [childPassword, setChildPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteEmail, setInviteEmail] = useState(member?.invitationEmail ?? '')
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape' && !busy) onClose() }
@@ -82,18 +84,26 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
         </label>
         {<>
           <fieldset className="member-access-options"><legend>Доступ учасника</legend>
+            {hasAccount && <p className="member-access-hint">
+              {member.accessStatus === 'DISABLED' ? 'Акаунт вимкнено.' : 'Акаунт уже створено.'}
+              {' '}Повторно створити логін або надіслати запрошення для цього профілю неможливо.
+            </p>}
+            {invitePending && <p className="member-access-hint">
+              Запрошення надіслано на {member.invitationEmail}. Можна надіслати нове
+              (не частіше ніж раз на 2 хвилини); попереднє посилання перестане діяти.
+            </p>}
             <label className="member-access-option">
               <input type="radio" name="member-access" value="profile" checked={accessMode === 'profile'} onChange={() => setAccessMode('profile')} />
               <span>{editing ? 'Без змін доступу' : 'Лише профіль, без входу'}</span>
             </label>
-            <label className="member-access-option">
+            {!hasAccount && <label className="member-access-option">
               <input type="radio" name="member-access" value="account" checked={accessMode === 'account'} onChange={() => setAccessMode('account')} />
               <span>Створити окремий логін для дитини</span>
-            </label>
-            <label className="member-access-option">
+            </label>}
+            {!hasAccount && <label className="member-access-option">
               <input type="radio" name="member-access" value="invite" checked={accessMode === 'invite'} onChange={() => setAccessMode('invite')} />
-              <span>Надіслати запрошення на email</span>
-            </label>
+              <span>{invitePending ? 'Надіслати запрошення повторно' : 'Надіслати запрошення на email'}</span>
+            </label>}
           </fieldset>
           {accessMode === 'invite' && <label style={{ marginTop: 12 }}>Email для запрошення
             <input type="email" autoComplete="email" required value={inviteEmail}
