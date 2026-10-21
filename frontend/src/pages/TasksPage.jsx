@@ -29,6 +29,7 @@ import {
 } from '../api/taskApi'
 
 import CreateTaskModal from '../components/CreateTaskModal'
+import TaskSuggestionPanel from '../components/TaskSuggestionPanel'
 
 function getToday() {
   const now = new Date()
@@ -75,6 +76,7 @@ function TasksPage() {
   const currency = useCurrencyQuantity(getAccessToken(), currentUser.workspaceId)
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [suggestionOpen, setSuggestionOpen] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
   const [members, setMembers] = useState([])
   const [selectedMemberId, setSelectedMemberId] = useState(null)
@@ -105,7 +107,8 @@ function TasksPage() {
   const [reviewingRewardRequest, setReviewingRewardRequest] = useState(null)
 
   const canBrowseMembers = currentUser.permissions?.includes('VIEW_ALL_TASKS') || currentUser.permissions?.includes('ADMIN_OVERRIDE')
-  const canCreateTasks = currentUser.permissions?.includes('CREATE_TASKS') || currentUser.permissions?.includes('ADMIN_OVERRIDE')
+  const isChild = currentUser.memberType === 'CHILD'
+  const canCreateTasks = !isChild && (currentUser.permissions?.includes('CREATE_TASKS') || currentUser.permissions?.includes('ADMIN_OVERRIDE'))
 
   const canManageRewardRequests =
     currentUser.permissions?.includes('MANAGE_TASKS')
@@ -565,6 +568,9 @@ function TasksPage() {
             }
           />
 
+          <button type="button" className="secondary-button" onClick={() => setSuggestionOpen(true)}>
+            {t('taskSuggestionUi.suggestTask')}
+          </button>
           {canCreateTasks && <button
             type="button"
             className="primary-button"
@@ -984,6 +990,7 @@ function TasksPage() {
         )}
       </section>
 
+      {suggestionOpen && <TaskSuggestionPanel onClose={() => setSuggestionOpen(false)} />}
       {canCreateTasks && createModalOpen && (
         <CreateTaskModal
           members={members}
