@@ -17,8 +17,9 @@ android {
         applicationId = "com.olehkobylianskyi.familypoints.android"
         minSdk = 26
         targetSdk = ciSdk ?: 37
-        versionCode = 1
-        versionName = "1.0"
+        // Installable updates require a monotonically increasing versionCode.
+        versionCode = providers.gradleProperty("familyPointsVersionCode").orElse("1").get().toInt()
+        versionName = providers.gradleProperty("familyPointsVersionName").orElse("1.0").get()
         // Public Web OAuth client ID (audience validated by Spring GoogleTokenVerifier).
         // Set via -PfamilyPointsGoogleWebClientId=... or a local gradle.properties.
         val googleWebClientId = providers.gradleProperty("familyPointsGoogleWebClientId")
@@ -26,6 +27,24 @@ android {
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    // Never commit the release key or its passwords. Provide env vars at build time.
+    val releaseStoreFile = providers.environmentVariable("FP_ANDROID_KEYSTORE_FILE").orElse("").get()
+    val releaseStorePassword = providers.environmentVariable("FP_ANDROID_KEYSTORE_PASSWORD").orElse("").get()
+    val releaseKeyAlias = providers.environmentVariable("FP_ANDROID_KEY_ALIAS").orElse("").get()
+    val releaseKeyPassword = providers.environmentVariable("FP_ANDROID_KEY_PASSWORD").orElse("").get()
+    val hasReleaseSigning = listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword)
+        .all { it.isNotBlank() }
+    if (hasReleaseSigning) {
+        signingConfigs {
+            create("familyPointsRelease") {
+                storeFile = file(releaseStoreFile)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
@@ -45,6 +64,7 @@ android {
             )
         }
         release {
+            if (hasReleaseSigning) signingConfig = signingConfigs.getByName("familyPointsRelease")
             val releaseApiUrl = providers.gradleProperty("familyPointsReleaseApiUrl")
                 .orElse("https://family-point.com/")
                 .get()
