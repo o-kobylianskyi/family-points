@@ -6,7 +6,7 @@ import { setPasswordWithGoogle } from '../api/accountApi'
 
 export default function GooglePasswordSetup() {
   const { t } = useTranslation()
-  const { getAccessToken } = useAuth()
+  const { getAccessToken, currentUser } = useAuth()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [busy, setBusy] = useState(false)
@@ -40,6 +40,7 @@ export default function GooglePasswordSetup() {
   return <section className="settings-section">
     <h2>{t('googlePassword.title')}</h2>
     <p>{t('googlePassword.description')}</p>
+    <p><strong>{t('googlePassword.username')}:</strong> <code>{currentUser?.username}</code></p>
     <div className="settings-form">
       <label>{t('googlePassword.new')}
         <input type="password" autoComplete="new-password" minLength={8} maxLength={128}
