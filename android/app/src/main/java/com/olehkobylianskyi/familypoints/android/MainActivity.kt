@@ -334,6 +334,14 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             onRegister = { name, email, pass -> authSessionManager.registerAccount(name, email, pass) },
+                            onGoogleAuth = { idToken, createAccount ->
+                                try {
+                                    authSessionManager.loginWithGoogle(idToken, createAccount)
+                                } catch (error: WorkspaceSelectionRequiredException) {
+                                    needsWorkspaceSelection = true
+                                    throw error
+                                }
+                            },
                             onLoginSuccess = { user ->
                                 showOnlineReauthNotice = false
                                 currentUser = user
