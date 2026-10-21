@@ -24,13 +24,13 @@ public class GoogleAccountLinkController {
     public record LinkRequest(@NotBlank String idToken, @NotBlank String currentPassword) {}
 
 
-    public record SetPasswordRequest(@NotBlank String idToken, @NotBlank String newPassword) {}
+    public record SetPasswordRequest(@NotBlank String idToken, @NotBlank String newPassword, @NotBlank String username) {}
 
     @PostMapping("/set-password")
     @PreAuthorize("isAuthenticated()")
     public void setPassword(@Valid @RequestBody SetPasswordRequest request) {
         if (!enabled) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
-        links.setPasswordWithGoogleVerification(request.idToken(), request.newPassword());
+        links.setPasswordWithGoogleVerification(request.idToken(), request.newPassword(), request.username());
     }
 
     @PostMapping("/link")
