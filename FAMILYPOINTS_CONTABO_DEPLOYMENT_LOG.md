@@ -216,3 +216,8 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 ## 2026-10-21 — Invitation Google flow security hotfix (UNDEPLOYED)
 - User verified invited email matches the selected Google identity, identity is not registered, and password invitation acceptance works. Source inspection found SecurityConfig permitAll covered /auth/member-invitations/accept only; missing /auth/member-invitations/check and /auth/member-invitations/accept-google, causing access rejection before MemberEmailInvitationService.
 - Explicit allowlist entries added on feature branch. Invitation token and verified Google ID token checks remain mandatory in service. Await CI, new BETA tag and server deployment; no Contabo or DB change here.
+
+## 2026-10-22 — Prepared direct Android APK distribution (not deployed)
+- Code now contains public multilingual /download route and links, plus dedicated /downloads/familypoints-beta.apk endpoint; Nginx returns real 404 until signed APK is published.
+- Compose binds persistent host ./downloads read-only to Web, separate from image and database. /downloads and signing keys ignored by Git.
+- How-to in docs/ANDROID_BETA_DISTRIBUTION.md explains permanent keystore, SHA256, versionCode and atomic artifact publication. No APK/signing keys created, and no server change performed. Next: CI, tagged BETA Web release, verified signed Android package, manual publication.
