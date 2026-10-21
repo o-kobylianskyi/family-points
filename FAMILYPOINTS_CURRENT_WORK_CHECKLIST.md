@@ -1301,3 +1301,10 @@ Before each substantial implementation batch:
 - [ ] Confirm Google Cloud authorized JavaScript origin https://family-point.com, SMTP sender/domain verification, public signup policy and rate limiting
 - [ ] Review CI, tag approved SHA, update Contabo private .env and smoke; do not show credentials in console
 - [ ] Confirm isolated restored database and migrated V27–V34 before production BETA update
+
+## 2026-10-21 — First BETA tag gate diagnosis
+- [x] Annotated v0.1.0-beta.1 exists at code SHA c514cc09c26f8245fdf75ec9f38a7c714e6cc9cc
+- [x] Release gate: tag validation, Web, Compose passed; Android failed in SDK setup with obsolete missing `tools` package (not source compile)
+- [x] Fixed release workflow Android SDK setup to install explicit platform-tools and build-tools 36.0.0, aligning with main CI
+- [ ] Wait for new branch CI then create v0.1.0-beta.2 at its approved SHA; NEVER move/reuse beta.1
+- [ ] Do not deploy Contabo until tag-scoped release gate succeeds
