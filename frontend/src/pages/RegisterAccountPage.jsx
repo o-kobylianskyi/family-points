@@ -1,3 +1,4 @@
+import UsernameAvailability from '../components/UsernameAvailability'
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { registerGlobalAccount, requestEmailVerification } from '../api/authApi'
@@ -52,7 +53,7 @@ export default function RegisterAccountPage() {
       <label>{t('accountRegisterUi.username')}
         <input value={username} minLength={3} maxLength={50} pattern="[A-Za-z0-9._-]{3,50}"
           autoComplete="username" required disabled={busy}
-          onChange={e => setUsername(e.target.value)} />
+          onChange={e => setUsername(e.target.value)} /><UsernameAvailability username={username} />
       </label>
       <label>{t('accountRegisterUi.email')}
         <input type="email" value={email} maxLength={254} autoComplete="email" required disabled={busy}
