@@ -20,6 +20,7 @@ function SettingsPage() {
   const [editing, setEditing] = useState(null)
   const [editingError, setEditingError] = useState('')
   const [own, setOwn] = useState({ currentPassword: '', newPassword: '', confirm: '' })
+  const [googleAction, setGoogleAction] = useState('password')
 
   const canManage = currentUser?.permissions?.includes('MANAGE_MEMBERS')
   const canManageRoles = currentUser?.permissions?.includes('MANAGE_ROLES')
@@ -166,8 +167,13 @@ function SettingsPage() {
       </form>
     </section>
 
-    <GoogleAccountLink />
-    <GooglePasswordSetup />
+    <div className="settings-google-mode" role="group" aria-label={t('googlePassword.options')}>
+      <button type="button" className={googleAction === 'password' ? 'primary-button' : 'secondary-button'}
+        onClick={() => setGoogleAction('password')}>{t('googlePassword.title')}</button>
+      <button type="button" className={googleAction === 'link' ? 'primary-button' : 'secondary-button'}
+        onClick={() => setGoogleAction('link')}>{t('googleLinkUi.title')}</button>
+    </div>
+    {googleAction === 'password' ? <GooglePasswordSetup /> : <GoogleAccountLink />}
 
     {canManage && <section className="settings-section">
       <h2>{t('settings.accounts.title')}</h2><p>{t('settings.accounts.description')}</p>
