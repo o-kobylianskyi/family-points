@@ -440,17 +440,17 @@ function TasksPage() {
       case 'INSTANCE_GENERATED': return `${actor}: ${t('tasks.history.generated', { defaultValue: 'автоматично створено виконання завдання' })}`
       case 'INSTANCE_CLAIMED': return `${actor}: ${t('tasks.history.claimed', { defaultValue: 'прийняв(ла) завдання' })}`
       case 'INSTANCE_STARTED': return `${actor}: ${t('tasks.history.started', { defaultValue: 'почав(ла) виконання' })}`
-      case 'INSTANCE_PAUSED': return `${actor}: призупинив(ла) виконання`
-      case 'INSTANCE_RESUMED': return `${actor}: продовжив(ла) виконання`
-      case 'INSTANCE_CANCELLED': return `${actor}: відмінив(ла) виконання`
+      case 'INSTANCE_PAUSED': return `${actor}: ${t('tasksUi.historyPause')}`
+      case 'INSTANCE_RESUMED': return `${actor}: ${t('tasksUi.historyResume')}`
+      case 'INSTANCE_CANCELLED': return `${actor}: ${t('tasksUi.historyCancel')}`
       case 'INSTANCE_COMPLETED': return `${actor}: ${t('tasks.history.completed', { defaultValue: 'завершив(ла) завдання' })}`
       case 'INSTANCE_MISSED': return `${actor}: ${t('tasks.history.missed', { defaultValue: 'позначив(ла) завдання пропущеним' })}`
       case 'INSTANCE_EXCUSED': return `${actor}: ${t('tasks.history.excused', { defaultValue: 'звільнив(ла) від виконання' })}`
       case 'INSTANCE_DELEGATED': return `${actor}: ${t('tasks.history.delegated', { defaultValue: 'передав(ла) завдання' })} ${event.fromActorName || ''} → ${target}`
-      case 'DEFINITION_CREATED': return `${actor}: створив(ла) завдання`
-      case 'DEFINITION_UPDATED': return `${actor}: змінив(ла) завдання`
-      case 'DEFINITION_ACTIVATED': return `${actor}: активував(ла) завдання`
-      case 'DEFINITION_DEACTIVATED': return `${actor}: деактивував(ла) завдання`
+      case 'DEFINITION_CREATED': return `${actor}: ${t('tasksUi.historyDefinitionCreated')}`
+      case 'DEFINITION_UPDATED': return `${actor}: ${t('tasksUi.historyDefinitionUpdated')}`
+      case 'DEFINITION_ACTIVATED': return `${actor}: ${t('tasksUi.historyDefinitionActivated')}`
+      case 'DEFINITION_DEACTIVATED': return `${actor}: ${t('tasksUi.historyDefinitionDeactivated')}`
       default: return event.eventType
     }
   }
@@ -576,8 +576,8 @@ function TasksPage() {
       </div>
 
       <div className="page-tabs">
-        <button type="button" className={pageTab === 'my' ? 'page-tab active' : 'page-tab'} onClick={() => setPageTab('my')}>Мої завдання</button>
-        <button type="button" className={pageTab === 'management' ? 'page-tab active' : 'page-tab'} onClick={() => setPageTab('management')}>Керування</button>
+        <button type="button" className={pageTab === 'my' ? 'page-tab active' : 'page-tab'} onClick={() => setPageTab('my')}>{t('tasksUi.myTasks')}</button>
+        <button type="button" className={pageTab === 'management' ? 'page-tab active' : 'page-tab'} onClick={() => setPageTab('management')}>{t('tasksUi.manage')}</button>
       </div>
 
       {error && (
@@ -642,12 +642,12 @@ function TasksPage() {
                 <div className="task-card-main">
                   <div className="task-title-row">
                     <h3>№{item.taskDefinitionId} · {item.title}</h3>
-                    <span className="task-status">Заплановано</span>
+                    <span className="task-status">{t('tasksUi.scheduled')}</span>
                   </div>
                   <div className="task-meta">
                     <span>{item.scheduledDate}{item.scheduledTime ? ` · ${item.scheduledTime.slice(0, 5)}` : ''}</span>
-                    {item.rewardAmount > 0 && <span>+{item.rewardAmount} балів</span>}
-                    {item.rewardReputationAmount > 0 && <span>Репутація +{item.rewardReputationAmount}</span>}
+                    {item.rewardAmount > 0 && <span>+{t('tasksUi.points', { value: item.rewardAmount })}</span>}
+                    {item.rewardReputationAmount > 0 && <span>{t('tasksUi.reputation', { value: item.rewardReputationAmount })}</span>}
                   </div>
                 </div>
                 <div className="task-card-actions">
@@ -655,12 +655,12 @@ function TasksPage() {
                     <button type="button" className="task-action-button primary"
                       disabled={processingTaskId === `planned-${item.occurrenceKey}`}
                       onClick={() => handleStartScheduled(item)}>
-                      Почати
+                      {t('tasksUi.start')}
                     </button>
                   )}
                   <Link className="task-action-button secondary task-open-link"
                     to={`/tasks/${item.taskDefinitionId}?date=${selectedDate}&slotKey=${encodeURIComponent(item.occurrenceKey.split(':').at(-1))}`}>
-                    Переглянути →
+                    {t('tasksUi.preview')}
                   </Link>
                 </div>
               </article>
@@ -745,8 +745,8 @@ function TasksPage() {
                 <div className="task-card-actions">
                   {task.status === 'PENDING' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'start')}>{t('tasks.start')}</button>}
                   {task.status === 'IN_PROGRESS' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'complete')}>{t('tasks.complete')}</button>}
-                  {task.status === 'PAUSED' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'resume')}>Продовжити</button>}
-                  <Link className="task-action-button secondary task-open-link" to={`/tasks/${task.taskDefinitionId}?date=${selectedDate}`}>Відкрити →</Link>
+                  {task.status === 'PAUSED' && <button type="button" className="task-action-button primary" disabled={processingTaskId === task.id} onClick={() => handleTaskAction(task, 'resume')}>{t('tasksUi.resume')}</button>}
+                  <Link className="task-action-button secondary task-open-link" to={`/tasks/${task.taskDefinitionId}?date=${selectedDate}`}>{t('tasksUi.open')}</Link>
                 </div>
 
                 </article>
@@ -855,11 +855,11 @@ function TasksPage() {
 
                 {definitionHistoryId === task.id && (
                   <div className="task-history-panel">
-                    <strong>Історія Definition №{task.id}</strong>
+                    <strong>{t('tasksUi.historyDefinition', { id: task.id })}</strong>
                     {loadingDefinitionHistoryId === task.id ? (
                       <p>{t('common.loading')}</p>
                     ) : (historyByDefinitionId[task.id] || []).length === 0 ? (
-                      <p>Історія поки порожня.</p>
+                      <p>{t('tasksUi.noHistory')}</p>
                     ) : (
                       <div className="task-history-list">
                         {(historyByDefinitionId[task.id] || []).map((event) => (
@@ -883,8 +883,8 @@ function TasksPage() {
         <section className="tasks-panel task-reward-request-panel">
           <div className="tasks-panel-header">
             <div>
-              <h2>Запити на зміну винагороди</h2>
-              <p>Виконавець пропонує іншу винагороду за конкретне виконання завдання.</p>
+              <h2>{t('tasksUi.rewardRequests')}</h2>
+              <p>{t('tasksUi.rewardHelp')}</p>
             </div>
             <span className="open-task-count">{pendingRewardRequests.length}</span>
           </div>
@@ -897,18 +897,18 @@ function TasksPage() {
                   <h3>{request.taskTitle}</h3>
                   <p>
                     {request.requestedPointAmount
-                      ? `${request.requestedPointAmount} балів`
-                      : 'без балів'}
+                      ? t('tasksUi.points', { value: request.requestedPointAmount })
+                      : t('tasksUi.noPoints')}
                     {request.requestedReputationAmount
-                      ? ` · +${request.requestedReputationAmount} репутації`
+                      ? ` · ${t('tasksUi.reputation', { value: request.requestedReputationAmount })}`
                       : ''}
                     {request.requestedRewardTitle
                       ? ` · ${request.requestedRewardTitle}`
                       : ''}
                     {request.requestedDurationMinutes
-                      ? ` · ${request.requestedDurationMinutes} хв`
+                      ? ` · ${t('tasksUi.minute', { value: request.requestedDurationMinutes })}`
                       : request.requestedRewardDefinitionId
-                        ? ' · час: будь-який'
+                        ? ` · ${t('tasksUi.anyTime')}`
                         : ''}
                     {request.requestedCustomRewardTitle
                       ? ` · ${request.requestedCustomRewardTitle}`
@@ -925,7 +925,7 @@ function TasksPage() {
                     className="task-action-button primary"
                     onClick={() => setReviewingRewardRequest(request)}
                   >
-                    Розглянути
+                    {t('tasksUi.review')}
                   </button>
                   <button
                     type="button"
@@ -944,7 +944,7 @@ function TasksPage() {
                       }
                     }}
                   >
-                    Відхилити
+                    {t('tasksUi.reject')}
                   </button>
                 </div>
               </article>
@@ -976,7 +976,7 @@ function TasksPage() {
                 </div>
               </div>
               <div className="task-card-actions management-actions">
-                <Link className="task-action-button secondary task-open-link" to={`/tasks/${task.id}?date=${selectedDate}`}>Відкрити →</Link>
+                <Link className="task-action-button secondary task-open-link" to={`/tasks/${task.id}?date=${selectedDate}`}>{t('tasksUi.open')}</Link>
               </div>
 
               </article>
