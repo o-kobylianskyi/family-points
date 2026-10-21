@@ -1,3 +1,4 @@
+import UsernameAvailability from '../components/UsernameAvailability'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { API_URL } from '../api/baseUrl'
@@ -129,7 +130,7 @@ export default function AcceptMemberInvitePage() {
       <h3>{t('inviteAcceptUi.methodPassword')}</h3>
       <label>{t('inviteAcceptUi.username')}
         <input required minLength={3} maxLength={64} autoComplete="username"
-          pattern="[a-zA-Z0-9._-]{3,64}" value={username} onChange={e => setUsername(e.target.value)} />
+          pattern="[a-zA-Z0-9._-]{3,64}" value={username} onChange={e => setUsername(e.target.value)} /><UsernameAvailability username={username} />
       </label>
       <label>{t('inviteAcceptUi.password')}
         <input required type="password" autoComplete="new-password" minLength={8} maxLength={128}
