@@ -14,6 +14,7 @@ public class WorkspaceMemberResponse {
     private final String workspaceRoleName;
 
     private final Long workspaceId;
+    private final String accountEmail;
 
     public WorkspaceMemberResponse(
             Long id,
@@ -24,6 +25,13 @@ public class WorkspaceMemberResponse {
             String workspaceRoleName,
             Long workspaceId
     ) {
+        this(id, name, memberType, workspaceRoleId, workspaceRoleCode, workspaceRoleName, workspaceId, null);
+    }
+
+    public WorkspaceMemberResponse(
+            Long id, String name, WorkspaceMemberType memberType, Long workspaceRoleId,
+            String workspaceRoleCode, String workspaceRoleName, Long workspaceId, String accountEmail
+    ) {
         this.id = id;
         this.name = name;
         this.memberType = memberType;
@@ -31,6 +39,7 @@ public class WorkspaceMemberResponse {
         this.workspaceRoleCode = workspaceRoleCode;
         this.workspaceRoleName = workspaceRoleName;
         this.workspaceId = workspaceId;
+        this.accountEmail = accountEmail;
     }
 
     public static WorkspaceMemberResponse from(WorkspaceMember member) {
@@ -43,6 +52,18 @@ public class WorkspaceMemberResponse {
                 member.getWorkspaceRole().getName(),
                 member.getWorkspace().getId()
         );
+    }
+
+    public static WorkspaceMemberResponse from(WorkspaceMember member, String accountEmail) {
+        return new WorkspaceMemberResponse(
+                member.getId(), member.getName(), member.getMemberType(),
+                member.getWorkspaceRole().getId(), member.getWorkspaceRole().getCode(),
+                member.getWorkspaceRole().getName(), member.getWorkspace().getId(), accountEmail);
+    }
+
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public String getAccountEmail() {
+        return accountEmail;
     }
 
     public Long getId() {
