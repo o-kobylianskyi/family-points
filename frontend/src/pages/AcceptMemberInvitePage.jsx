@@ -55,6 +55,7 @@ export default function AcceptMemberInvitePage() {
       const body = await response.json()
       code = typeof body.detail === 'string' ? body.detail : ''
     } catch { /* no structured error body */ }
+    if (response.status === 400) return t('inviteAcceptUi.usernameInvalid')
     if (response.status === 410) {
       const state = await checkStatus()
       if (state) return t(`inviteAcceptUi.status${state.charAt(0) + state.slice(1).toLowerCase()}`)
@@ -93,6 +94,7 @@ export default function AcceptMemberInvitePage() {
   const submit = async event => {
     event.preventDefault()
     setError('')
+    if (!/^[a-zA-Z0-9._-]{3,64}$/.test(username.trim())) return setError(t('inviteAcceptUi.usernameInvalid'))
     if (password !== confirmation) return setError(t('inviteAcceptUi.passwordMismatch'))
     if (!token) return setError(t('inviteAcceptUi.noToken'))
     setBusy(true)
