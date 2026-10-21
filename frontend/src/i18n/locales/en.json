@@ -635,7 +635,14 @@
     "confirm": "Confirm password",
     "creating": "Creating…",
     "accept": "Accept invitation",
-    "return": "Back to sign in"
+    "return": "Back to sign in",
+    "googleOption": "Or accept invitation with Google, no password required",
+    "googleSuccess": "Google account created and linked to the invited member. You can now sign in with Google.",
+    "googleMismatch": "Google account email differs from invited email.",
+    "googleExisting": "This Google account is already registered.",
+    "gone": "Invitation invalid or replaced. Request a new invitation.",
+    "googleFailure": "Could not accept Google invitation (HTTP {{status}})",
+    "methodPassword": "Register with password"
   },
   "groupPageUi": {
     "description": "Group workspace",
