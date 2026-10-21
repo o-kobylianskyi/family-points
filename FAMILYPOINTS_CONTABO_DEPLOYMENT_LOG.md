@@ -203,3 +203,7 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 
 ## 2026-10-21 — BETA tag gate issue (NO CONTABO UPDATE)
 - GitHub confirms annotated v0.1.0-beta.1 pointing to c514cc09c26f8245fdf75ec9f38a7c714e6cc9cc. BETA release gate run 39666144370 passed tag validation, Web and Compose, but Android failed before compiling code: android-actions/setup-android@v3 default sdkmanager `tools` package not available. Patched .github/workflows/beta-release.yml in subsequent commit to request supported platform-tools / build-tools explicitly, matching main CI. Original immutable tag is not moved; new tagged candidate must be v0.1.0-beta.2 after branch CI. No VPS changes.
+
+## 2026-10-21 — Google registration CORS bug root cause (FIX COMMITTED ONLY)
+- Browser DevTools Response: HTTP 403 `Invalid CORS request` for POST https://family-point.com/auth/google/register. Same endpoint without Origin via curl correctly returns 401 Invalid Google token. No DEV account collision or Google token defect established.
+- Added exact public HTTPS origins in SecurityConfig CORS allowlist including future beta.family-point.com; JUnit regression tests ensure permitted root/beta and reject unrelated insecure origins. Changes committed on development branch, NOT deployed. Existing BETA v0.1.0-beta.2 remains unchanged until CI then new v0.1.0-beta.3 approval.
