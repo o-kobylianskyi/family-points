@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 export default function ChooseFamilyPage() {
+  const { t } = useTranslation()
   const { currentUser, loading, needsWorkspace, getAvailableWorkspaces,
     switchWorkspace, createFirstFamily, logout, sessionError } = useAuth()
   const [choices, setChoices] = useState([])
@@ -18,11 +20,11 @@ export default function ChooseFamilyPage() {
     if (!needsWorkspace) return
     let alive = true
     getAvailableWorkspaces().then(value => { if (alive) { setChoices(value); setChoicesLoaded(true); setError('') } })
-      .catch(e => { if (alive) { setChoicesLoaded(false); setError(e.message || 'Не вдалося завантажити сім’ї') } })
+      .catch(e => { if (alive) { setChoicesLoaded(false); setError(e.message || t('familyChoice.loadingError')) } })
     return () => { alive = false }
   }, [needsWorkspace, retryKey])
 
-  if (loading) return <div className="app-loading">Завантаження…</div>
+  if (loading) return <div className="app-loading">{t('common.loading')}</div>
   if (currentUser && !needsWorkspace) return <Navigate to="/" replace />
   if (!needsWorkspace) return <Navigate to="/login" replace />
 
@@ -32,7 +34,7 @@ export default function ChooseFamilyPage() {
     try {
       await switchWorkspace(workspaceId)
     } catch (e) {
-      setError(e.message || 'Не вдалося вибрати сім’ю')
+      setError(e.message || t('familyChoice.selectionError'))
       setBusy(false)
     }
   }
@@ -44,19 +46,19 @@ export default function ChooseFamilyPage() {
     try {
       await createFirstFamily(familyName, ownerName)
     } catch (e) {
-      setError(e.message || 'Не вдалося створити сім’ю')
+      setError(e.message || t('familyChoice.creationError'))
       setBusy(false)
     }
   }
 
   return <div className="login-page">
     <div className="login-card family-choice-card">
-      <h1>Вибір сім’ї</h1>
+      <h1>{t('familyChoice.title')}</h1>
       {(error || sessionError) && <p className="error-message" role="alert">{error || sessionError}</p>}
       {!choicesLoaded && <button type="button" disabled={busy}
-        onClick={() => setRetryKey(value => value + 1)}>Повторити завантаження сімей</button>}
+        onClick={() => setRetryKey(value => value + 1)}>{t('familyChoice.retry')}</button>}
       {choicesLoaded && choices.length > 0 ? <>
-        <p>Оберіть сім’ю, з якою хочете працювати.</p>
+        <p>{t('familyChoice.choose')}</p>
         <div className="family-choice-layout">
           <div className="family-choice-list">
             {choices.map(choice =>
@@ -67,22 +69,22 @@ export default function ChooseFamilyPage() {
           </div>
         </div>
       </> : choicesLoaded ? <>
-        <p>Акаунт створено. Тепер можна створити першу сім’ю.</p>
+        <p>{t('familyChoice.empty')}</p>
         <form onSubmit={create}>
-          <label>Назва сім’ї
+          <label>{t('familyChoice.name')}
             <input value={familyName} maxLength={100} required disabled={busy}
               onChange={e => setFamilyName(e.target.value)} />
           </label>
-          <label>Ваше ім’я
+          <label>{t('familyChoice.ownerName')}
             <input value={ownerName} maxLength={100} required disabled={busy}
               onChange={e => setOwnerName(e.target.value)} />
           </label>
-          <button type="submit" disabled={busy}>Створити сім’ю</button>
+          <button type="submit" disabled={busy}>{t('familyChoice.create')}</button>
         </form>
       </> : null}
       <div className="family-choice-footer">
         <button className="family-choice-logout" type="button" disabled={busy}
-          onClick={() => { logout(); navigate('/login') }}>Вийти</button>
+          onClick={() => { logout(); navigate('/login') }}>{t('familyChoice.logout')}</button>
       </div>
     </div>
   </div>
