@@ -1206,3 +1206,8 @@ Before each substantial implementation batch:
 - [x] Set Google GIS script ?hl= locale as well as renderButton locale; rerender when UK/DE/EN/RU language changes
 - [ ] Verify all four translations and Google-login flow at http://localhost:5173 after pulling changes
 - [ ] Re-run Vite build and verify no regressions
+
+## 2026-10-21 Google HTTP diagnostics
+- [x] Show persistent status/reason code alongside Google login/registration failure; localize explanation UK/DE/EN/RU
+- [x] Do not expose Google ID tokens or raw server response body
+- [ ] User pull, build, retry and report HTTP status/reason shown in UI
