@@ -364,11 +364,11 @@ function CreateTaskModal({
     }
 
     if (useDailySlots && dailyTimes.some(time => !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(time))) {
-      setError('Вкажіть правильний час для кожного виконання або вимкніть режим кількох виконань.')
+      setError(t('multiTime.invalid'))
       return
     }
     if (useDailySlots && new Set(dailyTimes).size !== dailyTimes.length) {
-      setError('Час виконань не повинен дублюватися.')
+      setError(t('multiTime.duplicate'))
       return
     }
 
@@ -513,7 +513,7 @@ function CreateTaskModal({
 
           {!editing && parentTaskDefinitionId && (
             <div className="task-parent-context">
-              <strong>Підзавдання для №{parentTaskDefinitionId}</strong>
+              <strong>{t('multiTime.subtask', { id: parentTaskDefinitionId })}</strong>
               {parentTaskTitle && <span>{parentTaskTitle}</span>}
             </div>
           )}
@@ -574,22 +574,22 @@ function CreateTaskModal({
             <section className="task-value-section">
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <input type="checkbox" checked={useDailySlots} onChange={e => setUseDailySlots(e.target.checked)} />
-                Кілька виконань за вибрану дату або протягом дня
+                {t('multiTime.multiple')}
               </label>
               {useDailySlots && (
                 <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.75rem' }}>
-                  <p>Вкажіть час кожного виконання. Для одноразового завдання всі виконання будуть на вибрану дату; для повторюваного — у відповідні дні.</p>
+                  <p>{t('multiTime.description')}</p>
                   {dailyTimes.map((time, index) => (
                     <div key={index} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <label>Виконання {index + 1}
+                      <label>{t('multiTime.occurrence', { count: index + 1 })}
                         <input type="time" value={time} required onChange={e => setDailyTimes(items => items.map((value, i) => i === index ? e.target.value : value))} />
                       </label>
                       <button type="button" className="secondary-button" disabled={dailyTimes.length <= 2}
-                        onClick={() => setDailyTimes(items => items.filter((_, i) => i !== index))}>Прибрати</button>
+                        onClick={() => setDailyTimes(items => items.filter((_, i) => i !== index))}>{t('multiTime.remove')}</button>
                     </div>
                   ))}
                   <button type="button" className="secondary-button" disabled={dailyTimes.length >= 12}
-                    onClick={() => setDailyTimes(items => [...items, ''])}>+ Ще одне виконання</button>
+                    onClick={() => setDailyTimes(items => [...items, ''])}>{t('multiTime.add')}</button>
                 </div>
               )}
             </section>
