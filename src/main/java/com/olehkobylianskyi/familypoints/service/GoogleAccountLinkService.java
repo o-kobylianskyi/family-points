@@ -25,6 +25,34 @@ public class GoogleAccountLinkService {
         this.jdbc = jdbc;
     }
 
+
+    /**
+     * Set a password for the authenticated account after re-verifying its own
+     * linked Google subject. Never look up account ownership by email.
+     */
+    @Transactional
+    public void setPasswordWithGoogleVerification(String idToken, String newPassword) {
+        var account = current.getCurrentAccount();
+        if (!account.isEnabled()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        if (newPassword == null || newPassword.length() < 8 || newPassword.length() > 128)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be 8-128 characters");
+
+        var verified = google.verifiedToken(idToken);
+        if (verified.getIssuedAt() == null
+                || verified.getIssuedAt().isBefore(java.time.Instant.now().minusSeconds(300)))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Fresh Google verification required");
+
+        Integer match = jdbc.queryForObject("""
+                SELECT count(*) FROM account_external_identities
+                WHERE account_id = ? AND provider = 'google' AND provider_subject = ?
+                """, Integer.class, account.getId(), verified.getSubject());
+        if (match == null || match != 1)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Google identity does not belong to current account");
+
+        jdbc.update("UPDATE user_accounts SET password_hash = ? WHERE id = ?",
+                passwords.encode(newPassword), account.getId());
+    }
+
     @Transactional
     public void link(String idToken, String currentPassword) {
         var account = current.getCurrentAccount();
