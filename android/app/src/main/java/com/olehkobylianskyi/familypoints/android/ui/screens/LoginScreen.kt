@@ -26,6 +26,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.olehkobylianskyi.familypoints.android.BuildConfig
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -51,7 +59,10 @@ fun LoginScreen(
     onRememberUsername: (String) -> Unit = {},
     onLogin: suspend (String, String) -> CurrentUserResponse,
     onLoginSuccess: (CurrentUserResponse) -> Unit,
-    onRegister: suspend (String, String, String) -> Unit = { _, _, _ -> }
+    onRegister: suspend (String, String, String) -> Unit = { _, _, _ -> },
+    onGoogleAuth: suspend (String, Boolean) -> CurrentUserResponse = { _, _ ->
+        error("Google authentication not configured")
+    }
 ) {
     var username by remember(initialUsername) { mutableStateOf(initialUsername) }
     var password by remember { mutableStateOf("") }
@@ -63,6 +74,7 @@ fun LoginScreen(
     var languageMenuOpen by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val serverStatus by ServerReachability.status.collectAsState()
     val text = strings(language)
 
@@ -133,7 +145,12 @@ fun LoginScreen(
                 value = email,
                 onValueChange = { email = it },
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                label = { Text("Email (обов’язково)") },
+                label = { Text(when (language) {
+                    AppLanguage.UK -> "Email (обов’язково)"
+                    AppLanguage.DE -> "E-Mail (erforderlich)"
+                    AppLanguage.EN -> "Email (required)"
+                    AppLanguage.RU -> "Email (обязательно)"
+                }) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
                 enabled = !loading
@@ -215,7 +232,12 @@ fun LoginScreen(
                             onRegister(username, email.trim(), password)
                             registrationMode = false
                             password = ""
-                            error = "Перевірте пошту та підтвердьте email перед входом."
+                            error = when (language) {
+                                AppLanguage.UK -> "Перевірте пошту та підтвердьте email перед входом."
+                                AppLanguage.DE -> "Bitte bestätigen Sie Ihre E-Mail-Adresse vor der Anmeldung."
+                                AppLanguage.EN -> "Please verify your email before signing in."
+                                AppLanguage.RU -> "Проверьте почту и подтвердите email перед входом."
+                            }
                         } else {
                             val user = onLogin(username, password)
                             onRememberUsername(username)
@@ -283,7 +305,12 @@ fun LoginScreen(
             enabled = !loading
         ) {
             Text(
-                if (loading) text.loggingIn else if (registrationMode) "Створити акаунт"
+                if (loading) text.loggingIn else if (registrationMode) when (language) {
+                    AppLanguage.UK -> "Створити акаунт"
+                    AppLanguage.DE -> "Konto erstellen"
+                    AppLanguage.EN -> "Create account"
+                    AppLanguage.RU -> "Создать аккаунт"
+                }
                 else if (serverStatus == ServerStatus.OFFLINE) {
                     when (language) {
                         AppLanguage.UK -> "Увійти офлайн"
@@ -295,11 +322,68 @@ fun LoginScreen(
             )
         }
         if (serverStatus == ServerStatus.ONLINE) {
+            if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
+                OutlinedButton(
+                    enabled = !loading,
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    onClick = {
+                        scope.launch {
+                            error = ""
+                            loading = true
+                            try {
+                                val googleOption = GetGoogleIdOption.Builder()
+                                    .setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+                                    .setFilterByAuthorizedAccounts(false)
+                                    .setAutoSelectEnabled(false)
+                                    .build()
+                                val request = GetCredentialRequest.Builder()
+                                    .addCredentialOption(googleOption)
+                                    .build()
+                                val credential = CredentialManager.create(context)
+                                    .getCredential(context = context, request = request).credential
+                                if (credential !is CustomCredential ||
+                                    credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                                ) error("Invalid Google credential")
+                                val idToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
+                                val user = onGoogleAuth(idToken, registrationMode)
+                                onLoginSuccess(user)
+                            } catch (_: WorkspaceSelectionRequiredException) {
+                                // Global account session was established; choose workspace next.
+                            } catch (_: GetCredentialCancellationException) {
+                                // The user dismissed the Google account picker.
+                            } catch (e: Exception) {
+                                error = e.message ?: when (language) {
+                                    AppLanguage.UK -> "Не вдалося увійти через Google"
+                                    AppLanguage.DE -> "Google-Anmeldung fehlgeschlagen"
+                                    AppLanguage.EN -> "Google sign-in failed"
+                                    AppLanguage.RU -> "Не удалось войти через Google"
+                                }
+                            } finally {
+                                loading = false
+                            }
+                        }
+                    }
+                ) {
+                    Text(when (language) {
+                        AppLanguage.UK -> if (registrationMode) "Зареєструватися через Google" else "Увійти через Google"
+                        AppLanguage.DE -> if (registrationMode) "Mit Google registrieren" else "Mit Google anmelden"
+                        AppLanguage.EN -> if (registrationMode) "Sign up with Google" else "Sign in with Google"
+                        AppLanguage.RU -> if (registrationMode) "Зарегистрироваться через Google" else "Войти через Google"
+                    })
+                }
+            }
+        }
+        if (serverStatus == ServerStatus.ONLINE) {
             OutlinedButton(
                 onClick = { registrationMode = !registrationMode; error = "" },
                 enabled = !loading,
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
-            ) { Text(if (registrationMode) "Повернутися до входу" else "Створити акаунт") }
+            ) { Text(when (language) {
+                AppLanguage.UK -> if (registrationMode) "Повернутися до входу" else "Створити акаунт"
+                AppLanguage.DE -> if (registrationMode) "Zur Anmeldung" else "Konto erstellen"
+                AppLanguage.EN -> if (registrationMode) "Back to sign in" else "Create account"
+                AppLanguage.RU -> if (registrationMode) "Ко входу" else "Создать аккаунт"
+            }) }
         }
     }
 }
