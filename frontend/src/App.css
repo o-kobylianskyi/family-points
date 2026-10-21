@@ -3864,3 +3864,10 @@ button:focus-visible {
 .google-password-field input { width:100%; min-width:0; box-sizing:border-box; padding:10px 12px; border:1px solid #d7deec; border-radius:8px; font:inherit; font-weight:400; }
 .google-password-instructions { margin:4px 0 0; line-height:1.45; overflow-wrap:anywhere; }
 .google-password-form .google-auth-button { min-width:0; margin-top:0; }
+
+/* Shared username availability: compact action with an inline localized result. */
+.username-availability { display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin-top:7px; }
+.username-availability button { flex:0 0 auto; width:auto; }
+.username-availability span { font-size:12px; line-height:1.4; }
+.username-availability-success { color:#187347; }
+.username-availability-error { color:#ba3434; }
