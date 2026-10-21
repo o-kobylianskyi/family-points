@@ -52,20 +52,6 @@
       "addRole": "Add role",
       "rolePrompt": "New role name",
       "noCandidates": "All workspace members are already in this group"
-    ,
-  "androidDownload": {
-    "nav": "Download Android app",
-    "title": "FamilyPoints for Android",
-    "description": "Install the beta app on your phone. It connects to family-point.com.",
-    "button": "Download APK",
-    "unavailable": "The APK is not published yet. Download will become available after the first signed build.",
-    "installTitle": "How to install",
-    "stepOne": "Download the APK to your Android phone.",
-    "stepTwo": "Open the file and allow installation from this source if Android asks.",
-    "stepThree": "Confirm installation and sign in.",
-    "updateNote": "Updates install over the existing app without data loss when they use the same signing key and a higher versionCode.",
-    "login": "Back to sign in"
-  }
 }
 
   },
@@ -1071,5 +1057,18 @@
     "taken": "Username already taken",
     "invalid": "Use 3–64 Latin letters, digits, period, _ or -",
     "error": "Could not check. Try again."
+  },
+  "androidDownload": {
+    "nav": "Download Android app",
+    "title": "FamilyPoints for Android",
+    "description": "Install the beta app on your phone. It connects to family-point.com.",
+    "button": "Download APK",
+    "unavailable": "The APK is not published yet. Download will become available after the first signed build.",
+    "installTitle": "How to install",
+    "stepOne": "Download the APK to your Android phone.",
+    "stepTwo": "Open the file and allow installation from this source if Android asks.",
+    "stepThree": "Confirm installation and sign in.",
+    "updateNote": "Updates install over the existing app without data loss when they use the same signing key and a higher versionCode.",
+    "login": "Back to sign in"
   }
 }
