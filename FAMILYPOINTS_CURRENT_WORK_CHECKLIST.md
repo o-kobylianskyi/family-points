@@ -1187,3 +1187,16 @@ Before each substantial implementation batch:
 - [ ] Confirm no accountEmail in member GET when signed in as ordinary child/member
 - [ ] Consider Android parity with offline-cache privacy handling in separate batch
 - [ ] Do not deploy to Contabo BETA without approval
+
+## 2026-10-21 — Cross-platform participant account status packet
+- [x] Backend: manager-only optional accountEmail, invitationEmail, accessStatus; pending checks live V33 invitations, no DB write/migration
+- [x] Web: member cards show account/invitation email and correct access state; pending resend reuses existing API with two-minute cooldown
+- [x] Web: prevent choosing duplicate account/invite for already linked member
+- [x] Android: model/UI show account/pending status and invite address only online for MANAGE_MEMBERS; repeat invite UI in existing editor
+- [x] Android: redact private contact/status fields from both SharedPreferences offline snapshot locations
+- [x] Controller unit tests: manager membership & legacy, viewer privacy, pending invite, no account
+- [ ] After starting Docker Desktop Engine: .\\mvnw.cmd clean test (previous full suite blocked by unavailable Docker, 108 tests, 0 failures/1 environment error)
+- [ ] Web: frontend/npm run build; browser verify active Test2, member-only, pending invite and role privacy
+- [ ] Android: android/gradlew.bat :app:assembleDebug; emulator verify online cards, offline redaction, repeat invite cooldown behavior
+- [ ] E2E verify no duplicate family_members and no contact email when logged in as child
+- [ ] No Contabo deployment without explicit separate approval
