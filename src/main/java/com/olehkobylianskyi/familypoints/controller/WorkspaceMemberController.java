@@ -4,6 +4,7 @@ import com.olehkobylianskyi.familypoints.dto.*;
 import com.olehkobylianskyi.familypoints.service.WorkspaceMemberService;
 import com.olehkobylianskyi.familypoints.repository.AccountWorkspaceMembershipRepository;
 import com.olehkobylianskyi.familypoints.repository.UserAccountRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,15 +22,18 @@ public class WorkspaceMemberController {
     private final WorkspaceMemberService workspaceMemberService;
     private final AccountWorkspaceMembershipRepository memberships;
     private final UserAccountRepository accounts;
+    private final JdbcTemplate db;
 
     public WorkspaceMemberController(
             WorkspaceMemberService workspaceMemberService,
             AccountWorkspaceMembershipRepository memberships,
-            UserAccountRepository accounts
+            UserAccountRepository accounts,
+            JdbcTemplate db
     ) {
         this.workspaceMemberService = workspaceMemberService;
         this.memberships = memberships;
         this.accounts = accounts;
+        this.db = db;
     }
 
     @PostMapping
@@ -70,24 +74,45 @@ public class WorkspaceMemberController {
             return members.stream().map(WorkspaceMemberResponse::from).toList();
         }
 
-        // Fetch account emails in two batches (new membership model + legacy primary members).
-        // An outstanding invitation is NOT an account email until the invite is accepted.
+        // Resolve workspace-linked accounts and legacy primary accounts without N+1 queries.
+        // Contact email and access status are restricted to MANAGE_MEMBERS.
         Map<Long, String> accountEmails = new HashMap<>();
+        Map<Long, String> accessStatuses = new HashMap<>();
         for (var membership : memberships.findAllByWorkspaceId(workspaceId)) {
-            var email = membership.getAccount().getEmail();
-            if (email != null && !email.isBlank()) {
-                accountEmails.put(membership.getWorkspaceMember().getId(), email);
-            }
+            var account = membership.getAccount();
+            Long memberId = membership.getWorkspaceMember().getId();
+            accessStatuses.put(memberId, account.isEnabled() ? "ACTIVE" : "DISABLED");
+            String email = account.getEmail();
+            if (email != null && !email.isBlank()) accountEmails.put(memberId, email);
         }
         for (var account : accounts.findAllByWorkspaceMemberWorkspaceIdOrderByWorkspaceMemberIdAsc(workspaceId)) {
-            var email = account.getEmail();
-            if (email != null && !email.isBlank()) {
-                accountEmails.putIfAbsent(account.getWorkspaceMember().getId(), email);
-            }
+            Long memberId = account.getWorkspaceMember().getId();
+            accessStatuses.putIfAbsent(memberId, account.isEnabled() ? "ACTIVE" : "DISABLED");
+            String email = account.getEmail();
+            if (email != null && !email.isBlank()) accountEmails.putIfAbsent(memberId, email);
         }
-        return members.stream()
-                .map(member -> WorkspaceMemberResponse.from(member, accountEmails.get(member.getId())))
-                .toList();
+
+        // Only live, unconsumed, non-revoked invitations count as pending.
+        // Contact addresses on invitations are not the same as accepted account emails.
+        Map<Long, String> pendingEmails = new HashMap<>();
+        db.query("""
+                SELECT DISTINCT ON (member_id) member_id, invited_email
+                FROM member_email_invitations
+                WHERE workspace_id = ? AND consumed_at IS NULL AND revoked_at IS NULL
+                  AND expires_at > CURRENT_TIMESTAMP
+                ORDER BY member_id, created_at DESC, id DESC
+                """, rs -> {
+                    pendingEmails.put(rs.getLong("member_id"), rs.getString("invited_email"));
+                }, workspaceId);
+
+        return members.stream().map(member -> {
+            Long id = member.getId();
+            boolean hasAccount = accessStatuses.containsKey(id);
+            String pendingEmail = hasAccount ? null : pendingEmails.get(id);
+            String status = hasAccount ? accessStatuses.get(id)
+                    : pendingEmail != null ? "PENDING_INVITATION" : "NO_ACCOUNT";
+            return WorkspaceMemberResponse.from(member, accountEmails.get(id), pendingEmail, status);
+        }).toList();
     }
 
     @GetMapping("/{memberId}")
