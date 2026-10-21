@@ -82,6 +82,7 @@ public class TaskAuthorizationService {
     public boolean canManage(TaskDefinition definition) {
         WorkspaceMember me = currentMember();
         if (!sameWorkspace(definition, me)) return false;
+        if (me.getMemberType() == WorkspaceMemberType.CHILD) return false;
         if (me.hasPermission(WorkspacePermission.MANAGE_TASKS)
                 || me.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) return true;
         return isAuthor(definition, me)
