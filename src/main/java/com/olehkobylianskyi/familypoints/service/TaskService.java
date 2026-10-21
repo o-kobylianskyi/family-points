@@ -1066,6 +1066,29 @@ public class TaskService {
         return instance;
     }
 
+
+    /** Independent adult approval releases points and reputation only after the child requests completion. */
+    @Transactional
+    public TaskInstance approveChildCompletion(Long workspaceId, Long instanceId) {
+        TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
+        WorkspaceMember approver = currentUserService.getCurrentMember();
+        if (approver.getMemberType() == WorkspaceMemberType.CHILD
+                || (!approver.hasPermission(WorkspacePermission.APPROVE_TASKS)
+                    && !approver.hasPermission(WorkspacePermission.MANAGE_TASKS)
+                    && !approver.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)))
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "ADULT_TASK_APPROVAL_REQUIRED");
+        if (instance.getStatus() != TaskInstanceStatus.WAITING_APPROVAL)
+            throw new InvalidTaskStateException("Task is not waiting for adult approval");
+        instance.complete();
+        processReward(workspaceId, instance);
+        taskAuditService.recordUserEvent(instance.getTaskDefinition(), instance,
+                TaskAuditEventType.INSTANCE_COMPLETED, approver,
+                null, null, ActorType.MEMBER, instance.getMember().getId(),
+                "Approved by adult");
+        return instance;
+    }
+
     private void processReward(
             Long workspaceId,
             TaskInstance instance
