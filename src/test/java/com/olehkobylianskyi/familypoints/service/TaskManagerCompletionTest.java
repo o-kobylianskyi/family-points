@@ -30,6 +30,7 @@ class TaskManagerCompletionTest {
     @Test
     void cannotCompleteFutureOccurrenceOrCreateItsInstance() throws Exception {
         try (var ignored = MockitoAnnotations.openMocks(this)) {
+            when(currentUser.getCurrentMember()).thenReturn(mock(WorkspaceMember.class));
             var definition = mock(TaskDefinition.class);
             when(definitions.findForOccurrenceUpdate(39L, 8L)).thenReturn(Optional.of(definition));
             when(definition.isActive()).thenReturn(true);
@@ -47,6 +48,7 @@ class TaskManagerCompletionTest {
     @Test
     void explicitSlotsBlockLegacyDefaultManagerCompletion() throws Exception {
         try (var ignored = MockitoAnnotations.openMocks(this)) {
+            when(currentUser.getCurrentMember()).thenReturn(mock(WorkspaceMember.class));
             var definition = mock(TaskDefinition.class);
             var date = LocalDate.now();
             when(definitions.findForOccurrenceUpdate(39L, 8L)).thenReturn(Optional.of(definition));
@@ -66,6 +68,7 @@ class TaskManagerCompletionTest {
     @Test
     void distinctSlotsEarnIndependentlyAndRepeatConfirmationDoesNotRewardAgain() throws Exception {
         try (var ignored = MockitoAnnotations.openMocks(this)) {
+            when(currentUser.getCurrentMember()).thenReturn(mock(WorkspaceMember.class));
             var definition = mock(TaskDefinition.class);
             var member = mock(WorkspaceMember.class);
             var pointType = mock(PointType.class);
@@ -117,6 +120,7 @@ class TaskManagerCompletionTest {
     @Test
     void eachMissedSlotPenalizesOnlyOnceAndKeepsOtherSlotIndependent() throws Exception {
         try (var ignored = MockitoAnnotations.openMocks(this)) {
+            when(currentUser.getCurrentMember()).thenReturn(mock(WorkspaceMember.class));
             var definition = mock(TaskDefinition.class);
             var member = mock(WorkspaceMember.class);
             var pointType = mock(PointType.class);
@@ -160,6 +164,7 @@ class TaskManagerCompletionTest {
     @Test
     void alreadyCompletedInstanceDoesNotDebitOrRewardAgain() throws Exception {
         try (var ignored = MockitoAnnotations.openMocks(this)) {
+            when(currentUser.getCurrentMember()).thenReturn(mock(WorkspaceMember.class));
             var definition = mock(TaskDefinition.class);
             var done = mock(TaskInstance.class);
             var date = LocalDate.now();
@@ -180,6 +185,7 @@ class TaskManagerCompletionTest {
     @Test
     void rewardFailureAfterPointsDoesNotMarkLedgerAsProcessed() throws Exception {
         try (var ignored = MockitoAnnotations.openMocks(this)) {
+            when(currentUser.getCurrentMember()).thenReturn(mock(WorkspaceMember.class));
             var definition = mock(TaskDefinition.class);
             var member = mock(WorkspaceMember.class);
             var pointType = mock(PointType.class);
@@ -215,6 +221,7 @@ class TaskManagerCompletionTest {
     @Test
     void penaltyFailureAfterPointsDoesNotMarkLedgerAsProcessed() throws Exception {
         try (var ignored = MockitoAnnotations.openMocks(this)) {
+            when(currentUser.getCurrentMember()).thenReturn(mock(WorkspaceMember.class));
             var definition = mock(TaskDefinition.class);
             var member = mock(WorkspaceMember.class);
             var pointType = mock(PointType.class);
