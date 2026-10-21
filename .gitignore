@@ -41,3 +41,8 @@ backups/
 
 # Local service configuration with database/JWT/SMTP secrets
 /config/familypoints.dev.local.properties
+
+# Publicly served signed APKs (published on server only)
+/downloads/
+*.jks
+*.keystore
