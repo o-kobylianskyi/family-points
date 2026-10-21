@@ -960,5 +960,17 @@
     "mismatch": "Passwörter stimmen nicht überein",
     "invalid": "Das Passwort muss 8 bis 128 Zeichen lang sein",
     "error": "Passwort konnte nicht festgelegt werden (HTTP {{status}}). Prüfen Sie das verknüpfte Google-Konto."
+  },
+  "memberFormUi": {
+    "editTitle": "Mitglied bearbeiten",
+    "createTitle": "Neues Mitglied",
+    "name": "Name",
+    "type": "Typ",
+    "role": "Rolle im Familienbereich",
+    "required": "Name und Rolle eingeben",
+    "deleteConfirm": "Mitglied löschen? Der Verlauf bleibt erhalten.",
+    "delete": "Löschen",
+    "save": "Speichern",
+    "saving": "Speichern…"
   }
 }
