@@ -5,14 +5,18 @@ plugins {
 
 android {
     namespace = "com.olehkobylianskyi.familypoints.android"
+    // CI runners currently lack the Android 37 preview platform.
+    // Build against 36 only in CI; local IDE and release builds still target API 37.
+    val ciSdk = providers.gradleProperty("familyPointsCiAndroidSdk").orElse("")
+        .get().toIntOrNull()
     compileSdk {
-        version = release(37)
+        version = release(ciSdk ?: 37)
     }
 
     defaultConfig {
         applicationId = "com.olehkobylianskyi.familypoints.android"
         minSdk = 26
-        targetSdk = 37
+        targetSdk = ciSdk ?: 37
         versionCode = 1
         versionName = "1.0"
         // Public Web OAuth client ID (audience validated by Spring GoogleTokenVerifier).
