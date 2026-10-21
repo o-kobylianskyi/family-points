@@ -483,7 +483,10 @@
     "googleNotConfigured": "Вход через Google еще не настроен. Нужен OAuth Client ID.",
     "googleSecureOrigin": "Для Google нужен HTTPS или localhost. Откройте приложение по защищённому адресу.",
     "googleLogin": "Войти через Google",
-    "googleRegister": "Зарегистрироваться через Google"
+    "googleRegister": "Зарегистрироваться через Google",
+    "googleVerifyFailed": "Не удалось подтвердить Google-аккаунт",
+    "googleHttpDetails": "HTTP {{status}} · {{reason}}",
+    "googleNetworkError": "Сетевая ошибка при входе через Google"
   },
   "familyChoice": {
     "title": "Выбор семьи",
