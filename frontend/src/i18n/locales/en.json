@@ -642,7 +642,14 @@
     "googleExisting": "This Google account is already registered.",
     "gone": "Invitation invalid or replaced. Request a new invitation.",
     "googleFailure": "Could not accept Google invitation (HTTP {{status}})",
-    "methodPassword": "Register with password"
+    "methodPassword": "Register with password",
+    "statusValid": "Invitation is valid (up to 24 hours after sending).",
+    "statusExpired": "Invitation expired. Request a new one.",
+    "statusUsed": "Invitation already accepted. Please sign in.",
+    "statusReplaced": "A newer invitation replaced this link. Open the latest email.",
+    "statusUnknown": "Invitation not found. Check your latest email.",
+    "statusInvalid": "Invalid invitation link.",
+    "statusChecking": "Checking invitation…"
   },
   "groupPageUi": {
     "description": "Group workspace",
