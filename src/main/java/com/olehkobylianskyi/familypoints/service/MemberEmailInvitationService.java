@@ -224,6 +224,21 @@ public class MemberEmailInvitationService {
         db.update("UPDATE member_email_invitations SET consumed_at=CURRENT_TIMESTAMP WHERE id=?", invite.id());
     }
 
+
+    /** Read-only status for the holder of the opaque invitation token. No identity or email is returned. */
+    public String invitationStatus(String secret) {
+        requireEnabled();
+        if (secret == null || !secret.matches("[A-Za-z0-9_-]{43}")) return "INVALID";
+        List<String> states = db.query("""
+            SELECT CASE WHEN consumed_at IS NOT NULL THEN 'USED'
+                 WHEN revoked_at IS NOT NULL THEN 'REPLACED'
+                 WHEN expires_at <= CURRENT_TIMESTAMP THEN 'EXPIRED'
+                 ELSE 'VALID' END
+            FROM member_email_invitations WHERE token_hash=?
+            """, (rs, i) -> rs.getString(1), hash(secret));
+        return states.isEmpty() ? "UNKNOWN" : states.get(0);
+    }
+
     private record Invite(Long id, Long workspaceId, Long memberId, String email) {}
 
     private Invite requireInvite(String secret) {
