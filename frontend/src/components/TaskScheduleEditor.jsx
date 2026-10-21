@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useTranslation } from 'react-i18next'
 import { getTaskScheduleSlots, createTaskScheduleSlot, updateTaskScheduleSlot, setTaskScheduleSlotEnabled } from '../api/taskApi'
 
 const normalize = (time) => time?.slice(0, 5) ?? ''
@@ -37,6 +38,7 @@ function suggestedKey(slots) {
 }
 
 export default function TaskScheduleEditor({ definitionId, onChanged }) {
+  const { t } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
   const [slots, setSlots] = useState([])
   const [newKey, setNewKey] = useState('')
@@ -72,16 +74,16 @@ export default function TaskScheduleEditor({ definitionId, onChanged }) {
     event.preventDefault()
     const key = newKey.trim() || suggestedKey(slots)
     if (!/^[a-zA-Z0-9_-]{1,40}$/.test(key) || key === 'default') {
-      setError('Ключ має містити 1–40 латинських літер, цифр, _ або -. Назва default зарезервована.')
+      setError(t('scheduleUi.keyInvalid'))
       return
     }
     const time = parseTime(newTime)
     if (!time) {
-      setError('Вкажіть час виконання у форматі ГГ:ХХ, наприклад 09:00.')
+      setError(t('scheduleUi.timeInvalid'))
       return
     }
     if (slots.some(s => s.slotKey === key)) {
-      setError('Слот із таким ключем уже існує')
+      setError(t('scheduleUi.keyDuplicate'))
       return
     }
     run(async () => {
@@ -93,35 +95,35 @@ export default function TaskScheduleEditor({ definitionId, onChanged }) {
 
   return (
     <section className="task-details-card">
-      <h2>Розклад виконань</h2>
-      <p className="task-details-muted">Кожен слот — окреме виконання. Зміна часу не змінює історію вже створених виконань. Вимкнення припиняє планування нових.</p>
+      <h2>{t('scheduleUi.title')}</h2>
+      <p className="task-details-muted">{t('scheduleUi.description')}</p>
       {error && <p className="page-error" role="alert">{error}</p>}
-      {slots.length === 0 && <p>Окремих слотів немає. Використовується звичайний час завдання.</p>}
+      {slots.length === 0 && <p>{t('scheduleUi.empty')}</p>}
       <div style={{ display: 'grid', gap: '0.75rem' }}>
         {slots.map(slot => (
           <div key={slot.id} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
             <strong style={{ minWidth: '8rem' }}>{slot.slotKey}</strong>
-            <input type="text" inputMode="numeric" placeholder="ГГ:ХХ" aria-label={`Час: ${slot.slotKey}`} value={drafts[slot.id] ?? ''}
+            <input type="text" inputMode="numeric" placeholder={t("scheduleUi.timePlaceholder")} aria-label={`${t('scheduleUi.time')}: ${slot.slotKey}`} value={drafts[slot.id] ?? ''}
               disabled={pending} onChange={e => setDrafts(p => ({ ...p, [slot.id]: e.target.value }))} onBlur={() => { const time = parseTime(drafts[slot.id]); if (time) setDrafts(p => ({ ...p, [slot.id]: time })) }} />
             <button type="button" className="task-action-button" disabled={pending || normalize(slot.scheduledTime) === parseTime(drafts[slot.id])}
-              onClick={() => { const time = parseTime(drafts[slot.id]); if (!time) { setError('Вкажіть правильний час, наприклад 16 або 16:30.'); return }; run(() => updateTaskScheduleSlot(getAccessToken(), workspaceId, definitionId, slot.id, time, slot.enabled)) }}>Зберегти час</button>
+              onClick={() => { const time = parseTime(drafts[slot.id]); if (!time) { setError(t('scheduleUi.timeExample')); return }; run(() => updateTaskScheduleSlot(getAccessToken(), workspaceId, definitionId, slot.id, time, slot.enabled)) }}>{t('scheduleUi.saveTime')}</button>
             <button type="button" className="task-action-button secondary" disabled={pending}
               onClick={() => run(() => setTaskScheduleSlotEnabled(getAccessToken(), workspaceId, definitionId, slot.id, !slot.enabled))}>
-              {slot.enabled ? 'Вимкнути' : 'Увімкнути'}
+              {slot.enabled ? t('scheduleUi.disable') : t('scheduleUi.enable')}
             </button>
-            <span>{slot.enabled ? 'Активний' : 'Вимкнений'}</span>
+            <span>{slot.enabled ? t('scheduleUi.active') : t('scheduleUi.inactive')}</span>
           </div>
         ))}
       </div>
       <form noValidate onSubmit={add} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'end', gap: '0.5rem', marginTop: '1rem' }}>
-        <label>Ключ слота (необов'язково)
+        <label>{t('scheduleUi.slotKey')}
           <input value={newKey} placeholder={suggestedKey(slots)} disabled={pending}
             onChange={e => setNewKey(e.target.value)} maxLength={40} />
         </label>
-        <label>Час виконання
-          <input type="text" inputMode="numeric" placeholder="ГГ:ХХ" lang="uk" aria-label="Час нового виконання" value={newTime} disabled={pending} onChange={e => setNewTime(e.target.value)} onBlur={() => { const time = parseTime(newTime); if (time) setNewTime(time) }} />
+        <label>{t('scheduleUi.time')}
+          <input type="text" inputMode="numeric" placeholder={t("scheduleUi.timePlaceholder")} lang="uk" aria-label={t("scheduleUi.newTime")} value={newTime} disabled={pending} onChange={e => setNewTime(e.target.value)} onBlur={() => { const time = parseTime(newTime); if (time) setNewTime(time) }} />
         </label>
-        <button className="task-action-button primary" disabled={pending} type="submit">Додати слот</button>
+        <button className="task-action-button primary" disabled={pending} type="submit">{t('scheduleUi.add')}</button>
       </form>
     </section>
   )
