@@ -31,7 +31,7 @@ public class GoogleAccountLinkService {
      * linked Google subject. Never look up account ownership by email.
      */
     @Transactional
-    public void setPasswordWithGoogleVerification(String idToken, String newPassword) {
+    public void setPasswordWithGoogleVerification(String idToken, String newPassword, String username) {
         var account = current.getCurrentAccount();
         if (!account.isEnabled()) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         if (newPassword == null || newPassword.length() < 8 || newPassword.length() > 128)
@@ -49,8 +49,19 @@ public class GoogleAccountLinkService {
         if (match == null || match != 1)
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Google identity does not belong to current account");
 
-        jdbc.update("UPDATE user_accounts SET password_hash = ? WHERE id = ?",
-                passwords.encode(newPassword), account.getId());
+        String requestedUsername = username == null ? "" : username.trim();
+        if (!requestedUsername.matches("[A-Za-z0-9._-]{3,64}"))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "INVALID_USERNAME");
+        if (!requestedUsername.equals(account.getUsername())) {
+            Integer existing = jdbc.queryForObject(
+                    "SELECT count(*) FROM user_accounts WHERE lower(username) = lower(?) AND id <> ?",
+                    Integer.class, requestedUsername, account.getId());
+            if (existing != null && existing > 0)
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "USERNAME_TAKEN");
+        }
+        // Both fields change in one transaction; Google provider-subject link stays intact.
+        jdbc.update("UPDATE user_accounts SET username = ?, password_hash = ? WHERE id = ?",
+                requestedUsername, passwords.encode(newPassword), account.getId());
     }
 
     @Transactional
