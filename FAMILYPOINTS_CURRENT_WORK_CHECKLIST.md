@@ -1200,3 +1200,9 @@ Before each substantial implementation batch:
 - [ ] Android: android/gradlew.bat :app:assembleDebug; emulator verify online cards, offline redaction, repeat invite cooldown behavior
 - [ ] E2E verify no duplicate family_members and no contact email when logged in as child
 - [ ] No Contabo deployment without explicit separate approval
+
+## 2026-10-21 — Google Sign-In button UX fix
+- [x] Fix GIS fixed 250px width: responsive centered button with 400px Google maximum and ResizeObserver
+- [x] Set Google GIS script ?hl= locale as well as renderButton locale; rerender when UK/DE/EN/RU language changes
+- [ ] Verify all four translations and Google-login flow at http://localhost:5173 after pulling changes
+- [ ] Re-run Vite build and verify no regressions
