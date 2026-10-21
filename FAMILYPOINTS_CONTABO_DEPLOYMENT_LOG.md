@@ -212,3 +212,7 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - First-family onboarding was blocked on public BETA because feature flag was not passed to Backend. Operator added FAMILYPOINTS_FIRST_FAMILY_ENABLED mapping to host compose.beta.yml and is adding value=true to private VPS .env.
 - Mirrored Compose mapping in development branch (default false), and documented the variable in .env.beta.example. This is a runtime configuration change only; no DB migration needed.
 - Workflow decision: small operational config fixes can be applied directly on BETA for urgent verification, but always mirror in GitHub for the NEXT tagged release. Avoid committing .env/secrets and do not deploy or force-sync from Git while the host checkout has uncommitted changes. Record any manual override for reconciliation before next release.
+
+## 2026-10-21 — Invitation Google flow security hotfix (UNDEPLOYED)
+- User verified invited email matches the selected Google identity, identity is not registered, and password invitation acceptance works. Source inspection found SecurityConfig permitAll covered /auth/member-invitations/accept only; missing /auth/member-invitations/check and /auth/member-invitations/accept-google, causing access rejection before MemberEmailInvitationService.
+- Explicit allowlist entries added on feature branch. Invitation token and verified Google ID token checks remain mandatory in service. Await CI, new BETA tag and server deployment; no Contabo or DB change here.
