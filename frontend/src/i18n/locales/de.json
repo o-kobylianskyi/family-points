@@ -949,5 +949,16 @@
     "next": "Weiter",
     "finishDemo": "Demo beenden",
     "login": "Zurück zur Anmeldung"
+  },
+  "googlePassword": {
+    "title": "Passwort für Anmeldung ohne Google",
+    "description": "Für ein mit Google erstelltes Konto können Sie nach Google-Bestätigung ein Passwort festlegen. Danach funktioniert die Anmeldung mit Benutzername und Passwort.",
+    "new": "Neues Passwort",
+    "confirm": "Passwort wiederholen",
+    "button": "Mit Google bestätigen und Passwort festlegen",
+    "success": "Passwort gespeichert. Anmeldung mit Benutzername und Passwort ist jetzt möglich.",
+    "mismatch": "Passwörter stimmen nicht überein",
+    "invalid": "Das Passwort muss 8 bis 128 Zeichen lang sein",
+    "error": "Passwort konnte nicht festgelegt werden (HTTP {{status}}). Prüfen Sie das verknüpfte Google-Konto."
   }
 }
