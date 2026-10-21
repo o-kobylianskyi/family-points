@@ -846,5 +846,33 @@
     "activate": "Aktivieren",
     "history": "Verlauf",
     "noHistory": "Verlauf noch leer."
+  },
+  "tasksUi": {
+    "myTasks": "Meine Aufgaben",
+    "manage": "Verwaltung",
+    "scheduled": "Geplant",
+    "points": "{{value}} Punkte",
+    "reputation": "Reputation +{{value}}",
+    "start": "Starten",
+    "preview": "Ansehen →",
+    "resume": "Fortsetzen",
+    "open": "Öffnen →",
+    "historyDefinition": "Verlauf Definition Nr. {{id}}",
+    "noHistory": "Verlauf noch leer.",
+    "rewardRequests": "Anfragen zur Änderung der Belohnung",
+    "rewardHelp": "Ausführende können für eine bestimmte Aufgabe eine andere Belohnung vorschlagen.",
+    "noPoints": "ohne Punkte",
+    "minute": "{{value}} Min.",
+    "anyTime": "Dauer: beliebig",
+    "review": "Prüfen",
+    "reject": "Ablehnen",
+    "system": "System",
+    "historyPause": "hat die Ausführung pausiert",
+    "historyResume": "hat die Ausführung fortgesetzt",
+    "historyCancel": "hat die Ausführung abgebrochen",
+    "historyDefinitionCreated": "hat die Aufgabe erstellt",
+    "historyDefinitionUpdated": "hat die Aufgabe geändert",
+    "historyDefinitionActivated": "hat die Aufgabe aktiviert",
+    "historyDefinitionDeactivated": "hat die Aufgabe deaktiviert"
   }
 }
