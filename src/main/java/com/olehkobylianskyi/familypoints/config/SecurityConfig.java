@@ -123,7 +123,9 @@ public class SecurityConfig {
                 "http://172.29.*.*:5173",
                 "http://172.30.*.*:5173",
                 "http://172.31.*.*:5173",
-                "https://dev.family-point.com:8443"
+                "https://dev.family-point.com:8443",
+                "https://family-point.com",
+                "https://beta.family-point.com"
         ));
 
         configuration.setAllowedMethods(
