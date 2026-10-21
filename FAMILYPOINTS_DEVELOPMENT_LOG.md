@@ -1243,3 +1243,6 @@
 - TaskDefinition.id is global technical DB PK; default task name numbering must be family scoped. New endpoint returns count of all task definitions in selected family + 1; Task creation UI uses localized base + ` №N` and respects manually edited titles. Includes inactive definitions, avoids reusing numbers after hiding tasks. No migrations, no direct DEV DB writes, no renaming task #42 or mutating history.
 - New family first task defaults to `Завдання №1`; a family with one existing task defaults to `Завдання №2`. Historical `№42` shown by task list is still global ID and may warrant a separate per-family display ordinal feature.
 - Builds/CI after latest commits pending.
+
+## 2026-10-21 — Editable username for Google-born account
+- Google registration creates random technical `g_UUID` account login, shown unhelpfully in the personal password setup panel. Added username selection to the same Google-verified set-password request; username validation uses 3–64 Latin letters/digits/._-, case-insensitive uniqueness checked. Password and login updated atomically, external Google subject identity unchanged. Existing JWT is invalid after username change; sign out and sign in again. Styled layout in member editor to avoid cramped horizontal labels/password boxes. No DEV DB/Contabo operations. Await CI/user testing.
