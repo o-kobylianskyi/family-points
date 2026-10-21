@@ -452,6 +452,12 @@ function MembersPage() {
               <div className="member-info">
                 <strong>{member.name}</strong>
 
+                {canManageMembers && member.accountEmail && (
+                  <div className="member-email" title={member.accountEmail}>
+                    Email: {member.accountEmail}
+                  </div>
+                )}
+
                 {(roles.find(role => role.id === member.workspaceRoleId)?.code || member.workspaceRoleCode) !== member.memberType && <div className="member-type">
                   {t(`memberType.${member.memberType}`)}
                 </div>}
