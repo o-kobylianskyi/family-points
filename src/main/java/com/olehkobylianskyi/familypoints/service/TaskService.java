@@ -499,6 +499,16 @@ public class TaskService {
         return definition;
     }
 
+    /** Next suggested ordinal is scoped to this family, never the global task PK.
+     * Count all definitions, including inactive ones, to avoid reusing an ordinal.
+     */
+    @Transactional(readOnly = true)
+    public long nextDefaultTaskNumber(Long workspaceId) {
+        getWorkspaceOrThrow(workspaceId);
+        taskAuthorizationService.requireCreate(workspaceId);
+        return taskDefinitionRepository.countByWorkspaceId(workspaceId) + 1;
+    }
+
     @Transactional(readOnly = true)
     public List<TaskDefinition> getDefinitions(
             Long workspaceId
