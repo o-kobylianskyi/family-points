@@ -218,7 +218,7 @@ function MembersPage() {
           className="group-tree-cycle"
           key={`cycle-${group.id}`}
         >
-          Циклічне посилання: {group.name}
+          {t('memberUi.cyclic')}: {group.name}
         </div>
       )
     }
@@ -241,8 +241,8 @@ function MembersPage() {
             <strong>{group.name}</strong>
 
             <span>
-              {directMembers.length} осіб ·{' '}
-              {childReferences.length} підгруп
+              {directMembers.length} {t('memberUi.people')} ·{' '}
+              {childReferences.length} {t('memberUi.subgroups')}
             </span>
 
             {canManageMembers && (
@@ -322,8 +322,8 @@ function MembersPage() {
             <h3>{group.name}</h3>
 
             <div className="group-card-summary">
-              {directMembers.length} осіб ·{' '}
-              {childGroups.length} підгруп
+              {directMembers.length} {t('memberUi.people')} ·{' '}
+              {childGroups.length} {t('memberUi.subgroups')}
             </div>
           </div>
 
@@ -349,7 +349,7 @@ function MembersPage() {
         {roles.length > 0 && (
           <div className="group-card-section">
             <div className="group-card-label">
-              Ролі
+              {t('memberUi.roles')}
             </div>
 
             <div className="group-tags">
@@ -364,7 +364,7 @@ function MembersPage() {
 
         <div className="group-card-section">
           <div className="group-card-label">
-            Структура
+            {t('memberUi.structure')}
           </div>
 
           <div className="group-tree-root">
@@ -375,7 +375,7 @@ function MembersPage() {
         {balances.length > 0 && (
           <div className="group-card-section">
             <div className="group-card-label">
-              Баланс
+              {t('memberUi.balances')}
             </div>
 
             <div className="group-balances">
@@ -395,14 +395,14 @@ function MembersPage() {
   return (
     <>
       <div className="page-title">
-        <h1>Учасники</h1>
+        <h1>{t('memberUi.title')}</h1>
 
-        <p>Люди та групи вашого простору</p>
+        <p>{t('memberUi.subtitle')}</p>
       </div>
 
       <div className="page-tabs">
-        <button type="button" className={pageTab === 'members' ? 'page-tab active' : 'page-tab'} onClick={() => setPageTab('members')}>Учасники</button>
-        <button type="button" className={pageTab === 'groups' ? 'page-tab active' : 'page-tab'} onClick={() => setPageTab('groups')}>Групи</button>
+        <button type="button" className={pageTab === 'members' ? 'page-tab active' : 'page-tab'} onClick={() => setPageTab('members')}>{t('memberUi.members')}</button>
+        <button type="button" className={pageTab === 'groups' ? 'page-tab active' : 'page-tab'} onClick={() => setPageTab('groups')}>{t('memberUi.groups')}</button>
       </div>
 
       <div className={pageTab === 'members' ? 'section-header' : 'section-header ui-hidden'}>
@@ -454,17 +454,17 @@ function MembersPage() {
 
                 {canManageMembers && (member.accountEmail || member.invitationEmail) && (
                   <div className="member-email" title={member.accountEmail || member.invitationEmail}>
-                    Email: {member.accountEmail || member.invitationEmail}
+                    {t('memberUi.email')}: {member.accountEmail || member.invitationEmail}
                   </div>
                 )}
 
                 {canManageMembers && member.accessStatus && (
                   <div className={member.accessStatus === 'PENDING_INVITATION' ? 'member-access-status pending' : 'member-access-status'}>
                     {{
-                      ACTIVE: 'Акаунт активний',
-                      DISABLED: 'Акаунт вимкнено',
-                      PENDING_INVITATION: 'Запрошення очікує підтвердження',
-                      NO_ACCOUNT: 'Без акаунта',
+                      ACTIVE: t('memberUi.active'),
+                      DISABLED: t('memberUi.disabled'),
+                      PENDING_INVITATION: t('memberUi.pending'),
+                      NO_ACCOUNT: t('memberUi.noAccount'),
                     }[member.accessStatus] || member.accessStatus}
                   </div>
                 )}
@@ -499,9 +499,7 @@ function MembersPage() {
               <div className="group-create-row">
                 <input
                   value={newGroupName}
-                  placeholder={t(
-                    'workspace.groups.namePlaceholder'
-                  )}
+                  placeholder={t("memberUi.groupNamePlaceholder")}
                   onChange={(event) =>
                     setNewGroupName(
                       event.target.value
@@ -527,7 +525,7 @@ function MembersPage() {
 
           {rootGroups.length === 0 ? (
             <div className="groups-empty">
-              Груп поки немає
+              {t('memberUi.groupsEmpty')}
             </div>
           ) : (
             <div className="groups-grid-v2">
