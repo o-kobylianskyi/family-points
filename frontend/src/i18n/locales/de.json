@@ -635,7 +635,14 @@
     "confirm": "Passwort wiederholen",
     "creating": "Wird erstellt…",
     "accept": "Einladung annehmen",
-    "return": "Zurück zur Anmeldung"
+    "return": "Zurück zur Anmeldung",
+    "googleOption": "Oder Einladung mit Google ohne Passwort annehmen",
+    "googleSuccess": "Google-Konto wurde erstellt und mit dem eingeladenen Mitglied verknüpft. Anmeldung mit Google ist jetzt möglich.",
+    "googleMismatch": "Die Google-E-Mail-Adresse stimmt nicht mit der Einladung überein.",
+    "googleExisting": "Dieses Google-Konto ist bereits registriert.",
+    "gone": "Einladung ungültig oder ersetzt. Bitte eine neue Einladung anfordern.",
+    "googleFailure": "Google-Einladung konnte nicht angenommen werden (HTTP {{status}})",
+    "methodPassword": "Registrierung mit Passwort"
   },
   "groupPageUi": {
     "description": "Gruppenbereich",
