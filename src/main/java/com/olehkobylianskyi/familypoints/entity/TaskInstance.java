@@ -230,6 +230,10 @@ public class TaskInstance {
         this.status = TaskInstanceStatus.PENDING;
     }
 
+    public void requestApproval() {
+        this.status = TaskInstanceStatus.WAITING_APPROVAL;
+    }
+
     public void complete() {
         this.status = TaskInstanceStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
