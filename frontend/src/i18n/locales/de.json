@@ -991,12 +991,14 @@
     "new": "Neues Passwort",
     "confirm": "Passwort wiederholen",
     "button": "Mit Google bestätigen und Passwort festlegen",
-    "success": "Passwort gespeichert. Anmeldung mit Benutzername und Passwort ist jetzt möglich.",
+    "success": "Benutzername und Passwort gespeichert. Melden Sie sich ab und mit den neuen Zugangsdaten erneut an. Google-Anmeldung bleibt möglich.",
     "mismatch": "Passwörter stimmen nicht überein",
     "invalid": "Das Passwort muss 8 bis 128 Zeichen lang sein",
     "error": "Passwort konnte nicht festgelegt werden (HTTP {{status}}). Prüfen Sie das verknüpfte Google-Konto.",
     "username": "Benutzername für Anmeldung ohne Google",
-    "options": "Google-Kontoverwaltung"
+    "options": "Google-Kontoverwaltung",
+    "usernameInvalid": "Benutzername: 3–64 lateinische Buchstaben, Ziffern, Punkt, _ oder -, keine Leerzeichen.",
+    "usernameTaken": "Dieser Benutzername ist bereits vergeben."
   },
   "memberFormUi": {
     "editTitle": "Mitglied bearbeiten",
