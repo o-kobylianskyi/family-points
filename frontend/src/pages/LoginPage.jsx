@@ -178,7 +178,13 @@ function LoginPage() {
             const user = await loginWithGoogle(idToken)
             navigate(user ? '/' : '/choose-family', { replace: true })
           } catch (e) {
-            setError(e.message || t('authUi.googleLoginError'))
+            setError(e.googleAuthStatus
+              ? `${t('authUi.googleVerifyFailed')} — ${t('authUi.googleHttpDetails', {
+                  status: e.googleAuthStatus,
+                  reason: e.googleAuthReason,
+                })}`
+              : e instanceof TypeError ? t('authUi.googleNetworkError')
+              : e.message || t('authUi.googleLoginError'))
           } finally {
             setLoading(false)
           }
