@@ -24,12 +24,15 @@ import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 /** One-use email invitations bind a NEW login to a pre-existing member (never create a member). */
 @Service
 public class MemberEmailInvitationService {
     private static final SecureRandom RANDOM = new SecureRandom();
     private final JdbcTemplate db;
+    private final GoogleTokenVerifier google;
     private final WorkspaceMemberRepository members;
     private final UserAccountRepository accounts;
     private final AccountWorkspaceMembershipRepository memberships;
@@ -43,10 +46,12 @@ public class MemberEmailInvitationService {
     public MemberEmailInvitationService(JdbcTemplate db, WorkspaceMemberRepository members,
             UserAccountRepository accounts, AccountWorkspaceMembershipRepository memberships,
             CurrentUserService current, PasswordEncoder passwordEncoder, JavaMailSender mail,
+            GoogleTokenVerifier google,
             @Value("${familypoints.mail.from:}") String from,
             @Value("${familypoints.web-url:http://localhost:5173}") String webUrl,
             @Value("${familypoints.member-email-invitations.enabled:false}") boolean enabled) {
         this.db = db;
+        this.google = google;
         this.members = members;
         this.accounts = accounts;
         this.memberships = memberships;
@@ -177,30 +182,92 @@ public class MemberEmailInvitationService {
         }
     }
 
-    /** Creates a new global account with verified email ownership proven by possession of the mail token. */
+    /** Accept invitation using a verified Google account matching the invited email.
+     * The user can set a local password later; the Google subject is never guessed by email.
+     */
     @Transactional
-    public void accept(String secret, String username, String password) {
+    public void acceptWithGoogle(String secret, String idToken) {
         requireEnabled();
-        if (secret == null || !secret.matches("[A-Za-z0-9_-]{43}"))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid invitation");
-        if (username == null || !username.matches("[a-zA-Z0-9._-]{3,64}") ||
-                password == null || password.length() < 8 || password.length() > 128)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid credentials");
+        var token = google.verifiedToken(idToken);
+        String googleEmail = token.getClaimAsString("email");
+        if (!Boolean.TRUE.equals(token.getClaim("email_verified")) || googleEmail == null)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "VERIFIED_GOOGLE_EMAIL_REQUIRED");
+        Invite invite = requireInvite(secret);
+        if (!invite.email().equalsIgnoreCase(googleEmail.trim()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "INVITED_EMAIL_MISMATCH");
+        var member = requireUnlinkedMember(invite);
+        Integer exists = db.queryForObject("""
+                SELECT count(*) FROM account_external_identities
+                WHERE provider='google' AND provider_subject=?
+                """, Integer.class, token.getSubject());
+        if (exists != null && exists > 0)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "GOOGLE_ACCOUNT_ALREADY_REGISTERED");
 
-        record Invite(Long id, Long workspaceId, Long memberId, String email) {}
+        String username = "g_" + UUID.randomUUID().toString().replace("-", "");
+        while (accounts.existsByUsername(username))
+            username = "g_" + UUID.randomUUID().toString().replace("-", "");
+        byte[] placeholder = new byte[32];
+        RANDOM.nextBytes(placeholder);
+        UserAccount account = new UserAccount(username,
+                passwordEncoder.encode(HexFormat.of().formatHex(placeholder)), member);
+        account.setEmail(invite.email());
+        account.setEmailVerifiedAt(OffsetDateTime.now());
+        account.setEnabled(true);
+        var saved = accounts.saveAndFlush(account);
+        memberships.saveAndFlush(new AccountWorkspaceMembership(saved, member));
+        try {
+            db.update("INSERT INTO account_external_identities(account_id,provider,provider_subject) VALUES (?,'google',?)",
+                    saved.getId(), token.getSubject());
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "GOOGLE_ACCOUNT_ALREADY_REGISTERED");
+        }
+        db.update("UPDATE member_email_invitations SET consumed_at=CURRENT_TIMESTAMP WHERE id=?", invite.id());
+    }
+
+    private record Invite(Long id, Long workspaceId, Long memberId, String email) {}
+
+    private Invite requireInvite(String secret) {
+        if (secret == null || !secret.matches("[A-Za-z0-9_-]{43}"))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "INVALID_INVITATION_TOKEN");
         List<Invite> found = db.query("""
             SELECT id, workspace_id, member_id, invited_email FROM member_email_invitations
             WHERE token_hash=? AND consumed_at IS NULL AND revoked_at IS NULL
               AND expires_at > CURRENT_TIMESTAMP FOR UPDATE
             """, (rs, i) -> new Invite(rs.getLong(1),rs.getLong(2),rs.getLong(3),rs.getString(4)), hash(secret));
-        if (found.size() != 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invitation expired or already used");
-        Invite invite = found.get(0);
+        if (found.size() != 1) {
+            List<String> states = db.query("""
+                SELECT CASE WHEN consumed_at IS NOT NULL THEN 'INVITATION_USED'
+                     WHEN revoked_at IS NOT NULL THEN 'INVITATION_REPLACED'
+                     WHEN expires_at <= CURRENT_TIMESTAMP THEN 'INVITATION_EXPIRED'
+                     ELSE 'INVITATION_UNAVAILABLE' END
+                FROM member_email_invitations WHERE token_hash=?
+                """, (rs, i) -> rs.getString(1), hash(secret));
+            throw new ResponseStatusException(HttpStatus.GONE,
+                    states.isEmpty() ? "INVITATION_UNKNOWN" : states.get(0));
+        }
+        return found.get(0);
+    }
+
+    private com.olehkobylianskyi.familypoints.entity.WorkspaceMember requireUnlinkedMember(Invite invite) {
         var member = members.findByIdAndWorkspaceIdAndActiveTrue(invite.memberId(), invite.workspaceId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member unavailable"));
         if (accounts.existsByWorkspaceMemberId(member.getId()) ||
                 !db.queryForList("SELECT id FROM account_workspace_memberships WHERE family_member_id=? LIMIT 1",
                         Long.class, member.getId()).isEmpty())
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Member already has an account");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "MEMBER_ALREADY_LINKED");
+        return member;
+    }
+
+    /** Creates a new global account with verified email ownership proven by possession of the mail token. */
+    @Transactional
+    public void accept(String secret, String username, String password) {
+        requireEnabled();
+        if (username == null || !username.matches("[a-zA-Z0-9._-]{3,64}") ||
+                password == null || password.length() < 8 || password.length() > 128)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid credentials");
+
+        Invite invite = requireInvite(secret);
+        var member = requireUnlinkedMember(invite);
         if (accounts.existsByUsername(username))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
 
