@@ -1044,6 +1044,12 @@ public class TaskService {
             );
         }
 
+        // Child completion is a request, never a reward-minting action.
+        if (currentUserService.getCurrentMember().getMemberType() == WorkspaceMemberType.CHILD) {
+            instance.requestApproval();
+            return instance;
+        }
+
         instance.complete();
 
         processReward(
