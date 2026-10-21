@@ -51,7 +51,7 @@ export default function RegisterAccountPage() {
     <p>{t('accountRegisterUi.description')}</p>
     <form onSubmit={submit}>
       <label>{t('accountRegisterUi.username')}
-        <input value={username} minLength={3} maxLength={50} pattern="[A-Za-z0-9._-]{3,50}"
+        <input value={username} minLength={3} maxLength={64} pattern="[A-Za-z0-9._-]{3,64}"
           autoComplete="username" required disabled={busy}
           onChange={e => setUsername(e.target.value)} /><UsernameAvailability username={username} />
       </label>
