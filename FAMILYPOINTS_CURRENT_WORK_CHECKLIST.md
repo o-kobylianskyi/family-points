@@ -1230,3 +1230,6 @@ Before each substantial implementation batch:
 - [ ] CI: Maven compile/tests, Vite build, Android unaffected
 - [ ] Test the latest invitation (not an earlier revoked link), 24h expiry, duplicate Google-subject conflicts, wrong Google email and both successful acceptance paths
 - [ ] No direct DEV DB writes or Contabo deployment
+
+- [x] Invitation form rejects username with spaces before submission and shows translated credentials error instead of generic expired-link notice (screenshot had `Denys K`)
+- [ ] Confirm real rejected-link status with refreshed server, no assumptions that link expires in 5 minutes
