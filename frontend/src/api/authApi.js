@@ -130,16 +130,28 @@ export async function resetAccountPassword(token, password) {
   if (!response.ok) throw new Error('Посилання недійсне або термін його дії минув')
 }
 
+// For support diagnostics, never include response bodies, request tokens or credentials.
 export async function googleAuth(idToken, createAccount = false) {
   const response = await fetch(`${API_URL}/auth/google${createAccount ? '/register' : ''}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ idToken }),
   })
   if (!response.ok) {
-    if (response.status === 503) throw new Error('Google-авторизація ще не налаштована на сервері')
-    if (response.status === 409) throw new Error('Ця Google-ідентичність уже зареєстрована. Увійдіть через Google або зверніться до підтримки.')
-    if (response.status === 403) throw new Error('Google-акаунт ще не зареєстровано. Перейдіть на сторінку реєстрації.')
-    throw new Error('Не вдалося підтвердити Google-акаунт')
+    const error = new Error('GOOGLE_AUTH_HTTP_ERROR')
+    error.googleAuthStatus = response.status
+    error.googleAuthReason = {
+      400: 'INVALID_REQUEST',
+      401: 'UNAUTHORIZED',
+      403: 'IDENTITY_NOT_LINKED_OR_FORBIDDEN',
+      404: 'ENDPOINT_NOT_FOUND',
+      409: 'IDENTITY_CONFLICT',
+      429: 'RATE_LIMITED',
+      500: 'SERVER_ERROR',
+      502: 'BAD_GATEWAY',
+      503: 'SERVICE_UNAVAILABLE',
+      504: 'GATEWAY_TIMEOUT',
+    }[response.status] || 'HTTP_ERROR'
+    throw error
   }
   return response.json()
 }
