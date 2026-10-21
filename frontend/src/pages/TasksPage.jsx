@@ -1,7 +1,7 @@
 import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '../context/AuthContext'
 import { getWorkspaceMembers } from '../api/workspaceApi'
@@ -72,6 +72,7 @@ function hierarchyRows(items, definitionOf) {
 
 function TasksPage() {
   const { t, i18n } = useTranslation()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { currentUser, getAccessToken } = useAuth()
   const currency = useCurrencyQuantity(getAccessToken(), currentUser.workspaceId)
 
@@ -109,6 +110,17 @@ function TasksPage() {
   const canBrowseMembers = currentUser.permissions?.includes('VIEW_ALL_TASKS') || currentUser.permissions?.includes('ADMIN_OVERRIDE')
   const isChild = currentUser.memberType === 'CHILD'
   const canCreateTasks = !isChild && (currentUser.permissions?.includes('CREATE_TASKS') || currentUser.permissions?.includes('ADMIN_OVERRIDE'))
+
+  useEffect(() => {
+    if (searchParams.get('create') === '1') {
+      if (canCreateTasks) setCreateModalOpen(true)
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev)
+        next.delete('create')
+        return next
+      }, { replace: true })
+    }
+  }, [searchParams, canCreateTasks, setSearchParams])
 
   const canManageRewardRequests =
     currentUser.permissions?.includes('MANAGE_TASKS')
