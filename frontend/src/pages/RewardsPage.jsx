@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../context/AuthContext'
 import { getPointTypes, getPointNameForms } from '../api/economyApi'
@@ -103,6 +104,9 @@ function taskRequirements(form) {
 function RewardsPage() {
   const { currentUser, getAccessToken } = useAuth()
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
+  const workspaceRef = useRef(currentUser.workspaceId)
+  workspaceRef.current = currentUser.workspaceId
   const [currencyForms, setCurrencyForms] = useState({})
 
   const [balances, setBalances] = useState([])
@@ -172,6 +176,7 @@ function RewardsPage() {
         getMyReputation(token),
       ])
 
+      if (String(workspaceRef.current) !== String(workspaceId)) return
       setBalances(balanceData.balances || [])
       setReputation(reputationData.balance)
       setRewards(rewardData)
@@ -185,7 +190,7 @@ function RewardsPage() {
         catch { return [type.id, []] }
       }))
       setCurrencyForms(Object.fromEntries(forms))
-      setTasks(taskData.filter((task) => task.active !== false))
+      setTasks(taskData.filter((task) => task.active !== false && String(task.workspaceId ?? workspaceId) === String(workspaceId)))
 
       const defaultPointTypeId = pointTypeData[0]?.id ?? ''
       setRewardForm((current) => ({
@@ -204,6 +209,9 @@ function RewardsPage() {
   }
 
   useEffect(() => {
+    setTasks([])
+    setRewardForm(emptyRewardForm)
+    setReviewForm(emptyReviewForm)
     loadAll()
   }, [currentUser.workspaceId])
 
@@ -775,6 +783,8 @@ function RewardsPage() {
                   <TaskConditionPicker
                     title={t("rewardsUi.beforeTask")}
                     tasks={tasks}
+                onCreateTask={() => navigate('/tasks?create=1')}
+                    onCreateTask={() => navigate('/tasks?create=1')}
                     selected={reviewForm.beforeTaskIds}
                     onToggle={(id) => setReviewForm({
                       ...reviewForm,
@@ -785,6 +795,8 @@ function RewardsPage() {
                   <TaskConditionPicker
                     title={t("rewardsUi.afterTask")}
                     tasks={tasks}
+                onCreateTask={() => navigate('/tasks?create=1')}
+                    onCreateTask={() => navigate('/tasks?create=1')}
                     selected={reviewForm.afterTaskIds}
                     onToggle={(id) => setReviewForm({
                       ...reviewForm,
@@ -1081,6 +1093,7 @@ function RewardsPage() {
               <TaskConditionPicker
                 title={t("rewardsUi.beforeTask")}
                 tasks={tasks}
+                onCreateTask={() => navigate('/tasks?create=1')}
                 selected={rewardForm.beforeTaskIds}
                 onToggle={(id) => setRewardForm({
                   ...rewardForm,
@@ -1091,6 +1104,7 @@ function RewardsPage() {
               <TaskConditionPicker
                 title={t("rewardsUi.afterTask")}
                 tasks={tasks}
+                onCreateTask={() => navigate('/tasks?create=1')}
                 selected={rewardForm.afterTaskIds}
                 onToggle={(id) => setRewardForm({
                   ...rewardForm,
@@ -1136,24 +1150,34 @@ function RewardsPage() {
   )
 }
 
-function TaskConditionPicker({ title, tasks, selected, onToggle }) {
+function TaskConditionPicker({ title, tasks, selected, onToggle, onCreateTask }) {
   const { t } = useTranslation()
+  const [choice, setChoice] = useState('')
+  const available = tasks.filter(task => !selected.includes(task.id))
   return (
-    <div className="reward-condition-picker">
+    <div className="reward-condition-picker reward-task-selector">
       <strong>{title}</strong>
       <small>{t('rewardsUi.taskTodayNote')}</small>
-      <div className="reward-checkbox-grid">
-        {tasks.map((task) => (
-          <label className="form-checkbox" key={task.id}>
-            <input
-              type="checkbox"
-              checked={selected.includes(task.id)}
-              onChange={() => onToggle(task.id)}
-            />
-            <span>№{task.id} · {task.title}</span>
-          </label>
-        ))}
+      {selected.map(id => {
+        const task = tasks.find(item => item.id === id)
+        return <div className="reward-selected-task" key={id}>
+          <span>{task ? task.title : t('rewardTaskUi.unavailable', { id })}</span>
+          <button type="button" className="secondary-button" onClick={() => onToggle(id)}
+            aria-label={t('rewardTaskUi.remove')}>×</button>
+        </div>
+      })}
+      <div className="reward-task-selector-row">
+        <select value={choice} aria-label={t('rewardTaskUi.choose')}
+          onChange={e => setChoice(e.target.value)}>
+          <option value="">{available.length ? t('rewardTaskUi.choose') : t('rewardTaskUi.noTasks')}</option>
+          {available.map(task => <option key={task.id} value={task.id}>{task.title}</option>)}
+        </select>
+        <button type="button" className="secondary-button" disabled={!choice}
+          onClick={() => { onToggle(Number(choice)); setChoice('') }}>{t('rewardTaskUi.add')}</button>
       </div>
+      <button type="button" className="secondary-button reward-task-create" onClick={onCreateTask}>
+        {t('rewardTaskUi.create')}
+      </button>
     </div>
   )
 }
