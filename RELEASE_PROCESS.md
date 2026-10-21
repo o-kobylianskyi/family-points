@@ -32,3 +32,10 @@ Do **not** select releases using a substring search for "beta" in commit message
 - Existing SSH command: `ssh -i "$env:USERPROFILE\\.ssh\\contabo_admin_ed25519" adminfp@184.174.37.206`.
 - Git checkout/image rollback alone may not roll back a forward-only Flyway migration.
 - Do not use `docker compose down -v` or overwrite/reuse persistent BETA data.
+
+## Environment lifecycle (agreed 2026-10-21)
+- NOW: family-point.com runs public BETA on existing Contabo stack; root domain is not yet production. BETA Git tag is a release channel independent from DNS name.
+- LATER: family-point.com becomes PRODUCTION only upon separate stable release approval. Public BETA moves to beta.family-point.com, with its own database/volume, signing/application configs, JWT secrets, TLS and rollout; local DEV stays on existing dev.family-point.com:8443.
+- Do not automatically transfer user or child data from BETA to PRODUCTION. Plan consent/retention and migrations explicitly.
+- Android currently targets the root BETA; after split release-channel API URLs must be explicit. If users need beta and stable APKs installed side by side, use separate application IDs and version/update streams.
+- No automatic deployment on tags; staging/production requires separate approval and verification.
