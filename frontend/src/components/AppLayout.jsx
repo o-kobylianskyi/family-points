@@ -64,7 +64,7 @@ function AppLayout() {
           <button
             type="button"
             className="mobile-menu-button"
-            aria-label="Menu"
+            aria-label={t('workspaceUi.menu')}
             aria-expanded={mobileMenuOpen}
             onClick={() => setMobileMenuOpen((value) => !value)}
           >
@@ -77,8 +77,8 @@ function AppLayout() {
             {workspaceChoices.length > 1 && (
               <select
                 className="language-switcher workspace-switcher"
-                aria-label="Активна сім'я / Active workspace"
-                title="Активна сім'я"
+                aria-label={t('workspaceUi.activeFamily')}
+                title={t('workspaceUi.activeFamily')}
                 value={currentUser.workspaceId}
                 disabled={switching}
                 onChange={async (event) => {
@@ -87,7 +87,7 @@ function AppLayout() {
                   try {
                     await switchWorkspace(Number(event.target.value))
                   } catch {
-                    setSwitchError('Не вдалося змінити сім’ю')
+                    setSwitchError(t('workspaceUi.switchError'))
                     setSwitching(false)
                   }
                 }}
@@ -102,7 +102,7 @@ function AppLayout() {
             {canCreateFamily && (
               <button className="header-create-family" type="button" disabled={switching}
                 onClick={() => { setSwitchError(''); setShowCreateFamily(true) }}>
-                + Створити сім’ю
+                {t('workspaceUi.createFamily')}
               </button>
             )}
             {switchError && <span role="alert">{switchError}</span>}
@@ -136,7 +136,7 @@ function AppLayout() {
                 padding: 24, borderRadius: 14, width: 'min(100%, 430px)',
                 maxHeight: '90vh', overflowY: 'auto',
               }}>
-              <h2 id="new-family-title">Створити сім’ю</h2>
+              <h2 id="new-family-title">{t("workspaceUi.createFamilyTitle")}</h2>
               <form onSubmit={async (event) => {
                 event.preventDefault()
                 setSwitching(true)
@@ -144,18 +144,18 @@ function AppLayout() {
                 try {
                   await createAdditionalFamily(newFamilyName, newOwnerName)
                 } catch (error) {
-                  setSwitchError(error.message || 'Не вдалося створити сім’ю')
+                  setSwitchError(error.message || t('workspaceUi.creationError'))
                   setSwitching(false)
                 }
               }}>
                 <label style={{ display: 'block', marginBottom: 12 }}>
-                  Назва сім’ї
+                  {t('workspaceUi.familyName')}
                   <input autoFocus required maxLength={100} value={newFamilyName}
                     disabled={switching} onChange={(e) => setNewFamilyName(e.target.value)}
                     style={{ display: 'block', width: '100%' }} />
                 </label>
                 <label style={{ display: 'block', marginBottom: 12 }}>
-                  Ім’я власника
+                  {t('workspaceUi.ownerName')}
                   <input required maxLength={100} value={newOwnerName}
                     disabled={switching} onChange={(e) => setNewOwnerName(e.target.value)}
                     style={{ display: 'block', width: '100%' }} />
@@ -163,10 +163,10 @@ function AppLayout() {
                 {switchError && <p role="alert" className="error-message">{switchError}</p>}
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <button type="submit" disabled={switching || !newFamilyName.trim() || !newOwnerName.trim()}>
-                    {switching ? 'Створюємо…' : 'Створити'}
+                    {switching ? t('workspaceUi.creating') : t('workspaceUi.create')}
                   </button>
                   <button type="button" disabled={switching}
-                    onClick={() => setShowCreateFamily(false)}>Скасувати</button>
+                    onClick={() => setShowCreateFamily(false)}>{t('workspaceUi.cancel')}</button>
                 </div>
               </form>
             </section>
