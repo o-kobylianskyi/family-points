@@ -83,7 +83,7 @@ function TaskDetailsPage() {
   useEffect(() => { load() }, [definitionId, selectedDate, selectedSlotKey, currentUser.workspaceId])
 
   if (error && !task) return <div className="page-error">{error}</div>
-  if (!task) return <div className="page-loading">Завантаження...</div>
+  if (!task) return <div className="page-loading">{t("common.loading")}</div>
 
   const memberName = (id) => members.find((m) => m.id === id)?.name || (id ? `#${id}` : '—')
   const formatTaskDateTime = (value) => formatDateTime(value, i18n.resolvedLanguage || i18n.language)
@@ -143,7 +143,7 @@ function TaskDetailsPage() {
   }
 
   const confirmScheduledCompletion = async () => {
-    if (!window.confirm(`Підтвердити виконання «${task.title}» за ${selectedDate}? Бали й репутація будуть нараховані виконавцю.`)) return
+    if (!window.confirm(t('taskDetailsUi.confirmCompletion', { title: task.title, date: selectedDate }))) return
     try {
       setProcessing(true)
       setError('')
@@ -163,31 +163,31 @@ function TaskDetailsPage() {
 
   return (
     <div className="task-details-page">
-      <Link className="task-details-back" to="/tasks">← До завдань</Link>
+      <Link className="task-details-back" to="/tasks">{t('taskDetailsUi.back')}</Link>
 
       {error && <div className="page-error">{error}</div>}
 
       {(ancestors.length > 0 || hiddenParent) && (
-        <nav className="task-hierarchy-breadcrumb" aria-label="Ієрархія завдання">
+        <nav className="task-hierarchy-breadcrumb" aria-label={t("taskDetailsUi.hierarchy")}>
           {ancestors.map((parent) => (
             <span key={parent.id}>
               <Link to={`/tasks/${parent.id}?date=${selectedDate}`}>№{parent.id} · {parent.title}</Link>
               <span> → </span>
             </span>
           ))}
-          {hiddenParent && <span>Батьківське завдання недоступне → </span>}
+          {hiddenParent && <span>{t('taskDetailsUi.hiddenParent')}</span>}
           <strong>№{task.id} · {task.title}</strong>
         </nav>
       )}
 
       <header className="task-details-header">
         <div>
-          <div className="task-details-number">Завдання №{task.id}</div>
+          <div className="task-details-number">{t('taskDetailsUi.taskNo', { id: task.id })}</div>
           <h1>{task.title}</h1>
           {task.description && <p>{task.description}</p>}
         </div>
         <span className={task.active ? 'task-status task-status-completed' : 'task-status'}>
-          {task.active ? 'Активне' : 'Неактивне'}
+          {task.active ? t('taskDetailsUi.active') : t('taskDetailsUi.inactive')}
         </span>
       </header>
 
@@ -195,16 +195,16 @@ function TaskDetailsPage() {
         <section className="task-details-card task-execution-card">
           <div className="task-details-section-header">
             <div>
-              <h2>Виконання · {selectedDate} · {selectedSlotKey}</h2>
-              <p className="task-details-muted">Виконавець: <strong>{memberName(instance.memberId)}</strong> · Статус: <strong>{translateEnum('taskStatus', instance.status)}</strong></p>
+              <h2>{t('taskDetailsUi.execution')} · {selectedDate} · {selectedSlotKey}</h2>
+              <p className="task-details-muted">{t('taskDetailsUi.executor')} <strong>{memberName(instance.memberId)}</strong> · {t('taskDetailsUi.status')} <strong>{translateEnum('taskStatus', instance.status)}</strong></p>
             </div>
             <div className="task-card-actions">
-              {instance.status === 'PENDING' && <button className="task-action-button primary" disabled={processing} onClick={() => runInstanceAction('start')}>Почати</button>}
+              {instance.status === 'PENDING' && <button className="task-action-button primary" disabled={processing} onClick={() => runInstanceAction('start')}>{t('taskDetailsUi.start')}</button>}
               {instance.status === 'IN_PROGRESS' && <>
-                <button className="task-action-button primary" disabled={processing} onClick={() => runInstanceAction('complete')}>Виконано</button>
-                <button className="task-action-button" disabled={processing} onClick={() => runInstanceAction('pause')}>Призупинити</button>
+                <button className="task-action-button primary" disabled={processing} onClick={() => runInstanceAction('complete')}>{t('taskDetailsUi.complete')}</button>
+                <button className="task-action-button" disabled={processing} onClick={() => runInstanceAction('pause')}>{t('taskDetailsUi.pause')}</button>
               </>}
-              {instance.status === 'PAUSED' && <button className="task-action-button primary" disabled={processing} onClick={() => runInstanceAction('resume')}>Продовжити</button>}
+              {instance.status === 'PAUSED' && <button className="task-action-button primary" disabled={processing} onClick={() => runInstanceAction('resume')}>{t('taskDetailsUi.resume')}</button>}
               {instance.memberId === currentUser.memberId
                 && ['PENDING','IN_PROGRESS','PAUSED'].includes(instance.status) && (
                   <button
@@ -212,80 +212,80 @@ function TaskDetailsPage() {
                     type="button"
                     onClick={() => setRewardNegotiationOpen(true)}
                   >
-                    Запросити іншу винагороду
+                    {t('taskDetailsUi.changeReward')}
                   </button>
                 )}
               {instance.delegationAllowed && ['PENDING','IN_PROGRESS','PAUSED'].includes(instance.status) &&
-                <button className="task-action-button" onClick={() => { setDelegating(!delegating); setDelegateToMemberId(String(members.find(m => m.id !== instance.memberId)?.id || '')) }}>Делегувати</button>}
+                <button className="task-action-button" onClick={() => { setDelegating(!delegating); setDelegateToMemberId(String(members.find(m => m.id !== instance.memberId)?.id || '')) }}>{t('taskDetailsUi.delegate')}</button>}
               {['PENDING','IN_PROGRESS','PAUSED'].includes(instance.status) &&
-                <button className="task-action-button" disabled={processing} onClick={() => window.confirm('Відмінити виконання?') && runInstanceAction('cancel')}>Відмінити</button>}
+                <button className="task-action-button" disabled={processing} onClick={() => window.confirm(t('taskDetailsUi.cancelExecutionConfirm')) && runInstanceAction('cancel')}>{t('taskDetailsUi.cancelExecution')}</button>}
               {['PENDING','IN_PROGRESS','PAUSED'].includes(instance.status) &&
-                <button className="task-action-button" disabled={processing} onClick={() => window.confirm('Відмовитися від завдання?') && runInstanceAction('release')}>Відмовитися</button>}
+                <button className="task-action-button" disabled={processing} onClick={() => window.confirm(t('taskDetailsUi.releaseConfirm')) && runInstanceAction('release')}>{t('taskDetailsUi.release')}</button>}
             </div>
           </div>
           {delegating && <div className="task-delegation-panel">
             <select value={delegateToMemberId} onChange={(e) => setDelegateToMemberId(e.target.value)}>
               {members.filter(m => m.id !== instance.memberId).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
-            <button className="primary-button" disabled={processing || !delegateToMemberId} onClick={handleDelegate}>Передати</button>
+            <button className="primary-button" disabled={processing || !delegateToMemberId} onClick={handleDelegate}>{t('taskDetailsUi.transfer')}</button>
           </div>}
         </section>
       )}
 
       <div className="task-details-grid">
         <section className="task-details-card">
-          <h2>Основне</h2>
+          <h2>{t('taskDetailsUi.basics')}</h2>
           <dl className="task-details-fields">
-            <div><dt>Автор</dt><dd>{author}</dd></div>
-            <div><dt>Створено</dt><dd>{formatTaskDateTime(task.createdAt)}</dd></div>
-            <div><dt>Оновлено</dt><dd>{formatTaskDateTime(task.updatedAt)}</dd></div>
-            <div><dt>Обов'язкове</dt><dd>{task.mandatory ? 'Так' : 'Ні'}</dd></div>
-            <div><dt>Повторення</dt><dd>{translateEnum('taskRecurrence', task.recurrenceType)}</dd></div>
-            <div><dt>Термін</dt><dd>{task.dueTime || '—'}</dd></div>
-            <div><dt>Призначення</dt><dd>{translateEnum('assignmentPolicy', task.assignmentPolicy)}</dd></div>
-            <div><dt>Делегування</dt><dd>{task.delegationAllowed ? 'Дозволено' : 'Заборонено'}</dd></div>
+            <div><dt>{t('taskDetailsUi.author')}</dt><dd>{author}</dd></div>
+            <div><dt>{t('taskDetailsUi.created')}</dt><dd>{formatTaskDateTime(task.createdAt)}</dd></div>
+            <div><dt>{t('taskDetailsUi.updated')}</dt><dd>{formatTaskDateTime(task.updatedAt)}</dd></div>
+            <div><dt>{t('taskDetailsUi.mandatory')}</dt><dd>{task.mandatory ? t('taskDetailsUi.yes') : t('taskDetailsUi.no')}</dd></div>
+            <div><dt>{t('taskDetailsUi.recurrence')}</dt><dd>{translateEnum('taskRecurrence', task.recurrenceType)}</dd></div>
+            <div><dt>{t('taskDetailsUi.due')}</dt><dd>{task.dueTime || '—'}</dd></div>
+            <div><dt>{t('taskDetailsUi.assignment')}</dt><dd>{translateEnum('assignmentPolicy', task.assignmentPolicy)}</dd></div>
+            <div><dt>{t('taskDetailsUi.delegation')}</dt><dd>{task.delegationAllowed ? t('taskDetailsUi.allowed') : t('taskDetailsUi.forbidden')}</dd></div>
           </dl>
         </section>
 
         <section className="task-details-card">
-          <h2>Відповідальність і бали</h2>
+          <h2>{t('taskDetailsUi.responsibility')}</h2>
           <dl className="task-details-fields">
-            <div><dt>Призначено</dt><dd>{memberName(task.assignedMemberId)}</dd></div>
-            <div><dt>Відповідальний</dt><dd>{memberName(task.responsibleMemberId)}</dd></div>
-            <div><dt>Бажаний виконавець</dt><dd>{memberName(task.preferredMemberId)}</dd></div>
-            <div><dt>Нагорода</dt><dd>{task.rewardAmount ? `+${currency(task.rewardAmount, task.rewardPointTypeCode, task.rewardPointTypeId, translateEnum('pointType', task.rewardPointTypeCode))}` : '—'}</dd></div>
-            <div><dt>Репутація за виконання</dt><dd>{task.rewardReputationAmount > 0 ? `+${task.rewardReputationAmount}` : '—'}</dd></div>
-            <div><dt>Штраф</dt><dd>{task.penaltyAmount ? `-${currency(task.penaltyAmount, task.penaltyPointTypeCode, task.penaltyPointTypeId, translateEnum('pointType', task.penaltyPointTypeCode))}` : '—'}</dd></div>
-            <div><dt>Репутація за невиконання</dt><dd>{task.penaltyReputationAmount > 0 ? `-${task.penaltyReputationAmount}` : '—'}</dd></div>
+            <div><dt>{t('taskDetailsUi.assigned')}</dt><dd>{memberName(task.assignedMemberId)}</dd></div>
+            <div><dt>{t('taskDetailsUi.responsible')}</dt><dd>{memberName(task.responsibleMemberId)}</dd></div>
+            <div><dt>{t('taskDetailsUi.preferred')}</dt><dd>{memberName(task.preferredMemberId)}</dd></div>
+            <div><dt>{t('taskDetailsUi.reward')}</dt><dd>{task.rewardAmount ? `+${currency(task.rewardAmount, task.rewardPointTypeCode, task.rewardPointTypeId, translateEnum('pointType', task.rewardPointTypeCode))}` : '—'}</dd></div>
+            <div><dt>{t('taskDetailsUi.completionRep')}</dt><dd>{task.rewardReputationAmount > 0 ? `+${task.rewardReputationAmount}` : '—'}</dd></div>
+            <div><dt>{t('taskDetailsUi.penalty')}</dt><dd>{task.penaltyAmount ? `-${currency(task.penaltyAmount, task.penaltyPointTypeCode, task.penaltyPointTypeId, translateEnum('pointType', task.penaltyPointTypeCode))}` : '—'}</dd></div>
+            <div><dt>{t('taskDetailsUi.missedRep')}</dt><dd>{task.penaltyReputationAmount > 0 ? `-${task.penaltyReputationAmount}` : '—'}</dd></div>
           </dl>
         </section>
       </div>
 
       <section className="task-details-card">
         <div className="task-details-section-header">
-          <h2>Підзавдання</h2>
-          <button type="button" className="task-action-button primary" onClick={() => setCreateSubtaskOpen(true)}>+ Створити</button>
+          <h2>{t('taskDetailsUi.subtasks')}</h2>
+          <button type="button" className="task-action-button primary" onClick={() => setCreateSubtaskOpen(true)}>{t('taskDetailsUi.create')}</button>
         </div>
         {subtasks.length === 0 ? (
-          <p className="task-details-muted">Підзавдань поки немає.</p>
+          <p className="task-details-muted">{t('taskDetailsUi.noSubtasks')}</p>
         ) : (
           <div className="task-details-subtasks">
             {subtasks.map((subtask) => (
               <Link key={subtask.id} className="task-details-subtask" to={`/tasks/${subtask.id}`}>
                 <span><strong>№{subtask.id}</strong> · {subtask.title}</span>
-                <span>{subtask.rewardAmount ? `+${currency(subtask.rewardAmount, subtask.rewardPointTypeCode, subtask.rewardPointTypeId, translateEnum('pointType', subtask.rewardPointTypeCode))}` : 'Без винагороди'} →</span>
+                <span>{subtask.rewardAmount ? `+${currency(subtask.rewardAmount, subtask.rewardPointTypeCode, subtask.rewardPointTypeId, translateEnum('pointType', subtask.rewardPointTypeCode))}` : t('taskDetailsUi.noReward')} →</span>
               </Link>
             ))}
           </div>
         )}
-        <p className="task-details-muted">Створення підзавдання буде використовувати бюджет і контекст цього завдання.</p>
+        <p className="task-details-muted">{t('taskDetailsUi.subtaskNote')}</p>
       </section>
 
       <section className="task-details-card">
         <div className="task-details-section-header">
-          <h2>Учасники</h2>
+          <h2>{t('taskDetailsUi.members')}</h2>
         </div>
-        {participants.length === 0 ? <p className="task-details-muted">Додаткових учасників немає.</p> :
+        {participants.length === 0 ? <p className="task-details-muted">{t('taskDetailsUi.noMembers')}</p> :
           <div className="task-participant-list">{participants.map((p) =>
             <span key={p.id} className="task-participant-chip">{p.actorName || `#${p.actorId}`} · {translateEnum('taskParticipantRole', p.role)}</span>
           )}</div>}
@@ -293,17 +293,17 @@ function TaskDetailsPage() {
 
       {canManage && <section className="task-details-card">
         <div className="task-details-section-header">
-          <h2>Керування</h2>
+          <h2>{t('taskDetailsUi.management')}</h2>
           <div className="task-card-actions">
             <button className="task-action-button primary" type="button" disabled={processing}
-              onClick={() => setEditOpen(true)}>Редагувати</button>
+              onClick={() => setEditOpen(true)}>{t('taskDetailsUi.edit')}</button>
             {task.active && (!instance || ['PENDING', 'IN_PROGRESS'].includes(instance.status)) &&
               selectedDate <= localToday() && (
               <button className="task-action-button" type="button" disabled={processing}
-                onClick={confirmScheduledCompletion}>Позначити виконаним · {selectedDate} · {selectedSlotKey}</button>
+                onClick={confirmScheduledCompletion}>{t('taskDetailsUi.markComplete')} · {selectedDate} · {selectedSlotKey}</button>
             )}
             <button className="task-action-button secondary" disabled={processing} onClick={toggleActive}>
-              {task.active ? 'Деактивувати' : 'Активувати'}
+              {task.active ? t('taskDetailsUi.deactivate') : t('taskDetailsUi.activate')}
             </button>
           </div>
         </div>
@@ -312,8 +312,8 @@ function TaskDetailsPage() {
       {canManage && <TaskScheduleEditor definitionId={task.id} onChanged={load} />}
 
       <section className="task-details-card">
-        <h2>Історія</h2>
-        {history.length === 0 ? <p className="task-details-muted">Історія поки порожня.</p> :
+        <h2>{t('taskDetailsUi.history')}</h2>
+        {history.length === 0 ? <p className="task-details-muted">{t('taskDetailsUi.noHistory')}</p> :
           <div className="task-details-history">{history.map((event) =>
             <div key={event.id} className="task-details-history-row">
               <time>{formatTaskDateTime(event.occurredAt)}</time>
