@@ -3848,3 +3848,12 @@ button:focus-visible {
   .task-suggestion-footer { padding: 12px 16px; }
   .task-suggestion-actions button { width: 100%; }
 }
+
+/* Reward conditions: single-task dropdown with repeatable selections. */
+.reward-task-selector { display: grid; gap: 10px; min-width: 0; }
+.reward-task-selector-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.reward-task-selector-row select { flex: 1 1 220px; min-width: 0; min-height: 38px; border: 1px solid #d6dce9; border-radius: 8px; background: white; padding: 8px 10px; }
+.reward-selected-task { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #dfe5f2; border-radius: 8px; padding: 7px 10px; overflow-wrap: anywhere; }
+.reward-selected-task > span { flex: 1; min-width: 0; }
+.reward-selected-task > button { flex: 0 0 auto; }
+.reward-task-create { justify-self: start; }
