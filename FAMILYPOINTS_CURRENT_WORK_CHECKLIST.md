@@ -1220,3 +1220,13 @@ Before each substantial implementation batch:
 - [ ] Full CI / Maven and Web build verification after commits; no runtime success claimed
 - [ ] User acceptance: Google registration -> create workspace -> Settings verify linked Google -> set password -> sign out -> login with displayed username/password -> Google login still works
 - [ ] Verify response for token from different Google identity is 403; no DEV DB or Contabo deployments without approval
+
+## 2026-10-21 — Member invitation lifetime + passwordless Google acceptance
+- [x] Invite acceptance flow adds verified Google sign-up for an existing invited member, without local password, requiring exact email match and unused Google provider subject
+- [x] Existing password flow remains available; both flows consume the same one-time token transactionally
+- [x] Added read-only /auth/member-invitations/check giving VALID/USED/REPLACED/EXPIRED/UNKNOWN/INVALID without exposing email/contact data
+- [x] Frontend checks the token before submission and displays local-language status; HTTP 410 directs user to newer invite
+- [x] Google flow preserves invited family member, does not create extra member or merge by email
+- [ ] CI: Maven compile/tests, Vite build, Android unaffected
+- [ ] Test the latest invitation (not an earlier revoked link), 24h expiry, duplicate Google-subject conflicts, wrong Google email and both successful acceptance paths
+- [ ] No direct DEV DB writes or Contabo deployment
