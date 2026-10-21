@@ -989,5 +989,24 @@
     "delete": "Löschen",
     "save": "Speichern",
     "saving": "Speichern…"
+  },
+  "taskSuggestionUi": {
+    "suggestTask": "Aufgabe vorschlagen",
+    "suggestTitle": "Ich wünsche mir eine Aufgabe",
+    "suggestDescription": "Beschreibe, was du machen möchtest. Ein Erwachsener prüft die Idee und entscheidet über eine Belohnung.",
+    "title": "Aufgabentitel",
+    "description": "Beschreibung (optional)",
+    "submit": "An Erwachsene senden",
+    "sent": "Vorschlag gesendet. Punkte werden nicht automatisch gutgeschrieben.",
+    "requests": "Aufgabenvorschläge",
+    "pending": "Wartet auf Entscheidung",
+    "approved": "Genehmigt",
+    "rejected": "Abgelehnt",
+    "approve": "Genehmigen",
+    "reject": "Ablehnen",
+    "noRequests": "Noch keine Vorschläge",
+    "close": "Schließen",
+    "error": "Vorgang fehlgeschlagen",
+    "approvalReminder": "Eine Genehmigung erstellt keine bezahlte Aufgabe. Ein Erwachsener erstellt und finanziert sie separat."
   }
 }
