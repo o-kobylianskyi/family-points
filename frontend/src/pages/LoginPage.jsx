@@ -192,6 +192,7 @@ function LoginPage() {
         <p><Link to="/register-account">{t("authUi.createAccount")}</Link></p>
         <p><Link to="/forgot-password">{t("authUi.forgotPassword")}</Link></p>
         <p><Link to="/register">{t("authUi.familyDemo")}</Link></p>
+        <p><Link to="/download">{t("androidDownload.nav")}</Link></p>
       </div>
     </div>
   )
