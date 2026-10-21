@@ -1263,3 +1263,11 @@ Before each substantial implementation batch:
 - [x] Localize all picker states in UK/DE/EN/RU; CSS responsive
 - [ ] Confirm why task #42 appeared in a supposedly task-free family (server repository scopes workspaceId; user needs to verify selected family and current request)
 - [ ] CI after latest commits and browser verification
+
+## 2026-10-21 — Family-local default task names
+- [x] Confirm source of #42: child-created task in the current family, so not a cross-family leak
+- [x] Separate technical global task primary key (#42) from family-local default title number
+- [x] New authenticated GET /workspaces/{workspaceId}/tasks/definitions/next-default-number uses countByWorkspaceId + 1, including inactive tasks, requiring task-creation permission
+- [x] CreateTaskModal pre-fills localized `<task title> №N` from backend; user-edited titles never overwritten by async reply
+- [ ] Verify CI + first task in new empty family gets №1, second №2 even if global PK differs; old task #42 and historical reward transaction untouched
+- [ ] Follow-up UX: decide whether task list should also show a separate family-local number instead of global #42; this is a distinct display requirement
