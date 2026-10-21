@@ -52,6 +52,10 @@ public class TaskAuthorizationService {
     public void requireCreate(Long workspaceId) {
         requireWorkspace(workspaceId);
         WorkspaceMember me = currentMember();
+        // A child may propose a task, but may not mint rewards by creating a paid task.
+        // Child-funded tasks require an explicit debit/escrow workflow, not yet implemented.
+        if (me.getMemberType() == WorkspaceMemberType.CHILD)
+            throw new AccessDeniedException("CHILD_TASK_REQUIRES_APPROVAL_OR_SELF_FUNDING");
         if (!me.hasPermission(WorkspacePermission.CREATE_TASKS)
                 && !me.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) {
             throw new AccessDeniedException("Current user cannot create tasks");
