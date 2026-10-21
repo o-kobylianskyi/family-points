@@ -1294,3 +1294,10 @@ Before each substantial implementation batch:
 - [ ] Validate phone login, family creation, role isolation, TLS from cellular with local DEV offline
 - [ ] Create and securely back up signing keystore (outside repo), build first APK versionCode=1, store signed artifact and checksum
 - [ ] Future: repeat deploy with approved Git SHA, Android update using same signing key and incremented versionCode; do not claim automatic background push/update system
+
+## 2026-10-21 — BETA compose feature flags before first tagged release
+- [x] Compose now passes opt-in registration, targeted invitations, SMTP, Google backend settings and public Google Web Client ID to Vite
+- [x] Public test default domain remains https://family-point.com; beta flags default false until explicitly validated
+- [ ] Confirm Google Cloud authorized JavaScript origin https://family-point.com, SMTP sender/domain verification, public signup policy and rate limiting
+- [ ] Review CI, tag approved SHA, update Contabo private .env and smoke; do not show credentials in console
+- [ ] Confirm isolated restored database and migrated V27–V34 before production BETA update
