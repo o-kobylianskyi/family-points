@@ -207,3 +207,8 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 ## 2026-10-21 — Google registration CORS bug root cause (FIX COMMITTED ONLY)
 - Browser DevTools Response: HTTP 403 `Invalid CORS request` for POST https://family-point.com/auth/google/register. Same endpoint without Origin via curl correctly returns 401 Invalid Google token. No DEV account collision or Google token defect established.
 - Added exact public HTTPS origins in SecurityConfig CORS allowlist including future beta.family-point.com; JUnit regression tests ensure permitted root/beta and reject unrelated insecure origins. Changes committed on development branch, NOT deployed. Existing BETA v0.1.0-beta.2 remains unchanged until CI then new v0.1.0-beta.3 approval.
+
+## 2026-10-21 — Operational BETA config hotfix + Git sync
+- First-family onboarding was blocked on public BETA because feature flag was not passed to Backend. Operator added FAMILYPOINTS_FIRST_FAMILY_ENABLED mapping to host compose.beta.yml and is adding value=true to private VPS .env.
+- Mirrored Compose mapping in development branch (default false), and documented the variable in .env.beta.example. This is a runtime configuration change only; no DB migration needed.
+- Workflow decision: small operational config fixes can be applied directly on BETA for urgent verification, but always mirror in GitHub for the NEXT tagged release. Avoid committing .env/secrets and do not deploy or force-sync from Git while the host checkout has uncommitted changes. Record any manual override for reconciliation before next release.
