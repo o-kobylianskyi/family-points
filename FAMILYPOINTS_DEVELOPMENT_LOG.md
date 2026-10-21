@@ -1237,3 +1237,9 @@
 - User screenshot shows task #42 inside BEFORE/AFTER reward conditions, despite claiming no tasks in selected family. Backend getDefinitions(workspaceId) already queries findByWorkspaceIdAndActiveTrueOrderByIdAsc and applies canRead. Actual source of displayed ID not yet verified (possible family selection/old async result); no unsupported claim that DB leaks across workspace.
 - RewardsPage now resets stale task options on workspace changes and ignores responses from prior workspace; options filter by returned workspaceId when available. Replaced all task checkboxes with a repeatable task dropdown + Add, selected removable items, and a create-task button routing to /tasks?create=1 where an authorized user can open new task editor.
 - All localized UK/DE/EN/RU, responsive styles. No DB changes or Contabo deployment. Browser/CI check pending.
+
+## 2026-10-21 — Family-scoped default task name sequence
+- Screenshot confirms task #42 belongs to this family; was created/completed by child during previous privilege escalation test. Not a cross-workspace task leak.
+- TaskDefinition.id is global technical DB PK; default task name numbering must be family scoped. New endpoint returns count of all task definitions in selected family + 1; Task creation UI uses localized base + ` №N` and respects manually edited titles. Includes inactive definitions, avoids reusing numbers after hiding tasks. No migrations, no direct DEV DB writes, no renaming task #42 or mutating history.
+- New family first task defaults to `Завдання №1`; a family with one existing task defaults to `Завдання №2`. Historical `№42` shown by task list is still global ID and may warrant a separate per-family display ordinal feature.
+- Builds/CI after latest commits pending.
