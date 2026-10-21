@@ -52,7 +52,7 @@ public class TaskRewardNegotiationService {
             TaskRewardRequestCreateRequest input
     ) {
         TaskInstance instance = getInstance(workspaceId, instanceId);
-        WorkspaceMember requester = currentUser.getCurrentAccount().getWorkspaceMember();
+        WorkspaceMember requester = currentUser.getCurrentMember();
 
         if (!instance.getMember().getId().equals(requester.getId())) {
             throw new IllegalArgumentException("Only the current task executor can request a reward change");
@@ -108,7 +108,7 @@ public class TaskRewardNegotiationService {
             Long instanceId
     ) {
         TaskInstance instance = getInstance(workspaceId, instanceId);
-        WorkspaceMember member = currentUser.getCurrentAccount().getWorkspaceMember();
+        WorkspaceMember member = currentUser.getCurrentMember();
 
         if (!instance.getMember().getId().equals(member.getId()) && !canReview(member)) {
             throw new IllegalArgumentException("Task reward request access denied");
@@ -122,7 +122,7 @@ public class TaskRewardNegotiationService {
 
     @Transactional(readOnly = true)
     public List<TaskRewardRequestResponse> listPending(Long workspaceId) {
-        WorkspaceMember member = currentUser.getCurrentAccount().getWorkspaceMember();
+        WorkspaceMember member = currentUser.getCurrentMember();
         if (!canReview(member)) {
             throw new IllegalArgumentException("Task reward request review access denied");
         }
@@ -140,7 +140,7 @@ public class TaskRewardNegotiationService {
             Long requestId,
             TaskRewardRequestReviewRequest input
     ) {
-        WorkspaceMember reviewer = currentUser.getCurrentAccount().getWorkspaceMember();
+        WorkspaceMember reviewer = currentUser.getCurrentMember();
         if (!canReview(reviewer)) {
             throw new IllegalArgumentException("Task reward request review access denied");
         }
@@ -179,7 +179,7 @@ public class TaskRewardNegotiationService {
             Long requestId,
             String comment
     ) {
-        WorkspaceMember reviewer = currentUser.getCurrentAccount().getWorkspaceMember();
+        WorkspaceMember reviewer = currentUser.getCurrentMember();
         if (!canReview(reviewer)) {
             throw new IllegalArgumentException("Task reward request review access denied");
         }
