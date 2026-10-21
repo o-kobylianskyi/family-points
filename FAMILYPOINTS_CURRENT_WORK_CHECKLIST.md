@@ -1314,3 +1314,9 @@ Before each substantial implementation batch:
 - [x] Add exact allowlisted HTTPS origins family-point.com, beta.family-point.com to Spring Security CORS; no wildcard
 - [x] Add regression tests for allowed/denied origins
 - [ ] Confirm CI and ship as new immutable v0.1.0-beta.3 tag, then controlled Contabo rollout
+
+## 2026-10-21 — First-family BETA hotfix
+- [x] Mirror FAMILYPOINTS_FIRST_FAMILY_ENABLED mapping in compose.beta.yml on feature branch, default false
+- [x] Document .env flag; operator controls actual BETA value (true)
+- [ ] Confirm container recreation picks up flag and onboarding works on public site
+- [ ] Before next release reconcile host uncommitted Compose with Git; never overwrite secrets or blindly switch with dirty working tree
