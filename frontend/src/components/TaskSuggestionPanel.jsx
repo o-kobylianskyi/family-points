@@ -47,29 +47,51 @@ export default function TaskSuggestionPanel({ onClose }) {
     } catch (e) { setError(`${t('taskSuggestionUi.error')} · ${e.message}`) }
     finally { setBusy(false) }
   }
-  return <div className="modal-overlay" role="presentation">
-    <div className="modal-content" role="dialog" aria-modal="true" aria-label={t('taskSuggestionUi.suggestTitle')} style={{ maxWidth: 580, padding: 24, maxHeight: '85vh', overflowY: 'auto' }}>
-      <h2>{t('taskSuggestionUi.suggestTitle')}</h2>
-      <p>{t('taskSuggestionUi.suggestDescription')}</p>
-      <form onSubmit={submit}>
-        <label>{t('taskSuggestionUi.title')}<input required maxLength={150} value={title} onChange={e => setTitle(e.target.value)} /></label>
-        <label>{t('taskSuggestionUi.description')}<textarea maxLength={1000} value={description} onChange={e => setDescription(e.target.value)} /></label>
-        <button type="submit" disabled={busy}>{t('taskSuggestionUi.submit')}</button>
-      </form>
-      {message && <p role="status">{message}</p>}
-      {error && <p className="error-message" role="alert">{error}</p>}
-      <h3>{t('taskSuggestionUi.requests')}</h3>
-      {items.length === 0 && <p>{t('taskSuggestionUi.noRequests')}</p>}
-      {items.map(item => <div className="card" key={item.id} style={{ marginBottom: 8, padding: 12 }}>
-        <strong>{item.title}</strong><p>{item.description}</p>
-        <small>{t('taskSuggestionUi.' + item.status.toLowerCase())}</small>
-        {isAdultManager && item.status === 'PENDING' && <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" disabled={busy} onClick={() => decide(item.id, 'APPROVED')}>{t('taskSuggestionUi.approve')}</button>
-          <button type="button" disabled={busy} onClick={() => decide(item.id, 'REJECTED')}>{t('taskSuggestionUi.reject')}</button>
-        </div>}
-      </div>)}
-      {isAdultManager && <p>{t('taskSuggestionUi.approvalReminder')}</p>}
-      <button type="button" onClick={onClose}>{t('taskSuggestionUi.close')}</button>
-    </div>
+  return <div className="modal-backdrop task-suggestion-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
+    <section className="modal-card task-suggestion-dialog" role="dialog" aria-modal="true" aria-labelledby="task-suggestion-heading">
+      <header className="task-suggestion-header">
+        <div>
+          <h2 id="task-suggestion-heading">{t('taskSuggestionUi.suggestTitle')}</h2>
+          <p>{t('taskSuggestionUi.suggestDescription')}</p>
+        </div>
+        <button type="button" className="modal-close" onClick={onClose} aria-label={t('taskSuggestionUi.close')}>×</button>
+      </header>
+      <div className="task-suggestion-body">
+        <form className="task-suggestion-form" onSubmit={submit}>
+          <label className="task-suggestion-field">
+            <span>{t('taskSuggestionUi.title')}</span>
+            <input required maxLength={150} value={title} disabled={busy} onChange={e => setTitle(e.target.value)} />
+          </label>
+          <label className="task-suggestion-field">
+            <span>{t('taskSuggestionUi.description')}</span>
+            <textarea rows={4} maxLength={1000} value={description} disabled={busy} onChange={e => setDescription(e.target.value)} />
+          </label>
+          <div className="task-suggestion-actions">
+            <button type="submit" className="primary-button" disabled={busy || !title.trim()}>{t('taskSuggestionUi.submit')}</button>
+          </div>
+        </form>
+        {message && <p className="settings-success" role="status">{message}</p>}
+        {error && <p className="error-message" role="alert">{error}</p>}
+        <div className="task-suggestion-list">
+          <h3>{t('taskSuggestionUi.requests')}</h3>
+          {items.length === 0 && <p className="task-suggestion-empty">{t('taskSuggestionUi.noRequests')}</p>}
+          {items.map(item => <article className="task-suggestion-item" key={item.id}>
+            <div className="task-suggestion-item-header">
+              <strong>{item.title}</strong>
+              <span className="task-suggestion-status">{t('taskSuggestionUi.' + item.status.toLowerCase())}</span>
+            </div>
+            {item.description && <p>{item.description}</p>}
+            {isAdultManager && item.status === 'PENDING' && <div className="task-suggestion-review-actions">
+              <button type="button" className="primary-button" disabled={busy} onClick={() => decide(item.id, 'APPROVED')}>{t('taskSuggestionUi.approve')}</button>
+              <button type="button" className="secondary-button" disabled={busy} onClick={() => decide(item.id, 'REJECTED')}>{t('taskSuggestionUi.reject')}</button>
+            </div>}
+          </article>)}
+          {isAdultManager && <p className="task-suggestion-hint">{t('taskSuggestionUi.approvalReminder')}</p>}
+        </div>
+      </div>
+      <footer className="task-suggestion-footer">
+        <button type="button" className="secondary-button" onClick={onClose}>{t('taskSuggestionUi.close')}</button>
+      </footer>
+    </section>
   </div>
 }
