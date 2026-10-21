@@ -88,6 +88,12 @@ public class TaskController {
                 );
     }
 
+    @GetMapping("/definitions/next-default-number")
+    @PreAuthorize("hasAuthority('CREATE_TASKS') && @workspaceSecurity.canAccessWorkspace(#workspaceId)")
+    public java.util.Map<String, Long> nextDefaultTaskNumber(@PathVariable Long workspaceId) {
+        return java.util.Map.of("number", taskService.nextDefaultTaskNumber(workspaceId));
+    }
+
     @GetMapping("/definitions")
     public List<TaskDefinitionResponse> getDefinitions(
             @PathVariable Long workspaceId
