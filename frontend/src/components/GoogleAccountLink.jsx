@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { linkGoogleAccount } from '../api/authApi'
 import GoogleAuthButton from './GoogleAuthButton'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Link an explicit Google identity to the currently signed-in account.
  * Never infer account ownership from a shared contact email address.
  */
 export default function GoogleAccountLink() {
+  const { t } = useTranslation()
   const { getAccessToken } = useAuth()
   const [currentPassword, setCurrentPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -18,7 +20,7 @@ export default function GoogleAccountLink() {
 
   const handleGoogleCredential = async (idToken) => {
     if (!currentPassword) {
-      setError('Спочатку введіть поточний пароль цього акаунта')
+      setError(t('googleLinkUi.passwordRequired'))
       return
     }
     setError('')
@@ -26,22 +28,22 @@ export default function GoogleAccountLink() {
     setBusy(true)
     try {
       const token = getAccessToken()
-      if (!token) throw new Error('Потрібно увійти повторно')
+      if (!token) throw new Error(t('googleLinkUi.loginRequired'))
       await linkGoogleAccount(token, idToken, currentPassword)
       setCurrentPassword('')
-      setNotice('Google-акаунт успішно прив’язано. Тепер ним можна входити.')
+      setNotice(t('googleLinkUi.linked'))
     } catch (e) {
-      setError(e.message || 'Помилка прив’язки Google')
+      setError(e.message || t('googleLinkUi.linkError'))
     } finally {
       setBusy(false)
     }
   }
 
   return <section className="settings-section">
-    <h2>Google-акаунт</h2>
-    <p>Прив’язати Google для входу в цей логін. Навіть якщо інші члени сім’ї використовують ту саму пошту, їхні акаунти не зміняться.</p>
+    <h2>{t('googleLinkUi.title')}</h2>
+    <p>{t('googleLinkUi.description')}</p>
     <div style={{ maxWidth: 350, display: 'grid', gap: 12 }}>
-      <label>Поточний пароль
+      <label>{t('googleLinkUi.currentPassword')}
         <input type="password" autoComplete="current-password"
           value={currentPassword} onChange={e => setCurrentPassword(e.target.value)}
           disabled={busy} />
