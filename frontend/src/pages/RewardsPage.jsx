@@ -102,7 +102,7 @@ function taskRequirements(form) {
 
 function RewardsPage() {
   const { currentUser, getAccessToken } = useAuth()
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [currencyForms, setCurrencyForms] = useState({})
 
   const [balances, setBalances] = useState([])
