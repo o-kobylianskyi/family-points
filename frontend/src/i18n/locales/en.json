@@ -649,7 +649,8 @@
     "statusReplaced": "A newer invitation replaced this link. Open the latest email.",
     "statusUnknown": "Invitation not found. Check your latest email.",
     "statusInvalid": "Invalid invitation link.",
-    "statusChecking": "Checking invitation…"
+    "statusChecking": "Checking invitation…",
+    "usernameInvalid": "Username must be 3–64 Latin letters, digits, period, _ or -. Spaces are not allowed."
   },
   "groupPageUi": {
     "description": "Group workspace",
