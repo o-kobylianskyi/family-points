@@ -52,8 +52,7 @@
       "addRole": "Rolle hinzufügen",
       "rolePrompt": "Name der neuen Rolle",
       "noCandidates": "Alle Familienmitglieder sind bereits in dieser Gruppe"
-}
-
+    }
   },
   "memberType": {
     "PARENT": "Elternteil",
@@ -534,7 +533,8 @@
     "allTasks": "Alle Aufgaben",
     "noTasks": "Heute sind keine aktiven Aufgaben vorhanden.",
     "quickActions": "Schnellzugriff",
-    "mainSections": "Wichtige Bereiche"
+    "mainSections": "Wichtige Bereiche",
+    "familyMotto": "Mehr Zeit zusammen — mehr Möglichkeiten!"
   },
   "memberUi": {
     "title": "Mitglieder",
