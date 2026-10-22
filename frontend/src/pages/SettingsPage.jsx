@@ -7,6 +7,7 @@ import RoleCatalogSettings from '../components/RoleCatalogSettings'
 import CurrencyFormsSettings from '../components/CurrencyFormsSettings'
 import GoogleAccountLink from '../components/GoogleAccountLink'
 import GooglePasswordSetup from '../components/GooglePasswordSetup'
+import ThemePreference from '../components/ThemePreference'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
 function SettingsPage() {
@@ -155,6 +156,7 @@ function SettingsPage() {
     <p>{t('settings.description')}</p>
     {error && <div className="error-message settings-message">{error}</div>}
     {notice && <div className="settings-success settings-message">{notice}</div>}
+    <ThemePreference />
 
     <section className="settings-section">
       <h2>{t('settings.password.title')}</h2>
