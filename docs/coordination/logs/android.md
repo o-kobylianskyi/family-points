@@ -51,3 +51,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - **Files/commits:** theme `e26d410`; MainActivity `b0dfb3e`; Dashboard `bec035f`; balance surface `9832b46`. No reference images were copied into production.
 - **Verification:** reviewed exact committed source and checked theme parameter wiring, localized selector and persistent theme definitions. **No Android SDK/Gradle build, emulator, real-device test or signed APK verified** in connector environment; compilation and actual visual parity remain OPEN.
 - **Next:** fetch topic branch in Android Studio; run `./gradlew :app:assembleDebug` with installed SDK API 37, exercise theme choice/restart, verify no runtime regressions. Migrate Members, Tasks, Points controls with semantic Compose components and screenshots; do not publish signed APK until IMP-0003 test gate.
+
+## 2026-10-22 — User confirms interim built-in Android avatars (AGREED; DOCUMENTATION ONLY)
+- While IMP-0007 Backend media API is pending, Android should **display its own bundled illustrated avatars and thematic task/group pictures** rather than wait on backend or display only initials everywhere.
+- Graphics remain separate image-only resources, no baked UI text. Selection should be stable by entity ID, with an abstraction/fallback allowing later server `imageRef`/catalog asset replacement without changing Compose screens.
+- Do not falsely claim uploaded images or cross-device sync; no Kotlin assets, build, or API changed in this documentation batch.
