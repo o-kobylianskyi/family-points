@@ -37,3 +37,9 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 ### Web integration review (2026-10-22)
 - Opened **draft PR #2** (`feature/web-soft-family` → `feature/task-soft-delete`), https://github.com/o-kobylianskyi/family-points/pull/2. This is a review/CI gate, not release approval.
 - CI run `39844008339` observed **in progress**; no passing result claimed. User must import and commit the exact two approved WebP images before marking visual asset delivery complete. The verified installer is committed and can stage only those images.
+
+## 2026-10-22 — Backend request: uploaded/default media and image inheritance
+- Web user requirement: curated default illustrations everywhere, optional custom uploads for member avatars, people groups, task group/categories, task override with category inheritance, plus family workspace cover and optional family icon.
+- Initiated [XTR-20261022-W-01](../../coordination/requests/XTR-20261022-W-01.md) on integration branch `feature/task-soft-delete`, registered IMP-0007 and GitHub issue #3 (Backend). This is an **incoming Backend assignment**, not a Web or Backend implementation.
+- Contract proposal preserves MemberGroup vs WorkNode distinctions, stable media IDs, server-side scoped authorization, defaults and fallbacks, old-client compatibility and private cache. Backend must ACK; Architecture must decide media ADR; Android/Release will review. Web image picker and crop UX blocked on approved API.
+- Until Backend contract is ready, continue source-controlled bundled illustrations and image fallback styling only. Do not invent upload endpoints or leak private media.
