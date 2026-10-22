@@ -1290,3 +1290,11 @@
 - Confirmed `/auth/username-availability` exists and queries `user_accounts`, but was absent from `SecurityConfig` public matchers, causing anonymous requests to fail before controller.
 - Added exact route to `permitAll()` (commit `a2a5bc5`). Frontend already requests it from `UsernameAvailability.jsx` and reports non-2xx as failure.
 - Pending: deploy updated backend to BETA, verify 200 JSON for anonymous free/taken names, then test existing Google account password setup. No server deployment in this change.
+
+
+## 2026-10-22 — Google auth Android batch prepared, unreleased
+
+- Android beta release builder now rejects blank/malformed Google Web OAuth Client ID (`b7f9134`), addressing hidden Google buttons in APK.
+- Native Credential Manager already uses Google ID tokens with `/auth/google` and `/auth/google/register`; enhanced localized server-error messages (`b14dcd5`).
+- Google-password username suggestion now preserves the persisted custom username instead of proposing email prefix again (`ad5f434`). This corrects stale `currentUser.username` after updating password/login in the same browser session.
+- **PENDING:** local signed APK build with valid web OAuth client ID; verify Android Google sign-in/register on device; deploy only after approval. Public BETA remains unchanged.
