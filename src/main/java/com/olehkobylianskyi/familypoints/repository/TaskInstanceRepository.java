@@ -22,6 +22,9 @@ public interface TaskInstanceRepository
             LocalDate scheduledDate
     );
 
+    List<TaskInstance> findByMemberIdAndTaskDefinitionWorkspaceIdAndScheduledDateBetweenOrderByScheduledDateAscIdAsc(
+            Long memberId, Long workspaceId, LocalDate from, LocalDate to);
+
     Optional<TaskInstance> findByTaskDefinitionIdAndScheduledDateAndSlotKey(Long taskDefinitionId, LocalDate date, String slotKey);
 
     Optional<TaskInstance>
