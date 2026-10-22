@@ -1352,3 +1352,11 @@ Before each substantial implementation batch:
 - [ ] Deploy web route changes via controlled tagged BETA release
 - [ ] Transfer signed APK + JSON + hash to Contabo and publish after verification
 - [ ] Confirm public download and content type from https://family-point.com/download
+
+
+### Android public download entry points (2026-10-22)
+- [x] Prominent Android download CTA on public `/login` page (source)
+- [x] Prominent Android download CTA on public `/register` start/demo page (source)
+- [ ] Verify frontend build and localization in UA/DE/EN
+- [ ] Deploy via new immutable annotated BETA tag after CI
+- [ ] Validate button navigation and actual APK MIME/checksum on public domain
