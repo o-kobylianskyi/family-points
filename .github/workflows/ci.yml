@@ -3,7 +3,6 @@ name: FamilyPoints CI
 on:
   push:
     branches:
-      - feature/task-soft-delete
       - main
   pull_request:
   workflow_dispatch:

@@ -3,11 +3,17 @@
 **Start here:** [docs/coordination/README.md](docs/coordination/README.md). These rules apply to Architecture / Planning, Backend, Web, Android and Release / DevOps.
 
 ## At the beginning of EVERY chat or substantial work batch
-1. Check the actual remote repository branch and HEAD SHA. Do not assume `main` is current: as of 2026-10-22 the active development/integration branch was `feature/task-soft-delete`.
+1. **Canonical project branch is `main`.** Fetch `origin/main` and review its real SHA before every work batch. Do not use former `feature/task-soft-delete` or a track branch as the shared source of truth.
 2. Read `docs/coordination/PROJECT_STATE.md`, `IMPACT_REGISTER.md`, `ARCHITECTURE_DECISIONS.md`, and your journal in `docs/coordination/logs/`.
 3. Review commits since the SHA in your previous handoff, including work by other tracks. Read applicable root development/concept/deployment logs, checklists and actual code.
 4. Explicitly review incoming **OPEN/ACK NEEDED/BLOCKED** impact records. Acknowledging means impact reviewed, not implemented or tested.
 5. Never infer runtime, test or deployment status from a Git commit or chat memory alone.
+
+## Main-only integration policy (ADR-COORD-005, 2026-10-23)
+- The whole FamilyPoints monorepo — Java/Backend, Web/React, Android/Compose, architecture docs and DevOps — has exactly one accepted integration branch: **`main`** (also the GitHub default).
+- Unfinished features can use temporary topic branches and PRs, but PRs target `main`. After review/test, integrate promptly into `main` and refresh all chat checkouts from `origin/main`. Do not keep a second permanent integration branch.
+- Before any local branch switch or merge, preserve unique local commits and uncommitted/untracked/important ignored files, especially the Android branch reported to contain 18 local-only commits. **Never use `reset --hard`, `clean -fd`, force-push, or delete unique work** as a quick fix. Follow [safe branch consolidation](docs/coordination/MAIN_BRANCH_MIGRATION.md).
+- `main` commits are source integration, not DEV/BETA/PROD deployment approval. Signed APK and Release tag gates remain independent.
 
 ## Local planning and cross-track task routing
 - **Planning is decentralized:** every track may analyze, design, prioritize and plan tasks within its own responsibility. Do not require Architecture approval for routine track-local plans.
@@ -24,7 +30,7 @@ Append a dated, evidenced record to your track journal (what changed, files/comm
 
 ## Safety/concurrency
 - Preserve all historical logs; append, don't erase. Inspect HEAD before writes and resolve conflicts without force pushing.
-- Prefer topic branches/PRs; coordinate edits to shared files.
+- Pull/review `origin/main` before accepting work. Temporary topic branches/PRs target `main`; coordinate edits to shared files.
 - Do NOT put tokens, passwords, signing keys, private infrastructure configuration, family/child data or DB dumps in Git.
 - Committed != tested != deployed. Release requires CI, compatible consumers, backup/rollback, tested signed APK and explicit gate.
 
