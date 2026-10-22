@@ -3,6 +3,8 @@ package com.olehkobylianskyi.familypoints.android.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -33,6 +37,7 @@ import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
+import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyThemeMode
 import com.olehkobylianskyi.familypoints.android.network.ServerReachability
 import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import retrofit2.HttpException
@@ -51,6 +56,8 @@ enum class DashboardDestination {
 @Composable
 fun DashboardScreen(
     language: AppLanguage,
+    themeMode: FamilyThemeMode = FamilyThemeMode.SYSTEM,
+    onThemeModeChange: (FamilyThemeMode) -> Unit = {},
     currentUser: CurrentUserResponse,
     loadDashboard: suspend () -> DashboardData,
     cachedDashboard: () -> DashboardData?,
@@ -145,6 +152,48 @@ fun DashboardScreen(
                 onLogout = onLogout,
                 onNavigate = onNavigate
             )
+        }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = when (language) {
+                        AppLanguage.UK -> "Оформлення"
+                        AppLanguage.DE -> "Darstellung"
+                        AppLanguage.EN -> "Appearance"
+                        AppLanguage.RU -> "Оформление"
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FamilyThemeMode.entries.forEach { option ->
+                        FilterChip(
+                            selected = themeMode == option,
+                            onClick = { onThemeModeChange(option) },
+                            label = { Text(when (option) {
+                                FamilyThemeMode.SYSTEM -> when (language) {
+                                    AppLanguage.UK -> "Система"
+                                    AppLanguage.DE -> "System"
+                                    AppLanguage.EN -> "System"
+                                    AppLanguage.RU -> "Система"
+                                }
+                                FamilyThemeMode.LIGHT -> when (language) {
+                                    AppLanguage.UK -> "Світла"
+                                    AppLanguage.DE -> "Hell"
+                                    AppLanguage.EN -> "Light"
+                                    AppLanguage.RU -> "Светлая"
+                                }
+                                FamilyThemeMode.DARK -> when (language) {
+                                    AppLanguage.UK -> "Темна"
+                                    AppLanguage.DE -> "Dunkel"
+                                    AppLanguage.EN -> "Dark"
+                                    AppLanguage.RU -> "Тёмная"
+                                }
+                            }) }
+                        )
+                    }
+                }
+            }
         }
         if (serverStatus == ServerStatus.ONLINE) {
             item {
@@ -243,35 +292,29 @@ fun DashboardScreen(
                     )
                 }
 
-                if (reputation != null) {
-                    item {
-                        DashboardStatCard(
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        BoxStat(
+                            modifier = Modifier.weight(1f),
                             label = when (language) {
                                 AppLanguage.UK -> "Моя репутація"
                                 AppLanguage.DE -> "Mein Ruf"
                                 AppLanguage.EN -> "My reputation"
                                 AppLanguage.RU -> "Моя репутация"
                             },
-                            value = reputation.toString(),
-                            description = ""
+                            value = reputation?.toString() ?: "—",
+                            footnote = ""
+                        )
+                        BoxStat(
+                            modifier = Modifier.weight(1f),
+                            label = text.myTasks,
+                            value = active.size.toString(),
+                            footnote = text.activeToday
                         )
                     }
-                }
-
-                item {
-                    DashboardStatCard(
-                        label = text.myTasks,
-                        value = active.size.toString(),
-                        description = text.activeToday
-                    )
-                }
-
-                item {
-                    DashboardStatCard(
-                        label = text.availableToClaim,
-                        value = dashboard.openTasks.size.toString(),
-                        description = text.openTasks
-                    )
                 }
 
                 item {
@@ -425,6 +468,31 @@ private fun DashboardStatCard(
                 text = description,
                 modifier = Modifier.padding(top = 2.dp)
             )
+        }
+    }
+}
+
+@Composable
+private fun BoxStat(
+    modifier: Modifier,
+    label: String,
+    value: String,
+    footnote: String
+) {
+    Card(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Text(label, style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, style = MaterialTheme.typography.headlineMedium)
+            if (footnote.isNotBlank()) {
+                Text(footnote, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
