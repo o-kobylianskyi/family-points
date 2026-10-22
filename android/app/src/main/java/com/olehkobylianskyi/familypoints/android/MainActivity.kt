@@ -391,8 +391,6 @@ class MainActivity : ComponentActivity() {
                     destination == AppDestination.DASHBOARD -> {
                         DashboardScreen(
                             language = language,
-                            themeMode = themeMode,
-                            onThemeModeChange = { selected -> themeMode = selected; themePreference.set(selected) },
                             currentUser = currentUser!!,
                             loadDashboard = {
                                 dashboardRepository.load(currentUser!!)
@@ -599,6 +597,8 @@ class MainActivity : ComponentActivity() {
                     destination == AppDestination.SETTINGS -> {
                         SettingsScreen(
                             language = language,
+                            themeMode = themeMode,
+                            onThemeModeChange = { selected -> themeMode = selected; themePreference.set(selected) },
                             currentUser = currentUser!!,
                             repository = settingsRepository,
                             membersRepository = membersRepository,
