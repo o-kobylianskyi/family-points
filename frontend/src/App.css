@@ -4207,3 +4207,24 @@ button:focus-visible {
   .fp-dashboard .fp-hero-content { max-width:72%; }
   .fp-dashboard .fp-hero-art { right:-5%; bottom:0; height:100%; max-width:60%; opacity:.34; }
 }
+
+
+/* Soft Family approved screenshot asset integration (web-only, provisional until Backend media API).
+   Asset package: frontend/public/assets/soft-family/reference/. */
+.sidebar-logo .brand-icon { position:relative; display:grid; place-items:center; overflow:visible; }
+.sidebar-logo .brand-icon .fp-brand-reference { width:50px; height:58px; object-fit:contain; max-width:none; }
+.sidebar-logo .brand-icon:has(.fp-brand-reference:not([hidden])) svg { display:none; }
+.fp-dashboard .fp-stat-icon { position:relative; }
+.fp-dashboard .fp-stat-icon > img { width:68px; height:74px; max-width:100%; object-fit:contain; }
+.fp-dashboard .fp-stat-icon:has(img:not([hidden])) svg { display:none; }
+.fp-dashboard .fp-empty-icon > img { height:54px; width:60px; object-fit:contain; }
+.fp-dashboard .fp-empty-icon:has(img:not([hidden])) svg { display:none; }
+.fp-dashboard .fp-actions a > img { width:42px; height:46px; object-fit:contain; flex:none; }
+.fp-dashboard .fp-actions a:has(> img:not([hidden])) > svg { display:none; }
+.fp-dashboard .fp-hero-art { width:min(57%,627px); height:auto; max-height:100%; max-width:57%; inset:auto 1% 0 auto; object-fit:contain; }
+.fp-dashboard .fp-hero-motto { margin-top:9px; }
+.fp-dashboard .fp-hero-calligraphy { display:none; }
+.sidebar .fp-sidebar-promo { width:100%; max-width:260px; height:auto; aspect-ratio:258/327; padding:0; background:#10364a; border-radius:22px; }
+.sidebar .fp-sidebar-promo > span { display:none; }
+.sidebar .fp-sidebar-promo > img { position:absolute; inset:0; transform:none; width:100%; height:100%; max-height:100%; object-fit:fill; }
+@media(max-width:720px) { .fp-dashboard .fp-hero-art { width:57%; height:auto; max-width:57%; right:0; bottom:0; } }
