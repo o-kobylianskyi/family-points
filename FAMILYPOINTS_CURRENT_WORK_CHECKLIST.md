@@ -1368,3 +1368,15 @@ Before each substantial implementation batch:
 - [ ] Build signed APK versionCode 2 using original keystore
 - [ ] Install via ADB `install -r`, check login and crash-free startup
 - [ ] Publish verified APK to Contabo using checked checksum/manifest
+
+## 2026-10-22 — Current sprint: Soft Family + OAuth (unreleased)
+- [x] Confirm selected Soft Family light/dark references and page hierarchy for Web + Android
+- [x] Initial shared web semantic palette + Android provisional header/theme
+- [x] Web settings theme radio (system/light/dark), local persistence and system theme observer
+- [ ] Validate dark appearance across every page; the first pass only covers shell, form controls and common cards
+- [ ] Add localized theme labels across UK/RU/DE/EN and tests; check Vite lint/build
+- [ ] Finish Android theme persistence and selected dark/light palette parity
+- [ ] Avatar image/illustration controls and per-workspace family cover (private upload/security)
+- [ ] Confirm Google Web Client ID in signed Android build and test native Google login
+- [ ] CI, manual browser and Huawei real-device acceptance before any BETA deploy
+- [ ] No release or database/server changes until approved
