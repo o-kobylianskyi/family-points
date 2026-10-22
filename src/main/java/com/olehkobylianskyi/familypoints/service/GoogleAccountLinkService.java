@@ -67,6 +67,12 @@ public class GoogleAccountLinkService {
     /** Readable suggestion for an already registered Google account. No mutation. */
     public String suggestedUsername() {
         var account = current.getCurrentAccount();
+        // An existing custom username always wins over an email-derived suggestion.
+        // This also handles a stale /api/me session after password setup changed
+        // the username without reissuing the user's JWT.
+        if (!account.getUsername().matches("g_[a-f0-9]{32}")) {
+            return account.getUsername();
+        }
         String email = account.getEmail();
         if (email == null || !email.contains("@")) return account.getUsername();
         String suggestion = email.substring(0, email.indexOf('@'))
