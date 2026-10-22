@@ -43,7 +43,8 @@ function Sidebar() {
       <NavLink to="/rewards" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="gift" size={22} /><span>{t('navigation.rewards')}</span></NavLink>
       {roots.length > 0 && <div className="sidebar-dynamic-groups">{roots.map(g => renderGroup(g))}</div>}
     </nav>
-    <div className="fp-sidebar-promo" aria-hidden="true"><span>FamilyPoints ♥</span><img src="/assets/soft-family/family-illustration.svg" alt="" /></div>
+    <div className="fp-sidebar-promo" aria-hidden="true"><span>FamilyPoints ♥</span><img src="/assets/soft-family/family-promo.webp" alt=""
+        onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/soft-family/family-illustration.svg' }} /></div>
     <div className="sidebar-bottom"><NavLink to="/download" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="gift" size={22} /><span>{t('androidDownload.nav')}</span></NavLink><NavLink to="/settings" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="settings" size={22} /><span>{t('navigation.settings')}</span></NavLink></div>
   </aside>
 }
