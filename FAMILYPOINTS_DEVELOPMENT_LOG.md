@@ -1306,3 +1306,10 @@
 - Replaced device-dependent Compose dynamic colors with consistent light brand palette (`bbb05e6`); changed AppHeader to compact one-line navigation/profile/language, logout inside navigation menu (`7d6d10b`).
 - **NOT VERIFIED:** Android compile, device visual inspection and accessibility contrast. Screen-by-screen redesign (dashboard, members, points) remains open and needs screenshots after an internal APK build.
 - **RELEASE HOLD:** do not publish or deploy; combine with Android Google sign-in and BETA backend fixes for a controlled acceptance build.
+
+
+## 2026-10-22 — Dashboard dark theme regression
+
+- User screenshot showed dark page background but white dashboard cards with nearly invisible light text and insufficient vertical spacing between panels.
+- Fixed `.dashboard-stats .stat-card` and `.dashboard-panel` semantic surface/text/border colors, heading and muted text contrast, panel margins, responsive grid, quick-action buttons in `frontend/src/App.css` (commit `54b4203`).
+- **Not yet tested on browser/build**; validate in dark and light with homepage, tasks and other routes after pulling. No BETA deployment.
