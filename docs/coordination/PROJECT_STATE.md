@@ -1,5 +1,12 @@
 # FamilyPoints — shared status snapshot
 
+## Current branch authority — 2026-10-23 (supersedes the historic branch lines below)
+- **`main` is the only canonical GitHub source branch**, also repo default. On 2026-10-23 it was safely fast-forwarded from `c6847c6` to former integration HEAD `393f3ee3` (1996 additional commits). Subsequent ADR-COORD-005 and migration documents were committed directly to `main`. Always fetch live `origin/main` HEAD.
+- Pre-promotion integration run `39865885022` passed CI; later `main` changes need their own CI checks. Ordinary `main` push does NOT deploy BETA (release workflow gated separately).
+- Draft Backend calendar PR #4 / media PR #5 now target `main` but are unmerged. Android remote topic branch diverged; the user reports 18 local-only commits and uncommitted Android/Web files that GitHub cannot access. Must protect and merge safely on developer PC ([instructions](MAIN_BRANCH_MIGRATION.md), XTR-20261023-P-05 Android, XTR-20261023-P-06 Web).
+- Older dated entries describing `feature/task-soft-delete` as the integration branch remain historical evidence only, NOT current guidance.
+
+
 **Snapshot date:** 2026-10-22. This is repository/log inspection only, **not live VPS/CI/device verification**. Always refresh current SHA before work.
 
 - Repository: `o-kobylianskyi/family-points`.

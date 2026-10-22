@@ -60,3 +60,12 @@ Chronological log of architecture, planning, cross-track decisions and prioritie
 - Rechecked integration `96fa622f755a4377cde02524acb3bcc619802a7a`, source and successful CI of Media PR #5 `e7e18bc` (run 39863949599), draft calendar PR #4, actual integration assets and all five track journals. Existing Web screenshot crops/11-asset archive remain outside Git; current source retains only the two WebPs and fallback SVG.
 - Created XTR-20261023-P-01 (Backend security, storage, catalog, effectiveImage DTO, V35/V36 upgrade), XTR-20261023-P-02 (Web static art now + upload UI after API), XTR-20261023-P-03 (Android Compose after styles + secure offline cache), XTR-20261023-P-04 (Release read-only DB/storage/restore/migration release gating).
 - All four are future receiving-track work; no automatic inter-chat notification, execution, build, merge, BETA database or VPS changes. Maintain consumer ACK and Release gate independent. No new IMP number needed: scoped under existing IMP-0001/0004/0007, also IMP-0006 when combining Flyway.
+
+## 2026-10-23 — Git canonical branch switched to main (GITHUB ONLY)
+- Based on strict GitHub compare, old default `main` at `c6847c6` was 1996 commits behind `feature/task-soft-delete` at `393f3ee3`, with 0 behind and common ancestry. CI for exact integration head succeeded (run 39865885022).
+- Executed GitHub expected-SHA, `force=false` fast-forward of `main` to `393f3ee3`; no rewrite, no deletion, no local checkout, database, VPS, or APK changes. Default branch already `main`.
+- Retargeted draft Backend PR #4 and #5 to `main`, left them draft/unmerged. Removed old feature branch from direct-push CI branch filter, retaining `main` push + PR builds; tagged BETA workflow unchanged.
+- Created ADR-COORD-005, updated AGENTS and CHANGE_PROTOCOL to make `origin/main` the only canonical integration source for all five tracks, with temporary PR branches allowed.
+- Documented safe Windows PowerShell backup/stash/main merge procedure in `docs/coordination/MAIN_BRANCH_MIGRATION.md` and routed Android XTR-20261023-P-05 and Web XTR-20261023-P-06.
+- **Unresolved LOCAL work:** screenshot says the developer checkout is Android topic branch and has 18 commits ahead + uncommitted content. The GitHub connector cannot see or merge those local-only changes. No remote integration action should be misrepresented as local migration. Android must inspect, backup and integrate locally before declaring DONE.
+- Historical notes may retain former branch naming, but future actions must use main. Release gates unchanged.

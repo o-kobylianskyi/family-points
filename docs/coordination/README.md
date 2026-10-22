@@ -1,5 +1,8 @@
 # FamilyPoints — Git coordination hub
 
+**Since 2026-10-23, the sole canonical integration branch is [`main`](https://github.com/o-kobylianskyi/family-points/tree/main)** (ADR-COORD-005). The former `feature/task-soft-delete` was fast-forwarded into `main`. Temporary topic branches/PRs are allowed but target `main`; accepted source and docs must be integrated there. For Android/Web worktrees with local unique commits and uncommitted changes, follow [safe migration](MAIN_BRANCH_MIGRATION.md) before switching. A Git branch update does not deploy BETA.
+
+
 Established 2026-10-22 by project decision. **Five permanent, separate development chats**, with Git as the shared durable record. Chats do not synchronize automatically; each independently fetches current documentation and commits.
 
 | Direction | Ownership | Routine append-only log |

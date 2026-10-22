@@ -19,3 +19,8 @@ This directory is the durable handoff queue between the five direction-specific 
 - **R:** [XTR-20261023-P-04](XTR-20261023-P-04.md) — read-only backup/schema/rollout audit; actual deployments require separate explicit approval.
 
 Read each request's own latest status and the cross-track register: this section is a routing index, **not** an auto-delivery or evidence of completed work.
+
+## 2026-10-23 — Canonical main branch recovery
+- **Android:** [XTR-20261023-P-05](XTR-20261023-P-05.md) — protect 18 local-only Android commits and uncommitted files; merge safely into current main and verify tests.
+- **Web:** [XTR-20261023-P-06](XTR-20261023-P-06.md) — preserve Vite local work and switch to main, without overwriting Android/other track changes.
+- [Safe Windows branch migration and recovery](../MAIN_BRANCH_MIGRATION.md); `main` is the only accepted project integration branch. Draft Backend PR #4/#5 target main.
