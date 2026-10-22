@@ -20,3 +20,10 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - **Current Web blockers:** uncommitted `family-hero.webp` and `family-promo.webp` images exist only in separately provided local ZIP (repo currently has SVG fallback only); Web screenshot parity, Vite lint/build, cross-page light/dark contrast, and four-language theme UI checks remain pending. No runtime, server, CI, VPS or DB verification was performed in this onboarding batch.
 - **Next Web work:** confirm source-controlled artwork and visual acceptance of dashboard at desktop/mobile/light/dark, then standardize Members/Tasks/Points/Rewards/Settings. Register cross-track impact BEFORE changing any REST/media/auth contract. Commit only Web changes on an isolated `feature/web-*` branch as concurrency increases, integrate via reviewed PR.
 - **Release hold:** only Release/DevOps decides deploy/tag/APK publication. No changes to Contabo, Flyway, Java, Android or signing in this batch.
+
+## 2026-10-22 — Consolidated Web into single local Vite environment
+- User confirmed one frontend environment: `family-points/frontend` on `localhost:5173`. No separate Web server/port required.
+- Integrated Web-owned avatar component/CSS and member/tasks/points adoption, plus the verified two hero/promo WebP binaries **directly** into integration branch `feature/task-soft-delete` as commit `7077035b1371026414ad3887c8aa0af84c160fe9`, preserving all current Backend/Android/integration files. Seven exact paths transferred; no wholesale branch merge.
+- Old Web branch `feature/web-soft-family` retained as archive for inspection; PR #2 to close as superseded, not to merge; `scripts/web/install-soft-family-assets.ps1` remains only in old Web branch, because binary assets are now tracked in integration and no longer need manual install.
+- To view: start Vite from `family-points/frontend` on 5173 after `git pull --ff-only origin feature/task-soft-delete`. Do not delete a Windows worktree until checked for uncommitted files and removed through `git worktree remove`.
+- Source integrated; CI/browser verification still pending. No server deployment.
