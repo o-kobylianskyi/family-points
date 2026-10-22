@@ -24,3 +24,12 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - Expected Light/ Dark/Follow-device selector with persistent preference; same screens and permissions in both; native Android system chrome; semantic tokens, accessible contrast, rounded cards, pill selectors and illustrative fallback avatars. Real screenshots must be compared against user originals.
 - **Source observation:** current Theme.kt has only purple-tinted lightColorScheme; code/theming parity NOT implemented or tested in this design-only batch.
 - **No Android source edits, Gradle builds, phone screenshots, CI, APK signing or release**, no Backend/API/DB/server modifications. Continue separate P0 signed APK crash verification before publication (IMP-0003).
+
+
+## 2026-10-22 — Original Soft Family references segmented (CHAT ARTIFACT; NOT IN GIT)
+- The user rejected generic substituted screenshots and requested segmentation of their **actual supplied** Light and Dark Soft Family reference PNG images into independent style blocks.
+- Local conversation artifacts generated: `FamilyPoints_Soft_Family_Original_Cropped_References.zip` (both themes); `FamilyPoints_Soft_Family_Light_Blocks.zip` and `FamilyPoints_Soft_Family_Dark_Blocks.zip` (per-theme). These downloadable archives are **NOT uploaded/committed to Git** by this journal entry.
+- Source originals SHA-256: Dark `ffb1c9712e0f26df0ae3afe109aa90ce1c66956d2e27420139b23211ab048ed5`; Light `961d13f3e857276144b6604a00b89696834052f39525d54ea5a42630e2da3d5b`. Pixel-exact rectangular crops only, no recoloring, regeneration or asset hallucination.
+- The full kit contains two originals; 6 screen crops per theme (3 whole-phone + 3 display), 22 Dark + 19 Light components, 10 small atom crops per theme (avatars/icons/pills), comparison/index sheets, sampled-color catalog and `crop_manifest.json` with bounding boxes/hashes. ZIP CRC verified.
+- Recommended **Git destination after developer imports archive**: `docs/design-references/android-soft-family/`; only then may other independent chats rely on the actual PNG binaries from GitHub. Do not describe the files as already committed.
+- Android Compose screens/theme/source code were **NOT modified**, nor was an APK built/device-validated. This is a reference preparation task. Read `docs/ANDROID_SOFT_FAMILY_UI_SPEC.md` and the original PNGs, NOT generic web image search.
