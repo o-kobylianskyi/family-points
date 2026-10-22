@@ -4,6 +4,7 @@ import com.olehkobylianskyi.familypoints.entity.TaskInstance;
 import com.olehkobylianskyi.familypoints.entity.TaskInstanceStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,6 +23,7 @@ public interface TaskInstanceRepository
             LocalDate scheduledDate
     );
 
+    @EntityGraph(attributePaths = {"taskDefinition", "member"})
     List<TaskInstance> findByMemberIdAndTaskDefinitionWorkspaceIdAndScheduledDateBetweenOrderByScheduledDateAscIdAsc(
             Long memberId, Long workspaceId, LocalDate from, LocalDate to);
 

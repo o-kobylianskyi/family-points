@@ -729,10 +729,9 @@ public class TaskService {
                 || java.time.temporal.ChronoUnit.DAYS.between(from, to) > 61) {
             throw new IllegalArgumentException("Calendar range must contain 1..62 days");
         }
-        var definitions = taskDefinitionRepository.findByWorkspaceIdAndActiveTrueOrderByIdAsc(workspaceId).stream()
-                .filter(d -> d.getAssignedMember() != null
-                        && memberId.equals(d.getAssignedMember().getId())
-                        && taskAuthorizationService.canRead(d))
+        var definitions = taskDefinitionRepository
+                .findByWorkspaceIdAndAssignedMemberIdAndActiveTrueOrderByIdAsc(workspaceId, memberId).stream()
+                .filter(taskAuthorizationService::canRead)
                 .toList();
         var slotsByDefinition = new java.util.HashMap<Long, java.util.List<TaskScheduleSlot>>();
         if (!definitions.isEmpty()) {

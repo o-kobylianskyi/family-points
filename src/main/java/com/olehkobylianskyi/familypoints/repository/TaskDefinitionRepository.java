@@ -19,6 +19,9 @@ public interface TaskDefinitionRepository
     List<TaskDefinition>
     findByWorkspaceIdOrderByIdAsc(Long workspaceId);
 
+    List<TaskDefinition> findByWorkspaceIdAndAssignedMemberIdAndActiveTrueOrderByIdAsc(
+            Long workspaceId, Long memberId);
+
     long countByWorkspaceId(Long workspaceId);
 
     Optional<TaskDefinition>
