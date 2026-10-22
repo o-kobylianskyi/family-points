@@ -1822,3 +1822,11 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - One global account may join multiple family/workgroup workspaces with distinct member profiles/roles; the invitation never silently shares tenant resources.
 - Expiry, revocation, recipient restrictions, single-use/replay protection and atomic membership handling are necessary. Detailed implementation plan recorded in `docs/MULTI_FAMILY_ONBOARDING_PLAN.md`.
 **STATUS:** documented only; no API/UI or BETA deployment yet.
+
+
+## 2026-10-22 — Five independent work tracks, shared Git governance (AGREED)
+
+- Five permanent chats: **Architecture/Planning**, **Backend**, **Web**, **Android**, **Release/DevOps**.
+- GitHub is the durable shared truth; it does NOT automatically broadcast context between separate ChatGPT chats. Every track must re-read shared status, current changes from the other tracks and `docs/coordination/IMPACT_REGISTER.md`.
+- Before modifying another track's contract, the producing track registers its impact; affected consumers review/acknowledge or block it. Architecture arbitrates cross-domain decisions; Release controls independent go/no-go publication.
+- Existing project history remains intact. See ADR-COORD-001..003 in `docs/coordination/ARCHITECTURE_DECISIONS.md`, and `AGENTS.md` for mandatory startup/end-of-work steps. **Organizational decision, not runtime feature.**

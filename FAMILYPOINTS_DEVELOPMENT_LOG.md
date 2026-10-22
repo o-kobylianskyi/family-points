@@ -1323,3 +1323,13 @@
 - Exported approved-generated-mockup family cutouts as two WebP files in conversation archive; GitHub connector writes text sources but not binary artifacts. React attempts these WebP first and falls back to SVG. **User must extract the archive to the repo root** to see the exact approved family illustrations; optional future `git add` of those files after visual review.
 - `docs/SOFT_FAMILY_WEB_DASHBOARD_ACCEPTANCE.md` tracks acceptance criteria.
 - CI/browser parity checks still outstanding; no Contabo, BETA deployment, PostgreSQL changes.
+
+
+## 2026-10-22 — Five-track Git coordination and chat continuity (DOCUMENTATION ONLY)
+
+- User confirmed **five parallel work streams**: Architecture / Planning, Backend, Web, Android, Release / DevOps, each with an independent ChatGPT chat and Git-tracked journal.
+- Added mandatory `AGENTS.md` and `docs/coordination/` hub with five topic logs, current project snapshot, cross-track impact register with explicit consumer acknowledgment, architecture decisions, change protocol and next-chat handoff template.
+- Every track must check actual Git branch/HEAD and changes **from other tracks**, read incoming impacts before new work, log relevant cross-track changes and commit/hand off source SHA. GitHub is persistent interchange; chats are not automatically synchronized.
+- Kept the original development, concept, deployment journals and checklists as historical records; routine future entries go in five smaller logs. Major milestones continue to be added to the appropriate root journal.
+- Working development branch observed `feature/task-soft-delete`; default `main` was older at the time. Do not treat this as permanent; check Git again each session.
+- **No application code changes, tests, CI runs, database actions, VPS changes or APK release** in this documentation batch. Coordination files introduced in commit `b4b3ab2bee4b96a132cd5b21ea40d76e6972011a`.

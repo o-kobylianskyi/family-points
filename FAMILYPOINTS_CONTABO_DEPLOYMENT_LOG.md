@@ -221,3 +221,9 @@ User requested a dedicated, permanently maintained Contabo deployment history in
 - Code now contains public multilingual /download route and links, plus dedicated /downloads/familypoints-beta.apk endpoint; Nginx returns real 404 until signed APK is published.
 - Compose binds persistent host ./downloads read-only to Web, separate from image and database. /downloads and signing keys ignored by Git.
 - How-to in docs/ANDROID_BETA_DISTRIBUTION.md explains permanent keystore, SHA256, versionCode and atomic artifact publication. No APK/signing keys created, and no server change performed. Next: CI, tagged BETA Web release, verified signed Android package, manual publication.
+
+
+## 2026-10-22 — Dedicated Release/DevOps track (DOCUMENTATION ONLY; NO VPS CHANGE)
+- Five-track Git coordination created; Release/DevOps now has a separate ongoing journal `docs/coordination/logs/release.md`. This Contabo journal remains the detailed operational history.
+- Release must review and acknowledge relevant entries in `docs/coordination/IMPACT_REGISTER.md` before tagging/deploying BETA or publishing APK.
+- **No SSH, server restart, Docker, .env, DNS, HTTPS, DB, firewall, CI workflow or APK changes occurred.**

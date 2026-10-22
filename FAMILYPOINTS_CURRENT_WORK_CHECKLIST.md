@@ -1401,3 +1401,12 @@ Before each substantial implementation batch:
 - [ ] Compare actual screenshot at desktop/light/dark/mobile against selected mockup and fix differences
 - [ ] Implement consistent Tasks, Members, Points, Rewards, Settings after dashboard acceptance
 - [ ] No Contabo, PostgreSQL, beta tag, or release during this pass
+
+
+## 2026-10-22 — Five-track Git coordination
+- [x] Establish five tracks/chats: Architecture/Planning, Backend, Web, Android, Release/DevOps.
+- [x] Add independent Git-based logs for each track, preserving original journals and checklists.
+- [x] Add mandatory startup instructions, shared status, architecture decisions, cross-track impact register, change protocol and handoff template under `docs/coordination/`.
+- [ ] Each work track actively reviews and acknowledges its applicable IMP-0001..0005 entries with an actual source SHA.
+- [ ] Architecture reconciles outstanding shared contracts (media, auth/workspaces, offline ledger) with Backend, Web, Android and Release.
+- [ ] Confirm inter-track compatibility and real tests before merge/deployment; no automatic release from source commit.
