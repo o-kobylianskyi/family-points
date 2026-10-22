@@ -10,6 +10,12 @@ Status: **approved visual reference, implementation in progress, NOT released**.
 - Match **page structure**, not just colors: home greeting + family hero, compact balance/reputation/tasks, member cards, activities; members tabbed people/groups; points per-member selector + balance/actions/history; bottom navigation on Android/mobile.
 - Illustrations are placeholders, NOT actual profile photos.
 
+## Android-specific approved reference and acceptance (2026-10-22)
+
+- The user explicitly reconfirmed BOTH supplied image mockups (Light and Dark) as the actual FamilyPoints Android target, not merely inspiration.
+- Native Android component anatomy, accepted color direction, Light/Dark/System setting, reference image checksums, and open acceptance matrix: [ANDROID_SOFT_FAMILY_UI_SPEC.md](ANDROID_SOFT_FAMILY_UI_SPEC.md).
+- Preserve common information architecture and actions across themes. Do not pretend the mockup images are already source-controlled or the application already matches them.
+
 ## Planned media functionality
 
 - Per-account/profile avatar: built-in illustrated character, uploaded image with crop, or initials fallback. Photos stored/access-controlled by account/member identity.
