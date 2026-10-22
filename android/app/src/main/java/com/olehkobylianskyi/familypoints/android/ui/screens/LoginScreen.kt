@@ -351,12 +351,34 @@ fun LoginScreen(
                                 // Global account session was established; choose workspace next.
                             } catch (_: GetCredentialCancellationException) {
                                 // The user dismissed the Google account picker.
+                            } catch (e: HttpException) {
+                                // Avoid leaking raw server responses or identity tokens into the UI.
+                                error = when (e.code()) {
+                                    401, 403 -> when (language) {
+                                        AppLanguage.UK -> "Google-авторизацію відхилено (HTTP ${e.code()}). Перевірте вибраний Google-акаунт."
+                                        AppLanguage.DE -> "Google-Anmeldung abgelehnt (HTTP ${e.code()}). Google-Konto prüfen."
+                                        AppLanguage.EN -> "Google sign-in rejected (HTTP ${e.code()}). Check your Google account."
+                                        AppLanguage.RU -> "Google-вход отклонён (HTTP ${e.code()}). Проверьте Google-аккаунт."
+                                    }
+                                    404, 409 -> when (language) {
+                                        AppLanguage.UK -> "Google-акаунт не знайдено або вже зареєстровано (HTTP ${e.code()}). Спробуйте іншу дію."
+                                        AppLanguage.DE -> "Google-Konto nicht gefunden oder bereits registriert (HTTP ${e.code()})."
+                                        AppLanguage.EN -> "Google account not found or already registered (HTTP ${e.code()})."
+                                        AppLanguage.RU -> "Google-аккаунт не найден или уже зарегистрирован (HTTP ${e.code()})."
+                                    }
+                                    else -> when (language) {
+                                        AppLanguage.UK -> "Помилка Google-авторизації на сервері (HTTP ${e.code()})."
+                                        AppLanguage.DE -> "Google-Anmeldung: Serverfehler (HTTP ${e.code()})."
+                                        AppLanguage.EN -> "Google sign-in server error (HTTP ${e.code()})."
+                                        AppLanguage.RU -> "Ошибка Google-входа на сервере (HTTP ${e.code()})."
+                                    }
+                                }
                             } catch (e: Exception) {
-                                error = e.message ?: when (language) {
-                                    AppLanguage.UK -> "Не вдалося увійти через Google"
-                                    AppLanguage.DE -> "Google-Anmeldung fehlgeschlagen"
-                                    AppLanguage.EN -> "Google sign-in failed"
-                                    AppLanguage.RU -> "Не удалось войти через Google"
+                                error = when (language) {
+                                    AppLanguage.UK -> "Не вдалося отримати Google-акаунт. Перевірте Google Play Services і підключення до мережі."
+                                    AppLanguage.DE -> "Google-Konto nicht verfügbar. Google Play-Dienste und Netzwerk prüfen."
+                                    AppLanguage.EN -> "Cannot access Google account. Check Google Play Services and network."
+                                    AppLanguage.RU -> "Не удалось получить Google-аккаунт. Проверьте сервисы Google Play и сеть."
                                 }
                             } finally {
                                 loading = false
