@@ -1268,3 +1268,11 @@
 - **NOT VERIFIED:** Windows Gradle release compilation, signing identity on device, Android real-phone login/update, web frontend build, Contabo upload, public APK endpoint, GitHub Actions gates.
 - **NOT CHANGED:** Contabo, BETA PostgreSQL, DEV PostgreSQL, live deployment, release tags, private secrets.
 - **Next:** trusted local signed build; validate checksum, install and upgrade; pass CI; include web page in separately tagged BETA release; manually publish verified APK to downloads volume.
+
+
+## 2026-10-22 — Android download CTA on public entry screens
+
+- Added a prominent translated Android download button to `/login` and the public `/register` demo/start page.
+- Both link to `/download`; styling shared by `frontend/src/components/AndroidDownloadLink.css`.
+- Code commits: `d4bc2dc`, `ab38b572`, `664c8a1`.
+- **SOURCE ONLY**: frontend build, CI, release tag and Contabo deployment not verified. Public BETA unchanged.
