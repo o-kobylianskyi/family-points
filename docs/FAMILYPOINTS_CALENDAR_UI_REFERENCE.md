@@ -1,7 +1,7 @@
 # FamilyPoints — Calendar UI visual reference (daily agenda)
 
 **Date:** 2026-10-22  
-**Status:** User-selected composition/layout reference; adaptation recommendations PROPOSED until screen acceptance. Design document only — not implemented.  
+**Status:** AGREED product/UI baseline (user explicitly approved recommendations 2026-10-22); implementation and visual/device acceptance PENDING. Design document only — not implemented.  
 **Tracks:** Architecture P (visual direction), Android A (native Compose), Web W (responsive UI). Backend B remains the authoritative source for schedule semantics.  
 **Design contracts:** `docs/architecture/ADR-CAL-001.md` (calendar/domain), `docs/ANDROID_SOFT_FAMILY_UI_SPEC.md` (existing light/dark Soft Family reference).  
 **Requests:** XTR-20261022-P-02 (Web), XTR-20261022-P-03 (Android); cross-track IMP-0006.
@@ -22,6 +22,23 @@ A single 1200×1200 JPEG showing an iPhone mockup, with greeting “Good evening
 - Comfortable white/soft-surface rounded agenda card; narrow time column, thin timeline spine, colored event dot, participant avatar stack, concise title/secondary explanation.
 - Separate lower “Завдання без часу” section for undated-in-day tasks; tidy list rows, status/actions, no huge cards for each item.
 - Fixed rounded bottom navigation respecting safe-area inset and scroll padding; accessible focus and screen reader labels.
+
+## Explicit user approval — 2026-10-22
+
+The user explicitly agreed with the Architecture recommendations for adapting this calendar reference to FamilyPoints. This confirms the **functional composition and information architecture** below as the product target, not acceptance of any implemented screen.
+
+**Approved decisions:**
+1. Keep a separate, agenda-centered **Today/Home** experience and a **Full Calendar** with day/week/month/date-range views.
+2. Today uses three permission-aware compact summary cards, quick Today/Tomorrow switching, a chronological vertical time rail with colored semantic events and authorized participant avatars, plus a separate section for tasks without exact time.
+3. A single agenda contains task deadlines/occurrences and reward availability windows, with distinct icons, statuses and explanatory text. Reminder is separate from deadline; add it only when supported by actual product logic.
+4. Tasks and rewards are sorted chronologically with past items clearly distinguished; no overlaid/obscured final rows, responsive touch controls, accessible typography/contrast.
+5. Preserve existing agreed **Soft Family** light/dark themes and native Compose implementation for Android. Borrow screenshot composition, not iOS-only controls, fake sample content, purple/yellow palette or unrelated Inbox/microphone functions.
+6. Role-driven UX: child sees own authorized tasks, balances and possible rewards; authorized parent/admin can switch family/member views and see approval requests.
+7. Preferred bottom tabs: **Home · Calendar · Tasks · Rewards · Family**; Settings lives under profile. Respect existing features/permissions and keep alternative entry points when reorganizing navigation.
+8. Web and Android receive the same semantic calendar and permission rules from Backend but can use platform-appropriate responsive/native implementation. Neither track must interrupt its current styling milestone.
+9. Offline Android view remains read-only and visibly stale until synced; reward purchases and permission enforcement stay server-authoritative.
+
+**Implementation-only decisions still open:** precise API shape, event count/performance limits, workspace timezone migration, Android route refactor details, and reward utilization timing. These are not implicitly approved just by accepting the visual proposal.
 
 ## Proposed FamilyPoints mobile information architecture
 

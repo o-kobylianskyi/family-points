@@ -1837,3 +1837,9 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 - Reward time schedule is an independent conjunctive gate alongside prerequisites, reputation, balance, quota, cooldown, request approval and blocking. Legacy rewards default unrestricted; proposed modes ALWAYS / ONE_TIME / RECURRING_WEEKLY multiple slots. Pre-approved request remains eligible but final purchase is blocked outside window. Distinguish acquisition window from actual usage window of a time reward.
 - Workspace IANA timezone/legacy LocalDateTime boundaries must be resolved before implementation, not silently guessed. Android offline calendar read-only; Backend authoritative on acquisition.
 - Cross-track architecture/acceptance: `docs/architecture/ADR-CAL-001.md`, IMP-0006, XTR-20261022-P-01/02/03. Detailed field shapes and timezone transition are PROPOSED for consumer ACK, not implemented.
+
+## 2026-10-22 — Calendar information architecture confirmed (AGREED)
+- User explicitly approved Architecture's adaptation of the user-provided iPhone-style agenda reference.
+- Daily **Today/Home** experience and distinct **Calendar** (day/week/month/date-range); three contextual tiles; chronological time rail; task deadlines and reward acquisition windows visually distinct; assigned family avatars; separate untimed task list; role-scoped filters and actions; accessible fixed bottom navigation.
+- Navigation baseline: Home / Calendar / Tasks / Rewards / Family; settings in profile. Preserve all existing features on migration, and match previously approved Soft Family light/dark palette (not screenshot's exact iOS palette).
+- This is a product/UI decision, not an implementation/test/release. Canonical design in `docs/FAMILYPOINTS_CALENDAR_UI_REFERENCE.md`, ADR-UX-CAL-001; calendar domain/API proposed in ADR-CAL-001, IMP-0006, XTR-20261022-P-01/02/03.

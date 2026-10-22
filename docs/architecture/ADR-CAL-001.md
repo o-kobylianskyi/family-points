@@ -77,3 +77,6 @@ Examples: (a) cartoons Mon–Fri 16:00–18:00 only after homework + clean room,
 
 ## User-selected calendar layout reference (2026-10-22)
 The user selected an external iPhone-style family agenda mockup as the **composition baseline**, not a replacement for Soft Family light/dark themes. Daily dashboard, today/tomorrow switch, three contextual tiles, chronological vertical timeline, avatar stacks, no-time chores and fixed navigation should be adapted for task deadlines and reward acquisition windows. See [Calendar UI visual reference](../FAMILYPOINTS_CALENDAR_UI_REFERENCE.md). Backend ownership and DTO semantics remain unchanged by this visual decision.
+
+## UX alignment approval (2026-10-22)
+The user explicitly APPROVED the daily agenda + separate full calendar recommendations in `docs/FAMILYPOINTS_CALENDAR_UI_REFERENCE.md`. This confirms product composition and role-aware information hierarchy (three summary cards, chronological timeline, task/reward distinction, no-time tasks, native/mobile navigation, approved Soft Family themes). Backend DTO, tenant rights, timezone migration and purchase checks remain **implementation proposals** pending track-level review, not automatically approved by UX agreement.

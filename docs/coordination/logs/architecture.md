@@ -42,3 +42,10 @@ Chronological log of architecture, planning, cross-track decisions and prioritie
 - Selected: compact greeting/summary tiles, Today/Tomorrow switch, vertical date/time rail and avatar markers, separate no-time chores, rounded bottom navigation. Adapt to shared TASK/REWARD_WINDOW semantics and existing Soft Family light/dark themes; do not replace theme palettes or create fictional events.
 - Recommendations documented: chronological sorting (source screenshot is out of order), distinguish deadline from start and reward acquisition windows, parent/child role-aware tiles, full week/month drilldown, accessible status indicators, safe-area footer, offline read-only, no unrelated microphone/Inbox feature.
 - Spec: `docs/FAMILYPOINTS_CALENDAR_UI_REFERENCE.md`. Updated Web/Android XTR-20261022-P-02/03 references; work still scheduled after ongoing styling and Backend contract. No code/build/device/server/deployment changes made in this batch.
+
+## 2026-10-22 — Calendar UX recommendations explicitly approved (ADR-UX-CAL-001, AGREED; DOCS ONLY)
+- User confirmed full agreement with previously recommended adaptations of uploaded family agenda reference.
+- Promoted `docs/FAMILYPOINTS_CALENDAR_UI_REFERENCE.md` from proposed recommendations to AGREED product design baseline, preserving non-implemented checklist.
+- Recorded two distinct destinations (Today/Home agenda and full day/week/month/range calendar), role-based summary cards and member visibility, chronological TASK/REWARD_WINDOW timeline, untimed task list, five-tab nav recommendation, accessibility and existing Soft Family light/dark themes; no Inbox/microphone copy.
+- Updated XTR-20261022-P-02 (Web) and XTR-20261022-P-03 (Android) for confirmed UI scope, and ADR-CAL-001 to reference explicit UX approval while Backend contract remains PROPOSED pending review.
+- Original uploaded 1200x1200 reference verified SHA-256 `2bfb18d08d237c48c88568414d48893bb5a5e1b74c07220a1ed73f33edf8dfe7`; original binary remains outside Git. No app source, tests, DB, APK or VPS modified.
