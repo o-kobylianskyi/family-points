@@ -72,12 +72,12 @@ export default function DashboardPage() {
     <section className="fp-hero">
       <div className="fp-hero-content">
         <h1>{t('dashboard.welcome', { name: currentUser.memberName })} <span aria-hidden="true">👋</span></h1>
-        
-        <span className="fp-hero-motto">{t("dashboardLive.description")} <SoftFamilyIcon name="heart" size={22} /></span>
+        <p>{t('dashboardLive.description')}</p>
+        <span className="fp-hero-motto">{t('dashboardLive.familyMotto')} <SoftFamilyIcon name="heart" size={22} /></span>
       </div>
       <img className="fp-hero-art" src="/assets/soft-family/reference/hero-family.webp" alt=""
         onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/soft-family/family-illustration.svg' }} />
-      <span className="fp-hero-calligraphy" aria-hidden="true">♥ &nbsp; FamilyPoints</span>
+      <span className="fp-hero-calligraphy" aria-hidden="true">Малі справи<br/>— великі<br/>можливості ♡</span>
     </section>
     <div className="fp-stats">
       <StatCard icon="coins" tone="gold" label={t('dashboardLive.myBalance')} value={currency(data.balance, 'POINTS')} destination="/points" />
