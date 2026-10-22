@@ -12,6 +12,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -37,6 +38,7 @@ import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.data.MembersRepository
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
+import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyThemeMode
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
@@ -50,6 +52,8 @@ private fun st(language: AppLanguage, uk: String, de: String, en: String, ru: St
 @Composable
 fun SettingsScreen(
     language: AppLanguage,
+    themeMode: FamilyThemeMode,
+    onThemeModeChange: (FamilyThemeMode) -> Unit,
     currentUser: CurrentUserResponse,
     repository: SettingsRepository,
     membersRepository: MembersRepository,
@@ -148,6 +152,48 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.tertiary)
         }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxSize()) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = when (language) {
+                        AppLanguage.UK -> "Оформлення"
+                        AppLanguage.DE -> "Darstellung"
+                        AppLanguage.EN -> "Appearance"
+                        AppLanguage.RU -> "Оформление"
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FamilyThemeMode.entries.forEach { option ->
+                        FilterChip(
+                            selected = themeMode == option,
+                            onClick = { onThemeModeChange(option) },
+                            label = { Text(when (option) {
+                                FamilyThemeMode.SYSTEM -> when (language) {
+                                    AppLanguage.UK -> "Система"
+                                    AppLanguage.DE -> "System"
+                                    AppLanguage.EN -> "System"
+                                    AppLanguage.RU -> "Система"
+                                }
+                                FamilyThemeMode.LIGHT -> when (language) {
+                                    AppLanguage.UK -> "Світла"
+                                    AppLanguage.DE -> "Hell"
+                                    AppLanguage.EN -> "Light"
+                                    AppLanguage.RU -> "Светлая"
+                                }
+                                FamilyThemeMode.DARK -> when (language) {
+                                    AppLanguage.UK -> "Темна"
+                                    AppLanguage.DE -> "Dunkel"
+                                    AppLanguage.EN -> "Dark"
+                                    AppLanguage.RU -> "Тёмная"
+                                }
+                            }) }
+                        )
+                    }
+                }
+            }
+        }
             item {
                 if (online) Card {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
