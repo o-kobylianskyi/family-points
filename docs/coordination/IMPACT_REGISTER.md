@@ -48,6 +48,16 @@
 
 - **Android review 2026-10-22 (ACK of code, OPEN):** inspected SQLite queue, PointsRepository replay, Backend PointController/PointService idempotent UUID operation path. Server code contains duplicate protection, but phone retry/restart/reconciliation and offline tasks are not verified. Architecture must still formalize the broader replay/conflict contract. See `logs/android.md`.
 
+
+## IMP-0006 — Unified task and reward calendar + acquisition time windows
+- Producer / date / status: Architecture / 2026-10-22 / **PROPOSED; ACK NEEDED** (product goal agreed, Backend API/DB details awaiting consumer review).
+- Current → target: task virtual dated schedule exists but only daily per-member GET; reward catalog currently lacks time-based acquisition schedule. Add bounded read-only unified TASK/REWARD_WINDOW calendar projection, reward availability mode/windows, workspace timezone strategy and final server-side purchase gate in both direct and approved-request paths. All legacy rewards remain ALWAYS by default; old reward update clients must preserve configured schedules.
+- Breaking/compatibility: primarily additive DTO/API/Flyway **if implemented correctly**; JVM LocalDateTime vs new workspace timezone and old PUT reset behavior are explicit migration hazards. No task existing occurrence/ledger semantic changes.
+- Consumers: Backend [ ]; Web [ ]; Android [ ]; Release [ ]; Architecture [x] (Architecture design created; consumer source/tests still pending).
+- Consumer requirements: Backend owns service/schema/security/DTO and tests; Web owns calendar + manager editor + translated availability UX after current style milestone; Android owns Compose calendar, schedule display/editor after theme milestone and read-only offline view; Release independently checks migrations, tagged server and clients.
+- Evidence: `docs/architecture/ADR-CAL-001.md`, `docs/coordination/requests/XTR-20261022-P-01.md`, `XTR-20261022-P-02.md`, `XTR-20261022-P-03.md`. Current source references TaskService.getMemberSchedule, TaskScheduleSlot, RewardDefinition/RewardService.
+- Tests/release gate: ONE_TIME/week windows, exact bounds, DST, tenant isolation, no ledger debit outside window, both purchase paths, existing task history/slots, old client compatibility, 2-family integration, Flyway and CI. **NO SOURCE/TEST/DEPLOY CLAIM**.
+
 ## Template for each next impact
 ```md
 ## IMP-000X — Summary
