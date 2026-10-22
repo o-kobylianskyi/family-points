@@ -154,91 +154,6 @@ fun DashboardScreen(
                 onNavigate = onNavigate
             )
         }
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = when (language) {
-                        AppLanguage.UK -> "Оформлення"
-                        AppLanguage.DE -> "Darstellung"
-                        AppLanguage.EN -> "Appearance"
-                        AppLanguage.RU -> "Оформление"
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FamilyThemeMode.entries.forEach { option ->
-                        FilterChip(
-                            selected = themeMode == option,
-                            onClick = { onThemeModeChange(option) },
-                            label = { Text(when (option) {
-                                FamilyThemeMode.SYSTEM -> when (language) {
-                                    AppLanguage.UK -> "Система"
-                                    AppLanguage.DE -> "System"
-                                    AppLanguage.EN -> "System"
-                                    AppLanguage.RU -> "Система"
-                                }
-                                FamilyThemeMode.LIGHT -> when (language) {
-                                    AppLanguage.UK -> "Світла"
-                                    AppLanguage.DE -> "Hell"
-                                    AppLanguage.EN -> "Light"
-                                    AppLanguage.RU -> "Светлая"
-                                }
-                                FamilyThemeMode.DARK -> when (language) {
-                                    AppLanguage.UK -> "Темна"
-                                    AppLanguage.DE -> "Dunkel"
-                                    AppLanguage.EN -> "Dark"
-                                    AppLanguage.RU -> "Тёмная"
-                                }
-                            }) }
-                        )
-                    }
-                }
-            }
-        }
-        if (serverStatus == ServerStatus.ONLINE) {
-            item {
-                Row(modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End) {
-                    WorkspaceSwitcher(
-                        activeWorkspaceId = currentUser.workspaceId,
-                        loadWorkspaces = loadWorkspaces,
-                        activate = onSwitchWorkspace
-                    )
-                }
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                OutlinedButton(
-                    enabled = serverStatus == ServerStatus.ONLINE && !loading,
-                    onClick = {
-                        scope.launch {
-                            try {
-                                data = loadDashboard()
-                                showingCached = false
-                                error = ""
-                            } catch (exception: HttpException) {
-                                if (exception.code() == 401) onUnauthorized()
-                            } catch (_: Exception) {
-                                // Cached values stay on screen.
-                            }
-                        }
-                    }
-                ) {
-                    Text(when (language) {
-                        AppLanguage.UK -> "⟳ Оновити"
-                        AppLanguage.DE -> "⟳ Aktualisieren"
-                        AppLanguage.EN -> "⟳ Refresh"
-                        AppLanguage.RU -> "⟳ Обновить"
-                    })
-                }
-            }
-        }
-
         if (showingCached) {
             item {
                 Text(
@@ -285,6 +200,18 @@ fun DashboardScreen(
                     }
                 }
 
+        if (serverStatus == ServerStatus.ONLINE) {
+            item {
+                Row(modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End) {
+                    WorkspaceSwitcher(
+                        activeWorkspaceId = currentUser.workspaceId,
+                        loadWorkspaces = loadWorkspaces,
+                        activate = onSwitchWorkspace
+                    )
+                }
+            }
+        }
                 item {
                     DashboardStatCard(
                         label = text.myBalance,
@@ -383,60 +310,48 @@ fun DashboardScreen(
                     }
                 }
 
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = text.quickActions,
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                            Text(
-                                text = text.mainSections,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
-
-                            Button(
-                                onClick = {
-                                    onNavigate(DashboardDestination.TASKS)
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(text.tasks)
-                            }
-
-                            OutlinedButton(
-                                onClick = {
-                                    onNavigate(DashboardDestination.POINTS)
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
-                            ) {
-                                Text(when (language) {
-                                    AppLanguage.UK -> "Бали"
-                                    AppLanguage.RU -> "Баллы"
-                                    AppLanguage.DE -> "Punkte"
-                                    AppLanguage.EN -> "Points"
-                                })
-                            }
-
-                            OutlinedButton(
-                                onClick = {
-                                    onNavigate(DashboardDestination.REWARDS)
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
-                            ) {
-                                Text(text.rewards)
-                            }
-                        }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = when (language) {
+                        AppLanguage.UK -> "Оформлення"
+                        AppLanguage.DE -> "Darstellung"
+                        AppLanguage.EN -> "Appearance"
+                        AppLanguage.RU -> "Оформление"
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FamilyThemeMode.entries.forEach { option ->
+                        FilterChip(
+                            selected = themeMode == option,
+                            onClick = { onThemeModeChange(option) },
+                            label = { Text(when (option) {
+                                FamilyThemeMode.SYSTEM -> when (language) {
+                                    AppLanguage.UK -> "Система"
+                                    AppLanguage.DE -> "System"
+                                    AppLanguage.EN -> "System"
+                                    AppLanguage.RU -> "Система"
+                                }
+                                FamilyThemeMode.LIGHT -> when (language) {
+                                    AppLanguage.UK -> "Світла"
+                                    AppLanguage.DE -> "Hell"
+                                    AppLanguage.EN -> "Light"
+                                    AppLanguage.RU -> "Светлая"
+                                }
+                                FamilyThemeMode.DARK -> when (language) {
+                                    AppLanguage.UK -> "Темна"
+                                    AppLanguage.DE -> "Dunkel"
+                                    AppLanguage.EN -> "Dark"
+                                    AppLanguage.RU -> "Тёмная"
+                                }
+                            }) }
+                        )
                     }
                 }
+            }
+        }
 
 
             }
