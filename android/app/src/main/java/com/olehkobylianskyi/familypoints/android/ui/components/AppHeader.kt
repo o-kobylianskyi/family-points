@@ -1,27 +1,55 @@
 package com.olehkobylianskyi.familypoints.android.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CardGiftcard
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.ChevronDown
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardDestination
 
+/**
+ * Variant A — floating popovers.
+ * Every DropdownMenu lives directly inside the Box of its own trigger, so
+ * Compose PopupPositionProvider anchors it to that trigger instead of the Row.
+ */
 @Composable
 fun AppHeader(
     language: AppLanguage,
@@ -33,51 +61,76 @@ fun AppHeader(
     val text = dashboardStrings(language)
     var navigationMenuOpen by remember { mutableStateOf(false) }
     var languageMenuOpen by remember { mutableStateOf(false) }
+    val menuSurface = MaterialTheme.colorScheme.surface
+    val selectedSurface = MaterialTheme.colorScheme.primaryContainer
+    val selectedText = MaterialTheme.colorScheme.onPrimaryContainer
 
-    // Compact, single-line mobile header. Profile and actions no longer consume
-    // multiple full-width rows above every screen.
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        androidx.compose.material3.TextButton(onClick = { navigationMenuOpen = true }) {
-            Text("☰", style = MaterialTheme.typography.titleLarge)
-        }
-        DropdownMenu(
-            expanded = navigationMenuOpen,
-            onDismissRequest = { navigationMenuOpen = false }
-        ) {
-            listOf(
-                DashboardDestination.DASHBOARD to text.dashboard,
-                DashboardDestination.MEMBERS to text.members,
-                DashboardDestination.TASKS to text.tasks,
-                DashboardDestination.POINTS to when (language) {
-                    AppLanguage.UK -> "Бали"
-                    AppLanguage.RU -> "Баллы"
-                    AppLanguage.DE -> "Punkte"
-                    AppLanguage.EN -> "Points"
-                },
-                DashboardDestination.REWARDS to text.rewards,
-                DashboardDestination.SETTINGS to text.settings
-            ).forEach { entry ->
+        Box {
+            Surface(
+                shape = RoundedCornerShape(15.dp),
+                color = if (navigationMenuOpen) selectedSurface else MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                IconButton(onClick = {
+                    languageMenuOpen = false
+                    navigationMenuOpen = !navigationMenuOpen
+                }) {
+                    Icon(Icons.Outlined.Menu, contentDescription = text.mainSections,
+                        tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+            DropdownMenu(
+                expanded = navigationMenuOpen,
+                onDismissRequest = { navigationMenuOpen = false },
+                modifier = Modifier
+                    .width(240.dp)
+                    .background(menuSurface, RoundedCornerShape(22.dp)),
+                offset = DpOffset(x = 0.dp, y = 7.dp)
+            ) {
+                val entries = listOf(
+                    Triple(DashboardDestination.DASHBOARD, text.dashboard, Icons.Outlined.Home),
+                    Triple(DashboardDestination.MEMBERS, text.members, Icons.Outlined.Group),
+                    Triple(DashboardDestination.TASKS, text.tasks, Icons.Outlined.TaskAlt),
+                    Triple(DashboardDestination.POINTS, when (language) {
+                        AppLanguage.UK -> "Бали"
+                        AppLanguage.RU -> "Баллы"
+                        AppLanguage.DE -> "Punkte"
+                        AppLanguage.EN -> "Points"
+                    }, Icons.Outlined.Payments),
+                    Triple(DashboardDestination.REWARDS, text.rewards, Icons.Outlined.CardGiftcard),
+                    Triple(DashboardDestination.SETTINGS, text.settings, Icons.Outlined.Settings)
+                )
+                entries.forEachIndexed { index, (destination, title, glyph) ->
+                    DropdownMenuItem(
+                        modifier = Modifier.background(
+                            if (index == 0) selectedSurface else menuSurface,
+                            RoundedCornerShape(12.dp)
+                        ),
+                        text = { Text(title, color = if (index == 0) selectedText else MaterialTheme.colorScheme.onSurface) },
+                        leadingIcon = { Icon(glyph, contentDescription = null,
+                            tint = if (index == 0) selectedText else MaterialTheme.colorScheme.onSurfaceVariant) },
+                        onClick = {
+                            navigationMenuOpen = false
+                            onNavigate(destination)
+                        }
+                    )
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 DropdownMenuItem(
-                    text = { Text(entry.second) },
+                    text = { Text(text.logout) },
+                    leadingIcon = { Icon(Icons.Outlined.Logout, contentDescription = null) },
                     onClick = {
                         navigationMenuOpen = false
-                        onNavigate(entry.first)
+                        onLogout()
                     }
                 )
             }
-            androidx.compose.material3.HorizontalDivider()
-            DropdownMenuItem(
-                text = { Text(text.logout) },
-                onClick = {
-                    navigationMenuOpen = false
-                    onLogout()
-                }
-            )
         }
+
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = currentUser.memberName,
@@ -93,21 +146,55 @@ fun AppHeader(
                 overflow = TextOverflow.Ellipsis
             )
         }
-        androidx.compose.material3.TextButton(onClick = { languageMenuOpen = true }) {
-            Text(language.label.take(2).uppercase(), maxLines = 1)
-        }
-        DropdownMenu(
-            expanded = languageMenuOpen,
-            onDismissRequest = { languageMenuOpen = false }
-        ) {
-            AppLanguage.entries.forEach { item ->
-                DropdownMenuItem(
-                    text = { Text(item.label) },
-                    onClick = {
-                        onLanguageChange(item)
-                        languageMenuOpen = false
+
+        Box {
+            Surface(
+                shape = RoundedCornerShape(15.dp),
+                color = if (languageMenuOpen) selectedSurface else MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                TextButton(onClick = {
+                    navigationMenuOpen = false
+                    languageMenuOpen = !languageMenuOpen
+                }) {
+                    Text(language.name, color = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Outlined.ChevronDown, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(17.dp))
+                }
+            }
+            DropdownMenu(
+                expanded = languageMenuOpen,
+                onDismissRequest = { languageMenuOpen = false },
+                modifier = Modifier
+                    .width(210.dp)
+                    .background(menuSurface, RoundedCornerShape(22.dp)),
+                offset = DpOffset(x = 0.dp, y = 7.dp)
+            ) {
+                AppLanguage.entries.forEach { item ->
+                    val selected = item == language
+                    val flag = when (item) {
+                        AppLanguage.UK -> "🇺🇦"
+                        AppLanguage.DE -> "🇩🇪"
+                        AppLanguage.EN -> "🇬🇧"
+                        AppLanguage.RU -> "🇷🇺"
                     }
-                )
+                    DropdownMenuItem(
+                        modifier = Modifier.background(
+                            if (selected) selectedSurface else menuSurface,
+                            RoundedCornerShape(12.dp)
+                        ),
+                        text = { Text(item.label, maxLines = 1,
+                            color = if (selected) selectedText else MaterialTheme.colorScheme.onSurface) },
+                        leadingIcon = { Text(flag) },
+                        trailingIcon = if (selected) {
+                            { Icon(Icons.Outlined.Check, contentDescription = null, tint = selectedText) }
+                        } else null,
+                        onClick = {
+                            languageMenuOpen = false
+                            onLanguageChange(item)
+                        }
+                    )
+                }
             }
         }
     }
