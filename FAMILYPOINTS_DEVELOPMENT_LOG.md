@@ -1313,3 +1313,13 @@
 - User screenshot showed dark page background but white dashboard cards with nearly invisible light text and insufficient vertical spacing between panels.
 - Fixed `.dashboard-stats .stat-card` and `.dashboard-panel` semantic surface/text/border colors, heading and muted text contrast, panel margins, responsive grid, quick-action buttons in `frontend/src/App.css` (commit `54b4203`).
 - **Not yet tested on browser/build**; validate in dark and light with homepage, tasks and other routes after pulling. No BETA deployment.
+
+
+## 2026-10-22 — Soft Family web exact-parity implementation pass (no release)
+
+- Replaced dashboard/platform emoji with source-controlled reusable custom SVG icon renderer (`SoftFamilyIcon.jsx`), including gradient coins, star, gift, checklist, crown, navigation glyphs.
+- Added vector family fallback (`frontend/public/assets/soft-family/family-illustration.svg`), reformatted dashboard/Sidebar cards, graphic promo, hero proportions, light/dark colors and compact header/profile dropdown.
+- Dashboard remains backed by real balance/tasks/reputation API data; empty data states deliberately do not fabricate entries.
+- Exported approved-generated-mockup family cutouts as two WebP files in conversation archive; GitHub connector writes text sources but not binary artifacts. React attempts these WebP first and falls back to SVG. **User must extract the archive to the repo root** to see the exact approved family illustrations; optional future `git add` of those files after visual review.
+- `docs/SOFT_FAMILY_WEB_DASHBOARD_ACCEPTANCE.md` tracks acceptance criteria.
+- CI/browser parity checks still outstanding; no Contabo, BETA deployment, PostgreSQL changes.
