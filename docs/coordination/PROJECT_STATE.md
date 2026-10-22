@@ -43,3 +43,8 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 ## 2026-10-23 — Media status snapshot (source and docs review, not runtime)
 - Integration branch reviewed at `d7783ff106b6c6b48fe745073fe2c2ab102afcd5` before ADR decision. Backend media XTR-W-01 / IMP-0007 remains NOT IMPLEMENTED; Backend had requested Architecture response XTR-B-01. ADR-MEDIA-001 now defines v1 workspace-scoped image ownership and **PostgreSQL metadata+BYTEA binary storage**; consumer/Release reviews, code, Flyway, media API and live deploy are still pending.
 - Web reference assets issue is distinct: `scripts/web/import-dashboard-reference-assets.ps1` imports 11 WebP from external ZIP; these 11 are missing from committed integration branch. Two existing hero/promo WebP files remain checked into `frontend/public/assets/soft-family/`. Web can use static graphics independently of Backend.
+
+## 2026-10-23 — Media tasks routed, source/CI status
+- Four receiving-track requests `XTR-20261023-P-01` Backend, `-02` Web, `-03` Android and `-04` Release now filed; read them via `docs/coordination/requests/README.md`.
+- At inspection, Backend Media PR #5 `e7e18bc` remains draft with CI success (run 39863949599), unmerged; calendar PR #4 V35 likewise unmerged. Media migration renamed V36; combined V35/V36 integration and old DB upgrade still need proof. Private target ACL, WebP, catalog binaries, DTO and cleanup remain open.
+- The 11 later Web static reference assets were not present in Git's `frontend/public/assets/soft-family/reference/`; static design package independent of Backend DB media. This snapshot is source/CI inspection, NOT running BETA confirmation.

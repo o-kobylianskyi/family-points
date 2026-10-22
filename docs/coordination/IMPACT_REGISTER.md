@@ -86,6 +86,8 @@
 
 - **Backend Flyway correction 2026-10-23:** PR #5 media migration **renamed to V36** (`e317094`) to reserve V35 for calendar PR #4; negative security/upload unit tests added at `e7e18bc`. Merge order/calendar schema compatibility still requires integration smoke on a branch containing BOTH migrations and Release review.
 
+- **Architecture implementation packet 2026-10-23:** [Backend XTR-P-01](requests/XTR-20261023-P-01.md), [Web XTR-P-02](requests/XTR-20261023-P-02.md), [Android XTR-P-03](requests/XTR-20261023-P-03.md), [Release XTR-P-04](requests/XTR-20261023-P-04.md). Media PR #5 @ `e7e18bc` passed full CI run 39863949599 but remains DRAFT/UNMERGED/UNDEPLOYED. Media V36 now avoids calendar V35 collision (must test combined migration and merge order). Private per-target access, WebP/catalog binaries, DTO and cleanup remain open; Web's 11 static reference WebPs are separate from Backend API and absent in Git. ACK checkboxes unchanged pending actual reviews.
+
 ## Template for each next impact
 ```md
 ## IMP-000X — Summary
