@@ -10,6 +10,8 @@
 - Evidence: root development log 2026-10-22; Web dashboard/style changes `54b4203`, newer style commit `5cd66da` (repository inspection). Gate: no claim of final Web/Android parity or public release without verified acceptance.
 - **Android review 2026-10-22 (ACK, NOT VERIFIED):** inspected Compose Theme and Android navigation/source; current theme is light-only, and native Soft Family visual parity/avatars are not complete. Media storage/API remains an Architecture+Backend dependency. See `logs/android.md`.
 
+- **User-confirmed visual target (Android, 2026-10-22):** user supplied exact Light and Dark phone mockups as the Android Soft Family target. Android specification (both reference hashes, component anatomy, theme-setting behavior and open acceptance matrix): `docs/ANDROID_SOFT_FAMILY_UI_SPEC.md`. Visual agreement is NOT build/device acceptance and adds no new API contract.
+
 ## IMP-0002 — Registration, Google, username and invitation contracts
 - Producer / date: Backend + Architecture / 2026-10-22. Status: **ACK NEEDED**.
 - Change: anonymous username-availability matcher correction, Google auth/invite routes/CORS and registration feature flags affect clients and deployment.
@@ -44,6 +46,8 @@
 - Actions: define idempotency key, order, conflict/retry/error semantics and test cases; Android implement/store queue; Web display server-authoritative state; Release verify duplicate/offline/restore paths.
 - **Web review 2026-10-22 (ACK of proposal; BLOCKED):** existing task API reviewed at `43e990ead`; waiting for Architecture/Backend idempotent replay and reconciliation contract. Do not claim offline-authoritative UI yet. See `logs/web.md`.
 
+- **Android review 2026-10-22 (ACK of code, OPEN):** inspected SQLite queue, PointsRepository replay, Backend PointController/PointService idempotent UUID operation path. Server code contains duplicate protection, but phone retry/restart/reconciliation and offline tasks are not verified. Architecture must still formalize the broader replay/conflict contract. See `logs/android.md`.
+
 ## Template for each next impact
 ```md
 ## IMP-000X — Summary
@@ -56,5 +60,4 @@
 ```
 
 Never remove an unresolved item to tidy the register. Close only after affected consumers acknowledge and required verification is evidenced.
-- **Android review 2026-10-22 (ACK of code, OPEN):** inspected SQLite queue, PointsRepository replay, Backend PointController/PointService idempotent UUID operation path. Server code contains duplicate protection, but phone retry/restart/reconciliation and offline tasks are not verified. Architecture must still formalize the broader replay/conflict contract. See `logs/android.md`.
 
