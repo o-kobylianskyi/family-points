@@ -203,7 +203,6 @@ class MainActivity : ComponentActivity() {
 
                     Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                     Column(modifier = Modifier.fillMaxSize()) {
-                    Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 var currentUser by remember {
                     mutableStateOf<CurrentUserResponse?>(null)
                 }
@@ -330,6 +329,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 when {
                     authLoading -> {
                         LoadingScreen(language)
