@@ -14,6 +14,7 @@ export default function GooglePasswordSetup() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [awaitingGoogle, setAwaitingGoogle] = useState(false)
 
   // Replace opaque g_<hash> only with an available suggestion from this account's
   // verified email. Never overwrite a username the user has already edited.
@@ -27,26 +28,32 @@ export default function GooglePasswordSetup() {
     return () => { cancelled = true }
   }, [currentUser?.username, getAccessToken])
 
-  const verifyGoogle = async idToken => {
+  const validateFields = () => {
     setError('')
     setSuccess('')
     if (!/^[A-Za-z0-9._-]{3,64}$/.test(username.trim())) {
       setError(t('googlePassword.usernameInvalid'))
-      return
+      return false
     }
     if (password.length < 8 || password.length > 128) {
       setError(t('googlePassword.invalid'))
-      return
+      return false
     }
     if (password !== confirm) {
       setError(t('googlePassword.mismatch'))
-      return
+      return false
     }
+    return true
+  }
+
+  const verifyGoogle = async idToken => {
+    if (!validateFields()) return
     setBusy(true)
     try {
       await setPasswordWithGoogle(getAccessToken(), idToken, password, username.trim())
       setPassword('')
       setConfirm('')
+      setAwaitingGoogle(false)
       setSuccess(t('googlePassword.success'))
     } catch (e) {
       setError(e.status === 409 ? t('googlePassword.usernameTaken') : t('googlePassword.error', { status: e.status || 'NETWORK' }))
@@ -62,20 +69,32 @@ export default function GooglePasswordSetup() {
     <div className="google-password-form">
       <label className="google-password-field"><span>{t('googlePassword.username')}</span>
         <input type="text" autoComplete="username" value={username} maxLength={64} disabled={busy}
-          onChange={e => setUsername(e.target.value)} /><UsernameAvailability username={username} currentUsername={currentUser?.username} />
+          onChange={e => { setUsername(e.target.value); setAwaitingGoogle(false); setSuccess('') }} /><UsernameAvailability username={username} currentUsername={currentUser?.username} />
       </label>
       <label className="google-password-field"><span>{t('googlePassword.new')}</span>
         <input type="password" autoComplete="new-password" minLength={8} maxLength={128}
-          value={password} disabled={busy} onChange={e => setPassword(e.target.value)} />
+          value={password} disabled={busy} onChange={e => { setPassword(e.target.value); setAwaitingGoogle(false); setSuccess('') }} />
       </label>
       <label className="google-password-field"><span>{t('googlePassword.confirm')}</span>
         <input type="password" autoComplete="new-password" minLength={8} maxLength={128}
-          value={confirm} disabled={busy} onChange={e => setConfirm(e.target.value)} />
+          value={confirm} disabled={busy} onChange={e => { setConfirm(e.target.value); setAwaitingGoogle(false); setSuccess('') }} />
       </label>
       {error && <div className="error-message" role="alert">{error}</div>}
       {success && <div className="settings-success" role="status">{success}</div>}
-      <p className="google-password-instructions">{t('googlePassword.button')} — Підтвердіть Google нижче, щоб зберегти логін і пароль. Нижня кнопка збереження учасника їх не змінює.</p>
-      <GoogleAuthButton disabled={busy} onCredential={verifyGoogle} />
+      <button type="button" className="primary-button" disabled={busy}
+        onClick={() => {
+          setError('')
+          setSuccess('')
+          if (validateFields()) setAwaitingGoogle(true)
+        }}>
+        Зберегти пароль
+      </button>
+      {awaitingGoogle && <>
+        <p className="google-password-instructions">
+          Для збереження потрібно підтвердити, що це ваш Google-акаунт. Натисніть кнопку Google нижче.
+        </p>
+        <GoogleAuthButton disabled={busy} onCredential={verifyGoogle} />
+      </>}
     </div>
   </section>
 }
