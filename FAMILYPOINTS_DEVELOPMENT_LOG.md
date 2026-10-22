@@ -1276,3 +1276,10 @@
 - Both link to `/download`; styling shared by `frontend/src/components/AndroidDownloadLink.css`.
 - Code commits: `d4bc2dc`, `ab38b572`, `664c8a1`.
 - **SOURCE ONLY**: frontend build, CI, release tag and Contabo deployment not verified. Public BETA unchanged.
+
+
+## 2026-10-22 — Android release startup crash on Huawei P20 Pro
+
+- **DEVICE-REPRODUCED:** release APK 0.1.0-beta.1 (`versionCode=1`) crashes in `MainActivity.onCreate:132` with `IllegalAccessError: Class kotlin.sequences.d extended by class x91 is inaccessible`; trace includes R8 mapping IDs and Compose startup.
+- **SOURCE FIX:** removed experimental scoped release `optimization { enable = true; packageScope = ... }` from `android/app/build.gradle.kts`, commit `ba0b135`.
+- **NOT VERIFIED:** rebuilt release APK, in-place upgrade, actual device launch, post-fix crash log. Use same keystore and `versionCode=2`, `versionName=0.1.0-beta.2`; do not replace public download until tested.
