@@ -33,3 +33,10 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Committed CSS correction `95159c47` to integration: sidebar promo image constrained within its panel; hero artwork uses contain and matches hero bounds instead of negative bottom/oversized height. Responsive overrides added; requires screenshot check.
 - Outstanding: extract exact logo and graphic icons from provided reference only where original asset provenance and clean transparent extraction can be verified; do not call redrawn SVGs exact matches. Hero composition, responsive and both theme visual verification still open.
 - No Vite/browser test run by assistant; no Backend/Android/DB/release changes.
+
+
+## 2026-10-22 — Dashboard reference crop integration (PARTIAL — binary package local only)
+- Inspected Backend integration branch and journal at `5d9fcbf4`: Backend has acknowledged media XTR-W-01 / IMP-0007 but API, schema, binary store and release backup are BLOCKED by Architecture ADR. **NO media database/API upload performed or claimed**. Separate calendar PR #4 is not a media implementation.
+- Modified dashboard JSX, Sidebar and App.css to consume explicit `/assets/soft-family/reference/*` asset names with legacy SVG/image fallback. Removed duplicated main hero description. Adjusted hero and bottom-left promo panel; preserve real API data.
+- Extracted an 11-asset WebP archive directly from user-approved reference image in this chat, including brand mark, 4 large stats, 4 quick-action icons, hero crop and full sidebar promo. Package not yet committed to GitHub binary storage; user must extract at repository root. **Source code without this package falls back to old graphics** — do not report full visual parity.
+- Still requires actual browser side-by-side verification, exact alpha edges and responsiveness; extracted icons are reference crops and may contain partial background. No DB, VPS, Android, Maven or runtime smoke test.
