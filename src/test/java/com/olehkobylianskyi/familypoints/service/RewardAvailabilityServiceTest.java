@@ -74,4 +74,13 @@ class RewardAvailabilityServiceTest {
         verify(reward, never()).setAvailabilityMode(any());
         verify(repository, never()).saveAndFlush(any());
     }
+
+    @Test void inactiveRewardAvailabilityIsNotExposedToOrdinaryMembers() {
+        var reward = mock(RewardDefinition.class);
+        when(repository.findByIdAndWorkspaceId(7L, 8L)).thenReturn(Optional.of(reward));
+        when(reward.isActive()).thenReturn(false);
+        assertThrows(com.olehkobylianskyi.familypoints.exception.ResourceNotFoundException.class,
+                () -> service.get(8L, 7L, false));
+        verify(reward, never()).getWeeklyWindows();
+    }
 }

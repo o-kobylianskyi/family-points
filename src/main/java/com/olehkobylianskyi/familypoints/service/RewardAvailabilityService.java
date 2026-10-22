@@ -96,8 +96,13 @@ public class RewardAvailabilityService {
     }
 
     @Transactional(readOnly = true)
-    public RewardAvailabilityResponse get(Long workspaceId, Long rewardId) {
-        return response(findReward(workspaceId, rewardId));
+    public RewardAvailabilityResponse get(Long workspaceId, Long rewardId, boolean canManage) {
+        RewardDefinition reward = findReward(workspaceId, rewardId);
+        // Inactive catalog definitions are manager-only, just like listRewards().
+        if (!reward.isActive() && !canManage) {
+            throw new ResourceNotFoundException("Reward not found");
+        }
+        return response(reward);
     }
 
     @Transactional

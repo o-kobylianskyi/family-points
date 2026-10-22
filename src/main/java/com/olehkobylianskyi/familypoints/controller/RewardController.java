@@ -79,7 +79,7 @@ public class RewardController {
     @GetMapping("/{rewardId}/availability")
     public RewardAvailabilityResponse availability(@PathVariable Long workspaceId, @PathVariable Long rewardId) {
         assertWorkspace(workspaceId);
-        return availabilityService.get(workspaceId, rewardId);
+        return availabilityService.get(workspaceId, rewardId, canManageRewards());
     }
 
     @PutMapping("/{rewardId}/availability")
