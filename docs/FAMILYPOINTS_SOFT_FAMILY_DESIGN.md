@@ -16,6 +16,15 @@ Status: **approved visual reference, implementation in progress, NOT released**.
 - Native Android component anatomy, accepted color direction, Light/Dark/System setting, reference image checksums, and open acceptance matrix: [ANDROID_SOFT_FAMILY_UI_SPEC.md](ANDROID_SOFT_FAMILY_UI_SPEC.md).
 - Preserve common information architecture and actions across themes. Do not pretend the mockup images are already source-controlled or the application already matches them.
 
+## Reference images are NOT production UI assets (user clarification 2026-10-22)
+
+- Both approved Soft Family mockups and their cropped sub-images are **visual references only**. Android and Web must construct live, responsive screens using native UI/components; never embed a screenshot/cropped card/button/text panel as the functional interface.
+- Extract the graphic language (shape, illustrations, colors, effects, composition); **adapt layouts**, support permissions, accessibility, different screen sizes, system behavior and real application states.
+- **Remove any text baked into artwork** and render it separately as actual translated text. Names, roles, points, balances, history, tasks, labels and dates are runtime data / localized strings, not painted pixels.
+- Only **text-free decorative illustrations** may become reusable image assets after clean isolation, adaptation and privacy/provenance checks. Controls, icons, chart/statistics and status are semantic components or vectors.
+- Locales: Ukrainian, German, English, Russian; correctly handle dynamic strings, number/plural formatting, long translations, font scaling.
+- Visual acceptance means similar identity and polish, **not pixel-for-pixel copying** of the iPhone mockup. Android-specific detailed rules: [ANDROID_SOFT_FAMILY_UI_SPEC.md](ANDROID_SOFT_FAMILY_UI_SPEC.md).
+
 ## Planned media functionality
 
 - Per-account/profile avatar: built-in illustrated character, uploaded image with crop, or initials fallback. Photos stored/access-controlled by account/member identity.
