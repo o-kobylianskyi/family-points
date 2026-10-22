@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { getWorkspaceMembers, createWorkspaceMember, updateWorkspaceMember, deleteWorkspaceMember, getWorkspaceRoles } from '../api/workspaceApi'
 import MemberEditor from '../components/MemberEditor'
+import FamilyAvatar from '../components/FamilyAvatar'
 import { createMemberAccount, issueMemberEmailInvitation } from '../api/accountApi'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 import {
@@ -445,9 +446,7 @@ function MembersPage() {
               role={canManageMembers ? "button" : undefined}
               tabIndex={canManageMembers ? 0 : undefined}
             >
-              <div className="member-avatar">
-                {getInitials(member.name)}
-              </div>
+              <FamilyAvatar name={member.name} kind="member" className="member-avatar" />
 
               <div className="member-info">
                 <strong>{member.name}</strong>
