@@ -22,3 +22,8 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 - Backend first: XTR-20261022-P-01 (reward schedule/purchase gate/calendar DTO/schema/timezone compatibility). Web XTR-20261022-P-02 and Android XTR-20261022-P-03 planned **after** ongoing Soft Family styling milestones.
 - Important audited gap: current TaskScheduleSlot scheduledTime is deadline; Workspace timezone not persisted, and reward limits/deadlines rely on JVM local clock. Must resolve before claiming calendar release readiness.
 - This is a plan/document update only: no Java/React/Kotlin code changes, builds, tests, CI, DB, APK or VPS operation.
+
+## 2026-10-22 — Backend intake update (SOURCE REVIEW ONLY)
+- Backend acknowledged XTR-20261022-P-01 / IMP-0006 at source HEAD `89cbf1e026815dc59d2b1fc5ab9ce06549382524`; calendar + timed reward purchase rules remain **NOT IMPLEMENTED**.
+- Found latest Flyway migration V34; existing reward purchase paths have no time gate, TaskService has member/day read-only virtual schedule, Workspace no IANA timezone field.
+- Backend acceptance is ownership/inspection only, not a completed API contract or proof of tests/deployment. Backend remains responsible for draft DTO/timezone compat discussion, additive migration, both purchase paths, bounded calendar service and tenant negative tests. Web/Android consumers and Release have not approved IMP-0006.

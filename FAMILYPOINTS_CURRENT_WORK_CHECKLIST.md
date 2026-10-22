@@ -1410,3 +1410,12 @@ Before each substantial implementation batch:
 - [ ] Each work track actively reviews and acknowledges its applicable IMP-0001..0005 entries with an actual source SHA.
 - [ ] Architecture reconciles outstanding shared contracts (media, auth/workspaces, offline ledger) with Backend, Web, Android and Release.
 - [ ] Confirm inter-track compatibility and real tests before merge/deployment; no automatic release from source commit.
+
+## 2026-10-22 — Backend inbound: task/reward calendar (XTR-20261022-P-01)
+- [x] Read and acknowledge Architecture request XTR-20261022-P-01 and IMP-0006; inspect current reward/task/timezone source.
+- [ ] Finalize Backend contract + timezone migration policy and obtain Web/Android Architecture coordination ACKs.
+- [ ] Implement additive Flyway availability schema; ALWAYS legacy default; ONE_TIME and recurring weekly local windows.
+- [ ] Enforce Clock-based time acquisition gate in direct and approved-request purchases, preserving all existing checks and rollback.
+- [ ] Implement authorized bounded read-only unified calendar projection with stable task occurrence identity.
+- [ ] Run migration/compatibility, DST, tenant-isolation, purchase edge/race/replay and calendar no-write tests; record results and source SHAs.
+- [ ] Release/DevOps verifies tagged server and both clients before BETA publication.
