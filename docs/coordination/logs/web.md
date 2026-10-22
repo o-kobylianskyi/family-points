@@ -43,3 +43,10 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Initiated [XTR-20261022-W-01](../../coordination/requests/XTR-20261022-W-01.md) on integration branch `feature/task-soft-delete`, registered IMP-0007 and GitHub issue #3 (Backend). This is an **incoming Backend assignment**, not a Web or Backend implementation.
 - Contract proposal preserves MemberGroup vs WorkNode distinctions, stable media IDs, server-side scoped authorization, defaults and fallbacks, old-client compatibility and private cache. Backend must ACK; Architecture must decide media ADR; Android/Release will review. Web image picker and crop UX blocked on approved API.
 - Until Backend contract is ready, continue source-controlled bundled illustrations and image fallback styling only. Do not invent upload endpoints or leak private media.
+
+
+## 2026-10-22 — Shared Web avatar presentation for approved Soft Family
+- Added `frontend/src/components/FamilyAvatar.jsx`: reusable accessible Web avatar accepting optional trusted URL, with broken-image fallback; no guessed private URLs or raw account emails in asset paths.
+- Integrated into MembersPage member cards, TasksPage member selector and PointsPage member selector/details; styled the shared avatar in App.css for both themes.
+- Current fallback remains styled initials (or curated group/family graphic), not uploaded images. Backend XTR-20261022-W-01 / IMP-0007 still owns media catalogue, upload/storage, effective task-category inheritance and tenant access. This is frontend-only preparation and **does not** claim uploaded avatars or default illustrated human portraits are available.
+- **Verification pending:** Vite build/i18n/a11y and screenshots after PR update. No Java, Android, infrastructure, BETA or DB changes.
