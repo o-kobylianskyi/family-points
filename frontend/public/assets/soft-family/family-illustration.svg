@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="310" viewBox="0 0 640 310" fill="none" role="img" aria-label="Family illustration">
+<defs>
+ <linearGradient id="dadSkin" x1=".15" y1="0" x2=".85" y2="1"><stop stop-color="#FFE9CD"/><stop offset="1" stop-color="#EFAE91"/></linearGradient>
+ <linearGradient id="momSkin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFE9D5"/><stop offset="1" stop-color="#EBAB8E"/></linearGradient>
+ <linearGradient id="shirt" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4686B1"/><stop offset="1" stop-color="#233F7D"/></linearGradient>
+ <linearGradient id="greenShirt" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#83C2A8"/><stop offset="1" stop-color="#2F7778"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#9CFFF0" stop-opacity=".55"/><stop offset="1" stop-color="#57D4C8" stop-opacity="0"/></radialGradient>
+ <filter id="shadow"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#0B1828" flood-opacity=".24"/></filter>
+ </defs>
+ <ellipse cx="320" cy="199" rx="295" ry="145" fill="url(#glow)"/>
+ <!-- background leaves and sparkles -->
+ <g fill="#39A6A0" opacity=".32"><ellipse cx="111" cy="229" rx="22" ry="63" transform="rotate(-43 111 229)"/><ellipse cx="136" cy="184" rx="19" ry="52" transform="rotate(-14 136 184)"/><ellipse cx="501" cy="208" rx="24" ry="65" transform="rotate(43 501 208)"/><ellipse cx="535" cy="163" rx="18" ry="46" transform="rotate(10 535 163)"/></g>
+ <g stroke="#5DDFD1" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".83"><path d="M85 64c-22-24-40 13 0 37 41-24 23-61 0-37Z"/><path d="M556 61c-15-19-32 9 0 27 33-18 17-46 0-27Z"/></g>
+ <g fill="#FBE092"><path d="m179 47 5 15 15 5-15 5-5 15-5-15-15-5 15-5Z"/><path d="m491 34 4 10 10 4-10 4-4 10-4-10-10-4 10-4Z"/></g>
+ <g filter="url(#shadow)">
+  <!-- Dad body -->
+  <path d="M125 310c-1-74 25-124 92-129 77-5 119 54 128 129" fill="url(#shirt)"/>
+  <path d="M168 310c0-53 22-88 44-91" stroke="#78B4D4" stroke-width="10" opacity=".35"/>
+  <!-- Dad ears/face -->
+  <ellipse cx="155" cy="129" rx="19" ry="26" fill="#EFB498"/>
+  <ellipse cx="279" cy="135" rx="16" ry="25" fill="#EBA487"/>
+  <ellipse cx="215" cy="121" rx="71" ry="86" fill="url(#dadSkin)"/>
+  <!-- hair -->
+  <path d="M143 117c-9-69 20-116 94-107 31 3 50 28 47 65-12-5-22-17-25-29-25 17-56 15-76 14-6 24-24 45-40 57Z" fill="#2B2536"/>
+  <path d="M148 78c8-47 45-66 93-54" stroke="#464055" stroke-width="15" stroke-linecap="round" opacity=".65"/>
+  <ellipse cx="185" cy="135" rx="6" ry="9" fill="#302D3A"/>
+  <ellipse cx="243" cy="135" rx="6" ry="9" fill="#302D3A"/>
+  <path d="M194 161c12 16 30 16 43 0" stroke="#AC625B" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="174" cy="151" r="10" fill="#F39E92" opacity=".38"/>
+  <circle cx="255" cy="151" r="10" fill="#F39E92" opacity=".38"/>
+  <!-- Mom rear hair and body -->
+  <path d="M394 69c19-38 100-38 130 4 25 43 9 136 28 191-42 32-121 10-155-8-32-30-37-149-3-187Z" fill="#473044"/>
+  <path d="M375 310c5-80 26-110 83-113 69-3 101 53 109 113" fill="url(#greenShirt)"/>
+  <ellipse cx="411" cy="157" rx="16" ry="26" fill="#D99682"/>
+  <ellipse cx="515" cy="157" rx="16" ry="26" fill="#D99682"/>
+  <ellipse cx="463" cy="142" rx="59" ry="81" fill="url(#momSkin)"/>
+  <path d="M399 134c-10-73 27-103 69-104 54-2 81 39 65 93-12-7-18-34-20-51-27 25-65 40-114 42Z" fill="#4E3343"/>
+  <path d="M410 102c17-45 63-57 99-34" stroke="#684959" stroke-width="10" opacity=".55" stroke-linecap="round"/>
+  <path d="M425 148c7 6 15 6 21 0M483 149c8 6 15 6 21 0" stroke="#49343D" stroke-width="5" stroke-linecap="round"/>
+  <path d="M449 178c10 10 23 10 32 0" stroke="#AB615B" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="420" cy="170" rx="10" ry="6" fill="#F39B91" opacity=".6"/>
+  <ellipse cx="506" cy="170" rx="10" ry="6" fill="#F39B91" opacity=".6"/>
+  <!-- child centered -->
+  <path d="M266 310c3-65 18-90 65-93 59-2 84 44 87 93" fill="#4DB1AE"/>
+  <ellipse cx="322" cy="188" rx="50" ry="61" fill="#F7C3A1"/>
+  <ellipse cx="271" cy="196" rx="13" ry="19" fill="#F2B394"/>
+  <ellipse cx="369" cy="197" rx="13" ry="19" fill="#F2B394"/>
+  <path d="M271 184c-7-51 18-77 61-77 49 0 66 33 51 78-13-6-24-24-27-35-19 16-48 19-85 34Z" fill="#432F32"/>
+  <path d="M289 180c5 5 13 5 18 0M339 180c6 5 14 5 19 0" stroke="#443136" stroke-width="5" stroke-linecap="round"/>
+  <path d="M310 207c6 17 27 17 37 0" stroke="#9E5656" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="291" cy="198" r="8" fill="#ED8C83" opacity=".45"/>
+  <circle cx="354" cy="198" r="8" fill="#ED8C83" opacity=".45"/>
+ </g>
+</svg>
