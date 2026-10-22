@@ -82,6 +82,8 @@
 
 - **Architecture ADR 2026-10-23:** Published [ADR-MEDIA-001](../architecture/ADR-MEDIA-001.md): v1 workspace-owned private media; separate family cover/icon, member avatar, people group icon, WorkNode category icon and task icon override/inheritance; sanitized JPG/PNG/WebP, secure per-target read/upload/binding, and PostgreSQL metadata+BYTEA image variants. Backend may begin design/implementation under XTR-W-01; Web/Android/Release must still ACK contract, DB backup/quota/safety and accept actual tests. **No media API/database implementation or deploy yet.**
 
+- **Backend progress 2026-10-23:** [draft PR #5](https://github.com/o-kobylianskyi/family-points/pull/5) implements initial PostgreSQL media upload/bind/read; **not ready for integration or deployment**. Source `9b26b56`; needs WebP, scoped group permission audit, two-family negative tests, storage quotas/GC, verified CI and consumer/release sign-off. **IMPORTANT:** both calendar PR #4 and media PR #5 currently use Flyway V35 on separate branches; one migration must be renumbered before either subsequent merge, to preserve Flyway history.
+
 ## Template for each next impact
 ```md
 ## IMP-000X — Summary
