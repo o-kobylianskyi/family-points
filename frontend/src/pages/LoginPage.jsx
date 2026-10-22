@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import GoogleAuthButton from '../components/GoogleAuthButton'
+import '../components/AndroidDownloadLink.css'
 
 const LAST_USERNAME_KEY = 'familyPoints.lastUsername'
 
@@ -192,7 +193,7 @@ function LoginPage() {
         <p><Link to="/register-account">{t("authUi.createAccount")}</Link></p>
         <p><Link to="/forgot-password">{t("authUi.forgotPassword")}</Link></p>
         <p><Link to="/register">{t("authUi.familyDemo")}</Link></p>
-        <p><Link to="/download">{t("androidDownload.nav")}</Link></p>
+        <Link className="android-download-cta" to="/download">📱 {t("androidDownload.button")}</Link>
       </div>
     </div>
   )
