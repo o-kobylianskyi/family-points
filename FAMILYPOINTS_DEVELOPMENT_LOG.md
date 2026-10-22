@@ -1298,3 +1298,11 @@
 - Native Credential Manager already uses Google ID tokens with `/auth/google` and `/auth/google/register`; enhanced localized server-error messages (`b14dcd5`).
 - Google-password username suggestion now preserves the persisted custom username instead of proposing email prefix again (`ad5f434`). This corrects stale `currentUser.username` after updating password/login in the same browser session.
 - **PENDING:** local signed APK build with valid web OAuth client ID; verify Android Google sign-in/register on device; deploy only after approval. Public BETA remains unchanged.
+
+
+## 2026-10-22 — Android mobile UI parity preparation (unreleased)
+
+- User compared browser and native screenshots on Huawei P20 Pro: native header too tall, oversized buttons, large unused whitespace and dark cards inconsistent with the browser.
+- Replaced device-dependent Compose dynamic colors with consistent light brand palette (`bbb05e6`); changed AppHeader to compact one-line navigation/profile/language, logout inside navigation menu (`7d6d10b`).
+- **NOT VERIFIED:** Android compile, device visual inspection and accessibility contrast. Screen-by-screen redesign (dashboard, members, points) remains open and needs screenshots after an internal APK build.
+- **RELEASE HOLD:** do not publish or deploy; combine with Android Google sign-in and BETA backend fixes for a controlled acceptance build.
