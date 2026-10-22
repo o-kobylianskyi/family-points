@@ -61,7 +61,7 @@ try {
             $actualHash = ([BitConverter]::ToString($digest.ComputeHash($bytes))).Replace('-', '').ToLowerInvariant()
         } finally { $digest.Dispose() }
         if ($actualHash -ne $expected[$filename]) {
-            throw "Unexpected artwork hash for $filename: $actualHash. Use the approved ZIP from the FamilyPoints design handoff."
+            throw "Unexpected artwork hash for ${filename}: $actualHash. Use the approved ZIP from the FamilyPoints design handoff."
         }
         $results += [PSCustomObject]@{ Name = $filename; Bytes = $bytes }
     }
