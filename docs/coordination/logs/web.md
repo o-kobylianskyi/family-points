@@ -33,3 +33,7 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Added `scripts/web/install-soft-family-assets.ps1` on `feature/web-soft-family` (commit `f8b0164f`). Searches common user download locations or accepts full `-ZipPath`, checks archive member path and SHA-256, writes only the two target WebPs and optionally stages them for Git.
 - The local Windows error `Expand-Archive: path ... does not exist` means the file wasn't saved at the assumed path. The helper does not download the ZIP automatically. Original binary assets have **not** been pushed to the repository; they require one actual local download/import and Git commit, or a compatible binary-upload mechanism.
 - **No build, browser, CI run, BETA release or database operation performed here.** Other workstreams remain on their own branches; do not change deployment or Java/Compose source to solve artwork installation.
+
+### Web integration review (2026-10-22)
+- Opened **draft PR #2** (`feature/web-soft-family` → `feature/task-soft-delete`), https://github.com/o-kobylianskyi/family-points/pull/2. This is a review/CI gate, not release approval.
+- CI run `39844008339` observed **in progress**; no passing result claimed. User must import and commit the exact two approved WebP images before marking visual asset delivery complete. The verified installer is committed and can stage only those images.
