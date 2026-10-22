@@ -43,3 +43,9 @@ Verify downloaded bytes against SHA-256 and inspect APK certificate fingerprint 
 - Android release signing cannot be completed through the GitHub connector without access to a trusted keystore. Never upload the private signing key to this repository.
 - The publisher stages files on one filesystem and replaces them individually, with metadata last. It is not a fully transactional multi-file exchange; concurrent downloads during publishing could briefly see mixed files. For high-volume releases, migrate to immutable version-specific filenames with a pointer manifest.
 - This is a development implementation. CI and on-device acceptance checks must be run before declaring a first public Android APK available.
+
+## Google sign-in readiness (unreleased)
+
+- Signed BETA APK build now requires `FP_ANDROID_GOOGLE_WEB_CLIENT_ID`, the same **Web OAuth** client ID that the production web application uses as `VITE_GOOGLE_CLIENT_ID`. A missing/malformed ID now causes a build error rather than silently hiding Google sign-in.
+- Existing native login uses Credential Manager / Google ID token and `/auth/google`; registration uses `/auth/google/register`. A successful global login with no or multiple families opens workspace selection.
+- Verify release signing SHA-1/Google Cloud Android app configuration, credential picker on Huawei P20 Pro, backend login/registration and password login before publishing. Do not publish until manual real-device acceptance.
