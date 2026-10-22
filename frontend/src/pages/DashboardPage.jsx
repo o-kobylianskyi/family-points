@@ -75,7 +75,8 @@ export default function DashboardPage() {
         <p>{t('dashboardLive.description')}</p>
         <span className="fp-hero-motto">{t("dashboardLive.description")} <SoftFamilyIcon name="heart" size={22} /></span>
       </div>
-      <img className="fp-hero-art" src="/assets/soft-family/family-illustration.svg" alt="" />
+      <img className="fp-hero-art" src="/assets/soft-family/family-hero.webp" alt=""
+        onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/soft-family/family-illustration.svg' }} />
       <span className="fp-hero-calligraphy" aria-hidden="true">♥ &nbsp; FamilyPoints</span>
     </section>
     <div className="fp-stats">
