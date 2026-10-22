@@ -27,3 +27,9 @@ Status: **IN PROGRESS / unreleased**. Approved target is the **final dark deskto
 
 Archive path inside ZIP: `frontend/public/assets/soft-family/family-hero.webp` and `frontend/public/assets/soft-family/family-promo.webp`.
 Extract the ZIP into the local repository root, using overwrite when re-installing. Review image quality in browser and commit the images locally only after approval.
+
+
+## Web graphics handoff verification (Web branch)
+- Original ZIP was inspected in the conversation container on 2026-10-22: `family-hero.webp` 18,294 bytes / SHA-256 `70660570d8605a6951970e4621c7899eb9d35c108221c292aedbb795b220894b`; `family-promo.webp` 11,404 bytes / SHA-256 `4f184a0e5dc8a2f12e211b69a01bb1823f2a6862046e7a4baba9f1d57736adee`.
+- `scripts/web/install-soft-family-assets.ps1` now finds the downloaded ZIP in Downloads/Desktop/Documents (or takes `-ZipPath`), extracts ONLY the two known names, verifies exact SHA-256 before writing and can stage them via `-StageForGit`.
+- For parallel FamilyPoints chats, use separate Git worktrees and commit in `feature/web-soft-family`, not the shared integration checkout. The binary WebPs are **NOT yet in GitHub**; code uses SVG fallback until committed.
