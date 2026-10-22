@@ -27,3 +27,8 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 - Backend acknowledged XTR-20261022-P-01 / IMP-0006 at source HEAD `89cbf1e026815dc59d2b1fc5ab9ce06549382524`; calendar + timed reward purchase rules remain **NOT IMPLEMENTED**.
 - Found latest Flyway migration V34; existing reward purchase paths have no time gate, TaskService has member/day read-only virtual schedule, Workspace no IANA timezone field.
 - Backend acceptance is ownership/inspection only, not a completed API contract or proof of tests/deployment. Backend remains responsible for draft DTO/timezone compat discussion, additive migration, both purchase paths, bounded calendar service and tenant negative tests. Web/Android consumers and Release have not approved IMP-0006.
+
+## 2026-10-22 — Backend draft implementation of calendar (not deployed)
+- XTR-20261022-P-01 / IMP-0006 moved from ACK to IN_PROGRESS. Backend opened [draft PR #4](https://github.com/o-kobylianskyi/family-points/pull/4), source `feature/backend-calendar-rewards-v1`, proposed Flyway V35 and REST calendar/reward-window/timezone endpoints. Java 21/Maven/PostgreSQL Testcontainers CI was SUCCESS at code SHA `6b11bbf6` (run 39853638907); code not merged, deployed or client-accepted.
+- Web/Android must **review proposed API** in feature branch (docs/api/REWARD_CALENDAR_V1.md), not call it in current BETA. Important distinction: time gating acquisition vs actual reward usage, UTC default for families until set, unchanged legacy LocalDateTime quota/deadline semantics.
+- Outstanding P0 tenant/auth gates, consumer reviews, Flyway upgrade, device checks and release approval remain OPEN. Source HEAD observation before this note: `e019c22401bd28b703ddd282c6b9f7b5a0cd201a`.

@@ -70,6 +70,8 @@
 - Evidence: `docs/coordination/requests/XTR-20261022-W-01.md`, related IMP-0001.
 - Tests/release gate: cross-family isolation, inherited/overridden images, upload validation/EXIF stripping, default catalog and fallbacks, migration/backup and backward compatibility. No Backend implementation, CI or deployment yet.
 
+- **Backend producer update 2026-10-22:** implementation underway in [draft PR #4](https://github.com/o-kobylianskyi/family-points/pull/4) on `feature/backend-calendar-rewards-v1`; initial Maven/PostgreSQL Testcontainers CI successful at `6b11bbf6`. Separate API draft `docs/api/REWARD_CALENDAR_V1.md` lives on feature branch. Flyway V35, direct and approved-request gates, bounded calendar and explicit time zone have been committed but **not merged or deployed**. Web/Android/Architecture/Release consumer ACK, broad tenant-negative/DB upgrade/device tests remain pending. Backend journal contains exact evidence. Do not assume endpoints exist on integration branch.
+
 ## Template for each next impact
 ```md
 ## IMP-000X — Summary
