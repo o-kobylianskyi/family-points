@@ -76,10 +76,10 @@ android {
                 "String", "API_BASE_URL",
                 "\"$releaseApiUrl\""
             )
-            optimization {
-                enable = true
-                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
-            }
+            // Disable experimental scoped R8 optimization for BETA releases.
+            // The previous packageScope caused IllegalAccessError at Compose startup
+            // on Huawei P20 Pro (AndroidRuntime, MainActivity.onCreate).
+            // Reintroduce shrinking only after release-device regression tests.
         }
     }
     compileOptions {
