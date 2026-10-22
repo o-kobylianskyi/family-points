@@ -30,3 +30,8 @@ New technical batches: Java/Spring, PostgreSQL/Flyway, DTO/API, authorization/te
 - Follow-up tests `3199c03`: dedicated calendar workspace/member access rejection and range cap tests, Testcontainers-based verification Flyway V35 table/columns installed from clean migration chain.
 - **CI evidence** https://github.com/o-kobylianskyi/family-points/actions/runs/39854939259 at exact source `3199c03`: Java 21/Maven/PostgreSQL Testcontainers **SUCCESS**, Web production build **SUCCESS**, BETA Docker Compose validation **SUCCESS**; Android CI **IN PROGRESS** when checked. No local Maven, real-device, browser or VPS tests in this chat.
 - **Remaining:** consuming tracks' ACK and DTO/UI review, explicit BETA release approval, migrations and timezone behavior review on existing real instance (only disposable Testcontainers tested), broader auth/tenant/cross-client E2E. Do not conflate PR status with deployment.
+
+## 2026-10-22 — New Web-to-Backend media XTR intake (ACK; ADR BLOCKED)
+- Checked actual integration branch at `b44c501224d9c234f863fbf86f8a81026b725c88` and identified newly submitted `XTR-20261022-W-01` / `IMP-0007` (Web producer): scoped family/member/group/task images, curated defaults/uploads, category inheritance, secure media delivery, cleanup and storage/backup.
+- **Backend ACK of responsibility only**; Architecture media ADR remains prerequisite to final entity/model/API design. No new source, test, migration or deployment in this intake.
+- Calendar XTR-P-01 / draft PR #4 is separate and stays READY_FOR_REVIEW; do not conflate stages or merge dependencies.

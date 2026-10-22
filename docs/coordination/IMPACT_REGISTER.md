@@ -64,8 +64,9 @@
 ## IMP-0007 — Media avatars, family cover and task icon inheritance
 - Producer / date / status: Web → Backend + Architecture / 2026-10-22 / **PROPOSED; ACK NEEDED**. Extends IMP-0001; not implemented.
 - Old → new: no verified generic media upload contract → additive backend-owned catalog/upload/storage/asset-assignment API for member/account avatars, people-group avatars, task group/category icons, task-level override with category inheritance, and workspace family cover + optional workspace avatar.
-- Consumers: Backend [ ]; Architecture [ ]; Web [x]; Android [ ]; Release [ ]. Web [x] means initiating request / required visual contract acknowledged, **not deployed**.
+- Consumers: Backend [x]; Architecture [ ]; Web [x]; Android [ ]; Release [ ]. Web [x] means initiating request / required visual contract acknowledged, **not deployed**.
 - Required decisions: account-global vs member-in-workspace avatar, MemberGroup vs WorkNode/group/category, workspace media authorization, curated catalog IDs, file storage/backups/cache, derived effective image semantics and older client compatibility.
+- **Backend review 2026-10-22 (ACK SCOPE, DESIGN BLOCKED):** read XTR-W-01; agrees to own implementation after Architecture media ADR and storage/release safety decisions. No code/schema/API acceptance or deployment implied. See Backend journal.
 - Web review: approved Soft Family designs and task/category icon inheritance UX. **Backend receives XTR-20261022-W-01**; its chat must fetch and acknowledge independently, with Architecture ADR before final API/DB commitment.
 - Evidence: `docs/coordination/requests/XTR-20261022-W-01.md`, related IMP-0001.
 - Tests/release gate: cross-family isolation, inherited/overridden images, upload validation/EXIF stripping, default catalog and fallbacks, migration/backup and backward compatibility. No Backend implementation, CI or deployment yet.
