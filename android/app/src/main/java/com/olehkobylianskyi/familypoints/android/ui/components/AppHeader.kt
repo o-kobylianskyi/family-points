@@ -12,7 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.ChevronDown
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Logout
@@ -157,7 +157,7 @@ fun AppHeader(
                     languageMenuOpen = !languageMenuOpen
                 }) {
                     Text(language.name, color = MaterialTheme.colorScheme.primary)
-                    Icon(Icons.Outlined.ChevronDown, contentDescription = null,
+                    Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(17.dp))
                 }
