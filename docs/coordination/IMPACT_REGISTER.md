@@ -69,6 +69,7 @@
 - Consumers: Backend [x]; Architecture [ ]; Web [x]; Android [ ]; Release [ ]. Web [x] means initiating request / required visual contract acknowledged, **not deployed**.
 - Required decisions: account-global vs member-in-workspace avatar, MemberGroup vs WorkNode/group/category, workspace media authorization, curated catalog IDs, file storage/backups/cache, derived effective image semantics and older client compatibility.
 - **Backend review 2026-10-22 (ACK SCOPE, DESIGN BLOCKED):** read XTR-W-01; agrees to own implementation after Architecture media ADR and storage/release safety decisions. No code/schema/API acceptance or deployment implied. See Backend journal.
+- **Backend-to-Architecture handoff 2026-10-22:** `XTR-20261022-B-01` requests an explicit media ADR and Release storage/backup review; do not infer that Backend selected a storage provider or completed upload code.
 - Web review: approved Soft Family designs and task/category icon inheritance UX. **Backend receives XTR-20261022-W-01**; its chat must fetch and acknowledge independently, with Architecture ADR before final API/DB commitment.
 - Evidence: `docs/coordination/requests/XTR-20261022-W-01.md`, related IMP-0001.
 - Tests/release gate: cross-family isolation, inherited/overridden images, upload validation/EXIF stripping, default catalog and fallbacks, migration/backup and backward compatibility. No Backend implementation, CI or deployment yet.
@@ -76,6 +77,8 @@
 - **Backend producer update 2026-10-22:** implementation underway in [draft PR #4](https://github.com/o-kobylianskyi/family-points/pull/4) on `feature/backend-calendar-rewards-v1`; initial Maven/PostgreSQL Testcontainers CI successful at `6b11bbf6`. Separate API draft `docs/api/REWARD_CALENDAR_V1.md` lives on feature branch. Flyway V35, direct and approved-request gates, bounded calendar and explicit time zone have been committed but **not merged or deployed**. Web/Android/Architecture/Release consumer ACK, broad tenant-negative/DB upgrade/device tests remain pending. Backend journal contains exact evidence. Do not assume endpoints exist on integration branch.
 
 - **Backend CI follow-up 2026-10-22:** draft PR #4 source `3199c03` now passes Java 21/Maven/PostgreSQL Testcontainers tests, including clean Flyway V35 schema and calendar tenant negative unit checks (run 39854939259). Also passes Web and Compose jobs; Android remained running on observation. Still unmerged/not deployed; consumer review remains open. `RewardDefinitionResponse.availabilityMode` was added as compatible catalog hint; `GET .../availability` remains time-only authoritative status.
+
+- **Backend PR #4 security follow-up 2026-10-22:** `a83563e` prevents non-manager metadata reads of inactive rewards from the draft availability route; added a regression unit test. Prior source `3199c03` had all CI jobs success; new-source CI running when checked. Consumer and Release review remains open; no merge or BETA deploy.
 
 ## Template for each next impact
 ```md

@@ -35,3 +35,8 @@ New technical batches: Java/Spring, PostgreSQL/Flyway, DTO/API, authorization/te
 - Checked actual integration branch at `b44c501224d9c234f863fbf86f8a81026b725c88` and identified newly submitted `XTR-20261022-W-01` / `IMP-0007` (Web producer): scoped family/member/group/task images, curated defaults/uploads, category inheritance, secure media delivery, cleanup and storage/backup.
 - **Backend ACK of responsibility only**; Architecture media ADR remains prerequisite to final entity/model/API design. No new source, test, migration or deployment in this intake.
 - Calendar XTR-P-01 / draft PR #4 is separate and stays READY_FOR_REVIEW; do not conflate stages or merge dependencies.
+
+## 2026-10-22 — Backend calendar security follow-up and Architecture media handoff
+- Calendar draft PR #4 source updated to `a83563e2c3a71c9bc2a5cab3621a70e4ac84b692`: corrected inactive reward availability metadata disclosure. `GET /rewards/{id}/availability` now yields not-found for inactive reward to ordinary member, preserves manager access. Unit regression test added. Previous exact source `3199c03` had full CI SUCCESS (run 39854939259); new SHA CI run 39858094693 was IN_PROGRESS on review. **Do not call new fix tested until green.**
+- Consumer reviews IMP-0006: Android acknowledged source but BLOCKED until merge/contract acceptance; Web and Release remain pending. PR remains DRAFT and unmerged, no deployment, no BETA change.
+- Media XTR-W-01 / IMP-0007: Backend prepared Architecture decision request `XTR-20261022-B-01` covering account vs workspace ownership, MemberGroup vs WorkNode, inheritance, secure upload/EXIF/storage, private caching and Release backup. Final media schema/API deliberately **BLOCKED pending Architecture ADR**. No media code changes.

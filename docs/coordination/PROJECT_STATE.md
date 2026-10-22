@@ -35,3 +35,7 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 
 ## 2026-10-22 — Backend PR #4 test state update
 - Draft calendar source `feature/backend-calendar-rewards-v1` at `3199c031917938a45b64bf83818f48c29693ad79`: Java 21/Maven/Testcontainers (Flyway V35 verified), Web build and Compose checks all green in https://github.com/o-kobylianskyi/family-points/actions/runs/39854939259. Android job in progress. PR is **DRAFT** and not merged/deployed; XTR-P-01 moved to READY_FOR_REVIEW for cross-track signoff, not DONE. Default existing-family time zone UTC; no old purchase/quotas reinterpretation. Integration-branch HEAD observed prior to this note: `dc5e02fc1a549af7c6bc04373508d3643405056e`.
+
+## 2026-10-22 — Media Architecture request and calendar hardening
+- Backend filed `XTR-20261022-B-01` (from XTR-W-01/IMP-0007) to Architecture for entity rights, inheritance, private media storage and Release backup decisions; implementation is blocked until ADR and consumer review.
+- Draft Backend calendar PR #4 added inactive reward read protection at `a83563e`; new-source CI pending on check, prior `3199c03` CI was fully green. No merge/deployment; IMP-0006 consumer reviews pending (Android source review acknowledged but blocked).
