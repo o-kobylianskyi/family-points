@@ -447,7 +447,7 @@ class FamilyPointsApplicationTests {
     void mediaSchemaIsInstalledWithScopedBlobAndBindingTables() {
         assertEquals(1, jdbc.queryForObject("""
             SELECT count(*) FROM flyway_schema_history
-            WHERE version='35' AND success=true
+            WHERE version='36' AND success=true
             """, Integer.class));
         for (String table : java.util.List.of("media_assets","media_blobs","media_bindings")) {
             assertEquals(1, jdbc.queryForObject("""
