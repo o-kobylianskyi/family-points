@@ -34,88 +34,80 @@ fun AppHeader(
     var navigationMenuOpen by remember { mutableStateOf(false) }
     var languageMenuOpen by remember { mutableStateOf(false) }
 
-    // Narrow phones: identity occupies its own line; controls never squeeze text into letters.
-    Column(
+    // Compact, single-line mobile header. Profile and actions no longer consume
+    // multiple full-width rows above every screen.
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-        ) {
-            Column {
-                OutlinedButton(onClick = { navigationMenuOpen = true }) {
-                    Text("☰")
-                }
-                DropdownMenu(
-                    expanded = navigationMenuOpen,
-                    onDismissRequest = { navigationMenuOpen = false }
-                ) {
-                    listOf(
-                        DashboardDestination.DASHBOARD to text.dashboard,
-                        DashboardDestination.MEMBERS to text.members,
-                        DashboardDestination.TASKS to text.tasks,
-                        DashboardDestination.POINTS to when (language) {
-                            AppLanguage.UK -> "Бали"
-                            AppLanguage.RU -> "Баллы"
-                            AppLanguage.DE -> "Punkte"
-                            AppLanguage.EN -> "Points"
-                        },
-                        DashboardDestination.REWARDS to text.rewards,
-                        DashboardDestination.SETTINGS to text.settings
-                    ).forEach { entry ->
-                        DropdownMenuItem(
-                            text = { Text(entry.second) },
-                            onClick = {
-                                navigationMenuOpen = false
-                                onNavigate(entry.first)
-                            }
-                        )
-                    }
-                }
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = currentUser.memberName,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = localizedHeaderRole(language, currentUser.workspaceRoleCode, currentUser.workspaceRoleName),
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+        androidx.compose.material3.TextButton(onClick = { navigationMenuOpen = true }) {
+            Text("☰", style = MaterialTheme.typography.titleLarge)
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        DropdownMenu(
+            expanded = navigationMenuOpen,
+            onDismissRequest = { navigationMenuOpen = false }
         ) {
-            Column {
-                OutlinedButton(onClick = { languageMenuOpen = true }) {
-                    Text(language.label, maxLines = 1, softWrap = false)
-                }
-                DropdownMenu(
-                    expanded = languageMenuOpen,
-                    onDismissRequest = { languageMenuOpen = false }
-                ) {
-                    AppLanguage.entries.forEach { item ->
-                        DropdownMenuItem(
-                            text = { Text(item.label) },
-                            onClick = {
-                                onLanguageChange(item)
-                                languageMenuOpen = false
-                            }
-                        )
+            listOf(
+                DashboardDestination.DASHBOARD to text.dashboard,
+                DashboardDestination.MEMBERS to text.members,
+                DashboardDestination.TASKS to text.tasks,
+                DashboardDestination.POINTS to when (language) {
+                    AppLanguage.UK -> "Бали"
+                    AppLanguage.RU -> "Баллы"
+                    AppLanguage.DE -> "Punkte"
+                    AppLanguage.EN -> "Points"
+                },
+                DashboardDestination.REWARDS to text.rewards,
+                DashboardDestination.SETTINGS to text.settings
+            ).forEach { entry ->
+                DropdownMenuItem(
+                    text = { Text(entry.second) },
+                    onClick = {
+                        navigationMenuOpen = false
+                        onNavigate(entry.first)
                     }
-                }
+                )
             }
-            OutlinedButton(onClick = onLogout) {
-                Text(text.logout, maxLines = 1, softWrap = false)
+            androidx.compose.material3.HorizontalDivider()
+            DropdownMenuItem(
+                text = { Text(text.logout) },
+                onClick = {
+                    navigationMenuOpen = false
+                    onLogout()
+                }
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = currentUser.memberName,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = localizedHeaderRole(language, currentUser.workspaceRoleCode, currentUser.workspaceRoleName),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        androidx.compose.material3.TextButton(onClick = { languageMenuOpen = true }) {
+            Text(language.label.take(2).uppercase(), maxLines = 1)
+        }
+        DropdownMenu(
+            expanded = languageMenuOpen,
+            onDismissRequest = { languageMenuOpen = false }
+        ) {
+            AppLanguage.entries.forEach { item ->
+                DropdownMenuItem(
+                    text = { Text(item.label) },
+                    onClick = {
+                        onLanguageChange(item)
+                        languageMenuOpen = false
+                    }
+                )
             }
         }
     }
