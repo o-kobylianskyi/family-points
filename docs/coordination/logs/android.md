@@ -56,3 +56,11 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - While IMP-0007 Backend media API is pending, Android should **display its own bundled illustrated avatars and thematic task/group pictures** rather than wait on backend or display only initials everywhere.
 - Graphics remain separate image-only resources, no baked UI text. Selection should be stable by entity ID, with an abstraction/fallback allowing later server `imageRef`/catalog asset replacement without changing Compose screens.
 - Do not falsely claim uploaded images or cross-device sync; no Kotlin assets, build, or API changed in this documentation batch.
+
+
+## 2026-10-22 — Emulator UI discrepancy: dark background and navigation structure (SOURCE PATCHED, NOT BUILT)
+- User-provided Medium Phone API 37 screenshot showed **white root viewport with dark cards**, tiny theme control at the top, large empty area before greeting and no fixed bottom navigation. Confirmed previous patch only changed palette/stats and did NOT match approved structural preview.
+- On `feature/android-soft-family-structure`, changed `MainActivity.kt`: background-aware Material3 `Surface` wraps root, native five-destination bottom `NavigationBar` appears on primary screens (Home, Tasks, Members, Points, Rewards), area is reserved rather than covering screen content; state declared at correct composable scope. Existing Settings via menu remains available. Corrected Android system bar appearance by selected theme.
+- In `DashboardScreen.kt`: greeting/balance/tasks receive visual priority, family chooser moves under greeting, appearance selector moves after main content, redundant full-page Quick Actions card removed (core sections available in bottom navigation). UI text remains localized; live data, offline fallback and existing API callbacks kept.
+- Evidence: source edits `ae9e392`, `3661f27`, `243be4e`; brace-balance/source sanity inspected. **No local Android SDK, Gradle compile, emulator screenshot, accessibility or real-device verification**. Check API 37 build/test; report any Kotlin compiler error rather than assuming success.
+- Pending: full Members/Tasks/Points internal component redesign and illustration-free structural acceptance screenshots. Public APK crash gate IMP-0003 unaffected; no release/deploy.
