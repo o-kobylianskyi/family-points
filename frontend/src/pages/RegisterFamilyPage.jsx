@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import './RegisterFamilyPage.css'
+import '../components/AndroidDownloadLink.css'
 
 export default function RegisterFamilyPage() {
   const { t } = useTranslation()
@@ -150,6 +151,7 @@ export default function RegisterFamilyPage() {
             <button type="button" onClick={() => setFinished(true)}>{t('familyDemoUi.finishDemo')}</button>}
         </div>
         <p className="family-wizard-footer"><Link to="/login">{t('familyDemoUi.login')}</Link></p>
+        <Link className="android-download-cta" to="/download">📱 {t('androidDownload.button')}</Link>
       </div>
     </div>
   )
