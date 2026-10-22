@@ -64,6 +64,21 @@ public class GoogleAccountLinkService {
                 requestedUsername, passwords.encode(newPassword), account.getId());
     }
 
+    /** Readable suggestion for an already registered Google account. No mutation. */
+    public String suggestedUsername() {
+        var account = current.getCurrentAccount();
+        String email = account.getEmail();
+        if (email == null || !email.contains("@")) return account.getUsername();
+        String suggestion = email.substring(0, email.indexOf('@'))
+                .replaceAll("[^A-Za-z0-9._-]", "_");
+        if (suggestion.length() > 64) suggestion = suggestion.substring(0, 64);
+        if (suggestion.length() < 3) return account.getUsername();
+        Integer taken = jdbc.queryForObject(
+                "SELECT count(*) FROM user_accounts WHERE lower(username) = lower(?) AND id <> ?",
+                Integer.class, suggestion, account.getId());
+        return taken != null && taken > 0 ? account.getUsername() : suggestion;
+    }
+
     @Transactional
     public void link(String idToken, String currentPassword) {
         var account = current.getCurrentAccount();
