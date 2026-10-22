@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,7 +37,6 @@ import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.i18n.dashboardStrings
 import com.olehkobylianskyi.familypoints.android.i18n.taskStatusLabel
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
-import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyThemeMode
 import com.olehkobylianskyi.familypoints.android.network.ServerReachability
 import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import retrofit2.HttpException
@@ -57,8 +55,6 @@ enum class DashboardDestination {
 @Composable
 fun DashboardScreen(
     language: AppLanguage,
-    themeMode: FamilyThemeMode = FamilyThemeMode.SYSTEM,
-    onThemeModeChange: (FamilyThemeMode) -> Unit = {},
     currentUser: CurrentUserResponse,
     loadDashboard: suspend () -> DashboardData,
     cachedDashboard: () -> DashboardData?,
@@ -310,48 +306,7 @@ fun DashboardScreen(
                     }
                 }
 
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = when (language) {
-                        AppLanguage.UK -> "Оформлення"
-                        AppLanguage.DE -> "Darstellung"
-                        AppLanguage.EN -> "Appearance"
-                        AppLanguage.RU -> "Оформление"
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FamilyThemeMode.entries.forEach { option ->
-                        FilterChip(
-                            selected = themeMode == option,
-                            onClick = { onThemeModeChange(option) },
-                            label = { Text(when (option) {
-                                FamilyThemeMode.SYSTEM -> when (language) {
-                                    AppLanguage.UK -> "Система"
-                                    AppLanguage.DE -> "System"
-                                    AppLanguage.EN -> "System"
-                                    AppLanguage.RU -> "Система"
-                                }
-                                FamilyThemeMode.LIGHT -> when (language) {
-                                    AppLanguage.UK -> "Світла"
-                                    AppLanguage.DE -> "Hell"
-                                    AppLanguage.EN -> "Light"
-                                    AppLanguage.RU -> "Светлая"
-                                }
-                                FamilyThemeMode.DARK -> when (language) {
-                                    AppLanguage.UK -> "Темна"
-                                    AppLanguage.DE -> "Dunkel"
-                                    AppLanguage.EN -> "Dark"
-                                    AppLanguage.RU -> "Тёмная"
-                                }
-                            }) }
-                        )
-                    }
-                }
-            }
-        }
+
 
 
             }
