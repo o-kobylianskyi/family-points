@@ -1,3 +1,31 @@
+
+/* FamilyPoints shared visual foundation: approved Soft Family references.
+   Semantic colors prepare parity between browser and Android; no theme toggle
+   is enabled yet. The dark set is opt-in only (data-theme="dark"). */
+:root {
+  --fp-bg: #f7f9fa;
+  --fp-surface: #ffffff;
+  --fp-surface-muted: #edf4f4;
+  --fp-text: #17232d;
+  --fp-text-muted: #677782;
+  --fp-accent: #4e9488;
+  --fp-accent-hover: #397b71;
+  --fp-accent-soft: #d9eeeb;
+  --fp-border: #dbe5e7;
+  --fp-radius: 16px;
+}
+[data-theme="dark"] {
+  --fp-bg: #101b22;
+  --fp-surface: #1b2931;
+  --fp-surface-muted: #24353c;
+  --fp-text: #f3f7f8;
+  --fp-text-muted: #afc1c9;
+  --fp-accent: #78c8c1;
+  --fp-accent-hover: #99d9d4;
+  --fp-accent-soft: #244b4b;
+  --fp-border: #33444d;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -7,8 +35,8 @@ body {
   font-family:
     Inter, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  background: #f6f7fb;
-  color: #202433;
+  background: var(--fp-bg);
+  color: var(--fp-text);
 }
 
 button,
@@ -64,7 +92,7 @@ input {
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  background: #5865f2;
+  background: var(--fp-accent);
   color: white;
   font-weight: 700;
 }
@@ -177,7 +205,7 @@ input {
 }
 
 .nav-link.active {
-  background: #5865f2;
+  background: var(--fp-accent);
   color: white;
 }
 
@@ -275,7 +303,7 @@ input {
   padding: 10px 15px;
   border: 0;
   border-radius: 9px;
-  background: #5865f2;
+  background: var(--fp-accent);
   color: white;
   font-weight: 600;
   cursor: pointer;
@@ -306,8 +334,8 @@ input {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: #edf0ff;
-  color: #5865f2;
+  background: var(--fp-accent-soft);
+  color: var(--fp-accent-hover);
   font-weight: 700;
 }
 
