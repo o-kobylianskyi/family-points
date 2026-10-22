@@ -1390,3 +1390,14 @@ Before each substantial implementation batch:
 - [ ] Visual browser screenshots in both themes, desktop and Huawei-sized mobile
 - [ ] Apply same component language to Tasks, Members, Points, Rewards and Settings
 - [ ] No public deployment until explicit release gate
+
+### 2026-10-22 — Approved Web dashboard visual-parity pass (in-progress)
+- [x] Replace dashboard emoji with reusable vector illustrated icons and a bundled family artwork fallback
+- [x] Align Sidebar, hero, statistics, panels and quick-action layout/gradient with selected desktop mockup
+- [x] Keep real API data and styled zero-data empty states (no fake task entries)
+- [x] Stage exact mockup-derived WebP hero/promo in a local assets ZIP for acceptance
+- [ ] Extract real WebP assets into local repo, review, commit binary images, then push
+- [ ] Frontend lint and Vite build / CI at current head
+- [ ] Compare actual screenshot at desktop/light/dark/mobile against selected mockup and fix differences
+- [ ] Implement consistent Tasks, Members, Points, Rewards, Settings after dashboard acceptance
+- [ ] No Contabo, PostgreSQL, beta tag, or release during this pass
