@@ -1256,3 +1256,15 @@
 - Plain `ssh adminfp@184.174.37.206` failed with `Permission denied (publickey)` because the custom private key was not selected.
 - For future Contabo connection instructions, ALWAYS provide the full `-i` command above. Do not ask user to regenerate SSH keys or use `id_ed25519` without evidence.
 - Record key *path/name only*, never private key content. This log update performs no SSH connection and no VPS changes.
+
+
+## 2026-10-22 — Android APK distribution preparation (SOURCE-ONLY)
+
+- Created `scripts/android/build-release-apk.ps1`: requires private signing environment, builds API 37 release targeting https://family-point.com/, verifies signature with apksigner, exports APK / SHA-256 / JSON manifest.
+- Created `scripts/android/publish-apk.sh`: validates file/hash/size/version and publishes to existing downloads volume without Compose, backend, or DB changes.
+- Updated native React `/download` page to read JSON release metadata and display version, size, SHA-256 and checksum link. Updated CSS.
+- Added `docs/ANDROID_APK_DISTRIBUTION.md` with operator instructions.
+- **Source commits:** 7d60163, 1daaf0c, e304721, 980e092, 9e17548.
+- **NOT VERIFIED:** Windows Gradle release compilation, signing identity on device, Android real-phone login/update, web frontend build, Contabo upload, public APK endpoint, GitHub Actions gates.
+- **NOT CHANGED:** Contabo, BETA PostgreSQL, DEV PostgreSQL, live deployment, release tags, private secrets.
+- **Next:** trusted local signed build; validate checksum, install and upgrade; pass CI; include web page in separately tagged BETA release; manually publish verified APK to downloads volume.
