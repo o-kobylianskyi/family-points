@@ -26,3 +26,10 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Dedicated Web-only branch: `feature/web-soft-family`, based on current integration SHA `3bc7a88de10298ddb6b6f2acbe8172361f7d5617`; separate from Android, Backend and Release branches.
 - Future Web commits and Web-specific journal updates belong here; integrate only via review/PR to the then-current integration target, rechecking shared impacts first.
 - This action created a branch and updated its Web journal only; it did not build, deploy or change application/DB/server code.
+
+
+## 2026-10-22 — Web artwork import helper (SOURCE COMMITTED, artwork still missing in Git)
+- Checked previously generated ZIP in the task container: valid `family-hero.webp` (18,294 bytes) and `family-promo.webp` (11,404 bytes); exact source SHA-256 recorded in Web acceptance doc.
+- Added `scripts/web/install-soft-family-assets.ps1` on `feature/web-soft-family` (commit `f8b0164f`). Searches common user download locations or accepts full `-ZipPath`, checks archive member path and SHA-256, writes only the two target WebPs and optionally stages them for Git.
+- The local Windows error `Expand-Archive: path ... does not exist` means the file wasn't saved at the assumed path. The helper does not download the ZIP automatically. Original binary assets have **not** been pushed to the repository; they require one actual local download/import and Git commit, or a compatible binary-upload mechanism.
+- **No build, browser, CI run, BETA release or database operation performed here.** Other workstreams remain on their own branches; do not change deployment or Java/Compose source to solve artwork installation.
