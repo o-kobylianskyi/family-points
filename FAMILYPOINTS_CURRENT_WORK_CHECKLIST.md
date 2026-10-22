@@ -1360,3 +1360,11 @@ Before each substantial implementation batch:
 - [ ] Verify frontend build and localization in UA/DE/EN
 - [ ] Deploy via new immutable annotated BETA tag after CI
 - [ ] Validate button navigation and actual APK MIME/checksum on public domain
+
+
+### Android startup crash fix (2026-10-22)
+- [x] Capture real Huawei P20 Pro AndroidRuntime stack trace (`IllegalAccessError`, Compose startup)
+- [x] Remove scoped R8 optimization in Android release Gradle source
+- [ ] Build signed APK versionCode 2 using original keystore
+- [ ] Install via ADB `install -r`, check login and crash-free startup
+- [ ] Publish verified APK to Contabo using checked checksum/manifest
