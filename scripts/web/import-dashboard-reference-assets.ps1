@@ -11,6 +11,7 @@ if (-not $ZipPath) {
 if (-not (Test-Path -LiteralPath $ZipPath -PathType Leaf)) { throw "Missing ZIP: $ZipPath" }
 $expected = @('brand-symbol.webp','hero-family.webp','sidebar-family.webp','icon-coins.webp','icon-star.webp','icon-checklist.webp','icon-gift.webp','quick-plus.webp','quick-family.webp','quick-gift.webp','quick-points.webp')
 Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 $archive = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path -LiteralPath $ZipPath).Path)
 try {
   $targetDir = Join-Path $root 'frontend\public\assets\soft-family\reference'
