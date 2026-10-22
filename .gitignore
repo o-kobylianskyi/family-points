@@ -50,3 +50,6 @@ backups/
 # Signed Android outputs; private signing materials must never be committed
 /android-release-output/
 **/app-release.apk
+
+# Local TSD project - never commit
+/TSD/
