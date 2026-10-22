@@ -86,3 +86,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - User supplied Android Studio failure `:app:compileDebugKotlin`: `AppHeader.kt` unresolved `ChevronDown` at import line 15 and use line 160, 2 errors.
 - Corrected both occurrences to Material Icons Extended `KeyboardArrowDown` in `ui/components/AppHeader.kt` commit `0ae53b2`; dependency `libs.androidx.compose.material.icons.extended` already exists in Gradle.
 - Source checked; **no remote/local Gradle or emulator build was run**. User to pull branch and rerun debug build.
+
+## 2026-10-22 — Members button/list separation (SOURCE ONLY)
+- User emulator screenshot identified nearly zero visual gap between `Додати учасника` and first member card.
+- Changed `MembersScreen.kt` main member/group `LazyColumn` to use `contentPadding = PaddingValues(top = 14.dp, bottom = 16.dp)` with existing inter-card `spacedBy(10.dp)` unchanged; applies after action area without changing model/API logic.
+- Code commit `936a66e`; no local Gradle, emulator or device test performed. Verify on Android Studio in both themes, and group tab layout.
