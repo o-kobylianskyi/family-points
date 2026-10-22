@@ -444,6 +444,28 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    void flywayCreatesCalendarAvailabilitySchemaWithoutMigratingLegacyPurchases() {
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT count(*) FROM flyway_schema_history
+            WHERE version = '35' AND success = true
+            """, Integer.class));
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT count(*) FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'reward_weekly_windows'
+            """, Integer.class));
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT count(*) FROM information_schema.columns
+            WHERE table_schema = 'public' AND table_name = 'families'
+              AND column_name = 'time_zone'
+            """, Integer.class));
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT count(*) FROM information_schema.columns
+            WHERE table_schema = 'public' AND table_name = 'reward_definitions'
+              AND column_name = 'availability_mode'
+            """, Integer.class));
+    }
+
+    @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
