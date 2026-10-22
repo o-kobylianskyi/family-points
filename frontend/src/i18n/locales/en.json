@@ -52,8 +52,7 @@
       "addRole": "Add role",
       "rolePrompt": "New role name",
       "noCandidates": "All workspace members are already in this group"
-}
-
+    }
   },
   "memberType": {
     "PARENT": "Parent",
@@ -534,7 +533,8 @@
     "allTasks": "All tasks",
     "noTasks": "No active tasks today.",
     "quickActions": "Quick actions",
-    "mainSections": "Main sections"
+    "mainSections": "Main sections",
+    "familyMotto": "More time together — more possibilities!"
   },
   "memberUi": {
     "title": "Members",
