@@ -3899,3 +3899,23 @@ button:focus-visible {
 .username-availability span { font-size:12px; line-height:1.4; }
 .username-availability-success { color:#187347; }
 .username-availability-error { color:#ba3434; }
+
+/* Soft Family theme layer — scoped semantic overrides for the main app surfaces. */
+[data-theme="dark"] body { background: var(--fp-bg); color: var(--fp-text); }
+[data-theme="dark"] .app-main,
+[data-theme="dark"] .page-content { background: var(--fp-bg); color: var(--fp-text); }
+[data-theme="dark"] .app-header,
+[data-theme="dark"] .member-card,
+[data-theme="dark"] .settings-section,
+[data-theme="dark"] .modal-card { background: var(--fp-surface); color: var(--fp-text); border-color: var(--fp-border); }
+[data-theme="dark"] .page-title p,
+[data-theme="dark"] .member-email,
+[data-theme="dark"] .member-type,
+[data-theme="dark"] .member-access-status,
+[data-theme="dark"] .header-user-info span { color: var(--fp-text-muted); }
+[data-theme="dark"] input:not([type=checkbox]):not([type=radio]),
+[data-theme="dark"] textarea,
+[data-theme="dark"] select { background: var(--fp-surface-muted); color: var(--fp-text); border-color: var(--fp-border); }
+.fp-theme-options { display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; }
+.fp-theme-options label { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid var(--fp-border); border-radius:12px; background:var(--fp-surface); color:var(--fp-text); cursor:pointer; }
+.fp-theme-options input { accent-color:var(--fp-accent); }
