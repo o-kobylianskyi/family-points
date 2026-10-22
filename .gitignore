@@ -46,3 +46,7 @@ backups/
 /downloads/
 *.jks
 *.keystore
+
+# Signed Android outputs; private signing materials must never be committed
+/android-release-output/
+**/app-release.apk
