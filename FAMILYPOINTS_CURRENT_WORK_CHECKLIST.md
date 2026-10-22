@@ -1380,3 +1380,13 @@ Before each substantial implementation batch:
 - [ ] Confirm Google Web Client ID in signed Android build and test native Google login
 - [ ] CI, manual browser and Huawei real-device acceptance before any BETA deploy
 - [ ] No release or database/server changes until approved
+
+### 2026-10-22 — Web dashboard Soft Family implementation batch
+- [x] Rebuild dashboard composition: family welcome/cover placeholder, four icon metrics, tasks + reputation columns, quick actions
+- [x] Match semantic foreground/surfaces for light and dark, spacing and mobile responsive layout
+- [x] Preserve real API-driven values and task/history lists; do not fabricate example records from design mocks
+- [ ] Validate frontend lint/build (not executed via GitHub file editing connector)
+- [ ] Replace temporary emoji artwork with approved/licensed illustration assets, with user-uploaded family photo fallback/permission handling
+- [ ] Visual browser screenshots in both themes, desktop and Huawei-sized mobile
+- [ ] Apply same component language to Tasks, Members, Points, Rewards and Settings
+- [ ] No public deployment until explicit release gate
