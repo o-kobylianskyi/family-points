@@ -43,9 +43,17 @@ public class GoogleRegistrationService {
                 || email.length() > 254)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Verified Google email required");
         email = email.toLowerCase(Locale.ROOT);
-        String username = "g_" + subjectDigest(subject).substring(0, 32);
+        // Prefer a readable login based on the verified Google email local-part.
+        // Keep the Google subject as the identity key; never link accounts by email.
+        String preferred = email.substring(0, email.indexOf('@'))
+                .replaceAll("[^A-Za-z0-9._-]", "_");
+        if (preferred.length() > 64) preferred = preferred.substring(0, 64);
+        String digest = subjectDigest(subject);
+        String username = preferred.length() >= 3 && !accounts.existsByUsername(preferred)
+                ? preferred
+                : "g_" + digest.substring(0, 32);
         if (accounts.existsByUsername(username))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Google identity already registered");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username unavailable");
         byte[] secret = new byte[32];
         random.nextBytes(secret);
         var account = new UserAccount(username, encoder.encode(HexFormat.of().formatHex(secret)), null);
