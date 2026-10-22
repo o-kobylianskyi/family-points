@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 import Sidebar from './Sidebar'
 import LanguageSwitcher from './LanguageSwitcher'
 import { useAuth } from '../context/AuthContext'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
+import SoftFamilyIcon from './SoftFamilyIcon'
 
 function AppLayout() {
   const { t } = useTranslation()
@@ -109,18 +110,24 @@ function AppLayout() {
           </div>
           <div className="header-user">
             <LanguageSwitcher />
-            <div className="header-user-info">
-              <strong>{currentUser.memberName}</strong>
-              <span>{currentUser.workspaceRoleCode === "PARENT"
-                ? t("workspaceRoles.PARENT_INDIVIDUAL", { defaultValue: "Батько / мати" })
-                : workspaceRoleLabel(t, currentUser.workspaceRoleCode, currentUser.workspaceRoleName)}</span>
-            </div>
-
-            <button
-              className="header-logout"
-              type="button"
-              onClick={handleLogout}
-            >{t('common.logout')}</button>
+            <details className="fp-profile-menu">
+              <summary aria-label={currentUser.memberName}>
+                <span className="fp-profile-avatar" aria-hidden="true">
+                  {currentUser.memberName?.trim()?.charAt(0)?.toUpperCase() || <SoftFamilyIcon name="family" size={22} />}
+                </span>
+                <span className="fp-profile-summary">
+                  <strong>{currentUser.memberName}</strong>
+                  <small>{currentUser.workspaceRoleCode === 'PARENT'
+                    ? t('workspaceRoles.PARENT_INDIVIDUAL', { defaultValue: 'Батько / мати' })
+                    : workspaceRoleLabel(t, currentUser.workspaceRoleCode, currentUser.workspaceRoleName)}</small>
+                </span>
+                <span className="fp-profile-chevron" aria-hidden="true">⌄</span>
+              </summary>
+              <div className="fp-profile-dropdown">
+                <Link to="/settings"><SoftFamilyIcon name="settings" size={20} />{t('navigation.settings')}</Link>
+                <button type="button" onClick={handleLogout}>{t('common.logout')}</button>
+              </div>
+            </details>
           </div>
         </header>
 
