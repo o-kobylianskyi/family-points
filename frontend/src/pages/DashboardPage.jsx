@@ -15,7 +15,7 @@ function localToday() {
 
 function StatCard({ icon, tone, label, value, note, destination }) {
   return <Link to={destination} className={`fp-stat fp-stat--${tone}`}>
-    <span className="fp-stat-icon"><SoftFamilyIcon name={icon} size={56} /></span>
+    <span className="fp-stat-icon"><img src={`/assets/soft-family/reference/icon-${icon}.webp`} alt="" onError={event => { event.currentTarget.hidden = true }} /><SoftFamilyIcon name={icon} size={56} className="fp-stat-svg-fallback" /></span>
     <span className="fp-stat-copy">
       <span className="fp-stat-label">{label}</span>
       <strong className="fp-stat-value">{value}</strong>
@@ -72,10 +72,10 @@ export default function DashboardPage() {
     <section className="fp-hero">
       <div className="fp-hero-content">
         <h1>{t('dashboard.welcome', { name: currentUser.memberName })} <span aria-hidden="true">👋</span></h1>
-        <p>{t('dashboardLive.description')}</p>
+        
         <span className="fp-hero-motto">{t("dashboardLive.description")} <SoftFamilyIcon name="heart" size={22} /></span>
       </div>
-      <img className="fp-hero-art" src="/assets/soft-family/family-hero.webp" alt=""
+      <img className="fp-hero-art" src="/assets/soft-family/reference/hero-family.webp" alt=""
         onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/soft-family/family-illustration.svg' }} />
       <span className="fp-hero-calligraphy" aria-hidden="true">♥ &nbsp; FamilyPoints</span>
     </section>
@@ -93,7 +93,7 @@ export default function DashboardPage() {
           <Link to="/tasks">{t('dashboardLive.allTasks')} <span aria-hidden="true">›</span></Link>
         </header>
         {active.length === 0 ? <div className="fp-empty">
-          <span className="fp-empty-icon"><SoftFamilyIcon name="checklist" size={55} /></span>
+          <span className="fp-empty-icon"><img src="/assets/soft-family/reference/icon-checklist.webp" alt="" onError={event => { event.currentTarget.hidden = true }} /><SoftFamilyIcon name="checklist" size={55} /></span>
           <strong>{t('dashboardLive.noTasks')}</strong>
         </div> : <div className="fp-task-rows">
           {active.slice(0, 5).map(task => <div className="fp-task-row" key={task.id}>
@@ -111,7 +111,7 @@ export default function DashboardPage() {
           <small>{t('dashboardLive.lastChanges')}</small>
         </div></header>
         {history.length === 0 ? <div className="fp-empty">
-          <span className="fp-empty-icon"><SoftFamilyIcon name="star" size={52} /></span>
+          <span className="fp-empty-icon"><img src="/assets/soft-family/reference/icon-star.webp" alt="" onError={event => { event.currentTarget.hidden = true }} /><SoftFamilyIcon name="star" size={52} /></span>
           <strong>{t('dashboardLive.noReputation')}</strong>
         </div> : <div className="fp-history-rows">
           {history.map((entry, index) => <div className="fp-history-row" key={entry.id ?? index}>
@@ -129,10 +129,10 @@ export default function DashboardPage() {
     <section className="fp-panel fp-actions-panel">
       <header className="fp-panel-header"><h2>{t('dashboardLive.quickActions')}</h2></header>
       <div className="fp-actions">
-        <Link to="/tasks"><SoftFamilyIcon name="plus" size={36} />{t('navigation.tasks')}</Link>
-        <Link to="/members"><SoftFamilyIcon name="family" size={36} />{t('workspaceUi.members')}</Link>
-        <Link to="/rewards"><SoftFamilyIcon name="gift" size={36} />{t('navigation.rewards')}</Link>
-        <Link to="/points"><SoftFamilyIcon name="coins" size={36} />{t('navigation.points')}</Link>
+        <Link to="/tasks"><img src="/assets/soft-family/reference/quick-plus.webp" alt="" /><SoftFamilyIcon name="plus" size={36} />{t('navigation.tasks')}</Link>
+        <Link to="/members"><img src="/assets/soft-family/reference/quick-family.webp" alt="" /><SoftFamilyIcon name="family" size={36} />{t('workspaceUi.members')}</Link>
+        <Link to="/rewards"><img src="/assets/soft-family/reference/quick-gift.webp" alt="" /><SoftFamilyIcon name="gift" size={36} />{t('navigation.rewards')}</Link>
+        <Link to="/points"><img src="/assets/soft-family/reference/quick-points.webp" alt="" /><SoftFamilyIcon name="coins" size={36} />{t('navigation.points')}</Link>
       </div>
     </section>
   </div>
