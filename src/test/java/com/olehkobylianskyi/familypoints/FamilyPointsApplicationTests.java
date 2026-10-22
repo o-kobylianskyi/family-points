@@ -444,6 +444,20 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    void mediaSchemaIsInstalledWithScopedBlobAndBindingTables() {
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT count(*) FROM flyway_schema_history
+            WHERE version='35' AND success=true
+            """, Integer.class));
+        for (String table : java.util.List.of("media_assets","media_blobs","media_bindings")) {
+            assertEquals(1, jdbc.queryForObject("""
+                SELECT count(*) FROM information_schema.tables
+                WHERE table_schema='public' AND table_name=?
+                """, Integer.class, table));
+        }
+    }
+
+    @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
