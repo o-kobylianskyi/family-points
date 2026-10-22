@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import SoftFamilyIcon from '../components/SoftFamilyIcon'
 import { useAuth } from '../context/AuthContext'
 import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
 import { getMyReputation, getMyReputationHistory } from '../api/reputationApi'
@@ -14,7 +15,7 @@ function localToday() {
 
 function StatCard({ icon, tone, label, value, note, destination }) {
   return <Link to={destination} className={`fp-stat fp-stat--${tone}`}>
-    <span className="fp-stat-icon" aria-hidden="true">{icon}</span>
+    <span className="fp-stat-icon"><SoftFamilyIcon name={icon} size={56} /></span>
     <span className="fp-stat-copy">
       <span className="fp-stat-label">{label}</span>
       <strong className="fp-stat-value">{value}</strong>
@@ -72,15 +73,16 @@ export default function DashboardPage() {
       <div className="fp-hero-content">
         <h1>{t('dashboard.welcome', { name: currentUser.memberName })} <span aria-hidden="true">👋</span></h1>
         <p>{t('dashboardLive.description')}</p>
-        <span className="fp-hero-motto">♥ FamilyPoints</span>
+        <span className="fp-hero-motto">{t("dashboardLive.description")} <SoftFamilyIcon name="heart" size={22} /></span>
       </div>
-      <div className="fp-hero-art" role="img" aria-label="Сімейна ілюстрація">👨‍👩‍👦</div>
+      <img className="fp-hero-art" src="/assets/soft-family/family-illustration.svg" alt="" />
+      <span className="fp-hero-calligraphy" aria-hidden="true">♥ &nbsp; FamilyPoints</span>
     </section>
     <div className="fp-stats">
-      <StatCard icon="🪙" tone="gold" label={t('dashboardLive.myBalance')} value={currency(data.balance, 'POINTS')} destination="/points" />
-      <StatCard icon="⭐" tone="sage" label={t('dashboardLive.myReputation')} value={data.reputation ?? '—'} note={t('dashboardLive.reputationNote')} destination="/points" />
-      <StatCard icon="📋" tone="teal" label={t('dashboardLive.myTasks')} value={active.length} note={t('dashboardLive.activeToday')} destination="/tasks" />
-      <StatCard icon="🎁" tone="soft" label={t('dashboardLive.available')} value={data.open.length} note={t('dashboardLive.openTasks')} destination="/tasks" />
+      <StatCard icon="coins" tone="gold" label={t('dashboardLive.myBalance')} value={currency(data.balance, 'POINTS')} destination="/points" />
+      <StatCard icon="star" tone="sage" label={t('dashboardLive.myReputation')} value={data.reputation ?? '—'} note={t('dashboardLive.reputationNote')} destination="/points" />
+      <StatCard icon="checklist" tone="teal" label={t('dashboardLive.myTasks')} value={active.length} note={t('dashboardLive.activeToday')} destination="/tasks" />
+      <StatCard icon="gift" tone="soft" label={t('dashboardLive.available')} value={data.open.length} note={t('dashboardLive.openTasks')} destination="/tasks" />
     </div>
 
     <div className="fp-dashboard-columns">
@@ -90,15 +92,15 @@ export default function DashboardPage() {
           <Link to="/tasks">{t('dashboardLive.allTasks')} <span aria-hidden="true">›</span></Link>
         </header>
         {active.length === 0 ? <div className="fp-empty">
-          <span className="fp-empty-icon" aria-hidden="true">📋</span>
+          <span className="fp-empty-icon"><SoftFamilyIcon name="checklist" size={55} /></span>
           <strong>{t('dashboardLive.noTasks')}</strong>
         </div> : <div className="fp-task-rows">
           {active.slice(0, 5).map(task => <div className="fp-task-row" key={task.id}>
-            <span className="fp-task-icon" aria-hidden="true">✅</span>
+            <span className="fp-task-icon"><SoftFamilyIcon name="check" size={26} /></span>
             <span className="fp-task-main"><strong>{task.title}</strong>
               <small>{t(`taskStatus.${task.status}`, { defaultValue: task.status })}</small>
             </span>
-            <span className="fp-task-badge">★</span>
+            <span className="fp-task-badge"><SoftFamilyIcon name="star" size={19} /></span>
           </div>)}
         </div>}
       </section>
@@ -108,7 +110,7 @@ export default function DashboardPage() {
           <small>{t('dashboardLive.lastChanges')}</small>
         </div></header>
         {history.length === 0 ? <div className="fp-empty">
-          <span className="fp-empty-icon" aria-hidden="true">⭐</span>
+          <span className="fp-empty-icon"><SoftFamilyIcon name="star" size={52} /></span>
           <strong>{t('dashboardLive.noReputation')}</strong>
         </div> : <div className="fp-history-rows">
           {history.map((entry, index) => <div className="fp-history-row" key={entry.id ?? index}>
@@ -126,10 +128,10 @@ export default function DashboardPage() {
     <section className="fp-panel fp-actions-panel">
       <header className="fp-panel-header"><h2>{t('dashboardLive.quickActions')}</h2></header>
       <div className="fp-actions">
-        <Link to="/tasks"><span aria-hidden="true">✚</span>{t('navigation.tasks')}</Link>
-        <Link to="/members"><span aria-hidden="true">👥</span>{t('navigation.members')}</Link>
-        <Link to="/rewards"><span aria-hidden="true">🎁</span>{t('navigation.rewards')}</Link>
-        <Link to="/points"><span aria-hidden="true">🪙</span>{t('navigation.points')}</Link>
+        <Link to="/tasks"><SoftFamilyIcon name="plus" size={36} />{t('navigation.tasks')}</Link>
+        <Link to="/members"><SoftFamilyIcon name="family" size={36} />{t('workspaceUi.members')}</Link>
+        <Link to="/rewards"><SoftFamilyIcon name="gift" size={36} />{t('navigation.rewards')}</Link>
+        <Link to="/points"><SoftFamilyIcon name="coins" size={36} />{t('navigation.points')}</Link>
       </div>
     </section>
   </div>
