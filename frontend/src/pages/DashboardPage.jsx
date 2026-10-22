@@ -129,10 +129,10 @@ export default function DashboardPage() {
     <section className="fp-panel fp-actions-panel">
       <header className="fp-panel-header"><h2>{t('dashboardLive.quickActions')}</h2></header>
       <div className="fp-actions">
-        <Link to="/tasks"><img src="/assets/soft-family/reference/quick-plus.webp" alt="" /><SoftFamilyIcon name="plus" size={36} />{t('navigation.tasks')}</Link>
-        <Link to="/members"><img src="/assets/soft-family/reference/quick-family.webp" alt="" /><SoftFamilyIcon name="family" size={36} />{t('workspaceUi.members')}</Link>
-        <Link to="/rewards"><img src="/assets/soft-family/reference/quick-gift.webp" alt="" /><SoftFamilyIcon name="gift" size={36} />{t('navigation.rewards')}</Link>
-        <Link to="/points"><img src="/assets/soft-family/reference/quick-points.webp" alt="" /><SoftFamilyIcon name="coins" size={36} />{t('navigation.points')}</Link>
+        <Link to="/tasks"><img src="/assets/soft-family/reference/quick-plus.webp" alt="" onError={event => { event.currentTarget.hidden = true }} /><SoftFamilyIcon name="plus" size={36} />{t('navigation.tasks')}</Link>
+        <Link to="/members"><img src="/assets/soft-family/reference/quick-family.webp" alt="" onError={event => { event.currentTarget.hidden = true }} /><SoftFamilyIcon name="family" size={36} />{t('workspaceUi.members')}</Link>
+        <Link to="/rewards"><img src="/assets/soft-family/reference/quick-gift.webp" alt="" onError={event => { event.currentTarget.hidden = true }} /><SoftFamilyIcon name="gift" size={36} />{t('navigation.rewards')}</Link>
+        <Link to="/points"><img src="/assets/soft-family/reference/quick-points.webp" alt="" onError={event => { event.currentTarget.hidden = true }} /><SoftFamilyIcon name="coins" size={36} />{t('navigation.points')}</Link>
       </div>
     </section>
   </div>
