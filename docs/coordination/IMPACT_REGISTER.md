@@ -66,7 +66,7 @@
 ## IMP-0007 — Media avatars, family cover and task icon inheritance
 - Producer / date / status: Web → Backend + Architecture / 2026-10-22 / **PROPOSED; ACK NEEDED**. Extends IMP-0001; not implemented.
 - Old → new: no verified generic media upload contract → additive backend-owned catalog/upload/storage/asset-assignment API for member/account avatars, people-group avatars, task group/category icons, task-level override with category inheritance, and workspace family cover + optional workspace avatar.
-- Consumers: Backend [x]; Architecture [ ]; Web [x]; Android [ ]; Release [ ]. Web [x] means initiating request / required visual contract acknowledged, **not deployed**.
+- Consumers: Backend [x]; Architecture [x]; Web [x]; Android [ ]; Release [ ]. Web [x] means initiating request / required visual contract acknowledged, **not deployed**.
 - Required decisions: account-global vs member-in-workspace avatar, MemberGroup vs WorkNode/group/category, workspace media authorization, curated catalog IDs, file storage/backups/cache, derived effective image semantics and older client compatibility.
 - **Backend review 2026-10-22 (ACK SCOPE, DESIGN BLOCKED):** read XTR-W-01; agrees to own implementation after Architecture media ADR and storage/release safety decisions. No code/schema/API acceptance or deployment implied. See Backend journal.
 - **Backend-to-Architecture handoff 2026-10-22:** `XTR-20261022-B-01` requests an explicit media ADR and Release storage/backup review; do not infer that Backend selected a storage provider or completed upload code.
@@ -79,6 +79,8 @@
 - **Backend CI follow-up 2026-10-22:** draft PR #4 source `3199c03` now passes Java 21/Maven/PostgreSQL Testcontainers tests, including clean Flyway V35 schema and calendar tenant negative unit checks (run 39854939259). Also passes Web and Compose jobs; Android remained running on observation. Still unmerged/not deployed; consumer review remains open. `RewardDefinitionResponse.availabilityMode` was added as compatible catalog hint; `GET .../availability` remains time-only authoritative status.
 
 - **Backend PR #4 security follow-up 2026-10-22:** `a83563e` prevents non-manager metadata reads of inactive rewards from the draft availability route; added a regression unit test. Prior source `3199c03` had all CI jobs success; new-source CI running when checked. Consumer and Release review remains open; no merge or BETA deploy.
+
+- **Architecture ADR 2026-10-23:** Published [ADR-MEDIA-001](../architecture/ADR-MEDIA-001.md): v1 workspace-owned private media; separate family cover/icon, member avatar, people group icon, WorkNode category icon and task icon override/inheritance; sanitized JPG/PNG/WebP, secure per-target read/upload/binding, and PostgreSQL metadata+BYTEA image variants. Backend may begin design/implementation under XTR-W-01; Web/Android/Release must still ACK contract, DB backup/quota/safety and accept actual tests. **No media API/database implementation or deploy yet.**
 
 ## Template for each next impact
 ```md

@@ -39,3 +39,7 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 ## 2026-10-22 — Media Architecture request and calendar hardening
 - Backend filed `XTR-20261022-B-01` (from XTR-W-01/IMP-0007) to Architecture for entity rights, inheritance, private media storage and Release backup decisions; implementation is blocked until ADR and consumer review.
 - Draft Backend calendar PR #4 added inactive reward read protection at `a83563e`; new-source CI pending on check, prior `3199c03` CI was fully green. No merge/deployment; IMP-0006 consumer reviews pending (Android source review acknowledged but blocked).
+
+## 2026-10-23 — Media status snapshot (source and docs review, not runtime)
+- Integration branch reviewed at `d7783ff106b6c6b48fe745073fe2c2ab102afcd5` before ADR decision. Backend media XTR-W-01 / IMP-0007 remains NOT IMPLEMENTED; Backend had requested Architecture response XTR-B-01. ADR-MEDIA-001 now defines v1 workspace-scoped image ownership and **PostgreSQL metadata+BYTEA binary storage**; consumer/Release reviews, code, Flyway, media API and live deploy are still pending.
+- Web reference assets issue is distinct: `scripts/web/import-dashboard-reference-assets.ps1` imports 11 WebP from external ZIP; these 11 are missing from committed integration branch. Two existing hero/promo WebP files remain checked into `frontend/public/assets/soft-family/`. Web can use static graphics independently of Backend.
