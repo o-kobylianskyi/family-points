@@ -13,7 +13,29 @@ The user attached **two canonical, equally authoritative reference mockups** in 
 | **Dark — Style A / Soft Family**: three phones (Home, Members, Points), navy/cyan | 1122 x 1402 PNG | ffb1c9712e0f26df0ae3afe109aa90ce1c66956d2e27420139b23211ab048ed5 |
 | **Light — Style A / Soft Family**: same three screens, white/sky-blue/sage | 1122 x 1402 PNG | 961d13f3e857276144b6604a00b89696834052f39525d54ea5a42630e2da3d5b |
 
-The original PNGs are **conversation attachments**, not yet image binaries stored in this Git repository. Hashes uniquely identify those files. For pixel-accurate acceptance obtain those originals, not web image-search replacements. The existing shared design brief is [FAMILYPOINTS_SOFT_FAMILY_DESIGN.md](FAMILYPOINTS_SOFT_FAMILY_DESIGN.md).
+The original PNGs are **conversation attachments**, not yet image binaries stored in this Git repository. Hashes uniquely identify those files. For visual acceptance use those originals, not web image-search replacements; references are not directly embeddable UI assets. The existing shared design brief is [FAMILYPOINTS_SOFT_FAMILY_DESIGN.md](FAMILYPOINTS_SOFT_FAMILY_DESIGN.md).
+
+## Mandatory rule — adapt references, do not paste screenshots (user clarification 2026-10-22)
+
+**The approved mockups and all crops are design references, NOT production-ready UI assets.** The goal is the visual *language* (theme, hierarchy, shape, typography, spacing, illustration feel), not literal pixel-for-pixel screenshot imitation. Rebuild layout and controls in native Compose with real app data and behavior.
+
+| In the reference image/crop | Required production implementation |
+| --- | --- |
+| Card with label, numeric value, button, indicator or role/status text | Draw card and layout in Compose; all text must be editable/rendered at runtime, fetched from localized resources and state. Do **not** display flattened PNG with embedded text. |
+| Sample username, role, balance, email, task, date/time | Replace with real account/workspace-specific authorized data; format numbers, points/pluralization, currencies, dates and times per active locale. Placeholder names/contact details never shipped as UI. |
+| Text embedded in decorative artwork | Remove embedded writing when preparing usable illustration; alternatively recreate the art **without words** and overlay a separate localized Compose Text element if text is intentionally needed. Do not merely hide inaccessible raster text behind a same-color patch. |
+| Avatar/photo/character or decorative family image | Rework into reusable **text-free**, safely cropped illustrations/drawables/avatars; don't use screenshots of entire member cards as an image. Use actual server-provided avatar only under approved media contracts. |
+| Icons/navigation/segmented selectors/pills/action buttons | Render as native clickable, semantic accessible Compose components with vector icons and state (selected/disabled/loading/error), not image cutouts. |
+| Gradients, glow, borders, shadow, rounded shapes | Recreate via reusable Compose modifiers/Brush, Shapes and theme tokens; adapt elevation and contrast in light/dark themes. |
+| iPhone frame, Dynamic Island, 9:41 clock, marketing header/slogan/background | Do not ship as app chrome. Respect Android system UI, insets, gestures and current platform conventions. |
+
+**Asset rule:** Rectangular crops exported from the source PNG can guide design and be used for side-by-side inspection only. No full-phone, screenshot, card, button, label, menu, tab, points panel or other mixed image-with-text should be placed directly in the Android UI, even if individually cropped. Isolate/crop **only text-free decorative art** for possible inclusion, ensuring legal/provenance, quality, retina/density, transparent edges and dark/light contrast. Where imagery needs transformation, redraw/recreate a clean art-only asset rather than freezing UI text into an image.
+
+**Content/localization:** UI strings belong in Android localized resources or the established app i18n mechanism for **uk/de/en/ru**, never baked into graphics or hard-coded from mockups. Include right-length handling for German, plural rules for points/reputation/tasks, Unicode names, ellipsizing only when appropriate, TalkBack descriptions and locale-aware date/time and numeric formatting. Preserve actual family/member names exactly as supplied by authorized user data, not translations of proper names.
+
+**Responsive/functional acceptance:** Fit narrow/wide devices and font scaling, scroll and allow multiline labels, live updates, permission-driven actions, real/offline/error/empty/loading states, and reachable tap targets. Adapt content density, do not stretch a reference bitmap. The light and dark appearances share components/behaviors while using theme-specific color/illustration treatment.
+
+**Acceptance clarification:** Compare Android screenshots to the references for *design consistency*, **not strict pixel matching**. An adapted component that works better on real Android screens and localizes correctly takes precedence over exact crop geometry. This rule overrides any older "pixel-perfect" wording about transferring reference images, but not the choice of the original two target mockups.
 
 ## Approved visual direction
 
@@ -76,7 +98,7 @@ Android-native bottom navigation adapting the reference Home/Tasks/Members/Point
 1. Implement theme token layers, persisted setting and reusable navigation/card/pill components.
 2. Adapt Home, Members, Points and their loading/empty/error/offline variants in both themes.
 3. Migrate other screens for consistent design and screenshot parity.
-4. Compare real-device screenshots to the originals; record screenshots, exact git SHA and test evidence. Independently resolve the Android release crash / verified APK gate IMP-0003.
+4. Compare real-device screenshots to the originals for visual consistency, native behavior and localization (not exact screenshot duplication); record screenshots, exact git SHA and test evidence. Independently resolve the Android release crash / verified APK gate IMP-0003.
 
 **Cross-track:** Design is tracked under IMP-0001 (Web/Android/Architecture). No Backend, Flyway, VPS, auth or release change is authorized by this document. Media work requires a new Architecture/Backend-reviewed contract. Log actual work in docs/coordination/logs/android.md.
 
