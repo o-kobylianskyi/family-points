@@ -26,6 +26,14 @@ public class GoogleAccountLinkController {
 
     public record SetPasswordRequest(@NotBlank String idToken, @NotBlank String newPassword, @NotBlank String username) {}
 
+    public record UsernameSuggestion(String username) {}
+
+    @GetMapping("/suggested-username")
+    @PreAuthorize("isAuthenticated()")
+    public UsernameSuggestion suggestedUsername() {
+        return new UsernameSuggestion(links.suggestedUsername());
+    }
+
     @PostMapping("/set-password")
     @PreAuthorize("isAuthenticated()")
     public void setPassword(@Valid @RequestBody SetPasswordRequest request) {
