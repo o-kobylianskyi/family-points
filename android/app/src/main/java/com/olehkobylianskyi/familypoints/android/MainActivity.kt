@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +65,8 @@ import com.olehkobylianskyi.familypoints.android.ui.screens.RewardsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.TaskDetailsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.TasksScreen
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyPointsTheme
+import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyThemeMode
+import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyThemePreference
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -129,8 +132,26 @@ class MainActivity : ComponentActivity() {
         val roleCatalogRepository = RoleCatalogRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineAccountStore(this))
 
+        val themePreference = FamilyThemePreference(this)
         setContent {
-            FamilyPointsTheme {
+            var themeMode by remember { mutableStateOf(themePreference.get()) }
+            val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+            val dark = when (themeMode) {
+                FamilyThemeMode.DARK -> true
+                FamilyThemeMode.LIGHT -> false
+                FamilyThemeMode.SYSTEM -> systemDark
+            }
+            SideEffect {
+                if (Build.VERSION.SDK_INT < 35) {
+                    window.statusBarColor = if (dark) Color.rgb(16, 23, 30) else Color.rgb(245, 250, 255)
+                    window.navigationBarColor = if (dark) Color.rgb(16, 23, 30) else Color.rgb(245, 250, 255)
+                }
+                WindowCompat.getInsetsController(window, window.decorView).apply {
+                    isAppearanceLightStatusBars = !dark
+                    isAppearanceLightNavigationBars = !dark
+                }
+            }
+            FamilyPointsTheme(mode = themeMode) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -353,6 +374,8 @@ class MainActivity : ComponentActivity() {
                     destination == AppDestination.DASHBOARD -> {
                         DashboardScreen(
                             language = language,
+                            themeMode = themeMode,
+                            onThemeModeChange = { selected -> themeMode = selected; themePreference.set(selected) },
                             currentUser = currentUser!!,
                             loadDashboard = {
                                 dashboardRepository.load(currentUser!!)
