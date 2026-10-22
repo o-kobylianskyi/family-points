@@ -4150,3 +4150,60 @@ button:focus-visible {
 .member-card > .fp-avatar.member-avatar { display:inline-grid; align-items:center; justify-items:center; }
 .member-selector-button > .fp-avatar.selector-avatar { display:inline-grid; align-items:center; justify-items:center; }
 .fp-avatar.points-large-avatar { display:inline-grid; align-items:center; justify-items:center; }
+
+
+/* Dashboard visual corrections — 2026-10-22. Use actual bundled artwork without
+   stretching it or letting it disappear behind the sidebar's bottom navigation. */
+.sidebar .fp-sidebar-promo {
+  flex:0 0 auto;
+  height:clamp(208px,25vh,310px);
+  min-height:0;
+  padding:16px 14px 0;
+  overflow:hidden;
+  align-items:flex-start;
+}
+.sidebar .fp-sidebar-promo > img {
+  position:absolute;
+  display:block;
+  left:50%;
+  right:auto;
+  top:auto;
+  bottom:0;
+  transform:translateX(-50%);
+  width:100%;
+  height:auto;
+  max-height:78%;
+  object-fit:contain;
+  object-position:center bottom;
+  filter:none;
+}
+.sidebar .fp-sidebar-promo > span { z-index:2; max-width:100%; }
+.fp-dashboard .fp-hero {
+  min-height:205px;
+  padding-right:min(49%,560px);
+}
+.fp-dashboard .fp-hero-content { min-width:0; }
+.fp-dashboard .fp-hero-art {
+  position:absolute;
+  inset:auto 1.5% 0 auto;
+  width:auto;
+  max-width:58%;
+  height:100%;
+  max-height:100%;
+  object-fit:contain;
+  object-position:right bottom;
+  opacity:1;
+}
+.fp-dashboard .fp-hero-calligraphy { z-index:2; right:18px; top:17px; }
+@media (max-width:1250px) {
+  .fp-dashboard .fp-hero-art { right:0; height:100%; max-width:58%; }
+}
+@media (max-width:950px) {
+  .fp-dashboard .fp-hero-art { opacity:.76; }
+  .sidebar .fp-sidebar-promo { display:none; }
+}
+@media (max-width:720px) {
+  .fp-dashboard .fp-hero { padding-right:22px; }
+  .fp-dashboard .fp-hero-content { max-width:72%; }
+  .fp-dashboard .fp-hero-art { right:-5%; bottom:0; height:100%; max-width:60%; opacity:.34; }
+}
