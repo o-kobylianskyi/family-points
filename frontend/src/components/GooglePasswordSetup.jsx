@@ -1,9 +1,9 @@
 import UsernameAvailability from './UsernameAvailability'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import GoogleAuthButton from './GoogleAuthButton'
-import { setPasswordWithGoogle } from '../api/accountApi'
+import { getGoogleUsernameSuggestion, setPasswordWithGoogle } from '../api/accountApi'
 
 export default function GooglePasswordSetup() {
   const { t } = useTranslation()
@@ -14,6 +14,18 @@ export default function GooglePasswordSetup() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  // Replace opaque g_<hash> only with an available suggestion from this account's
+  // verified email. Never overwrite a username the user has already edited.
+  useEffect(() => {
+    if (!/^g_[a-f0-9]{32}$/i.test(currentUser?.username || '')) return
+    let cancelled = false
+    getGoogleUsernameSuggestion(getAccessToken()).then(suggested => {
+      if (!cancelled) setUsername(value =>
+        value === currentUser.username ? suggested : value)
+    }).catch(() => { /* preserve existing username if suggestion unavailable */ })
+    return () => { cancelled = true }
+  }, [currentUser?.username, getAccessToken])
 
   const verifyGoogle = async idToken => {
     setError('')
@@ -62,7 +74,7 @@ export default function GooglePasswordSetup() {
       </label>
       {error && <div className="error-message" role="alert">{error}</div>}
       {success && <div className="settings-success" role="status">{success}</div>}
-      <p className="google-password-instructions">{t('googlePassword.button')}</p>
+      <p className="google-password-instructions">{t('googlePassword.button')} — Підтвердіть Google нижче, щоб зберегти логін і пароль. Нижня кнопка збереження учасника їх не змінює.</p>
       <GoogleAuthButton disabled={busy} onCredential={verifyGoogle} />
     </div>
   </section>
