@@ -25,12 +25,15 @@ import PointsPage from './pages/PointsPage'
 import RewardsPage from './pages/RewardsPage'
 import SettingsPage from './pages/SettingsPage'
 
+import { ThemeInitializer } from './components/ThemePreference'
+
 import './App.css'
 import './Navigation.css'
 
 function App() {
   return (
     <BrowserRouter>
+      <ThemeInitializer />
       <AuthProvider>
         <Routes>
           <Route path="/download" element={<DownloadAppPage />} />
