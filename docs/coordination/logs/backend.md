@@ -47,3 +47,8 @@ New technical batches: Java/Spring, PostgreSQL/Flyway, DTO/API, authorization/te
 - Source commits `c862f0b`, `d705a4f` (private bound-media visibility and workspace-scoped catalog), `9b26b56` (Flyway smoke test). **No WebP decoder, catalog binary seeding, full ACL/inheritance integration, quota/garbage collection, DTO effectiveImage integration or BETA deploy yet.**
 - **Critical integration risk:** Calendar PR #4 and Media PR #5 both introduced a V35 migration independently. These cannot be merged together without renumbering the second migration and validating upgrade/fresh DB. Do not merge PR #5 unchanged.
 - CI triggered but outcome not yet verified at 9b26b56 when writing. Web/Android/Release consumer/backup ACK pending. No signed APK/server deployment.
+
+### 2026-10-23 — Media migration/version safety and negative tests
+- **Conflict mitigation committed:** media Flyway version renamed from V35 to **V36** in `e317094`, retaining calendar PR #4 V35; DB migrations have not been applied to BETA.
+- Added `MediaServiceSafetyTest` in `e7e18bc` for rejected foreign-workspace read/upload, MIME-spoof payload, oversize upload. Running CI under https://github.com/o-kobylianskyi/family-points/actions/runs/39863949599 at latest reviewed SHA; not marked success until the job completes.
+- No client integration/Release gate yet; private uploaded bytes can only be read through bound media within workspace, but fine-grained group/task visibility, catalog binaries, WebP and release backup sizing still require implementation/review.

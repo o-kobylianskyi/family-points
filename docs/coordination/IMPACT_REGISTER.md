@@ -84,6 +84,8 @@
 
 - **Backend progress 2026-10-23:** [draft PR #5](https://github.com/o-kobylianskyi/family-points/pull/5) implements initial PostgreSQL media upload/bind/read; **not ready for integration or deployment**. Source `9b26b56`; needs WebP, scoped group permission audit, two-family negative tests, storage quotas/GC, verified CI and consumer/release sign-off. **IMPORTANT:** both calendar PR #4 and media PR #5 currently use Flyway V35 on separate branches; one migration must be renumbered before either subsequent merge, to preserve Flyway history.
 
+- **Backend Flyway correction 2026-10-23:** PR #5 media migration **renamed to V36** (`e317094`) to reserve V35 for calendar PR #4; negative security/upload unit tests added at `e7e18bc`. Merge order/calendar schema compatibility still requires integration smoke on a branch containing BOTH migrations and Release review.
+
 ## Template for each next impact
 ```md
 ## IMP-000X — Summary
