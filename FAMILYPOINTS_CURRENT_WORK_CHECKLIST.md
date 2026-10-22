@@ -1335,3 +1335,20 @@ Before each substantial implementation batch:
 - [ ] CI check and tag next approved beta release
 - [ ] Operator generate and securely back up permanent signing key, build signed release APK, verify device compatibility
 - [ ] Publish APK to VPS only after full web release, confirm link/status/checksum and test actual phone install/update
+
+
+## 2026-10-22 — Android standalone APK milestone
+
+- [x] Android release build script with private keystore env inputs, signature verification and version/hash manifest **implemented in Git**
+- [x] Independent BETA APK publishing script with checksum/metadata validation **implemented in Git**
+- [x] Web /download release metadata presentation **implemented in Git**
+- [x] Operator documentation for APK release and server-safe publishing
+- [ ] Run release Gradle build on trusted machine with permanent private keystore
+- [ ] Confirm SHA-256, signature and full Android certificate identity
+- [ ] Confirm release Google login and production API on real phone
+- [ ] Verify update over existing signed install without loss of local data
+- [ ] Run frontend build, Kotlin and BETA gate checks
+- [ ] Create fresh annotated BETA release tag (do not move published tags)
+- [ ] Deploy web route changes via controlled tagged BETA release
+- [ ] Transfer signed APK + JSON + hash to Contabo and publish after verification
+- [ ] Confirm public download and content type from https://family-point.com/download
