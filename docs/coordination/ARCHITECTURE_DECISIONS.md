@@ -11,6 +11,9 @@ A track proposing/changing another track's API, auth, data, UX conventions or re
 ## ADR-COORD-003 — Preserve historical project logs (2026-10-22, AGREED)
 Retain all three existing large history journals and both root checklists. Split routine future log entries into five topic journals, not five forks of the historical record.
 
+## ADR-COORD-004 — Decentralized planning and cross-track technical specifications (2026-10-22, AGREED)
+Every development chat is allowed and expected to plan its own work within its direction. Architecture / Planning is reserved for shared design, invariants, conflicts and inter-track prioritization rather than approving every task. A chat encountering work owned by a different direction must create a persistent, actionable cross-track technical specification (`XTR-*`) addressed to the appropriate receiving chat; split multi-owner work into linked specs. The receiving direction reviews/acknowledges, executes, tests, and records the outcome. The request lives in Git under `docs/coordination/requests/`; chat histories are not synchronized and no auto-delivery is implied. Contract-impacting changes additionally follow IMP/ADR reviews; independent Release approval remains mandatory.
+
 ## Earlier product decisions to respect (historical; validate code state)
 - One global identity can join multiple isolated family/work workspaces, with scoped memberships/roles. See `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` and concept journal.
 - Native Android client via Kotlin/Compose, not WebView; clients share Backend business semantics, not one UI codebase.

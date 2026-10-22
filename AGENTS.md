@@ -9,6 +9,13 @@
 4. Explicitly review incoming **OPEN/ACK NEEDED/BLOCKED** impact records. Acknowledging means impact reviewed, not implemented or tested.
 5. Never infer runtime, test or deployment status from a Git commit or chat memory alone.
 
+## Local planning and cross-track task routing
+- **Planning is decentralized:** every track may analyze, design, prioritize and plan tasks within its own responsibility. Do not require Architecture approval for routine track-local plans.
+- If work is outside this track, **create a written technical specification for the owning track** instead of silently implementing its code. If work spans tracks, split it into clear owner-specific deliverables and dependencies.
+- Save cross-track requests as separate `docs/coordination/requests/XTR-YYYYMMDD-<origin>-NN.md` files using [the request template](docs/coordination/requests/TASK_TEMPLATE.md). Include context, current branch/SHA, required behavior, API/contracts where relevant, acceptance criteria, dependencies, tests, status and impacted tracks. Give the user a readable handoff/link for the target chat.
+- The receiving chat must retrieve the request from GitHub, review/acknowledge it or document a blocker, own its implementation and record evidence/commit in its track log. **Chats do not notify one another automatically.**
+- Architecture is consulted for shared invariants/contracts, unclear ownership, conflicts and strategic trade-offs only; Release retains independent deployment approval. An `XTR` task does not replace the mandatory `IMP-XXXX` impact record for shared/breaking contracts.
+
 ## Before changing shared behavior
 Record cross-track impact **before** introducing incompatible API/DTO, database/Flyway, workspace/permissions, auth, error semantics, offline sync, URL/deployment or image storage changes. Obtain consumer review or record a blocker; Architecture arbitrates cross-domain choices. Release must approve publication independently.
 

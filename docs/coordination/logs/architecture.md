@@ -23,3 +23,9 @@ Chronological log of architecture, planning, cross-track decisions and prioritie
 - **Sequencing proposal, not a release order or implementation approval:** P0 confirm tenant security/auth consistency and unblock verified APK + independent Release gates; P1 agree media, workspace-session compatibility and offline ledger contracts; then coordinate UX parity and deeper feature delivery without crossing unreviewed shared APIs. Web/Android can continue independent, contract-preserving UI work concurrently.
 - **Pending Architecture actions:** source-level review before marking its IMP acknowledgements; produce ADRs with compatibility/migration/negative tests and owners; keep producer/consumer checkboxes open until evidenced; synchronize snapshot and root checklist upon material state changes.
 - **Evidence limitations:** no source modifications, builds, tests, CI status, VPS/DB deployment or real-device checks performed as part of this Architecture initialization.
+
+## 2026-10-22 — Distributed planning and cross-track task delegation (ADR-COORD-004, AGREED; DOCUMENTATION ONLY)
+- User clarified that planning can occur in any direction-specific chat, depending on ongoing development; Architecture is not a universal planning/approval queue.
+- A track finding required work outside its ownership prepares an executable technical specification for the responsible track, saved as a Git-tracked `XTR` request with acceptance criteria, evidence, dependencies and status.
+- Receiving chat independently fetches and acknowledges Git request; multiple destination tracks receive separate linked requests. Producer/consumer reviews and `IMP-XXXX` requirements still apply for shared contracts. Release retains publishing approval.
+- Updated AGENTS, coordination README, CHANGE_PROTOCOL, HANDOFF_TEMPLATE and ADR list; added dedicated requests documentation/template. No app code, database, build, server, APK or CI changes were made.

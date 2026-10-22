@@ -10,6 +10,12 @@ Established 2026-10-22 by project decision. **Five permanent, separate developme
 | Android | Kotlin/Compose, native UX, offline sync, device integration and Android build code | [Android](logs/android.md) |
 | Release / DevOps | CI, VPS, DEV/BETA/PROD, container/DB, tagged releases and APK publication | [Release](logs/release.md) |
 
+## Decentralized planning and direction-specific handoffs
+
+Every track can plan and implement its own work. Architecture / Planning is **not** a mandatory planning gateway; it arbitrates shared contracts, conflicting decisions and cross-domain priorities. When a task belongs to another track, the current chat writes an actionable specification addressed to that track, rather than changing another track's code or relying on chat-to-chat context transfer. Multi-track work is decomposed into owned tasks with explicit dependencies.
+
+Cross-track tasks are kept as individually tracked files in [requests/](requests/) using [TASK_TEMPLATE.md](requests/TASK_TEMPLATE.md); the originating chat also shows the handoff to the user. The target chat picks up the request on its next session or when directed by the user, reviews and acknowledges it, then owns implementation and its own journal. There is no automatic delivery between chats. Shared-contract changes **also** require an `IMP-XXXX` entry; a task request is not a substitute for impact review.
+
 ## Shared coordination documents
 - [PROJECT_STATE.md](PROJECT_STATE.md): dated status and observed SHA, important dependencies, gates; **snapshot, not live monitor**.
 - [IMPACT_REGISTER.md](IMPACT_REGISTER.md): proposed/current changes that affect other tracks, consumers and review acknowledgements. **Mandatory at chat start.**

@@ -1,5 +1,12 @@
 # FamilyPoints — next-chat handoff template
 
+## Handoff to a different work direction (XTR)
+
+This is different from continuing the **same** track in a new conversation. When work belongs to another track, the initiating chat saves one self-contained request file under `docs/coordination/requests/XTR-YYYYMMDD-<origin>-NN.md` based on [TASK_TEMPLATE.md](requests/TASK_TEMPLATE.md), and links it to the user.
+
+The receiving chat verifies current Git HEAD, reads the specification and related IMP/ADR references, acknowledges or blocks it, and executes only its assigned ownership. For multi-track work, create linked requests with dependency order. Never assume two live chats share context or that saving a request sends a notification.
+
+
 Transfer a track by supplying this text **after** committing its journal. New chat must fetch Git, not trust the summary as a live state.
 
 ```text

@@ -6,6 +6,14 @@
 3. Filter impacts targeting your track. Record reviewed SHA and **ACK / BLOCKED / NOT_APPLICABLE** in the track log and impact entry; ACK only means reviewed.
 4. Inspect source/DTO/DB/CI and intervening commits from **all** tracks before implementing changes.
 
+## Decentralized planning and routing a task to another track
+1. **Plan where the work arises:** Backend, Web, Android, Release and Architecture each independently scope, design, sequence and estimate their own work. Escalate to Architecture only for common domain invariants, ownership disputes, shared contracts or strategic trade-offs.
+2. **Check ownership:** if the necessary implementation falls outside the current track, do not make an unreviewed cross-track change. Create a separate actionable `XTR-YYYYMMDD-<origin>-NN` specification under `docs/coordination/requests/` using `TASK_TEMPLATE.md`. Assign one accountable receiving track per task. Split multi-track projects into linked dependent XTRs.
+3. **Specify sufficiently to execute:** problem, user-visible result, expected behavior, in/out-of-scope, existing source/branch/SHA, owned files/modules if known, DTO/API/data/security concerns, dependencies, acceptance tests, risks, and handoff/status. Distinguish proven current behavior from proposals. Do not prescribe another track's internal implementation unnecessarily.
+4. **Publish + communicate:** commit the request in Git, link its exact path/ID/commit in the origin journal and user-visible reply. The target chat does not receive automatic notifications: the user may paste the link into the target chat, or the target must review pending requests addressed to it when starting work.
+5. **Receive + close:** target reads Git at current HEAD, responds by updating request status (ACKNOWLEDGED / NEEDS_CLARIFICATION / BLOCKED, then IN_PROGRESS / DONE), logs reviewed SHA and the change/test evidence in its own journal, and links the implementing commit. Source track verifies the accepted behavior and closes its dependency as appropriate. ACK means scope accepted, not code completed.
+6. **Contract changes require both mechanisms:** use XTR for the task handoff and `IMP-XXXX` for any externally affecting API, schema, auth, offline sync or runtime contract; required consumer ACKs, compatibility/rollback and Release gate still apply. Architecture can arbitrate conflicts but is not a universal bottleneck.
+
 ## Proposed impacting change
 Before altering a shared contract, create `IMP-XXXX` in IMPACT_REGISTER with producer/date/old→new behavior/status, breaking or compatible classification, affected consumers, link/commit/ADR, required consumer actions, test plan, release gate. Architecture resolves disputes and maintains cross-domain priorities. No silent breaking changes.
 
