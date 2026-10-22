@@ -91,3 +91,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - User emulator screenshot identified nearly zero visual gap between `Додати учасника` and first member card.
 - Changed `MembersScreen.kt` main member/group `LazyColumn` to use `contentPadding = PaddingValues(top = 14.dp, bottom = 16.dp)` with existing inter-card `spacedBy(10.dp)` unchanged; applies after action area without changing model/API logic.
 - Code commit `936a66e`; no local Gradle, emulator or device test performed. Verify on Android Studio in both themes, and group tab layout.
+
+## 2026-10-22 — Move appearance choice to Settings (SOURCE, UNVERIFIED BUILD)
+- User requested removing theme selector from Dashboard, putting it in Settings and following native device light/dark setting on first login.
+- Moved localized Light/Dark/System FilterChips to SettingsScreen, connected existing MainActivity theme state and persisted FamilyThemePreference. No theme preference is present on fresh install, so pre-existing SYSTEM default already takes device isSystemInDarkTheme() as the source of truth. Explicit user choice still overrides device and persists across launches.
+- Source commits `091a295`, `845bfee`, `9a696ae`. Verified balanced source braces and parameter wiring in changed source, but **no Gradle/emulator run**. No changes to Backend or publishing.
