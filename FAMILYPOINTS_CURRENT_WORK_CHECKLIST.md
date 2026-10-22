@@ -1419,3 +1419,11 @@ Before each substantial implementation batch:
 - [ ] Implement authorized bounded read-only unified calendar projection with stable task occurrence identity.
 - [ ] Run migration/compatibility, DST, tenant-isolation, purchase edge/race/replay and calendar no-write tests; record results and source SHAs.
 - [ ] Release/DevOps verifies tagged server and both clients before BETA publication.
+
+## 2026-10-22 — Calendar Backend implementation PR #4
+- [x] Implement reward ALWAYS/ONE_TIME/RECURRING_WEEKLY schema and time gate with V35 in draft Backend PR.
+- [x] Implement bounded combined calendar and explicit family timezone API in draft Backend PR.
+- [x] Confirm Java 21/Maven + disposable PostgreSQL/Flyway V35 CI and calendar unit/security checks at 3199c03 (run 39854939259).
+- [ ] Obtain Architecture, Web, Android and Release impact/contract ACK and close remaining timezone migration compatibility questions.
+- [ ] Complete independent Android CI, real client integration, expanded tenant and production-like migration/rollback checks.
+- [ ] Review/merge PR #4; only Release approves subsequent BETA deployment.

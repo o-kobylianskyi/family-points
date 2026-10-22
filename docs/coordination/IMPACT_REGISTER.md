@@ -72,6 +72,8 @@
 
 - **Backend producer update 2026-10-22:** implementation underway in [draft PR #4](https://github.com/o-kobylianskyi/family-points/pull/4) on `feature/backend-calendar-rewards-v1`; initial Maven/PostgreSQL Testcontainers CI successful at `6b11bbf6`. Separate API draft `docs/api/REWARD_CALENDAR_V1.md` lives on feature branch. Flyway V35, direct and approved-request gates, bounded calendar and explicit time zone have been committed but **not merged or deployed**. Web/Android/Architecture/Release consumer ACK, broad tenant-negative/DB upgrade/device tests remain pending. Backend journal contains exact evidence. Do not assume endpoints exist on integration branch.
 
+- **Backend CI follow-up 2026-10-22:** draft PR #4 source `3199c03` now passes Java 21/Maven/PostgreSQL Testcontainers tests, including clean Flyway V35 schema and calendar tenant negative unit checks (run 39854939259). Also passes Web and Compose jobs; Android remained running on observation. Still unmerged/not deployed; consumer review remains open. `RewardDefinitionResponse.availabilityMode` was added as compatible catalog hint; `GET .../availability` remains time-only authoritative status.
+
 ## Template for each next impact
 ```md
 ## IMP-000X — Summary
