@@ -79,3 +79,6 @@ Android-native bottom navigation adapting the reference Home/Tasks/Members/Point
 4. Compare real-device screenshots to the originals; record screenshots, exact git SHA and test evidence. Independently resolve the Android release crash / verified APK gate IMP-0003.
 
 **Cross-track:** Design is tracked under IMP-0001 (Web/Android/Architecture). No Backend, Flyway, VPS, auth or release change is authorized by this document. Media work requires a new Architecture/Backend-reviewed contract. Log actual work in docs/coordination/logs/android.md.
+
+## Calendar screen reference supplement (2026-10-22)
+The user additionally chose a compact iPhone-style TODAY/AGENDA screenshot as the FamilyPoints **calendar composition** baseline. This does not supersede the already approved Android light/dark Soft Family themes or authorize literal iOS chrome. Android Calendar in Compose should reuse the day-agenda layout, three contextual tiles, Today/Tomorrow, narrow time rail + avatars, separate no-time tasks, and a safe-area bottom nav; then open the full week/month calendar. Full recommendations and original-image SHA-256: [Calendar UI visual reference](FAMILYPOINTS_CALENDAR_UI_REFERENCE.md). Backend reward availability and deadline semantics remain controlled by ADR-CAL-001/IMP-0006.

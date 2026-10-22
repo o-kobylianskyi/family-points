@@ -74,3 +74,6 @@ Examples: (a) cartoons Mon–Fri 16:00–18:00 only after homework + clean room,
 - Ensure Flyway upgrade and existing LocalDateTime timestamp semantics are reviewed before enforcing a new workspace timezone.
 
 **Open questions to resolve within track reviews, not implicit changes:** timezone default/migration for existing workspaces; whether/when to add end-time use control for time rewards; overnight/repeating monthly exceptions; notification rules; task planned start separate from due deadline.
+
+## User-selected calendar layout reference (2026-10-22)
+The user selected an external iPhone-style family agenda mockup as the **composition baseline**, not a replacement for Soft Family light/dark themes. Daily dashboard, today/tomorrow switch, three contextual tiles, chronological vertical timeline, avatar stacks, no-time chores and fixed navigation should be adapted for task deadlines and reward acquisition windows. See [Calendar UI visual reference](../FAMILYPOINTS_CALENDAR_UI_REFERENCE.md). Backend ownership and DTO semantics remain unchanged by this visual decision.
