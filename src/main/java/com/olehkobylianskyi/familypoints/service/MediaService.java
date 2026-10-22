@@ -207,11 +207,27 @@ public class MediaService {
         if(!Set.of("CARD","THUMB").contains(variant))throw new IllegalArgumentException("Invalid variant");
         UUID uuid=UUID.fromString(id);
         // A private asset can be read only if currently bound in this exact workspace.
-        if(db.queryForObject("""
-                SELECT count(*) FROM media_bindings b JOIN media_assets a ON a.id=b.asset_id
+        // Only expose a private image through a binding whose target the current
+        // member is authorized to see. An opaque UUID is not authorization.
+        var bindings=db.query("""
+                SELECT b.target_type,b.target_id FROM media_bindings b
+                JOIN media_assets a ON a.id=b.asset_id
                 WHERE b.asset_id=?::uuid AND b.workspace_id=? AND a.workspace_id=?
-                """,Integer.class,uuid.toString(),ws,ws)==0)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Media not found");
+                """,(rs,n)->new String[]{rs.getString(1),Long.toString(rs.getLong(2))},
+                uuid.toString(),ws,ws);
+        boolean visible=false;
+        for (String[] binding:bindings) {
+            try {
+                String type=binding[0];long target=Long.parseLong(binding[1]);
+                checkTarget(ws,type,target,type.equals("MEMBER")?"AVATAR":type.equals("WORKSPACE")?"ICON":"ICON");
+                var member=current.getCurrentMember();
+                if (type.equals("MEMBER") && member.getId()!=target
+                        && !member.hasPermission(WorkspacePermission.MANAGE_MEMBERS)
+                        && !member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) continue;
+                visible=true;break;
+            } catch(ResponseStatusException ignored) { /* revoked target */ }
+        }
+        if (!visible) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Media not found");
         try {
             return db.queryForObject("""
                     SELECT a.mime_type,v.bytes FROM media_assets a
@@ -221,5 +237,6 @@ public class MediaService {
         }catch(EmptyResultDataAccessException e) {throw new ResponseStatusException(HttpStatus.NOT_FOUND);}
     }
 
+    public void assertCatalogWorkspace(long ws) {requireWorkspace(ws);}
     public List<String> catalog() {return CATALOG.stream().sorted().toList();}
 }

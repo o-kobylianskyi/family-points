@@ -15,6 +15,7 @@ public class MediaController {
     @GetMapping("/catalog")
     public List<String> catalog(@PathVariable long workspaceId) {
         // Does not reveal private workspace data; still require selection via the same media API.
+        media.assertCatalogWorkspace(workspaceId);
         return media.catalog();
     }
     @PostMapping(value="/uploads",consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
