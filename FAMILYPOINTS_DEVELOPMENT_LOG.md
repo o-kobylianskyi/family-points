@@ -1283,3 +1283,10 @@
 - **DEVICE-REPRODUCED:** release APK 0.1.0-beta.1 (`versionCode=1`) crashes in `MainActivity.onCreate:132` with `IllegalAccessError: Class kotlin.sequences.d extended by class x91 is inaccessible`; trace includes R8 mapping IDs and Compose startup.
 - **SOURCE FIX:** removed experimental scoped release `optimization { enable = true; packageScope = ... }` from `android/app/build.gradle.kts`, commit `ba0b135`.
 - **NOT VERIFIED:** rebuilt release APK, in-place upgrade, actual device launch, post-fix crash log. Use same keystore and `versionCode=2`, `versionName=0.1.0-beta.2`; do not replace public download until tested.
+
+
+## 2026-10-22 — Username availability access correction
+
+- Confirmed `/auth/username-availability` exists and queries `user_accounts`, but was absent from `SecurityConfig` public matchers, causing anonymous requests to fail before controller.
+- Added exact route to `permitAll()` (commit `a2a5bc5`). Frontend already requests it from `UsernameAvailability.jsx` and reports non-2xx as failure.
+- Pending: deploy updated backend to BETA, verify 200 JSON for anonymous free/taken names, then test existing Google account password setup. No server deployment in this change.
