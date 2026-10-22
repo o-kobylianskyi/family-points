@@ -12,6 +12,8 @@
 
 - **User-confirmed visual target (Android, 2026-10-22):** user supplied exact Light and Dark phone mockups as the Android Soft Family target. Android specification (both reference hashes, component anatomy, theme-setting behavior and open acceptance matrix): `docs/ANDROID_SOFT_FAMILY_UI_SPEC.md`. Visual agreement is NOT build/device acceptance and adds no new API contract.
 
+- **User clarification (2026-10-22; Android + Web visual acceptance):** do NOT insert full mockup images or cropped cards with embedded text as UI. Rebuild live native/Web controls and dynamic data, adapt layout, isolate text-free illustration assets only, and localize all labels/content. Exact rules in `docs/ANDROID_SOFT_FAMILY_UI_SPEC.md` and `docs/FAMILYPOINTS_SOFT_FAMILY_DESIGN.md`; this is a design constraint, NOT evidence of implementation, testing or accepted visual parity.
+
 ## IMP-0002 — Registration, Google, username and invitation contracts
 - Producer / date: Backend + Architecture / 2026-10-22. Status: **ACK NEEDED**.
 - Change: anonymous username-availability matcher correction, Google auth/invite routes/CORS and registration feature flags affect clients and deployment.
