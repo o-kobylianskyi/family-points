@@ -27,3 +27,9 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Old Web branch `feature/web-soft-family` retained as archive for inspection; PR #2 to close as superseded, not to merge; `scripts/web/install-soft-family-assets.ps1` remains only in old Web branch, because binary assets are now tracked in integration and no longer need manual install.
 - To view: start Vite from `family-points/frontend` on 5173 after `git pull --ff-only origin feature/task-soft-delete`. Do not delete a Windows worktree until checked for uncommitted files and removed through `git worktree remove`.
 - Source integrated; CI/browser verification still pending. No server deployment.
+
+## 2026-10-22 — Dashboard defects reported again; confirmed missing implementation
+- User verified local 5173 after pull. Previous integration transferred illustrations/avatar infrastructure, **not** the requested reference exact-match fixes. Acknowledged misleading earlier completion language.
+- Committed CSS correction `95159c47` to integration: sidebar promo image constrained within its panel; hero artwork uses contain and matches hero bounds instead of negative bottom/oversized height. Responsive overrides added; requires screenshot check.
+- Outstanding: extract exact logo and graphic icons from provided reference only where original asset provenance and clean transparent extraction can be verified; do not call redrawn SVGs exact matches. Hero composition, responsive and both theme visual verification still open.
+- No Vite/browser test run by assistant; no Backend/Android/DB/release changes.
