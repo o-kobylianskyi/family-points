@@ -3919,3 +3919,52 @@ button:focus-visible {
 .fp-theme-options { display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; }
 .fp-theme-options label { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid var(--fp-border); border-radius:12px; background:var(--fp-surface); color:var(--fp-text); cursor:pointer; }
 .fp-theme-options input { accent-color:var(--fp-accent); }
+
+/* Dashboard theme regression fix: all panels must use the same semantic
+   foreground/background, with independent vertical rhythm. */
+.dashboard-welcome { margin-bottom: 26px; }
+.dashboard-stats { gap: 16px; margin-bottom: 24px; }
+.dashboard-panel { margin-bottom: 20px; }
+.dashboard-grid { gap: 20px; align-items: start; }
+.dashboard-grid > .dashboard-panel { margin-bottom: 0; }
+.dashboard-stats .stat-card,
+.dashboard-panel {
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  border: 1px solid var(--fp-border);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .04);
+}
+.dashboard-welcome h1,
+.dashboard-panel .panel-header h2,
+.dashboard-panel .task-card h3,
+.dashboard-stats .stat-value {
+  color: var(--fp-text);
+}
+.dashboard-welcome p,
+.dashboard-stats .stat-label,
+.dashboard-stats .stat-description,
+.dashboard-panel .panel-header p,
+.dashboard-panel .empty-state {
+  color: var(--fp-text-muted);
+}
+.dashboard-panel .panel-header { border-bottom-color: var(--fp-border); }
+.dashboard-panel .empty-state strong { color: var(--fp-text); }
+.dashboard-quick-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.dashboard-quick-actions a { text-decoration: none; }
+[data-theme="dark"] .dashboard-panel .secondary-button,
+[data-theme="dark"] .dashboard-quick-actions .secondary-button {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  border: 1px solid var(--fp-border);
+}
+[data-theme="dark"] .dashboard-quick-actions .primary-button {
+  color: #ffffff;
+  background: #397b71;
+}
+@media (max-width: 1000px) {
+  .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 580px) {
+  .dashboard-stats { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+}
