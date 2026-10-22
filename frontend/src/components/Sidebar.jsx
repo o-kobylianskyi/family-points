@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getMemberGroups } from '../api/memberGroupApi'
 import { useAuth } from '../context/AuthContext'
+import SoftFamilyIcon from './SoftFamilyIcon'
 
 function Sidebar() {
   const { t } = useTranslation()
@@ -33,16 +34,17 @@ function Sidebar() {
   }
 
   return <aside className="sidebar">
-    <div className="sidebar-logo"><div className="brand-icon">FP</div><div><strong>FamilyPoints</strong><span>{t('workspaceUi.brandSubtitle')}</span></div></div>
+    <div className="sidebar-logo"><div className="brand-icon"><SoftFamilyIcon name="family" size={42} /></div><div><strong>FamilyPoints</strong><span>{t('workspaceUi.brandSubtitle')}</span></div></div>
     <nav className="sidebar-nav">
-      <NavLink to="/" end className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.dashboard')}</NavLink>
-      <NavLink to="/members" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('workspaceUi.members')}</NavLink>
-      <NavLink to="/tasks" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.tasks')}</NavLink>
-      <NavLink to="/points" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.points')}</NavLink>
-      <NavLink to="/rewards" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.rewards')}</NavLink>
+      <NavLink to="/" end className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="home" size={22} /><span>{t('navigation.dashboard')}</span></NavLink>
+      <NavLink to="/members" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="family" size={22} /><span>{t('workspaceUi.members')}</span></NavLink>
+      <NavLink to="/tasks" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="check" size={22} /><span>{t('navigation.tasks')}</span></NavLink>
+      <NavLink to="/points" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="points" size={22} /><span>{t('navigation.points')}</span></NavLink>
+      <NavLink to="/rewards" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="gift" size={22} /><span>{t('navigation.rewards')}</span></NavLink>
       {roots.length > 0 && <div className="sidebar-dynamic-groups">{roots.map(g => renderGroup(g))}</div>}
     </nav>
-    <div className="sidebar-bottom"><NavLink to="/download" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('androidDownload.nav')}</NavLink><NavLink to="/settings" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>{t('navigation.settings')}</NavLink></div>
+    <div className="fp-sidebar-promo" aria-hidden="true"><span>FamilyPoints ♥</span><img src="/assets/soft-family/family-illustration.svg" alt="" /></div>
+    <div className="sidebar-bottom"><NavLink to="/download" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="gift" size={22} /><span>{t('androidDownload.nav')}</span></NavLink><NavLink to="/settings" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="settings" size={22} /><span>{t('navigation.settings')}</span></NavLink></div>
   </aside>
 }
 export default Sidebar
