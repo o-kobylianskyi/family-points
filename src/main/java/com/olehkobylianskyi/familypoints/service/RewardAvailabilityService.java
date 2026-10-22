@@ -30,7 +30,7 @@ public class RewardAvailabilityService {
     }
 
     public Evaluation evaluate(RewardDefinition reward, Instant now) {
-        if (reward.getAvailabilityMode() == RewardAvailabilityMode.ALWAYS) {
+        if ((reward.getAvailabilityMode() == null || reward.getAvailabilityMode() == RewardAvailabilityMode.ALWAYS)) {
             return new Evaluation(true, null, null, "ALWAYS");
         }
         if (reward.getAvailabilityMode() == RewardAvailabilityMode.ONE_TIME) {
@@ -64,7 +64,7 @@ public class RewardAvailabilityService {
      */
     public List<Window> windowsOn(RewardDefinition reward, LocalDate date) {
         ZoneId zone = ZoneId.of(reward.getWorkspace().getTimeZone());
-        if (reward.getAvailabilityMode() == RewardAvailabilityMode.ALWAYS) return List.of();
+        if ((reward.getAvailabilityMode() == null || reward.getAvailabilityMode() == RewardAvailabilityMode.ALWAYS)) return List.of();
         if (reward.getAvailabilityMode() == RewardAvailabilityMode.ONE_TIME) {
             Instant from = reward.getAvailabilityStartsAt(), to = reward.getAvailabilityEndsAt();
             if (from == null || to == null) return List.of();
@@ -102,7 +102,8 @@ public class RewardAvailabilityService {
 
     @Transactional
     public RewardAvailabilityResponse update(Long workspaceId, Long rewardId, RewardAvailabilityRequest request) {
-        RewardDefinition reward = findReward(workspaceId, rewardId);
+        RewardDefinition reward = rewards.findForPurchase(rewardId, workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reward not found"));
         validate(request);
         reward.setAvailabilityMode(request.mode());
         reward.setAvailabilityStartsAt(request.mode() == RewardAvailabilityMode.ONE_TIME

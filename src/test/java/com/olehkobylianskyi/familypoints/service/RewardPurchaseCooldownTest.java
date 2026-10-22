@@ -35,7 +35,7 @@ class RewardPurchaseCooldownTest {
                 rewards, mock(RewardRequestRepository.class),
                 mock(RewardRequirementRepository.class), purchases,
                 mock(RewardObligationRepository.class), mock(TaskDefinitionRepository.class),
-                mock(TaskInstanceRepository.class), mock(ReputationService.class), points);
+                mock(TaskInstanceRepository.class), mock(ReputationService.class), points, mock(RewardAvailabilityService.class));
 
         var failure = assertThrows(ResponseStatusException.class,
                 () -> service.purchaseReward(8L, 3L, 11L));
