@@ -4273,3 +4273,39 @@ button:focus-visible {
 @media (max-width:720px) {
   .fp-dashboard .fp-hero-art { width:66%; max-width:66%; right:-7%; opacity:.45; }
 }
+
+
+/* Plan/fact dashboard header correction: do not cap desktop dashboard at 1400px.
+   Keep all business values/controls live; align hero typography and illustration. */
+.page-content:has(> .fp-dashboard) { max-width:none; width:100%; padding:26px 24px; }
+.fp-dashboard .fp-hero { min-height:185px; padding:25px 32px; padding-right:60%; }
+.fp-dashboard .fp-hero-content { z-index:3; min-width:0; }
+.fp-dashboard .fp-hero h1 { margin:0 0 8px; }
+.fp-dashboard .fp-hero p { display:block; font-size:15px; line-height:1.45; color:#e0eaf1; }
+.fp-dashboard .fp-hero-motto { display:flex; margin-top:12px; gap:8px; align-items:center; font-size:15px; color:#69e4d6; line-height:1.4; }
+.fp-dashboard .fp-hero-art {
+  z-index:1;
+  position:absolute; right:13%; bottom:-1px;
+  width:47%; max-width:47%; height:100%; max-height:100%;
+  object-fit:contain; object-position:center bottom;
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 9%,#000 92%,transparent);
+  mask-image:linear-gradient(to right,transparent,#000 9%,#000 92%,transparent);
+}
+.fp-dashboard .fp-hero-calligraphy {
+  display:block; position:absolute; z-index:2; top:21px; right:25px;
+  width:150px; color:#7fe6da; text-align:center; opacity:.94;
+  font-family:"Segoe Print","Comic Sans MS",cursive; font-size:18px;
+  font-style:italic; line-height:1.45; transform:rotate(-8deg);
+}
+@media (max-width:1200px) {
+  .fp-dashboard .fp-hero-art { right:4%; width:57%; max-width:57%; }
+  .fp-dashboard .fp-hero-calligraphy { display:none; }
+  .fp-dashboard .fp-hero { padding-right:50%; }
+}
+@media (max-width:760px) {
+  .page-content:has(> .fp-dashboard) { padding:16px 12px; }
+  .fp-dashboard .fp-hero { min-height:172px; padding:18px 20px; padding-right:22px; }
+  .fp-dashboard .fp-hero-content { max-width:78%; }
+  .fp-dashboard .fp-hero p, .fp-dashboard .fp-hero-motto { font-size:13px; }
+  .fp-dashboard .fp-hero-art { right:-5%; width:64%; max-width:64%; opacity:.28; }
+}
