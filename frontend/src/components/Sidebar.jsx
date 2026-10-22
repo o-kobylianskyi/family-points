@@ -34,7 +34,7 @@ function Sidebar() {
   }
 
   return <aside className="sidebar">
-    <div className="sidebar-logo"><div className="brand-icon"><SoftFamilyIcon name="family" size={42} /></div><div><strong>FamilyPoints</strong><span>{t('workspaceUi.brandSubtitle')}</span></div></div>
+    <div className="sidebar-logo"><div className="brand-icon"><img className="fp-brand-reference" src="/assets/soft-family/reference/brand-symbol.webp" alt="" onError={e => { e.currentTarget.hidden = true }} /><SoftFamilyIcon name="family" size={42} /></div><div><strong>FamilyPoints</strong><span>{t('workspaceUi.brandSubtitle')}</span></div></div>
     <nav className="sidebar-nav">
       <NavLink to="/" end className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="home" size={22} /><span>{t('navigation.dashboard')}</span></NavLink>
       <NavLink to="/members" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="family" size={22} /><span>{t('workspaceUi.members')}</span></NavLink>
@@ -43,7 +43,7 @@ function Sidebar() {
       <NavLink to="/rewards" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="gift" size={22} /><span>{t('navigation.rewards')}</span></NavLink>
       {roots.length > 0 && <div className="sidebar-dynamic-groups">{roots.map(g => renderGroup(g))}</div>}
     </nav>
-    <div className="fp-sidebar-promo" aria-hidden="true"><span>FamilyPoints ♥</span><img src="/assets/soft-family/family-promo.webp" alt=""
+    <div className="fp-sidebar-promo" aria-hidden="true"><span>Сімейні завдання, бали та мотивація в одному просторі!</span><img src="/assets/soft-family/reference/sidebar-family.webp" alt=""
         onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/soft-family/family-illustration.svg' }} /></div>
     <div className="sidebar-bottom"><NavLink to="/download" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="gift" size={22} /><span>{t('androidDownload.nav')}</span></NavLink><NavLink to="/settings" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="settings" size={22} /><span>{t('navigation.settings')}</span></NavLink></div>
   </aside>
