@@ -20,3 +20,9 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - **Current Web blockers:** uncommitted `family-hero.webp` and `family-promo.webp` images exist only in separately provided local ZIP (repo currently has SVG fallback only); Web screenshot parity, Vite lint/build, cross-page light/dark contrast, and four-language theme UI checks remain pending. No runtime, server, CI, VPS or DB verification was performed in this onboarding batch.
 - **Next Web work:** confirm source-controlled artwork and visual acceptance of dashboard at desktop/mobile/light/dark, then standardize Members/Tasks/Points/Rewards/Settings. Register cross-track impact BEFORE changing any REST/media/auth contract. Commit only Web changes on an isolated `feature/web-*` branch as concurrency increases, integrate via reviewed PR.
 - **Release hold:** only Release/DevOps decides deploy/tag/APK publication. No changes to Contabo, Flyway, Java, Android or signing in this batch.
+
+
+### Web work branch created (2026-10-22)
+- Dedicated Web-only branch: `feature/web-soft-family`, based on current integration SHA `3bc7a88de10298ddb6b6f2acbe8172361f7d5617`; separate from Android, Backend and Release branches.
+- Future Web commits and Web-specific journal updates belong here; integrate only via review/PR to the then-current integration target, rechecking shared impacts first.
+- This action created a branch and updated its Web journal only; it did not build, deploy or change application/DB/server code.
