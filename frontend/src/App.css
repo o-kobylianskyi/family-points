@@ -4228,3 +4228,48 @@ button:focus-visible {
 .sidebar .fp-sidebar-promo > span { display:none; }
 .sidebar .fp-sidebar-promo > img { position:absolute; inset:0; transform:none; width:100%; height:100%; max-height:100%; object-fit:fill; }
 @media(max-width:720px) { .fp-dashboard .fp-hero-art { width:57%; height:auto; max-width:57%; right:0; bottom:0; } }
+
+
+/* Dashboard artwork edge cleanup: reference images were cropped from a mockup,
+   so blend their rectangular backgrounds instead of showing crop seams. */
+.fp-dashboard .fp-hero-art {
+  width:min(61%,700px);
+  max-width:61%;
+  max-height:100%;
+  height:auto;
+  right:0;
+  bottom:-1px;
+  object-fit:contain;
+  object-position:right bottom;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 96%,transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 96%,transparent 100%);
+}
+.sidebar .fp-sidebar-promo {
+  border:0;
+  outline:0;
+  box-shadow:none;
+  background:transparent;
+  overflow:hidden;
+}
+.sidebar .fp-sidebar-promo > img {
+  border-radius:21px;
+  object-fit:cover;
+  object-position:center;
+  display:block;
+}
+.fp-dashboard .fp-actions a > img {
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  object-fit:cover;
+  -webkit-mask-image:radial-gradient(ellipse closest-side, #000 75%, transparent 100%);
+  mask-image:radial-gradient(ellipse closest-side, #000 75%, transparent 100%);
+}
+.fp-dashboard .fp-empty-icon > img {
+  object-fit:contain;
+  -webkit-mask-image:radial-gradient(ellipse closest-side,#000 72%,transparent 100%);
+  mask-image:radial-gradient(ellipse closest-side,#000 72%,transparent 100%);
+}
+@media (max-width:720px) {
+  .fp-dashboard .fp-hero-art { width:66%; max-width:66%; right:-7%; opacity:.45; }
+}
