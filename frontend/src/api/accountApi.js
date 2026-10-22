@@ -48,3 +48,9 @@ export async function setPasswordWithGoogle(token, idToken, newPassword, usernam
     throw error
   }
 }
+
+export async function getGoogleUsernameSuggestion(token) {
+  const r = await apiRequest('/api/account/google/suggested-username', { token })
+  if (!r.ok) throw new Error(await readError(r, 'Cannot suggest username'))
+  return (await r.json()).username
+}
