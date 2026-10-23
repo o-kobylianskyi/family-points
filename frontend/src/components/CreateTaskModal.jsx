@@ -300,7 +300,7 @@ function CreateTaskModal({
 
     return (
       <div className="task-amount-control">
-        <div className="task-amount-combobox">
+        <div className="task-amount-combobox fp-amount-combobox">
           <input
             type="number"
             min="0"
