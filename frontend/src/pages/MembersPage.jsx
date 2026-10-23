@@ -401,7 +401,7 @@ function MembersPage() {
         <p>{t('memberUi.subtitle')}</p>
       </div>
 
-      <div className="page-tabs">
+      <div className="page-tabs members-page-tabs">
         <button type="button" className={pageTab === 'members' ? 'page-tab active' : 'page-tab'} onClick={() => setPageTab('members')}>{t('memberUi.members')}</button>
         <button type="button" className={pageTab === 'groups' ? 'page-tab active' : 'page-tab'} onClick={() => setPageTab('groups')}>{t('memberUi.groups')}</button>
       </div>
