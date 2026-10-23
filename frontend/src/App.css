@@ -4655,3 +4655,31 @@ button:focus-visible {
   background: #382228;
   color: #ffc1c1;
 }
+
+
+/* Login actions: consistent size, spacing and dark appearance.
+   Google iframe visual is selected through GIS renderButton theme, not iframe CSS. */
+.login-card .google-auth-button-frame,
+.login-card .android-download-cta,
+.login-card form > button[type="submit"] {
+  min-height: 44px;
+  box-sizing: border-box;
+}
+[data-theme="dark"] .login-card .android-download-cta {
+  background: var(--fp-surface-muted);
+  color: var(--fp-accent);
+  border: 1px solid var(--fp-border);
+  box-shadow: none;
+}
+[data-theme="dark"] .login-card .android-download-cta:hover {
+  background: var(--fp-accent-soft);
+  color: var(--fp-accent-hover);
+  border-color: var(--fp-accent);
+}
+[data-theme="dark"] .login-card .android-download-cta:focus-visible {
+  outline: 2px solid var(--fp-accent);
+  outline-offset: 3px;
+}
+[data-theme="dark"] .login-card .google-auth-button {
+  color: var(--fp-text);
+}
