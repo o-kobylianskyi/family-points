@@ -19,9 +19,9 @@ export default function NumberInput({ value, onChange, min, max, step = 1, disab
         value={value} onChange={onChange} disabled={disabled} />
       <div className="fp-number-stepper" role="group" aria-label={props['aria-label'] || 'Number controls'}>
         <button type="button" aria-label="Increase" onClick={() => adjust(1)}
-          disabled={disabled || (isFilled && amount >= upper)}>▲</button>
+          disabled={disabled || (isFilled && amount >= upper)}><span className="fp-number-arrow" aria-hidden="true">▲</span></button>
         <button type="button" aria-label="Decrease" onClick={() => adjust(-1)}
-          disabled={disabled || !isFilled || amount <= lower}>▼</button>
+          disabled={disabled || !isFilled || amount <= lower}><span className="fp-number-arrow" aria-hidden="true">▼</span></button>
       </div>
     </div>
   )
