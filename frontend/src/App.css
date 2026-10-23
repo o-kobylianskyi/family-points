@@ -4895,15 +4895,21 @@ button:focus-visible {
 
 /* Dark task editor: remove bright native number spinners; keep typed numbers and
    the accessible custom suggestion arrow. Dark scrollbars for suggestion lists. */
-[data-theme="dark"] .create-task-modal .task-amount-combobox > input[type="number"] {
-  -moz-appearance: textfield;
-  appearance: textfield;
+/* Keep native up/down number controls usable; dark color-scheme paints them dark. */
+[data-theme="dark"] input[type="number"] {
   color-scheme: dark;
 }
-[data-theme="dark"] .create-task-modal .task-amount-combobox > input[type="number"]::-webkit-inner-spin-button,
-[data-theme="dark"] .create-task-modal .task-amount-combobox > input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+[data-theme="dark"] .create-task-modal .task-amount-combobox > input[type="number"] {
+  appearance: auto;
+  -moz-appearance: auto;
+  padding-right: 78px;
+}
+[data-theme="dark"] .create-task-modal .task-amount-combobox .task-amount-dropdown-button {
+  right: 22px;
+  width: 34px;
+  border-radius: 6px;
+  top: 4px;
+  bottom: 4px;
 }
 [data-theme="dark"] .create-task-modal .task-amount-dropdown-menu {
   color-scheme: dark;
@@ -4928,3 +4934,6 @@ button:focus-visible {
 [data-theme="dark"] .create-task-modal .task-amount-dropdown-button {
   color-scheme: dark;
 }
+
+/* Dark native form widgets across Web dialogs and forms (not just task editor). */
+[data-theme="dark"] :is(input[type="number"],input[type="date"],input[type="time"],select,textarea) { color-scheme: dark; }
