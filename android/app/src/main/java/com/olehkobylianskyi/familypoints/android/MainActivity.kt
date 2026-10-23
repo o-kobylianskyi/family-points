@@ -21,6 +21,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
@@ -81,6 +83,8 @@ import com.olehkobylianskyi.familypoints.android.ui.screens.TasksScreen
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyPointsTheme
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyThemeMode
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyThemePreference
+import com.olehkobylianskyi.familypoints.android.update.AndroidUpdateChecker
+import com.olehkobylianskyi.familypoints.android.update.AvailableAndroidUpdate
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -177,6 +181,63 @@ class MainActivity : ComponentActivity() {
                     }
                     val status by ServerReachability.status.collectAsState()
                     val connectionScope = rememberCoroutineScope()
+                    var availableUpdate by remember { mutableStateOf<AvailableAndroidUpdate?>(null) }
+                    var skippedUpdateVersion by remember { mutableStateOf<Int?>(null) }
+
+                    // Foreground check on app launch and every six hours while open.
+                    // The public manifest requires no session and offline failures are ignored.
+                    LaunchedEffect(Unit) {
+                        while (true) {
+                            val next = AndroidUpdateChecker.check()
+                            if (next != null && next.versionCode != skippedUpdateVersion) {
+                                availableUpdate = next
+                            }
+                            delay(6 * 60 * 60 * 1000L)
+                        }
+                    }
+                    availableUpdate?.let { update ->
+                        AlertDialog(
+                            onDismissRequest = {
+                                skippedUpdateVersion = update.versionCode
+                                availableUpdate = null
+                            },
+                            title = { Text(when (language) {
+                                AppLanguage.UK -> "Доступне оновлення"
+                                AppLanguage.DE -> "Update verfügbar"
+                                AppLanguage.EN -> "Update available"
+                                AppLanguage.RU -> "Доступно обновление"
+                            }) },
+                            text = { Text(when (language) {
+                                AppLanguage.UK -> "Нова версія FamilyPoints ${update.versionName}. Завантажити APK для встановлення?"
+                                AppLanguage.DE -> "FamilyPoints ${update.versionName} ist verfügbar. APK herunterladen und installieren?"
+                                AppLanguage.EN -> "FamilyPoints ${update.versionName} is available. Download the APK to install?"
+                                AppLanguage.RU -> "Доступна новая версия FamilyPoints ${update.versionName}. Скачать APK для установки?"
+                            }) },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    skippedUpdateVersion = update.versionCode
+                                    availableUpdate = null
+                                    runCatching { AndroidUpdateChecker.openDownload(this@MainActivity) }
+                                }) { Text(when (language) {
+                                    AppLanguage.UK -> "Завантажити"
+                                    AppLanguage.DE -> "Herunterladen"
+                                    AppLanguage.EN -> "Download"
+                                    AppLanguage.RU -> "Скачать"
+                                }) }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = {
+                                    skippedUpdateVersion = update.versionCode
+                                    availableUpdate = null
+                                }) { Text(when (language) {
+                                    AppLanguage.UK -> "Пізніше"
+                                    AppLanguage.DE -> "Später"
+                                    AppLanguage.EN -> "Later"
+                                    AppLanguage.RU -> "Позже"
+                                }) }
+                            }
+                        )
+                    }
 
                     // Check actual backend availability, including Wi-Fi with no API.
                     LaunchedEffect(Unit) {
