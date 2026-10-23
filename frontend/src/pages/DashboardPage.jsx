@@ -75,8 +75,6 @@ export default function DashboardPage() {
         <p>{t('dashboardLive.description')}</p>
         <span className="fp-hero-motto">{t('dashboardLive.familyMotto')} <SoftFamilyIcon name="heart" size={22} /></span>
       </div>
-      <img className="fp-hero-art" src="/assets/soft-family/reference/hero-family.webp" alt=""
-        onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/soft-family/family-illustration.svg' }} />
       <span className="fp-hero-calligraphy" aria-hidden="true">Малі справи<br/>— великі<br/>можливості ♡</span>
     </section>
     <div className="fp-stats">
