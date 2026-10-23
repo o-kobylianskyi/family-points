@@ -83,6 +83,7 @@ import com.olehkobylianskyi.familypoints.android.ui.screens.TasksScreen
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyPointsTheme
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyThemeMode
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyThemePreference
+import com.olehkobylianskyi.familypoints.android.update.AndroidApkInstaller
 import com.olehkobylianskyi.familypoints.android.update.AndroidUpdateChecker
 import com.olehkobylianskyi.familypoints.android.update.AvailableAndroidUpdate
 import kotlinx.coroutines.delay
@@ -183,6 +184,9 @@ class MainActivity : ComponentActivity() {
                     val connectionScope = rememberCoroutineScope()
                     var availableUpdate by remember { mutableStateOf<AvailableAndroidUpdate?>(null) }
                     var skippedUpdateVersion by remember { mutableStateOf<Int?>(null) }
+                    var updateDownloading by remember { mutableStateOf(false) }
+                    var updateProgress by remember { mutableStateOf(0) }
+                    var updateError by remember { mutableStateOf<String?>(null) }
 
                     // Foreground check on app launch and every six hours while open.
                     // The public manifest requires no session and offline failures are ignored.
@@ -198,8 +202,10 @@ class MainActivity : ComponentActivity() {
                     availableUpdate?.let { update ->
                         AlertDialog(
                             onDismissRequest = {
-                                skippedUpdateVersion = update.versionCode
-                                availableUpdate = null
+                                if (!updateDownloading) {
+                                    skippedUpdateVersion = update.versionCode
+                                    availableUpdate = null
+                                }
                             },
                             title = { Text(when (language) {
                                 AppLanguage.UK -> "Доступне оновлення"
@@ -207,17 +213,41 @@ class MainActivity : ComponentActivity() {
                                 AppLanguage.EN -> "Update available"
                                 AppLanguage.RU -> "Доступно обновление"
                             }) },
-                            text = { Text(when (language) {
-                                AppLanguage.UK -> "Нова версія FamilyPoints ${update.versionName}. Завантажити APK для встановлення?"
-                                AppLanguage.DE -> "FamilyPoints ${update.versionName} ist verfügbar. APK herunterladen und installieren?"
-                                AppLanguage.EN -> "FamilyPoints ${update.versionName} is available. Download the APK to install?"
-                                AppLanguage.RU -> "Доступна новая версия FamilyPoints ${update.versionName}. Скачать APK для установки?"
+                            text = { Text(if (updateDownloading) {
+                                when (language) {
+                                    AppLanguage.UK -> "Завантаження та перевірка APK: $updateProgress%"
+                                    AppLanguage.DE -> "APK wird geladen und geprüft: $updateProgress%"
+                                    AppLanguage.EN -> "Downloading and verifying APK: $updateProgress%"
+                                    AppLanguage.RU -> "Загрузка и проверка APK: $updateProgress%"
+                                }
+                            } else if (updateError != null) {
+                                updateError ?: ""
+                            } else when (language) {
+                                AppLanguage.UK -> "Нова версія FamilyPoints ${update.versionName}. Завантажити та встановити?"
+                                AppLanguage.DE -> "FamilyPoints ${update.versionName} ist verfügbar. Herunterladen und installieren?"
+                                AppLanguage.EN -> "FamilyPoints ${update.versionName} is available. Download and install?"
+                                AppLanguage.RU -> "Доступна новая версия FamilyPoints ${update.versionName}. Скачать и установить?"
                             }) },
                             confirmButton = {
-                                TextButton(onClick = {
-                                    skippedUpdateVersion = update.versionCode
-                                    availableUpdate = null
-                                    runCatching { AndroidUpdateChecker.openDownload(this@MainActivity) }
+                                TextButton(enabled = !updateDownloading, onClick = {
+                                    updateError = null
+                                    updateProgress = 0
+                                    updateDownloading = true
+                                    connectionScope.launch {
+                                        try {
+                                            val apk = AndroidApkInstaller.download(this@MainActivity, update) { progress ->
+                                                // File I/O runs off-main; state updates stay on the UI dispatcher.
+                                                connectionScope.launch { updateProgress = progress }
+                                            }
+                                            updateDownloading = false
+                                            skippedUpdateVersion = update.versionCode
+                                            availableUpdate = null
+                                            AndroidApkInstaller.install(this@MainActivity, apk)
+                                        } catch (e: Exception) {
+                                            updateDownloading = false
+                                            updateError = e.message ?: "APK update failed"
+                                        }
+                                    }
                                 }) { Text(when (language) {
                                     AppLanguage.UK -> "Завантажити"
                                     AppLanguage.DE -> "Herunterladen"
@@ -226,7 +256,7 @@ class MainActivity : ComponentActivity() {
                                 }) }
                             },
                             dismissButton = {
-                                TextButton(onClick = {
+                                TextButton(enabled = !updateDownloading, onClick = {
                                     skippedUpdateVersion = update.versionCode
                                     availableUpdate = null
                                 }) { Text(when (language) {
