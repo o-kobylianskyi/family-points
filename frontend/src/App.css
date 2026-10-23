@@ -4525,9 +4525,9 @@ button:focus-visible {
   color: var(--fp-text-muted);
 }
 [data-theme="dark"] .rewards-page .reward-obligation-banner {
-  background: #332d20;
-  border-color: #75603b;
-  color: #ffe4b2;
+  background: var(--fp-surface);
+  border-color: var(--fp-border);
+  color: var(--fp-text);
 }
 [data-theme="dark"] .rewards-page :is(
   .reward-actions, .reward-inline-form
@@ -4598,4 +4598,16 @@ button:focus-visible {
   background: var(--fp-surface-muted);
   color: var(--fp-text);
   border: 1px solid var(--fp-border);
+}
+
+/* Shared neutral semantic banners in dark mode: avoid yellow/brown panels. */
+[data-theme="dark"] .task-mandatory {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  border: 1px solid var(--fp-border);
+}
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) .task-mandatory {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
 }
