@@ -9,15 +9,30 @@ import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +79,8 @@ import com.olehkobylianskyi.familypoints.android.ui.screens.RewardsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.TaskDetailsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.TasksScreen
 import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyPointsTheme
+import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyThemeMode
+import com.olehkobylianskyi.familypoints.android.ui.theme.FamilyThemePreference
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -129,8 +146,27 @@ class MainActivity : ComponentActivity() {
         val roleCatalogRepository = RoleCatalogRepository(tokenStore)
         authSessionManager = AuthSessionManager(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineAccountStore(this))
 
+        val themePreference = FamilyThemePreference(this)
         setContent {
-            FamilyPointsTheme {
+            var themeMode by remember { mutableStateOf(themePreference.get()) }
+            val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+            val dark = when (themeMode) {
+                FamilyThemeMode.DARK -> true
+                FamilyThemeMode.LIGHT -> false
+                FamilyThemeMode.SYSTEM -> systemDark
+            }
+            SideEffect {
+                if (Build.VERSION.SDK_INT < 35) {
+                    window.statusBarColor = if (dark) Color.rgb(16, 23, 30) else Color.rgb(245, 250, 255)
+                    window.navigationBarColor = if (dark) Color.rgb(16, 23, 30) else Color.rgb(245, 250, 255)
+                }
+                WindowCompat.getInsetsController(window, window.decorView).apply {
+                    isAppearanceLightStatusBars = !dark
+                    isAppearanceLightNavigationBars = !dark
+                }
+            }
+            FamilyPointsTheme(mode = themeMode) {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -166,6 +202,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    Column(modifier = Modifier.fillMaxSize()) {
                 var currentUser by remember {
                     mutableStateOf<CurrentUserResponse?>(null)
                 }
@@ -292,6 +329,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 when {
                     authLoading -> {
                         LoadingScreen(language)
@@ -559,6 +597,8 @@ class MainActivity : ComponentActivity() {
                     destination == AppDestination.SETTINGS -> {
                         SettingsScreen(
                             language = language,
+                            themeMode = themeMode,
+                            onThemeModeChange = { selected -> themeMode = selected; themePreference.set(selected) },
                             currentUser = currentUser!!,
                             repository = settingsRepository,
                             membersRepository = membersRepository,
@@ -594,6 +634,42 @@ class MainActivity : ComponentActivity() {
                 }
 
                     }
+                    // Fixed native navigation remains visible on all main screens.
+                    if (currentUser != null && !authLoading &&
+                        destination in listOf(AppDestination.DASHBOARD, AppDestination.TASKS,
+                            AppDestination.MEMBERS, AppDestination.POINTS, AppDestination.REWARDS,
+                            AppDestination.SETTINGS)) {
+                        NavigationBar(
+                            modifier = Modifier.fillMaxWidth().height(76.dp),
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            tonalElevation = 2.dp
+                        ) {
+                            val destinations = listOf(
+                                Triple(AppDestination.DASHBOARD, Icons.Outlined.Home,
+                                    when(language) { AppLanguage.UK -> "Головна"; AppLanguage.DE -> "Start"; AppLanguage.EN -> "Home"; AppLanguage.RU -> "Главная" }),
+                                Triple(AppDestination.TASKS, Icons.Outlined.Checklist,
+                                    when(language) { AppLanguage.UK -> "Завдання"; AppLanguage.DE -> "Aufgaben"; AppLanguage.EN -> "Tasks"; AppLanguage.RU -> "Задачи" }),
+                                Triple(AppDestination.MEMBERS, Icons.Outlined.Group,
+                                    when(language) { AppLanguage.UK -> "Учасники"; AppLanguage.DE -> "Familie"; AppLanguage.EN -> "Members"; AppLanguage.RU -> "Участники" }),
+                                Triple(AppDestination.POINTS, Icons.Outlined.Payments,
+                                    when(language) { AppLanguage.UK -> "Бали"; AppLanguage.DE -> "Punkte"; AppLanguage.EN -> "Points"; AppLanguage.RU -> "Баллы" }),
+                                Triple(AppDestination.REWARDS, Icons.Outlined.CardGiftcard,
+                                    when(language) { AppLanguage.UK -> "Нагороди"; AppLanguage.DE -> "Prämien"; AppLanguage.EN -> "Rewards"; AppLanguage.RU -> "Награды" })
+                            )
+                            destinations.forEach { (target, glyph, caption) ->
+                                NavigationBarItem(
+                                    selected = destination == target,
+                                    onClick = { destination = target },
+                                    icon = { Icon(glyph, contentDescription = caption) },
+                                    label = { Text(caption, maxLines = 1, style = MaterialTheme.typography.labelSmall) },
+                                    alwaysShowLabel = false
+                                )
+                            }
+                        }
+                    }
+                    }
+                    }
+                }
                 }
             }
         }

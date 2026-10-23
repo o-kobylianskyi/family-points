@@ -2,6 +2,7 @@ package com.olehkobylianskyi.familypoints.android.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Card
+import com.olehkobylianskyi.familypoints.android.ui.components.FpCard as Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -219,6 +220,7 @@ fun MembersScreen(
             }
             LazyColumn(
                 modifier = Modifier.fillMaxWidth().weight(1f),
+                contentPadding = PaddingValues(top = 14.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 if (tab == "members") {

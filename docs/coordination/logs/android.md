@@ -42,3 +42,74 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - Original PNGs and their 73 cropped kit examples remain a **non-production visual reference kit**, not prebuilt elements to insert as raster views. Visual parity does NOT mean cloning iPhone screenshot or freezing pixels.
 - Updated canonical `docs/ANDROID_SOFT_FAMILY_UI_SPEC.md`, shared `docs/FAMILYPOINTS_SOFT_FAMILY_DESIGN.md`, and IMP-0001 within `docs/coordination/IMPACT_REGISTER.md` so Web/Android reviewers see the same constraint.
 - **No Kotlin/UI build, UI screenshot, device test, signed APK or deployment in this batch.** This is an implementation/acceptance requirement only.
+
+
+## 2026-10-22 — Soft Family structure implementation, first native batch (SOURCE COMMITTED; BUILD NOT VERIFIED)
+- **Approval:** user accepted a four-screen structural mockup (Home, Members, Tasks, Points), with light/dark modes, no illustrations and no embedded raster UI. Requested implementation for Android Studio verification.
+- **Topic branch:** `feature/android-soft-family-structure` created from `feature/task-soft-delete`, without changing integration branch, Backend, Web, DB or Release.
+- **Implementation:** `ui/theme/Theme.kt` now provides explicit Soft Family light/dark Material3 schemes, rounded shapes and persisted `FamilyThemeMode` (Light/Dark/System) using local SharedPreferences. `MainActivity.kt` applies and saves selected mode, aligns Android system-bar icon/background appearance; default follows system. `DashboardScreen.kt` exposes localized (UK/DE/EN/RU) mode selector, emphasizes confirmed balance card and presents reputation/task statistics side-by-side. Existing live API, offline banner, refresh and navigation preserved. Existing Members/Tasks/Points screens inherit theme automatically, but their detailed card layouts have **not yet** been converted to match the preview.
+- **Files/commits:** theme `e26d410`; MainActivity `b0dfb3e`; Dashboard `bec035f`; balance surface `9832b46`. No reference images were copied into production.
+- **Verification:** reviewed exact committed source and checked theme parameter wiring, localized selector and persistent theme definitions. **No Android SDK/Gradle build, emulator, real-device test or signed APK verified** in connector environment; compilation and actual visual parity remain OPEN.
+- **Next:** fetch topic branch in Android Studio; run `./gradlew :app:assembleDebug` with installed SDK API 37, exercise theme choice/restart, verify no runtime regressions. Migrate Members, Tasks, Points controls with semantic Compose components and screenshots; do not publish signed APK until IMP-0003 test gate.
+
+## 2026-10-22 — User confirms interim built-in Android avatars (AGREED; DOCUMENTATION ONLY)
+- While IMP-0007 Backend media API is pending, Android should **display its own bundled illustrated avatars and thematic task/group pictures** rather than wait on backend or display only initials everywhere.
+- Graphics remain separate image-only resources, no baked UI text. Selection should be stable by entity ID, with an abstraction/fallback allowing later server `imageRef`/catalog asset replacement without changing Compose screens.
+- Do not falsely claim uploaded images or cross-device sync; no Kotlin assets, build, or API changed in this documentation batch.
+
+
+## 2026-10-22 — Emulator UI discrepancy: dark background and navigation structure (SOURCE PATCHED, NOT BUILT)
+- User-provided Medium Phone API 37 screenshot showed **white root viewport with dark cards**, tiny theme control at the top, large empty area before greeting and no fixed bottom navigation. Confirmed previous patch only changed palette/stats and did NOT match approved structural preview.
+- On `feature/android-soft-family-structure`, changed `MainActivity.kt`: background-aware Material3 `Surface` wraps root, native five-destination bottom `NavigationBar` appears on primary screens (Home, Tasks, Members, Points, Rewards), area is reserved rather than covering screen content; state declared at correct composable scope. Existing Settings via menu remains available. Corrected Android system bar appearance by selected theme.
+- In `DashboardScreen.kt`: greeting/balance/tasks receive visual priority, family chooser moves under greeting, appearance selector moves after main content, redundant full-page Quick Actions card removed (core sections available in bottom navigation). UI text remains localized; live data, offline fallback and existing API callbacks kept.
+- Evidence: source edits `ae9e392`, `3661f27`, `243be4e`; brace-balance/source sanity inspected. **No local Android SDK, Gradle compile, emulator screenshot, accessibility or real-device verification**. Check API 37 build/test; report any Kotlin compiler error rather than assuming success.
+- Pending: full Members/Tasks/Points internal component redesign and illustration-free structural acceptance screenshots. Public APK crash gate IMP-0003 unaffected; no release/deploy.
+
+
+## 2026-10-22 — Cross-track refresh: Backend calendar draft, Web artwork, media contract (REVIEW ONLY)
+- **Integration branch checked:** `feature/task-soft-delete` at `b44c501224d9` (2026-10-22 21:12Z); Android topic branch was `317294e6c5aa` before this journal update. DO NOT mistake newer integration commits for already included Android topic code. Release/BETA remains separately gated.
+- **Backend:** draft PR #4 `feature/backend-calendar-rewards-v1`, current cited source `3199c03`: V35 migration, reward time gate, calendar projection, family time zone. Source API guide `docs/api/REWARD_CALENDAR_V1.md` reviewed. Backend journal reports Java/Maven/PostgreSQL Testcontainers and Flyway tests passed, Web/Compose jobs green at run 39854939259; Android CI was running at observation. **NOT MERGED OR DEPLOYED**. Android reviewed IMP-0006 API preview and acknowledged contract intake on integration register; consumer implementation remains BLOCKED/PENDING theme milestone and final DTO/API acceptance.
+- **Calendar constraints to preserve:** `GET /workspaces/{id}/calendar?from&to&memberId&type` inclusive max 62 days/2500 events; TASK event time is **deadline** not start; `REWARD_WINDOW` denotes time availability, not permission/balance/task condition success; rewards manager `GET/PUT .../availability`, workspace `GET/PUT .../calendar/time-zone`. Default existing-family zone UTC until explicit update, use response workspace zone and ISO instants, not phone timezone; offline calendar read-only. HTTP 409 `REWARD_OUTSIDE_AVAILABILITY_WINDOW` on forbidden final purchase. Android UI work remains XTR-20261022-P-03 after styling.
+- **Web:** integrated Soft Family illustrated assets and shared Web avatar components into integration at `7077035`. CSS hero/promo containment correction at `95159c4`, noted by `dc5e02f`; Web reports not yet visually accepted or deployed. Do not copy React components into Compose, and do not assume Web assets automatically exist in Android topic branch.
+- **Media:** IMP-0007 / XTR-20261022-W-01 requires Backend/Architecture decision for scoped media ownership, catalog/upload/fallback inheritance. Android's chosen interim solution remains **bundled image-only default avatars/icons**, with no fake server-backed upload/sync; no unapproved image API consumption.
+- **Release:** Release journal still says source intake only, Android signed release startup regression and real-phone update test BLOCKED. No environment/VPS/tag/APK acceptance reported. **No development code merged across tracks by this refresh**.
+- **Follow-up for integration:** fetch/compare integration history before merging Android topic via reviewed PR; resolve Web/shared files without force reset. UI completion, source compilation and device screenshot verification remain independent open items.
+
+
+## 2026-10-22 — Approved Variant A floating menus (IMPLEMENTED IN SOURCE, NOT DEVICE-VERIFIED)
+- User selected **Variant A — Floating Popover** from four visual alternatives, specifically to replace detached and unstyled hamburger/language dropdowns seen on Android emulator.
+- Reworked `ui/components/AppHeader.kt` at commit `2c2db4c`: each Material3 DropdownMenu is nested in a `Box` with its corresponding hamburger or language trigger to anchor to the real control, rather than the overall header row; spacing offset +7dp, soft theme-aware rounded surface, highlighted nav row, leading vector icons, language flags and current language checkmark. Opening either popover closes the other. Existing navigation, logout and language change callbacks remain unchanged. Reusable across existing screens that call AppHeader.
+- **Scope boundary:** matches selected popover visual direction; mockup triangle pointer and exact shadow geometry are not yet implemented/accepted. Current navigational highlight is a first-iteration default; screen-aware active row still needs wiring. No new image assets or Backend endpoints.
+- **Verification:** Git source updated; no Gradle/emulator/phone UI test was run here. Developer to pull Android topic branch, run assembleDebug, test language popover pinned to top-right trigger and navigation pinned to top-left trigger in both themes, plus narrow display and screen transitions. Release still blocked by IMP-0003.
+
+## 2026-10-22 — Material icon compile fix (SOURCE FIX; DEVICE REBUILD PENDING)
+- User supplied Android Studio failure `:app:compileDebugKotlin`: `AppHeader.kt` unresolved `ChevronDown` at import line 15 and use line 160, 2 errors.
+- Corrected both occurrences to Material Icons Extended `KeyboardArrowDown` in `ui/components/AppHeader.kt` commit `0ae53b2`; dependency `libs.androidx.compose.material.icons.extended` already exists in Gradle.
+- Source checked; **no remote/local Gradle or emulator build was run**. User to pull branch and rerun debug build.
+
+## 2026-10-22 — Members button/list separation (SOURCE ONLY)
+- User emulator screenshot identified nearly zero visual gap between `Додати учасника` and first member card.
+- Changed `MembersScreen.kt` main member/group `LazyColumn` to use `contentPadding = PaddingValues(top = 14.dp, bottom = 16.dp)` with existing inter-card `spacedBy(10.dp)` unchanged; applies after action area without changing model/API logic.
+- Code commit `936a66e`; no local Gradle, emulator or device test performed. Verify on Android Studio in both themes, and group tab layout.
+
+## 2026-10-22 — Move appearance choice to Settings (SOURCE, UNVERIFIED BUILD)
+- User requested removing theme selector from Dashboard, putting it in Settings and following native device light/dark setting on first login.
+- Moved localized Light/Dark/System FilterChips to SettingsScreen, connected existing MainActivity theme state and persisted FamilyThemePreference. No theme preference is present on fresh install, so pre-existing SYSTEM default already takes device isSystemInDarkTheme() as the source of truth. Explicit user choice still overrides device and persists across launches.
+- Source commits `091a295`, `845bfee`, `9a696ae`. Verified balanced source braces and parameter wiring in changed source, but **no Gradle/emulator run**. No changes to Backend or publishing.
+
+
+## 2026-10-23 — Global Soft Family Outlined Elevated Cards (SOURCE, BUILD OPEN)
+- User approved **Variant D Outlined Elevated Cards** for Dark and the matching cool-white / blue-outline Light style, explicitly as a **whole-app** design, not a Rewards-only treatment.
+- Added reusable `ui/components/FpCard.kt`: Material3-compatible composable with centralized rounded elevated surfaces, outline and theme-resolved navy/slate versus icy light-blue colors; live Composable content rather than screenshot images.
+- Applied shared FpCard to ALL existing Material3 Card sites in nine Android screens: Rewards, Members, Tasks, Points, Dashboard, Settings, TaskDetails, CreateTask, RewardNegotiation. Existing custom balance highlight remains intentional via explicit card colors. Source commits `509d4ac`, `9079379`, `d53420e`, `63d4c79`, `49ee199`, `6ba1723`, `643b15b`, `1fc5e37`, `a582e29`, `7be6d9b`.
+- Theme selection already resides **only in Settings**: Light, Dark, System, with persisted SharedPreferences selection and first-install SYSTEM-follow-device default. Checked that Dashboard no longer exposes the selector and MainActivity wires Settings selection; no further setting-migration was required.
+- **Limitations:** this batch standardizes card surfaces only. Further polish for image-free illustration placeholders, gradient/glow nuances, buttons/tabs/menus, dialogs and small-screen screenshot parity remains open. No Backend, media, DB, infrastructure or release changes.
+- **Verification:** GitHub source edits and wiring check only; no Gradle build, emulator run or CI verification performed. Test `./gradlew :app:assembleDebug` in Android Studio, then Light/Dark/System across all nine screens; check active color, text contrast and click targets before marking accepted.
+
+
+## 2026-10-23 — Android UI beta release handoff (PREPARATION ONLY, NO DEPLOY)
+- User requested publishing the latest UI-only Android topic version as BETA to Contabo, with release API configured for `https://family-point.com/`. Commit comparison from `a1536b7` to UI topic showed changes only to `android/` Compose screens/theme/components and documentation; no Backend or database code changes. UI/navigation modifications may still regress login or functionality.
+- Existing Gradle distinguishes debug `https://api-dev.family-point.com:8443/` from release `https://family-point.com/`; signed release with the latter is intended. App ID must remain `com.olehkobylianskyi.familypoints.android`.
+- Discovered broken/duplicated `scripts/android/build-release-apk.ps1` OAuth Web Client ID validation; repaired source in `f330fbe`. Script now has one regex gate and one signed builder body; build NOT RUN due to unavailable local signing key, Android SDK and release OAuth ID.
+- **STOP/Release handoff:** do not upload or expose APK before (1) selecting versionCode strictly greater than currently published APK, (2) building signed release with **same** private keystore and configured Google Web Client ID, (3) apksigner certificate / SHA256 and explicit production API tests, (4) successful fresh install and in-place upgrade on handset (past `IllegalAccessError` on Huawei P20 Pro), (5) login Google/password, workspace switching, reward/points API smoke, and (6) Release permission and publication of APK + JSON + SHA only via `scripts/android/publish-apk.sh` into Contabo `/opt/familypoints-beta/downloads/`. No Docker, DB, VPS, Web or backend redeploy needed solely for APK file update. Exact live VPS/manifest version was NOT confirmed.
+- **Current status:** source prepared; no SSH/SCP access, no signed binary, no release certificate/device validation, and no actual upload/deployment completed. API reachability could not be confirmed by public URL lookup.

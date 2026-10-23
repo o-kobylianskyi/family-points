@@ -3,6 +3,8 @@ package com.olehkobylianskyi.familypoints.android.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,7 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.Surface
+import com.olehkobylianskyi.familypoints.android.ui.components.FpCard as Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -146,49 +150,6 @@ fun DashboardScreen(
                 onNavigate = onNavigate
             )
         }
-        if (serverStatus == ServerStatus.ONLINE) {
-            item {
-                Row(modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End) {
-                    WorkspaceSwitcher(
-                        activeWorkspaceId = currentUser.workspaceId,
-                        loadWorkspaces = loadWorkspaces,
-                        activate = onSwitchWorkspace
-                    )
-                }
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                OutlinedButton(
-                    enabled = serverStatus == ServerStatus.ONLINE && !loading,
-                    onClick = {
-                        scope.launch {
-                            try {
-                                data = loadDashboard()
-                                showingCached = false
-                                error = ""
-                            } catch (exception: HttpException) {
-                                if (exception.code() == 401) onUnauthorized()
-                            } catch (_: Exception) {
-                                // Cached values stay on screen.
-                            }
-                        }
-                    }
-                ) {
-                    Text(when (language) {
-                        AppLanguage.UK -> "⟳ Оновити"
-                        AppLanguage.DE -> "⟳ Aktualisieren"
-                        AppLanguage.EN -> "⟳ Refresh"
-                        AppLanguage.RU -> "⟳ Обновить"
-                    })
-                }
-            }
-        }
-
         if (showingCached) {
             item {
                 Text(
@@ -235,6 +196,18 @@ fun DashboardScreen(
                     }
                 }
 
+        if (serverStatus == ServerStatus.ONLINE) {
+            item {
+                Row(modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End) {
+                    WorkspaceSwitcher(
+                        activeWorkspaceId = currentUser.workspaceId,
+                        loadWorkspaces = loadWorkspaces,
+                        activate = onSwitchWorkspace
+                    )
+                }
+            }
+        }
                 item {
                     DashboardStatCard(
                         label = text.myBalance,
@@ -243,35 +216,29 @@ fun DashboardScreen(
                     )
                 }
 
-                if (reputation != null) {
-                    item {
-                        DashboardStatCard(
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        BoxStat(
+                            modifier = Modifier.weight(1f),
                             label = when (language) {
                                 AppLanguage.UK -> "Моя репутація"
                                 AppLanguage.DE -> "Mein Ruf"
                                 AppLanguage.EN -> "My reputation"
                                 AppLanguage.RU -> "Моя репутация"
                             },
-                            value = reputation.toString(),
-                            description = ""
+                            value = reputation?.toString() ?: "—",
+                            footnote = ""
+                        )
+                        BoxStat(
+                            modifier = Modifier.weight(1f),
+                            label = text.myTasks,
+                            value = active.size.toString(),
+                            footnote = text.activeToday
                         )
                     }
-                }
-
-                item {
-                    DashboardStatCard(
-                        label = text.myTasks,
-                        value = active.size.toString(),
-                        description = text.activeToday
-                    )
-                }
-
-                item {
-                    DashboardStatCard(
-                        label = text.availableToClaim,
-                        value = dashboard.openTasks.size.toString(),
-                        description = text.openTasks
-                    )
                 }
 
                 item {
@@ -339,60 +306,7 @@ fun DashboardScreen(
                     }
                 }
 
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = text.quickActions,
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                            Text(
-                                text = text.mainSections,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
 
-                            Button(
-                                onClick = {
-                                    onNavigate(DashboardDestination.TASKS)
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(text.tasks)
-                            }
-
-                            OutlinedButton(
-                                onClick = {
-                                    onNavigate(DashboardDestination.POINTS)
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
-                            ) {
-                                Text(when (language) {
-                                    AppLanguage.UK -> "Бали"
-                                    AppLanguage.RU -> "Баллы"
-                                    AppLanguage.DE -> "Punkte"
-                                    AppLanguage.EN -> "Points"
-                                })
-                            }
-
-                            OutlinedButton(
-                                onClick = {
-                                    onNavigate(DashboardDestination.REWARDS)
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
-                            ) {
-                                Text(text.rewards)
-                            }
-                        }
-                    }
-                }
 
 
             }
@@ -407,7 +321,11 @@ private fun DashboardStatCard(
     description: String
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -425,6 +343,31 @@ private fun DashboardStatCard(
                 text = description,
                 modifier = Modifier.padding(top = 2.dp)
             )
+        }
+    }
+}
+
+@Composable
+private fun BoxStat(
+    modifier: Modifier,
+    label: String,
+    value: String,
+    footnote: String
+) {
+    Card(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Text(label, style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, style = MaterialTheme.typography.headlineMedium)
+            if (footnote.isNotBlank()) {
+                Text(footnote, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
