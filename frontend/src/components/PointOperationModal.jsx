@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import NumberInput from './NumberInput'
 
 function PointOperationModal({
   operation,
@@ -90,26 +91,16 @@ function PointOperationModal({
         <form onSubmit={handleSubmit}>
           <div className="fp-number-field">
             <label htmlFor="point-operation-amount">{t('pointOperation.amount')}</label>
-            <div className="fp-number-control">
-              <input
-                id="point-operation-amount"
-                type="number"
-                min="1"
-                step="1"
-                value={amount}
-                onChange={(event) => setAmount(event.target.value)}
-                autoFocus
-                disabled={submitting}
-              />
-              <div className="fp-number-stepper">
-                <button type="button" aria-label={t('pointOperation.amount') + ' +1'}
-                  onClick={() => setAmount(String(Math.max(1, Number(amount) || 0) + (Number(amount) >= 1 ? 1 : 0)))}
-                  disabled={submitting}>▲</button>
-                <button type="button" aria-label={t('pointOperation.amount') + ' -1'}
-                  onClick={() => setAmount(String(Math.max(1, (Number(amount) || 1) - 1)))}
-                  disabled={submitting || Number(amount) <= 1}>▼</button>
-              </div>
-            </div>
+            <NumberInput
+              id="point-operation-amount"
+              min="1"
+              step="1"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              autoFocus
+              disabled={submitting}
+              aria-label={t('pointOperation.amount')}
+            />
           </div>
 
           <label>
