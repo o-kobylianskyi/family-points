@@ -30,3 +30,6 @@ Cross-track tasks are kept as individually tracked files in [requests/](requests
 `FAMILYPOINTS_DEVELOPMENT_LOG.md` (technical history), `FAMILYPOINTS_CONCEPT_DISCUSSION_LOG.md` (domain decisions), `FAMILYPOINTS_CONTABO_DEPLOYMENT_LOG.md` (operations), `FAMILYPOINTS_CURRENT_WORK_CHECKLIST.md` and `FAMILYPOINTS_CONCEPT_CHECKLIST.md`. Do not replace these with short summaries. Continue the appropriate historical journal for major events; routine work goes into the five track logs.
 
 Evidence order: actual code at exact SHA for committed work; command/test logs for verified behavior; deployment/runtime observation for what's live; architecture docs for intent. Distinguish PROPOSED/AGREED/COMMITTED/TESTED/DEPLOYED/BLOCKED. A Git log is not proof of production deployment.
+
+## User-approved default workflow (2026-10-23)
+All five tracks work directly on `main` for routine development. Separate branches are used only in exceptional, documented situations requiring isolation; any PR targets `main`. Protect local unpublished work, and do not bypass compatibility/security checks or Release approval. The approved Web Home layout, sidebar hover, and manually updated artwork must not be modified without explicit user agreement. The next Web work concerns bugs on other pages.
