@@ -697,7 +697,11 @@ class MainActivity : ComponentActivity() {
                             onLanguageChange = changeLanguage,
                             onLogout = logout,
                             onNavigate = navigate,
-                            onUnauthorized = unauthorized
+                            onUnauthorized = unauthorized,
+                            onUpdateFound = { update ->
+                                skippedUpdateVersion = null
+                                availableUpdate = update
+                            }
                         )
                     }
 
