@@ -1,8 +1,5 @@
-import { useId } from 'react'
-
 /** Shared numeric field with an integrated stepper and one outer border. */
 export default function NumberInput({ value, onChange, min, max, step = 1, disabled = false, ...props }) {
-  const id = useId()
   const amount = Number(value)
   const lower = min === undefined ? -Infinity : Number(min)
   const upper = max === undefined ? Infinity : Number(max)
