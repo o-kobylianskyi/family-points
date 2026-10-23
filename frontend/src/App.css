@@ -4365,3 +4365,29 @@ button:focus-visible {
   outline: 2px solid #70c9bd;
   outline-offset: 2px;
 }
+
+
+/* Members page only: readable tabs and role chips in dark mode.
+   Do not change the approved dashboard or light theme. */
+[data-theme="dark"] .members-page-tabs {
+  border-bottom-color: var(--fp-border);
+}
+[data-theme="dark"] .members-page-tabs .page-tab {
+  color: var(--fp-text-muted);
+  opacity: 1;
+}
+[data-theme="dark"] .members-page-tabs .page-tab:hover,
+[data-theme="dark"] .members-page-tabs .page-tab:focus-visible {
+  color: var(--fp-text);
+  background: var(--fp-surface-muted);
+}
+[data-theme="dark"] .members-page-tabs .page-tab.active {
+  color: var(--fp-accent);
+  border-bottom-color: var(--fp-accent);
+  background: transparent;
+}
+[data-theme="dark"] .members-grid .member-role {
+  color: var(--fp-text);
+  background: var(--fp-surface-muted);
+  border: 1px solid var(--fp-border);
+}
