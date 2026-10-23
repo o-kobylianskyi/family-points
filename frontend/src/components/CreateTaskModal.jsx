@@ -118,6 +118,18 @@ function CreateTaskModal({
   const { currentUser, getAccessToken } = useAuth()
 
   const editing = Boolean(initialTask)
+  // Restore standard modal Escape behavior without submitting or mutating the form.
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      event.preventDefault()
+      event.stopPropagation()
+      onClose()
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [onClose])
+
 
   const firstFreeTaskTitle = () => {
     // A provisional family-local name while the authoritative count loads.
