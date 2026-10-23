@@ -5302,3 +5302,58 @@ button:focus-visible {
 .rewards-page .fp-number-control-shared:focus-within {
   border-color: var(--fp-accent);
 }
+
+
+/* Rewards editor finishing: aligned inset text, seamless amount control and compact submit. */
+.rewards-page .reward-editor :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select),
+.rewards-page .reward-inline-form :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select),
+.rewards-page .reward-review-panel :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+.rewards-page .reward-editor .fp-number-control-shared,
+.rewards-page .reward-review-panel .fp-number-control-shared {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  gap: 0;
+  height: 44px;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid var(--fp-border);
+  border-radius: 9px;
+  background: var(--fp-surface-muted);
+}
+.rewards-page .reward-editor .fp-number-control-shared > input[type="number"],
+.rewards-page .reward-review-panel .fp-number-control-shared > input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  min-height: 0;
+  max-height: 42px;
+  padding: 0 14px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  outline: 0;
+  background: transparent;
+}
+.rewards-page .reward-editor .fp-number-control-shared .fp-number-stepper,
+.rewards-page .reward-review-panel .fp-number-control-shared .fp-number-stepper {
+  width: 30px;
+  height: 42px;
+  margin: 0;
+  border: 0;
+  border-left: 1px solid var(--fp-border);
+  background: transparent;
+}
+.rewards-page .reward-editor > button[type="submit"],
+.rewards-page .reward-editor > .primary-button[type="submit"] {
+  justify-self: start;
+  align-self: start;
+  width: auto;
+  min-width: 170px;
+  max-width: 100%;
+  padding: 10px 20px;
+}
