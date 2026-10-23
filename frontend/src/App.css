@@ -4611,3 +4611,47 @@ button:focus-visible {
   color: var(--fp-text);
   border-color: var(--fp-border);
 }
+
+
+/* Authentication page dark theme: keep surface, typography and form fields consistent.
+   No changes to light mode, approved Home UI, or artwork. */
+[data-theme="dark"] .login-page {
+  background: radial-gradient(circle at 20% 12%, #153648 0%, transparent 42%), var(--fp-bg);
+  color: var(--fp-text);
+}
+[data-theme="dark"] .login-card {
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  border: 1px solid var(--fp-border);
+  box-shadow: 0 18px 48px rgba(0,0,0,.25);
+}
+[data-theme="dark"] .login-card :is(h1, label) { color: var(--fp-text); }
+[data-theme="dark"] .login-card .brand p { color: var(--fp-text-muted); }
+[data-theme="dark"] .login-card input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="dark"] .login-card select {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  border: 1px solid var(--fp-border);
+}
+[data-theme="dark"] .login-card input::placeholder { color: var(--fp-text-muted); }
+[data-theme="dark"] .login-card form > button[type="submit"] {
+  min-height: 42px;
+  background: var(--fp-accent);
+  color: #08232b;
+  border: 1px solid var(--fp-accent);
+}
+[data-theme="dark"] .login-card form > button[type="submit"]:hover:not(:disabled) {
+  background: var(--fp-accent-hover);
+}
+[data-theme="dark"] .login-card a { color: var(--fp-accent); }
+[data-theme="dark"] .login-card .password-input-wrapper button.password-toggle {
+  color: var(--fp-text-muted);
+}
+[data-theme="dark"] .login-card .password-input-wrapper button.password-toggle:hover {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+}
+[data-theme="dark"] .login-card .error-message {
+  background: #382228;
+  color: #ffc1c1;
+}
