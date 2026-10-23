@@ -131,3 +131,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - `REQUEST_INSTALL_PACKAGES` is declared for Android sideload. Ordinary Android devices still require user confirmation and may prompt for per-app install authorization. This is not silent installation and does not change package ID, signing, backend or web.
 - MainActivity shows four-language progress/errors, preserves retry option and dismiss behavior; public manifest network remains optional for offline login.
 - **Not compiled, device-tested, signed, uploaded or released.** Local developer must pull current `main`, build `0.1.0-beta.8` with `versionCode=8` using unchanged release keystore and web OAuth client, test on beta.7 installed handset, then Release track publishes APK+JSON. Ensure no local-only uncommitted Android changes are overwritten by pull.
+
+## 2026-10-24 — beta.9 Settings app info + manual update check (SOURCE ONLY)
+- Added an always-visible About app card in Android Settings showing BuildConfig versionName/versionCode and four-language `Check for updates` button, backed by existing manifest checker and MainActivity APK-update dialog. Available even when backend is offline; public HTTPS manifest access still required for positive update discovery.
+- MainActivity now receives an update discovered manually and opens the existing verified in-app APK flow. No backend/Web/DevOps changes.
+- Main commits: `24e44dd`, `37913aa`. **No local Gradle build or device test; no APK signed/published**. Next candidate `0.1.0-beta.9` versionCode 9 must be locally signed with original keystore, tested, and released only after validation.
