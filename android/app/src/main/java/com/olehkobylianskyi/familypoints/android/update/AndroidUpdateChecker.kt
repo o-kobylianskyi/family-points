@@ -1,8 +1,5 @@
 package com.olehkobylianskyi.familypoints.android.update
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import com.olehkobylianskyi.familypoints.android.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,7 +13,9 @@ import java.net.URL
  */
 data class AvailableAndroidUpdate(
     val versionCode: Int,
-    val versionName: String
+    val versionName: String,
+    val sha256: String,
+    val sizeBytes: Long
 )
 
 object AndroidUpdateChecker {
@@ -49,7 +48,10 @@ object AndroidUpdateChecker {
             val version = manifest.optInt("versionCode", 0)
             val name = manifest.optString("versionName").take(80)
             if (version <= BuildConfig.VERSION_CODE || name.isBlank()) return@withContext null
-            AvailableAndroidUpdate(version, name)
+            val sha = manifest.optString("sha256").lowercase()
+            val size = manifest.optLong("sizeBytes", 0L)
+            if (!sha.matches(Regex("[0-9a-f]{64}")) || size !in 1..100_000_000L) return@withContext null
+            AvailableAndroidUpdate(version, name, sha, size)
         } catch (_: Exception) {
             // Never block login or offline use because the public site is unreachable.
             null
@@ -58,11 +60,4 @@ object AndroidUpdateChecker {
         }
     }
 
-    fun openDownload(context: Context) {
-        // Let the browser download over HTTPS. Android's normal user-confirmed
-        // sideload installer handles permissions; no silent install or broad storage access.
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(DOWNLOAD_URL))
-            .addCategory(Intent.CATEGORY_BROWSABLE)
-        context.startActivity(intent)
-    }
 }
