@@ -5026,3 +5026,33 @@ button:focus-visible {
   border: 2px solid var(--fp-surface);
   border-radius: 8px;
 }
+
+
+/* Keep economy amount controls the same 44px height as adjacent selects. */
+.create-task-modal .task-amount-combobox {
+  height: 44px;
+  grid-template-rows: 44px;
+  align-items: stretch;
+}
+.create-task-modal .task-amount-combobox > input[type="number"] {
+  height: 44px;
+  min-height: 0;
+  max-height: 44px;
+}
+.create-task-modal .task-amount-stepper {
+  height: 44px;
+  min-height: 0;
+  max-height: 44px;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+.create-task-modal .task-amount-stepper > button {
+  height: auto;
+  min-height: 0;
+  max-height: 22px;
+}
+.create-task-modal .task-amount-dropdown-button,
+[data-theme="dark"] .create-task-modal .task-amount-combobox .task-amount-dropdown-button {
+  height: 44px;
+  min-height: 0;
+  max-height: 44px;
+}
