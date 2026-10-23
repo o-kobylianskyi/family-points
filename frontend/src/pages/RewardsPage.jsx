@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import NumberInput from '../components/NumberInput'
 
 import { useAuth } from '../context/AuthContext'
 import { getPointTypes, getPointNameForms } from '../api/economyApi'
@@ -740,8 +741,8 @@ function RewardsPage() {
                     </label>
                     <label>
                       <span>{t('rewardsUi.priceLabel')}</span>
-                      <input
-                        type="number"
+                      <NumberInput
+                        
                         min="0"
                         value={reviewForm.priceAmount}
                         onChange={(event) => setReviewForm({
@@ -752,8 +753,8 @@ function RewardsPage() {
                     </label>
                     <label>
                       <span>{t('rewardsUi.minimumReputation')}</span>
-                      <input
-                        type="number"
+                      <NumberInput
+                        
                         min="0"
                         value={reviewForm.minimumReputation}
                         placeholder={t("rewardsUi.unrestricted")}
@@ -766,8 +767,8 @@ function RewardsPage() {
                     {rewards.find((item) => item.id === request.rewardDefinitionId)?.rewardKind === 'TIME_BASED' && (
                       <label>
                         <span>{t('rewardsUi.durationMinutes')}</span>
-                        <input
-                          type="number"
+                        <NumberInput
+                          
                           min="1"
                           value={reviewForm.durationMinutes}
                           placeholder={t("rewardsUi.any")}
@@ -929,8 +930,8 @@ function RewardsPage() {
 
                 <label>
                   <span>{t('rewardsUi.priceLabel')}</span>
-                  <input
-                    type="number"
+                  <NumberInput
+                    
                     min="0"
                     value={rewardForm.priceAmount}
                     onChange={(event) => setRewardForm({
@@ -942,7 +943,7 @@ function RewardsPage() {
 
                 <label>
                   <span>{t('rewardsUi.cooldownLabel')}</span>
-                  <input type="number" min="0" value={rewardForm.cooldownSeconds}
+                  <NumberInput  min="0" value={rewardForm.cooldownSeconds}
                     onChange={(event) => setRewardForm({
                       ...rewardForm, cooldownSeconds: event.target.value
                     })} />
@@ -952,37 +953,37 @@ function RewardsPage() {
                 <div className="reward-form-grid">
                   <label>
                     <span>{t('rewardsUi.memberTotal')}</span>
-                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
+                    <NumberInput  min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.memberTotalLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, memberTotalLimit: event.target.value })} />
                   </label>
                   <label>
                     <span>{t('rewardsUi.memberDaily')}</span>
-                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
+                    <NumberInput  min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.memberDailyLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, memberDailyLimit: event.target.value })} />
                   </label>
                   <label>
                     <span>{t('rewardsUi.memberWeekly')}</span>
-                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
+                    <NumberInput  min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.memberWeeklyLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, memberWeeklyLimit: event.target.value })} />
                   </label>
                   <label>
                     <span>{t('rewardsUi.workspaceTotal')}</span>
-                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
+                    <NumberInput  min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.workspaceTotalLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, workspaceTotalLimit: event.target.value })} />
                   </label>
                   <label>
                     <span>{t('rewardsUi.workspaceDaily')}</span>
-                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
+                    <NumberInput  min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.workspaceDailyLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, workspaceDailyLimit: event.target.value })} />
                   </label>
                   <label>
                     <span>{t('rewardsUi.workspaceWeekly')}</span>
-                    <input type="number" min="1" placeholder={t("rewardsUi.noLimits")}
+                    <NumberInput  min="1" placeholder={t("rewardsUi.noLimits")}
                       value={rewardForm.workspaceWeeklyLimit}
                       onChange={(event) => setRewardForm({ ...rewardForm, workspaceWeeklyLimit: event.target.value })} />
                   </label>
@@ -995,8 +996,8 @@ function RewardsPage() {
 
                 <label>
                   <span>{t('rewardsUi.minimumReputation')}</span>
-                  <input
-                    type="number"
+                  <NumberInput
+                    
                     min="0"
                     value={rewardForm.minimumReputation}
                     placeholder={t("rewardsUi.unrestricted")}
@@ -1043,8 +1044,8 @@ function RewardsPage() {
                 {rewardForm.rewardKind === 'TIME_BASED' && (
                   <label>
                     <span>{t('rewardsUi.defaultDuration')}</span>
-                    <input
-                      type="number"
+                    <NumberInput
+                      
                       min="1"
                       value={rewardForm.defaultDurationMinutes}
                       placeholder={t("rewardsUi.byAgreement")}
