@@ -208,6 +208,19 @@ function CreateTaskModal({
   const [openAmountMenu, setOpenAmountMenu] = useState(null)
 
   useEffect(() => {
+    if (openAmountMenu === null) return
+
+    const closeOnOutsidePointer = (event) => {
+      if (!event.target.closest?.('.task-amount-combobox')) {
+        setOpenAmountMenu(null)
+      }
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsidePointer)
+    return () => document.removeEventListener('pointerdown', closeOnOutsidePointer)
+  }, [openAmountMenu])
+
+  useEffect(() => {
     const loadPointTypes = async () => {
       try {
         setLoadingPointTypes(true)
