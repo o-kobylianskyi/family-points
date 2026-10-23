@@ -4939,25 +4939,38 @@ button:focus-visible {
 [data-theme="dark"] :is(input[type="number"],input[type="date"],input[type="time"],select,textarea) { color-scheme: dark; }
 
 
-/* Stable numeric amount selector: a single compact preset arrow, no extra steppers. */
+/* Amount selector: native ↑↓ remain inside number input; presets in adjacent button. */
+.create-task-modal .task-amount-combobox {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  align-items: stretch;
+}
 .create-task-modal .task-amount-combobox > input[type="number"] {
-  appearance: textfield;
-  -moz-appearance: textfield;
-  padding-right: 44px;
+  appearance: auto;
+  -moz-appearance: auto;
+  width: 100%;
+  min-width: 0;
+  padding-right: 8px;
+  border-radius: 8px 0 0 8px;
 }
 .create-task-modal .task-amount-combobox > input[type="number"]::-webkit-inner-spin-button,
 .create-task-modal .task-amount-combobox > input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
+  -webkit-appearance: auto;
+  opacity: 1;
   margin: 0;
 }
 .create-task-modal .task-amount-dropdown-button,
 [data-theme="dark"] .create-task-modal .task-amount-combobox .task-amount-dropdown-button {
-  position: absolute;
-  top: 1px;
-  right: 1px;
-  bottom: 1px;
+  position: static;
+  grid-column: 2;
   width: 38px;
-  min-height: 0;
   height: auto;
+  min-height: 40px;
   border-radius: 0 8px 8px 0;
+  border-left: 1px solid var(--fp-border);
+}
+.create-task-modal .task-amount-dropdown-menu {
+  grid-column: 1 / -1;
+  left: 0;
+  right: 0;
 }
