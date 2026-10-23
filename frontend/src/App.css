@@ -4939,38 +4939,90 @@ button:focus-visible {
 [data-theme="dark"] :is(input[type="number"],input[type="date"],input[type="time"],select,textarea) { color-scheme: dark; }
 
 
-/* Amount selector: native ↑↓ remain inside number input; presets in adjacent button. */
+/* Stable composite amount field: one adjoining input, stepper, and preset trigger. */
 .create-task-modal .task-amount-combobox {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 38px;
+  grid-template-columns: minmax(0, 1fr) 24px 38px;
+  gap: 0;
   align-items: stretch;
 }
 .create-task-modal .task-amount-combobox > input[type="number"] {
-  appearance: auto;
-  -moz-appearance: auto;
-  width: 100%;
+  grid-column: 1;
+  position: static;
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   padding-right: 8px;
   border-radius: 8px 0 0 8px;
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 .create-task-modal .task-amount-combobox > input[type="number"]::-webkit-inner-spin-button,
 .create-task-modal .task-amount-combobox > input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: auto;
-  opacity: 1;
+  -webkit-appearance: none;
   margin: 0;
 }
+.create-task-modal .task-amount-stepper {
+  grid-column: 2;
+  position: static;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 0;
+  min-height: 40px;
+  min-width: 0;
+  border: 1px solid var(--fp-border);
+  border-left: 0;
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+}
+.create-task-modal .task-amount-stepper > button {
+  position: static;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font-size: 9px;
+  line-height: 1;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.create-task-modal .task-amount-stepper > button:hover:not(:disabled) { background: var(--fp-accent-soft); }
+.create-task-modal .task-amount-stepper > button:disabled { opacity: .35; cursor: default; }
 .create-task-modal .task-amount-dropdown-button,
 [data-theme="dark"] .create-task-modal .task-amount-combobox .task-amount-dropdown-button {
+  grid-column: 3;
   position: static;
-  grid-column: 2;
+  top: auto;
+  right: auto;
+  bottom: auto;
   width: 38px;
-  height: auto;
+  height: 100%;
   min-height: 40px;
+  margin: 0;
+  border: 1px solid var(--fp-border);
+  border-left: 0;
   border-radius: 0 8px 8px 0;
-  border-left: 1px solid var(--fp-border);
+  color: var(--fp-text);
+  background: var(--fp-surface-muted);
 }
-.create-task-modal .task-amount-dropdown-menu {
-  grid-column: 1 / -1;
-  left: 0;
-  right: 0;
+.create-task-modal .task-amount-dropdown-menu { grid-column: 1 / -1; left: 0; right: 0; }
+[data-theme="dark"] .create-task-modal,
+[data-theme="dark"] .create-task-modal .create-task-form {
+  color-scheme: dark;
+  scrollbar-color: var(--fp-border) var(--fp-surface);
+  scrollbar-width: thin;
+}
+[data-theme="dark"] .create-task-modal .create-task-form::-webkit-scrollbar { width: 10px; }
+[data-theme="dark"] .create-task-modal .create-task-form::-webkit-scrollbar-track { background: var(--fp-surface); }
+[data-theme="dark"] .create-task-modal .create-task-form::-webkit-scrollbar-thumb {
+  background: var(--fp-border);
+  border: 2px solid var(--fp-surface);
+  border-radius: 8px;
 }
