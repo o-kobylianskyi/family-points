@@ -5357,3 +5357,23 @@ button:focus-visible {
   max-width: 100%;
   padding: 10px 20px;
 }
+
+
+/* Custom reward request: same comfortable inset as the reward editor. */
+.rewards-page .reward-request-form > :is(input, textarea) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 11px 14px;
+  border: 1px solid var(--fp-border);
+  border-radius: 9px;
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  font: inherit;
+}
+.rewards-page .reward-request-form > input { min-height: 44px; }
+.rewards-page .reward-request-form > textarea { resize: vertical; }
+.rewards-page .reward-request-form > :is(input, textarea):focus-visible {
+  outline: 2px solid var(--fp-accent);
+  outline-offset: 1px;
+}
