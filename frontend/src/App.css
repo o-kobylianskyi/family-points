@@ -4591,3 +4591,11 @@ button:focus-visible {
   outline: 2px solid var(--fp-accent);
   outline-offset: 3px;
 }
+
+
+/* Shared participant chips: correct dark-mode contrast on task details and other pages. */
+[data-theme="dark"] .task-participant-chip {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  border: 1px solid var(--fp-border);
+}
