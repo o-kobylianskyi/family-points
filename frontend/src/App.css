@@ -4562,3 +4562,32 @@ button:focus-visible {
 [data-theme="dark"] .task-suggestion-dialog :is(
   .primary-button, .secondary-button
 ) { min-height:40px; }
+
+
+/* Task details: theme-aware surfaces, preserving the approved Home dashboard. */
+[data-theme="dark"] .task-details-page :is(
+  .task-details-header, .task-details-card
+) {
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+}
+[data-theme="dark"] .task-details-page :is(
+  .task-details-header h1, .task-details-card h2,
+  .task-details-fields dd, .task-details-subtask
+) { color: var(--fp-text); }
+[data-theme="dark"] .task-details-page :is(
+  .task-details-header p, .task-details-number, .task-details-fields dt,
+  .task-details-muted, .task-details-history-row time
+) { color: var(--fp-text-muted); }
+[data-theme="dark"] .task-details-page :is(
+  .task-details-history-row, .task-details-subtask
+) { border-color: var(--fp-border); }
+[data-theme="dark"] .task-details-page .task-details-subtask:hover,
+[data-theme="dark"] .task-details-page .task-details-back {
+  color: var(--fp-accent);
+}
+[data-theme="dark"] .task-details-page .task-details-subtask:focus-visible {
+  outline: 2px solid var(--fp-accent);
+  outline-offset: 3px;
+}
