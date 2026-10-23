@@ -119,3 +119,9 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - `AGENTS.md` and coordination documents already define `main` as only long-lived integration branch (ADR-COORD-005). Do not keep using this Android topic as a source of truth.
 - Local developer checkout previously showed divergent branches and potentially unique local commits; retain it until backed up and independently reconciled. No local worktrees reset/deleted. Remote branch deletion pending local safety/consumers check.
 - GitHub merge does **not** prove an Android build, signed APK or Contabo publication. BETA remains gated on keystore, release build, real-device startup/upgrade and Release approval.
+
+## 2026-10-23 — Check for published Android APK updates (SOURCE ONLY)
+- User requested opt-in update discovery after a new APK is uploaded to the site, without Google Play and without modifying Backend/Web/Contabo.
+- Implemented `ui/update/AndroidUpdateChecker.kt` reading the existing HTTPS manifest `https://family-point.com/downloads/familypoints-beta.json` with bounded response and connect/read timeouts, verifying expected package/file/download URL, comparing `versionCode` with `BuildConfig.VERSION_CODE`, and ignoring network/offline errors. Source commit `6bf6dac`.
+- `MainActivity` now checks on launch and every six hours while active and displays a four-language update prompt with Download/Later, linking to existing HTTPS APK browser download. No automatic installation; user confirms Android package install. Source commit `07d84c9`.
+- **No Gradle build or real-device validation yet.** Old published `0.1.0-beta.5` APK does not contain this feature; it will become available only in a **new signed APK with a higher versionCode**. Signed device upgrade and rollback gates remain open. Release publication belongs to Release/DevOps.
