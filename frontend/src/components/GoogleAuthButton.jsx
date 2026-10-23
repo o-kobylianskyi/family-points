@@ -20,7 +20,9 @@ export default function GoogleAuthButton({ onCredential, disabled = false }) {
     if (!clientId || !isSecureOrigin || !container.current) return
     let cancelled = false
     let observer
+    let themeObserver
     let lastWidth = 0
+    let lastTheme = ''
     const host = container.current
 
     const render = () => {
@@ -35,17 +37,21 @@ export default function GoogleAuthButton({ onCredential, disabled = false }) {
       const updateWidth = () => {
         if (cancelled || !host.isConnected) return
         const width = Math.min(400, Math.floor(host.getBoundingClientRect().width))
-        if (width < 120 || width === lastWidth) return
+        const buttonTheme = document.documentElement.dataset.theme === 'dark' ? 'filled_black' : 'outline'
+        if (width < 120 || (width === lastWidth && buttonTheme === lastTheme)) return
         lastWidth = width
+        lastTheme = buttonTheme
         host.replaceChildren()
         window.google.accounts.id.renderButton(host, {
-          type: 'standard', theme: 'outline', size: 'large',
+          type: 'standard', theme: buttonTheme, size: 'large',
           text: 'continue_with', width, locale,
         })
       }
       updateWidth()
       observer = new ResizeObserver(updateWidth)
       observer.observe(host)
+      themeObserver = new MutationObserver(updateWidth)
+      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
     }
 
     // The SDK is cached globally by Google. Recreate the script with ?hl when
@@ -64,6 +70,7 @@ export default function GoogleAuthButton({ onCredential, disabled = false }) {
     return () => {
       cancelled = true
       observer?.disconnect()
+      themeObserver?.disconnect()
       script.remove()
       host.replaceChildren()
     }
