@@ -5259,3 +5259,46 @@ button:focus-visible {
   font-size: 10px;
   line-height: 1;
 }
+
+
+/* Rewards form: aligned stepper glyphs and uniformly rounded standard controls. */
+.rewards-page .fp-number-control-shared .fp-number-arrow {
+  display: inline-block;
+  transform: translate(-4px, -4px);
+  pointer-events: none;
+}
+.rewards-page :is(.reward-editor,.reward-review-panel,.reward-inline-form,.reward-request-form)
+  :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  box-sizing: border-box;
+  border-radius: 9px;
+  border: 1px solid var(--fp-border);
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  min-width: 0;
+}
+.rewards-page :is(.reward-editor,.reward-review-panel,.reward-inline-form,.reward-request-form)
+  :is(input:not([type="checkbox"]):not([type="radio"]), select) {
+  min-height: 44px;
+}
+.rewards-page :is(.reward-editor,.reward-review-panel,.reward-inline-form,.reward-request-form)
+  textarea {
+  border-radius: 9px;
+  resize: vertical;
+}
+.rewards-page .fp-number-control-shared > input[type="number"],
+.rewards-page .fp-number-control-shared > input[type="number"]:focus {
+  border: 0;
+  border-radius: 8px 0 0 8px;
+  background: transparent;
+  min-height: 0;
+  height: 42px;
+  outline: none;
+}
+.rewards-page .fp-number-control-shared {
+  border: 1px solid var(--fp-border);
+  border-radius: 9px;
+  overflow: hidden;
+}
+.rewards-page .fp-number-control-shared:focus-within {
+  border-color: var(--fp-accent);
+}
