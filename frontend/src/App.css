@@ -4483,3 +4483,82 @@ button:focus-visible {
   justify-content: center;
   text-decoration: none;
 }
+
+
+/* Shared non-dashboard dark theme: rewards, role catalog, and task suggestion dialog.
+   Use semantic surfaces; preserve approved Home artwork/layout and light theme. */
+[data-theme="dark"] .rewards-page :is(
+  .reward-card, .reward-request-card, .reward-request-box, .reward-admin-panel,
+  .reward-condition-picker, .reward-blocking-editor
+),
+[data-theme="dark"] .role-catalog-settings :is(
+  .role-set-card, .role-catalog-modal, .role-definition-row
+) {
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+}
+[data-theme="dark"] .rewards-page :is(
+  .reward-card, .reward-request-card, .reward-request-box, .reward-admin-panel,
+  .reward-condition-picker, .reward-blocking-editor
+) :is(h2, h3, strong),
+[data-theme="dark"] .role-catalog-settings .role-set-card :is(h3, strong) {
+  color: var(--fp-text);
+}
+[data-theme="dark"] .rewards-page :is(.reward-tags span, .reward-status),
+[data-theme="dark"] .role-catalog-settings .role-definition-meta > span {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text-muted);
+  border: 1px solid var(--fp-border);
+}
+[data-theme="dark"] .role-catalog-settings :is(
+  .role-set-card-header, .role-definition-row
+),
+[data-theme="dark"] .rewards-page :is(.reward-review-panel, .reward-purchase-row) {
+  border-color: var(--fp-border);
+}
+[data-theme="dark"] .role-catalog-settings :is(
+  .role-set-card-header p, .role-definition-row small, .role-definition-meta,
+  .role-catalog-heading p
+),
+[data-theme="dark"] .rewards-page .reward-condition-picker small {
+  color: var(--fp-text-muted);
+}
+[data-theme="dark"] .rewards-page .reward-obligation-banner {
+  background: #332d20;
+  border-color: #75603b;
+  color: #ffe4b2;
+}
+[data-theme="dark"] .rewards-page :is(
+  .reward-actions, .reward-inline-form
+) > :is(button, a),
+[data-theme="dark"] .rewards-page .reward-request-form button {
+  min-height: 40px;
+}
+[data-theme="dark"] .rewards-page .reward-actions {
+  align-items: center;
+  gap: 10px;
+}
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) .currency-forms-preview {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  border: 1px solid var(--fp-border);
+}
+[data-theme="dark"] .task-suggestion-dialog :is(
+  .task-suggestion-footer, .task-suggestion-header, .task-suggestion-body,
+  .task-suggestion-item
+) {
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+}
+[data-theme="dark"] .task-suggestion-dialog :is(
+  .task-suggestion-empty, .task-suggestion-hint, .task-suggestion-status,
+  .task-suggestion-header p
+) { color: var(--fp-text-muted); }
+[data-theme="dark"] .task-suggestion-dialog :is(h2, h3, strong) {
+  color: var(--fp-text);
+}
+[data-theme="dark"] .task-suggestion-dialog :is(
+  .primary-button, .secondary-button
+) { min-height:40px; }
