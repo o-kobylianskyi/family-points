@@ -4722,3 +4722,79 @@ button:focus-visible {
 [data-theme="dark"] .create-task-modal .modal-close-button:hover {
   background: var(--fp-accent-soft);
 }
+
+
+/* Dark theme for Members > Groups and nested group editor.
+   Semantic surfaces only; never touch approved Home dashboard or image assets. */
+[data-theme="dark"] .groups-grid-v2 .group-card-v2,
+[data-theme="dark"] .groups-grid-v2 .group-tree-root,
+[data-theme="dark"] .group-editor > .group-editor-header,
+[data-theme="dark"] .group-editor > .group-editor-actions,
+[data-theme="dark"] .group-editor .group-editor-panel,
+[data-theme="dark"] .group-editor .group-edit-item,
+[data-theme="dark"] .group-editor .role-member-card,
+[data-theme="dark"] .group-editor .role-list-row,
+[data-theme="dark"] .group-editor .role-choice-row,
+[data-theme="dark"] .group-editor .role-permission-group {
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+}
+[data-theme="dark"] .groups-grid-v2 :is(
+  .group-card-header h3,.group-tree-node-content,.group-tree-member,
+  .group-card-section strong
+),
+[data-theme="dark"] .group-editor :is(
+  h2,h3,strong,label,.role-section-heading
+) { color: var(--fp-text); }
+[data-theme="dark"] .groups-grid-v2 :is(
+  .group-card-summary,.group-card-label,.group-description,
+  .group-tree-members,.group-tree-node-header small
+),
+[data-theme="dark"] .group-editor :is(
+  .role-muted,.role-definition-meta,.group-editor-panel small
+) { color: var(--fp-text-muted); }
+[data-theme="dark"] .groups-grid-v2 .group-tags span,
+[data-theme="dark"] .groups-grid-v2 .group-balances span,
+[data-theme="dark"] .group-editor .role-chip {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  border: 1px solid var(--fp-border);
+}
+[data-theme="dark"] .groups-grid-v2 :is(
+  .group-edit-button,.group-tree-edit-button
+),
+[data-theme="dark"] .group-create-row button,
+[data-theme="dark"] .group-editor :is(
+  .group-editor-close-x,.secondary-button,.group-edit-row button,
+  .group-edit-actions button
+) {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+}
+[data-theme="dark"] .groups-grid-v2 :is(
+  .group-edit-button,.group-tree-edit-button
+):hover,
+[data-theme="dark"] .group-editor :is(
+  .group-editor-close-x,.secondary-button,.group-edit-row button
+):hover:not(:disabled) {
+  border-color: var(--fp-accent);
+  color: var(--fp-accent);
+}
+[data-theme="dark"] .group-editor > .group-editor-actions {
+  background: var(--fp-surface);
+  border-top-color: var(--fp-border);
+}
+[data-theme="dark"] .group-editor :is(
+  .role-set-card,.nested-modal-card,.role-permission-row
+) {
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+}
+[data-theme="dark"] .group-editor .add-member-button {
+  background: var(--fp-accent);
+  color: #08232b;
+  border-color: var(--fp-accent);
+}
