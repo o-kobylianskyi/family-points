@@ -5101,3 +5101,66 @@ button:focus-visible {
 .create-task-modal .task-amount-combobox:focus-within {
   border-color: var(--fp-accent);
 }
+
+
+/* Shared Web numeric control baseline.
+   Use .fp-number-field for plain amounts and .fp-amount-combobox for
+   numbers that also offer presets; preserve existing task-editor layout. */
+.page-content:not(:has(> .fp-dashboard)) input[type="number"],
+.modal-card input[type="number"],
+.rewards-page input[type="number"] {
+  box-sizing: border-box;
+  min-height: 44px;
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+  background-color: var(--fp-surface-muted);
+}
+[data-theme="dark"] :is(.page-content, .modal-card) input[type="number"] {
+  color-scheme: dark;
+}
+.fp-amount-combobox {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 24px 38px;
+  grid-template-rows: 44px;
+  height: 44px;
+  gap: 0;
+  border: 1px solid var(--fp-border);
+  border-radius: 9px;
+  background: var(--fp-surface-muted);
+  align-items: stretch;
+}
+.fp-amount-combobox > input[type="number"] {
+  grid-column: 1;
+  height: 42px;
+  min-height: 0;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-radius: 8px 0 0 8px;
+  background: transparent;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.fp-amount-combobox > input[type="number"]::-webkit-inner-spin-button,
+.fp-amount-combobox > input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.fp-amount-combobox > .task-amount-stepper {
+  grid-column: 2;
+  height: 42px;
+  max-height: 42px;
+  border: 0;
+  border-left: 1px solid var(--fp-border);
+  background: transparent;
+}
+.fp-amount-combobox > .task-amount-dropdown-button {
+  grid-column: 3;
+  height: 42px;
+  min-height: 0;
+  border: 0;
+  border-left: 1px solid var(--fp-border);
+  border-radius: 0 8px 8px 0;
+  background: transparent;
+}
+.fp-amount-combobox:focus-within { border-color: var(--fp-accent); }
