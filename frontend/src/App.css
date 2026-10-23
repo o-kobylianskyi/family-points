@@ -4939,55 +4939,25 @@ button:focus-visible {
 [data-theme="dark"] :is(input[type="number"],input[type="date"],input[type="time"],select,textarea) { color-scheme: dark; }
 
 
-/* Stable amount input layout: explicit stepper and presets never overlap.
-   Native Chrome spinner is hidden only inside this composite control. */
+/* Stable numeric amount selector: a single compact preset arrow, no extra steppers. */
 .create-task-modal .task-amount-combobox > input[type="number"] {
-  -moz-appearance: textfield;
   appearance: textfield;
-  padding-right: 82px;
+  -moz-appearance: textfield;
+  padding-right: 44px;
 }
 .create-task-modal .task-amount-combobox > input[type="number"]::-webkit-inner-spin-button,
 .create-task-modal .task-amount-combobox > input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-.create-task-modal .task-amount-stepper {
-  position: absolute;
-  top: 1px;
-  right: 39px;
-  bottom: 1px;
-  width: 28px;
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid var(--fp-border);
-}
-.create-task-modal .task-amount-stepper button {
-  flex: 1 1 50%;
-  min-height: 0;
-  height: 50%;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: inherit;
-  font-size: 9px;
-  line-height: 1;
-  cursor: pointer;
-}
-.create-task-modal .task-amount-stepper button:hover:not(:disabled) {
-  background: var(--fp-accent-soft);
-}
-.create-task-modal .task-amount-stepper button:disabled { opacity: .35; cursor: default; }
 .create-task-modal .task-amount-dropdown-button,
 [data-theme="dark"] .create-task-modal .task-amount-combobox .task-amount-dropdown-button {
+  position: absolute;
   top: 1px;
   right: 1px;
   bottom: 1px;
   width: 38px;
+  min-height: 0;
+  height: auto;
   border-radius: 0 8px 8px 0;
-}
-[data-theme="dark"] .create-task-modal .task-amount-stepper {
-  color: var(--fp-text);
-  background: var(--fp-surface-muted);
-  border-left-color: var(--fp-border);
 }
