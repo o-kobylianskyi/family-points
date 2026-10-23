@@ -1,5 +1,8 @@
 package com.olehkobylianskyi.familypoints.android.ui.screens
 
+import com.olehkobylianskyi.familypoints.android.BuildConfig
+import com.olehkobylianskyi.familypoints.android.update.AndroidUpdateChecker
+import com.olehkobylianskyi.familypoints.android.update.AvailableAndroidUpdate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -61,7 +64,8 @@ fun SettingsScreen(
     onLanguageChange: (AppLanguage) -> Unit,
     onLogout: () -> Unit,
     onNavigate: (DashboardDestination) -> Unit,
-    onUnauthorized: () -> Unit
+    onUnauthorized: () -> Unit,
+    onUpdateFound: (AvailableAndroidUpdate) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val serverStatus by ServerReachability.status.collectAsState()
@@ -82,6 +86,8 @@ fun SettingsScreen(
     var accountConfirm by remember { mutableStateOf("") }
     var enabled by remember { mutableStateOf(true) }
     var accountError by remember { mutableStateOf("") }
+    var checkingAppUpdate by remember { mutableStateOf(false) }
+    var appUpdateStatus by remember { mutableStateOf("") }
 
     suspend fun reload() {
         if (canManage) {
@@ -152,6 +158,43 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.tertiary)
         }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxSize()) {
+            item {
+                Card {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(st(language, "Про застосунок", "Über die App", "About the app", "О приложении"),
+                            style = MaterialTheme.typography.titleMedium)
+                        Text("FamilyPoints ${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE})")
+                        Button(enabled = !checkingAppUpdate, onClick = {
+                            checkingAppUpdate = true
+                            appUpdateStatus = ""
+                            scope.launch {
+                                try {
+                                    val update = AndroidUpdateChecker.check()
+                                    if (update != null) {
+                                        onUpdateFound(update)
+                                    } else {
+                                        appUpdateStatus = st(language,
+                                            "Немає доступного оновлення (або сервер недоступний).",
+                                            "Kein Update verfügbar (oder Server nicht erreichbar).",
+                                            "No update available (or update server unavailable).",
+                                            "Обновлений нет (или сервер недоступен).")
+                                    }
+                                } finally {
+                                    checkingAppUpdate = false
+                                }
+                            }
+                        }) {
+                            Text(if (checkingAppUpdate) st(language,
+                                "Перевіряємо…", "Prüfe…", "Checking…", "Проверяем…")
+                            else st(language, "Перевірити оновлення", "Auf Updates prüfen",
+                                "Check for updates", "Проверить обновления"))
+                        }
+                        if (appUpdateStatus.isNotBlank()) Text(appUpdateStatus,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
