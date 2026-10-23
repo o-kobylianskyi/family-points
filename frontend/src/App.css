@@ -5064,3 +5064,40 @@ button:focus-visible {
   left: -6px;
   top: -6px;
 }
+
+
+/* Unified border for the amount field, stepper and preset button.
+   One outer silhouette; only subtle internal separators remain. */
+.create-task-modal .task-amount-combobox {
+  border: 1px solid var(--fp-border);
+  border-radius: 9px;
+  overflow: visible;
+  background: var(--fp-surface-muted);
+}
+.create-task-modal .task-amount-combobox > input[type="number"] {
+  border: 0;
+  border-radius: 8px 0 0 8px;
+  background: transparent;
+  height: 42px;
+  max-height: 42px;
+}
+.create-task-modal .task-amount-stepper {
+  border: 0;
+  border-left: 1px solid var(--fp-border);
+  height: 42px;
+  max-height: 42px;
+  background: transparent;
+}
+.create-task-modal .task-amount-dropdown-button,
+[data-theme="dark"] .create-task-modal .task-amount-combobox .task-amount-dropdown-button {
+  border: 0;
+  border-left: 1px solid var(--fp-border);
+  border-radius: 0 8px 8px 0;
+  height: 42px;
+  max-height: 42px;
+  min-height: 0;
+  background: transparent;
+}
+.create-task-modal .task-amount-combobox:focus-within {
+  border-color: var(--fp-accent);
+}
