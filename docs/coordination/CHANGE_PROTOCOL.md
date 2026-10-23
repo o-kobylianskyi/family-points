@@ -29,3 +29,6 @@ Release independently verifies tagged SHA, CI and tests, DB migration safety, 2-
 
 ## End of work / next chat
 Update track log, impact register, shared PROJECT_STATE and checklist as relevant; commit and provide branch/SHA + [handoff](HANDOFF_TEMPLATE.md). Never pretend another chat has already received the update: the next session must fetch it.
+
+## Default development workflow (approved 2026-10-23)
+For routine scoped changes all five tracks work directly on `main`, refreshing current HEAD and checking overlapping edits first. Separate branches are exceptional and require a documented reason such as risky experiments, incompatible shared contracts or migrations; any PR targets `main`. The earlier permission to use topic branches is not a requirement to create them. Preserve local unpublished commits before switching branches or merging. The user-approved Home dashboard images, layout and hover styling are frozen unless the user explicitly requests changes. Direct commits still require tests, contract review, security checks and independent Release approval.
