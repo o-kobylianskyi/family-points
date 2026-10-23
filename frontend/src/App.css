@@ -4393,3 +4393,93 @@ button:focus-visible {
   background: var(--fp-surface-muted);
   border: 1px solid var(--fp-border);
 }
+
+
+/* Shared Soft Family dark surfaces and controls outside the approved Home dashboard.
+   Keep semantic color tokens and avoid styling .fp-dashboard visual baseline. */
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) :is(
+  .tasks-panel, .task-history-panel, .points-summary-card, .points-history-card,
+  .member-selector-button, .account-card, .task-suggestion-dialog,
+  .task-suggestion-item, .reward-selected-task
+) {
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+}
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) :is(
+  .tasks-panel, .task-history-panel, .points-summary-card, .points-history-card,
+  .account-card
+) :is(h2, h3, strong, .transaction-type, .task-card-main) {
+  color: var(--fp-text);
+}
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) :is(
+  .task-card, .transaction-row, .task-history-event, .panel-header
+) { border-color: var(--fp-border); }
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) :is(
+  .tasks-panel-header p, .task-meta, .transaction-date, .transaction-description,
+  .points-summary-member p, .points-current-balance span, .member-selector-button small,
+  .settings-section > p, .task-card .task-description
+) { color: var(--fp-text-muted); }
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) :is(
+  .primary-button, .secondary-button, .task-action-button,
+  .point-action, .member-selector-button, .task-date-input,
+  .settings-google-mode button, .google-password-form button
+) {
+  color: var(--fp-text);
+  background: var(--fp-surface-muted);
+  border: 1px solid var(--fp-border);
+  box-shadow: none;
+}
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) :is(
+  .primary-button, .task-action-button.primary
+):not(:disabled) {
+  color: #08232b;
+  background: var(--fp-accent);
+  border-color: var(--fp-accent);
+}
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) :is(
+  .primary-button, .secondary-button, .task-action-button, .point-action
+):hover:not(:disabled) {
+  border-color: var(--fp-accent);
+  filter: brightness(1.08);
+}
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) .member-selector-button.active {
+  border-color: var(--fp-accent);
+  box-shadow: inset 0 0 0 1px var(--fp-accent);
+}
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) .task-status {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+}
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) .task-mandatory {
+  background: #46391b;
+  color: #ffe2a0;
+}
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) .task-open-badge {
+  background: #2a354f;
+  color: #c4c9ff;
+}
+.page-content:not(:has(> .fp-dashboard)) :is(
+  .tasks-page-actions, .task-card-actions, .settings-google-mode,
+  .point-actions, .task-suggestion-actions, .modal-actions
+) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.page-content:not(:has(> .fp-dashboard)) :is(
+  .tasks-page-actions, .settings-google-mode
+) > :is(button, input, a),
+.page-content:not(:has(> .fp-dashboard)) :is(
+  .task-card-actions, .modal-actions, .point-actions
+) > :is(button, a) {
+  min-height: 40px;
+  box-sizing: border-box;
+}
+.page-content:not(:has(> .fp-dashboard)) .task-open-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
