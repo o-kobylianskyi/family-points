@@ -35,3 +35,9 @@ Append a dated, evidenced record to your track journal (what changed, files/comm
 - Committed != tested != deployed. Release requires CI, compatible consumers, backup/rollback, tested signed APK and explicit gate.
 
 [Protocol](docs/coordination/CHANGE_PROTOCOL.md) · [Handoff template](docs/coordination/HANDOFF_TEMPLATE.md)
+
+## Development branch preference — approved 2026-10-23
+- Routine work by Web, Backend, Android, Architecture and Release goes directly to `main`. Do not create separate track branches by default.
+- Temporary branches are exceptional, for risky changes, experimental work, coordinated migrations or unfinished incompatible contracts. Document the reason and target `main` for integration.
+- Check HEAD and protect local unpublished commits before changes. Preserve approved Home dashboard visuals and manually edited assets without explicit user authorization to alter them.
+- Existing contract reviews, tests and Release approval still apply. GitHub changes alone do not migrate the user's local Android checkout.
