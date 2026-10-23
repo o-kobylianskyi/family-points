@@ -4683,3 +4683,42 @@ button:focus-visible {
 [data-theme="dark"] .login-card .google-auth-button {
   color: var(--fp-text);
 }
+
+
+/* Create/edit task modal: complete dark-theme treatment, scoped to the dialog. */
+[data-theme="dark"] .create-task-modal :is(
+  .modal-header, .modal-actions, .task-economy-presets,
+  .task-value-section, .task-participants-editor,
+  .task-economy-preset-buttons button
+) {
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+}
+[data-theme="dark"] .create-task-modal :is(
+  .task-economy-presets small, .modal-header p,
+  .task-economy-presets p
+) { color: var(--fp-text-muted); }
+[data-theme="dark"] .create-task-modal .task-economy-preset-buttons button {
+  min-height: 40px;
+  background: var(--fp-surface-muted);
+}
+[data-theme="dark"] .create-task-modal .task-economy-preset-buttons button:hover,
+[data-theme="dark"] .create-task-modal .task-economy-preset-buttons button:focus-visible {
+  border-color: var(--fp-accent);
+  color: var(--fp-accent);
+}
+[data-theme="dark"] .create-task-modal .task-economy-preset-buttons button.active,
+[data-theme="dark"] .create-task-modal .task-economy-preset-buttons button.selected {
+  background: var(--fp-accent-soft);
+  color: var(--fp-accent);
+  border-color: var(--fp-accent);
+}
+[data-theme="dark"] .create-task-modal .modal-close-button {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+}
+[data-theme="dark"] .create-task-modal .modal-close-button:hover {
+  background: var(--fp-accent-soft);
+}
