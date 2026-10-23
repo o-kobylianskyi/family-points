@@ -5061,6 +5061,6 @@ button:focus-visible {
 /* Fine alignment of the numeric stepper glyphs within the fixed 44px field. */
 .create-task-modal .task-amount-stepper > button {
   position: relative;
-  left: -2px;
-  top: -2px;
+  left: -4px;
+  top: -4px;
 }
