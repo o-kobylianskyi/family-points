@@ -4891,3 +4891,40 @@ button:focus-visible {
   background: var(--fp-accent-soft);
   color: var(--fp-accent);
 }
+
+
+/* Dark task editor: remove bright native number spinners; keep typed numbers and
+   the accessible custom suggestion arrow. Dark scrollbars for suggestion lists. */
+[data-theme="dark"] .create-task-modal .task-amount-combobox > input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+  color-scheme: dark;
+}
+[data-theme="dark"] .create-task-modal .task-amount-combobox > input[type="number"]::-webkit-inner-spin-button,
+[data-theme="dark"] .create-task-modal .task-amount-combobox > input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+[data-theme="dark"] .create-task-modal .task-amount-dropdown-menu {
+  color-scheme: dark;
+  scrollbar-color: var(--fp-border) var(--fp-surface);
+  scrollbar-width: thin;
+}
+[data-theme="dark"] .create-task-modal .task-amount-dropdown-menu::-webkit-scrollbar {
+  width: 9px;
+}
+[data-theme="dark"] .create-task-modal .task-amount-dropdown-menu::-webkit-scrollbar-track {
+  background: var(--fp-surface);
+  border-radius: 8px;
+}
+[data-theme="dark"] .create-task-modal .task-amount-dropdown-menu::-webkit-scrollbar-thumb {
+  background: var(--fp-border);
+  border: 2px solid var(--fp-surface);
+  border-radius: 8px;
+}
+[data-theme="dark"] .create-task-modal .task-amount-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: var(--fp-accent);
+}
+[data-theme="dark"] .create-task-modal .task-amount-dropdown-button {
+  color-scheme: dark;
+}
