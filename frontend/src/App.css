@@ -4798,3 +4798,45 @@ button:focus-visible {
   color: #08232b;
   border-color: var(--fp-accent);
 }
+
+
+/* Members create/edit: dark theme for the add action and sticky modal footer. */
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) .add-member-button {
+  background: var(--fp-accent);
+  color: #08232b;
+  border: 1px solid var(--fp-accent);
+  min-height: 40px;
+}
+[data-theme="dark"] .page-content:not(:has(> .fp-dashboard)) .add-member-button:hover:not(:disabled) {
+  background: var(--fp-accent-hover);
+  color: #08232b;
+}
+[data-theme="dark"] .modal-card.member-editor .member-editor-actions {
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  border-top-color: var(--fp-border);
+}
+[data-theme="dark"] .modal-card.member-editor .member-editor-actions .secondary-button {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  border: 1px solid var(--fp-border);
+  min-height: 40px;
+}
+[data-theme="dark"] .modal-card.member-editor .member-editor-actions .primary-button,
+[data-theme="dark"] .modal-card.member-editor .member-editor-actions .add-member-button {
+  background: var(--fp-accent);
+  color: #08232b;
+  border: 1px solid var(--fp-accent);
+  min-height: 40px;
+}
+[data-theme="dark"] .modal-card.member-editor .member-editor-actions button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+[data-theme="dark"] .modal-card.member-editor .member-access-options {
+  background: var(--fp-surface);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+}
+[data-theme="dark"] .modal-card.member-editor .member-access-options :is(legend,label,span) {
+  color: var(--fp-text);
+}
