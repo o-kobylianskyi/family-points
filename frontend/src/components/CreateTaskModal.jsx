@@ -311,6 +311,13 @@ function CreateTaskModal({
               updateEconomyValue(setter, event.target.value)
             }
           />
+          <div className="task-amount-stepper">
+            <button type="button" aria-label={ariaLabel + ' +1'}
+              onClick={() => updateEconomyValue(setter, Math.max(0, Number(value) || 0) + 1)}>▲</button>
+            <button type="button" aria-label={ariaLabel + ' -1'}
+              disabled={!(Number(value) > 0)}
+              onClick={() => updateEconomyValue(setter, Math.max(0, (Number(value) || 0) - 1))}>▼</button>
+          </div>
           <button
             type="button"
             className="task-amount-dropdown-button"
