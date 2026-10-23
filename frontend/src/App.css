@@ -4351,3 +4351,17 @@ button:focus-visible {
       url('/assets/soft-family/reference/hero-family.webp');
   }
 }
+
+
+/* Light theme: keep sidebar hover aligned with Soft Family palette.
+   Active links and dark theme retain their existing appearance. */
+:root:not([data-theme="dark"]) .sidebar .nav-link:not(.active):hover {
+  background: #e4f3ef;
+  color: #227e76;
+}
+:root:not([data-theme="dark"]) .sidebar .nav-link:not(.active):focus-visible {
+  background: #e4f3ef;
+  color: #227e76;
+  outline: 2px solid #70c9bd;
+  outline-offset: 2px;
+}
