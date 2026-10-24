@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.PointTransactionResponse
 import com.olehkobylianskyi.familypoints.android.data.PointsRepository
+import com.olehkobylianskyi.familypoints.android.data.SettingsRepository
+import com.olehkobylianskyi.familypoints.android.data.PointNameFormDto
 import com.olehkobylianskyi.familypoints.android.data.RewardsRepository
 import com.olehkobylianskyi.familypoints.android.data.RewardDefinitionSummary
 import com.olehkobylianskyi.familypoints.android.data.PointTypeResponse
