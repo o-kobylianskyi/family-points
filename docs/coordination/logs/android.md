@@ -225,3 +225,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 ## 2026-10-24 — Task details configured point forms (SOURCE ONLY)
 - `c2ac031`: Android TaskDetailsScreen fetches configured currency name forms scoped by workspace and point type, then applies them to task reward, penalty and subtask reward labels; falls back to built-in plural rules if configuration unavailable. `b6a7168`: wires SettingsRepository from MainActivity. No Backend changes.
 - Release stack remains OPEN: Gradle compilation and physical device checks not run, offline form caching, real-refresh completion, session regression, offline queue tests and Backend reward purchase Flyway gate outstanding. No APK signed/published.
+
+## 2026-10-24 — Auth session resilience while P0 refresh remains open (SOURCE ONLY)
+- Audited `MainActivity` global pull refresh: currently uses fixed `delay(1200L)` regardless of network completion. **Not complete**; to finish, wire explicit completion signals from all five content screens and guard stale responses, then device-test. No claim of completed refresh implementation.
+- Commit `8062bc1` hardens `AuthSessionManager` session restoration and token-refresh against transient 5xx/408/429 responses. These no longer clear a stored scoped session simply due to Backend outage; definitive 401/403 still clear session. This targets unexpected login behavior during Backend failures, without changing permission checks or retrying reward purchases.
+- No Gradle build/device runtime validation; rollout remains blocked on tests and Backend Flyway reward-purchase fix. Current stack OPEN.
