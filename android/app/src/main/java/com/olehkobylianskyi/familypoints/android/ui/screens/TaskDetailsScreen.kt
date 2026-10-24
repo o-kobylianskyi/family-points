@@ -46,6 +46,7 @@ fun TaskDetailsScreen(
     selectedDate: String,
     selectedSlotKey: String = "default",
     repository: TaskDetailsRepository,
+    settingsRepository: com.olehkobylianskyi.familypoints.android.data.SettingsRepository,
     onLanguageChange: (AppLanguage) -> Unit,
     onLogout: () -> Unit,
     onNavigate: (DashboardDestination) -> Unit,
@@ -60,6 +61,21 @@ fun TaskDetailsScreen(
 
     var data by remember { mutableStateOf<TaskDetailsData?>(null) }
     var loading by remember { mutableStateOf(true) }
+    var currencyForms by remember(currentUser.workspaceId) { mutableStateOf<Map<String, List<com.olehkobylianskyi.familypoints.android.i18n.PointNameForms>>>(emptyMap()) }
+
+    LaunchedEffect(currentUser.workspaceId) {
+        try {
+            val types = settingsRepository.pointTypes(currentUser.workspaceId)
+            val next = mutableMapOf<String, List<com.olehkobylianskyi.familypoints.android.i18n.PointNameForms>>()
+            types.forEach { type ->
+                try {
+                    next[type.code.uppercase()] = settingsRepository.pointNameForms(currentUser.workspaceId, type.id)
+                        .map { com.olehkobylianskyi.familypoints.android.i18n.PointNameForms(it.language, it.one, it.few, it.many) }
+                } catch (_: Exception) { /* Use built-in declension when custom forms are unavailable. */ }
+            }
+            currencyForms = next
+        } catch (_: Exception) { /* Task details must remain usable when settings are unavailable. */ }
+    }
     var processing by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
     var delegating by remember { mutableStateOf(false) }
@@ -517,7 +533,8 @@ fun TaskDetailsScreen(
                             rewardText(
                                 language, task.rewardAmount,
                                 task.rewardPointTypeCode,
-                                true
+                                true,
+                                currencyForms[task.rewardPointTypeCode?.uppercase()].orEmpty()
                             ),
                         text.rewardReputation to
                             signedText(task.rewardReputationAmount, true),
@@ -525,7 +542,8 @@ fun TaskDetailsScreen(
                             rewardText(
                                 language, task.penaltyAmount,
                                 task.penaltyPointTypeCode,
-                                false
+                                false,
+                                currencyForms[task.penaltyPointTypeCode?.uppercase()].orEmpty()
                             ),
                         text.penaltyReputation to
                             signedText(task.penaltyReputationAmount, false)
@@ -567,7 +585,8 @@ fun TaskDetailsScreen(
                                     val rewardLabel =
                                         if ((subtask.rewardAmount ?: 0) > 0) {
                                             "+" + formatPointAmount(subtask.rewardAmount!!.toLong(), language,
-                                                subtask.rewardPointTypeCode, subtask.rewardPointTypeCode ?: "")
+                                                subtask.rewardPointTypeCode, subtask.rewardPointTypeCode ?: "",
+                                                currencyForms[subtask.rewardPointTypeCode?.uppercase()].orEmpty())
                                         } else {
                                             text.noReward
                                         }
@@ -728,11 +747,12 @@ private fun rewardText(
     language: AppLanguage,
     amount: Int?,
     code: String?,
-    positive: Boolean
+    positive: Boolean,
+    forms: List<com.olehkobylianskyi.familypoints.android.i18n.PointNameForms>
 ): String {
     if ((amount ?: 0) <= 0) return "—"
     val sign = if (positive) "+" else "-"
-    return sign + formatPointAmount(amount!!.toLong(), language, code, code ?: "")
+    return sign + formatPointAmount(amount!!.toLong(), language, code, code ?: "", forms)
 }
 
 private fun signedText(
