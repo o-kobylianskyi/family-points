@@ -129,4 +129,8 @@ object ApiClient {
     val calendarApi: CalendarApi by lazy {
         retrofit.create(CalendarApi::class.java)
     }
+
+    val mediaApi: MediaApi by lazy {
+        retrofit.create(MediaApi::class.java)
+    }
 }
