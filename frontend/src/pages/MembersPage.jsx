@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { getWorkspaceMembers, createWorkspaceMember, updateWorkspaceMember, deleteWorkspaceMember, getWorkspaceRoles } from '../api/workspaceApi'
 import MemberEditor from '../components/MemberEditor'
 import FamilyAvatar from '../components/FamilyAvatar'
+import EntityMedia from '../components/EntityMedia'
 import { createMemberAccount, issueMemberEmailInvitation } from '../api/accountApi'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 import {
@@ -240,6 +241,7 @@ function MembersPage() {
 
           <div className="group-tree-node-content">
             <strong>{group.name}</strong>
+            <EntityMedia type="MEMBER_GROUP" targetId={group.id} slot="ICON" canEdit={currentUser.permissions?.includes('MANAGE_GROUPS')||currentUser.permissions?.includes('ADMIN_OVERRIDE')}/>
 
             <span>
               {directMembers.length} {t('memberUi.people')} ·{' '}
@@ -447,6 +449,7 @@ function MembersPage() {
               tabIndex={canManageMembers ? 0 : undefined}
             >
               <FamilyAvatar name={member.name} kind="member" className="member-avatar" />
+              <div onClick={e=>e.stopPropagation()}><EntityMedia type="MEMBER" targetId={member.id} slot="AVATAR" canEdit={canManageMembers}/></div>
 
               <div className="member-info">
                 <strong>{member.name}</strong>
