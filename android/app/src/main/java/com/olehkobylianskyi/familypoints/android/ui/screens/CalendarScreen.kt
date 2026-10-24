@@ -1,15 +1,18 @@
 package com.olehkobylianskyi.familypoints.android.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.clickable
+import kotlinx.coroutines.CancellationException
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -86,6 +89,7 @@ fun CalendarScreen(
     val serverStatus by ServerReachability.status.collectAsState()
     var remoteEvents by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf<List<AgendaEventUi>>(emptyList()) }
     var loaded by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf(false) }
+    var displayedDate by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf(selectedDate) }
     var loading by remember { mutableStateOf(false) }
     var loadError by remember { mutableStateOf(false) }
     val rangeStart = when (mode) {
@@ -100,19 +104,24 @@ fun CalendarScreen(
             .with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
     }
     LaunchedEffect(currentUser?.workspaceId, currentUser?.memberId, rangeStart, rangeEnd, serverStatus) {
-        loaded = false
-        remoteEvents = emptyList() // Never show another date range as a confirmed projection.
         if (currentUser == null || serverStatus != ServerStatus.ONLINE) return@LaunchedEffect
         val token = tokenStore.getAccessToken() ?: return@LaunchedEffect
+        // Keep the previously confirmed projection visible while this range is fetched.
         loading = true
         loadError = false
         try {
-            remoteEvents = ApiClient.calendarApi.events(
+            val next = ApiClient.calendarApi.events(
                 "Bearer $token", currentUser.workspaceId, rangeStart.toString(), rangeEnd.toString()
             ).mapNotNull { it.toAgendaEvent() }
+            // Commit the data and corresponding selected date only after a successful response.
+            remoteEvents = next
+            displayedDate = selectedDate
             loaded = true
+        } catch (cancel: CancellationException) {
+            throw cancel
         } catch (e: HttpException) {
-            if (e.code() == 401) onUnauthorized() else loadError = true
+            // Calendar 401 can be route-specific and is not proof that /api/me was revoked.
+            loadError = true
         } catch (_: Exception) {
             loadError = true
         } finally {
@@ -122,7 +131,7 @@ fun CalendarScreen(
     val visibleEvents = if (currentUser != null) remoteEvents else events
     val effectiveLoaded = if (currentUser != null) loaded else projectionLoaded
     val selectedEvents = visibleEvents.filter { event ->
-        event.day == selectedDate && when (kind) {
+        event.day == (if (loading || loadError) displayedDate else selectedDate) && when (kind) {
             CalendarKind.ALL -> true
             CalendarKind.TASK -> event.type == AgendaEventType.TASK
             CalendarKind.REWARD -> event.type == AgendaEventType.REWARD_WINDOW
@@ -147,8 +156,9 @@ fun CalendarScreen(
             (0L..java.time.temporal.ChronoUnit.DAYS.between(start, end)).map(start::plusDays)
         }
     }
+    Box(modifier = modifier.fillMaxSize()) {
     LazyColumn(
-        modifier = modifier,
+        modifier = Modifier.fillMaxSize().alpha(if (loading) 0.45f else 1f),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 12.dp)
     ) {
@@ -156,7 +166,6 @@ fun CalendarScreen(
             Text(calText(language, "Календар", "Kalender", "Calendar", "Календарь"),
                 style = MaterialTheme.typography.headlineMedium)
         }
-        if (loading) item { CircularProgressIndicator() }
         if (loadError) item {
             Text(calText(language, "Не вдалося оновити події календаря", "Kalender konnte nicht geladen werden",
                 "Could not load calendar events", "Не удалось загрузить календарь"),
@@ -200,7 +209,10 @@ fun CalendarScreen(
                     }
                 }) { Text("›") }
             }
-            Text(selectedDate.format(dateFormat),
+            Text((if (mode == CalendarMode.DAY)
+                selectedDate.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, locale)
+                    .replaceFirstChar { it.titlecase(locale) } + ", "
+                else "") + selectedDate.format(dateFormat),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 8.dp))
         }
@@ -268,7 +280,7 @@ fun CalendarScreen(
                 )
                 metrics.forEach { (label, count, destination) ->
                     FpCard(modifier = Modifier.weight(1f).clickable { kind = destination }) {
-                        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(if (hasProjection) count.toString() else "—", style = MaterialTheme.typography.titleLarge)
                             Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 2)
                         }
@@ -320,6 +332,18 @@ fun CalendarScreen(
                 "Data not available yet", "Данные пока недоступны"),
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+    }
+    if (loading) {
+        // Draw above (not inside) the agenda: no extra row, no layout movement.
+        // The overlay blocks interaction until the atomic projection swap completes.
+        Box(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.08f))
+                .clickable(enabled = true, onClick = {}),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(28.dp))
+        }
+    }
     }
 }
 
