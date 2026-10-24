@@ -343,7 +343,7 @@ class MainActivity : ComponentActivity() {
                 // An offline password proves access to local snapshots only.
                 // Once the API comes back, require fresh online authentication
                 // rather than silently granting server-side write permissions.
-                LaunchedEffect(status, currentUser?.memberId) {
+                LaunchedEffect(status, currentUser?.workspaceId, currentUser?.memberId, currentUser?.username) {
                     if (currentUser != null &&
                         status == ServerStatus.ONLINE &&
                         authSessionManager.isOfflineAuthenticated()
@@ -357,7 +357,7 @@ class MainActivity : ComponentActivity() {
 
                 // Sync locally queued parent credits/penalties after an online
                 // authentication, even when the Points page isn't open.
-                LaunchedEffect(status, currentUser?.memberId) {
+                LaunchedEffect(status, currentUser?.workspaceId, currentUser?.memberId, currentUser?.username) {
                     val user = currentUser
                     if (status == ServerStatus.ONLINE &&
                         user != null &&
