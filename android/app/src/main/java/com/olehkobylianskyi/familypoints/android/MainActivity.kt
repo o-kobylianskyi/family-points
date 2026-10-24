@@ -445,8 +445,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         },
-                        modifier = Modifier.fillMaxSize(),
-                        enabled = refreshable
+                        modifier = Modifier.fillMaxSize()
                     ) {
                 when {
                     authLoading -> {
