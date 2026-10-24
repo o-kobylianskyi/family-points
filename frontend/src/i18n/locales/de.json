@@ -1,4 +1,9 @@
 {
+  "numberInput": {
+    "increase": "Wert erhöhen {{field}}",
+    "decrease": "Wert verringern {{field}}"
+  },
+
   "common": {
     "loading": "Wird geladen...",
     "logout": "Abmelden",
