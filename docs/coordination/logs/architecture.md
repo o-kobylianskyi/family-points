@@ -124,3 +124,22 @@ Chronological log of architecture, planning, cross-track decisions and prioritie
 - Android owner: consume the same contract and defaults selection flow, not Web-local presets.
 - QA owner: category create/update/delete, task create prefill and override, schedule-slot mapping, editing historic existing task, retroactive-safety, multi-family ACL, cross-client parity.
 - **Scope control:** new feature is larger than stabilization scope. Architecture freeze ADR-COORD-006 keeps new noncritical feature work AFTER_INTERIM_BETA unless user explicitly lifts it. This entry records demand and dependencies; does not assert Backend exists or that UI is implemented.
+
+
+## 2026-10-25 — CORRECTION / PRIORITY: Reward category property templates FIRST; task grouping optional
+
+**User clarification overrides earlier proposed priority in "CROSS-TEAM REQUEST: task category templates": the screenshot and primary product request concern REWARDS, not tasks.** Previous task-category template proposal is demoted to exploratory/later, NOT an implementation mandate. Do not start TaskCategoryDefaults API/DB based only on the earlier note.
+
+### Primary requirement: RewardCategory + configurable Reward property template
+- Existing `RewardCategory` is merely a label/group. User wants a category to define **which reward properties are applicable/visible, permitted and prefilled**, e.g. one-off bonus (no schedule), timed activity/game (duration and optional availability window), repeatable rewards with cooldown/quotas, optional approval/request, conditions, points/reputation.
+- Distinguish **reward kind** (e.g. STANDARD vs TIME_BASED), **availability** (ALWAYS / ONE_TIME / RECURRING_WEEKLY), **redemption limits** (one redemption vs repeatable), **acquisition mode** (direct/request/approval) and **duration**: these are orthogonal concepts, not synonyms. For example a one-time reward must not necessarily be a scheduled reward. A game reward may be TIME_BASED with optional availability restrictions, not a mandatory weekly schedule.
+- Category configuration should support: default values, field visibility/applicability, field editability/required rules, supported reward kinds, optional allowed values/validation; avoid silently hiding persisted nondefault data. User overrides win for permitted fields.
+- Recommend one **primary template category** for resolving defaults/rules; keep optional secondary categories as tags, unless Architecture explicitly defines multiple-template precedence. Selecting a category in the reward editor must display resulting defaults and applicable controls. Updating a category does **not** retroactively rewrite historical redemptions/reward definitions, unless explicitly approved.
+- Backend owner: inspect existing RewardCategory/RewardDefinition/RewardAvailability schema and endpoints; design backwards-compatible scoped template metadata + consistency validation (purchase-time invariants still authoritative), workspace permissions, migration, and cross-family/old-data regression.
+- Web owner: separate Rewards > Settings > Categories as a **subtab**, configure category reward-field presets and control visibility, apply approved category defaults in reward create/edit, keep four locales/mobile/themes. Do not synthesize a frontend-only contract before Backend confirmation.
+- Android owner: consume same categories, defaults, availability semantics and validation; respect category choice and explicit Save.
+- QA owner: one-off bonus, time-based game, time windows optional, repeated reward with cooldown/quota, approval, category switching after fields edited, existing reward preservation, cross-family isolation.
+- Scope: product work is backlog under interim-BETA freeze until priority explicitly changed; documenting correction does not imply implementation.
+
+### Secondary idea: task organization
+User only suggested that TASKS could also be grouped. Explore separate hierarchical folders/tags/category navigation using existing WorkNode/MemberGroup concepts; do not presume task category defaults, delegation/schedule inheritance, or a new TaskCategory database schema. Assess separately after rewards design.
