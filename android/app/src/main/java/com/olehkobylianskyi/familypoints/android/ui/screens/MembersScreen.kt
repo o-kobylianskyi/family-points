@@ -52,6 +52,14 @@ import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
 import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
+import com.olehkobylianskyi.familypoints.android.ui.components.MemberMediaAvatar
+import com.olehkobylianskyi.familypoints.android.network.ApiClient
+import com.olehkobylianskyi.familypoints.android.network.MediaTargetDto
+import com.olehkobylianskyi.familypoints.android.network.MediaReferenceBatchDto
+import com.olehkobylianskyi.familypoints.android.network.MediaRefDto
+import com.olehkobylianskyi.familypoints.android.storage.TokenStore
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
@@ -80,6 +88,13 @@ fun MembersScreen(
     val serverStatus by ServerReachability.status.collectAsState()
     val online = serverStatus == ServerStatus.ONLINE
     var balances by remember { mutableStateOf<Map<Long, Long>>(emptyMap()) }
+    val context = LocalContext.current
+    val tokenStore = remember(context) { TokenStore(context) }
+    var avatarRefs by remember(currentUser.workspaceId, currentUser.username) {
+        mutableStateOf<Map<Long, MediaRefDto>>(emptyMap())
+    }
+    val bearer = if (online) tokenStore.getAccessToken()?.let { "Bearer $it" } else null
+
     val allowed = "MANAGE_MEMBERS" in currentUser.permissions
     val canManagePoints = currentUser.permissions.any { it == "MANAGE_POINTS" || it == "ADMIN_OVERRIDE" }
     var data by remember { mutableStateOf<MembersPageData?>(null) }
@@ -171,6 +186,31 @@ fun MembersScreen(
         }
     }
 
+    LaunchedEffect(currentUser.workspaceId, currentUser.username, data?.members, serverStatus, refreshNonce) {
+        avatarRefs = emptyMap()
+        val people = data?.members.orEmpty()
+        val auth = bearer ?: return@LaunchedEffect
+        if (people.isEmpty()) return@LaunchedEffect
+        try {
+            // Endpoint accepts <=100 targets; keep batches bounded and workspace-scoped.
+            val refs = mutableMapOf<Long, MediaRefDto>()
+            for (batch in people.chunked(100)) {
+                val response = ApiClient.mediaApi.references(
+                    auth, currentUser.workspaceId,
+                    MediaReferenceBatchDto(batch.map { MediaTargetDto("MEMBER", it.id, "AVATAR") })
+                )
+                response.forEach { item ->
+                    item.image?.let { refs[item.target.targetId] = it }
+                }
+            }
+            avatarRefs = refs
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (_: Exception) {
+            // Media is supplemental; failure must not log users out or hide member profiles.
+        }
+    }
+
     val membersTitle = memberText(language, "Учасники", "Mitglieder", "Members", "Участники")
     val groupsTitle = memberText(language, "Групи", "Gruppen", "Groups", "Группы")
     val saveTitle = memberText(language, "Зберегти", "Speichern", "Save", "Сохранить")
@@ -234,7 +274,10 @@ fun MembersScreen(
                             if (allowed && online) Modifier.clickable { edit(member) } else Modifier
                         )) {
                             Column(modifier = Modifier.padding(14.dp)) {
-                                Text(member.name, style = MaterialTheme.typography.titleMedium)
+                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    MemberMediaAvatar(currentUser.workspaceId, bearer, avatarRefs[member.id], member.name)
+                                    Text(member.name, style = MaterialTheme.typography.titleMedium)
+                                }
                                 Text(
                                     when (member.memberType) {
                                         "PARENT" -> memberText(language, "Батьки", "Elternteil", "Parent", "Родитель")
