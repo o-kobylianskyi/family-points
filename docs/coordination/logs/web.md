@@ -103,3 +103,8 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 ## 2026-10-24 — Release stack: task-reward negotiation duplicate submission guard
 - Source audit confirmed TaskRewardNegotiationModal disabled submit visually during `saving` but had no immediate submit guard, and the header × remained clickable in-flight. Commit `10188d8` adds `if (saving) return` before payload/remote submission and disables header close during save, aligning with the existing Escape/cancel protection. No reward request APIs, ledger operations or approved dashboard files changed.
 - Pending validation: browser double-click/delayed-response, review/create paths, backend idempotency and role permissions; build/lint/i18n and release smoke remain open. Source-level fix alone does not constitute verified readiness.
+
+
+## 2026-10-24 — Pre-release Web task editor submission guard
+- Reviewed existing CreateTaskModal create/edit form. Found that active `loading` already blocked Escape, but header × stayed enabled and submit handler did not immediately reject a second submit during save. Commit `2e36a0a` adds a save-state guard to submit and disables close button while loading. No change to task payload, backend contract, accepted dashboard styling or images.
+- Still to verify: browser double-click and slow API, successful task creation/edit, server-side idempotency, all four locales, responsive layout, Web lint/build/i18n, and cross-role regression before release. Source-level patch only; release stack remains OPEN under freeze.
