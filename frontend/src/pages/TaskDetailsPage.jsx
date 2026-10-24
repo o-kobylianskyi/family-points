@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import CreateTaskModal from '../components/CreateTaskModal'
+import EntityMedia from '../components/EntityMedia'
 import TaskScheduleEditor from '../components/TaskScheduleEditor'
 import TaskRewardNegotiationModal from '../components/TaskRewardNegotiationModal'
 import { getWorkspaceMembers } from '../api/workspaceApi'
@@ -185,6 +186,7 @@ function TaskDetailsPage() {
         <div>
           <div className="task-details-number">{t('taskDetailsUi.taskNo', { id: task.id })}</div>
           <h1>{task.title}</h1>
+            <EntityMedia type="TASK" targetId={Number(definitionId)} slot="ICON" canEdit={canManage}/>
           {task.description && <p>{task.description}</p>}
         </div>
         <span className={task.active ? 'task-status task-status-completed' : 'task-status'}>
