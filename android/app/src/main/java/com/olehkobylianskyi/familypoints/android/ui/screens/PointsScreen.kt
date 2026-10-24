@@ -75,6 +75,7 @@ fun PointsScreen(
     currentUser: CurrentUserResponse,
     repository: PointsRepository,
     rewardsRepository: RewardsRepository,
+    settingsRepository: SettingsRepository,
     onLanguageChange: (AppLanguage) -> Unit,
     onLogout: () -> Unit,
     onNavigate: (DashboardDestination) -> Unit,
@@ -94,6 +95,7 @@ fun PointsScreen(
     var memberBalances by remember { mutableStateOf<Map<Long, Long>>(emptyMap()) }
     var syncMessage by remember { mutableStateOf("") }
     var pointTypes by remember { mutableStateOf<List<PointTypeResponse>>(emptyList()) }
+    var currencyForms by remember(currentUser.workspaceId) { mutableStateOf<Map<Long, List<PointNameFormDto>>>(emptyMap()) }
     var rewardCatalog by remember { mutableStateOf<List<RewardDefinitionSummary>>(emptyList()) }
 
     var members by remember {
@@ -193,6 +195,22 @@ fun PointsScreen(
                 // Keep cached currencies available for offline queueing.
             }
         }
+    }
+
+    LaunchedEffect(currentUser.workspaceId, pointTypes, serverStatus, refreshNonce) {
+        if (serverStatus != ServerStatus.ONLINE) return@LaunchedEffect
+        val updated = currencyForms.toMutableMap()
+        for (type in pointTypes) {
+            try {
+                updated[type.id] = settingsRepository.pointNameForms(currentUser.workspaceId, type.id)
+            } catch (e: HttpException) {
+                if (e.code() == 401) onUnauthorized()
+                // Preserve prior forms for non-auth errors; fall back to built-in rules.
+            } catch (_: Exception) {
+                // Older servers may not support custom forms.
+            }
+        }
+        currencyForms = updated
     }
 
     LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
@@ -588,7 +606,9 @@ fun PointsScreen(
                                 } else {
                                     formatPointAmount(
                                         memberBalances[selectedMember.id] ?: balance,
-                                        language, "POINTS", text.points
+                                        language, "POINTS", text.points,
+                                        currencyForms[pointTypes.firstOrNull { it.code.equals("POINTS", ignoreCase = true) }?.id]
+                                            .orEmpty().map { com.olehkobylianskyi.familypoints.android.i18n.PointNameForms(it.language, it.one, it.few, it.many) }
                                     )
                                 },
                                 style =
@@ -701,7 +721,12 @@ fun PointsScreen(
                         pointTypeLabel = pointTypeLabel(
                             createText,
                             transaction
-                        )
+                        ),
+                        forms = currencyForms[pointTypes.firstOrNull {
+                            it.code.equals(transaction.pointTypeCode, ignoreCase = true)
+                        }?.id].orEmpty().map {
+                            com.olehkobylianskyi.familypoints.android.i18n.PointNameForms(it.language, it.one, it.few, it.many)
+                        }
                     )
                 }
             }
@@ -1046,7 +1071,8 @@ private fun PointOperationDialog(
 private fun PointTransactionCard(
     language: AppLanguage,
     transaction: PointTransactionResponse,
-    pointTypeLabel: String
+    pointTypeLabel: String,
+    forms: List<com.olehkobylianskyi.familypoints.android.i18n.PointNameForms>
 ) {
     val text = pointsStrings(language)
 
@@ -1074,15 +1100,16 @@ private fun PointTransactionCard(
                 Text(
                     // Numeric amount must use the same plural forms as the balance.
                     // Never append the currency display name directly (e.g. "10 бали").
-                    if (transaction.pointTypeCode.equals("POINTS", ignoreCase = true) ||
+                    if (forms.isNotEmpty() || transaction.pointTypeCode.equals("POINTS", ignoreCase = true) ||
                         transaction.pointTypeCode.isNullOrBlank()
                     ) {
                         val sign = if (transaction.amount > 0) "+" else ""
                         sign + formatPointAmount(
                             transaction.amount.toLong(),
                             language,
-                            "POINTS",
-                            pointTypeLabel
+                            transaction.pointTypeCode ?: "POINTS",
+                            pointTypeLabel,
+                            forms
                         )
                     } else {
                         formatAmount(transaction.amount) + " " + pointTypeLabel
