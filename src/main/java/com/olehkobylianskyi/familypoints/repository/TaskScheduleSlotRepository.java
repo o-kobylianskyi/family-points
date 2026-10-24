@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TaskScheduleSlotRepository extends JpaRepository<TaskScheduleSlot, Long> {
+    List<TaskScheduleSlot> findByTaskDefinitionIdIn(List<Long> definitionIds);
     List<TaskScheduleSlot> findByTaskDefinitionIdOrderByScheduledTimeAscSlotKeyAsc(Long taskDefinitionId);
     Optional<TaskScheduleSlot> findByIdAndTaskDefinitionId(Long id, Long taskDefinitionId);
     Optional<TaskScheduleSlot> findByTaskDefinitionIdAndSlotKey(Long taskDefinitionId, String slotKey);

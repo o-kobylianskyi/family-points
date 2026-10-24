@@ -4,6 +4,7 @@ import com.olehkobylianskyi.familypoints.dto.*;
 import com.olehkobylianskyi.familypoints.entity.WorkspacePermission;
 import com.olehkobylianskyi.familypoints.security.CurrentUserService;
 import com.olehkobylianskyi.familypoints.service.RewardService;
+import com.olehkobylianskyi.familypoints.service.RewardAvailabilityService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,13 +15,16 @@ import java.util.List;
 public class RewardController {
 
     private final RewardService rewardService;
+    private final RewardAvailabilityService availabilityService;
     private final CurrentUserService currentUser;
 
     public RewardController(
             RewardService rewardService,
+            RewardAvailabilityService availabilityService,
             CurrentUserService currentUser
     ) {
         this.rewardService = rewardService;
+        this.availabilityService = availabilityService;
         this.currentUser = currentUser;
     }
 
@@ -70,6 +74,20 @@ public class RewardController {
     ) {
         assertManage(workspaceId);
         return rewardService.updateReward(workspaceId, rewardId, request);
+    }
+
+    @GetMapping("/{rewardId}/availability")
+    public RewardAvailabilityResponse availability(@PathVariable Long workspaceId, @PathVariable Long rewardId) {
+        assertWorkspace(workspaceId);
+        return availabilityService.get(workspaceId, rewardId, canManageRewards());
+    }
+
+    @PutMapping("/{rewardId}/availability")
+    public RewardAvailabilityResponse updateAvailability(@PathVariable Long workspaceId,
+                                                          @PathVariable Long rewardId,
+                                                          @Valid @RequestBody RewardAvailabilityRequest request) {
+        assertManage(workspaceId);
+        return availabilityService.update(workspaceId, rewardId, request);
     }
 
     @GetMapping("/requests")
