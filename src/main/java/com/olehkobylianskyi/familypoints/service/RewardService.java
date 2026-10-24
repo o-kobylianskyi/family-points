@@ -28,6 +28,7 @@ public class RewardService {
     private final TaskInstanceRepository taskInstances;
     private final ReputationService reputationService;
     private final PointService pointService;
+    private final RewardAvailabilityService availabilityService;
 
     public RewardService(
             WorkspaceRepository workspaces,
@@ -42,7 +43,8 @@ public class RewardService {
             TaskDefinitionRepository taskDefinitions,
             TaskInstanceRepository taskInstances,
             ReputationService reputationService,
-            PointService pointService
+            PointService pointService,
+            RewardAvailabilityService availabilityService
     ) {
         this.workspaces = workspaces;
         this.members = members;
@@ -57,6 +59,7 @@ public class RewardService {
         this.taskInstances = taskInstances;
         this.reputationService = reputationService;
         this.pointService = pointService;
+        this.availabilityService = availabilityService;
     }
 
     @Transactional(readOnly = true)
@@ -302,6 +305,7 @@ public class RewardService {
             throw new IllegalArgumentException("This reward requires a request and approval");
         }
 
+        availabilityService.requireOpenForPurchase(reward);
         requireCooldownElapsed(memberId, reward);
         requireRedemptionLimits(memberId, reward);
         assertNotBlocked(member, reward);
@@ -382,6 +386,7 @@ public class RewardService {
         if (request.getRewardDefinition() != null) {
             RewardDefinition lockedReward = rewards.findForPurchase(request.getRewardDefinition().getId(), workspaceId)
                     .orElseThrow(() -> new ResourceNotFoundException("Reward not found"));
+            availabilityService.requireOpenForPurchase(lockedReward);
             requireCooldownElapsed(memberId, lockedReward);
             requireRedemptionLimits(memberId, lockedReward);
             assertNotBlocked(member, lockedReward);
