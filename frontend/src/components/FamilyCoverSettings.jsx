@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
+import './FamilyCoverSettings.css'
 import { getMediaManifest, putMediaBinding, deleteMediaBinding, fetchAuthorizedMediaObjectUrl, uploadMedia } from '../api/mediaApi'
 
 const labels = {
