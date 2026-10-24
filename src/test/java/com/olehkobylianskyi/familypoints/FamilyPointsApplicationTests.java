@@ -472,7 +472,7 @@ class FamilyPointsApplicationTests {
             WHERE version IN ('35','36') AND success = true
             """, Integer.class));
         for (String table : java.util.List.of("media_assets","media_blobs","media_bindings",
-                "reward_availability_weekly_windows")) {
+                "reward_weekly_windows")) {
             assertEquals(1, jdbc.queryForObject("""
                 SELECT count(*) FROM information_schema.tables
                 WHERE table_schema='public' AND table_name=?
