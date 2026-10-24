@@ -321,3 +321,10 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 ## 2026-10-25 — Reward catalog button lower-right alignment
 - User screenshot requested 'Отримати нагороду' button at bottom-right of catalog reward card.
 - Scoped catalog action container with reward-card-actions (RewardsPage.jsx commit 6ecd4c9), flex column card and bottom-pushed, right-justified action row in App.css (0f87e35). Applies to catalog reward cards only; keeps actual purchase/request/edit handlers, enabled states, and other reward panels unchanged. Test narrow responsive cards and rewards with variable description lengths.
+
+
+## 2026-10-25 — Cross-team: Task categories as configurable templates, not Reward categories
+- User proposes Categories subtab and category-driven task defaults including time, repetition/one-time schedule, delegation and other parameters. Screenshot is Rewards > Settings > Reward Categories; task settings must NOT be attached to reward-category DTO. Architecture handoff and source-of-truth: `docs/coordination/logs/architecture.md`, commit `0e7cd08c3cd5785fcf2e26eb570fcbc0b1ceb57c`.
+- Backend prerequisite: separate workspace-scoped TaskCategory / defaults model, CRUD, policy for primary category vs multiple, precedence/snapshot semantics, compatible migration, task schedule-slot mapping and ACL. Current CreateTaskModal already handles recurrenceType, delegationAllowed and daily slot times independently, so Web should apply backend defaults as *prefill*, not force values or mutate previously created instances.
+- Web follow-up when contract available: dedicated Tasks > Management > Categories subtab with template editor, task-category selection in create/edit, visible defaults and explicit user overrides. Existing Rewards > Settings > Categories may be separated into a reward-category subtab independently, but must not be conflated with task templates.
+- Status BACKLOG/BLOCKED_ON_BACKEND_CONTRACT under interim BETA feature freeze. No user-visible feature implemented in this commit; do not report done or claim browser QA.
