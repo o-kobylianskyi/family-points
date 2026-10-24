@@ -125,4 +125,8 @@ object ApiClient {
     val pointsApi: PointsApi by lazy {
         retrofit.create(PointsApi::class.java)
     }
+
+    val calendarApi: CalendarApi by lazy {
+        retrofit.create(CalendarApi::class.java)
+    }
 }
