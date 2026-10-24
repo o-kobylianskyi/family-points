@@ -1,5 +1,7 @@
 package com.olehkobylianskyi.familypoints.android.network
 
+import okhttp3.ResponseBody
+import retrofit2.http.Streaming
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -30,6 +32,15 @@ data class MediaReferenceBatchDto(val targets: List<MediaTargetDto>)
 data class MediaReferenceDto(val target: MediaTargetDto, val image: MediaRefDto?)
 
 interface MediaApi {
+    @Streaming
+    @GET("workspaces/{workspaceId}/media/{assetId}/variants/{variant}")
+    suspend fun imageVariant(
+        @Header("Authorization") bearer: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("assetId") assetId: String,
+        @Path("variant") variant: String = "THUMBNAIL"
+    ): ResponseBody
+
     @GET("workspaces/{workspaceId}/media/manifest")
     suspend fun manifest(
         @Header("Authorization") bearer: String,
