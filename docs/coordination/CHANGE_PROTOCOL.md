@@ -1,5 +1,9 @@
 # FamilyPoints — cross-track change protocol
 
+## Release-scope filter — Interim BETA freeze (2026-10-24)
+Before proposing an XTR/IMP or starting implementation, classify the work: (A) **in-scope existing release stabilization** (including contract fix needed to close already underway PR), (B) **small bug or visual correction** without meaningful added product scope, or (C) **new major/global feature**. Proceed only on A/B. Route C to [POST_INTERIM_BETA_BACKLOG.md](POST_INTERIM_BETA_BACKLOG.md) with no new global XTR/IMP, PR, migration or implementation. User must explicitly reopen the next phase after verified interim BETA or approve an exception. Urgent actual data-loss/tenant-security/auth/release blockers remain in scope; document the exception. Existing template and family-reset XTR-P-01..08 dated 2026-10-24 are AFTER_INTERIM_BETA irrespective of older status. Release owns tag/DB backup/restore/handset/HTTPS gates and user release authorization.
+
+
 ## Beginning a new chat/session
 1. Fetch `origin/main` and verify its current HEAD. `feature/task-soft-delete` is a historical former integration branch; no longer use it as authoritative.
 2. Read `AGENTS.md`, this directory's README, PROJECT_STATE, IMPACT_REGISTER, decisions and your track log; read applicable historical logs and source.

@@ -1,5 +1,7 @@
 # ADR-FAMILY-RESET-001 — Selective family data reset and restart setup
 
+> **Current release-scope override — 2026-10-24:** Feature design remains valid but its **implementation is AFTER_INTERIM_BETA / ON HOLD** by explicit user priority decision ADR-COORD-006. This file is not a directive to start an API/UI/DB project during interim-BETA stabilization. See [post-BETA backlog](../coordination/POST_INTERIM_BETA_BACKLOG.md).
+
 **Date:** 2026-10-24
 **Product goal:** user requested an administrator-only family reset from settings, selection of categories to clear/preserve, password confirmation and ability to repeat first-run starter template setup.
 **Status:** PRODUCT GOAL AGREED; specific API, retention policies and UI defaults PROPOSED for Backend/Web/Android/Release review. No reset implementation or actual deletion performed.

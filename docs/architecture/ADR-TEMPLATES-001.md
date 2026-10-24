@@ -1,4 +1,6 @@
 # ADR-TEMPLATES-001 — Starter family and reusable tasks/rewards templates
+
+> **Current release-scope override — 2026-10-24:** Feature design remains valid but its **implementation is AFTER_INTERIM_BETA / ON HOLD** by explicit user priority decision ADR-COORD-006. This file is not a directive to start an API/UI/DB project during interim-BETA stabilization. See [post-BETA backlog](../coordination/POST_INTERIM_BETA_BACKLOG.md).
 **Date:** 2026-10-24. **Status:** User-requested product goal AGREED; detailed data/API contract PROPOSED for consumer review. No implementation/test/deploy claim.
 **Impact:** IMP-0008. **XTR:** 20261024-P-01 Backend, -02 Web, -03 Android, -04 Release.
 **Earlier design:** docs/MULTI_FAMILY_ONBOARDING_PLAN.md (M3/M4); ADR-CAL-001 (reward windows), ADR-MEDIA-001 (global stock icons).

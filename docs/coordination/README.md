@@ -1,5 +1,9 @@
 # FamilyPoints — Git coordination hub
 
+## Current priority — finish INTERIM BETA; new global features frozen (2026-10-24)
+The user prioritizes stabilization of existing FamilyPoints tasks and an actual interim BETA release **before any new global initiatives begin**. Existing active calendar/media PRs, currently approved UI fixes, auth/offline consistency, security, tests, migration/backup and signed APK work remain in the cycle. New large ideas go **only** to [post-interim-BETA backlog](POST_INTERIM_BETA_BACKLOG.md), not XTR/IMP implementation. Minor corrections and genuine release-blocking defects are exceptions. **IMP-0008 family templates and IMP-0009 destructive family reset, XTR-20261024-P-01..08, are parked AFTER_INTERIM_BETA**. See ADR-COORD-006 / AGENTS.md; no automatic deployment.
+
+
 **Since 2026-10-23, the sole canonical integration branch is [`main`](https://github.com/o-kobylianskyi/family-points/tree/main)** (ADR-COORD-005). The former `feature/task-soft-delete` was fast-forwarded into `main`. Temporary topic branches/PRs are allowed but target `main`; accepted source and docs must be integrated there. For Android/Web worktrees with local unique commits and uncommitted changes, follow [safe migration](MAIN_BRANCH_MIGRATION.md) before switching. A Git branch update does not deploy BETA.
 
 
