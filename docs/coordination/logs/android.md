@@ -189,3 +189,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - **Defer NEW scope until after intermediate Android release:** template starter library XTR-20261024-P-03, family reset UI/cache generation XTR-20261024-P-07 pending Backend, further unrelated features. Do not mark these DONE or lose requests; no new tasks added to the release scope.
 - Current partial pull-to-refresh implementation has a fixed ~1200ms spinner and no per-screen async completion signal. Must not claim it fully verified until actual APK/device QA.
 - Evidence: project checklists, Android journal and Architecture request files audited; **this note is planning only**, with no Android build/device test, signing, deployment or server changes.
+
+## 2026-10-24 — Android points transaction pluralization
+- User reported grammatical defect: `10 бали` instead of `10 балів`. `PointAmountFormatter.formatPointAmount()` already implements correct Ukrainian/Russian plural logic, but `PointsScreen.PointTransactionCard` appended raw `pointTypeLabel` to numeric amount.
+- Fixed transaction rows for the built-in POINTS unit to reuse `formatPointAmount`, preserving `+` for positive transactions (commit `411fe8e`). Balance already used formatter. This is Kotlin/Compose display only; no Backend schema/API changes.
+- Follow-up: configurable custom currency forms still need uniform wiring across Android displays; this change does not claim to load user-defined forms throughout all screens. APK has NOT been rebuilt, tested or republished with this fix.
