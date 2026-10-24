@@ -448,8 +448,9 @@ function MembersPage() {
               role={canManageMembers ? "button" : undefined}
               tabIndex={canManageMembers ? 0 : undefined}
             >
-              <FamilyAvatar name={member.name} kind="member" className="member-avatar" />
-              <div onClick={e=>e.stopPropagation()}><EntityMedia type="MEMBER" targetId={member.id} slot="AVATAR" canEdit={canManageMembers}/></div>
+              <EntityMedia compact type="MEMBER" targetId={member.id} slot="AVATAR" canEdit={canManageMembers}>
+                <FamilyAvatar name={member.name} kind="member" className="member-avatar" />
+              </EntityMedia>
 
               <div className="member-info">
                 <strong>{member.name}</strong>
