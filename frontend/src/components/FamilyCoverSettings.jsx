@@ -28,12 +28,14 @@ export default function FamilyCoverSettings() {
     let objectUrl=''
     setManifest(null)
     setCoverUrl('')
+    setError('')
     getMediaManifest(getAccessToken(),workspaceId).then(async data => {
       if (!active) return
       setManifest(data)
       if (data.cover?.path) {
-        objectUrl=await fetchAuthorizedMediaObjectUrl(getAccessToken(),data.cover.path)
-        if (active) setCoverUrl(objectUrl)
+        const fetchedUrl=await fetchAuthorizedMediaObjectUrl(getAccessToken(),data.cover.path)
+        objectUrl=fetchedUrl
+        if (active) setCoverUrl(fetchedUrl)
         else URL.revokeObjectURL(objectUrl)
       }
     }).catch(e=>{if(active)setError(e.message)})
