@@ -65,6 +65,7 @@ private enum class RewardsTab {
 
 @Composable
 fun RewardsScreen(
+    refreshNonce: Int = 0,
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     repository: RewardsRepository,
@@ -299,12 +300,12 @@ fun RewardsScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId, serverStatus) {
+    LaunchedEffect(currentUser.workspaceId, serverStatus, refreshNonce) {
         load()
     }
 
     // Refresh visible catalog after server-side edits made from Web/other devices.
-    LaunchedEffect(currentUser.workspaceId, serverStatus) {
+    LaunchedEffect(currentUser.workspaceId, serverStatus, refreshNonce) {
         if (serverStatus == ServerStatus.ONLINE) {
             while (true) {
                 delay(30_000L)
@@ -313,7 +314,7 @@ fun RewardsScreen(
         }
     }
 
-    LaunchedEffect(data?.pointTypes, serverStatus) {
+    LaunchedEffect(data?.pointTypes, serverStatus, refreshNonce) {
         if (serverStatus != ServerStatus.ONLINE) return@LaunchedEffect
         val types = data?.pointTypes.orEmpty()
         val received = mutableMapOf<Long, List<PointNameFormDto>>()
