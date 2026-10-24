@@ -43,20 +43,14 @@ export default function RewardAvailabilityEditor({ rewardId }) {
       let payload={mode,startsAt:null,endsAt:null,weeklyWindows:[]}
       if(mode==='ONE_TIME') {
         if(!start||!end||start>=end) throw new Error('Invalid date/time range')
-        const zone=data?.workspaceTimeZone||'UTC'
-        // Require server-compatible explicit offsets; Intl format cannot infer DST offsets reliably from local inputs.
-        const offset=(date)=>{
-          const at=new Date(date)
-          const parts=new Intl.DateTimeFormat('en-US',{timeZone:zone,timeZoneName:'shortOffset'}).formatToParts(at)
-          const name=parts.find(p=>p.type==='timeZoneName')?.value||'GMT'
-          const match=name.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/)
-          return match?`${match[1]}${match[2].padStart(2,'0')}:${match[3]||'00'}`:'+00:00'
-        }
-        payload={...payload,startsAt:`${start}:00${offset(start)}`,endsAt:`${end}:00${offset(end)}`}
+        if (!/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d(?::\\d\\d)?(?:Z|[+-]\\d\\d:\\d\\d)$/.test(start) ||
+            !/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d(?::\\d\\d)?(?:Z|[+-]\\d\\d:\\d\\d)$/.test(end) ||
+            Date.parse(start)>=Date.parse(end)) throw new Error('Use ISO date-time with UTC offset, e.g. 2026-11-05T18:00:00+01:00')
+        payload={...payload,startsAt:start,endsAt:end}
       }
       if(mode==='RECURRING_WEEKLY'){
         if(from>=to)throw new Error('Start must be before end')
-        payload.weeklyWindows=[{windowId:'web-1',dayOfWeek:Number(day),localStartTime:`${from}:00`,localEndTime:`${to}:00`,effectiveFromDate:null,effectiveToDate:null,enabled:true}]
+        payload.weeklyWindows=[{windowId:data?.weeklyWindows?.[0]?.windowId||'web-1',dayOfWeek:Number(day),localStartTime:`${from}:00`,localEndTime:`${to}:00`,effectiveFromDate:data?.weeklyWindows?.[0]?.effectiveFromDate||null,effectiveToDate:data?.weeklyWindows?.[0]?.effectiveToDate||null,enabled:true},...(data?.weeklyWindows||[]).slice(1)]
       }
       const saved=await updateRewardAvailability(getAccessToken(),workspaceId,rewardId,payload)
       setData(saved);setNotice(t.saved)
@@ -68,7 +62,7 @@ export default function RewardAvailabilityEditor({ rewardId }) {
     {notice&&<p role="status">{notice}</p>}
     <form onSubmit={save} className="reward-editor">
       <label>{t.mode}<select value={mode} onChange={e=>setMode(e.target.value)}><option value="ALWAYS">{t.always}</option><option value="ONE_TIME">{t.once}</option><option value="RECURRING_WEEKLY">{t.weekly}</option></select></label>
-      {mode==='ONE_TIME'&&<><label>{t.start}<input type="datetime-local" value={start} onChange={e=>setStart(e.target.value)} required/></label><label>{t.end}<input type="datetime-local" value={end} onChange={e=>setEnd(e.target.value)} required/></label></>}
+      {mode==='ONE_TIME'&&<><label>{t.start}<input type="text" placeholder="2026-11-05T18:00:00+01:00" value={start} onChange={e=>setStart(e.target.value)} required/></label><label>{t.end}<input type="text" placeholder="2026-11-05T20:00:00+01:00" value={end} onChange={e=>setEnd(e.target.value)} required/></label></>}
       {mode==='RECURRING_WEEKLY'&&<><label>{t.day}<input type="number" min="1" max="7" value={day} onChange={e=>setDay(e.target.value)}/></label><label>{t.from}<input type="time" value={from} onChange={e=>setFrom(e.target.value)}/></label><label>{t.to}<input type="time" value={to} onChange={e=>setTo(e.target.value)}/></label></>}
       <button className="secondary-button" type="submit" disabled={busy||!data}>{t.save}</button>
     </form>
