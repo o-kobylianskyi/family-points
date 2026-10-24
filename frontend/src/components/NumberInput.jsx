@@ -20,7 +20,7 @@ export default function NumberInput({ value, onChange, min, max, step = 1, disab
     <div className="fp-number-control fp-number-control-shared">
       <input {...props} type="number" min={min} max={max} step={step}
         value={value} onChange={onChange} disabled={disabled} />
-      <div className="fp-number-stepper" role="group" aria-label={props['aria-label'] || 'Number controls'}>
+      <div className="fp-number-stepper" role="group" aria-label={props['aria-label'] || t('numberInput.controls')}>
         <button type="button" aria-label={t('numberInput.increase', { field: props['aria-label'] || '' })} onClick={() => adjust(1)}
           disabled={disabled || (isFilled && amount >= upper)}><span className="fp-number-arrow" aria-hidden="true">▲</span></button>
         <button type="button" aria-label={t('numberInput.decrease', { field: props['aria-label'] || '' })} onClick={() => adjust(-1)}
