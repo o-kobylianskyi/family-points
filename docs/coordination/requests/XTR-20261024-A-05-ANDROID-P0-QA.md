@@ -92,3 +92,11 @@ Do not mark READY FOR QA or RELEASE until the final SHA passes Android Gradle/un
 - QA OFF-ACCOUNT-04: API /api/me returns absent/mismatched accountId, workspaceId, or memberId. New queued writes blocked without ID; existing operations not replayed or removed. Confirm no cross-account ledger mutations.
 - QA OFF-ACCOUNT-05: Multi-item replay, 401/403 mid-stream, app restart, duplicate operation IDs remain idempotent; confirmed entries removed once; pending entries retained. Repeat with two currencies, parent role restrictions.
 - Status: code delivered, awaiting exact-head Android CI and device + Backend integration QA, not RELEASE approved. Existing other cache stores may still be workspace/member scoped and need a separate privacy audit; this package scopes the **operation queue**.
+
+## 2026-10-24 — MED-AVATAR-WEB-ANDROID: missing self avatar on Android
+- User verified avatar set in Web is not visible in Android. Root-cause source finding: Android V37 uploaded image only appeared in MembersScreen; shared AppHeader previously rendered just member name and role, without any media reference/thumbnail.
+- Android commits `4f18e172` and `590f5627`: shared AppHeader requests current MEMBER/AVATAR authenticated V37 binding for current workspace/member and shows MemberMediaAvatar on all header-bearing screens, clearing binding on account/workspace change. Thumbnail fills circular crop. Optional media errors never force logout.
+- QA case MED-AVATAR-WEB-ANDROID-01: upload a JPG/PNG avatar on Web for signed-in member; open Android on same family, verify circular thumbnail next to username in header and in Members tab; image persists after navigation and sign-in (requires live V37 deployment).
+- QA MED-AVATAR-WEB-ANDROID-02: switch to another account/family and verify former avatar disappears without cross-account leak; a 401/403 media failure must not log user out.
+- Known limitation: Android's BitmapFactory cannot decode catalog SVG avatar defaults; upload JPG/PNG should render, SVG requires dedicated decoding and testing. Android avatar upload/picker not yet wired.
+- CI for exact-head changes pending at creation of this note. No on-device PASS claim.
