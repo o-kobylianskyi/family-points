@@ -21,11 +21,13 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
   const [busy,setBusy]=useState(false)
   const [revision,setRevision]=useState(0)
   const lock=useRef(false)
+  const activeTarget=useRef('')
+  activeTarget.current=`${workspaceId}:${type}:${targetId}:${slot}`
   useEffect(()=>{
     if(!targetId)return
     let alive=true
     let objectUrl=''
-    setReference(null);setUrl('');setError('');setCatalog([])
+    setReference(null);setUrl('');setError('');setCatalog([]);setBusy(false)
     Promise.all([getMediaBinding(getAccessToken(),workspaceId,type,targetId,slot),
       canEdit?getMediaCatalog(getAccessToken(),workspaceId):Promise.resolve([])])
       .then(async ([ref,items])=>{
@@ -42,10 +44,11 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
   },[workspaceId,type,targetId,slot,canEdit,getAccessToken,revision])
   const mutate=async action=>{
     if(lock.current||!reference)return
+    const targetKey=activeTarget.current
     lock.current=true;setBusy(true);setError('')
-    try{await action();setRevision(v=>v+1)}
-    catch(e){setError(e.message)}
-    finally{lock.current=false;setBusy(false)}
+    try{await action();if(activeTarget.current===targetKey)setRevision(v=>v+1)}
+    catch(e){if(activeTarget.current===targetKey){setError(e.message);if(e.status===409)setRevision(v=>v+1)}}
+    finally{lock.current=false;if(activeTarget.current===targetKey)setBusy(false)}
   }
   const choose=key=>mutate(()=>putMediaBinding(getAccessToken(),workspaceId,type,targetId,slot,{catalogKey:key,assetId:null},reference.version))
   const clear=()=>mutate(()=>deleteMediaBinding(getAccessToken(),workspaceId,type,targetId,slot,reference.version))
