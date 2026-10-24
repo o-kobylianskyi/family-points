@@ -49,7 +49,10 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
     if(lock.current||!reference)return
     const targetKey=activeTarget.current
     lock.current=true;setBusy(true);setError('')
-    try{await action();if(activeTarget.current===targetKey)setRevision(v=>v+1)}
+    try{await action();if(activeTarget.current===targetKey){
+      setRevision(v=>v+1)
+      if(type==='MEMBER')window.dispatchEvent(new CustomEvent('fp:member-avatar-changed',{detail:{workspaceId,memberId:targetId}}))
+    }}
     catch(e){if(activeTarget.current===targetKey){setError(e.message);if(e.status===409)setRevision(v=>v+1)}}
     finally{lock.current=false;if(activeTarget.current===targetKey)setBusy(false)}
   }
