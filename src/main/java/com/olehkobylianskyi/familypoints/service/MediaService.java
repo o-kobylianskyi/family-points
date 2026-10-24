@@ -114,8 +114,8 @@ public class MediaService {
             } finally {reader.dispose();}
         } catch(IOException e) {throw new IllegalArgumentException("Invalid image",e);}
         if(original==null) throw new IllegalArgumentException("Invalid image");
-        byte[] card=render(original,800,mime), thumb=render(original,192,mime);
-        if (card.length>MAX_BYTES) throw new IllegalArgumentException("Normalized image too large");
+        byte[] cover=render(original,2048,mime), card=render(original,800,mime), thumb=render(original,192,mime);
+        if (cover.length>MAX_BYTES || card.length>MAX_BYTES) throw new IllegalArgumentException("Normalized image too large");
         // Serialize quota checks for this workspace to avoid simultaneous uploads
         // independently observing the same available capacity.
         Integer locked = db.query("SELECT 1 FROM families WHERE id=? FOR UPDATE",
@@ -125,11 +125,12 @@ public class MediaService {
                 SELECT COALESCE(SUM(octet_length(b.bytes)),0) FROM media_blobs b
                 JOIN media_assets a ON a.id=b.asset_id WHERE a.workspace_id=?
                 """, Long.class, ws);
-        if (used == null || used + card.length + thumb.length > 100L * 1024 * 1024)
+        if (used == null || used + cover.length + card.length + thumb.length > 100L * 1024 * 1024)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "MEDIA_WORKSPACE_QUOTA_EXCEEDED");
         UUID id=UUID.randomUUID();
         db.update("INSERT INTO media_assets(id,workspace_id,mime_type,width,height,byte_size,sha256,created_by_member_id) VALUES (?::uuid,?,?,?,?,?,?,?)",
                 id.toString(),ws,mime,original.getWidth(),original.getHeight(),card.length,hash(card),current.getCurrentMemberId());
+        db.update("INSERT INTO media_blobs(asset_id,variant,bytes) VALUES (?::uuid,'COVER',?)",id.toString(),cover);
         db.update("INSERT INTO media_blobs(asset_id,variant,bytes) VALUES (?::uuid,'CARD',?)",id.toString(),card);
         db.update("INSERT INTO media_blobs(asset_id,variant,bytes) VALUES (?::uuid,'THUMB',?)",id.toString(),thumb);
         return new Uploaded(id.toString(),mime,original.getWidth(),original.getHeight(),card.length);
@@ -255,14 +256,14 @@ public class MediaService {
         return db.query("SELECT asset_id::text,catalog_key,version FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=? AND (asset_id IS NOT NULL OR catalog_key IS NOT NULL)",
                 rs->rs.next()?new Ref(source,rs.getString(1),rs.getString(2),rs.getInt(3),
                         rs.getString(1)==null?null:"/workspaces/"+ws+"/media/"+rs.getString(1)+"/variants/"+
-                                (type.equals("WORKSPACE") && slot.equals("COVER") ? "CARD" : "THUMB")):null,
+                                (type.equals("WORKSPACE") && slot.equals("COVER") ? "COVER" : "THUMB")):null,
                 ws,type,target,slot);
     }
 
     @Transactional(readOnly=true)
     public ImageData getBoundVariant(long ws,String id,String variant) {
         requireWorkspace(ws);
-        if(!Set.of("CARD","THUMB").contains(variant))throw new IllegalArgumentException("Invalid variant");
+        if(!Set.of("COVER","CARD","THUMB").contains(variant))throw new IllegalArgumentException("Invalid variant");
         UUID uuid=UUID.fromString(id);
         // A private asset can be read only if currently bound in this exact workspace.
         // Only expose a private image through a binding whose target the current

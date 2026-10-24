@@ -11,7 +11,7 @@ CREATE TABLE media_assets (
 );
 CREATE TABLE media_blobs (
  asset_id uuid NOT NULL REFERENCES media_assets(id) ON DELETE CASCADE,
- variant varchar(20) NOT NULL CHECK (variant IN ('CARD','THUMB')),
+ variant varchar(20) NOT NULL CHECK (variant IN ('COVER','CARD','THUMB')),
  bytes bytea NOT NULL,
  PRIMARY KEY(asset_id, variant)
 );
