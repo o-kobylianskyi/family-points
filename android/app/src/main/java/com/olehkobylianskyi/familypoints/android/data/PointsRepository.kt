@@ -46,38 +46,46 @@ class PointsRepository(
     fun cachedConfirmedBalance(workspaceId: Long, memberId: Long): Long? =
         offlineStore.load(workspaceId, memberId)?.balance
 
-    fun pending(workspaceId: Long, viewerId: Long): List<OfflinePointsQueueStore.Pending> =
-        queue.pending(workspaceId, viewerId)
+    fun pending(workspaceId: Long, viewerId: Long, accountId: Long?): List<OfflinePointsQueueStore.Pending> =
+        if (accountId != null && accountId > 0) queue.pending(workspaceId, viewerId, accountId) else emptyList()
 
     fun queueOffline(
-        workspaceId: Long, viewerId: Long, memberId: Long,
+        workspaceId: Long, viewerId: Long, accountId: Long?, memberId: Long,
         pointType: PointTypeResponse,
         operation: String, amount: Int, description: String?
     ): OfflinePointsQueueStore.Pending =
-        queue.enqueue(workspaceId, viewerId, memberId, pointType.id,
+        queue.enqueue(workspaceId, viewerId, requireNotNull(accountId?.takeIf { it > 0 }) { "Offline queue requires verified account identity; sign in online" }, memberId, pointType.id,
             pointType.code, pointType.name, operation, amount, description)
 
     /**
      * Requires online authentication; the server rechecks MANAGE_POINTS
      * and de-duplicates every clientOperationId within a DB transaction.
      */
-    suspend fun synchronizePending(workspaceId: Long, viewerId: Long): Int {
+    suspend fun synchronizePending(workspaceId: Long, viewerId: Long, accountId: Long?): Int {
         replayMutex.lock()
         try {
             if (ServerReachability.status.value != ServerStatus.ONLINE) return 0
+            val owner = accountId?.takeIf { it > 0 } ?: return 0
             val auth = authorization()
+            // Never accept an owner identifier supplied only from a stale offline profile.
+            // Verify account + workspace + member against the current authenticated backend.
+            val verified = ApiClient.authApi.getCurrentUser(auth)
+            if (verified.accountId != owner || verified.workspaceId != workspaceId ||
+                verified.memberId != viewerId) {
+                throw SecurityException("Offline operation owner does not match authenticated account")
+            }
             var confirmed = 0
             val affectedMembers = mutableSetOf<Long>()
             // A later 4xx must not prevent balance refresh for earlier
             // operations that the server has already confirmed.
             var replayDenial: HttpException? = null
-            for (entry in queue.pending(workspaceId, viewerId)) {
+            for (entry in queue.pending(workspaceId, viewerId, owner)) {
             try {
                 ApiClient.pointsApi.replayOffline(
                     auth, workspaceId, entry.memberId, entry.type,
                     OfflinePointOperationRequest(entry.operationId, entry.pointTypeId, entry.amount, entry.description)
                 )
-                queue.confirm(entry.operationId, workspaceId, viewerId)
+                queue.confirm(entry.operationId, workspaceId, viewerId, owner)
                 confirmed++
                 affectedMembers.add(entry.memberId)
             } catch (error: HttpException) {
