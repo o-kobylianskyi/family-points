@@ -236,6 +236,15 @@ fun PointsScreen(
         loadingMembers = false
         error = ""
         pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId, currentUser.accountId)
+        val quarantinedCount = repository.quarantinedLegacyCount()
+        if (quarantinedCount > 0) {
+            syncMessage = when (language) {
+                AppLanguage.UK -> "Є $quarantinedCount старих офлайн-операцій без підтвердженого власника. Вони збережені, але заблоковані від синхронізації."
+                AppLanguage.DE -> "$quarantinedCount ältere Offline-Vorgänge ohne bestätigten Kontoinhaber wurden sicher zurückgehalten."
+                AppLanguage.EN -> "$quarantinedCount legacy offline operations have no verified owner; retained but blocked from replay."
+                AppLanguage.RU -> "$quarantinedCount старых офлайн-операций без подтверждённого владельца сохранены, но заблокированы."
+            }
+        }
         val cached = repository.cachedMembers(currentUser.workspaceId, currentUser.memberId)
         members = (if (canManage) cached else cached.filter { it.id == currentUser.memberId }).ifEmpty { listOf(WorkspaceMemberResponse(
             id = currentUser.memberId,
