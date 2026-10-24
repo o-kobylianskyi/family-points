@@ -45,7 +45,9 @@ class ApprovedRewardPurchaseTest {
         assertEquals(RewardRequestStatus.PURCHASED,request.getStatus());
         verify(points).spend(eq(8L),eq(3L),eq(5L),eq(20),
                 eq(PointTransactionSourceType.REWARD_PURCHASE),nullable(Long.class),anyString());
-        assertThrows(IllegalArgumentException.class,()->service.purchaseRequest(8L,3L,77L));
+        var duplicate=assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                ()->service.purchaseRequest(8L,3L,77L));
+        assertEquals(409,duplicate.getStatusCode().value());
         verify(purchases,times(1)).save(any(RewardPurchase.class));
         verify(points,times(1)).spend(any(),any(),any(),anyInt(),any(),nullable(Long.class),anyString());
     }
