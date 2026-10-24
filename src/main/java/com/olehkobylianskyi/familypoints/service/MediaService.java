@@ -171,13 +171,21 @@ public class MediaService {
             throw new IllegalArgumentException("expectedVersion is required");
         if (!Objects.equals(expectedVersion,currentVersion==null?0:currentVersion))
             throw new ResponseStatusException(HttpStatus.CONFLICT,"MEDIA_VERSION_CONFLICT");
-        db.update("""
+        // Serialize first-write for a target row that does not exist yet. Without
+        // a workspace lock, two "expectedVersion=0" uploads can race on INSERT.
+        Integer acquired=db.query("SELECT 1 FROM families WHERE id=? FOR UPDATE",
+                rs -> rs.next() ? rs.getInt(1) : null, ws);
+        if (acquired == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        int written=db.update("""
                 INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,asset_id,catalog_key)
                 VALUES (?,?,?,?,?::uuid,?)
                 ON CONFLICT(workspace_id,target_type,target_id,slot)
                 DO UPDATE SET asset_id=excluded.asset_id,catalog_key=excluded.catalog_key,
                 version=media_bindings.version+1,updated_at=now()
-                """,ws,type,target,slot,assetId,catalogKey);
+                WHERE media_bindings.version=?
+                """,ws,type,target,slot,assetId,catalogKey,expectedVersion);
+        if (written != 1)
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"MEDIA_VERSION_CONFLICT");
         return effective(ws,type,target,slot);
     }
 
