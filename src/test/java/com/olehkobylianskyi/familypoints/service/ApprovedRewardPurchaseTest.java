@@ -90,4 +90,51 @@ class ApprovedRewardPurchaseTest {
                 eq(PointTransactionSourceType.REWARD_PURCHASE),nullable(Long.class),anyString());
     }
 
+    @Test
+    void anotherMemberCannotBuySomeoneElsesApprovedRequest() {
+        var members=mock(WorkspaceMemberRepository.class);
+        var requests=mock(RewardRequestRepository.class);
+        var points=mock(PointService.class);
+        var purchases=mock(RewardPurchaseRepository.class);
+        var requester=mock(WorkspaceMember.class);
+        var workspace=mock(Workspace.class);
+        when(requester.getId()).thenReturn(3L);
+        when(members.findByIdAndWorkspaceIdForUpdate(4L,8L))
+                .thenReturn(Optional.of(mock(WorkspaceMember.class)));
+        var request=new RewardRequest(workspace,requester,null,"Private approved reward",null);
+        request.approve(mock(PointType.class),20,null,null,false);
+        when(requests.findByIdAndWorkspaceId(77L,8L)).thenReturn(Optional.of(request));
+        var service=new RewardService(mock(WorkspaceRepository.class),members,
+                mock(PointTypeRepository.class),mock(RewardCategoryRepository.class),
+                mock(RewardDefinitionRepository.class),requests,mock(RewardRequirementRepository.class),
+                purchases,mock(RewardObligationRepository.class),mock(TaskDefinitionRepository.class),
+                mock(TaskInstanceRepository.class),mock(ReputationService.class),points);
+        assertThrows(IllegalArgumentException.class,()->service.purchaseRequest(8L,4L,77L));
+        assertEquals(RewardRequestStatus.READY_TO_PURCHASE,request.getStatus());
+        verifyNoInteractions(points,purchases);
+    }
+
+    @Test
+    void pendingRequestIsRejectedWithConflictWithoutCreatingPurchaseOrDebit() {
+        var members=mock(WorkspaceMemberRepository.class);
+        var requests=mock(RewardRequestRepository.class);
+        var points=mock(PointService.class);
+        var purchases=mock(RewardPurchaseRepository.class);
+        var requester=mock(WorkspaceMember.class);
+        when(requester.getId()).thenReturn(3L);
+        when(members.findByIdAndWorkspaceIdForUpdate(3L,8L))
+                .thenReturn(Optional.of(requester));
+        var request=new RewardRequest(mock(Workspace.class),requester,null,"Pending reward",null);
+        when(requests.findByIdAndWorkspaceId(77L,8L)).thenReturn(Optional.of(request));
+        var service=new RewardService(mock(WorkspaceRepository.class),members,
+                mock(PointTypeRepository.class),mock(RewardCategoryRepository.class),
+                mock(RewardDefinitionRepository.class),requests,mock(RewardRequirementRepository.class),
+                purchases,mock(RewardObligationRepository.class),mock(TaskDefinitionRepository.class),
+                mock(TaskInstanceRepository.class),mock(ReputationService.class),points);
+        var failure=assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                ()->service.purchaseRequest(8L,3L,77L));
+        assertEquals(409,failure.getStatusCode().value());
+        verifyNoInteractions(points,purchases);
+    }
+
 }
