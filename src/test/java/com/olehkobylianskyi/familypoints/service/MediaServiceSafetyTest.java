@@ -1,6 +1,8 @@
 package com.olehkobylianskyi.familypoints.service;
 
 import com.olehkobylianskyi.familypoints.security.CurrentUserService;
+import com.olehkobylianskyi.familypoints.entity.WorkspaceMember;
+import com.olehkobylianskyi.familypoints.entity.WorkspacePermission;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,6 +28,9 @@ class MediaServiceSafetyTest {
 
     @Test void rejectsSpoofedImageWithoutWritingToDatabase() {
         when(current.belongsToWorkspace(123L)).thenReturn(true);
+        var actor=mock(WorkspaceMember.class);
+        when(current.getCurrentMember()).thenReturn(actor);
+        when(actor.hasPermission(WorkspacePermission.MANAGE_WORKSPACE)).thenReturn(true);
         var file=new MockMultipartFile("file","avatar.png","image/png",
                 "not a real png".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         assertThrows(IllegalArgumentException.class,()->media.upload(123L,file));
@@ -34,6 +39,9 @@ class MediaServiceSafetyTest {
 
     @Test void limitsOversizedUploadBeforeDecodeOrDatabaseWrite() {
         when(current.belongsToWorkspace(123L)).thenReturn(true);
+        var actor=mock(WorkspaceMember.class);
+        when(current.getCurrentMember()).thenReturn(actor);
+        when(actor.hasPermission(WorkspacePermission.MANAGE_WORKSPACE)).thenReturn(true);
         var file=new MockMultipartFile("file","large.png","image/png",new byte[5*1024*1024+1]);
         assertThrows(IllegalArgumentException.class,()->media.upload(123L,file));
         verifyNoInteractions(db);
