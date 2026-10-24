@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
@@ -32,6 +32,7 @@ function TaskRewardNegotiationModal({
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const submitLock = useRef(false)
   const [error, setError] = useState('')
 
   const title = task?.title || request?.taskTitle || ''
@@ -128,7 +129,7 @@ function TaskRewardNegotiationModal({
 
   const submit = async (event) => {
     event.preventDefault()
-    if (saving) return
+    if (submitLock.current || saving) return
 
     const durationMinutes =
       durationPreset === 'ANY'
@@ -173,6 +174,7 @@ function TaskRewardNegotiationModal({
       return
     }
 
+    submitLock.current = true
     try {
       setSaving(true)
       setError('')
@@ -199,6 +201,7 @@ function TaskRewardNegotiationModal({
     } catch (saveError) {
       setError(saveError.message)
     } finally {
+      submitLock.current = false
       setSaving(false)
     }
   }
