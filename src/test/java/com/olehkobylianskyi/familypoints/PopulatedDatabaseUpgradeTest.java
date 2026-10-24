@@ -14,7 +14,7 @@ import java.sql.Statement;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Exercises a two-step Flyway migration on a real PostgreSQL 17 database.
+ * Exercises a complete Flyway migration on a real PostgreSQL 17 database.
  * This is a disposable populated-DB surrogate; it never connects to BETA.
  */
 @Testcontainers
@@ -78,7 +78,7 @@ class PopulatedDatabaseUpgradeTest {
         }
 
         var migrationResult = flyway(false).migrate();
-        assertEquals(2, migrationResult.migrationsExecuted, "Only V36 and V37 may run during upgrade");
+        assertEquals(3, migrationResult.migrationsExecuted, "V36, V37 and V38 must run during upgrade");
 
         try (Connection db = DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {
@@ -88,8 +88,8 @@ class PopulatedDatabaseUpgradeTest {
                     " AND title='Existing reward' AND price_amount=20 AND availability_mode='ALWAYS'"));
             assertEquals(1, scalar(db, "SELECT count(*) FROM point_transactions WHERE id=" + ledgerId +
                     " AND source_type='MANUAL' AND amount=15"));
-            assertEquals(3, scalar(db,
-                    "SELECT count(*) FROM flyway_schema_history WHERE version IN ('35','36','37') AND success=true"));
+            assertEquals(4, scalar(db,
+                    "SELECT count(*) FROM flyway_schema_history WHERE version IN ('35','36','37','38') AND success=true"));
             assertEquals(3, scalar(db,
                     "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' " +
                     "AND table_name IN ('media_assets','media_blobs','media_bindings')"));

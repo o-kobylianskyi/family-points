@@ -9,6 +9,8 @@ import java.util.List;
 public class CurrentUserResponse {
 
     private final String username;
+    // Stable database account identity, distinct from a family member or username.
+    private final Long accountId;
 
     private final Long memberId;
     private final String memberName;
@@ -24,6 +26,7 @@ public class CurrentUserResponse {
 
     public CurrentUserResponse(
             String username,
+            Long accountId,
             Long memberId,
             String memberName,
             String memberType,
@@ -34,6 +37,7 @@ public class CurrentUserResponse {
             List<String> permissions
     ) {
         this.username = username;
+        this.accountId = accountId;
         this.memberId = memberId;
         this.memberName = memberName;
         this.memberType = memberType;
@@ -61,6 +65,7 @@ public class CurrentUserResponse {
 
         return new CurrentUserResponse(
                 account.getUsername(),
+                account.getId(),
                 member.getId(),
                 member.getName(),
                 member.getMemberType().name(),
@@ -71,6 +76,8 @@ public class CurrentUserResponse {
                 permissions
         );
     }
+
+    public Long getAccountId() { return accountId; }
 
     public String getUsername() {
         return username;
