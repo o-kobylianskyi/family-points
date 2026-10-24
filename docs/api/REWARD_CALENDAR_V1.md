@@ -49,3 +49,6 @@
 6. Verify Flyway V35 fresh-install and upgrade against disposable PostgreSQL, plus CI, integration/device tests and Release gate. This document alone does not publish the API.
 
 **Producer:** Backend track. **Consumers:** Web, Android, Architecture and Release, pending review/ACK in IMP-0006.
+
+## Interim BETA Flyway integration decision — 2026-10-24
+Existing `main` introduced emergency V35 for REWARD_PURCHASE, validated by CI. This draft feature's migration has been **renumbered to V36** to avoid the duplicate V35 checksum/name. The V36 migration is new and must not be rewritten after it has been applied to a persistent database. Older disposable PR #8 V35/V36 combined proof is obsolete and must never merge. Release must verify main V35 → calendar V36 → media V37 on a backed-up populated BETA clone, and review old disposable/dev Flyway checksums first.
