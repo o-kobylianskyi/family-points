@@ -362,6 +362,7 @@ function CreateTaskModal({
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    if (loading) return
 
     const trimmedTitle = title.trim()
 
@@ -533,6 +534,7 @@ function CreateTaskModal({
             type="button"
             className="modal-close-button"
             onClick={onClose}
+            disabled={loading}
             aria-label={t('common.close')}
           >
             ×
