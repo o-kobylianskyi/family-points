@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
@@ -423,7 +424,31 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                var refreshNonce by remember { mutableStateOf(0) }
+                var pullRefreshing by remember { mutableStateOf(false) }
+                val pullScope = rememberCoroutineScope()
+                val refreshable = currentUser != null && status == ServerStatus.ONLINE &&
+                    destination in listOf(
+                        AppDestination.DASHBOARD, AppDestination.TASKS, AppDestination.MEMBERS,
+                        AppDestination.POINTS, AppDestination.REWARDS
+                    )
                 Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    PullToRefreshBox(
+                        isRefreshing = pullRefreshing,
+                        onRefresh = {
+                            if (refreshable && !pullRefreshing) {
+                                pullRefreshing = true
+                                refreshNonce++
+                                pullScope.launch {
+                                    delay(1200L)
+                                    pullRefreshing = false
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                        // No refresh action for Login, dialogs or offline snapshots.
+                        // Screen content remains composed; filters/selection are preserved.
+                    ) {
                 when {
                     authLoading -> {
                         LoadingScreen(language)
@@ -484,6 +509,7 @@ class MainActivity : ComponentActivity() {
 
                     destination == AppDestination.DASHBOARD -> {
                         DashboardScreen(
+                            refreshNonce = refreshNonce,
                             language = language,
                             currentUser = currentUser!!,
                             loadDashboard = {
@@ -528,6 +554,7 @@ class MainActivity : ComponentActivity() {
 
                     destination == AppDestination.TASKS -> {
                         TasksScreen(
+                            refreshNonce = refreshNonce,
                             language = language,
                             currentUser = currentUser!!,
                             repository = tasksRepository,
@@ -656,6 +683,7 @@ class MainActivity : ComponentActivity() {
 
                     destination == AppDestination.MEMBERS -> {
                         MembersScreen(
+                            refreshNonce = refreshNonce,
                             language = language,
                             currentUser = currentUser!!,
                             repository = membersRepository,
@@ -669,6 +697,7 @@ class MainActivity : ComponentActivity() {
 
                     destination == AppDestination.POINTS -> {
                         PointsScreen(
+                            refreshNonce = refreshNonce,
                             language = language,
                             currentUser = currentUser!!,
                             repository = pointsRepository,
@@ -682,6 +711,7 @@ class MainActivity : ComponentActivity() {
 
                     destination == AppDestination.REWARDS -> {
                         RewardsScreen(
+                            refreshNonce = refreshNonce,
                             language = language,
                             currentUser = currentUser!!,
                             repository = rewardsRepository,
@@ -734,7 +764,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
-
+                    }
                     }
                     // Fixed native navigation remains visible on all main screens.
                     if (currentUser != null && !authLoading &&
