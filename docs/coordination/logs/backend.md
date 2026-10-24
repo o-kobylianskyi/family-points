@@ -103,3 +103,8 @@ New technical batches: Java/Spring, PostgreSQL/Flyway, DTO/API, authorization/te
 ## 2026-10-24 — Consolidated Web/Android workspace media manifest
 - Previous PR #5 commit `823372b` passed all CI (run 40096142247). New draft media commit `3a9ef8e` adds GET `/workspaces/{workspaceId}/media/manifest` returning effective workspace COVER/ICON refs and curated family/cover choice metadata; added mocked controller contract test and `docs/api/MEDIA_V1.md` consumer guidance. The approved Web hero is unchanged on DEFAULT and custom COVER remains private JWT-scoped. New CI run `40096734282` queued when recorded; do not claim green yet.
 - This is a bootstrap manifest, **not** embedded `effectiveImage` in legacy entity DTOs. Remaining P0: permission matrix, tenant-negative tests, prior-data migration and Web/Android/Release acceptance. Neither merge nor BETA deployment performed.
+
+## 2026-10-24 — Media collection API package (PR #5)
+- CI for previous manifest commit `3a9ef8e` completed SUCCESS (run 40096734282).
+- Media draft source `5004d8c` adds authenticated bounded `POST /workspaces/{workspaceId}/media/references` for up to 100 member/group/task image references per call. Deduplicated ordered responses use existing effective() per-target checks; any unauthorized/nonexistent target fails the entire request, no partial leaks. Contract and three tests added for multi-type projection, size validation and authorization failure. Latest CI run 40097000654 queued when recorded; NOT verified yet.
+- This eliminates serial per-card API calls for Web/Android but does not embed `effectiveImage` into existing legacy DTOs. Pending full group delegated permissions, tenant-negative E2E and database upgrade proof. PR draft, no merge/deploy.
