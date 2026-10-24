@@ -5527,3 +5527,38 @@ button:focus-visible {
   border-radius: 9px;
 }
 .modal-card.member-editor > form::-webkit-scrollbar-thumb:hover { background: var(--fp-text-muted); }
+
+/* Member modal: both the inner form and the fallback outer scroller are themed.
+   Chromium supports scrollbar-color (which overrides WebKit pseudo styling),
+   so provide explicit dark/light track and thumb colors. */
+.modal-backdrop:has(.member-editor),
+.modal-card.member-editor,
+.modal-card.member-editor > form {
+  scrollbar-width: thin;
+  scrollbar-color: #527586 #102839;
+  color-scheme: dark;
+}
+[data-theme="light"] .modal-backdrop:has(.member-editor),
+[data-theme="light"] .modal-card.member-editor,
+[data-theme="light"] .modal-card.member-editor > form {
+  scrollbar-color: #94adb8 #e8f0f3;
+  color-scheme: light;
+}
+.modal-backdrop:has(.member-editor)::-webkit-scrollbar,
+.modal-card.member-editor::-webkit-scrollbar,
+.modal-card.member-editor > form::-webkit-scrollbar { width: 8px; height: 8px; }
+.modal-backdrop:has(.member-editor)::-webkit-scrollbar-track,
+.modal-card.member-editor::-webkit-scrollbar-track,
+.modal-card.member-editor > form::-webkit-scrollbar-track { background: #102839; border-radius: 10px; }
+.modal-backdrop:has(.member-editor)::-webkit-scrollbar-thumb,
+.modal-card.member-editor::-webkit-scrollbar-thumb,
+.modal-card.member-editor > form::-webkit-scrollbar-thumb { background: #527586; border: 1px solid #102839; border-radius: 10px; }
+.modal-backdrop:has(.member-editor)::-webkit-scrollbar-thumb:hover,
+.modal-card.member-editor::-webkit-scrollbar-thumb:hover,
+.modal-card.member-editor > form::-webkit-scrollbar-thumb:hover { background: #6f9aa9; }
+[data-theme="light"] .modal-backdrop:has(.member-editor)::-webkit-scrollbar-track,
+[data-theme="light"] .modal-card.member-editor::-webkit-scrollbar-track,
+[data-theme="light"] .modal-card.member-editor > form::-webkit-scrollbar-track { background: #e8f0f3; }
+[data-theme="light"] .modal-backdrop:has(.member-editor)::-webkit-scrollbar-thumb,
+[data-theme="light"] .modal-card.member-editor::-webkit-scrollbar-thumb,
+[data-theme="light"] .modal-card.member-editor > form::-webkit-scrollbar-thumb { background: #94adb8; border-color: #e8f0f3; }
