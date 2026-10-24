@@ -13,6 +13,7 @@ import {
 } from '../api/memberGroupApi'
 import GroupEditor from '../components/GroupEditor'
 import { useAuth } from '../context/AuthContext'
+import { uploadMedia, putMediaBinding, deleteMediaBinding } from '../api/mediaApi'
 
 function MembersPage() {
   const { t } = useTranslation()
@@ -63,12 +64,31 @@ function MembersPage() {
     setMembers(await getWorkspaceMembers(getAccessToken(), currentUser.workspaceId))
   }
 
-  const saveMember = async (body, account = null, inviteEmail = null) => {
+  const saveMember = async (body, account = null, inviteEmail = null, avatarDraft = null) => {
     try {
       setMemberBusy(true)
       setError('')
       if (editingMember) {
         await updateWorkspaceMember(getAccessToken(), currentUser.workspaceId, editingMember.id, body)
+        if (avatarDraft) {
+          const token = getAccessToken()
+          const workspace = currentUser.workspaceId
+          const memberId = editingMember.id
+          if (avatarDraft.kind === 'clear') {
+            await deleteMediaBinding(token, workspace, 'MEMBER', memberId, 'AVATAR', avatarDraft.expectedVersion)
+          } else {
+            let assetId = null
+            if (avatarDraft.kind === 'upload') {
+              const uploaded = await uploadMedia(token, workspace, avatarDraft.file)
+              assetId = uploaded.assetId || uploaded.id
+              if (!assetId) throw new Error('Media upload returned no asset ID')
+            }
+            await putMediaBinding(token, workspace, 'MEMBER', memberId, 'AVATAR',
+              {assetId, catalogKey:avatarDraft.kind === 'catalog' ? avatarDraft.key : null},
+              avatarDraft.expectedVersion)
+          }
+          window.dispatchEvent(new CustomEvent('fp:member-avatar-changed',{detail:{workspaceId:workspace,memberId}}))
+        }
         if (inviteEmail) await issueMemberEmailInvitation(getAccessToken(), currentUser.workspaceId, editingMember.id, inviteEmail)
         else if (account) await createMemberAccount(getAccessToken(), currentUser.workspaceId, editingMember.id, account)
       } else {
