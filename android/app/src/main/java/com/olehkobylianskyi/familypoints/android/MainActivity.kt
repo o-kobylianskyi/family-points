@@ -369,7 +369,9 @@ class MainActivity : ComponentActivity() {
                             pointsRepository.synchronizePending(user.workspaceId, user.memberId)
                         } catch (e: retrofit2.HttpException) {
                             if (e.code() == 401) {
-                                authSessionManager.clearSession(invalidateOfflineAccount = true)
+                                // A replay 401 ends online authentication but must not
+                                // erase the separately password-protected offline verifier.
+                                authSessionManager.clearSession()
                                 currentUser = null
                                 destination = AppDestination.DASHBOARD
                             }
@@ -391,7 +393,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val unauthorized = {
-                    authSessionManager.clearSession(invalidateOfflineAccount = true)
+                    authSessionManager.clearSession()
                     currentUser = null
                     destination = AppDestination.DASHBOARD
                 }
