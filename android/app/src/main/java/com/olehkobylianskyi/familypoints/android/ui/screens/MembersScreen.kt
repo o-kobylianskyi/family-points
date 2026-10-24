@@ -1,6 +1,15 @@
 package com.olehkobylianskyi.familypoints.android.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.net.Uri
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.MultipartBody
+import com.olehkobylianskyi.familypoints.android.network.MediaBindRequest
+import com.olehkobylianskyi.familypoints.android.network.MediaCatalogItemDto
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
@@ -130,6 +139,40 @@ fun MembersScreen(
     var groupName by remember { mutableStateOf("") }
     var editingGroupId by remember { mutableStateOf<Long?>(null) }
     var grants by remember { mutableStateOf<List<GroupPermissionGrantResponse>>(emptyList()) }
+    var avatarDraftKey by remember { mutableStateOf<String?>(null) }
+    var avatarDraftClear by remember { mutableStateOf(false) }
+    var avatarDraftPhoto by remember { mutableStateOf<Uri?>(null) }
+    var avatarVersion by remember { mutableStateOf<Int?>(null) }
+    var avatarCatalog by remember(currentUser.accountId, currentUser.workspaceId) {
+        mutableStateOf<List<MediaCatalogItemDto>>(emptyList())
+    }
+    var avatarEditorError by remember { mutableStateOf("") }
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            avatarDraftPhoto = uri
+            avatarDraftKey = null
+            avatarDraftClear = false
+        }
+    }
+    LaunchedEffect(currentUser.accountId, currentUser.workspaceId, bearer) {
+        avatarCatalog = emptyList()
+        val auth = bearer ?: return@LaunchedEffect
+        try {
+            avatarCatalog = ApiClient.mediaApi.catalog(auth, currentUser.workspaceId)
+                .filter { it.category == "AVATAR" }
+        } catch (_: Exception) { /* Optional picker; leave currently bound images intact. */ }
+    }
+    LaunchedEffect(editing?.id, editorOpen, bearer) {
+        val id = editing?.id ?: return@LaunchedEffect
+        if (!editorOpen) return@LaunchedEffect
+        avatarVersion = null
+        val auth = bearer ?: return@LaunchedEffect
+        try {
+            avatarVersion = ApiClient.mediaApi.memberAvatar(auth, currentUser.workspaceId, id).version
+        } catch (_: Exception) {
+            avatarEditorError = "Не вдалося отримати версію аватара"
+        }
+    }
 
     suspend fun reload() {
         data = repository.load(currentUser.workspaceId, currentUser.memberId)
@@ -139,6 +182,11 @@ fun MembersScreen(
     }
     fun edit(member: WorkspaceMemberResponse?) {
         editing = member
+        avatarDraftKey = null
+        avatarDraftClear = false
+        avatarDraftPhoto = null
+        avatarVersion = null
+        avatarEditorError = ""
         accessMode = "profile"
         childLogin = ""
         childPassword = ""
@@ -410,6 +458,54 @@ fun MembersScreen(
                     OutlinedTextField(value = name, onValueChange = { name = it }, label = {
                         Text(memberText(language, "Ім’я", "Name", "Name", "Имя"))
                     }, singleLine = true)
+                    if (editing != null) {
+                        Text(memberText(language, "Аватар", "Avatar", "Avatar", "Аватар"),
+                            style = MaterialTheme.typography.titleSmall)
+                        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            MemberMediaAvatar(currentUser.workspaceId, bearer,
+                                avatarRefs[editing!!.id], editing!!.name)
+                            TextButton(enabled = !busy, onClick = { photoPicker.launch("image/*") }) {
+                                Text(memberText(language, "Завантажити фото", "Foto hochladen", "Upload photo", "Загрузить фото"))
+                            }
+                        }
+                        if (avatarCatalog.isNotEmpty()) {
+                            Text(memberText(language, "Обрати з каталогу", "Aus Katalog wählen", "Choose from catalog", "Выбрать из каталога"))
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                avatarCatalog.filter { it.category == "AVATAR" }.forEach { option ->
+                                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                        modifier = Modifier.fillMaxWidth().clickable(enabled = !busy) {
+                                            avatarDraftKey = option.key
+                                            avatarDraftPhoto = null
+                                            avatarDraftClear = false
+                                        }) {
+                                        RadioButton(selected = avatarDraftKey == option.key,
+                                            onClick = {
+                                                avatarDraftKey = option.key
+                                                avatarDraftPhoto = null
+                                                avatarDraftClear = false
+                                            })
+                                        Text(option.key.removePrefix("avatar-").replace('-', ' '))
+                                    }
+                                }
+                            }
+                        }
+                        TextButton(enabled = !busy, onClick = {
+                            avatarDraftClear = true
+                            avatarDraftKey = null
+                            avatarDraftPhoto = null
+                        }) {
+                            Text(memberText(language, "Скинути аватар", "Avatar zurücksetzen", "Reset avatar", "Сбросить аватар"))
+                        }
+                        if (avatarDraftKey != null || avatarDraftPhoto != null || avatarDraftClear) {
+                            Text(memberText(language, "Аватар зміниться після збереження", "Avatar ändert sich nach Speichern",
+                                "Avatar changes after Save", "Аватар изменится после сохранения"),
+                                style = MaterialTheme.typography.labelSmall)
+                        }
+                        if (avatarEditorError.isNotBlank()) {
+                            Text(avatarEditorError, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
                     Text(memberText(language, "Тип учасника", "Mitgliedstyp", "Member type", "Тип участника"),
                         style = MaterialTheme.typography.labelMedium)
                     OutlinedButton(onClick = { menu = "type" }, modifier = Modifier.fillMaxWidth()) {
@@ -503,6 +599,38 @@ fun MembersScreen(
                     val id = editing?.id
                     mutate {
                         repository.save(currentUser.workspaceId, id, request, accessMode, childLogin.trim(), childPassword, invitationEmail.trim())
+                        if (id != null && (avatarDraftClear || avatarDraftKey != null || avatarDraftPhoto != null)) {
+                            val auth = bearer ?: throw IllegalStateException("Sign in online to save avatar")
+                            val version = avatarVersion ?: throw IllegalStateException("Avatar version unavailable")
+                            if (avatarDraftClear) {
+                                ApiClient.mediaApi.clearMemberAvatar(auth, currentUser.workspaceId, id, version)
+                            } else {
+                                val photo = avatarDraftPhoto
+                                val asset = if (photo != null) {
+                                    val resolver = context.contentResolver
+                                    val mime = resolver.getType(photo)
+                                    require(mime == "image/jpeg" || mime == "image/png") { "JPEG/PNG only" }
+                                    val bytes = resolver.openInputStream(photo)?.use { input ->
+                                        val stream = java.io.ByteArrayOutputStream()
+                                        val chunk = ByteArray(8192)
+                                        while (true) {
+                                            val read = input.read(chunk)
+                                            if (read < 0) break
+                                            require(stream.size() + read <= 5 * 1024 * 1024) { "Max 5 MiB" }
+                                            stream.write(chunk, 0, read)
+                                        }
+                                        stream.toByteArray()
+                                    } ?: throw IllegalStateException("Cannot read image")
+                                    ApiClient.mediaApi.uploadMemberImage(auth, currentUser.workspaceId,
+                                        MultipartBody.Part.createFormData("file", "avatar.jpg",
+                                            bytes.toRequestBody(mime.toMediaType()))).assetId
+                                } else null
+                                ApiClient.mediaApi.bindMemberAvatar(auth, currentUser.workspaceId, id,
+                                    MediaBindRequest(asset, avatarDraftKey, version))
+                            }
+                            val latest = ApiClient.mediaApi.memberAvatar(auth, currentUser.workspaceId, id)
+                            avatarRefs = avatarRefs + (id to latest)
+                        }
                         editorOpen = false
                     }
                 }) { Text(saveTitle) }
