@@ -92,6 +92,7 @@ fun CalendarScreen(
     var displayedDate by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf(selectedDate) }
     var loading by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf(false) }
     var displayedMode by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf(mode) }
+    var loadError by remember { mutableStateOf(false) }
     // Pending navigation is rendered against the LAST confirmed data, even before LaunchedEffect starts.
     val pendingNavigation = currentUser != null && (selectedDate != displayedDate || mode != displayedMode)
     val showLoading = currentUser != null && (loading || pendingNavigation)
@@ -117,7 +118,6 @@ fun CalendarScreen(
         selectedDate = date
         mode = targetMode
     }
-    var loadError by remember { mutableStateOf(false) }
     val rangeStart = when (mode) {
         CalendarMode.DAY -> selectedDate
         CalendarMode.WEEK -> selectedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
