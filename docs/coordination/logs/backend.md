@@ -64,3 +64,8 @@ New technical batches: Java/Spring, PostgreSQL/Flyway, DTO/API, authorization/te
 - `21a806df`: strengthened optimistic media binding: serializes competing first-write updates using workspace DB lock, adds ON CONFLICT version condition and 409 on stale assign; keeps expectedVersion checking for clear. Updated PR branch only. No quota/schema/backend integration in main.
 - CI source `ee313fb` fully SUCCESS (run 40085145040); newest SHA `21a806df` CI pending when recorded (run 40085638156). Intermediate runs superseded by newer commits may be CANCELLED; only exact SHA counts.
 - **Outstanding:** full delegated permissions, ownership/view rights for all targets, WebP policy, actual catalog images, effectiveImage in DTOs, binding delete ABA/version history, orphan GC/backup, V35+V36 combined migration and Release/Web/Android ACK. PR #5 stays DRAFT. No BETA/PROD change.
+
+## 2026-10-24 — Confirmed global curated images vs workspace-private media
+- User explicitly confirmed that FamilyPoints must offer a **global selectable bank** of typical standard avatars and icons, reusable by every family, plus separate family-private uploaded images.
+- PR #5 feature source `f7e6af65` introduces structured catalog metadata with stable key/category/labelKey/version and `docs/api/MEDIA_V1.md`. It does not contain approved curated binary art yet: `previewPath=null`; catalog should not be advertised as usable rendered choices until actual assets exist. Global catalog must not consume workspace private-byte quota or duplicate records for every family.
+- All later media API/DTO/UX changes must respect global CATALOG versus workspace UPLOAD ownership, and Web/Android consumer reviews. PR #5 remains draft; no deploy/merge.
