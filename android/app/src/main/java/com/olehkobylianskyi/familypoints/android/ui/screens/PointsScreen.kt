@@ -70,6 +70,7 @@ private enum class PointOperation(
 
 @Composable
 fun PointsScreen(
+    refreshNonce: Int = 0,
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     repository: PointsRepository,
@@ -181,7 +182,7 @@ fun PointsScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus) {
+    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
         pointTypes = repository.cachedPointTypes(currentUser.workspaceId, currentUser.memberId)
         if (serverStatus == ServerStatus.ONLINE) {
             try {
@@ -194,7 +195,7 @@ fun PointsScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus) {
+    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
         rewardCatalog = rewardsRepository.cached(currentUser.workspaceId, currentUser.memberId)
             ?.rewards.orEmpty()
         if (serverStatus == ServerStatus.ONLINE) {
@@ -210,7 +211,7 @@ fun PointsScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus) {
+    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
         loadingMembers = false
         error = ""
         pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId)
@@ -278,7 +279,7 @@ fun PointsScreen(
         }
     }
 
-    LaunchedEffect(selectedMemberId, serverStatus) {
+    LaunchedEffect(selectedMemberId, serverStatus, refreshNonce) {
         selectedMemberId?.let {
             loadPoints(it)
         }
