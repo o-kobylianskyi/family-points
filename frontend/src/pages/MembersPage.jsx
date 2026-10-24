@@ -71,10 +71,15 @@ function MembersPage() {
       if (editingMember) {
         const saveToken = getAccessToken()
         if (!saveToken) throw new Error('Сеанс авторизації завершився. Увійдіть повторно перед збереженням учасника.')
-        try {
-          await updateWorkspaceMember(saveToken, currentUser.workspaceId, editingMember.id, body)
-        } catch (profileError) {
-          throw new Error(`Не вдалося зберегти профіль учасника: ${profileError.message}`)
+        const profileChanged = body.name !== editingMember.name ||
+          body.memberType !== editingMember.memberType ||
+          Number(body.workspaceRoleId) !== Number(editingMember.workspaceRoleId)
+        if (profileChanged) {
+          try {
+            await updateWorkspaceMember(saveToken, currentUser.workspaceId, editingMember.id, body)
+          } catch (profileError) {
+            throw new Error(`Не вдалося зберегти профіль учасника: ${profileError.message}`)
+          }
         }
         if (avatarDraft) {
           const token = getAccessToken()
