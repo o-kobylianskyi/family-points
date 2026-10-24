@@ -5513,3 +5513,17 @@ button:focus-visible {
 /* Catalog reward CTA stays at the lower-right corner without changing the purchase flow. */
 .rewards-grid > .reward-card{display:flex;flex-direction:column;min-width:0}
 .rewards-grid > .reward-card > .reward-card-actions{margin-top:auto;padding-top:14px;justify-content:flex-end;align-items:center}
+
+/* Member edit dialog: theme-aware form scrollbar rather than browser default. */
+.modal-card.member-editor > form {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fp-border) var(--fp-surface);
+}
+.modal-card.member-editor > form::-webkit-scrollbar { width: 9px; }
+.modal-card.member-editor > form::-webkit-scrollbar-track { background: var(--fp-surface); border-radius: 9px; }
+.modal-card.member-editor > form::-webkit-scrollbar-thumb {
+  background: var(--fp-border);
+  border: 2px solid var(--fp-surface);
+  border-radius: 9px;
+}
+.modal-card.member-editor > form::-webkit-scrollbar-thumb:hover { background: var(--fp-text-muted); }
