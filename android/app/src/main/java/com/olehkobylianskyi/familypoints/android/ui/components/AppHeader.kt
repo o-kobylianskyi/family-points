@@ -30,6 +30,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import com.olehkobylianskyi.familypoints.android.network.ApiClient
+import com.olehkobylianskyi.familypoints.android.network.MediaRefDto
+import com.olehkobylianskyi.familypoints.android.network.MediaReferenceBatchDto
+import com.olehkobylianskyi.familypoints.android.network.MediaTargetDto
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
+import com.olehkobylianskyi.familypoints.android.storage.TokenStore
+import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +70,29 @@ fun AppHeader(
     onNavigate: (DashboardDestination) -> Unit
 ) {
     val text = dashboardStrings(language)
+    val context = LocalContext.current
+    val tokenStore = remember(context) { TokenStore(context) }
+    val serverStatus by ServerReachability.status.collectAsState()
+    var ownAvatar by remember(currentUser.accountId, currentUser.workspaceId, currentUser.memberId) {
+        mutableStateOf<MediaRefDto?>(null)
+    }
+    val bearer = if (serverStatus == ServerStatus.ONLINE)
+        tokenStore.getAccessToken()?.let { "Bearer $it" } else null
+    LaunchedEffect(currentUser.accountId, currentUser.workspaceId, currentUser.memberId, bearer) {
+        ownAvatar = null // No cross-workspace or cross-account image may remain visible.
+        val authorized = bearer ?: return@LaunchedEffect
+        try {
+            val items = ApiClient.mediaApi.references(
+                authorized, currentUser.workspaceId,
+                MediaReferenceBatchDto(listOf(MediaTargetDto("MEMBER", currentUser.memberId, "AVATAR")))
+            )
+            ownAvatar = items.firstOrNull()?.image
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (_: Exception) {
+            // Optional media failures must not end login.
+        }
+    }
     var navigationMenuOpen by remember { mutableStateOf(false) }
     var languageMenuOpen by remember { mutableStateOf(false) }
     val menuSurface = MaterialTheme.colorScheme.surface
@@ -131,6 +165,12 @@ fun AppHeader(
             }
         }
 
+        MemberMediaAvatar(
+            workspaceId = currentUser.workspaceId,
+            bearer = bearer,
+            image = ownAvatar,
+            name = currentUser.memberName
+        )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = currentUser.memberName,
