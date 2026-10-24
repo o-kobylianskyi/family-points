@@ -66,6 +66,7 @@ private enum class RewardsTab {
 @Composable
 fun RewardsScreen(
     refreshNonce: Int = 0,
+    onRefreshComplete: (Int) -> Unit = {},
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     repository: RewardsRepository,
@@ -311,7 +312,12 @@ fun RewardsScreen(
     }
 
     LaunchedEffect(currentUser.workspaceId, serverStatus, refreshNonce) {
-        load()
+        try {
+            load()
+        } finally {
+            // Signal completion of the actual catalog network request, not a timer.
+            if (refreshNonce > 0) onRefreshComplete(refreshNonce)
+        }
     }
 
     // Refresh visible catalog after server-side edits made from Web/other devices.
