@@ -300,3 +300,9 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - User screenshot: current account header correctly displays updated photo while member selector on Tasks still shows initials. Source audit found TasksPage imported the legacy presentation-only FamilyAvatar rather than authenticated MemberAvatar.
 - Replaced avatar rendering for every member in Tasks member-selector with shared `MemberAvatar memberId={member.id}`. Uses existing authenticated Media V37 effective bindings, account/workspace isolation, revocable Blob URLs and `fp:member-avatar-changed` event. No Backend or layout changes. Code commit `ce70ce504584a8ac0c33f00d5fd7ff11fa638011`.
 - QA deferred: Tasks tab selector displays uploaded and catalog avatars for multiple members; after member edit Save photo updates; cross-workspace swap clears old photos; missing photo renders initial; both mobile and desktop. Build/CI on exact SHA to check separately.
+
+
+## 2026-10-24 — Dashboard stat-card arrow optical centering
+- User screenshot shows right chevron visually off-center inside the circular indicator on home dashboard stat card.
+- Kept existing 27x27 badge and its approved placement; wrapped glyph in an inner span (DashboardPage.jsx commit 00d5363) and applied scoped optical x/y translation with flex centering (App.css commit c8fbfde). No other Dashboard layout/assets modified.
+- QA later: compare stat arrow centering in light/dark at desktop/mobile; confirm no regressions to stat card click targets or 480px hide behavior. CI exact SHA remains required.
