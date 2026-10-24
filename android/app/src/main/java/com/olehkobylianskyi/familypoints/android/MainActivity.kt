@@ -366,7 +366,7 @@ class MainActivity : ComponentActivity() {
                             user.permissions.contains("ADMIN_OVERRIDE"))
                     ) {
                         try {
-                            pointsRepository.synchronizePending(user.workspaceId, user.memberId)
+                            pointsRepository.synchronizePending(user.workspaceId, user.memberId, user.accountId)
                         } catch (e: retrofit2.HttpException) {
                             if (e.code() == 401) {
                                 // A replay 401 ends online authentication but must not
