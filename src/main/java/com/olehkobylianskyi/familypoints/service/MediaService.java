@@ -49,7 +49,8 @@ public class MediaService {
         WorkspacePermission permission = switch(type) {
             case "WORKSPACE" -> WorkspacePermission.MANAGE_WORKSPACE;
             case "MEMBER" -> WorkspacePermission.MANAGE_MEMBERS;
-            case "MEMBER_GROUP", "WORK_NODE", "TASK" -> WorkspacePermission.MANAGE_TASKS;
+            case "MEMBER_GROUP" -> WorkspacePermission.MANAGE_MEMBERS;
+            case "WORK_NODE", "TASK" -> WorkspacePermission.MANAGE_TASKS;
             default -> throw new IllegalArgumentException("Invalid media target");
         };
         var member = current.getCurrentMember();
@@ -66,8 +67,8 @@ public class MediaService {
         String sql = switch(type) {
             case "WORKSPACE" -> "SELECT count(*) FROM families WHERE id=? AND id=?";
             case "MEMBER" -> "SELECT count(*) FROM family_members WHERE id=? AND family_id=? AND active=true";
-            case "MEMBER_GROUP" -> "SELECT count(*) FROM member_groups WHERE id=? AND family_id=?";
-            case "WORK_NODE" -> "SELECT count(*) FROM work_nodes WHERE id=? AND family_id=?";
+            case "MEMBER_GROUP" -> "SELECT count(*) FROM member_groups WHERE id=? AND family_id=? AND active=true";
+            case "WORK_NODE" -> "SELECT count(*) FROM work_nodes WHERE id=? AND family_id=? AND active=true AND type='GROUP'";
             case "TASK" -> "SELECT count(*) FROM task_definitions WHERE id=? AND family_id=?";
             default -> throw new IllegalArgumentException("Invalid target");
         };
@@ -78,6 +79,14 @@ public class MediaService {
     @Transactional
     public Uploaded upload(long ws, MultipartFile file) {
         requireWorkspace(ws);
+        var actor = current.getCurrentMember();
+        // Keep the first version manager-only. An unrestricted unbound upload endpoint
+        // lets any child exhaust database storage regardless of binding ACLs.
+        if (!actor.hasPermission(WorkspacePermission.MANAGE_WORKSPACE)
+                && !actor.hasPermission(WorkspacePermission.MANAGE_MEMBERS)
+                && !actor.hasPermission(WorkspacePermission.MANAGE_TASKS)
+                && !actor.hasPermission(WorkspacePermission.ADMIN_OVERRIDE))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Media upload permission required");
         if (file == null || file.isEmpty() || file.getSize() > MAX_BYTES)
             throw new IllegalArgumentException("Image must be 1..5 MiB");
         byte[] input;
@@ -108,6 +117,17 @@ public class MediaService {
         if(original==null) throw new IllegalArgumentException("Invalid image");
         byte[] card=render(original,800,mime), thumb=render(original,192,mime);
         if (card.length>MAX_BYTES) throw new IllegalArgumentException("Normalized image too large");
+        // Serialize quota checks for this workspace to avoid simultaneous uploads
+        // independently observing the same available capacity.
+        Integer locked = db.query("SELECT 1 FROM families WHERE id=? FOR UPDATE",
+                rs -> rs.next() ? rs.getInt(1) : null, ws);
+        if (locked == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        Long used = db.queryForObject("""
+                SELECT COALESCE(SUM(octet_length(b.bytes)),0) FROM media_blobs b
+                JOIN media_assets a ON a.id=b.asset_id WHERE a.workspace_id=?
+                """, Long.class, ws);
+        if (used == null || used + card.length + thumb.length > 100L * 1024 * 1024)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "MEDIA_WORKSPACE_QUOTA_EXCEEDED");
         UUID id=UUID.randomUUID();
         db.update("INSERT INTO media_assets(id,workspace_id,mime_type,width,height,byte_size,sha256,created_by_member_id) VALUES (?::uuid,?,?,?,?,?,?,?)",
                 id.toString(),ws,mime,original.getWidth(),original.getHeight(),card.length,hash(card),current.getCurrentMemberId());
@@ -147,7 +167,9 @@ public class MediaService {
         }
         Integer currentVersion=db.query("SELECT version FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=? FOR UPDATE",
                 rs->rs.next()?rs.getInt(1):null,ws,type,target,slot);
-        if (expectedVersion!=null && !Objects.equals(expectedVersion,currentVersion==null?0:currentVersion))
+        if (expectedVersion == null || expectedVersion < 0)
+            throw new IllegalArgumentException("expectedVersion is required");
+        if (!Objects.equals(expectedVersion,currentVersion==null?0:currentVersion))
             throw new ResponseStatusException(HttpStatus.CONFLICT,"MEDIA_VERSION_CONFLICT");
         db.update("""
                 INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,asset_id,catalog_key)
@@ -160,10 +182,18 @@ public class MediaService {
     }
 
     @Transactional
-    public Ref clear(long ws,String type,long target,String slot) {
+    public Ref clear(long ws,String type,long target,String slot,Integer expectedVersion) {
         requireManager(ws,type,target);
         checkTarget(ws,type,target,slot);
-        db.update("DELETE FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=?",ws,type,target,slot);
+        // Same optimistic semantics as bind. Keep absence represented by version zero.
+        Integer version=db.query("SELECT version FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=? FOR UPDATE",
+                rs -> rs.next() ? rs.getInt(1) : null,ws,type,target,slot);
+        if (expectedVersion == null || expectedVersion < 0)
+            throw new IllegalArgumentException("expectedVersion is required");
+        if (!Objects.equals(expectedVersion,version==null?0:version))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"MEDIA_VERSION_CONFLICT");
+        if (version != null)
+            db.update("DELETE FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=?",ws,type,target,slot);
         return effective(ws,type,target,slot);
     }
 
@@ -219,10 +249,16 @@ public class MediaService {
         for (String[] binding:bindings) {
             try {
                 String type=binding[0];long target=Long.parseLong(binding[1]);
-                checkTarget(ws,type,target,type.equals("MEMBER")?"AVATAR":type.equals("WORKSPACE")?"ICON":"ICON");
+                // Workspace bindings are authorized by target existence, without
+                // guessing the slot. Other target types have only one v1 slot.
+                checkTarget(ws,type,target,type.equals("MEMBER")?"AVATAR":"ICON");
                 var member=current.getCurrentMember();
                 if (type.equals("MEMBER") && member.getId()!=target
                         && !member.hasPermission(WorkspacePermission.MANAGE_MEMBERS)
+                        && !member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) continue;
+                if ((type.equals("MEMBER_GROUP") || type.equals("WORK_NODE") || type.equals("TASK"))
+                        && !member.hasPermission(type.equals("MEMBER_GROUP")
+                            ? WorkspacePermission.MANAGE_MEMBERS : WorkspacePermission.VIEW_ALL_TASKS)
                         && !member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) continue;
                 visible=true;break;
             } catch(ResponseStatusException ignored) { /* revoked target */ }

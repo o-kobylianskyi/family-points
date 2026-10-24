@@ -34,8 +34,9 @@ public class MediaController {
     }
     @DeleteMapping("/bindings/{type}/{targetId}/{slot}")
     public MediaService.Ref clear(@PathVariable long workspaceId,@PathVariable String type,
-            @PathVariable long targetId,@PathVariable String slot){
-        return media.clear(workspaceId,type,targetId,slot);
+            @PathVariable long targetId,@PathVariable String slot,
+            @RequestParam Integer expectedVersion){
+        return media.clear(workspaceId,type,targetId,slot,expectedVersion);
     }
     @GetMapping("/{assetId}/variants/{variant}")
     public ResponseEntity<byte[]> read(@PathVariable long workspaceId,@PathVariable String assetId,
