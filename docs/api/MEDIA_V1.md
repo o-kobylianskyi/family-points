@@ -59,3 +59,6 @@ Follow-up visual acceptance: a dedicated wide COVER render size and client crop/
 
 ## PostgreSQL tenant-integrity hardening
 The V36 migration now enforces a **composite foreign key** from `media_bindings(asset_id,workspace_id)` to `media_assets(id,workspace_id)`; direct SQL cannot attach an asset of family A to a binding of family B. This augments, rather than replaces, authenticated endpoint checks. PostgreSQL Testcontainers verifies foreign-family binding rejection and persisted version-only cleared tombstones. V36 is still unmerged; changing a previously applied Flyway version is not permitted, so deploy sequence and any installed developer V36 checksums must be reviewed before release.
+
+## Interim BETA Flyway integration decision — 2026-10-24
+Existing `main` introduced emergency V35 for REWARD_PURCHASE, validated by CI. This draft feature's migration has been **renumbered to V37** to avoid the duplicate V35 checksum/name. The V37 migration is new and must not be rewritten after it has been applied to a persistent database. Older disposable PR #8 V35/V36 combined proof is obsolete and must never merge. Release must verify main V35 → calendar V36 → media V37 on a backed-up populated BETA clone, and review old disposable/dev Flyway checksums first.
