@@ -844,7 +844,7 @@ function RewardsPage() {
               {request.requestedByMemberId === currentUser.memberId && request.status === 'READY_TO_PURCHASE' && (
                 <button
                   type="button"
-                  className="primary-button"
+                  className="primary-button reward-request-claim"
                   disabled={pendingPurchases.includes(`reward:${request.rewardDefinitionId ?? 'request:' + request.id}`)}
                   onClick={() => purchaseOnce(`reward:${request.rewardDefinitionId ?? 'request:' + request.id}`, () =>
                     purchaseRewardRequest(
