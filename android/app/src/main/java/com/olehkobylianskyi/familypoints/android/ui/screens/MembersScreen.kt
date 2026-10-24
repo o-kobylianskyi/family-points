@@ -160,7 +160,7 @@ fun MembersScreen(
             try {
                 context.contentResolver.openInputStream(uri)?.use { input ->
                     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                    input.use { BitmapFactory.decodeStream(it, null, bounds) }
+                    BitmapFactory.decodeStream(input, null, bounds)
                     val maxSide = maxOf(bounds.outWidth, bounds.outHeight)
                     if (maxSide <= 0) null else {
                         var sample = 1
@@ -670,6 +670,20 @@ fun MembersScreen(
                                 ApiClient.mediaApi.bindMemberAvatar(auth, currentUser.workspaceId, id,
                                     MediaBindRequest(asset, avatarDraftKey, version))
                                 }
+                            } catch (invalid: IllegalArgumentException) {
+                                avatarEditorError = memberText(language,
+                                    "Не вдалося обробити фотографію: перевірте формат або оберіть інше зображення.",
+                                    "Foto konnte nicht verarbeitet werden. Bitte Format prüfen oder anderes Bild wählen.",
+                                    "Could not process this photo. Check its format or choose another image.",
+                                    "Не удалось обработать фото. Проверьте формат или выберите другое изображение.")
+                                throw invalid
+                            } catch (invalid: IllegalStateException) {
+                                avatarEditorError = memberText(language,
+                                    "Зображення не вдалося підготувати до завантаження. Спробуйте інше.",
+                                    "Bild konnte nicht für den Upload vorbereitet werden. Bitte anderes wählen.",
+                                    "Image could not be prepared for upload. Choose another.",
+                                    "Не удалось подготовить изображение. Выберите другое.")
+                                throw invalid
                             } catch (conflict: HttpException) {
                                 if (conflict.code() == 409) {
                                     // Preserve staged selection, refresh CAS version, require explicit retry.
