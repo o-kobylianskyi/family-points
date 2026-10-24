@@ -126,3 +126,7 @@ New technical batches: Java/Spring, PostgreSQL/Flyway, DTO/API, authorization/te
 ## 2026-10-24 — Unified pre-BETA Flyway integration candidate
 - Updated disposable PR #8 branch to `57a8d5c`: the migrations are now V35 reward ledger, V36 calendar, V37 media. Combined PostgreSQL test asserts all three migrated, calendar/media tables and approved reward source plus legacy MANUAL.
 - **Not a releasable merge or populated-DB upgrade proof:** test branch still has older calendar snapshot. Previous green run 40087184845 was on old SHA, not this new candidate. Await new test-specific CI and downstream Release signoff; do not merge/deploy PR #8.
+
+## 2026-10-24 — Reward purchase debit rejection regression, pre-BETA
+- Current main commit `a1841fbe` adds `ApprovedRewardPurchaseTest.failedDebitDoesNotMarkApprovedRewardPurchased`: mocked PostgreSQL-like ledger DataIntegrityViolationException from pointService.spend must propagate; request remains READY_TO_PURCHASE and no follow-up obligation is saved. This is a unit-level service regression, **not** a full transaction rollback or populated-BETA migration test. CI run 40107155497 pending when recorded.
+- Disposable combined migrations branch PR #8 at `57a8d5c` now includes V35 reward/V36 calendar/V37 media but no confirmed CI run for that new SHA. Do not merge, deploy, or claim upgrade proof from old green run. Next integrated green build and populated-DB upgrade evidence remain release gates.
