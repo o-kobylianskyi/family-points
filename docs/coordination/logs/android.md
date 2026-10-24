@@ -171,3 +171,11 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 ## 2026-10-24 — Calendar week/month refinement (SOURCE ONLY)
 - Android main `d18eebb`: added locale-specific weekday headings, responsive seven-column week/month day cells, selected-day highlight, dot markers for authorized supplied TASK and REWARD_WINDOW UI projections, and Today/Tomorrow shortcuts. Month rows now cover the exact visible calendar weeks instead of always showing 42 days. Introduced explicit `projectionLoaded=false` to distinguish missing server data from a confirmed empty day; zero metrics and empty-day messages only appear with a loaded projection.
 - No backend API contract guessed or calendar API requests enabled. Current MainActivity passes no projection, so users see pending-data state; event dots appear only after future authorized integration. No Gradle/device or release tests performed; user must run `:app:assembleDebug` after pulling main. Continue with Media Phase A after calendar UI validation.
+
+
+## 2026-10-24 — Native pull-to-refresh for main Android tabs (SOURCE ONLY)
+- User reported that swipe-down on Points does not reload, then explicitly requested the same behavior globally rather than Points-only.
+- Added a shared Material3 `PullToRefreshBox` to the authenticated main screen container in `MainActivity`; gesture enabled on online Dashboard, Tasks, Members, Points and Rewards; disabled on Login, onboarding, other destinations and when offline. Gesture increments a refresh signal without recreating screen composition.
+- Added `refreshNonce` arguments to these five screen composables; existing server-status dependent `LaunchedEffect` loaders now react to refresh signal, preserving remembered member, tab, filter and date state. No new REST endpoints and no backend changes.
+- UI's pull indicator is currently a bounded ~1.2-second visual cue, **not tied to network completion**. Follow-up required for accurate loading indicator and per-screen guard against duplicate requests.
+- Code commits `91dd211`, `38e514f`, `beea88e`, `0d398bc`, `65120e9`, `8972476`, `14ac606`. These are source edits on canonical `main`, **not Gradle/device tested or included in published Android BETA**. Test online/offline refresh, filter retention, simultaneous taps and API counts on device before next signed APK.
