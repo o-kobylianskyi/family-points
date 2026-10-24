@@ -61,6 +61,7 @@ private enum class ManagementView(val apiValue: String) {
 
 @Composable
 fun TasksScreen(
+    refreshNonce: Int = 0,
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     repository: TasksRepository,
@@ -184,7 +185,7 @@ fun TasksScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId, serverStatus) {
+    LaunchedEffect(currentUser.workspaceId, serverStatus, refreshNonce) {
         members = listOf(WorkspaceMemberResponse(
             id = currentUser.memberId,
             name = currentUser.memberName,
@@ -209,20 +210,20 @@ fun TasksScreen(
         }
     }
 
-    LaunchedEffect(selectedMemberId, selectedDate, serverStatus) {
+    LaunchedEffect(selectedMemberId, selectedDate, serverStatus, refreshNonce) {
         if (selectedMemberId != null) {
             loadMyTasks()
         }
     }
 
-    LaunchedEffect(tab, managementView, serverStatus) {
+    LaunchedEffect(tab, managementView, serverStatus, refreshNonce) {
         if (tab == TasksPageTab.MANAGEMENT && serverStatus == ServerStatus.ONLINE) {
             loadManagement()
         }
     }
 
     // When the Web editor adds/updates tasks, refresh the visible Android list.
-    LaunchedEffect(tab, selectedMemberId, selectedDate, serverStatus) {
+    LaunchedEffect(tab, selectedMemberId, selectedDate, serverStatus, refreshNonce) {
         if (tab == TasksPageTab.MY && serverStatus == ServerStatus.ONLINE) {
             while (true) {
                 delay(30_000L)
