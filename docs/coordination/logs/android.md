@@ -234,3 +234,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 ## 2026-10-24 — Pull-to-refresh completion: Rewards tab (SOURCE ONLY)
 - Commit `2a65d83` makes RewardsScreen report completion of its actual catalog load for a given refreshNonce. Commit `7c8175e` wires this into MainActivity pull indicator and retains the old 1.2-second placeholder for Dashboard/Tasks/Members/Points (not yet fixed). The supplemental/background data calls are intentionally not counted as critical catalog load.
 - Needs device/Gradle tests and a remaining pass for other 4 tabs. No APK released; CURRENT STACK OPEN.
+
+## 2026-10-24 — P0 global pull-to-refresh completion callbacks all five main tabs (SOURCE ONLY)
+- Replaced fixed 1.2-second spinner fallback with per-screen completion signals: Dashboard `ca6889a`, Tasks MY `d560aaa`, Members `395f94e`, Points `de1df74`, Tasks MANAGEMENT `cc35fbe`; MainActivity wiring `8ad636a`. Previously Rewards primary-catalog completion was `2a65d83`.
+- `onRefreshComplete(refreshNonce)` is emitted on the primary request's completion (including failures), while MainActivity ignores stale nonces. The rewards' supplemental fetch and other background requests are not included. This is code completion of basic spinner semantics, **not proof of test success**.
+- Remaining QA/correctness gates: Gradle compilation; phone/e2e on all tabs in light/dark and online/offline, rapid tab change during refresh (cancellation can leave spinner visible), duplicate in-flight requests and stale response overwrites, tasks management mode, occasional member/points secondary loading and service failures. No release APK built or distributed. Stack remains OPEN.
