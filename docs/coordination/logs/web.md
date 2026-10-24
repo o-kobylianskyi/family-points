@@ -231,3 +231,9 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Updated FamilyAvatar to render trusted private Blob URLs (e673338). MemberAvatar listens for same-workspace/member image updates (57b9a0a); EntityMedia broadcasts after successful MEMBER binding changes (c83f1ce), triggering refresh in still-mounted header and any mounted selectors. On logout/workspace switch, effect cleanup revokes old image URLs; stale async loads discarded.
 - Verify after actual deploy: avatar shown in Members, Points selector + large summary, global top-right account; change photo and remain on same screen, switch family, logout/login, missing image fallback, revoked privileges. Backend remains Media authorization authority; no server APIs changed.
 - CI exact SHA and manual browser verification separate gates; no Release claim.
+
+
+## 2026-10-24 — Member avatar UX approved Variant E
+- User selected Variant E and explicitly required changing avatar inside the existing Edit Member modal rather than any separate dialog. Implemented an inline EntityMedia editor mode with visible current avatar and 'Змінити' action, expanding the catalog/upload/reset controls only inside MemberEditor. Removed pencil in member list via read-only compact EntityMedia; member card click still opens existing edit dialog.
+- Source commits c91f4c9 EntityMedia mode, ed6fa83 MembersPage, 69d5561 MemberEditor, CSS follow-up. Backend Media write happens on avatar choice/upload and updates shared avatar views through existing event. Member profile's Save remains independent, so a selected avatar is saved immediately; later profile Cancel does not roll back avatar. QA must explicitly validate this behavior before acceptance.
+- Manual QA deferred; test modal 360px, role permissions, avatar update without closing edit, member profile save/delete, cross-workspace privacy, member add modal with no entity ID, and after cancel. No separate modal added.
