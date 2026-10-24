@@ -16,6 +16,20 @@ function PointOperationModal({
   const [error, setError] = useState('')
 
   useEffect(() => {
+    if (!operation || !member || submitting) return
+
+    const onEscape = (event) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) {
+        event.preventDefault()
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', onEscape)
+    return () => window.removeEventListener('keydown', onEscape)
+  }, [operation, member, submitting, onClose])
+
+  useEffect(() => {
     setAmount('')
     setDescription('')
     setError('')
