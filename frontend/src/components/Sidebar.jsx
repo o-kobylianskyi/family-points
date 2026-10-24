@@ -37,7 +37,6 @@ function Sidebar() {
     <div className="sidebar-logo"><div className="brand-icon"><img className="fp-brand-reference" src="/assets/soft-family/reference/brand-symbol.webp" alt="" onError={e => { e.currentTarget.hidden = true }} /><SoftFamilyIcon name="family" size={42} /></div><div><strong>FamilyPoints</strong><span>{t('workspaceUi.brandSubtitle')}</span></div></div>
     <nav className="sidebar-nav">
       <NavLink to="/" end className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="home" size={22} /><span>{t('navigation.dashboard')}</span></NavLink>
-      <NavLink to="/members" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="family" size={22} /><span>{t('workspaceUi.members')}</span></NavLink>
       <NavLink to="/tasks" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="check" size={22} /><span>{t('navigation.tasks')}</span></NavLink>
       <NavLink to="/calendar" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="check" size={22} /><span>{({uk:'Календар',de:'Kalender',en:'Calendar',ru:'Календарь'})[i18n.language.split('-')[0]] || 'Calendar'}</span></NavLink>
       <NavLink to="/points" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="points" size={22} /><span>{t('navigation.points')}</span></NavLink>
@@ -46,7 +45,7 @@ function Sidebar() {
     </nav>
     <div className="fp-sidebar-promo" aria-hidden="true"><span>Сімейні завдання, бали та мотивація в одному просторі!</span><img src="/assets/soft-family/reference/sidebar-family.webp" alt=""
         onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/soft-family/family-illustration.svg' }} /></div>
-    <div className="sidebar-bottom"><NavLink to="/download" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="gift" size={22} /><span>{t('androidDownload.nav')}</span></NavLink><NavLink to="/settings" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="settings" size={22} /><span>{t('navigation.settings')}</span></NavLink></div>
+    <div className="sidebar-bottom"><NavLink to="/download" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="gift" size={22} /><span>{t('androidDownload.nav')}</span></NavLink><NavLink to="/members" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="family" size={22} /><span>{t('workspaceUi.members')}</span></NavLink><NavLink to="/settings" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="settings" size={22} /><span>{t('navigation.settings')}</span></NavLink></div>
   </aside>
 }
 export default Sidebar
