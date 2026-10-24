@@ -1,5 +1,10 @@
 # FamilyPoints — shared status snapshot
 
+## 2026-10-24 — QA testing chat added (process only)
+- New sixth track "Тестування і задачі для тестування" reads the current main, CI, open PRs and developer logs and turns them into a version-aware manual QA queue; documents in `docs/coordination/QA_TEST_BOARD.md`, `QA_TEST_CASES.md` and `logs/qa.md`.
+- Initial cases are **UNVERIFIED**; not proof of live deployment, successful purchase, usable Android APK, or passing browser tests. QA must confirm actual BETA environment SHA/build separately. New templates/reset/product enhancements remain AFTER_INTERIM_BETA.
+
+
 ## CURRENT DIRECTIVE — 2026-10-24: interim BETA stabilization, NO new global features
 - **Agreed user instruction:** Finish current work to a stable intermediate BETA; avoid launching new global tasks. Small bug/UX corrections and critical security/data-loss/release blockers only. New product ideas get parked in [post-BETA backlog](POST_INTERIM_BETA_BACKLOG.md) for later triage, not automatically assigned.
 - Current eligible cycle: calendar PR #4 and Media PR #5 where releasable, Web/Android connection to approved API, existing core flows, offline correctness, current bugs, migration/tenant tests, backup, signed APK and independent Release smoke. Noncritical incomplete enhancements can be deliberately excluded from the interim BETA by release review and user agreement.

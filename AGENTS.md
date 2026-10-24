@@ -9,6 +9,10 @@
 - This freeze overrides earlier broad roadmap priorities, not safety and independent Release approval. Review it at the start of all five chat tracks.
 
 
+## Sixth coordination chat — Testing / QA (2026-10-24)
+**Owner:** dedicated user-facing chat `Тестування і задачі для тестування`, operating under the existing interim-BETA scope freeze. QA coordinates **manual and acceptance testing of existing functionality only**; it does not create new global feature XTR/IMP or claim implementation/deployment. Canonical source is `origin/main`; feature branches may be tested separately but must be labeled UNMERGED and not available in BETA unless independently verified. QA always compares latest backend/web/android/release logs, current PRs, CI and actual deployed version when known.
+**Files:** [QA log](docs/coordination/logs/qa.md), [live manual test board](docs/coordination/QA_TEST_BOARD.md), [test case catalog](docs/coordination/QA_TEST_CASES.md). On every pickup refresh evidence and classify cases READY_TO_TEST / BLOCKED / PASSED / FAILED / NEEDS_RETEST / NOT_VERIFIED. Any success needs environment/version/device and tester evidence. Failed cases route to existing Backend/Web/Android/Release track logs with reproduction, not a new global project.
+
 **Start here:** [docs/coordination/README.md](docs/coordination/README.md). These rules apply to Architecture / Planning, Backend, Web, Android and Release / DevOps.
 
 ## At the beginning of EVERY chat or substantial work batch
