@@ -20,6 +20,12 @@ class MediaCatalogServiceTest {
         for (var item : service.catalog()) {
             assertTrue(keys.add(item.key()), "Duplicate global catalog key: "+item.key());
             assertTrue(item.selectable());
+            assertNotNull(item.tags());
+            assertFalse(item.tags().isEmpty());
+            assertTrue(item.sortOrder() >= 0);
+            if ("AVATAR".equals(item.category())) {
+                assertTrue(item.tags().contains("UNIVERSAL"));
+            }
             assertNotNull(item.previewPath());
             assertEquals(1, item.version());
             assertTrue(item.previewPath().contains("/media/catalog/"+item.key()+"/preview"));
@@ -31,6 +37,9 @@ class MediaCatalogServiceTest {
             assertFalse(svg.contains("href="), item.key());
         }
         assertTrue(keys.size() >= 15);
+        var orders=service.catalog().stream().map(MediaService.CatalogItem::sortOrder).toList();
+        assertEquals(orders.size(),new HashSet<>(orders).size());
+        assertEquals(orders.stream().sorted().toList(),orders);
     }
 
     @Test void catalogPreviewRejectsForeignFamilyEvenForPubliclyReusableKey() {
