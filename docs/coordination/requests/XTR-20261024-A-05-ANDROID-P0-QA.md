@@ -39,3 +39,8 @@ For each failure QA sends: test ID, app versionCode & commit SHA, device/API lev
 
 ## Handoff conditions
 Do not mark READY FOR QA or RELEASE until the final SHA passes Android Gradle/unit tests and Backend critical reward DB blocker resolved for integration checks. This document is a complete test package for QA planning; blocked cases remain explicitly blocked.
+
+## 2026-10-24 supplementary code / CI gate
+- Android commit `f278f3a`: main-screen auth/replay effects now key on workspaceId, memberId and username, not memberId alone, so switching workspace with the same member ID re-evaluates authentication and queued operations. Source review only.
+- CI run `40109129616` for commit `c779c31`: Android Gradle debug build failed at `Compile Android and run unit tests`; backend, web and compose jobs passed. Failure logs/annotations not accessible via the current GitHub fetch integration; do not ascribe an unverified root cause.
+- New CI run `40109457645` for `f278f3a` was in progress at handoff writing time. QA must verify final run result and full build logs before running or signing off the acceptance matrix.
