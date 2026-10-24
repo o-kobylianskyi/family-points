@@ -1,4 +1,9 @@
 {
+  "numberInput": {
+    "increase": "Збільшити значення {{field}}",
+    "decrease": "Зменшити значення {{field}}"
+  },
+
   "common": {
     "loading": "Завантаження...",
     "logout": "Вийти",
