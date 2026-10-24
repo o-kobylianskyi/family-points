@@ -10,6 +10,16 @@ export default function MemberAvatar({ memberId, name = '', className = '', size
   const workspaceId = currentUser?.workspaceId
   const accountId = currentUser?.accountId || currentUser?.userId || currentUser?.memberId
   const [imageUrl, setImageUrl] = useState(null)
+  const [revision, setRevision] = useState(0)
+
+  useEffect(() => {
+    const onChange = event => {
+      if (Number(event.detail?.workspaceId) === Number(workspaceId) &&
+          Number(event.detail?.memberId) === Number(memberId)) setRevision(x => x + 1)
+    }
+    window.addEventListener('fp:member-avatar-changed', onChange)
+    return () => window.removeEventListener('fp:member-avatar-changed', onChange)
+  }, [workspaceId, memberId])
 
   useEffect(() => {
     let active = true
@@ -32,7 +42,7 @@ export default function MemberAvatar({ memberId, name = '', className = '', size
       active = false
       if (createdUrl) URL.revokeObjectURL(createdUrl)
     }
-  }, [accountId, workspaceId, memberId, getAccessToken])
+  }, [accountId, workspaceId, memberId, getAccessToken, revision])
 
   return <FamilyAvatar name={name} imageUrl={imageUrl} kind="member" className={className} size={size} title={title} />
 }
