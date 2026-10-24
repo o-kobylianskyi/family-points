@@ -107,6 +107,18 @@ fun TasksScreen(
     val mayBrowseMembers = currentUser.permissions.contains("VIEW_ALL_TASKS") || currentUser.permissions.contains("ADMIN_OVERRIDE")
     val mayCreateTasks = currentUser.permissions.contains("CREATE_TASKS") || currentUser.permissions.contains("ADMIN_OVERRIDE")
 
+    // Task APIs can return 401 independently of the currently valid /api/me session
+    // (for example after a Backend route or permissions rollout). A task endpoint
+    // failure must not erase JWT, offline enrollment, or other tabs.
+    fun taskRequestFailure(exception: retrofit2.HttpException) {
+        error = when (language) {
+            AppLanguage.UK -> "Не вдалося завантажити завдання (HTTP ${exception.code()}). Перевірте доступ і повторіть."
+            AppLanguage.DE -> "Aufgabenanfrage fehlgeschlagen (HTTP ${exception.code()}). Zugriff prüfen und erneut versuchen."
+            AppLanguage.EN -> "Tasks request failed (HTTP ${exception.code()}). Check access and try again."
+            AppLanguage.RU -> "Ошибка запроса задач (HTTP ${exception.code()}). Проверьте доступ и повторите."
+        }
+    }
+
     suspend fun loadMyTasks() {
         val memberId = selectedMemberId ?: return
         error = ""
@@ -150,8 +162,7 @@ fun TasksScreen(
                 currentUser.workspaceId, currentUser.memberId, memberId, selectedDate
             )?.schedule.orEmpty().filter { it.instanceId == null }
         } catch (exception: retrofit2.HttpException) {
-            if (exception.code() == 401) onUnauthorized()
-            else if (cached == null) error = exception.message()
+            taskRequestFailure(exception)
         } catch (exception: Exception) {
             if (cached == null) error = exception.message ?: ""
         } finally {
@@ -174,11 +185,7 @@ fun TasksScreen(
             managedTasks = loadedTasks
             participantMap = participants
         } catch (exception: retrofit2.HttpException) {
-            if (exception.code() == 401) {
-                onUnauthorized()
-            } else {
-                error = exception.message()
-            }
+            taskRequestFailure(exception)
         } catch (exception: Exception) {
             error = exception.message ?: ""
         } finally {
@@ -204,7 +211,7 @@ fun TasksScreen(
                     else members.filter { it.id == currentUser.memberId }
                 if (!mayBrowseMembers) selectedMemberId = currentUser.memberId
             } catch (exception: retrofit2.HttpException) {
-                if (exception.code() == 401) onUnauthorized()
+                taskRequestFailure(exception)
             } catch (_: Exception) {
                 // The current member and cached tasks remain available.
             }
@@ -499,8 +506,7 @@ fun TasksScreen(
                                             )
                                             loadMyTasks()
                                         } catch (exception: retrofit2.HttpException) {
-                                            if (exception.code() == 401) onUnauthorized()
-                                            else error = exception.message()
+                                            taskRequestFailure(exception)
                                         } catch (exception: Exception) {
                                             error = exception.message ?: ""
                                         } finally { processingId = null }
@@ -558,11 +564,7 @@ fun TasksScreen(
                                     if (it.id == updated.id) updated else it
                                 }
                             } catch (exception: retrofit2.HttpException) {
-                                if (exception.code() == 401) {
-                                    onUnauthorized()
-                                } else {
-                                    error = exception.message()
-                                }
+                                taskRequestFailure(exception)
                             } catch (exception: Exception) {
                                 error = exception.message ?: ""
                             } finally {
@@ -615,11 +617,7 @@ fun TasksScreen(
                                 )
                                 loadMyTasks()
                             } catch (exception: retrofit2.HttpException) {
-                                if (exception.code() == 401) {
-                                    onUnauthorized()
-                                } else {
-                                    error = exception.message()
-                                }
+                                taskRequestFailure(exception)
                             } catch (exception: Exception) {
                                 error = exception.message ?: ""
                             } finally {
