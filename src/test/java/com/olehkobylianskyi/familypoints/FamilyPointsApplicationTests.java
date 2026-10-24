@@ -464,6 +464,22 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    void ledgerCheckConstraintsAcceptEveryDeclaredSourceType() {
+        for (String table : java.util.List.of("point_transactions", "group_point_transactions")) {
+            String definition = jdbc.queryForObject("""
+                SELECT pg_get_constraintdef(c.oid)
+                FROM pg_constraint c JOIN pg_class t ON t.oid = c.conrelid
+                WHERE t.relname = ? AND c.conname = ?
+                """, String.class, table, table + "_source_type_check");
+            assertNotNull(definition);
+            for (PointTransactionSourceType type : PointTransactionSourceType.values()) {
+                assertTrue(definition.contains("'" + type.name() + "'"),
+                        table + " rejects Java source type " + type);
+            }
+        }
+    }
+
+    @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
