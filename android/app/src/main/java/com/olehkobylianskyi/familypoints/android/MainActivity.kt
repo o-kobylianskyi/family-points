@@ -427,6 +427,11 @@ class MainActivity : ComponentActivity() {
                 var refreshNonce by remember { mutableStateOf(0) }
                 var pullRefreshing by remember { mutableStateOf(false) }
                 val pullScope = rememberCoroutineScope()
+                // Navigating away or losing connectivity cancels the visible pull
+                // gesture; no callback from a disposed screen can complete it.
+                LaunchedEffect(destination, status, currentUser?.workspaceId, currentUser?.memberId) {
+                    pullRefreshing = false
+                }
                 val refreshable = currentUser != null && status == ServerStatus.ONLINE &&
                     destination in listOf(
                         AppDestination.DASHBOARD, AppDestination.TASKS, AppDestination.MEMBERS,
