@@ -103,7 +103,7 @@ fun MembersScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
-    var avatarRefs by remember(currentUser.workspaceId, currentUser.username) {
+    var avatarRefs by remember(currentUser.accountId, currentUser.workspaceId, currentUser.username) {
         mutableStateOf<Map<Long, MediaRefDto>>(emptyMap())
     }
     val bearer = if (online) tokenStore.getAccessToken()?.let { "Bearer $it" } else null
