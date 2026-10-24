@@ -291,6 +291,15 @@ fun CalendarScreen(
                                                 else -> MaterialTheme.colorScheme.onSurface
                                             })
                                     }
+                                    if (visualMode == CalendarMode.DAY) {
+                                        Text(
+                                            day.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, locale)
+                                                .replaceFirstChar { it.titlecase(locale) },
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 1
+                                        )
+                                    }
                                     Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                         if (hasTasks) Box(Modifier.size(5.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
                                         if (hasRewards) Box(Modifier.size(5.dp).background(MaterialTheme.colorScheme.tertiary, CircleShape))
