@@ -43,9 +43,9 @@ export default function RewardAvailabilityEditor({ rewardId }) {
       let payload={mode,startsAt:null,endsAt:null,weeklyWindows:[]}
       if(mode==='ONE_TIME') {
         if(!start||!end) throw new Error('Invalid date/time range')
-        if (!/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d(?::\\d\\d)?(?:Z|[+-]\\d\\d:\\d\\d)$/.test(start) ||
-            !/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d(?::\\d\\d)?(?:Z|[+-]\\d\\d:\\d\\d)$/.test(end) ||
-            Date.parse(start)>=Date.parse(end)) throw new Error('Use ISO date-time with UTC offset, e.g. 2026-11-05T18:00:00+01:00')
+        if (!/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d)?(?:Z|[+-]\d\d:\d\d)$/.test(start) ||
+            !/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d)?(?:Z|[+-]\d\d:\d\d)$/.test(end) ||
+            !Number.isFinite(Date.parse(start)) || !Number.isFinite(Date.parse(end)) || Date.parse(start)>=Date.parse(end)) throw new Error('Use ISO date-time with UTC offset, e.g. 2026-11-05T18:00:00+01:00')
         payload={...payload,startsAt:start,endsAt:end}
       }
       if(mode==='RECURRING_WEEKLY'){
