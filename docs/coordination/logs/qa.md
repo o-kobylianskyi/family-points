@@ -29,3 +29,9 @@
 - Risk WEB-SF-01-R01 (unconfirmed, Web/Backend): modal submit protections rely on React state `saving/submitting/loading`; stress-test near-simultaneous clicks + slow network, verify exactly one POST and one ledger mutation. Do not classify as reproduced defect without runtime.
 - Code-only checks: seven primary authenticated routes confirmed by App.jsx; Escape/save guards exist in inspected task, point and negotiation modals. No executed browser observation, automated build, oxlint, i18n checker or deployed functional flow: those remain BLOCKED/NOT VERIFIED, not PASSED.
 - Consolidated Web handoff: remediate F01+F02 in one Web package; investigate R01, verify theme/light-dark, 1440×900/1366×768/390×844/360×800, tablet/200% zoom, four locales, long DE and a11y/focus, all 10 matrix rows, screenshot evidence and exact deployed SHA. Approved Home appearance/assets must stay unchanged. Release status: NO-GO until real matrix evidence.
+
+
+## 2026-10-24 — Web return: WEB-SF-01 F01/F02 remediation, NEEDS_RETEST
+- Web reviewed this journal's independent audit and delivered consolidated source fix on `main`: F01 TaskRewardNegotiationModal reputation label uses the existing translated rewardNegUi.amount key; F02 shared NumberInput increases/decreases and control group use translated accessible names, with uk/de/en/ru locale entries (final source SHA of translation batch `d3e5078`; confirm latest main before test).
+- **Change state:** F01 and F02 `NEEDS_RETEST` (NOT `PASSED`). QA verify all four languages in actual browser, DOM/accessibility names for arrows, and regression elsewhere using shared NumberInput. R01 remains NOT_VERIFIED and should be stress-tested with slow API/double clicks before release.
+- Remaining 10-case light/dark/responsive WEB-SF-01 full matrix is still BLOCKED/NOT_VERIFIED absent confirmed deployed Web SHA/browser evidence. Do not close package on source inspection alone.
