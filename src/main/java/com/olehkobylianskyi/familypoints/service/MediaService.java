@@ -160,8 +160,11 @@ public class MediaService {
         checkTarget(ws,type,target,slot);
         if ((assetId==null)==(catalogKey==null)) throw new IllegalArgumentException("Provide exactly one assetId or catalogKey");
         if(catalogKey!=null && !CATALOG.contains(catalogKey)) throw new IllegalArgumentException("Unknown catalog key");
+        if (catalogKey!=null && type.equals("WORKSPACE") && slot.equals("COVER")
+                && !Set.of("family-cover-default","family-default").contains(catalogKey))
+            throw new IllegalArgumentException("Catalog item is not a cover");
         if(assetId!=null){
-            UUID parsed=UUID.fromString(assetId);
+            UUID parsed=parseAssetId(assetId);
             if(db.queryForObject("SELECT count(*) FROM media_assets WHERE id=?::uuid AND workspace_id=?",Integer.class,parsed.toString(),ws)!=1)
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Media asset not found");
         }
@@ -230,9 +233,11 @@ public class MediaService {
             for(int i=0;node!=null && i<32 && seen.add(node);i++) {
                 Long parent=db.query("SELECT parent_node_id FROM work_nodes WHERE id=? AND family_id=?",
                         rs->rs.next()?(Long)rs.getObject(1):null,node,ws);
+                // A task directly assigned to a WorkNode GROUP must inherit
+                // that group's icon before walking to its parents.
+                Ref nodeImage=getBinding(ws,"WORK_NODE",node,"ICON","INHERITED");
+                if(nodeImage!=null)return withBindingVersion(ws,type,target,slot,nodeImage);
                 if(parent==null)break;
-                Ref parentImage=getBinding(ws,"WORK_NODE",parent,"ICON","INHERITED");
-                if(parentImage!=null)return parentImage;
                 node=parent;
             }
         }
@@ -252,11 +257,22 @@ public class MediaService {
         // Catalog preview art is a selectable override, not a replacement for it.
         return new Ref("DEFAULT",null,key,bindingVersion==null?0:bindingVersion,null);
     }
+    private Ref withBindingVersion(long ws,String type,long target,String slot,Ref inherited) {
+        Integer ownVersion=db.query("""
+                SELECT version FROM media_bindings WHERE workspace_id=?
+                AND target_type=? AND target_id=? AND slot=?
+                """,rs->rs.next()?rs.getInt(1):null,ws,type,target,slot);
+        return new Ref(inherited.source(),inherited.mediaId(),inherited.catalogKey(),
+                ownVersion==null?0:ownVersion,inherited.path());
+    }
+
     private Ref getBinding(long ws,String type,long target,String slot,String source) {
         return db.query("SELECT asset_id::text,catalog_key,version FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=? AND (asset_id IS NOT NULL OR catalog_key IS NOT NULL)",
                 rs->rs.next()?new Ref(source,rs.getString(1),rs.getString(2),rs.getInt(3),
-                        rs.getString(1)==null?null:"/workspaces/"+ws+"/media/"+rs.getString(1)+"/variants/"+
-                                (type.equals("WORKSPACE") && slot.equals("COVER") ? "COVER" : "THUMB")):null,
+                        rs.getString(1)==null
+                                ? "/workspaces/"+ws+"/media/catalog/"+rs.getString(2)+"/preview"
+                                : "/workspaces/"+ws+"/media/"+rs.getString(1)+"/variants/"+
+                                  (type.equals("WORKSPACE") && slot.equals("COVER") ? "COVER" : "THUMB")):null,
                 ws,type,target,slot);
     }
 
@@ -264,15 +280,15 @@ public class MediaService {
     public ImageData getBoundVariant(long ws,String id,String variant) {
         requireWorkspace(ws);
         if(!Set.of("COVER","CARD","THUMB").contains(variant))throw new IllegalArgumentException("Invalid variant");
-        UUID uuid=UUID.fromString(id);
+        UUID uuid=parseAssetId(id);
         // A private asset can be read only if currently bound in this exact workspace.
         // Only expose a private image through a binding whose target the current
         // member is authorized to see. An opaque UUID is not authorization.
         var bindings=db.query("""
-                SELECT b.target_type,b.target_id FROM media_bindings b
+                SELECT b.target_type,b.target_id,b.slot FROM media_bindings b
                 JOIN media_assets a ON a.id=b.asset_id
                 WHERE b.asset_id=?::uuid AND b.workspace_id=? AND a.workspace_id=?
-                """,(rs,n)->new String[]{rs.getString(1),Long.toString(rs.getLong(2))},
+                """,(rs,n)->new String[]{rs.getString(1),Long.toString(rs.getLong(2)),rs.getString(3)},
                 uuid.toString(),ws,ws);
         boolean visible=false;
         for (String[] binding:bindings) {
@@ -280,7 +296,7 @@ public class MediaService {
                 String type=binding[0];long target=Long.parseLong(binding[1]);
                 // Workspace bindings are authorized by target existence, without
                 // guessing the slot. Other target types have only one v1 slot.
-                checkTarget(ws,type,target,type.equals("MEMBER")?"AVATAR":"ICON");
+                checkTarget(ws,type,target,binding[2]);
                 var member=current.getCurrentMember();
                 if (type.equals("MEMBER") && member.getId()!=target
                         && !member.hasPermission(WorkspacePermission.MANAGE_MEMBERS)
@@ -300,6 +316,13 @@ public class MediaService {
                     AND a.workspace_id=? AND v.variant=?
                     """,(rs,n)->new ImageData(rs.getString(1),rs.getBytes(2)),uuid.toString(),ws,variant);
         }catch(EmptyResultDataAccessException e) {throw new ResponseStatusException(HttpStatus.NOT_FOUND);}
+    }
+
+    private static UUID parseAssetId(String value) {
+        try { return UUID.fromString(value); }
+        catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"INVALID_MEDIA_ID");
+        }
     }
 
     private void lockWorkspaceMedia(long ws) {

@@ -71,4 +71,21 @@ class MediaServiceSafetyTest {
         assertEquals(180,result.getHeight());
     }
 
+    @Test void invalidAssetIdGetsBadRequestWithoutDataAccess() {
+        when(current.belongsToWorkspace(7L)).thenReturn(true);
+        var error=assertThrows(ResponseStatusException.class, ()->
+                media.getBoundVariant(7L,"not-a-valid-uuid","COVER"));
+        assertEquals(HttpStatus.BAD_REQUEST,error.getStatusCode());
+        verifyNoInteractions(db);
+    }
+
+    @Test void globalCoverOverrideCannotBindAnAvatarCatalogKey() {
+        when(current.belongsToWorkspace(7L)).thenReturn(true);
+        var manager=mock(WorkspaceMember.class);
+        when(current.getCurrentMember()).thenReturn(manager);
+        when(manager.hasPermission(WorkspacePermission.MANAGE_WORKSPACE)).thenReturn(true);
+        when(db.queryForObject(anyString(),eq(Integer.class),eq(7L),eq(7L))).thenReturn(1);
+        assertThrows(IllegalArgumentException.class, ()->
+                media.bind(7L,"WORKSPACE",7L,"COVER",null,"avatar-sky",0));
+    }
 }
