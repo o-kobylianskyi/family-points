@@ -18,6 +18,15 @@ public class MediaController {
         media.assertCatalogWorkspace(workspaceId);
         return media.catalog();
     }
+    @GetMapping(value="/catalog/{key}/preview", produces="image/svg+xml")
+    public ResponseEntity<byte[]> catalogPreview(@PathVariable long workspaceId, @PathVariable String key) {
+        byte[] image=media.catalogPreview(workspaceId,key);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("image/svg+xml"))
+                .header("X-Content-Type-Options","nosniff")
+                .header(HttpHeaders.CACHE_CONTROL,"public, max-age=86400")
+                .body(image);
+    }
     @PostMapping(value="/uploads",consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
     public MediaService.Uploaded upload(@PathVariable long workspaceId,@RequestPart("file") MultipartFile file){
         return media.upload(workspaceId,file);

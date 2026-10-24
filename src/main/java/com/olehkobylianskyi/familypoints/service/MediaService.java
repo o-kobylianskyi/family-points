@@ -27,8 +27,7 @@ public class MediaService {
     private static final long MAX_PIXELS = 16_000_000L;
     private static final Set<String> TYPES = Set.of("WORKSPACE","MEMBER","MEMBER_GROUP","WORK_NODE","TASK");
     private static final Set<String> SLOTS = Set.of("COVER","ICON","AVATAR");
-    private static final Set<String> CATALOG = Set.of("family-default","member-default","people-group-default",
-            "task-group-default","task-default","family-cover-default");
+    private static final Set<String> CATALOG = Set.of("member-default","avatar-sunflower","avatar-sky","avatar-berry","avatar-mint","avatar-peach","avatar-violet","avatar-ocean","avatar-forest","family-default","family-cover-default","people-group-default","task-group-default","task-default","reward-star");
     private final JdbcTemplate db;
     private final CurrentUserService current;
 
@@ -300,12 +299,29 @@ public class MediaService {
                               boolean selectable, String previewPath) {}
     public List<CatalogItem> catalog() {
         return List.of(
-            new CatalogItem("member-default", "AVATAR", "media.catalog.memberDefault", 1, true, null),
-            new CatalogItem("family-default", "FAMILY", "media.catalog.familyDefault", 1, true, null),
-            new CatalogItem("family-cover-default", "COVER", "media.catalog.familyCoverDefault", 1, true, null),
-            new CatalogItem("people-group-default", "GROUP", "media.catalog.peopleGroupDefault", 1, true, null),
-            new CatalogItem("task-group-default", "TASK_CATEGORY", "media.catalog.taskGroupDefault", 1, true, null),
-            new CatalogItem("task-default", "TASK", "media.catalog.taskDefault", 1, true, null)
+            new CatalogItem("member-default", "AVATAR", "media.catalog.memberDefault", 1, true, "/workspaces/{workspaceId}/media/catalog/member-default/preview"),
+            new CatalogItem("avatar-sunflower", "AVATAR", "media.catalog.avatarSunflower", 1, true, "/workspaces/{workspaceId}/media/catalog/avatar-sunflower/preview"),
+            new CatalogItem("avatar-sky", "AVATAR", "media.catalog.avatarSky", 1, true, "/workspaces/{workspaceId}/media/catalog/avatar-sky/preview"),
+            new CatalogItem("avatar-berry", "AVATAR", "media.catalog.avatarBerry", 1, true, "/workspaces/{workspaceId}/media/catalog/avatar-berry/preview"),
+            new CatalogItem("avatar-mint", "AVATAR", "media.catalog.avatarMint", 1, true, "/workspaces/{workspaceId}/media/catalog/avatar-mint/preview"),
+            new CatalogItem("avatar-peach", "AVATAR", "media.catalog.avatarPeach", 1, true, "/workspaces/{workspaceId}/media/catalog/avatar-peach/preview"),
+            new CatalogItem("avatar-violet", "AVATAR", "media.catalog.avatarViolet", 1, true, "/workspaces/{workspaceId}/media/catalog/avatar-violet/preview"),
+            new CatalogItem("avatar-ocean", "AVATAR", "media.catalog.avatarOcean", 1, true, "/workspaces/{workspaceId}/media/catalog/avatar-ocean/preview"),
+            new CatalogItem("avatar-forest", "AVATAR", "media.catalog.avatarForest", 1, true, "/workspaces/{workspaceId}/media/catalog/avatar-forest/preview"),
+            new CatalogItem("family-default", "FAMILY", "media.catalog.familyDefault", 1, true, "/workspaces/{workspaceId}/media/catalog/family-default/preview"),
+            new CatalogItem("family-cover-default", "COVER", "media.catalog.familyCoverDefault", 1, true, "/workspaces/{workspaceId}/media/catalog/family-cover-default/preview"),
+            new CatalogItem("people-group-default", "GROUP", "media.catalog.peopleGroupDefault", 1, true, "/workspaces/{workspaceId}/media/catalog/people-group-default/preview"),
+            new CatalogItem("task-group-default", "TASK_CATEGORY", "media.catalog.taskGroupDefault", 1, true, "/workspaces/{workspaceId}/media/catalog/task-group-default/preview"),
+            new CatalogItem("task-default", "TASK", "media.catalog.taskDefault", 1, true, "/workspaces/{workspaceId}/media/catalog/task-default/preview"),
+            new CatalogItem("reward-star", "REWARD", "media.catalog.rewardStar", 1, true, "/workspaces/{workspaceId}/media/catalog/reward-star/preview")
         );
+    }
+    public byte[] catalogPreview(long workspaceId, String key) {
+        requireWorkspace(workspaceId);
+        if (!CATALOG.contains(key)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        try (InputStream in = getClass().getResourceAsStream("/media/catalog/" + key + ".svg")) {
+            if (in == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            return in.readAllBytes();
+        } catch (IOException e) { throw new IllegalStateException("Catalog asset unavailable", e); }
     }
 }

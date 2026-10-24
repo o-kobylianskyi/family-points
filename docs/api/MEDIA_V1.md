@@ -27,3 +27,6 @@ AVATAR (people/characters/animals), FAMILY, COVER, GROUP, TASK_CATEGORY, TASK an
 ### Remaining before client integration
 
 Commit and verify real curated image binaries, idempotent import or versioned static deployment, preview delivery, usable fallback render, optional category/search filtering, content provenance and localization, version invalidation tests, effectiveImage additions to family/member/group/task DTOs, scoped delegated authorization, WebP decision, orphan cleanup, real two-family tests and V35 + V36 migration integration. Web/Android/Release reviews and CI required; no merge/deploy automatically authorized.
+
+## Renderable catalog previews
+The catalog includes 15 checked-in text-free original SVG illustrations (9 avatars plus family, cover, group, task and reward symbols). Preview URL template from `CatalogItem.previewPath` replaces `{workspaceId}` with the current workspace. `GET /workspaces/{workspaceId}/media/catalog/{key}/preview` returns vetted bundled SVG only (never user SVG); unknown key = 404; workspace membership required. Private uploaded JPEG/PNG is never served by this endpoint. The icons are bundled in app resources so no DB seeding is necessary for v1 catalog and no duplicate binary is stored per family. The artwork can be visually upgraded later while maintaining stable catalog keys/version rules.
