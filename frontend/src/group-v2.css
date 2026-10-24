@@ -1,1 +1,20 @@
-.group-editor{max-width:680px}.group-edit-row{display:flex;gap:8px;margin:8px 0}.group-edit-row input,.group-edit-row select{flex:1}.group-edit-item{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border:1px solid #d8dde8;border-radius:8px;margin:5px 0}.group-editor h3{margin:20px 0 8px}.group-card .group-member-names{margin-top:6px}
+.group-editor { max-width: 680px; width: 100%; min-width: 0; color: var(--fp-text); }
+.group-edit-row { display: flex; gap: 8px; margin: 8px 0; min-width: 0; }
+.group-edit-row input, .group-edit-row select { flex: 1 1 0; min-width: 0; }
+.group-edit-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--fp-border); border-radius: 9px;
+  background: var(--fp-surface); color: var(--fp-text); margin: 5px 0;
+  min-width: 0;
+}
+.group-edit-item > :first-child { min-width: 0; overflow-wrap: anywhere; }
+.group-edit-item button { flex: 0 0 auto; }
+.group-editor h3 { margin: 20px 0 8px; color: var(--fp-text); }
+.group-card .group-member-names { margin-top: 6px; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .group-edit-row { flex-wrap: wrap; }
+  .group-edit-row > :is(input, select) { flex: 1 1 170px; }
+  .group-edit-row > button { flex: 1 1 auto; min-height: 44px; }
+  .group-edit-item { flex-wrap: wrap; }
+}
