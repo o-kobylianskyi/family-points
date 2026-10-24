@@ -287,11 +287,23 @@ fun PointsScreen(
             }
         } catch (exception: HttpException) {
             if (exception.code() == 401) onUnauthorized()
-            else syncMessage = when (language) {
-                AppLanguage.UK -> "Деякі операції очікують підтвердження сервера."
-                AppLanguage.DE -> "Einige Vorgänge warten auf Serverbestätigung."
-                AppLanguage.EN -> "Some operations await server confirmation."
-                AppLanguage.RU -> "Некоторые операции ожидают подтверждения сервера."
+            else {
+                // A forbidden replay is not an expired session: retain pending
+                // operations for parental review rather than logging the user out.
+                pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId)
+                syncMessage = if (exception.code() == 403) {
+                    when (language) {
+                        AppLanguage.UK -> "Сервер заборонив синхронізацію (403). Операції залишилися в черзі. Перевірте права керування балами."
+                        AppLanguage.DE -> "Synchronisierung verweigert (403). Vorgänge bleiben gespeichert. Punkteberechtigung prüfen."
+                        AppLanguage.EN -> "Synchronization denied (403). Operations remain queued. Check points permissions."
+                        AppLanguage.RU -> "Синхронизация запрещена (403). Операции остались в очереди. Проверьте права управления баллами."
+                    }
+                } else when (language) {
+                    AppLanguage.UK -> "Деякі операції очікують підтвердження сервера."
+                    AppLanguage.DE -> "Einige Vorgänge warten auf Serverbestätigung."
+                    AppLanguage.EN -> "Some operations await server confirmation."
+                    AppLanguage.RU -> "Некоторые операции ожидают подтверждения сервера."
+                }
             }
         } catch (_: Exception) {
             // Keep all cached members and pending operations visible.
