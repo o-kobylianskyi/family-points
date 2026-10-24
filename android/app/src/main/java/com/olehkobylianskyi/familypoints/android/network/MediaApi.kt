@@ -38,7 +38,7 @@ interface MediaApi {
         @Header("Authorization") bearer: String,
         @Path("workspaceId") workspaceId: Long,
         @Path("assetId") assetId: String,
-        @Path("variant") variant: String = "THUMBNAIL"
+        @Path("variant") variant: String = "THUMB"
     ): ResponseBody
 
     @GET("workspaces/{workspaceId}/media/manifest")
