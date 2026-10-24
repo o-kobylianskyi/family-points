@@ -46,6 +46,8 @@ class PointsRepository(
     fun cachedConfirmedBalance(workspaceId: Long, memberId: Long): Long? =
         offlineStore.load(workspaceId, memberId)?.balance
 
+    fun quarantinedLegacyCount(): Int = queue.legacyUnassignedCount()
+
     fun pending(workspaceId: Long, viewerId: Long, accountId: Long?): List<OfflinePointsQueueStore.Pending> =
         if (accountId != null && accountId > 0) queue.pending(workspaceId, viewerId, accountId) else emptyList()
 
