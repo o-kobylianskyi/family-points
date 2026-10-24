@@ -55,6 +55,7 @@ enum class DashboardDestination {
 @Composable
 fun DashboardScreen(
     refreshNonce: Int = 0,
+    onRefreshComplete: (Int) -> Unit = {},
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     loadDashboard: suspend () -> DashboardData,
@@ -111,6 +112,7 @@ fun DashboardScreen(
             if (data == null) error = exception.message ?: text.loadFailed
         } finally {
             loading = false
+            if (refreshNonce > 0) onRefreshComplete(refreshNonce)
         }
     }
 
