@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import './EntityMedia.css'
+import AvatarCatalogTile from './AvatarCatalogTile'
 import { getMediaBinding, getMediaCatalog, putMediaBinding, deleteMediaBinding, uploadMedia, fetchAuthorizedMediaObjectUrl } from '../api/mediaApi'
 
 const dictionary = {
@@ -104,10 +105,17 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
     allowedCategories.includes(String(item.category||'').toUpperCase())
   )
   const editor = canEdit && reference && <div className="entity-media-controls">
-    <select aria-label={words[1]} value={staged&&draft?.kind==='catalog'?draft.key:''} disabled={busy} onChange={e=>{if(e.target.value)choose(e.target.value)}}>
+    {type==='MEMBER' && inlineEditor ? <div className="avatar-catalog-picker" role="group" aria-label={words[1]}>
+      <div className="avatar-catalog-grid">
+        {availableCatalog.map(item=><AvatarCatalogTile key={item.key} item={item} workspaceId={workspaceId}
+          token={getAccessToken()} selected={draft?.kind==='catalog'&&draft.key===item.key}
+          onSelect={choose} label={catalogName(item)}/>)}
+      </div>
+      {!availableCatalog.length&&<small>{({uk:'Каталог аватарів поки недоступний',de:'Avatar-Katalog nicht verfügbar',en:'Avatar catalog unavailable',ru:'Каталог аватаров пока недоступен'})[locale]}</small>}
+    </div> : <select aria-label={words[1]} value={staged&&draft?.kind==='catalog'?draft.key:''} disabled={busy} onChange={e=>{if(e.target.value)choose(e.target.value)}}>
       <option value="">{words[1]}</option>
       {availableCatalog.map(item=><option key={item.key} value={item.key}>{catalogName(item)}</option>)}
-    </select>
+    </select>}
     <label className="entity-media-upload">{words[2]}<input type="file" accept="image/png,image/jpeg" disabled={busy} onChange={e=>{upload(e.target.files?.[0]);e.target.value=''}}/></label>
     <button type="button" className="secondary-button" disabled={busy||(!draft&&reference.source==='DEFAULT')} onClick={clear}>{words[3]}</button>
   </div>
