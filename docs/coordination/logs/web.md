@@ -294,3 +294,9 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - User screenshot confirms top-right user profile dropdown remains open when clicking elsewhere. AppLayout used uncontrolled native `<details>` without outside-dismiss behavior.
 - Fix in AppLayout.jsx commit 8425009: controlled profileOpen, document pointerdown listener closes only when clicked outside ref, Escape closes, route and workspace changes reset; profile toggle remains clickable, Settings link closes menu. Event listeners added only while open and cleaned on close/unmount. No profile layout or avatar changes.
 - QA later: click account opens, click outside closes, click inside does not prematurely close, Escape, Settings navigation, workspace switch, mobile layout, no immediate reopening.
+
+
+## 2026-10-24 — Screenshot QA fix: member avatars on Tasks page
+- User screenshot: current account header correctly displays updated photo while member selector on Tasks still shows initials. Source audit found TasksPage imported the legacy presentation-only FamilyAvatar rather than authenticated MemberAvatar.
+- Replaced avatar rendering for every member in Tasks member-selector with shared `MemberAvatar memberId={member.id}`. Uses existing authenticated Media V37 effective bindings, account/workspace isolation, revocable Blob URLs and `fp:member-avatar-changed` event. No Backend or layout changes. Code commit `ce70ce504584a8ac0c33f00d5fd7ff11fa638011`.
+- QA deferred: Tasks tab selector displays uploaded and catalog avatars for multiple members; after member edit Save photo updates; cross-workspace swap clears old photos; missing photo renders initial; both mobile and desktop. Build/CI on exact SHA to check separately.
