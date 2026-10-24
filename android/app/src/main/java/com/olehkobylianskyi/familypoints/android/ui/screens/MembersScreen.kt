@@ -26,6 +26,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
@@ -90,6 +94,15 @@ fun MembersScreen(
     var balances by remember { mutableStateOf<Map<Long, Long>>(emptyMap()) }
     val context = LocalContext.current
     val tokenStore = remember(context) { TokenStore(context) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var mediaRefresh by remember { mutableStateOf(0) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) mediaRefresh++
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     var avatarRefs by remember(currentUser.workspaceId, currentUser.username) {
         mutableStateOf<Map<Long, MediaRefDto>>(emptyMap())
     }
@@ -186,8 +199,8 @@ fun MembersScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId, currentUser.username, data?.members, serverStatus, refreshNonce) {
-        avatarRefs = emptyMap()
+    LaunchedEffect(currentUser.accountId, currentUser.workspaceId, currentUser.username, data?.members, serverStatus, refreshNonce, mediaRefresh) {
+        // Keep existing authorized thumbnails while refreshing on app resume.
         val people = data?.members.orEmpty()
         val auth = bearer ?: return@LaunchedEffect
         if (people.isEmpty()) return@LaunchedEffect
