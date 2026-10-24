@@ -53,4 +53,22 @@ class MediaServiceSafetyTest {
                 media.getBoundVariant(8L,UUID.randomUUID().toString(),"THUMB"));
         verifyNoInteractions(db);
     }
+    @Test void wideCoverKeepsAspectRatioWithoutUpscaling() throws Exception {
+        var render=MediaService.class.getDeclaredMethod("render",java.awt.image.BufferedImage.class,int.class,String.class);
+        render.setAccessible(true);
+        var large=new java.awt.image.BufferedImage(3000,1200,java.awt.image.BufferedImage.TYPE_INT_RGB);
+        for (int max : new int[]{2048,800,192}) {
+            byte[] encoded=(byte[])render.invoke(null,large,max,"image/png");
+            var output=javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(encoded));
+            assertNotNull(output);
+            assertEquals(max,output.getWidth());
+            assertEquals((int)Math.round(1200.0*max/3000),output.getHeight());
+        }
+        var tiny=new java.awt.image.BufferedImage(320,180,java.awt.image.BufferedImage.TYPE_INT_RGB);
+        var result=javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(
+                (byte[])render.invoke(null,tiny,2048,"image/png")));
+        assertEquals(320,result.getWidth());
+        assertEquals(180,result.getHeight());
+    }
+
 }
