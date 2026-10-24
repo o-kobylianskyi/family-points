@@ -458,6 +458,69 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    @Transactional
+    void scopedMediaHttpCannotReadAnotherFamilysPrivateImageEvenKnowingUuid() throws Exception {
+        Workspace alpha = new Workspace("Private media family A");
+        Workspace beta = new Workspace("Private media family B");
+        entityManager.persist(alpha);
+        entityManager.persist(beta);
+        WorkspaceRole alphaRole = new WorkspaceRole(alpha, "CHILD", "Child A", false);
+        WorkspaceRole betaRole = new WorkspaceRole(beta, "CHILD", "Child B", false);
+        entityManager.persist(alphaRole);
+        entityManager.persist(betaRole);
+        WorkspaceMember alphaMember = new WorkspaceMember("Media member A",
+                WorkspaceMemberType.CHILD, alphaRole, alpha);
+        WorkspaceMember betaMember = new WorkspaceMember("Media member B",
+                WorkspaceMemberType.CHILD, betaRole, beta);
+        entityManager.persist(alphaMember);
+        entityManager.persist(betaMember);
+        UserAccount accountA = new UserAccount("http-media-alpha", "hash", alphaMember);
+        UserAccount accountB = new UserAccount("http-media-beta", "hash", betaMember);
+        entityManager.persist(accountA);
+        entityManager.persist(accountB);
+        entityManager.persist(new AccountWorkspaceMembership(accountA, alphaMember));
+        entityManager.persist(new AccountWorkspaceMembership(accountB, betaMember));
+        entityManager.flush();
+        java.util.UUID mediaId=java.util.UUID.randomUUID();
+        byte[] fakeImage=new byte[]{1,2,3,4}; // HTTP retrieval tests authorization, not decoder.
+        jdbc.update("""
+            INSERT INTO media_assets
+                (id,workspace_id,mime_type,width,height,byte_size,sha256,created_by_member_id)
+            VALUES (?::uuid,?,'image/png',1,1,4,?,?)
+            """,mediaId.toString(),alpha.getId(),"a".repeat(64),alphaMember.getId());
+        jdbc.update("INSERT INTO media_blobs(asset_id,variant,bytes) VALUES (?::uuid,'THUMB',?)",
+                mediaId.toString(),fakeImage);
+        jdbc.update("""
+            INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,asset_id)
+            VALUES (?,'MEMBER',?,'AVATAR',?::uuid)
+            """,alpha.getId(),alphaMember.getId(),mediaId.toString());
+
+        var principalA=User.withUsername(accountA.getUsername())
+                .password("hash").authorities("USER").build();
+        var principalB=User.withUsername(accountB.getUsername())
+                .password("hash").authorities("USER").build();
+        String alphaJwt="Bearer "+jwtService.generateWorkspaceAccessToken(principalA,alpha.getId());
+        String betaJwt="Bearer "+jwtService.generateWorkspaceAccessToken(principalB,beta.getId());
+        String alphaRoute="/workspaces/"+alpha.getId()+"/media/"+mediaId+"/variants/THUMB";
+        String forgedBetaRoute="/workspaces/"+beta.getId()+"/media/"+mediaId+"/variants/THUMB";
+
+        mockMvc.perform(get(alphaRoute).header("Authorization",alphaJwt))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .header().string("X-Content-Type-Options","nosniff"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .content().bytes(fakeImage));
+        mockMvc.perform(get(alphaRoute).header("Authorization",betaJwt))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get(forgedBetaRoute).header("Authorization",betaJwt))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get(alphaRoute)).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/workspaces/{workspaceId}/media/bindings/MEMBER/{memberId}/AVATAR",
+                        alpha.getId(),alphaMember.getId())
+                .header("Authorization",betaJwt)).andExpect(status().isForbidden());
+    }
+
+    @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
