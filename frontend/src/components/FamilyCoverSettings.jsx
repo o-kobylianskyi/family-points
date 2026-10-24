@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { getMediaManifest, putMediaBinding, deleteMediaBinding, fetchAuthorizedMediaObjectUrl, uploadMedia } from '../api/mediaApi'
@@ -21,6 +21,9 @@ export default function FamilyCoverSettings() {
   const [error,setError] = useState('')
   const [busy,setBusy] = useState(false)
   const [revision,setRevision] = useState(0)
+  const requestLock = useRef(false)
+  const currentWorkspace = useRef(workspaceId)
+  currentWorkspace.current = workspaceId
 
   useEffect(() => {
     if (!workspaceId) return
@@ -43,11 +46,14 @@ export default function FamilyCoverSettings() {
   },[workspaceId,getAccessToken,revision])
 
   const mutate = async action => {
-    if (busy || !manifest) return
+    if (requestLock.current || !manifest) return
+    const selectedWorkspace = workspaceId
+    requestLock.current = true
     setBusy(true);setError('')
-    try { await action(); setRevision(n=>n+1) }
-    catch (e) {setError(e.message)}
-    finally {setBusy(false)}
+    try { await action(); if(currentWorkspace.current===selectedWorkspace)setRevision(n=>n+1) }
+    catch (e) {
+      if(currentWorkspace.current===selectedWorkspace){setError(e.message);if(e.status===409)setRevision(n=>n+1)}
+    } finally {requestLock.current=false;if(currentWorkspace.current===selectedWorkspace)setBusy(false)}
   }
   const cover=manifest?.cover
   const choose = key => mutate(()=>putMediaBinding(getAccessToken(),workspaceId,'WORKSPACE',workspaceId,'COVER',{catalogKey:key,assetId:null},cover.version))
