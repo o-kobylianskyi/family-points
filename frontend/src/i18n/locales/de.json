@@ -1,5 +1,6 @@
 {
   "numberInput": {
+    "controls": "Zahleneingabe",
     "increase": "Wert erhöhen {{field}}",
     "decrease": "Wert verringern {{field}}"
   },
