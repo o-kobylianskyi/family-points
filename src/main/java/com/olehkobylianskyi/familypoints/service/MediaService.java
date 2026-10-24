@@ -276,7 +276,9 @@ public class MediaService {
                 ws,type,target,slot);
     }
 
-    @Transactional(readOnly=true)
+    // A shared row lock is required until the private bytes have been fetched.
+    // PostgreSQL prohibits SELECT FOR SHARE in read-only transactions.
+    @Transactional
     public ImageData getBoundVariant(long ws,String id,String variant) {
         requireWorkspace(ws);
         if(!Set.of("COVER","CARD","THUMB").contains(variant))throw new IllegalArgumentException("Invalid variant");
