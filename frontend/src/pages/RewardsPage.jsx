@@ -1,3 +1,4 @@
+import RewardAvailabilityEditor from '../components/RewardAvailabilityEditor'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NumberInput from '../components/NumberInput'
@@ -1130,6 +1131,8 @@ function RewardsPage() {
               )}
             </form>
           </section>
+
+          {editingRewardId != null && <RewardAvailabilityEditor key={editingRewardId} rewardId={editingRewardId} />}
 
           <section className="reward-admin-panel">
             <h2>{t('rewardsUi.recentPurchases')}</h2>
