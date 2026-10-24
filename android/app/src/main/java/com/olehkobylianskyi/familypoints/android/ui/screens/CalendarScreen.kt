@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -60,6 +61,7 @@ fun CalendarScreen(language: AppLanguage, modifier: Modifier = Modifier, events:
             CalendarKind.REWARD -> event.type == AgendaEventType.REWARD_WINDOW
         }
     }
+    val counts = selectedEvents.groupingBy { it.type }.eachCount()
     val timed = selectedEvents.filter { it.startsAt != null }
     val untimed = selectedEvents.filter { it.startsAt == null }
     val locale = localeFor(language)
@@ -139,6 +141,26 @@ fun CalendarScreen(language: AppLanguage, modifier: Modifier = Modifier, events:
                                     modifier = Modifier.clickable { selectedDate = day }.padding(8.dp)
                                 )
                             }
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val metrics = listOf(
+                    Triple(calText(language, "Подій", "Termine", "Events", "Событий"),
+                        selectedEvents.size, CalendarKind.ALL),
+                    Triple(calText(language, "Завдань", "Aufgaben", "Tasks", "Задач"),
+                        counts[AgendaEventType.TASK] ?: 0, CalendarKind.TASK),
+                    Triple(calText(language, "Винагород", "Belohnungen", "Rewards", "Наград"),
+                        counts[AgendaEventType.REWARD_WINDOW] ?: 0, CalendarKind.REWARD)
+                )
+                metrics.forEach { (label, count, destination) ->
+                    FpCard(modifier = Modifier.weight(1f).clickable { kind = destination }) {
+                        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(count.toString(), style = MaterialTheme.typography.titleLarge)
+                            Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 2)
                         }
                     }
                 }
