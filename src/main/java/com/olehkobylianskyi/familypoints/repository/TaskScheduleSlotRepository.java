@@ -11,4 +11,5 @@ public interface TaskScheduleSlotRepository extends JpaRepository<TaskScheduleSl
     Optional<TaskScheduleSlot> findByTaskDefinitionIdAndSlotKey(Long taskDefinitionId, String slotKey);
     Optional<TaskScheduleSlot> findByTaskDefinitionIdAndSlotKeyAndEnabledTrue(Long taskDefinitionId, String slotKey);
     List<TaskScheduleSlot> findByTaskDefinitionIdAndEnabledTrueOrderByScheduledTimeAscSlotKeyAsc(Long taskDefinitionId);
+    List<TaskScheduleSlot> findByTaskDefinitionIdIn(List<Long> definitionIds);
 }

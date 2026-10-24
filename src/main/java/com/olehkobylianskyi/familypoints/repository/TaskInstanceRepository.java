@@ -85,4 +85,7 @@ public interface TaskInstanceRepository
             @Param("date") LocalDate date,
             @Param("statuses") List<TaskInstanceStatus> statuses
     );
+    @EntityGraph(attributePaths = {"taskDefinition", "member"})
+    List<TaskInstance> findByMemberIdAndTaskDefinitionWorkspaceIdAndScheduledDateBetweenOrderByScheduledDateAscIdAsc(
+            Long memberId, Long workspaceId, LocalDate from, LocalDate to);
 }
