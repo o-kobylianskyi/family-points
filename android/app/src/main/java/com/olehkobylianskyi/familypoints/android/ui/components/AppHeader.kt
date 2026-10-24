@@ -127,7 +127,6 @@ fun AppHeader(
             ) {
                 val entries = listOf(
                     Triple(DashboardDestination.DASHBOARD, text.dashboard, Icons.Outlined.Home),
-                    Triple(DashboardDestination.MEMBERS, text.members, Icons.Outlined.Group),
                     Triple(DashboardDestination.TASKS, text.tasks, Icons.Outlined.TaskAlt),
                     Triple(DashboardDestination.POINTS, when (language) {
                         AppLanguage.UK -> "Бали"
@@ -136,6 +135,7 @@ fun AppHeader(
                         AppLanguage.EN -> "Points"
                     }, Icons.Outlined.Payments),
                     Triple(DashboardDestination.REWARDS, text.rewards, Icons.Outlined.CardGiftcard),
+                    Triple(DashboardDestination.MEMBERS, text.members, Icons.Outlined.Group),
                     Triple(DashboardDestination.SETTINGS, text.settings, Icons.Outlined.Settings)
                 )
                 entries.forEachIndexed { index, (destination, title, glyph) ->
