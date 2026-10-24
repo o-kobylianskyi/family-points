@@ -66,6 +66,7 @@ private fun memberText(language: AppLanguage, uk: String, de: String, en: String
 @Composable
 fun MembersScreen(
     refreshNonce: Int = 0,
+    onRefreshComplete: (Int) -> Unit = {},
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     repository: MembersRepository,
@@ -164,7 +165,10 @@ fun MembersScreen(
             }
         } catch (e: Exception) {
             if (data?.members.isNullOrEmpty()) failure(e)
-        } finally { loading = false }
+        } finally {
+            loading = false
+            if (refreshNonce > 0) onRefreshComplete(refreshNonce)
+        }
     }
 
     val membersTitle = memberText(language, "Учасники", "Mitglieder", "Members", "Участники")
