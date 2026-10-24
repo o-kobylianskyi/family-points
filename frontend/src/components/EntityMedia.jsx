@@ -65,10 +65,37 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
       await putMediaBinding(getAccessToken(),workspaceId,type,targetId,slot,{assetId,catalogKey:null},reference.version)
     })
   }
+  const locale=i18n.language.split('-')[0]
+  const labels={
+    memberDefault:['Стандартний аватар','Standardavatar','Default avatar','Стандартный аватар'],
+    avatarSunflower:['Соняшник','Sonnenblume','Sunflower','Подсолнух'],
+    avatarSky:['Небо','Himmel','Sky','Небо'],
+    avatarBerry:['Ягода','Beere','Berry','Ягода'],
+    avatarMint:['М’ята','Minze','Mint','Мята'],
+    avatarPeach:['Персик','Pfirsich','Peach','Персик'],
+    avatarViolet:['Фіалка','Veilchen','Violet','Фиалка'],
+    avatarOcean:['Океан','Ozean','Ocean','Океан'],
+    avatarForest:['Ліс','Wald','Forest','Лес'],
+    peopleGroupDefault:['Група людей','Personengruppe','People group','Группа людей'],
+    taskGroupDefault:['Група завдань','Aufgabengruppe','Task group','Группа заданий'],
+    taskDefault:['Завдання','Aufgabe','Task','Задание'],
+  }
+  const languageIndex={uk:0,de:1,en:2,ru:3}[locale]??2
+  const catalogName=item=>{
+    const cleanKey=(item.labelKey||'').split('.').pop()
+    return labels[cleanKey]?.[languageIndex]||
+      item.key.replace(/^(avatar|member|task|peopleGroup)[-_]?/i,'').replace(/[-_]/g,' ')||
+      words[0]
+  }
+  const allowedCategories=type==='MEMBER'?['AVATAR']:type==='MEMBER_GROUP'?['GROUP']:type==='TASK'?['TASK','TASK_CATEGORY']:['FAMILY']
+  const availableCatalog=catalog.filter(item=>
+    item.selectable && item.previewPath &&
+    allowedCategories.includes(String(item.category||'').toUpperCase())
+  )
   const editor = canEdit && reference && <div className="entity-media-controls">
     <select aria-label={words[1]} value="" disabled={busy} onChange={e=>{if(e.target.value)choose(e.target.value)}}>
       <option value="">{words[1]}</option>
-      {catalog.filter(x=>x.selectable&&x.previewPath).map(item=><option key={item.key} value={item.key}>{item.labelKey||item.key}</option>)}
+      {availableCatalog.map(item=><option key={item.key} value={item.key}>{catalogName(item)}</option>)}
     </select>
     <label className="entity-media-upload">{words[2]}<input type="file" accept="image/png,image/jpeg" disabled={busy} onChange={e=>{upload(e.target.files?.[0]);e.target.value=''}}/></label>
     <button type="button" className="secondary-button" disabled={busy||reference.source==='DEFAULT'} onClick={clear}>{words[3]}</button>
