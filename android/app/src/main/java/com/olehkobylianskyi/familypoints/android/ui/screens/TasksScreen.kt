@@ -221,7 +221,11 @@ fun TasksScreen(
 
     LaunchedEffect(tab, managementView, serverStatus, refreshNonce) {
         if (tab == TasksPageTab.MANAGEMENT && serverStatus == ServerStatus.ONLINE) {
-            loadManagement()
+            try {
+                loadManagement()
+            } finally {
+                if (refreshNonce > 0) onRefreshComplete(refreshNonce)
+            }
         }
     }
 
