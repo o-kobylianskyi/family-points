@@ -69,9 +69,17 @@ function MembersPage() {
       setMemberBusy(true)
       setError('')
       if (editingMember) {
-        await updateWorkspaceMember(getAccessToken(), currentUser.workspaceId, editingMember.id, body)
+        const saveToken = getAccessToken()
+        if (!saveToken) throw new Error('Сеанс авторизації завершився. Увійдіть повторно перед збереженням учасника.')
+        try {
+          await updateWorkspaceMember(saveToken, currentUser.workspaceId, editingMember.id, body)
+        } catch (profileError) {
+          throw new Error(`Не вдалося зберегти профіль учасника: ${profileError.message}`)
+        }
         if (avatarDraft) {
           const token = getAccessToken()
+          if (!token) throw new Error('Профіль оновлено, але сеанс завершився перед збереженням аватара. Увійдіть повторно.')
+          try {
           const workspace = currentUser.workspaceId
           const memberId = editingMember.id
           if (avatarDraft.kind === 'clear') {
@@ -88,6 +96,9 @@ function MembersPage() {
               avatarDraft.expectedVersion)
           }
           window.dispatchEvent(new CustomEvent('fp:member-avatar-changed',{detail:{workspaceId:workspace,memberId}}))
+          } catch (mediaError) {
+            throw new Error(`Профіль оновлено, але аватар не збережено: ${mediaError.message}. Перевірте авторизацію та повторіть збереження.`)
+          }
         }
         if (inviteEmail) await issueMemberEmailInvitation(getAccessToken(), currentUser.workspaceId, editingMember.id, inviteEmail)
         else if (account) await createMemberAccount(getAccessToken(), currentUser.workspaceId, editingMember.id, account)
