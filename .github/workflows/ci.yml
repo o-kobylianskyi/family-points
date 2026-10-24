@@ -74,7 +74,7 @@ jobs:
         run: |
           chmod +x ./gradlew
           # The local Android Studio build remains on API 37; CI fallback compiles API 36.
-          ./gradlew --no-daemon --stacktrace -PfamilyPointsCiAndroidSdk=36 :app:assembleDebug :app:testDebugUnitTest
+          ./gradlew --no-daemon --stacktrace -PfamilyPointsCiAndroidSdk=36 :app:assembleDebug :app:testDebugUnitTest :app:assembleDebugAndroidTest
       - name: Publish Android test reports
         if: always()
         uses: actions/upload-artifact@v4
