@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
@@ -75,7 +76,7 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
   if(compact) return <div className="entity-media-compact" onClick={e=>e.stopPropagation()}>
     <div className="entity-media-avatar">{url?<img src={url} alt={words[0]}/>:children}</div>
     {canEdit&&<button type="button" className="entity-media-edit" aria-label={words[1]} title={words[1]} onClick={()=>setEditorOpen(true)}>✎</button>}
-    {editorOpen&&<div className="entity-media-backdrop" role="presentation" onClick={()=>{if(!busy)setEditorOpen(false)}}>
+    {editorOpen&&createPortal(<div className="entity-media-backdrop" role="presentation" onClick={()=>{if(!busy)setEditorOpen(false)}}>
       <section role="dialog" aria-modal="true" aria-label={words[0]} className="entity-media-dialog" onClick={e=>e.stopPropagation()}>
         <div className="entity-media-dialog-heading"><strong>{words[0]}</strong><button type="button" className="secondary-button" disabled={busy} onClick={()=>setEditorOpen(false)}>×</button></div>
         {url?<img src={url} alt={words[0]} className="entity-media-preview"/>:<div className="entity-media-preview-placeholder">{children}</div>}
@@ -83,7 +84,7 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
         {busy&&<small>{words[4]}</small>}
         {error&&<small role="alert">{error}</small>}
       </section>
-    </div>}
+    </div>, document.body)}
   </div>
   return <section className="entity-media">
     {url&&<img src={url} alt={words[0]} className="entity-media-preview-small"/>}
