@@ -18,12 +18,10 @@ export async function optimizeMediaUpload(file) {
   // Avoid changing already-small photos or unnecessarily degrading quality.
   if (file.size <= TARGET_BYTES) return file
 
-  const originalUrl = URL.createObjectURL(file)
   let bitmap
   try {
     bitmap = await createImageBitmap(file)
   } catch {
-    URL.revokeObjectURL(originalUrl)
     throw new Error('Image could not be decoded')
   }
   try {
@@ -47,6 +45,5 @@ export async function optimizeMediaUpload(file) {
     throw new Error('Image remains too large after optimization')
   } finally {
     bitmap.close()
-    URL.revokeObjectURL(originalUrl)
   }
 }
