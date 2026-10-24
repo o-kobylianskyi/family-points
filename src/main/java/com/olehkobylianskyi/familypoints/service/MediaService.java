@@ -242,7 +242,11 @@ public class MediaService {
             case "WORK_NODE" -> "task-group-default";
             default -> "task-default";
         };
-        return new Ref("DEFAULT",null,key,0,null);
+        Integer bindingVersion=db.query("""
+                SELECT version FROM media_bindings
+                WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=?
+                """,rs -> rs.next() ? rs.getInt(1) : null,ws,type,target,slot);
+        return new Ref("DEFAULT",null,key,bindingVersion==null?0:bindingVersion,null);
     }
     private Ref getBinding(long ws,String type,long target,String slot,String source) {
         return db.query("SELECT asset_id::text,catalog_key,version FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=? AND (asset_id IS NOT NULL OR catalog_key IS NOT NULL)",
