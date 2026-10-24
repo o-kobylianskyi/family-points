@@ -28,7 +28,7 @@ class MediaCatalogServiceTest {
             assertTrue(svg.contains("viewBox="), item.key());
             assertFalse(svg.contains("<script"), item.key());
             assertFalse(svg.contains("<foreignObject"), item.key());
-            assertFalse(svg.contains("http://"), item.key());
+            assertFalse(svg.contains("href="), item.key());
         }
         assertTrue(keys.size() >= 15);
     }
