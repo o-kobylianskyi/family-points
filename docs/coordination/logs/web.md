@@ -153,3 +153,10 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 ### Web Backend V36 reward editor follow-up, 2026-10-24
 - Added `RewardAvailabilityEditor.jsx` for MANAGE_REWARDS context on existing Rewards management edit screen; AJAX loads actual reward availability, updates ALWAYS/ONE_TIME/RECURRING_WEEKLY independently from ordinary reward PUT. Preserves remaining weekly windows when editing first weekly slot. Requires explicit ISO 8601 UTC offset for ONE_TIME to avoid silently guessing DST interpretation. Commit sequence 93d138e, 1df9154, 21e6176, ce7c92d. No client-side guarantee of purchase eligibility; Backend 409 is authoritative.
 - QA follow-up: verify weekly existing multiple windows survive editing; one-time input offset, 409 violations, and role authorization; test unchanged reward create/edit and other currencies. Browser acceptance and deployed SHA are NOT verified. New integration package run currently pending; no PASS recorded until completed.
+
+
+## 2026-10-24 — Backend Web integration QA follow-up, critical validation correction
+- Latest exact integration CI run 40118508340 on dbb41488 PASSED all four workflows; it does not constitute browser acceptance.
+- Post-integration source regression audit identified a confirmed defect in RewardAvailabilityEditor: the ISO 8601 regular expression was doubly escaped and rejected valid times, while initialization removed an existing offset, making round-trip save unsafe. Fixed date validation, retained original UTC offsets and added finite instant comparisons in commit c3cff160.
+- FamilyCoverSettings media fetch now discards stale async result URL safely on workspace effect cleanup and clears previous error state when workspace changes; commit 1a71e45. Blob URL revocation remains mandatory.
+- All WEB-SF-01 and Backend V36/V37 authenticated BETA browser checks remain NOT_VERIFIED, exact deploy SHA unknown. QA test ONE_TIME existing +01/+02 read/edit/save round trip, conflicting window 409, family switching during delayed media response, and object URL revocation. No production deployment authorization from this entry.
