@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import NumberInput from './NumberInput'
 
@@ -13,6 +13,7 @@ function PointOperationModal({
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const submitLock = useRef(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -42,7 +43,7 @@ function PointOperationModal({
   const handleSubmit = async (event) => {
     event.preventDefault()
 
-    if (submitting) return
+    if (submitLock.current || submitting) return
 
     const numericAmount = Number(amount)
 
@@ -54,6 +55,7 @@ function PointOperationModal({
       return
     }
 
+    submitLock.current = true
     try {
       setSubmitting(true)
       setError('')
@@ -71,6 +73,7 @@ function PointOperationModal({
           t('pointOperation.operationFailed')
       )
     } finally {
+      submitLock.current = false
       setSubmitting(false)
     }
   }
