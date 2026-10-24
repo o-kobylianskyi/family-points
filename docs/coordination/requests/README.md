@@ -31,3 +31,10 @@ Read each request's own latest status and the cross-track register: this section
 - [Android XTR-20261024-P-03](XTR-20261024-P-03.md) — native browse/preview/apply after current calendar/media work.
 - [Release XTR-20261024-P-04](XTR-20261024-P-04.md) — Flyway, catalog versioning, isolation, import retries and launch gates.
 - [Architecture ADR](../../architecture/ADR-TEMPLATES-001.md) · IMP-0008; all receiving-track acceptance pending.
+
+## 2026-10-24 — Family reset/resetup packet (P)
+- [Backend XTR-20261024-P-05](XTR-20261024-P-05.md) — validated FK dependency plan, password re-verification and idempotent selected family reset, owner survival and offline generation.
+- [Web XTR-20261024-P-06](XTR-20261024-P-06.md) — family admin Settings danger-zone, selectable data checklist, preview/password/typed confirmation and restart wizard.
+- [Android XTR-20261024-P-07](XTR-20261024-P-07.md) — invalidate local offline queue/cache on family reset, native admin UI later.
+- [Release XTR-20261024-P-08](XTR-20261024-P-08.md) — disposable database, backup/recovery, multi-family/device validation and explicit no-go/go.
+- Full [ADR-FAMILY-RESET-001](../../architecture/ADR-FAMILY-RESET-001.md), cross-track IMP-0009; this is specification-only, not user data deletion.
