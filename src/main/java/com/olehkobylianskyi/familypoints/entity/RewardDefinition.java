@@ -12,6 +12,7 @@ import java.util.Set;
 @Table(name = "reward_definitions")
 public class RewardDefinition {
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "availability_mode", nullable = false, length = 24)
     private RewardAvailabilityMode availabilityMode = RewardAvailabilityMode.ALWAYS;
 
