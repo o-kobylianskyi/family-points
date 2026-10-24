@@ -56,6 +56,14 @@ export default function FamilyCoverSettings() {
     } finally {requestLock.current=false;if(currentWorkspace.current===selectedWorkspace)setBusy(false)}
   }
   const cover=manifest?.cover
+  const labelForKey = key => {
+    const names = {
+      'family-default': {uk:'Сімейна ілюстрація',de:'Familienillustration',en:'Family illustration',ru:'Семейная иллюстрация'},
+      'family-cover-default': {uk:'Стандартна сімейна',de:'Standard-Familie',en:'Default family',ru:'Стандартная семейная'},
+    }
+    const lang = i18n.language.split('-')[0]
+    return names[key]?.[lang] || names[key]?.en || key.replace(/[-_]/g, ' ')
+  }
   const choose = key => mutate(()=>putMediaBinding(getAccessToken(),workspaceId,'WORKSPACE',workspaceId,'COVER',{catalogKey:key,assetId:null},cover.version))
   const reset = () => mutate(()=>deleteMediaBinding(getAccessToken(),workspaceId,'WORKSPACE',workspaceId,'COVER',cover.version))
   const upload = file => {
@@ -71,20 +79,33 @@ export default function FamilyCoverSettings() {
       await putMediaBinding(getAccessToken(),workspaceId,'WORKSPACE',workspaceId,'COVER',{assetId:id,catalogKey:null},cover.version)
     })
   }
-  return <section className="settings-section">
+  return <section className="settings-section family-cover-settings">
     <h2>{t.title}</h2>
     <p>{t.note}</p>
     {error&&<p role="alert" className="error-message">{error}</p>}
-    <img src={coverUrl||'/assets/soft-family/reference/hero-family.webp'} alt={t.title} style={{width:'min(100%,450px)',height:'auto',borderRadius:12,display:'block',marginBottom:12}} />
-    <p>{cover?.source==='DEFAULT'?t.default:cover?.catalogKey||t.title}</p>
-    {canManage&&cover&&<>
-      <div style={{display:'flex',flexWrap:'wrap',gap:10,marginBottom:12}}>
-        {(manifest.coverChoices||[]).filter(c=>c.selectable).map(item=><button type="button" className="secondary-button" key={item.key}
-          disabled={busy} onClick={()=>choose(item.key)}>{t.save}: {item.labelKey||item.key}</button>)}
-        <button type="button" className="secondary-button" disabled={busy||cover.source==='DEFAULT'} onClick={reset}>{t.remove}</button>
-      </div>
-      <label>{t.upload}<input type="file" accept="image/jpeg,image/png" disabled={busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';upload(file)}} /></label>
-      {busy&&<small>{t.working}</small>}
-    </>}
+    <div className="family-cover-layout">
+      <img className="family-cover-preview" src={coverUrl||'/assets/soft-family/reference/hero-family.webp'} alt={t.title}/>
+      {canManage&&cover&&<div className="family-cover-choices">
+        <strong>{t.save}</strong>
+        <div className="family-cover-choice-list">
+          {(manifest.coverChoices||[]).filter(item=>item.selectable&&item.previewPath).map(item=>
+            <button type="button" className={'family-cover-choice'+(cover.catalogKey===item.key&&cover.source!=='DEFAULT'?' selected':'')}
+              key={item.key} disabled={busy} onClick={()=>choose(item.key)}>
+              <span className="family-cover-choice-symbol" aria-hidden="true">▧</span>
+              <span>{labelForKey(item.key)}</span>
+            </button>)}
+        </div>
+      </div>}
+    </div>
+    <p>{cover?.source==='DEFAULT'?t.default:labelForKey(cover?.catalogKey||'')}</p>
+    {canManage&&cover&&<div className="family-cover-actions">
+      <label className={'primary-button family-cover-upload'+(busy?' disabled':'')}>
+        {t.upload}
+        <input type="file" accept="image/jpeg,image/png" disabled={busy}
+          onChange={e=>{const file=e.target.files?.[0];e.target.value='';upload(file)}}/>
+      </label>
+      <button type="button" className="secondary-button" disabled={busy||cover.source==='DEFAULT'} onClick={reset}>{t.remove}</button>
+      {busy&&<small role="status">{t.working}</small>}
+    </div>}
   </section>
 }
