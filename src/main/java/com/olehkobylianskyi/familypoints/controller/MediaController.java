@@ -64,11 +64,12 @@ public class MediaController {
         media.assertCatalogWorkspace(workspaceId);
         return media.catalog();
     }
-    @GetMapping(value="/catalog/{key}/preview", produces="image/svg+xml")
+    @GetMapping("/catalog/{key}/preview")
     public ResponseEntity<byte[]> catalogPreview(@PathVariable long workspaceId, @PathVariable String key) {
         byte[] image=media.catalogPreview(workspaceId,key);
+        String contentType = media.isPngCatalogKey(key) ? "image/png" : "image/svg+xml";
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("image/svg+xml"))
+                .contentType(MediaType.parseMediaType(contentType))
                 .header("X-Content-Type-Options","nosniff")
                 .header(HttpHeaders.CACHE_CONTROL,"private, max-age=86400")
                 .body(image);

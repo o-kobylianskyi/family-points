@@ -28,6 +28,40 @@ public class MediaService {
     private static final Set<String> TYPES = Set.of("WORKSPACE","MEMBER","MEMBER_GROUP","WORK_NODE","TASK");
     private static final Set<String> SLOTS = Set.of("COVER","ICON","AVATAR");
     private static final Set<String> CATALOG = Set.of("member-default","avatar-sunflower","avatar-sky","avatar-berry","avatar-mint","avatar-peach","avatar-violet","avatar-ocean","avatar-forest","family-default","family-cover-default","people-group-default","task-group-default","task-default","reward-star");
+    // MEDIA_V38_START: allow new portrait assets and preserve bound legacy keys.
+    private static final Set<String> V38_AVATARS = Set.of(
+            "human_male_child_001",
+            "human_female_child_001",
+            "human_male_teen_001",
+            "human_female_teen_001",
+            "human_male_adult_001",
+            "human_female_adult_001",
+            "human_female_senior_001",
+            "animal_cat_001",
+            "robot_001",
+            "vehicle_car_001",
+            "human_male_child_002",
+            "human_male_child_003",
+            "human_male_teen_002",
+            "human_female_child_002",
+            "human_female_child_003",
+            "human_female_teen_002",
+            "human_male_adult_002",
+            "human_female_adult_002",
+            "animal_dog_001",
+            "robot_002",
+            "human_male_child_004",
+            "human_male_child_005",
+            "human_female_child_004",
+            "human_female_child_005",
+            "human_female_teen_003",
+            "human_female_senior_002",
+            "human_male_adult_003",
+            "animal_cat_002",
+            "robot_003",
+            "vehicle_car_002");
+    // MEDIA_V38_END
+
     private final JdbcTemplate db;
     private final CurrentUserService current;
 
@@ -159,7 +193,7 @@ public class MediaService {
         requireManager(ws,type,target);
         checkTarget(ws,type,target,slot);
         if ((assetId==null)==(catalogKey==null)) throw new IllegalArgumentException("Provide exactly one assetId or catalogKey");
-        if(catalogKey!=null && !CATALOG.contains(catalogKey)) throw new IllegalArgumentException("Unknown catalog key");
+        if(catalogKey!=null && !(CATALOG.contains(catalogKey) || V38_AVATARS.contains(catalogKey))) throw new IllegalArgumentException("Unknown catalog key");
         if (catalogKey!=null && type.equals("WORKSPACE") && slot.equals("COVER")
                 && !Set.of("family-cover-default","family-default").contains(catalogKey))
             throw new IllegalArgumentException("Catalog item is not a cover");
@@ -364,7 +398,8 @@ public class MediaService {
         return List.of("UNIVERSAL", "ABSTRACT");
     }
     public List<CatalogItem> catalog() {
-        return List.of(
+        return java.util.stream.Stream.concat(
+            List.of(
             new CatalogItem("member-default", "AVATAR", "media.catalog.memberDefault", 1, true, "/workspaces/{workspaceId}/media/catalog/member-default/preview"),
             new CatalogItem("avatar-sunflower", "AVATAR", "media.catalog.avatarSunflower", 1, true, "/workspaces/{workspaceId}/media/catalog/avatar-sunflower/preview"),
             new CatalogItem("avatar-sky", "AVATAR", "media.catalog.avatarSky", 1, true, "/workspaces/{workspaceId}/media/catalog/avatar-sky/preview"),
@@ -380,12 +415,46 @@ public class MediaService {
             new CatalogItem("task-group-default", "TASK_CATEGORY", "media.catalog.taskGroupDefault", 1, true, "/workspaces/{workspaceId}/media/catalog/task-group-default/preview"),
             new CatalogItem("task-default", "TASK", "media.catalog.taskDefault", 1, true, "/workspaces/{workspaceId}/media/catalog/task-default/preview"),
             new CatalogItem("reward-star", "REWARD", "media.catalog.rewardStar", 1, true, "/workspaces/{workspaceId}/media/catalog/reward-star/preview")
-        );
+            ).stream().filter(x -> !"AVATAR".equals(x.category())),
+            List.of(
+            new CatalogItem("human_male_child_001", "AVATAR", "media.catalog.human_male_child_001", 1, true, "/workspaces/{workspaceId}/media/catalog/human_male_child_001/preview", List.of("HUMAN","MALE","CHILD"), 1000),
+            new CatalogItem("human_female_child_001", "AVATAR", "media.catalog.human_female_child_001", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_child_001/preview", List.of("HUMAN","FEMALE","CHILD"), 1010),
+            new CatalogItem("human_male_teen_001", "AVATAR", "media.catalog.human_male_teen_001", 1, true, "/workspaces/{workspaceId}/media/catalog/human_male_teen_001/preview", List.of("HUMAN","MALE","TEEN"), 1020),
+            new CatalogItem("human_female_teen_001", "AVATAR", "media.catalog.human_female_teen_001", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_teen_001/preview", List.of("HUMAN","FEMALE","TEEN"), 1030),
+            new CatalogItem("human_male_adult_001", "AVATAR", "media.catalog.human_male_adult_001", 1, true, "/workspaces/{workspaceId}/media/catalog/human_male_adult_001/preview", List.of("HUMAN","MALE","ADULT"), 1040),
+            new CatalogItem("human_female_adult_001", "AVATAR", "media.catalog.human_female_adult_001", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_adult_001/preview", List.of("HUMAN","FEMALE","ADULT"), 1050),
+            new CatalogItem("human_female_senior_001", "AVATAR", "media.catalog.human_female_senior_001", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_senior_001/preview", List.of("HUMAN","FEMALE","SENIOR"), 1060),
+            new CatalogItem("animal_cat_001", "AVATAR", "media.catalog.animal_cat_001", 1, true, "/workspaces/{workspaceId}/media/catalog/animal_cat_001/preview", List.of("ANIMAL","UNSPECIFIED","ANY"), 1070),
+            new CatalogItem("robot_001", "AVATAR", "media.catalog.robot_001", 1, true, "/workspaces/{workspaceId}/media/catalog/robot_001/preview", List.of("ROBOT","UNSPECIFIED","ANY"), 1080),
+            new CatalogItem("vehicle_car_001", "AVATAR", "media.catalog.vehicle_car_001", 1, true, "/workspaces/{workspaceId}/media/catalog/vehicle_car_001/preview", List.of("VEHICLE","UNSPECIFIED","ANY"), 1090),
+            new CatalogItem("human_male_child_002", "AVATAR", "media.catalog.human_male_child_002", 1, true, "/workspaces/{workspaceId}/media/catalog/human_male_child_002/preview", List.of("HUMAN","MALE","CHILD"), 1100),
+            new CatalogItem("human_male_child_003", "AVATAR", "media.catalog.human_male_child_003", 1, true, "/workspaces/{workspaceId}/media/catalog/human_male_child_003/preview", List.of("HUMAN","MALE","CHILD"), 1110),
+            new CatalogItem("human_male_teen_002", "AVATAR", "media.catalog.human_male_teen_002", 1, true, "/workspaces/{workspaceId}/media/catalog/human_male_teen_002/preview", List.of("HUMAN","MALE","TEEN"), 1120),
+            new CatalogItem("human_female_child_002", "AVATAR", "media.catalog.human_female_child_002", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_child_002/preview", List.of("HUMAN","FEMALE","CHILD"), 1130),
+            new CatalogItem("human_female_child_003", "AVATAR", "media.catalog.human_female_child_003", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_child_003/preview", List.of("HUMAN","FEMALE","CHILD"), 1140),
+            new CatalogItem("human_female_teen_002", "AVATAR", "media.catalog.human_female_teen_002", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_teen_002/preview", List.of("HUMAN","FEMALE","TEEN"), 1150),
+            new CatalogItem("human_male_adult_002", "AVATAR", "media.catalog.human_male_adult_002", 1, true, "/workspaces/{workspaceId}/media/catalog/human_male_adult_002/preview", List.of("HUMAN","MALE","ADULT"), 1160),
+            new CatalogItem("human_female_adult_002", "AVATAR", "media.catalog.human_female_adult_002", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_adult_002/preview", List.of("HUMAN","FEMALE","ADULT"), 1170),
+            new CatalogItem("animal_dog_001", "AVATAR", "media.catalog.animal_dog_001", 1, true, "/workspaces/{workspaceId}/media/catalog/animal_dog_001/preview", List.of("ANIMAL","UNSPECIFIED","ANY"), 1180),
+            new CatalogItem("robot_002", "AVATAR", "media.catalog.robot_002", 1, true, "/workspaces/{workspaceId}/media/catalog/robot_002/preview", List.of("ROBOT","UNSPECIFIED","ANY"), 1190),
+            new CatalogItem("human_male_child_004", "AVATAR", "media.catalog.human_male_child_004", 1, true, "/workspaces/{workspaceId}/media/catalog/human_male_child_004/preview", List.of("HUMAN","MALE","CHILD"), 1200),
+            new CatalogItem("human_male_child_005", "AVATAR", "media.catalog.human_male_child_005", 1, true, "/workspaces/{workspaceId}/media/catalog/human_male_child_005/preview", List.of("HUMAN","MALE","CHILD"), 1210),
+            new CatalogItem("human_female_child_004", "AVATAR", "media.catalog.human_female_child_004", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_child_004/preview", List.of("HUMAN","FEMALE","CHILD"), 1220),
+            new CatalogItem("human_female_child_005", "AVATAR", "media.catalog.human_female_child_005", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_child_005/preview", List.of("HUMAN","FEMALE","CHILD"), 1230),
+            new CatalogItem("human_female_teen_003", "AVATAR", "media.catalog.human_female_teen_003", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_teen_003/preview", List.of("HUMAN","FEMALE","TEEN"), 1240),
+            new CatalogItem("human_female_senior_002", "AVATAR", "media.catalog.human_female_senior_002", 1, true, "/workspaces/{workspaceId}/media/catalog/human_female_senior_002/preview", List.of("HUMAN","FEMALE","SENIOR"), 1250),
+            new CatalogItem("human_male_adult_003", "AVATAR", "media.catalog.human_male_adult_003", 1, true, "/workspaces/{workspaceId}/media/catalog/human_male_adult_003/preview", List.of("HUMAN","MALE","ADULT"), 1260),
+            new CatalogItem("animal_cat_002", "AVATAR", "media.catalog.animal_cat_002", 1, true, "/workspaces/{workspaceId}/media/catalog/animal_cat_002/preview", List.of("ANIMAL","UNSPECIFIED","ANY"), 1270),
+            new CatalogItem("robot_003", "AVATAR", "media.catalog.robot_003", 1, true, "/workspaces/{workspaceId}/media/catalog/robot_003/preview", List.of("ROBOT","UNSPECIFIED","ANY"), 1280),
+            new CatalogItem("vehicle_car_002", "AVATAR", "media.catalog.vehicle_car_002", 1, true, "/workspaces/{workspaceId}/media/catalog/vehicle_car_002/preview", List.of("VEHICLE","UNSPECIFIED","ANY"), 1290)
+            ).stream()).toList();
     }
+    public boolean isPngCatalogKey(String key) { return V38_AVATARS.contains(key); }
     public byte[] catalogPreview(long workspaceId, String key) {
         requireWorkspace(workspaceId);
-        if (!CATALOG.contains(key)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        try (InputStream in = getClass().getResourceAsStream("/media/catalog/" + key + ".svg")) {
+        if (!(CATALOG.contains(key) || V38_AVATARS.contains(key))) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        String ext = V38_AVATARS.contains(key) ? ".png" : ".svg";
+        try (InputStream in = getClass().getResourceAsStream("/media/catalog/" + key + ext)) {
             if (in == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
             return in.readAllBytes();
         } catch (IOException e) { throw new IllegalStateException("Catalog asset unavailable", e); }
