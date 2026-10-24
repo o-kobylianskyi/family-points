@@ -217,3 +217,9 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 ## 2026-10-24 — Screenshot defect: media modal jumps when mouse moves
 - User supplied two screenshots showing modal attached beside member card and then centered depending on mouse hover. Root cause: .member-card[role=button]:hover uses transform and creates containing block for nested position:fixed overlay.
 - Fix: render EntityMedia modal via React createPortal(..., document.body), outside transformed member card; viewport-fixed, centered, independent of hover transform. Commits 3b70db2 and following EntityMedia.css fix. No backend or approved dashboard assets touched. Recheck modal center across mouse movement, all member cards, Escape/focus/scroll, themes and mobile in later manual QA.
+
+
+## 2026-10-24 — User screenshot: internal Media catalog labels and unrelated media choices
+- Screenshot: open member avatar select shows raw i18n IDs `media.catalog.avatarSunflower` etc and unrelated family cover, group, task assets. This is confirmed consumer UX/validation defect, independent of Media Backend catalog.
+- EntityMedia filter now restricts catalog choices to the target kind (MEMBER→AVATAR; MEMBER_GROUP→GROUP; TASK→TASK/TASK_CATEGORY), while excluding unselectable entries and entries with no previewPath. English/Ukrainian/German/Russian friendly labels for current catalog IDs replace raw `media.catalog.*` identifiers. Source commit f510593.
+- Backend still validates catalog eligibility; no claim user-visible browser PASS. QA later: check avatar select shows only 9 avatar choices, all labels localized, selection persists, other Media entity types still have valid catalog entries, 403/409 enforced. New CI exact commit required.
