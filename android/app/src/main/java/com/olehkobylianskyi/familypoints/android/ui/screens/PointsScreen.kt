@@ -71,6 +71,7 @@ private enum class PointOperation(
 @Composable
 fun PointsScreen(
     refreshNonce: Int = 0,
+    onRefreshComplete: (Int) -> Unit = {},
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     repository: PointsRepository,
@@ -298,8 +299,10 @@ fun PointsScreen(
     }
 
     LaunchedEffect(selectedMemberId, serverStatus, refreshNonce) {
-        selectedMemberId?.let {
-            loadPoints(it)
+        try {
+            selectedMemberId?.let { loadPoints(it) }
+        } finally {
+            if (refreshNonce > 0) onRefreshComplete(refreshNonce)
         }
     }
 
