@@ -585,7 +585,7 @@ function RewardsPage() {
                   )}
                 </div>
 
-                <div className="reward-actions">
+                <div className="reward-actions reward-card-actions">
                   {canManage && (
                     <button type="button" className="secondary-button" disabled={processing}
                       onClick={() => beginEditReward(reward)}>
