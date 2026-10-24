@@ -99,6 +99,20 @@ fun CalendarScreen(
     val visualMode = if (showLoading || loadError) displayedMode else mode
     fun navigateTo(date: LocalDate, targetMode: CalendarMode = mode) {
         if (date == selectedDate && targetMode == mode) return
+        // Selecting another day in an already fetched week/month needs no request.
+        // Do not leave the overlay pending when LaunchedEffect keys do not change.
+        val sameLoadedRange = loaded && !loading && !loadError && targetMode == displayedMode &&
+            when (targetMode) {
+                CalendarMode.DAY -> date == displayedDate
+                CalendarMode.WEEK -> date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)) ==
+                    displayedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                CalendarMode.MONTH -> date.year == displayedDate.year && date.month == displayedDate.month
+            }
+        if (sameLoadedRange) {
+            selectedDate = date
+            displayedDate = date
+            return
+        }
         if (currentUser != null && serverStatus == ServerStatus.ONLINE) loading = true
         selectedDate = date
         mode = targetMode
