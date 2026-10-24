@@ -246,12 +246,16 @@ public class MediaService {
                 SELECT version FROM media_bindings
                 WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=?
                 """,rs -> rs.next() ? rs.getInt(1) : null,ws,type,target,slot);
+        // The approved Soft Family dashboard hero is the built-in workspace
+        // cover fallback. Clients must retain their existing static artwork.
+        // Catalog preview art is a selectable override, not a replacement for it.
         return new Ref("DEFAULT",null,key,bindingVersion==null?0:bindingVersion,null);
     }
     private Ref getBinding(long ws,String type,long target,String slot,String source) {
         return db.query("SELECT asset_id::text,catalog_key,version FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=? AND (asset_id IS NOT NULL OR catalog_key IS NOT NULL)",
                 rs->rs.next()?new Ref(source,rs.getString(1),rs.getString(2),rs.getInt(3),
-                        rs.getString(1)==null?null:"/workspaces/"+ws+"/media/"+rs.getString(1)+"/variants/THUMB"):null,
+                        rs.getString(1)==null?null:"/workspaces/"+ws+"/media/"+rs.getString(1)+"/variants/"+
+                                (type.equals("WORKSPACE") && slot.equals("COVER") ? "CARD" : "THUMB")):null,
                 ws,type,target,slot);
     }
 
