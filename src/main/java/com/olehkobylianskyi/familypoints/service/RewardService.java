@@ -365,8 +365,13 @@ public class RewardService {
 
         refreshRequestReadiness(request);
 
+        if (request.getStatus() == RewardRequestStatus.PURCHASED) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.CONFLICT, "REWARD_REQUEST_ALREADY_PURCHASED");
+        }
         if (request.getStatus() != RewardRequestStatus.READY_TO_PURCHASE) {
-            throw new IllegalArgumentException("Reward request is not ready to purchase");
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.CONFLICT, "REWARD_REQUEST_NOT_READY");
         }
 
         if (request.getMinimumReputation() != null
