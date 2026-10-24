@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '../context/AuthContext'
-import FamilyAvatar from '../components/FamilyAvatar'
+import MemberAvatar from '../components/MemberAvatar'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 import {
   claimTask,
@@ -619,7 +619,7 @@ function TasksPage() {
               setSelectedMemberId(member.id)
             }
           >
-            <FamilyAvatar name={member.name} className="selector-avatar" />
+            <MemberAvatar memberId={member.id} name={member.name} className="selector-avatar" />
 
             <span>
               <strong>{member.name}</strong>
