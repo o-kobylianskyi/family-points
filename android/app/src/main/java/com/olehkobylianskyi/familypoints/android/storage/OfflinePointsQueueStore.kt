@@ -12,10 +12,11 @@ import java.util.UUID
  * removes the pending operation from the queue.
  */
 class OfflinePointsQueueStore(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "fp_pending_points.db", null, 2) {
+    SQLiteOpenHelper(context.applicationContext, "fp_pending_points.db", null, 3) {
 
     data class Pending(
         val operationId: String,
+        val accountId: Long?,
         val workspaceId: Long,
         val viewerId: Long,
         val memberId: Long,
@@ -32,6 +33,7 @@ class OfflinePointsQueueStore(context: Context) :
         db.execSQL("""
             CREATE TABLE pending_points (
                 operation_id TEXT NOT NULL PRIMARY KEY,
+                account_id INTEGER,
                 workspace_id INTEGER NOT NULL,
                 viewer_id INTEGER NOT NULL,
                 member_id INTEGER NOT NULL,
@@ -54,12 +56,22 @@ class OfflinePointsQueueStore(context: Context) :
             db.execSQL("ALTER TABLE pending_points ADD COLUMN point_type_code TEXT")
             db.execSQL("ALTER TABLE pending_points ADD COLUMN point_type_name TEXT")
         }
+        if (oldVersion < 3) {
+            // Existing owner-ambiguous rows remain NULL, quarantined and durable.
+            db.execSQL("ALTER TABLE pending_points ADD COLUMN account_id INTEGER")
+        }
     }
+
+    @Synchronized
+    fun legacyUnassignedCount(): Int = readableDatabase.rawQuery(
+        "SELECT count(*) FROM pending_points WHERE account_id IS NULL", null
+    ).use { cursor -> if (cursor.moveToFirst()) cursor.getInt(0) else 0 }
 
     @Synchronized
     fun enqueue(
         workspaceId: Long,
         viewerId: Long,
+        accountId: Long,
         memberId: Long,
         pointTypeId: Long,
         pointTypeCode: String,
@@ -68,17 +80,19 @@ class OfflinePointsQueueStore(context: Context) :
         amount: Int,
         description: String?
     ): Pending {
+        require(accountId > 0) { "Verified accountId is mandatory for new offline operations" }
         require(type == "earn" || type == "penalty") { "Only offline earn/penalty allowed" }
         require(pointTypeId > 0 && pointTypeCode.isNotBlank())
         require(amount in 1..100_000)
         require(description == null || description.length <= 255)
         val item = Pending(
-            UUID.randomUUID().toString(), workspaceId, viewerId, memberId,
+            UUID.randomUUID().toString(), accountId, workspaceId, viewerId, memberId,
             pointTypeId, pointTypeCode, pointTypeName,
             type, amount, description, System.currentTimeMillis()
         )
         val values = ContentValues().apply {
             put("operation_id", item.operationId)
+            put("account_id", item.accountId)
             put("workspace_id", item.workspaceId)
             put("viewer_id", item.viewerId)
             put("member_id", item.memberId)
@@ -95,16 +109,17 @@ class OfflinePointsQueueStore(context: Context) :
     }
 
     @Synchronized
-    fun pending(workspaceId: Long, viewerId: Long): List<Pending> =
+    fun pending(workspaceId: Long, viewerId: Long, accountId: Long): List<Pending> =
         readableDatabase.query(
-            "pending_points", null, "workspace_id=? AND viewer_id=?",
-            arrayOf(workspaceId.toString(), viewerId.toString()),
+            "pending_points", null, "workspace_id=? AND viewer_id=? AND account_id=?",
+            arrayOf(workspaceId.toString(), viewerId.toString(), accountId.toString()),
             null, null, "created_at ASC"
         ).use { c ->
             val items = mutableListOf<Pending>()
             while (c.moveToNext()) {
                 items.add(Pending(
                     c.getString(c.getColumnIndexOrThrow("operation_id")),
+                    c.getLong(c.getColumnIndexOrThrow("account_id")),
                     c.getLong(c.getColumnIndexOrThrow("workspace_id")),
                     c.getLong(c.getColumnIndexOrThrow("viewer_id")),
                     c.getLong(c.getColumnIndexOrThrow("member_id")),
@@ -121,11 +136,11 @@ class OfflinePointsQueueStore(context: Context) :
         }
 
     @Synchronized
-    fun confirm(operationId: String, workspaceId: Long, viewerId: Long) {
+    fun confirm(operationId: String, workspaceId: Long, viewerId: Long, accountId: Long) {
         writableDatabase.delete(
             "pending_points",
-            "operation_id=? AND workspace_id=? AND viewer_id=?",
-            arrayOf(operationId, workspaceId.toString(), viewerId.toString())
+            "operation_id=? AND workspace_id=? AND viewer_id=? AND account_id=?",
+            arrayOf(operationId, workspaceId.toString(), viewerId.toString(), accountId.toString())
         )
     }
 }
