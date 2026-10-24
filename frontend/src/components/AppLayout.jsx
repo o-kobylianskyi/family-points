@@ -7,6 +7,7 @@ import LanguageSwitcher from './LanguageSwitcher'
 import { useAuth } from '../context/AuthContext'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 import SoftFamilyIcon from './SoftFamilyIcon'
+import MemberAvatar from './MemberAvatar'
 
 function AppLayout() {
   const { t } = useTranslation()
@@ -112,9 +113,7 @@ function AppLayout() {
             <LanguageSwitcher />
             <details className="fp-profile-menu">
               <summary aria-label={currentUser.memberName}>
-                <span className="fp-profile-avatar" aria-hidden="true">
-                  {currentUser.memberName?.trim()?.charAt(0)?.toUpperCase() || <SoftFamilyIcon name="family" size={22} />}
-                </span>
+                <MemberAvatar memberId={currentUser.memberId} name={currentUser.memberName} className="fp-profile-avatar" />
                 <span className="fp-profile-summary">
                   <strong>{currentUser.memberName}</strong>
                   <small>{currentUser.workspaceRoleCode === 'PARENT'
