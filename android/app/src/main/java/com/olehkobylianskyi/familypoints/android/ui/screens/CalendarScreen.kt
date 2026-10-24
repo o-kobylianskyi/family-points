@@ -49,10 +49,19 @@ private fun localeFor(l: AppLanguage): Locale = when (l) {
 }
 
 @Composable
-fun CalendarScreen(language: AppLanguage, modifier: Modifier = Modifier) {
+fun CalendarScreen(language: AppLanguage, modifier: Modifier = Modifier, events: List<AgendaEventUi> = emptyList()) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var mode by remember { mutableStateOf(CalendarMode.DAY) }
     var kind by remember { mutableStateOf(CalendarKind.ALL) }
+    val selectedEvents = events.filter { event ->
+        event.day == selectedDate && when (kind) {
+            CalendarKind.ALL -> true
+            CalendarKind.TASK -> event.type == AgendaEventType.TASK
+            CalendarKind.REWARD -> event.type == AgendaEventType.REWARD_WINDOW
+        }
+    }
+    val timed = selectedEvents.filter { it.startsAt != null }
+    val untimed = selectedEvents.filter { it.startsAt == null }
     val locale = localeFor(language)
     val dateFormat = remember(locale) { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale) }
     val firstDay = selectedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
@@ -155,7 +164,8 @@ fun CalendarScreen(language: AppLanguage, modifier: Modifier = Modifier) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(calText(language, "Розклад дня", "Tagesübersicht", "Daily agenda", "Расписание дня"),
                         style = MaterialTheme.typography.titleMedium)
-                    Text(calText(language,
+                    if (timed.isNotEmpty()) AgendaTimeline(language, timed)
+                    else Text(calText(language,
                         "Події ще не завантажуються: очікується серверний календар завдань і часових вікон винагород. Порожній екран не означає, що завдань немає.",
                         "Termine werden noch nicht geladen: Die Server-API für Aufgaben und Belohnungszeiträume steht noch aus. Dies ist keine bestätigte leere Agenda.",
                         "Events are not loaded yet: the server API for tasks and reward windows is pending. This is not a confirmed empty agenda.",
@@ -168,7 +178,8 @@ fun CalendarScreen(language: AppLanguage, modifier: Modifier = Modifier) {
             Text(calText(language, "Завдання без часу", "Aufgaben ohne Uhrzeit",
                 "Tasks without a time", "Задачи без времени"),
                 style = MaterialTheme.typography.titleMedium)
-            Text(calText(language, "Дані поки недоступні", "Daten noch nicht verfügbar",
+            if (untimed.isNotEmpty()) AgendaTimeline(language, untimed)
+            else Text(calText(language, "Дані поки недоступні", "Daten noch nicht verfügbar",
                 "Data not available yet", "Данные пока недоступны"),
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
