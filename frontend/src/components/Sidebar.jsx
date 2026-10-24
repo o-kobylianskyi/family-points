@@ -39,6 +39,7 @@ function Sidebar() {
       <NavLink to="/" end className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="home" size={22} /><span>{t('navigation.dashboard')}</span></NavLink>
       <NavLink to="/members" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="family" size={22} /><span>{t('workspaceUi.members')}</span></NavLink>
       <NavLink to="/tasks" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="check" size={22} /><span>{t('navigation.tasks')}</span></NavLink>
+      <NavLink to="/calendar" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="check" size={22} /><span>{({uk:"Календар",de:"Kalender",en:"Calendar",ru:"Календарь"})[t("navigation.dashboard", {lng:"en"}) === "Dashboard" ? (typeof document === "undefined" ? "en" : document.documentElement.lang?.slice(0,2) || "en") : "uk"] || "Calendar"}</span></NavLink>
       <NavLink to="/points" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="points" size={22} /><span>{t('navigation.points')}</span></NavLink>
       <NavLink to="/rewards" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}><SoftFamilyIcon name="gift" size={22} /><span>{t('navigation.rewards')}</span></NavLink>
       {roots.length > 0 && <div className="sidebar-dynamic-groups">{roots.map(g => renderGroup(g))}</div>}
