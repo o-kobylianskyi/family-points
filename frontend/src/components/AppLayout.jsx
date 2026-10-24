@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
@@ -23,6 +23,24 @@ function AppLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const profileMenuRef = useRef(null)
+  const [profileOpen, setProfileOpen] = useState(false)
+
+  useEffect(() => {
+    if (!profileOpen) return
+    const closeOutside = event => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) setProfileOpen(false)
+    }
+    const closeEscape = event => { if (event.key === 'Escape') setProfileOpen(false) }
+    document.addEventListener('pointerdown', closeOutside)
+    document.addEventListener('keydown', closeEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside)
+      document.removeEventListener('keydown', closeEscape)
+    }
+  }, [profileOpen])
+
+  useEffect(() => { setProfileOpen(false) }, [location.pathname, currentUser?.workspaceId])
 
   useEffect(() => {
     let cancelled = false
@@ -111,8 +129,8 @@ function AppLayout() {
           </div>
           <div className="header-user">
             <LanguageSwitcher />
-            <details className="fp-profile-menu">
-              <summary aria-label={currentUser.memberName}>
+            <details className="fp-profile-menu" ref={profileMenuRef} open={profileOpen} onToggle={event => setProfileOpen(event.currentTarget.open)}>
+              <summary aria-label={currentUser.memberName} onClick={event => { event.preventDefault(); setProfileOpen(value => !value) }}>
                 <MemberAvatar memberId={currentUser.memberId} name={currentUser.memberName} className="fp-profile-avatar" />
                 <span className="fp-profile-summary">
                   <strong>{currentUser.memberName}</strong>
@@ -123,7 +141,7 @@ function AppLayout() {
                 <span className="fp-profile-chevron" aria-hidden="true">⌄</span>
               </summary>
               <div className="fp-profile-dropdown">
-                <Link to="/settings"><SoftFamilyIcon name="settings" size={20} />{t('navigation.settings')}</Link>
+                <Link to="/settings" onClick={() => setProfileOpen(false)}><SoftFamilyIcon name="settings" size={20} />{t('navigation.settings')}</Link>
                 <button type="button" onClick={handleLogout}>{t('common.logout')}</button>
               </div>
             </details>
