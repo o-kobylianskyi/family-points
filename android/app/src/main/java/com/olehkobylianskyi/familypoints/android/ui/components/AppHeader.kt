@@ -30,6 +30,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
@@ -72,13 +76,22 @@ fun AppHeader(
     val text = dashboardStrings(language)
     val context = LocalContext.current
     val tokenStore = remember(context) { TokenStore(context) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var mediaRefresh by remember { mutableStateOf(0) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) mediaRefresh++
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     val serverStatus by ServerReachability.status.collectAsState()
     var ownAvatar by remember(currentUser.accountId, currentUser.workspaceId, currentUser.memberId) {
         mutableStateOf<MediaRefDto?>(null)
     }
     val bearer = if (serverStatus == ServerStatus.ONLINE)
         tokenStore.getAccessToken()?.let { "Bearer $it" } else null
-    LaunchedEffect(currentUser.accountId, currentUser.workspaceId, currentUser.memberId, bearer) {
+    LaunchedEffect(currentUser.accountId, currentUser.workspaceId, currentUser.memberId, bearer, mediaRefresh) {
         ownAvatar = null // No cross-workspace or cross-account image may remain visible.
         val authorized = bearer ?: return@LaunchedEffect
         try {
