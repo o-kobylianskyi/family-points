@@ -134,8 +134,8 @@ fun MembersScreen(
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
     var tab by remember { mutableStateOf("members") }
-    var editorOpen by remember { mutableStateOf(false) }
-    var editing by remember { mutableStateOf<WorkspaceMemberResponse?>(null) }
+    var editorOpen by remember(currentUser.accountId, currentUser.workspaceId) { mutableStateOf(false) }
+    var editing by remember(currentUser.accountId, currentUser.workspaceId) { mutableStateOf<WorkspaceMemberResponse?>(null) }
     var name by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("CHILD") }
     var roleId by remember { mutableStateOf<Long?>(null) }
@@ -149,25 +149,35 @@ fun MembersScreen(
     var groupName by remember { mutableStateOf("") }
     var editingGroupId by remember { mutableStateOf<Long?>(null) }
     var grants by remember { mutableStateOf<List<GroupPermissionGrantResponse>>(emptyList()) }
-    var avatarDraftKey by remember { mutableStateOf<String?>(null) }
-    var avatarDraftClear by remember { mutableStateOf(false) }
-    var avatarDraftPhoto by remember { mutableStateOf<Uri?>(null) }
-    var avatarPhotoPreview by remember { mutableStateOf<Bitmap?>(null) }
+    var avatarDraftKey by remember(currentUser.accountId, currentUser.workspaceId) { mutableStateOf<String?>(null) }
+    var avatarDraftClear by remember(currentUser.accountId, currentUser.workspaceId) { mutableStateOf(false) }
+    var avatarDraftPhoto by remember(currentUser.accountId, currentUser.workspaceId) { mutableStateOf<Uri?>(null) }
+    var avatarPhotoPreview by remember(currentUser.accountId, currentUser.workspaceId) { mutableStateOf<Bitmap?>(null) }
     LaunchedEffect(avatarDraftPhoto) {
         val uri = avatarDraftPhoto
         avatarPhotoPreview = if (uri == null) null else withContext(Dispatchers.IO) {
             try {
                 context.contentResolver.openInputStream(uri)?.use { input ->
-                    BitmapFactory.decodeStream(input)
+                    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    input.use { BitmapFactory.decodeStream(it, null, bounds) }
+                    val maxSide = maxOf(bounds.outWidth, bounds.outHeight)
+                    if (maxSide <= 0) null else {
+                        var sample = 1
+                        while (maxSide / sample > 512) sample *= 2
+                        context.contentResolver.openInputStream(uri)?.use { previewStream ->
+                            BitmapFactory.decodeStream(previewStream, null,
+                                BitmapFactory.Options().apply { inSampleSize = sample })
+                        }
+                    }
                 }
             } catch (_: Exception) { null }
         }
     }
-    var avatarVersion by remember { mutableStateOf<Int?>(null) }
+    var avatarVersion by remember(currentUser.accountId, currentUser.workspaceId) { mutableStateOf<Int?>(null) }
     var avatarCatalog by remember(currentUser.accountId, currentUser.workspaceId) {
         mutableStateOf<List<MediaCatalogItemDto>>(emptyList())
     }
-    var avatarEditorError by remember { mutableStateOf("") }
+    var avatarEditorError by remember(currentUser.accountId, currentUser.workspaceId) { mutableStateOf("") }
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             avatarDraftPhoto = uri
