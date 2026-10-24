@@ -44,3 +44,7 @@ Do not mark READY FOR QA or RELEASE until the final SHA passes Android Gradle/un
 - Android commit `f278f3a`: main-screen auth/replay effects now key on workspaceId, memberId and username, not memberId alone, so switching workspace with the same member ID re-evaluates authentication and queued operations. Source review only.
 - CI run `40109129616` for commit `c779c31`: Android Gradle debug build failed at `Compile Android and run unit tests`; backend, web and compose jobs passed. Failure logs/annotations not accessible via the current GitHub fetch integration; do not ascribe an unverified root cause.
 - New CI run `40109457645` for `f278f3a` was in progress at handoff writing time. QA must verify final run result and full build logs before running or signing off the acceptance matrix.
+
+## 2026-10-24 — CI Kotlin compilation blocker resolved in source, awaiting CI
+- Read full GitHub Actions Android job logs (run 40109967288, job 120919441840). Kotlin `:app:compileDebugKotlin` failed in PointsScreen.kt because SettingsRepository and PointNameFormDto lacked imports; remaining `currencyForms.map` property resolution errors were consequent.
+- Fixed missing imports in commit `7f6818d`. A new GitHub CI run `40110311069` was in progress after commit, not yet verified green. QA acceptance must use a final passing commit and signed installable build, not this source-only observation.
