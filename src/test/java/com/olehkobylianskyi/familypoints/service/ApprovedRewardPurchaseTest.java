@@ -39,7 +39,7 @@ class ApprovedRewardPurchaseTest {
         var service=new RewardService(workspaces,members,mock(PointTypeRepository.class),
                 mock(RewardCategoryRepository.class),mock(RewardDefinitionRepository.class),
                 requests,requirements,purchases,obligations,mock(TaskDefinitionRepository.class),
-                mock(TaskInstanceRepository.class),mock(ReputationService.class),points);
+                mock(TaskInstanceRepository.class),mock(ReputationService.class),points,mock(RewardAvailabilityService.class));
 
         service.purchaseRequest(8L,3L,77L);
         assertEquals(RewardRequestStatus.PURCHASED,request.getStatus());
@@ -81,7 +81,7 @@ class ApprovedRewardPurchaseTest {
         var service=new RewardService(workspaces,members,mock(PointTypeRepository.class),
                 mock(RewardCategoryRepository.class),mock(RewardDefinitionRepository.class),
                 requests,requirements,purchases,obligations,mock(TaskDefinitionRepository.class),
-                mock(TaskInstanceRepository.class),mock(ReputationService.class),points);
+                mock(TaskInstanceRepository.class),mock(ReputationService.class),points,mock(RewardAvailabilityService.class));
         assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
                 ()->service.purchaseRequest(8L,3L,77L));
         assertEquals(RewardRequestStatus.READY_TO_PURCHASE,request.getStatus());
@@ -108,7 +108,7 @@ class ApprovedRewardPurchaseTest {
                 mock(PointTypeRepository.class),mock(RewardCategoryRepository.class),
                 mock(RewardDefinitionRepository.class),requests,mock(RewardRequirementRepository.class),
                 purchases,mock(RewardObligationRepository.class),mock(TaskDefinitionRepository.class),
-                mock(TaskInstanceRepository.class),mock(ReputationService.class),points);
+                mock(TaskInstanceRepository.class),mock(ReputationService.class),points,mock(RewardAvailabilityService.class));
         assertThrows(IllegalArgumentException.class,()->service.purchaseRequest(8L,4L,77L));
         assertEquals(RewardRequestStatus.READY_TO_PURCHASE,request.getStatus());
         verifyNoInteractions(points,purchases);
@@ -130,7 +130,7 @@ class ApprovedRewardPurchaseTest {
                 mock(PointTypeRepository.class),mock(RewardCategoryRepository.class),
                 mock(RewardDefinitionRepository.class),requests,mock(RewardRequirementRepository.class),
                 purchases,mock(RewardObligationRepository.class),mock(TaskDefinitionRepository.class),
-                mock(TaskInstanceRepository.class),mock(ReputationService.class),points);
+                mock(TaskInstanceRepository.class),mock(ReputationService.class),points,mock(RewardAvailabilityService.class));
         var failure=assertThrows(org.springframework.web.server.ResponseStatusException.class,
                 ()->service.purchaseRequest(8L,3L,77L));
         assertEquals(409,failure.getStatusCode().value());
@@ -155,7 +155,7 @@ class ApprovedRewardPurchaseTest {
                     mock(PointTypeRepository.class),mock(RewardCategoryRepository.class),
                     mock(RewardDefinitionRepository.class),requests,mock(RewardRequirementRepository.class),
                     purchases,mock(RewardObligationRepository.class),mock(TaskDefinitionRepository.class),
-                    mock(TaskInstanceRepository.class),mock(ReputationService.class),points);
+                    mock(TaskInstanceRepository.class),mock(ReputationService.class),points,mock(RewardAvailabilityService.class));
             var error=assertThrows(org.springframework.web.server.ResponseStatusException.class,
                     ()->service.purchaseRequest(8L,3L,77L));
             assertEquals(409,error.getStatusCode().value());
