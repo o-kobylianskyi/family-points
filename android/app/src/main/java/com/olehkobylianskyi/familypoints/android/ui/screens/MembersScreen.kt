@@ -4,12 +4,22 @@ import androidx.compose.foundation.clickable
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.net.Uri
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import com.olehkobylianskyi.familypoints.android.network.MediaRefDto
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.MultipartBody
 import com.olehkobylianskyi.familypoints.android.network.MediaBindRequest
 import com.olehkobylianskyi.familypoints.android.network.MediaCatalogItemDto
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
@@ -142,6 +152,17 @@ fun MembersScreen(
     var avatarDraftKey by remember { mutableStateOf<String?>(null) }
     var avatarDraftClear by remember { mutableStateOf(false) }
     var avatarDraftPhoto by remember { mutableStateOf<Uri?>(null) }
+    var avatarPhotoPreview by remember { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(avatarDraftPhoto) {
+        val uri = avatarDraftPhoto
+        avatarPhotoPreview = if (uri == null) null else withContext(Dispatchers.IO) {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    BitmapFactory.decodeStream(input)
+                }
+            } catch (_: Exception) { null }
+        }
+    }
     var avatarVersion by remember { mutableStateOf<Int?>(null) }
     var avatarCatalog by remember(currentUser.accountId, currentUser.workspaceId) {
         mutableStateOf<List<MediaCatalogItemDto>>(emptyList())
@@ -463,29 +484,40 @@ fun MembersScreen(
                             style = MaterialTheme.typography.titleSmall)
                         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            MemberMediaAvatar(currentUser.workspaceId, bearer,
-                                avatarRefs[editing!!.id], editing!!.name)
+                            if (avatarPhotoPreview != null && avatarDraftPhoto != null) {
+                                Image(bitmap = avatarPhotoPreview!!.asImageBitmap(),
+                                    contentDescription = name,
+                                    modifier = Modifier.size(42.dp).clip(CircleShape),
+                                    contentScale = ContentScale.Crop)
+                            } else {
+                                MemberMediaAvatar(currentUser.workspaceId, bearer,
+                                    if (avatarDraftClear) null
+                                    else avatarDraftKey?.let { MediaRefDto("CATALOG", null, it, 0, null) }
+                                        ?: avatarRefs[editing!!.id],
+                                    editing!!.name)
+                            }
                             TextButton(enabled = !busy, onClick = { photoPicker.launch("image/*") }) {
                                 Text(memberText(language, "Завантажити фото", "Foto hochladen", "Upload photo", "Загрузить фото"))
                             }
                         }
                         if (avatarCatalog.isNotEmpty()) {
-                            Text(memberText(language, "Обрати з каталогу", "Aus Katalog wählen", "Choose from catalog", "Выбрать из каталога"))
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                avatarCatalog.filter { it.category == "AVATAR" }.forEach { option ->
-                                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth().clickable(enabled = !busy) {
+                            androidx.compose.foundation.layout.Box {
+                                OutlinedButton(onClick = { menu = "avatar" }, enabled = !busy,
+                                    modifier = Modifier.fillMaxWidth()) {
+                                    Text((avatarDraftKey ?: memberText(language, "Обрати аватар",
+                                        "Avatar auswählen", "Choose avatar", "Выбрать аватар")) + " ▾")
+                                }
+                                DropdownMenu(expanded = menu == "avatar",
+                                    onDismissRequest = { menu = "" }) {
+                                    avatarCatalog.forEach { option ->
+                                        DropdownMenuItem(text = {
+                                            Text(option.key.removePrefix("avatar-").replace('-', ' '))
+                                        }, onClick = {
                                             avatarDraftKey = option.key
                                             avatarDraftPhoto = null
                                             avatarDraftClear = false
-                                        }) {
-                                        RadioButton(selected = avatarDraftKey == option.key,
-                                            onClick = {
-                                                avatarDraftKey = option.key
-                                                avatarDraftPhoto = null
-                                                avatarDraftClear = false
-                                            })
-                                        Text(option.key.removePrefix("avatar-").replace('-', ' '))
+                                            menu = ""
+                                        })
                                     }
                                 }
                             }
