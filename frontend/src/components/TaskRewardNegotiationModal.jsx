@@ -36,6 +36,19 @@ function TaskRewardNegotiationModal({
 
   const title = task?.title || request?.taskTitle || ''
 
+  // Consistent keyboard dismissal for task/reward dialogs; never interrupt a save.
+  useEffect(() => {
+    if (saving) return
+    const onEscape = (event) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      event.preventDefault()
+      onClose()
+    }
+    window.addEventListener('keydown', onEscape)
+    return () => window.removeEventListener('keydown', onEscape)
+  }, [onClose, saving])
+
+
   useEffect(() => {
     const load = async () => {
       try {
