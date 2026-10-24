@@ -5435,3 +5435,15 @@ button:focus-visible {
 .fp-number-control.fp-number-control-shared:focus-within {
   border-color: var(--fp-accent);
 }
+
+
+/* Shared open-task count indicator: readable in both themes. */
+.open-task-count {
+  color: var(--fp-text);
+  border: 1px solid var(--fp-border);
+}
+[data-theme="dark"] .open-task-count {
+  background: var(--fp-surface-muted);
+  color: var(--fp-text);
+  border-color: var(--fp-border);
+}
