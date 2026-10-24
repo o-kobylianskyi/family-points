@@ -259,3 +259,9 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - Security block: Backend/Architecture must provide an authoritative immutable global account identifier per verified session and a safe migration policy for already queued legacy operations. Do not arbitrarily bind legacy rows to whichever account logs in next, drop data or replay uncertain-owner operations.
 - Commit `89e2fdb` adds JUnit tests for 0, 1, 2, 4, 5, 10, 11–14, 21, 24, 25, 101, 112 and negative/custom forms; source-only, tests **not run**.
 - Remaining: isolated account-scoped cache keys; account change/session regression and on-device queue migration; Gradle checks and Beta release still OPEN.
+
+## 2026-10-24 — P0 one-complete-package policy; offline account isolation gate
+- User requests one P0 at a time, fully implemented and verified, without incremental micro-patches.
+- Checked Backend JwtService: JWT subject is username, not immutable account ID. Android CurrentUserResponse lacks stable global account ID. Queue scoped by (workspaceId, viewerId) does not guarantee distinct global accounts cannot share a queue key.
+- Filed Backend/Architecture handoff XTR-20261024-A-03 (commit 2b3cdf0): stable account ID in verified /api/me, migration plan for ownership-ambiguous legacy offline queue entries, and cross-account tests. Never bind legacy rows to first logged-in account, delete them or replay under uncertain identity.
+- P0 account isolation NOT COMPLETE; BLOCKED on Backend contract. No local queue changed; compile/device tests outstanding. Subsequent critical packages must include verification before DONE.
