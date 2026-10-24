@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.MultipartBody
+import com.olehkobylianskyi.familypoints.android.data.AvatarUploadOptimizer
 import com.olehkobylianskyi.familypoints.android.network.MediaBindRequest
 import com.olehkobylianskyi.familypoints.android.network.MediaCatalogItemDto
 import androidx.compose.foundation.layout.Arrangement
@@ -659,23 +660,12 @@ fun MembersScreen(
                             } else {
                                 val photo = avatarDraftPhoto
                                 val asset = if (photo != null) {
-                                    val resolver = context.contentResolver
-                                    val mime = resolver.getType(photo)
-                                    require(mime == "image/jpeg" || mime == "image/png") { "JPEG/PNG only" }
-                                    val bytes = resolver.openInputStream(photo)?.use { input ->
-                                        val stream = java.io.ByteArrayOutputStream()
-                                        val chunk = ByteArray(8192)
-                                        while (true) {
-                                            val read = input.read(chunk)
-                                            if (read < 0) break
-                                            require(stream.size() + read <= 5 * 1024 * 1024) { "Max 5 MiB" }
-                                            stream.write(chunk, 0, read)
-                                        }
-                                        stream.toByteArray()
-                                    } ?: throw IllegalStateException("Cannot read image")
+                                    val optimized = withContext(Dispatchers.IO) {
+                                        AvatarUploadOptimizer.prepare(context.contentResolver, photo)
+                                    }
                                     ApiClient.mediaApi.uploadMemberImage(auth, currentUser.workspaceId,
-                                        MultipartBody.Part.createFormData("file", "avatar.jpg",
-                                            bytes.toRequestBody(mime.toMediaType()))).assetId
+                                        MultipartBody.Part.createFormData("file", optimized.filename,
+                                            optimized.bytes.toRequestBody(optimized.mimeType.toMediaType()))).assetId
                                 } else null
                                 ApiClient.mediaApi.bindMemberAvatar(auth, currentUser.workspaceId, id,
                                     MediaBindRequest(asset, avatarDraftKey, version))
