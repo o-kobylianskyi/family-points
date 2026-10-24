@@ -223,3 +223,11 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Screenshot: open member avatar select shows raw i18n IDs `media.catalog.avatarSunflower` etc and unrelated family cover, group, task assets. This is confirmed consumer UX/validation defect, independent of Media Backend catalog.
 - EntityMedia filter now restricts catalog choices to the target kind (MEMBER→AVATAR; MEMBER_GROUP→GROUP; TASK→TASK/TASK_CATEGORY), while excluding unselectable entries and entries with no previewPath. English/Ukrainian/German/Russian friendly labels for current catalog IDs replace raw `media.catalog.*` identifiers. Source commit f510593.
 - Backend still validates catalog eligibility; no claim user-visible browser PASS. QA later: check avatar select shows only 9 avatar choices, all labels localized, selection persists, other Media entity types still have valid catalog entries, 403/409 enforced. New CI exact commit required.
+
+
+## 2026-10-24 — Screenshot defect: changed member avatar does not propagate to Points or header
+- User screenshot confirms own avatar displays in Members, but Points selector, Points balance hero and global account header continue showing initials; root cause disconnected legacy views plus FamilyAvatar rejecting authenticated `blob:` URLs.
+- Added `MemberAvatar.jsx` (951599e) as secure effective MEMBER/AVATAR lookup with authorized fetch, workspace/account scoping and Blob URL revocation. Adopted it in Points selector + selected member summary (c968c9c), global account header (8fe54b4).
+- Updated FamilyAvatar to render trusted private Blob URLs (e673338). MemberAvatar listens for same-workspace/member image updates (57b9a0a); EntityMedia broadcasts after successful MEMBER binding changes (c83f1ce), triggering refresh in still-mounted header and any mounted selectors. On logout/workspace switch, effect cleanup revokes old image URLs; stale async loads discarded.
+- Verify after actual deploy: avatar shown in Members, Points selector + large summary, global top-right account; change photo and remain on same screen, switch family, logout/login, missing image fallback, revoked privileges. Backend remains Media authorization authority; no server APIs changed.
+- CI exact SHA and manual browser verification separate gates; no Release claim.
