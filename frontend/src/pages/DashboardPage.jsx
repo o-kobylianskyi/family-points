@@ -7,6 +7,7 @@ import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
 import { getMyReputation, getMyReputationHistory } from '../api/reputationApi'
 import { getMemberBalance } from '../api/pointsApi'
 import { getMemberTasks, getOpenTasks } from '../api/taskApi'
+import { getMediaManifest, fetchAuthorizedMediaObjectUrl } from '../api/mediaApi'
 
 function localToday() {
   const d = new Date()
@@ -32,6 +33,7 @@ export default function DashboardPage() {
   const [data, setData] = useState({ balance: 0, reputation: null, history: [], tasks: [], open: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [customCover, setCustomCover] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -63,13 +65,32 @@ export default function DashboardPage() {
     return () => { cancelled = true }
   }, [currentUser.workspaceId, currentUser.memberId, getAccessToken])
 
+  useEffect(() => {
+    let active = true
+    let objectUrl = ''
+    const workspaceId = currentUser.workspaceId
+    setCustomCover(null)
+    getMediaManifest(getAccessToken(), workspaceId).then(async manifest => {
+      // DEFAULT must render the original approved static hero without any override.
+      if (!active || !manifest.cover?.path || manifest.cover.source === 'DEFAULT') return
+      const url = await fetchAuthorizedMediaObjectUrl(getAccessToken(), manifest.cover.path, workspaceId)
+      objectUrl = url
+      if (active) setCustomCover(url)
+      else URL.revokeObjectURL(url)
+    }).catch(() => { if (active) setCustomCover(null) })
+    return () => {
+      active = false
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [currentUser.workspaceId, getAccessToken])
+
   if (loading) return <div className="page-loading">{t('common.loading')}</div>
   if (error) return <div className="page-error">{error}</div>
   const active = data.tasks.filter(task => !['COMPLETED', 'EXCUSED'].includes(task.status))
   const history = data.history.slice(0, 5)
 
   return <div className="fp-dashboard">
-    <section className="fp-hero">
+    <section className="fp-hero" style={customCover ? { backgroundImage: `linear-gradient(90deg, rgba(12,33,44,.80), rgba(12,33,44,.12)), url("${customCover}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
       <div className="fp-hero-content">
         <h1>{t('dashboard.welcome', { name: currentUser.memberName })} <span aria-hidden="true">👋</span></h1>
         <p>{t('dashboardLive.description')}</p>
