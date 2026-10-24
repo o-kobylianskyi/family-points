@@ -33,7 +33,7 @@ export default function FamilyCoverSettings() {
       if (!active) return
       setManifest(data)
       if (data.cover?.path) {
-        const fetchedUrl=await fetchAuthorizedMediaObjectUrl(getAccessToken(),data.cover.path)
+        const fetchedUrl=await fetchAuthorizedMediaObjectUrl(getAccessToken(),data.cover.path,workspaceId)
         objectUrl=fetchedUrl
         if (active) setCoverUrl(fetchedUrl)
         else URL.revokeObjectURL(objectUrl)
