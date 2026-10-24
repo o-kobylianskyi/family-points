@@ -200,6 +200,18 @@ public class MediaService {
     @Transactional(readOnly=true)
     public Ref effective(long ws,String type,long target,String slot) {
         requireWorkspace(ws);checkTarget(ws,type,target,slot);
+        var viewer=current.getCurrentMember();
+        if (type.equals("MEMBER") && !viewer.getId().equals(target)
+                && !viewer.hasPermission(WorkspacePermission.MANAGE_MEMBERS)
+                && !viewer.hasPermission(WorkspacePermission.ADMIN_OVERRIDE))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Media target not found");
+        if (type.equals("MEMBER_GROUP") && !viewer.hasPermission(WorkspacePermission.MANAGE_MEMBERS)
+                && !viewer.hasPermission(WorkspacePermission.ADMIN_OVERRIDE))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Media target not found");
+        if ((type.equals("WORK_NODE") || type.equals("TASK"))
+                && !viewer.hasPermission(WorkspacePermission.VIEW_ALL_TASKS)
+                && !viewer.hasPermission(WorkspacePermission.ADMIN_OVERRIDE))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Media target not found");
         Ref own=getBinding(ws,type,target,slot,"OWN");
         if(own!=null)return own;
         if(type.equals("TASK")) {
