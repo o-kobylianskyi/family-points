@@ -7,6 +7,8 @@ The user prioritizes stabilization of existing FamilyPoints tasks and an actual 
 **Since 2026-10-23, the sole canonical integration branch is [`main`](https://github.com/o-kobylianskyi/family-points/tree/main)** (ADR-COORD-005). The former `feature/task-soft-delete` was fast-forwarded into `main`. Temporary topic branches/PRs are allowed but target `main`; accepted source and docs must be integrated there. For Android/Web worktrees with local unique commits and uncommitted changes, follow [safe migration](MAIN_BRANCH_MIGRATION.md) before switching. A Git branch update does not deploy BETA.
 
 
+**2026-10-24 extension:** a sixth **Testing / QA** chat tracks current release acceptance independently of development. [QA board](QA_TEST_BOARD.md) · [test cases](QA_TEST_CASES.md) · [QA log](logs/qa.md). This is validation infrastructure, **not a new feature scope**.
+
 Established 2026-10-22 by project decision. **Five permanent, separate development chats**, with Git as the shared durable record. Chats do not synchronize automatically; each independently fetches current documentation and commits.
 
 | Direction | Ownership | Routine append-only log |
