@@ -90,7 +90,19 @@ fun CalendarScreen(
     var remoteEvents by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf<List<AgendaEventUi>>(emptyList()) }
     var loaded by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf(false) }
     var displayedDate by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf(selectedDate) }
-    var loading by remember { mutableStateOf(false) }
+    var loading by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf(false) }
+    var displayedMode by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf(mode) }
+    // Pending navigation is rendered against the LAST confirmed data, even before LaunchedEffect starts.
+    val pendingNavigation = currentUser != null && (selectedDate != displayedDate || mode != displayedMode)
+    val showLoading = currentUser != null && (loading || pendingNavigation)
+    val visualDate = if (showLoading || loadError) displayedDate else selectedDate
+    val visualMode = if (showLoading || loadError) displayedMode else mode
+    fun navigateTo(date: LocalDate, targetMode: CalendarMode = mode) {
+        if (date == selectedDate && targetMode == mode) return
+        if (currentUser != null && serverStatus == ServerStatus.ONLINE) loading = true
+        selectedDate = date
+        mode = targetMode
+    }
     var loadError by remember { mutableStateOf(false) }
     val rangeStart = when (mode) {
         CalendarMode.DAY -> selectedDate
@@ -104,8 +116,16 @@ fun CalendarScreen(
             .with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
     }
     LaunchedEffect(currentUser?.workspaceId, currentUser?.memberId, rangeStart, rangeEnd, serverStatus) {
-        if (currentUser == null || serverStatus != ServerStatus.ONLINE) return@LaunchedEffect
-        val token = tokenStore.getAccessToken() ?: return@LaunchedEffect
+        if (currentUser == null || serverStatus != ServerStatus.ONLINE) {
+            loading = false
+            return@LaunchedEffect
+        }
+        val token = tokenStore.getAccessToken()
+        if (token == null) {
+            loading = false
+            loadError = true
+            return@LaunchedEffect
+        }
         // Keep the previously confirmed projection visible while this range is fetched.
         loading = true
         loadError = false
@@ -116,6 +136,7 @@ fun CalendarScreen(
             // Commit the data and corresponding selected date only after a successful response.
             remoteEvents = next
             displayedDate = selectedDate
+            displayedMode = mode
             loaded = true
         } catch (cancel: CancellationException) {
             throw cancel
@@ -131,7 +152,7 @@ fun CalendarScreen(
     val visibleEvents = if (currentUser != null) remoteEvents else events
     val effectiveLoaded = if (currentUser != null) loaded else projectionLoaded
     val selectedEvents = visibleEvents.filter { event ->
-        event.day == (if (loading || loadError) displayedDate else selectedDate) && when (kind) {
+        event.day == visualDate && when (kind) {
             CalendarKind.ALL -> true
             CalendarKind.TASK -> event.type == AgendaEventType.TASK
             CalendarKind.REWARD -> event.type == AgendaEventType.REWARD_WINDOW
@@ -144,21 +165,21 @@ fun CalendarScreen(
     val untimed = selectedEvents.filter { it.startsAt == null }
     val locale = localeFor(language)
     val dateFormat = remember(locale) { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale) }
-    val firstDay = selectedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-    val visibleDays = when (mode) {
-        CalendarMode.DAY -> listOf(selectedDate)
+    val firstDay = visualDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    val visibleDays = when (visualMode) {
+        CalendarMode.DAY -> listOf(visualDate)
         CalendarMode.WEEK -> (0L..6L).map(firstDay::plusDays)
         CalendarMode.MONTH -> {
-            val monthStart = selectedDate.withDayOfMonth(1)
+            val monthStart = visualDate.withDayOfMonth(1)
             val start = monthStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-            val monthEnd = selectedDate.withDayOfMonth(selectedDate.lengthOfMonth())
+            val monthEnd = visualDate.withDayOfMonth(visualDate.lengthOfMonth())
             val end = monthEnd.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
             (0L..java.time.temporal.ChronoUnit.DAYS.between(start, end)).map(start::plusDays)
         }
     }
     Box(modifier = modifier.fillMaxSize()) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize().alpha(if (loading) 0.45f else 1f),
+        modifier = Modifier.fillMaxSize().alpha(if (showLoading) 0.45f else 1f),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 12.dp)
     ) {
@@ -176,7 +197,7 @@ fun CalendarScreen(
                 CalendarMode.entries.forEach { option ->
                     FilterChip(
                         selected = option == mode,
-                        onClick = { mode = option },
+                        onClick = { navigateTo(selectedDate, option) },
                         label = { Text(when (option) {
                             CalendarMode.DAY -> calText(language, "День", "Tag", "Day", "День")
                             CalendarMode.WEEK -> calText(language, "Тиждень", "Woche", "Week", "Неделя")
@@ -189,30 +210,30 @@ fun CalendarScreen(
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = {
-                    selectedDate = when (mode) {
+                    navigateTo(when (mode) {
                         CalendarMode.DAY -> selectedDate.minusDays(1)
                         CalendarMode.WEEK -> selectedDate.minusWeeks(1)
                         CalendarMode.MONTH -> selectedDate.minusMonths(1)
-                    }
+                    })
                 }) { Text("‹") }
-                OutlinedButton(onClick = { selectedDate = LocalDate.now() }) {
+                OutlinedButton(onClick = { navigateTo(LocalDate.now()) }) {
                     Text(calText(language, "Сьогодні", "Heute", "Today", "Сегодня"))
                 }
-                OutlinedButton(onClick = { selectedDate = LocalDate.now().plusDays(1); mode = CalendarMode.DAY }) {
+                OutlinedButton(onClick = { navigateTo(LocalDate.now().plusDays(1), CalendarMode.DAY) }) {
                     Text(calText(language, "Завтра", "Morgen", "Tomorrow", "Завтра"))
                 }
                 OutlinedButton(onClick = {
-                    selectedDate = when (mode) {
+                    navigateTo(when (mode) {
                         CalendarMode.DAY -> selectedDate.plusDays(1)
                         CalendarMode.WEEK -> selectedDate.plusWeeks(1)
                         CalendarMode.MONTH -> selectedDate.plusMonths(1)
-                    }
+                    })
                 }) { Text("›") }
             }
-            Text((if (mode == CalendarMode.DAY)
-                selectedDate.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, locale)
+            Text((if (visualMode == CalendarMode.DAY)
+                visualDate.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, locale)
                     .replaceFirstChar { it.titlecase(locale) } + ", "
-                else "") + selectedDate.format(dateFormat),
+                else "") + visualDate.format(dateFormat),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 8.dp))
         }
@@ -220,7 +241,7 @@ fun CalendarScreen(
             FpCard {
                 Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     // The grid reflects the selected week/month, and markers reflect only supplied authorized data.
-                    if (mode != CalendarMode.DAY) {
+                    if (visualMode != CalendarMode.DAY) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                             (0..6).forEach { index ->
                                 val weekday = firstDay.plusDays(index.toLong()).dayOfWeek
@@ -240,19 +261,19 @@ fun CalendarScreen(
                                 val hasTasks = visibleEvents.any { it.day == day && it.type == AgendaEventType.TASK }
                                 val hasRewards = visibleEvents.any { it.day == day && it.type == AgendaEventType.REWARD_WINDOW }
                                 Column(
-                                    modifier = Modifier.weight(1f).clickable { selectedDate = day }.padding(vertical = 6.dp),
+                                    modifier = Modifier.weight(1f).clickable { navigateTo(day) }.padding(vertical = 6.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     Box(contentAlignment = Alignment.Center,
                                         modifier = Modifier.size(34.dp).background(
-                                            if (day == selectedDate) MaterialTheme.colorScheme.primary
+                                            if (day == visualDate) MaterialTheme.colorScheme.primary
                                             else Color.Transparent, CircleShape)) {
                                         Text(day.dayOfMonth.toString(),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = when {
-                                                day == selectedDate -> MaterialTheme.colorScheme.onPrimary
-                                                day.month != selectedDate.month -> MaterialTheme.colorScheme.onSurfaceVariant
+                                                day == visualDate -> MaterialTheme.colorScheme.onPrimary
+                                                day.month != visualDate.month -> MaterialTheme.colorScheme.onSurfaceVariant
                                                 else -> MaterialTheme.colorScheme.onSurface
                                             })
                                     }
@@ -333,7 +354,7 @@ fun CalendarScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
-    if (loading) {
+    if (showLoading) {
         // Draw above (not inside) the agenda: no extra row, no layout movement.
         // The overlay blocks interaction until the atomic projection swap completes.
         Box(
