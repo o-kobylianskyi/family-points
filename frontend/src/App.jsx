@@ -24,6 +24,7 @@ import TaskDetailsPage from './pages/TaskDetailsPage'
 import PointsPage from './pages/PointsPage'
 import RewardsPage from './pages/RewardsPage'
 import SettingsPage from './pages/SettingsPage'
+import CalendarPage from './pages/CalendarPage'
 
 import { ThemeInitializer } from './components/ThemePreference'
 
@@ -79,6 +80,8 @@ function App() {
               path="/tasks/:definitionId"
               element={<TaskDetailsPage />}
             />
+
+            <Route path="/calendar" element={<CalendarPage />} />
 
             <Route
               path="/points"
