@@ -46,8 +46,18 @@ export async function uploadMedia(token, workspaceId, file) {
   form.append('file', prepared)
   // multipart must set its own boundary; do not use the JSON apiRequest helper.
   const { API_URL } = await import('./baseUrl')
-  const response = await fetch(`${API_URL}/workspaces/${workspaceId}/media/uploads`, {
-    method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form,
-  })
+  let response
+  try {
+    response = await fetch(`${API_URL}/workspaces/${workspaceId}/media/uploads`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form,
+    })
+  } catch {
+    throw new Error('Не вдалося передати зображення. Перевірте з’єднання та спробуйте ще раз.')
+  }
+  if (response.status === 413) {
+    const error = new Error('Зображення завелике для сервера. Спробуйте файл меншого розміру.')
+    error.status = 413
+    throw error
+  }
   return json(response)
 }
