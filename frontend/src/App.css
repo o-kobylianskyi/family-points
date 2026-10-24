@@ -5562,3 +5562,7 @@ button:focus-visible {
 [data-theme="light"] .modal-backdrop:has(.member-editor)::-webkit-scrollbar-thumb,
 [data-theme="light"] .modal-card.member-editor::-webkit-scrollbar-thumb,
 [data-theme="light"] .modal-card.member-editor > form::-webkit-scrollbar-thumb { background: #94adb8; border-color: #e8f0f3; }
+
+/* Rewards > Requests: the receive button belongs at the bottom right. */
+.rewards-page .reward-request-list > .reward-request-card{display:flex;flex-direction:column;align-items:stretch}
+.rewards-page .reward-request-list > .reward-request-card > .reward-request-claim{align-self:flex-end;margin-top:auto;margin-left:auto}
