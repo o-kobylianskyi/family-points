@@ -311,3 +311,8 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 ## 2026-10-24 — Sidebar order: Members moved above Settings
 - Per user screenshot/request, removed Members navigation item from the main/top links and inserted it into sidebar-bottom immediately before Settings. Download link remains as before; dynamic groups, Tasks, Calendar, Points, Rewards and routing unchanged. Code commit `f0d7599e33a521ee4913271108f9b156b46bebf3`.
 - QA after deploy: bottom navigation order Download → Members → Settings, active state and mobile sidebar, long localized labels; build CI separately.
+
+
+## 2026-10-25 — Calendar settings timezone selector
+- User screenshot flagged raw editable `UTC` textbox with cramped controls. Replaced with a readable curated IANA timezone dropdown (Europe/Berlin, Europe/Kyiv, other common zones, UTC) showing city/country labels and exact zone IDs; the server-provided timezone remains selectable even if outside the curated list. Only privileged roles can change it; writes still use existing Calendar V36 timezone API on Save, no auto-setting from browser locale.
+- Commits 441f969 and following CalendarPage.css scoped style. Does not modify event scheduling or Backend. QA deferred: existing UTC and Europe/Berlin, other server-returned zone retained, disabled for non-admin, long German options, both themes and mobile, DST correctness.
