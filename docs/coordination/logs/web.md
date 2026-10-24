@@ -81,3 +81,9 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 ## 2026-10-24 — Intermediate release Web stabilization: point operation modal Escape
 - Audited current frontend against existing modal dismissal behavior: `PointOperationModal.jsx` already closes on overlay/cancel but lacked Escape handling; the user previously requested Escape for modal dismissal. Fixed in `main` commit `86e2185`: while open and not submitting, Escape invokes existing `onClose` (listener cleaned up on rerender/unmount). Submission in progress is not interrupted by Escape; no API, currency ledger, approved Home dashboard or images changed.
 - Remaining release validation: browser verify award/deduct flows, modal Escape before submission, error states, locale text, numeric stepper, light/dark themes. Latest GitHub Actions results are not a browser acceptance test. This is a targeted bug fix, not new functionality or release authorization.
+
+
+## 2026-10-24 — Intermediate release stabilization: task reward negotiation Escape
+- Audited existing modal controls in the current `main`: MemberEditor and GroupEditor already contain Escape listeners; `TaskRewardNegotiationModal` lacked one, although it has cancel/close actions. Commit `ec19794` adds a cleaned-up Escape listener invoking existing `onClose` only when not `saving`. No request data, reward approval, points ledger or Backend behavior changed.
+- Existing release checklist still OPEN: Web build/lint/i18n, browser verification for dialog keyboard behavior (including nested dialogs and save-in-flight), dark/light visual regression, task/reward/points authorization and transaction smoke, account login and onboarding. Do not mark the entire current task stack complete from source-only review.
+- Freeze remains in force: no new calendar/media/template/reset features before intermediate release; approved Home design/assets untouched.
