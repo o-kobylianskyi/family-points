@@ -3,13 +3,15 @@ package com.olehkobylianskyi.familypoints.android.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -59,13 +61,18 @@ fun AgendaTimeline(language: AppLanguage, events: List<AgendaEventUi>, modifier:
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Icon(
+                    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                        Box(Modifier.size(8.dp).background(
+                            if (event.type == AgendaEventType.TASK) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.tertiary, CircleShape))
+                        Icon(
                         imageVector = if (event.type == AgendaEventType.TASK) Icons.Outlined.Checklist else Icons.Outlined.CardGiftcard,
                         contentDescription = if (event.type == AgendaEventType.TASK)
                             translated(language, "Завдання", "Aufgabe", "Task", "Задача")
                         else translated(language, "Винагорода", "Belohnung", "Reward", "Награда"),
                         tint = MaterialTheme.colorScheme.secondary
-                    )
+                        )
+                    }
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(event.title, style = MaterialTheme.typography.titleSmall)
                         Text(statusText(event.status, language),
