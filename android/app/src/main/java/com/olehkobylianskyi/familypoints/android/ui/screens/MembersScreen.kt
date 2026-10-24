@@ -631,11 +631,19 @@ fun MembersScreen(
                     val request = MemberSaveRequest(name.trim(), type, roleId!!)
                     val id = editing?.id
                     mutate {
-                        repository.save(currentUser.workspaceId, id, request, accessMode, childLogin.trim(), childPassword, invitationEmail.trim())
+                        // Avatar-only changes must not trigger a redundant member-profile PUT.
+                        val profileChanged = editing == null ||
+                            name.trim() != editing?.name ||
+                            type != editing?.memberType ||
+                            roleId != editing?.workspaceRoleId ||
+                            accessMode != "profile"
+                        if (profileChanged) {
+                            repository.save(currentUser.workspaceId, id, request, accessMode, childLogin.trim(), childPassword, invitationEmail.trim())
+                        }
                         if (id != null && (avatarDraftClear || avatarDraftKey != null || avatarDraftPhoto != null)) {
                             val auth = bearer ?: throw IllegalStateException("Sign in online to save avatar")
                             val version = avatarVersion ?: throw IllegalStateException("Avatar version unavailable")
-                            if (avatarDraftClear) {
+                            val savedAvatar = if (avatarDraftClear) {
                                 ApiClient.mediaApi.clearMemberAvatar(auth, currentUser.workspaceId, id, version)
                             } else {
                                 val photo = avatarDraftPhoto
@@ -661,8 +669,8 @@ fun MembersScreen(
                                 ApiClient.mediaApi.bindMemberAvatar(auth, currentUser.workspaceId, id,
                                     MediaBindRequest(asset, avatarDraftKey, version))
                             }
-                            val latest = ApiClient.mediaApi.memberAvatar(auth, currentUser.workspaceId, id)
-                            avatarRefs = avatarRefs + (id to latest)
+                            // Use the mutation response; a second GET can fail after a successful write.
+                            avatarRefs = avatarRefs + (id to savedAvatar)
                         }
                         editorOpen = false
                     }
