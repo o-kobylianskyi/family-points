@@ -265,3 +265,9 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - Checked Backend JwtService: JWT subject is username, not immutable account ID. Android CurrentUserResponse lacks stable global account ID. Queue scoped by (workspaceId, viewerId) does not guarantee distinct global accounts cannot share a queue key.
 - Filed Backend/Architecture handoff XTR-20261024-A-03 (commit 2b3cdf0): stable account ID in verified /api/me, migration plan for ownership-ambiguous legacy offline queue entries, and cross-account tests. Never bind legacy rows to first logged-in account, delete them or replay under uncertain identity.
 - P0 account isolation NOT COMPLETE; BLOCKED on Backend contract. No local queue changed; compile/device tests outstanding. Subsequent critical packages must include verification before DONE.
+
+## 2026-10-24 — Consolidated P0 candidate, QA acceptance matrix (NOT PASSED)
+- Auth/points/reward/pull-refresh source improvements from previous commits audited; commit 03b7057 ensures a foreground API 401 logs out online without deleting separately password-verified offline enrollment. This fixes an enrollment-loss path; still needs app/device regression.
+- Created full QA matrix docs/coordination/requests/XTR-20261024-A-05-ANDROID-P0-QA.md (commit 9e716d2) with AUTH/RW/OFF/REF/UI tests, expected outcomes, severity/evidence format, API and release gates. QA handoff is a **prepared test plan**, NOT a claim of integration success.
+- GitHub Android CI was still in progress and multiple recent workflows had failed/cancelled; not declaring a passing Android build. Backend reward SQL CHECK migration XTR-A-02 and account-id ownership XTR-A-03 block full acceptance. Latest published signed beta is older than main.
+- User requires maximal consolidated critical packages, QA feedback as next package, avoiding tiny changes. Current status: P0 IN DEVELOPMENT / QA PLAN PREPARED, NOT QA PASSED, NOT RELEASE-READY.
