@@ -212,3 +212,8 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Task details now uses compact EntityMedia thumbnail/placeholder and pencil-triggered modal, removing inline select/native file upload from task header (5565f31); scoped task header styles (e79faf6).
 - Family cover settings now displays wide existing preview, human-readable catalog labels, responsive cover option controls and visually hidden native file input behind styled upload action (215b83d/8e48eee); scoped CSS (4c02046). No invented remote image preview for incomplete catalog choices; only selectable entries with verified previewPath are presented.
 - Backend Media API, selected-workspace scope and approved Home artwork stay untouched. CI and user/browser QA remain independently required; no release claim.
+
+
+## 2026-10-24 — Screenshot defect: media modal jumps when mouse moves
+- User supplied two screenshots showing modal attached beside member card and then centered depending on mouse hover. Root cause: .member-card[role=button]:hover uses transform and creates containing block for nested position:fixed overlay.
+- Fix: render EntityMedia modal via React createPortal(..., document.body), outside transformed member card; viewport-fixed, centered, independent of hover transform. Commits 3b70db2 and following EntityMedia.css fix. No backend or approved dashboard assets touched. Recheck modal center across mouse movement, all member cards, Escape/focus/scroll, themes and mobile in later manual QA.
