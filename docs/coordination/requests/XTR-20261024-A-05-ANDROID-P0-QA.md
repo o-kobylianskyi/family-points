@@ -106,3 +106,11 @@ Do not mark READY FOR QA or RELEASE until the final SHA passes Android Gradle/un
 - Android adds MediaApi.catalogPreview authenticated endpoint, AndroidSVG dependency and capped SVG bytes rendering to 128x128 bitmap, then circular crop. Only safe catalogKey pattern is interpolated; DEFAULT without explicit binding remains initials.
 - QA: assign catalog avatar to self via Web, open Android on same workspace/account, verify image is visible in header and member card (not letter), survive tab changes; use another avatar catalog option and reopen Android; check user photo uploads still work; wrong workspace, missing bearer, 401/403, offline must show initials, not crash. Verify CI dependency resolution and debug compile.
 - Commits: 2c49ecc, a9b7d31, b038e5a. Device and end-to-end results pending.
+
+## 2026-10-25 — MED-AVATAR-RESUME-01 Web-to-Android avatar refresh
+- Verified green combined CI at head 14025beb3, covering earlier Android catalog SVG decoder.
+- Problem: shared header and MembersScreen used LaunchedEffect keyed to login/workspace/member and had no app-resume refresh when Web modified an avatar. Android stayed stale until re-creation/navigation.
+- Implemented lifecycle ON_RESUME refresh on both screens: shared AppHeader re-fetches own MEMBER/AVATAR, MembersScreen re-fetches authorized batch bindings without blanking already visible avatars. Member avatar map remember key now includes immutable accountId, preventing state carryover between two accounts sharing member/workspace IDs. Commits 4f92b224, b5aef37, d87a0b7.
+- QA MED-AVATAR-RESUME-01: enter Android and confirm A avatar; background Android, update member avatar in Web to B, foreground Android; header AND member cards must show B without logging out. Repeat B->none (initial fallback), uploaded photo->catalog SVG, and offline/online transition.
+- QA MED-AVATAR-RESUME-02: switch accounts/workspaces; old avatar must disappear and never be shown for another identity. Validate initial offline no media on first login, failed 401/403 media requests do not invalidate authenticated session.
+- CI for commits following 14025beb3 requires fresh exact-head success; no on-device acceptance yet.
