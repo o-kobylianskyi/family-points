@@ -557,6 +557,47 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    @Transactional
+    void mediaBindingCannotReferenceOtherFamilyAssetEvenByDirectSql() {
+        Workspace owner = new Workspace("Media constraint owner");
+        Workspace attacker = new Workspace("Media constraint outsider");
+        entityManager.persist(owner);
+        entityManager.persist(attacker);
+        WorkspaceRole role = new WorkspaceRole(owner,"PARENT","Owner",false);
+        entityManager.persist(role);
+        WorkspaceMember member = new WorkspaceMember("Media owner",
+                WorkspaceMemberType.PARENT,role,owner);
+        entityManager.persist(member);
+        entityManager.flush();
+        String assetId=java.util.UUID.randomUUID().toString();
+        jdbc.update("""
+            INSERT INTO media_assets(id,workspace_id,mime_type,width,height,byte_size,sha256,created_by_member_id)
+            VALUES (?::uuid,?,'image/png',1,1,4,?,?)
+            """,assetId,owner.getId(),"a".repeat(64),member.getId());
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class, () ->
+            jdbc.update("""
+                INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,asset_id)
+                VALUES (?,'WORKSPACE',?,'COVER',?::uuid)
+                """,attacker.getId(),attacker.getId(),assetId));
+    }
+
+    @Test
+    @Transactional
+    void mediaSchemaAllowsVersionedClearedBindingButRejectsBothMediaSources() {
+        Workspace workspace = new Workspace("Media tombstone constraint");
+        entityManager.persist(workspace);
+        entityManager.flush();
+        jdbc.update("""
+            INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,version)
+            VALUES (?,'WORKSPACE',?,'COVER',9)
+            """,workspace.getId(),workspace.getId());
+        assertEquals(9,jdbc.queryForObject("""
+            SELECT version FROM media_bindings WHERE workspace_id=? AND target_type='WORKSPACE'
+            AND target_id=? AND slot='COVER'
+            """,Integer.class,workspace.getId(),workspace.getId()));
+    }
+
+    @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
