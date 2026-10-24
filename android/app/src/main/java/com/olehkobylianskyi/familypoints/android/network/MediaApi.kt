@@ -33,6 +33,14 @@ data class MediaReferenceDto(val target: MediaTargetDto, val image: MediaRefDto?
 
 interface MediaApi {
     @Streaming
+    @GET("workspaces/{workspaceId}/media/catalog/{key}/preview")
+    suspend fun catalogPreview(
+        @Header("Authorization") bearer: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("key") key: String
+    ): ResponseBody
+
+    @Streaming
     @GET("workspaces/{workspaceId}/media/{assetId}/variants/{variant}")
     suspend fun imageVariant(
         @Header("Authorization") bearer: String,
