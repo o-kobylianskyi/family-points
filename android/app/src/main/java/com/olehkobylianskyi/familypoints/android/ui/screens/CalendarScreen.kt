@@ -20,6 +20,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +29,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
+import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
+import com.olehkobylianskyi.familypoints.android.network.ApiClient
+import com.olehkobylianskyi.familypoints.android.network.CalendarEventDto
+import com.olehkobylianskyi.familypoints.android.storage.TokenStore
+import com.olehkobylianskyi.familypoints.android.network.ServerReachability
+import com.olehkobylianskyi.familypoints.android.network.ServerStatus
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.CircularProgressIndicator
+import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneId
+import retrofit2.HttpException
 import com.olehkobylianskyi.familypoints.android.ui.components.FpCard
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -35,7 +50,7 @@ import java.time.temporal.TemporalAdjusters
 import java.time.DayOfWeek
 import java.util.Locale
 
-/** Calendar UI only. Server projections are intentionally not fabricated before API approval. */
+/** Authenticated calendar events from Backend V36. Never synthesize missing events. */
 private enum class CalendarMode { DAY, WEEK, MONTH }
 private enum class CalendarKind { ALL, TASK, REWARD }
 
@@ -59,12 +74,54 @@ fun CalendarScreen(
     language: AppLanguage,
     modifier: Modifier = Modifier,
     events: List<AgendaEventUi> = emptyList(),
-    projectionLoaded: Boolean = false
+    projectionLoaded: Boolean = false,
+    currentUser: CurrentUserResponse? = null,
+    onUnauthorized: () -> Unit = {}
 ) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var mode by remember { mutableStateOf(CalendarMode.DAY) }
     var kind by remember { mutableStateOf(CalendarKind.ALL) }
-    val selectedEvents = events.filter { event ->
+    val context = LocalContext.current
+    val tokenStore = remember(context) { TokenStore(context) }
+    val serverStatus by ServerReachability.status.collectAsState()
+    var remoteEvents by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf<List<AgendaEventUi>>(emptyList()) }
+    var loaded by remember(currentUser?.workspaceId, currentUser?.memberId) { mutableStateOf(false) }
+    var loading by remember { mutableStateOf(false) }
+    var loadError by remember { mutableStateOf(false) }
+    val rangeStart = when (mode) {
+        CalendarMode.DAY -> selectedDate
+        CalendarMode.WEEK -> selectedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        CalendarMode.MONTH -> selectedDate.withDayOfMonth(1).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    }
+    val rangeEnd = when (mode) {
+        CalendarMode.DAY -> selectedDate
+        CalendarMode.WEEK -> rangeStart.plusDays(6)
+        CalendarMode.MONTH -> selectedDate.withDayOfMonth(selectedDate.lengthOfMonth())
+            .with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+    }
+    LaunchedEffect(currentUser?.workspaceId, currentUser?.memberId, rangeStart, rangeEnd, serverStatus) {
+        loaded = false
+        remoteEvents = emptyList() // Never show another date range as a confirmed projection.
+        if (currentUser == null || serverStatus != ServerStatus.ONLINE) return@LaunchedEffect
+        val token = tokenStore.getAccessToken() ?: return@LaunchedEffect
+        loading = true
+        loadError = false
+        try {
+            remoteEvents = ApiClient.calendarApi.events(
+                "Bearer $token", currentUser.workspaceId, rangeStart.toString(), rangeEnd.toString()
+            ).mapNotNull { it.toAgendaEvent() }
+            loaded = true
+        } catch (e: HttpException) {
+            if (e.code() == 401) onUnauthorized() else loadError = true
+        } catch (_: Exception) {
+            loadError = true
+        } finally {
+            loading = false
+        }
+    }
+    val visibleEvents = if (currentUser != null) remoteEvents else events
+    val effectiveLoaded = if (currentUser != null) loaded else projectionLoaded
+    val selectedEvents = visibleEvents.filter { event ->
         event.day == selectedDate && when (kind) {
             CalendarKind.ALL -> true
             CalendarKind.TASK -> event.type == AgendaEventType.TASK
@@ -73,7 +130,7 @@ fun CalendarScreen(
     }
     val counts = selectedEvents.groupingBy { it.type }.eachCount()
     // Absence of a loaded backend projection is not a confirmed zero-count day.
-    val hasProjection = projectionLoaded
+    val hasProjection = effectiveLoaded
     val timed = selectedEvents.filter { it.startsAt != null }
     val untimed = selectedEvents.filter { it.startsAt == null }
     val locale = localeFor(language)
@@ -98,6 +155,12 @@ fun CalendarScreen(
         item {
             Text(calText(language, "Календар", "Kalender", "Calendar", "Календарь"),
                 style = MaterialTheme.typography.headlineMedium)
+        }
+        if (loading) item { CircularProgressIndicator() }
+        if (loadError) item {
+            Text(calText(language, "Не вдалося оновити події календаря", "Kalender konnte nicht geladen werden",
+                "Could not load calendar events", "Не удалось загрузить календарь"),
+                color = MaterialTheme.colorScheme.error)
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -162,8 +225,8 @@ fun CalendarScreen(
                         Row(modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                             week.forEach { day ->
-                                val hasTasks = events.any { it.day == day && it.type == AgendaEventType.TASK }
-                                val hasRewards = events.any { it.day == day && it.type == AgendaEventType.REWARD_WINDOW }
+                                val hasTasks = visibleEvents.any { it.day == day && it.type == AgendaEventType.TASK }
+                                val hasRewards = visibleEvents.any { it.day == day && it.type == AgendaEventType.REWARD_WINDOW }
                                 Column(
                                     modifier = Modifier.weight(1f).clickable { selectedDate = day }.padding(vertical = 6.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -234,7 +297,7 @@ fun CalendarScreen(
                     Text(calText(language, "Розклад дня", "Tagesübersicht", "Daily agenda", "Расписание дня"),
                         style = MaterialTheme.typography.titleMedium)
                     if (timed.isNotEmpty()) AgendaTimeline(language, timed)
-                    else if (projectionLoaded) Text(calText(language,
+                    else if (effectiveLoaded) Text(calText(language,
                         "Немає подій з визначеним часом", "Keine Termine mit Uhrzeit",
                         "No timed events", "Нет событий с указанным временем"),
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -252,10 +315,31 @@ fun CalendarScreen(
                 "Tasks without a time", "Задачи без времени"),
                 style = MaterialTheme.typography.titleMedium)
             if (untimed.isNotEmpty()) AgendaTimeline(language, untimed)
-            else Text(if (projectionLoaded) calText(language, "Немає завдань без часу", "Keine Aufgaben ohne Uhrzeit", "No untimed tasks", "Нет задач без времени")
+            else Text(if (effectiveLoaded) calText(language, "Немає завдань без часу", "Keine Aufgaben ohne Uhrzeit", "No untimed tasks", "Нет задач без времени")
                 else calText(language, "Дані поки недоступні", "Daten noch nicht verfügbar",
                 "Data not available yet", "Данные пока недоступны"),
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+/** Deadline time is not an event start; reward windows are acquisition windows. */
+private fun CalendarEventDto.toAgendaEvent(): AgendaEventUi? {
+    val day = runCatching { LocalDate.parse(date) }.getOrNull() ?: return null
+    val type = when (kind) {
+        "TASK" -> AgendaEventType.TASK
+        "REWARD_WINDOW" -> AgendaEventType.REWARD_WINDOW
+        else -> return null
+    }
+    val start = if (type == AgendaEventType.TASK) {
+        scheduledTime?.let { runCatching { LocalTime.parse(it) }.getOrNull() }
+    } else startsAt?.let {
+        runCatching { Instant.parse(it).atZone(ZoneId.systemDefault()).toLocalTime() }.getOrNull()
+    }
+    val end = if (type == AgendaEventType.REWARD_WINDOW) endsAt?.let {
+        runCatching { Instant.parse(it).atZone(ZoneId.systemDefault()).toLocalTime() }.getOrNull()
+    } else null
+    val state = runCatching { AgendaEventStatus.valueOf(status.orEmpty()) }
+        .getOrDefault(if (scheduleOpenNow) AgendaEventStatus.OPEN else AgendaEventStatus.PLANNED)
+    return AgendaEventUi(key, day, type, title, start, end, state)
 }
