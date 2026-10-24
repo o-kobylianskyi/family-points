@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 class LegacyV35ConstraintRepairTest {
     @Container
-    static final PostgreSQLContainer DB = new PostgreSQLContainer("postgres:17-alpine")
+    static final PostgreSQLContainer DB = new PostgreSQLContainer("postgres:18-alpine")
             .withDatabaseName("family_points_legacy_constraint")
             .withUsername("constraint_test")
             .withPassword("constraint_test_password");

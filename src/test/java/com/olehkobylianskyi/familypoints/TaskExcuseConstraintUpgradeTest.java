@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 class TaskExcuseConstraintUpgradeTest {
     @Container
-    static final PostgreSQLContainer DB = new PostgreSQLContainer("postgres:17-alpine")
+    static final PostgreSQLContainer DB = new PostgreSQLContainer("postgres:18-alpine")
             .withDatabaseName("excuse_migration_test")
             .withUsername("excuse_test")
             .withPassword("excuse_test_password");
