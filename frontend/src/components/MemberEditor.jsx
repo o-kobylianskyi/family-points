@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 import { useAuth } from '../context/AuthContext'
 import GooglePasswordSetup from './GooglePasswordSetup'
+import EntityMedia from './EntityMedia'
+import FamilyAvatar from './FamilyAvatar'
 
 function hasSameMemberId(a, b) { return a != null && b != null && String(a) === String(b) }
 
@@ -73,6 +75,9 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
         </div>
         <button type="button" className="modal-close" onClick={onClose} disabled={busy}>×</button>
       </div>
+      {editing && <EntityMedia inlineEditor type="MEMBER" targetId={member.id} slot="AVATAR" canEdit>
+        <FamilyAvatar name={member.name} kind="member" />
+      </EntityMedia>}
       <form onSubmit={submit}>
         {(error || externalError) && <div className="error-message" role="alert">{error || externalError}</div>}
         <label>{t('memberFormUi.name')}<input value={name} onChange={e => setName(e.target.value)} autoFocus /></label>
