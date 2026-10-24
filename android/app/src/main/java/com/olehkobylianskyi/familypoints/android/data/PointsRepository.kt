@@ -68,6 +68,9 @@ class PointsRepository(
             val auth = authorization()
             var confirmed = 0
             val affectedMembers = mutableSetOf<Long>()
+            // A later 4xx must not prevent balance refresh for earlier
+            // operations that the server has already confirmed.
+            var replayDenial: HttpException? = null
             for (entry in queue.pending(workspaceId, viewerId)) {
             try {
                 ApiClient.pointsApi.replayOffline(
@@ -80,7 +83,7 @@ class PointsRepository(
             } catch (error: HttpException) {
                 // Keep failed operations for parental review; never silently
                 // discard denied/invalid items. 401 ends synchronization.
-                if (error.code() == 401 || error.code() == 403 || error.code() in 400..499) throw error
+                if (error.code() in 400..499) replayDenial = error
                 break
             } catch (error: IOException) {
                 break
@@ -95,6 +98,7 @@ class PointsRepository(
                     // until the next balance fetch; never queue a duplicate.
                 }
             }
+            replayDenial?.let { throw it }
             return confirmed
         } finally {
             replayMutex.unlock()
