@@ -13,7 +13,7 @@ public class MediaController {
     public MediaController(MediaService media){this.media=media;}
     public record BindRequest(String assetId,String catalogKey,Integer expectedVersion){}
     @GetMapping("/catalog")
-    public List<String> catalog(@PathVariable long workspaceId) {
+    public List<MediaService.CatalogItem> catalog(@PathVariable long workspaceId) {
         // Does not reveal private workspace data; still require selection via the same media API.
         media.assertCatalogWorkspace(workspaceId);
         return media.catalog();

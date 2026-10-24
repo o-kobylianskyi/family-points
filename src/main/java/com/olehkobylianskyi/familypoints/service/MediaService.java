@@ -294,5 +294,18 @@ public class MediaService {
     }
 
     public void assertCatalogWorkspace(long ws) {requireWorkspace(ws);}
-    public List<String> catalog() {return CATALOG.stream().sorted().toList();}
+    // Stable global identifiers. A catalog entry never belongs to an individual
+    // workspace and must not be counted against private media quotas.
+    public record CatalogItem(String key, String category, String labelKey, int version,
+                              boolean selectable, String previewPath) {}
+    public List<CatalogItem> catalog() {
+        return List.of(
+            new CatalogItem("member-default", "AVATAR", "media.catalog.memberDefault", 1, true, null),
+            new CatalogItem("family-default", "FAMILY", "media.catalog.familyDefault", 1, true, null),
+            new CatalogItem("family-cover-default", "COVER", "media.catalog.familyCoverDefault", 1, true, null),
+            new CatalogItem("people-group-default", "GROUP", "media.catalog.peopleGroupDefault", 1, true, null),
+            new CatalogItem("task-group-default", "TASK_CATEGORY", "media.catalog.taskGroupDefault", 1, true, null),
+            new CatalogItem("task-default", "TASK", "media.catalog.taskDefault", 1, true, null)
+        );
+    }
 }
