@@ -522,6 +522,50 @@ class FamilyPointsApplicationTests {
 
     @Test
     @Transactional
+    void privateWorkspaceCoverStopsBeingReadableAfterBindingIsCleared() throws Exception {
+        Workspace workspace = new Workspace("Cover revoke regression family");
+        entityManager.persist(workspace);
+        WorkspaceRole role = new WorkspaceRole(workspace,"PARENT","Cover manager",false);
+        entityManager.persist(role);
+        WorkspaceMember member = new WorkspaceMember("Cover owner",
+                WorkspaceMemberType.PARENT,role,workspace);
+        entityManager.persist(member);
+        UserAccount account = new UserAccount("cover-revoke-account","hash",member);
+        entityManager.persist(account);
+        entityManager.persist(new AccountWorkspaceMembership(account,member));
+        entityManager.flush();
+
+        String asset = java.util.UUID.randomUUID().toString();
+        byte[] cover = new byte[]{10,20,30,40};
+        jdbc.update("""
+            INSERT INTO media_assets(id,workspace_id,mime_type,width,height,byte_size,sha256,created_by_member_id)
+            VALUES (?::uuid,?,'image/png',1,1,4,?,?)
+            """,asset,workspace.getId(),"a".repeat(64),member.getId());
+        jdbc.update("INSERT INTO media_blobs(asset_id,variant,bytes) VALUES (?::uuid,'COVER',?)",
+                asset,cover);
+        jdbc.update("""
+            INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,asset_id)
+            VALUES (?,'WORKSPACE',?,'COVER',?::uuid)
+            """,workspace.getId(),workspace.getId(),asset);
+
+        var principal = User.withUsername(account.getUsername())
+                .password("hash").authorities("USER").build();
+        String authorization = "Bearer " +
+                jwtService.generateWorkspaceAccessToken(principal,workspace.getId());
+        String path = "/workspaces/"+workspace.getId()+"/media/"+asset+"/variants/COVER";
+        mockMvc.perform(get(path).header("Authorization",authorization))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().bytes(cover));
+        jdbc.update("""
+            UPDATE media_bindings SET asset_id=NULL,catalog_key=NULL,version=version+1
+            WHERE workspace_id=? AND target_type='WORKSPACE' AND target_id=? AND slot='COVER'
+            """,workspace.getId(),workspace.getId());
+        mockMvc.perform(get(path).header("Authorization",authorization))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Transactional
     void mediaClearRetainsVersionAndRejectsStaleEditorThroughDatabase() {
         Workspace workspace = new Workspace("Media optimistic lock family");
         entityManager.persist(workspace);
