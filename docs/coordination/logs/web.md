@@ -328,3 +328,16 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Backend prerequisite: separate workspace-scoped TaskCategory / defaults model, CRUD, policy for primary category vs multiple, precedence/snapshot semantics, compatible migration, task schedule-slot mapping and ACL. Current CreateTaskModal already handles recurrenceType, delegationAllowed and daily slot times independently, so Web should apply backend defaults as *prefill*, not force values or mutate previously created instances.
 - Web follow-up when contract available: dedicated Tasks > Management > Categories subtab with template editor, task-category selection in create/edit, visible defaults and explicit user overrides. Existing Rewards > Settings > Categories may be separated into a reward-category subtab independently, but must not be conflated with task templates.
 - Status BACKLOG/BLOCKED_ON_BACKEND_CONTRACT under interim BETA feature freeze. No user-visible feature implemented in this commit; do not report done or claim browser QA.
+
+
+## 2026-10-25 — USER CORRECTION: Rewards category presets are the actual request
+
+**Supersedes the interpretation in the preceding 2026-10-25 task-category handoff.** User initially mixed up tasks and rewards; intended to improve **REWARDS** category management and reward form properties. Task grouping is a possible later independent enhancement, not a current request for task template inheritance.
+
+**Primary Web/Backend direction**: Rewards > Settings > Categories dedicated subtab; each RewardCategory can define property presets and applicable fields for reward types. Examples:
+- One-time bonus: no forced schedule, redemption once via limits, perhaps no duration.
+- Game/play-time reward: TIME_BASED, duration editable, optional specific availability periods; quota/cooldown if chosen.
+- Repeatable standard rewards: optional cooldown, approval, access restrictions and purchase limits.
+Show only relevant fields but never silently discard persisted data; apply category-provided defaults on explicit selection, preserve overrides. Reward kind, acquisition mode, availability and purchase count are separate dimensions. Existing RewardsPage uses rewardKind, defaultDurationMinutes, acquisitionMode, cooldownSeconds, quota fields, requirements and RewardAvailabilityEditor; category template metadata/validation needs Backend contract before code implementation.
+
+**Secondary**: optional grouping of TASKS for discovery/organization; no obligation to implement inherited schedule/delegation defaults or a TaskCategory API. Architecture journal has the authoritative corrected product handoff. Manual QA and implementation remain pending.
