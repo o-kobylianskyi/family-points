@@ -265,7 +265,7 @@ function TaskRewardNegotiationModal({
             <section>
               <h3>{t('rewardNegUi.reputation')}</h3>
               <label className="form-field">
-                <span>Кількість</span>
+                <span>{t('rewardNegUi.amount')}</span>
                 <input
                   type="number"
                   min="0"
