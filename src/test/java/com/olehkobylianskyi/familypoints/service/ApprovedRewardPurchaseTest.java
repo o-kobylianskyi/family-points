@@ -137,4 +137,30 @@ class ApprovedRewardPurchaseTest {
         verifyNoInteractions(points,purchases);
     }
 
+    @Test
+    void purchaseFailsWithoutDebitingWhenRequestIsAlreadyPurchasedOrCancelled() {
+        for (boolean cancelled : new boolean[]{false,true}) {
+            var members=mock(WorkspaceMemberRepository.class);
+            var requests=mock(RewardRequestRepository.class);
+            var purchases=mock(RewardPurchaseRepository.class);
+            var points=mock(PointService.class);
+            var member=mock(WorkspaceMember.class);
+            when(member.getId()).thenReturn(3L);
+            when(members.findByIdAndWorkspaceIdForUpdate(3L,8L)).thenReturn(Optional.of(member));
+            var request=new RewardRequest(mock(Workspace.class),member,null,"Reward retry",null);
+            request.approve(mock(PointType.class),20,null,null,false);
+            if(cancelled) request.cancel(); else request.markPurchased();
+            when(requests.findByIdAndWorkspaceId(77L,8L)).thenReturn(Optional.of(request));
+            var service=new RewardService(mock(WorkspaceRepository.class),members,
+                    mock(PointTypeRepository.class),mock(RewardCategoryRepository.class),
+                    mock(RewardDefinitionRepository.class),requests,mock(RewardRequirementRepository.class),
+                    purchases,mock(RewardObligationRepository.class),mock(TaskDefinitionRepository.class),
+                    mock(TaskInstanceRepository.class),mock(ReputationService.class),points);
+            var error=assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                    ()->service.purchaseRequest(8L,3L,77L));
+            assertEquals(409,error.getStatusCode().value());
+            verifyNoInteractions(points,purchases);
+        }
+    }
+
 }
