@@ -446,8 +446,7 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         modifier = Modifier.fillMaxSize(),
-                        // No refresh action for Login, dialogs or offline snapshots.
-                        // Screen content remains composed; filters/selection are preserved.
+                        enabled = refreshable
                     ) {
                 when {
                     authLoading -> {
