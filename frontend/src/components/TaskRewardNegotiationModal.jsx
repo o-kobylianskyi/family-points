@@ -128,6 +128,7 @@ function TaskRewardNegotiationModal({
 
   const submit = async (event) => {
     event.preventDefault()
+    if (saving) return
 
     const durationMinutes =
       durationPreset === 'ANY'
@@ -218,6 +219,7 @@ function TaskRewardNegotiationModal({
             type="button"
             className="modal-close-button"
             onClick={onClose}
+            disabled={saving}
             aria-label={t("rewardNegUi.close")}
           >
             ×
