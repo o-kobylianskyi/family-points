@@ -11,7 +11,7 @@ const dictionary = {
   en: ['Image','Choose','Upload JPEG/PNG','Reset','Saving…','No image'],
   ru: ['Изображение','Выбрать','Загрузить JPEG/PNG','Сбросить','Сохранение…','Нет изображения'],
 }
-export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false, compact=false, children=null }) {
+export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false, compact=false, inlineEditor=false, children=null }) {
   const {currentUser,getAccessToken}=useAuth()
   const {i18n}=useTranslation()
   const words=dictionary[i18n.language.split('-')[0]]||dictionary.en
@@ -102,6 +102,15 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
     </select>
     <label className="entity-media-upload">{words[2]}<input type="file" accept="image/png,image/jpeg" disabled={busy} onChange={e=>{upload(e.target.files?.[0]);e.target.value=''}}/></label>
     <button type="button" className="secondary-button" disabled={busy||reference.source==='DEFAULT'} onClick={clear}>{words[3]}</button>
+  </div>
+  if(inlineEditor) return <div className="member-avatar-editor">
+    <div className="member-avatar-editor-top">
+      <div className="entity-media-avatar">{url?<img src={url} alt={words[0]}/>:children}</div>
+      <button type="button" className="secondary-button member-avatar-change" disabled={!canEdit} onClick={()=>setEditorOpen(v=>!v)}>
+        {({uk:'Змінити',de:'Ändern',en:'Change',ru:'Изменить'})[locale]||'Change'}
+      </button>
+    </div>
+    {editorOpen&&<div className="member-avatar-editor-panel">{editor}{busy&&<small>{words[4]}</small>}{error&&<small role="alert">{error}</small>}</div>}
   </div>
   if(compact) return <div className="entity-media-compact" onClick={e=>e.stopPropagation()}>
     <div className="entity-media-avatar">{url?<img src={url} alt={words[0]}/>:children}</div>
