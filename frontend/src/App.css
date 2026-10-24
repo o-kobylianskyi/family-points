@@ -5505,3 +5505,7 @@ button:focus-visible {
   border-radius: 0;
   box-shadow: none;
 }
+
+/* Center the stat-card chevron glyph optically inside its circular badge. */
+.fp-dashboard .fp-stat-arrow{display:flex;align-items:center;justify-content:center;padding:0;flex:0 0 27px}
+.fp-dashboard .fp-stat-arrow>span{display:block;line-height:1;transform:translate(-1px,-2px)}
