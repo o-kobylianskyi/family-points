@@ -27,28 +27,32 @@ object AvatarUploadOptimizer {
             BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
         } ?: error("Unable to decode image")
         try {
-            val scale = minOf(1f, MAX_EDGE.toFloat() / maxOf(decoded.width, decoded.height))
-            val scaled = if (scale < 1f) Bitmap.createScaledBitmap(
-                decoded, maxOf(1, (decoded.width * scale).toInt()),
-                maxOf(1, (decoded.height * scale).toInt()), true
-            ) else decoded
-            try {
-                // Preserve PNG transparency. Opaque images use bandwidth-efficient JPEG.
-                val transparent = mime == "image/png" && scaled.hasAlpha()
-                val format = if (transparent) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
-                val qualities = if (transparent) listOf(100) else listOf(85, 75, 65, 55)
-                for (quality in qualities) {
-                    val stream = ByteArrayOutputStream()
-                    check(scaled.compress(format, quality, stream)) { "Image compression failed" }
-                    val bytes = stream.toByteArray()
-                    if (bytes.size <= MAX_BYTES) return Result(bytes,
-                        if (transparent) "image/png" else "image/jpeg",
-                        if (transparent) "avatar.png" else "avatar.jpg")
+            // PNG compression is lossless: reducing quality does not reduce file size.
+            // Retry progressively smaller dimensions instead of rejecting valid photos.
+            val transparent = mime == "image/png" && decoded.hasAlpha()
+            val format = if (transparent) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
+            val edges = listOf(1600, 1280, 1024, 800, 640, 480)
+            for (edge in edges) {
+                val scale = minOf(1f, edge.toFloat() / maxOf(decoded.width, decoded.height))
+                val scaled = if (scale < 1f) Bitmap.createScaledBitmap(
+                    decoded, maxOf(1, (decoded.width * scale).toInt()),
+                    maxOf(1, (decoded.height * scale).toInt()), true
+                ) else decoded
+                try {
+                    val qualities = if (transparent) listOf(100) else listOf(85, 75, 65, 55)
+                    for (quality in qualities) {
+                        val stream = ByteArrayOutputStream()
+                        check(scaled.compress(format, quality, stream)) { "Image compression failed" }
+                        val bytes = stream.toByteArray()
+                        if (bytes.size <= MAX_BYTES) return Result(bytes,
+                            if (transparent) "image/png" else "image/jpeg",
+                            if (transparent) "avatar.png" else "avatar.jpg")
+                    }
+                } finally {
+                    if (scaled !== decoded) scaled.recycle()
                 }
-                error("Image is too large after optimization")
-            } finally {
-                if (scaled !== decoded) scaled.recycle()
             }
+            error("Image is too large after optimization")
         } finally {
             decoded.recycle()
         }
