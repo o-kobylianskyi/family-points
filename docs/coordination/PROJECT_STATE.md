@@ -1,5 +1,11 @@
 # FamilyPoints — shared status snapshot
 
+## CURRENT DIRECTIVE — 2026-10-24: interim BETA stabilization, NO new global features
+- **Agreed user instruction:** Finish current work to a stable intermediate BETA; avoid launching new global tasks. Small bug/UX corrections and critical security/data-loss/release blockers only. New product ideas get parked in [post-BETA backlog](POST_INTERIM_BETA_BACKLOG.md) for later triage, not automatically assigned.
+- Current eligible cycle: calendar PR #4 and Media PR #5 where releasable, Web/Android connection to approved API, existing core flows, offline correctness, current bugs, migration/tenant tests, backup, signed APK and independent Release smoke. Noncritical incomplete enhancements can be deliberately excluded from the interim BETA by release review and user agreement.
+- **Deferred until after this BETA:** IMP-0008 templates/wizard and IMP-0009 family reset, including XTR-20261024-P-01..08. Keep specs, do not implement now. No real deletion is requested. This overrides earlier notes suggesting templates or reset should start immediately.
+
+
 ## 2026-10-24 — Architecture cross-track verification (14:46 Europe/Berlin; SOURCE/CI only)
 - Canonical `main` at `c98a83e1fa8e8946cf92e177e1b47c005e7973af` before this documentation note. `main` CI [run 40088498827](https://github.com/o-kobylianskyi/family-points/actions/runs/40088498827) SUCCESS: Java21/Maven/PostgreSQL Testcontainers, Android Gradle debug, Web Vite and Docker Compose. GitHub `main` still reports `protected=false` (direct push not gated by branch protection).
 - Android already in `main`: Compose Calendar day/week/month, semantic TASK vs REWARD_WINDOW timeline, 3 stats, filters and Today/Tomorrow; **presentation only, no real Backend Calendar endpoint binding/data/offline cache or full real-device acceptance**. Web Soft Family styles and 11 checked-in static WebP references remain in main; user-approved Home visual must not be changed casually.

@@ -1,5 +1,9 @@
 # FamilyPoints — cross-track technical requests (XTR)
 
+## Scope freeze (2026-10-24)
+**No new global XTR/IMP work until an interim BETA is released.** Current existing calendar/media/bugfix/security/release work continues. Existing XTR-20261024-P-01..08 for new template library and selective family reset are **ON HOLD / AFTER_INTERIM_BETA**, overriding their historical READY/PLANNED lines. Record future ideas only in [backlog](../POST_INTERIM_BETA_BACKLOG.md), not another new task, unless the user explicitly approves an exception.
+
+
 This directory is the durable handoff queue between the five direction-specific development chats, **not** an implementation backlog replacing each track's journal or the cross-track impact register.
 
 ## Rules

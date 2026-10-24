@@ -1,5 +1,14 @@
 # FamilyPoints — mandatory rules for every project chat/agent
 
+## TEMPORARY MANDATORY PRIORITY — INTERIM BETA FEATURE FREEZE (user decision 2026-10-24)
+- **Goal:** stabilize and release the CURRENT FamilyPoints functionality as an interim BETA before any new global product initiatives.
+- **Continue:** in-progress accepted Backend PR #4 calendar and PR #5 media as feasible for a safely qualified release, existing Web/Android integration, auth/offline/data integrity, regression fixes, testing, migrations, backups, signed APK and BETA smoke. Release decides what is actually ready; never equate committed, CI-passing, or planned with deployed.
+- **Allowed:** small UI corrections and bugs in existing behavior. Urgent security, tenant isolation, data loss or release-blocking failures remain in scope even if complex; document and communicate scope implications.
+- **STOP creating new global tasks:** new modules, large features and broad refactors are recorded in [POST_INTERIM_BETA_BACKLOG](docs/coordination/POST_INTERIM_BETA_BACKLOG.md) only; no new cross-track XTR/IMP or implementation unless user explicitly reprioritizes.
+- **Explicitly PARKED:** Family Templates and initial setup expansion (IMP-0008 / XTR-20261024-P-01..04); selective Family Reset (IMP-0009 / XTR-20261024-P-05..08). Their prior READY/PLANNED labels are overridden by **AFTER_INTERIM_BETA**.
+- This freeze overrides earlier broad roadmap priorities, not safety and independent Release approval. Review it at the start of all five chat tracks.
+
+
 **Start here:** [docs/coordination/README.md](docs/coordination/README.md). These rules apply to Architecture / Planning, Backend, Web, Android and Release / DevOps.
 
 ## At the beginning of EVERY chat or substantial work batch
