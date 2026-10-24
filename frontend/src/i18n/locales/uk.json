@@ -1,5 +1,6 @@
 {
   "numberInput": {
+    "controls": "Керування числом",
     "increase": "Збільшити значення {{field}}",
     "decrease": "Зменшити значення {{field}}"
   },
