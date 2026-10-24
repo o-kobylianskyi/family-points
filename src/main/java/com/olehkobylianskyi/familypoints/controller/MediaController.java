@@ -12,6 +12,19 @@ public class MediaController {
     private final MediaService media;
     public MediaController(MediaService media){this.media=media;}
     public record BindRequest(String assetId,String catalogKey,Integer expectedVersion){}
+    public record WorkspaceMediaManifest(MediaService.Ref cover, MediaService.Ref icon,
+                                         List<MediaService.CatalogItem> coverChoices) {}
+
+    @GetMapping("/manifest")
+    public WorkspaceMediaManifest manifest(@PathVariable long workspaceId) {
+        var cover=media.effective(workspaceId,"WORKSPACE",workspaceId,"COVER");
+        var icon=media.effective(workspaceId,"WORKSPACE",workspaceId,"ICON");
+        var choices=media.catalog().stream()
+                .filter(x -> x.category().equals("COVER") || x.category().equals("FAMILY"))
+                .toList();
+        return new WorkspaceMediaManifest(cover,icon,choices);
+    }
+
     @GetMapping("/catalog")
     public List<MediaService.CatalogItem> catalog(@PathVariable long workspaceId) {
         // Does not reveal private workspace data; still require selection via the same media API.
