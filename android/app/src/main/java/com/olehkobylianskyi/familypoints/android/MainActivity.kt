@@ -439,9 +439,12 @@ class MainActivity : ComponentActivity() {
                             if (refreshable && !pullRefreshing) {
                                 pullRefreshing = true
                                 refreshNonce++
-                                pullScope.launch {
-                                    delay(1200L)
-                                    pullRefreshing = false
+                                if (destination != AppDestination.REWARDS) {
+                                    // Other tabs still need real request-completion signals.
+                                    pullScope.launch {
+                                        delay(1200L)
+                                        pullRefreshing = false
+                                    }
                                 }
                             }
                         },
@@ -712,6 +715,9 @@ class MainActivity : ComponentActivity() {
                     destination == AppDestination.REWARDS -> {
                         RewardsScreen(
                             refreshNonce = refreshNonce,
+                            onRefreshComplete = { completedNonce ->
+                                if (completedNonce == refreshNonce) pullRefreshing = false
+                            },
                             language = language,
                             currentUser = currentUser!!,
                             repository = rewardsRepository,
