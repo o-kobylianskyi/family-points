@@ -88,4 +88,20 @@ class MediaServiceSafetyTest {
         assertThrows(IllegalArgumentException.class, ()->
                 media.bind(7L,"WORKSPACE",7L,"COVER",null,"avatar-sky",0));
     }
+
+    @Test void privateMediaReadLocksBindingsAndRejectsUnboundAsset() {
+        when(current.belongsToWorkspace(7L)).thenReturn(true);
+        String id=UUID.randomUUID().toString();
+        when(db.query(contains("FOR SHARE OF b"),
+                org.mockito.ArgumentMatchers.<org.springframework.jdbc.core.RowMapper<String[]>>any(),
+                eq(id), eq(7L), eq(7L))).thenReturn(java.util.List.of());
+        var ex=assertThrows(ResponseStatusException.class,
+                () -> media.getBoundVariant(7L,id,"THUMB"));
+        assertEquals(HttpStatus.NOT_FOUND,ex.getStatusCode());
+        verify(db).query(contains("FOR SHARE OF b"),
+                org.mockito.ArgumentMatchers.<org.springframework.jdbc.core.RowMapper<String[]>>any(),
+                eq(id), eq(7L), eq(7L));
+        verifyNoMoreInteractions(db);
+    }
+
 }
