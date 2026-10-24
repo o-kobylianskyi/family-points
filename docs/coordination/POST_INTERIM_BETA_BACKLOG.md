@@ -8,6 +8,19 @@
 |---|---|---|---|
 | BKL-001 | Ready-made family templates, starter bundles and importable task/group/reward structures | [ADR-TEMPLATES-001](../architecture/ADR-TEMPLATES-001.md), IMP-0008; XTR-20261024-P-01..04 | AFTER_INTERIM_BETA |
 | BKL-002 | Administrator family data reset with password confirmation, selective keep/clear checkboxes and restart initial setup | [ADR-FAMILY-RESET-001](../architecture/ADR-FAMILY-RESET-001.md), IMP-0009; XTR-20261024-P-05..08 | AFTER_INTERIM_BETA |
+| BKL-003 | Adult or scoped group administrator records actual child reward receipt, factual delivery/start/end time and corrects duration/price/status with audit | RewardRequest/RewardPurchase lifecycle; existing READY/REDEEMED and ledger | AFTER_INTERIM_BETA |
+| BKL-004 | Private task templates: save existing task, instantiate and assign quickly; child accepts or authorized adult records acceptance | ADR-TEMPLATES-001; current TaskDefinition/TaskInstance/Claim/Complete | AFTER_INTERIM_BETA |
+| BKL-005 | Adult-controlled task execution history corrections: backdate acceptance/start/completion, re-evaluate points, correct approvals and erroneous child operations | TaskInstance history, scoped group permissions and points/reputation ledger | AFTER_INTERIM_BETA |
+
+### Detailed acceptance notes for BKL-003 and BKL-005
+
+**BKL-003 — Reward delivery by an authorized adult.** Child submits request, parent approves, purchase/debit happens once, then actual fulfillment is separately acknowledged by the child or a parent / group administrator with delegated rights scoped to that child. Record `occurredAt` (actual receipt/start/end), `recordedAt` (time entered), actor, recipient, reason, and original vs new values. Permit backdated factual delivery and correcting duration, receipt status and price. Never equate approval with delivery. Any adjustment of purchased price creates a compensating ledger entry rather than rewriting historic transactions. Guard approval/fulfillment and purchase against duplication, cross-family leaks and expired/unauthorized role scopes.
+
+**BKL-005 — Parent correction of task history.** On a specific TaskInstance/task occurrence, an authorized family parent or delegated group manager can (1) mark accepted/in-progress on child's behalf with actual past timestamp; (2) record or amend actual start/end/completion time; (3) mark completed/approved/rejected or undo incorrect action with required reason; (4) re-evaluate earned points/reputation and create delta adjustment(s) rather than mutate/delete history; (5) review all adjustments as actor/action/time-old→new, with explicit disclosure to the child. Preserve immutable `recordedAt` and separately editable, auditable `occurredAt`. Check recurring tasks, group/shared assignments, already paid task points, streaks, time limits, approval rules and refund/recalculation policies; prevent duplicate payout, self-approval loopholes, cross-workspace access and member/group manager privilege escalation. UI should support correction from child operation history, not just editing a TaskDefinition master record. No actual child event should be silently manufactured as child-authored; display 'recorded by parent on behalf of child'.
+
+**Release freeze:** Existing approved-reward purchase failure, logout, incorrect task completion, duplicate debit or offline synchronization defects remain present-BETA bugs, irrespective of deferred adult correction functionality. This backlog records future product features only. Do not start new cross-track XTR/IMP or source changes before the interim BETA is released and verified or the user explicitly reprioritizes.
+
+
 
 ## Intake rules
 1. Minor bugs/regressions/UX adjustments to **current** behavior belong to existing stabilization work, not this deferred backlog.
