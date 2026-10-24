@@ -5509,3 +5509,7 @@ button:focus-visible {
 /* Center the stat-card chevron glyph optically inside its circular badge. */
 .fp-dashboard .fp-stat-arrow{display:flex;align-items:center;justify-content:center;padding:0;flex:0 0 27px}
 .fp-dashboard .fp-stat-arrow>span{display:block;line-height:1;transform:translate(-1px,-2px)}
+
+/* Catalog reward CTA stays at the lower-right corner without changing the purchase flow. */
+.rewards-grid > .reward-card{display:flex;flex-direction:column;min-width:0}
+.rewards-grid > .reward-card > .reward-card-actions{margin-top:auto;padding-top:14px;justify-content:flex-end;align-items:center}
