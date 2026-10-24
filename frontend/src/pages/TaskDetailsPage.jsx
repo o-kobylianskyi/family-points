@@ -186,7 +186,7 @@ function TaskDetailsPage() {
         <div>
           <div className="task-details-number">{t('taskDetailsUi.taskNo', { id: task.id })}</div>
           <h1>{task.title}</h1>
-            <EntityMedia type="TASK" targetId={Number(definitionId)} slot="ICON" canEdit={canManage}/>
+            <EntityMedia compact type="TASK" targetId={Number(definitionId)} slot="ICON" canEdit={canManage}><span className="task-media-placeholder" aria-hidden="true">▧</span></EntityMedia>
           {task.description && <p>{task.description}</p>}
         </div>
         <span className={task.active ? 'task-status task-status-completed' : 'task-status'}>
