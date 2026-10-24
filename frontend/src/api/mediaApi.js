@@ -24,11 +24,19 @@ export const deleteMediaBinding = async (token, workspaceId, type, targetId, slo
     { token, method: 'DELETE' }))
 
 // Never put a Bearer-protected URL into img.src directly; caller revokes the Blob URL.
-export async function fetchAuthorizedMediaObjectUrl(token, path) {
-  if (!/^\/workspaces\/\d+\/media\//.test(path)) throw new Error('Invalid media path')
+export async function fetchAuthorizedMediaObjectUrl(token, path, workspaceId) {
+  // Never attach a session token to a URL outside the active family.
+  const prefix = `/workspaces/${workspaceId}/media/`
+  if (!Number.isSafeInteger(Number(workspaceId)) || !path?.startsWith(prefix) ||
+      /[?#]/.test(path) || path.includes('..') || path.includes('//') ||
+      !/^\/workspaces\/\d+\/media\/[A-Za-z0-9/_-]+$/.test(path)) {
+    throw new Error('Invalid workspace media path')
+  }
   const response = await apiRequest(path, { token })
   if (!response.ok) throw new Error(`Media image unavailable (HTTP ${response.status})`)
-  return URL.createObjectURL(await response.blob())
+  const blob = await response.blob()
+  if (!blob.type.startsWith('image/')) throw new Error('Unexpected media content type')
+  return URL.createObjectURL(blob)
 }
 
 export async function uploadMedia(token, workspaceId, file) {
