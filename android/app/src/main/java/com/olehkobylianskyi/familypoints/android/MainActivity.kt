@@ -588,6 +588,7 @@ class MainActivity : ComponentActivity() {
                                 selectedDate = selectedTaskDate,
                                 selectedSlotKey = selectedTaskSlotKey,
                                 repository = taskDetailsRepository,
+                                settingsRepository = settingsRepository,
                                 onLanguageChange = changeLanguage,
                                 onLogout = logout,
                                 onNavigate = navigate,
