@@ -187,7 +187,7 @@ fun PointsScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
+    LaunchedEffect(currentUser.accountId, currentUser.username, currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
         pointTypes = repository.cachedPointTypes(currentUser.workspaceId, currentUser.memberId)
         if (serverStatus == ServerStatus.ONLINE) {
             try {
@@ -216,7 +216,7 @@ fun PointsScreen(
         currencyForms = updated
     }
 
-    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
+    LaunchedEffect(currentUser.accountId, currentUser.username, currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
         rewardCatalog = rewardsRepository.cached(currentUser.workspaceId, currentUser.memberId)
             ?.rewards.orEmpty()
         if (serverStatus == ServerStatus.ONLINE) {
@@ -232,7 +232,7 @@ fun PointsScreen(
         }
     }
 
-    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
+    LaunchedEffect(currentUser.accountId, currentUser.username, currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
         loadingMembers = false
         error = ""
         pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId, currentUser.accountId)
@@ -321,7 +321,7 @@ fun PointsScreen(
         }
     }
 
-    LaunchedEffect(selectedMemberId, serverStatus, refreshNonce) {
+    LaunchedEffect(currentUser.accountId, currentUser.username, currentUser.workspaceId, selectedMemberId, serverStatus, refreshNonce) {
         try {
             selectedMemberId?.let { loadPoints(it) }
         } finally {
