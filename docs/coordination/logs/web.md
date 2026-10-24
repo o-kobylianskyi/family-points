@@ -288,3 +288,9 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Existing Web Variant E, draft-only selection and Save sequence were implemented in prior commits in `MemberEditor.jsx`, `EntityMedia.jsx`, `MembersPage.jsx`; **the current text-select and limited curated assets remain unsatisfactory** and this new task explicitly supersedes that UI.
 - Initial avatar catalog includes named color/avatar styles; a more balanced **real image bank** needs coordination and actual asset generation/curation.
 - No release acceptance or automated/manual test PASS is claimed by this handoff.
+
+
+## 2026-10-24 — Screenshot defect: profile dropdown persists after outside click
+- User screenshot confirms top-right user profile dropdown remains open when clicking elsewhere. AppLayout used uncontrolled native `<details>` without outside-dismiss behavior.
+- Fix in AppLayout.jsx commit 8425009: controlled profileOpen, document pointerdown listener closes only when clicked outside ref, Escape closes, route and workspace changes reset; profile toggle remains clickable, Settings link closes menu. Event listeners added only while open and cleaned on close/unmount. No profile layout or avatar changes.
+- QA later: click account opens, click outside closes, click inside does not prematurely close, Escape, Settings navigation, workspace switch, mobile layout, no immediate reopening.
