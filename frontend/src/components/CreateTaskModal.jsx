@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext'
@@ -189,6 +189,7 @@ function CreateTaskModal({
     useState(initialTask?.penaltyReputationAmount ?? TASK_ECONOMY_PRESETS.SIMPLE.penaltyReputationAmount)
 
   const [loading, setLoading] = useState(false)
+  const submitLock = useRef(false)
 
   // Escape is safe while editing, but must not dismiss a save in progress.
   useEffect(() => {
@@ -362,7 +363,7 @@ function CreateTaskModal({
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (loading) return
+    if (submitLock.current || loading) return
 
     const trimmedTitle = title.trim()
 
@@ -425,6 +426,7 @@ function CreateTaskModal({
       return
     }
 
+    submitLock.current = true
     try {
       setLoading(true)
       setError('')
@@ -513,6 +515,7 @@ function CreateTaskModal({
     } catch (error) {
       setError(error.message)
     } finally {
+      submitLock.current = false
       setLoading(false)
     }
   }
