@@ -258,7 +258,17 @@ fun RewardsScreen(
                         if (reviewPointTypeId == null) reviewPointTypeId = extra.pointTypes.firstOrNull()?.id
                     }
                 } catch (e: HttpException) {
-                    if (e.code() == 401) onUnauthorized()
+                    // Supplemental data is optional. A 401 from a background request
+                    // must not destroy the active session while a reward action runs.
+                    // Foreground authenticated actions still handle their own 401.
+                    if (e.code() == 401 && refreshVersion == thisRefresh) {
+                        error = when (language) {
+                            AppLanguage.UK -> "Не вдалося оновити додаткові дані нагород. Оновіть сторінку."
+                            AppLanguage.DE -> "Zusätzliche Belohnungsdaten konnten nicht geladen werden. Bitte aktualisieren."
+                            AppLanguage.EN -> "Could not refresh extra reward data. Please refresh."
+                            AppLanguage.RU -> "Не удалось обновить дополнительные данные наград. Обновите страницу."
+                        }
+                    }
                 } catch (_: Exception) {
                     // Catalog, price and requirements remain usable for viewing.
                 }
