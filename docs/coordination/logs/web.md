@@ -306,3 +306,8 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - User screenshot shows right chevron visually off-center inside the circular indicator on home dashboard stat card.
 - Kept existing 27x27 badge and its approved placement; wrapped glyph in an inner span (DashboardPage.jsx commit 00d5363) and applied scoped optical x/y translation with flex centering (App.css commit c8fbfde). No other Dashboard layout/assets modified.
 - QA later: compare stat arrow centering in light/dark at desktop/mobile; confirm no regressions to stat card click targets or 480px hide behavior. CI exact SHA remains required.
+
+
+## 2026-10-24 — Sidebar order: Members moved above Settings
+- Per user screenshot/request, removed Members navigation item from the main/top links and inserted it into sidebar-bottom immediately before Settings. Download link remains as before; dynamic groups, Tasks, Calendar, Points, Rewards and routing unchanged. Code commit `f0d7599e33a521ee4913271108f9b156b46bebf3`.
+- QA after deploy: bottom navigation order Download → Members → Settings, active state and mobile sidebar, long localized labels; build CI separately.
