@@ -11,6 +11,27 @@ const translations={
  en:{title:'Calendar',today:'Today',day:'Day',week:'Week',month:'Month',tasks:'Tasks',rewards:'Rewards',all:'All',noEvents:'No events for this day',timezone:'Time zone',save:'Save',deadline:'Deadline',window:'Reward window',planned:'Planned',loading:'Updating',untimed:'No exact time',notStart:'Task times are deadlines, not start times',settings:'Time settings',retry:'Retry'},
  ru:{title:'Календарь',today:'Сегодня',day:'День',week:'Неделя',month:'Месяц',tasks:'Задания',rewards:'Награды',all:'Все',noEvents:'На этот день событий нет',timezone:'Часовой пояс',save:'Сохранить',deadline:'Срок',window:'Окно получения',planned:'Запланировано',loading:'Обновление',untimed:'Без точного времени',notStart:'Время задания — срок, а не начало',settings:'Настройки времени',retry:'Повторить'},
 }
+const timezoneChoices = [
+  ['Europe/Berlin','Berlin / Deutschland'],
+  ['Europe/Kyiv','Київ / Україна'],
+  ['Europe/Warsaw','Warszawa / Polska'],
+  ['Europe/Prague','Praha / Česko'],
+  ['Europe/Vienna','Wien / Österreich'],
+  ['Europe/Paris','Paris / France'],
+  ['Europe/London','London / United Kingdom'],
+  ['Europe/Rome','Roma / Italia'],
+  ['Europe/Madrid','Madrid / España'],
+  ['Europe/Amsterdam','Amsterdam / Nederland'],
+  ['Europe/Zurich','Zürich / Schweiz'],
+  ['Europe/Helsinki','Helsinki / Suomi'],
+  ['Europe/Bucharest','București / România'],
+  ['Europe/Istanbul','İstanbul / Türkiye'],
+  ['America/New_York','New York / USA'],
+  ['America/Chicago','Chicago / USA'],
+  ['America/Los_Angeles','Los Angeles / USA'],
+  ['Asia/Tokyo','Tokyo / 日本'],
+  ['UTC','UTC'],
+]
 const iso=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')
 const fromISO=s=>new Date(s+'T12:00:00')
 const add=(s,n)=>{const d=fromISO(s);d.setDate(d.getDate()+n);return iso(d)}
@@ -92,7 +113,16 @@ export default function CalendarPage(){
     <header className="fp-cal-heading"><div><h1>{t.title}</h1><p>{t.notStart}</p></div>
       <button className="secondary-button" type="button" onClick={()=>setShowSettings(s=>!s)} aria-expanded={showSettings}>{t.settings}</button>
     </header>
-    {showSettings&&<form className="fp-cal-settings" onSubmit={saveZone}><label>{t.timezone} <input value={zone} disabled={!canManage||zoneBusy} onChange={e=>setZone(e.target.value)}/></label>{canManage&&<button disabled={zoneBusy||!zone.trim()} className="secondary-button">{t.save}</button>}</form>}
+    {showSettings&&<form className="fp-cal-settings" onSubmit={saveZone}>
+      <label>{t.timezone}
+        <select value={zone} disabled={!canManage||zoneBusy||!zone} onChange={e=>setZone(e.target.value)}>
+          {zone&&!timezoneChoices.some(([id])=>id===zone)&&<option value={zone}>{zone}</option>}
+          {!zone&&<option value="">—</option>}
+          {timezoneChoices.map(([id,label])=><option key={id} value={id}>{label} ({id})</option>)}
+        </select>
+      </label>
+      {canManage&&<button type="submit" disabled={zoneBusy||!zone.trim()} className="secondary-button">{t.save}</button>}
+    </form>}
     <section className="fp-cal-surface">
       <div className="fp-cal-toolbar">
         <div className="fp-cal-controls"><button type="button" className="secondary-button" onClick={()=>setFocus(iso(new Date()))}>{t.today}</button><button type="button" className="fp-cal-arrow" aria-label="Previous" onClick={()=>go(-1)}>‹</button><button type="button" className="fp-cal-arrow" aria-label="Next" onClick={()=>go(1)}>›</button><strong className="fp-cal-period">{periodLabel}</strong></div>
