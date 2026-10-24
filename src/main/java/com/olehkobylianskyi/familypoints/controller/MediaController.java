@@ -5,6 +5,9 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/workspaces/{workspaceId}/media")
@@ -23,6 +26,36 @@ public class MediaController {
                 .filter(x -> x.category().equals("COVER") || x.category().equals("FAMILY"))
                 .toList();
         return new WorkspaceMediaManifest(cover,icon,choices);
+    }
+
+    // A bounded, authorization-scoped projection for list UIs. Never return
+    // results for targets the caller is not entitled to view.
+    public record ImageTarget(String type, long targetId, String slot) {}
+    public record ImageReference(ImageTarget target, MediaService.Ref image) {}
+    public record ReferenceBatch(List<ImageTarget> targets) {}
+
+    @PostMapping("/references")
+    public List<ImageReference> references(@PathVariable long workspaceId,
+                                           @RequestBody ReferenceBatch batch) {
+        if (batch == null || batch.targets() == null || batch.targets().isEmpty()
+                || batch.targets().size() > 100)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "MEDIA_REFERENCE_BATCH_SIZE");
+        // Fail the entire request on unauthorized or nonexistent targets,
+        // rather than silently returning partial results that leak existence.
+        var targets=new LinkedHashSet<ImageTarget>(batch.targets());
+        if (targets.contains(null))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "INVALID_MEDIA_TARGET");
+        List<ImageReference> result=new ArrayList<>(targets.size());
+        for (ImageTarget target:targets) {
+            if (target.type()==null || target.slot()==null || target.targetId()<=0)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "INVALID_MEDIA_TARGET");
+            result.add(new ImageReference(target,
+                    media.effective(workspaceId,target.type(),target.targetId(),target.slot())));
+        }
+        return List.copyOf(result);
     }
 
     @GetMapping("/catalog")
