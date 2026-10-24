@@ -16,6 +16,10 @@
 - Current priorities: P0 protect main with required PR checks and force-push block; confirm any local Android-only work; P1 drive Backend PR #4/#5 through integration/test into main; Web visual asset acceptance; Android signed release handoff and actual device checks. Nothing deployed or merged by this documentation-only audit.
 
 
+## 2026-10-24 — Family admin selective reset (DESIGN ONLY)
+- [ADR-FAMILY-RESET-001](../architecture/ADR-FAMILY-RESET-001.md) defines proposed password-confirmed, owner-preserving reset with checklist, exact dry-run counts, dependency checks and optional restart of the SAME first-family/template wizard. Global account/other family data untouched; stale Android offline queues invalidated through workspace generation.
+- New cross-track `IMP-0009`; Backend XTR-20261024-P-05, Web -06, Android -07, Release -08. Backend API, migrations, delete logic, security tests, client UI and deployment **NOT IMPLEMENTED/VERIFIED**.
+- Password-only Google account compatibility, device policy reset and ledger history/backup retention require track security review. Older project-state entries and SHA snapshots must be read as history.
 ## Current branch authority — 2026-10-23 (supersedes the historic branch lines below)
 - **`main` is the only canonical GitHub source branch**, also repo default. On 2026-10-23 it was safely fast-forwarded from `c6847c6` to former integration HEAD `393f3ee3` (1996 additional commits). Subsequent ADR-COORD-005 and migration documents were committed directly to `main`. Always fetch live `origin/main` HEAD.
 - Pre-promotion integration run `39865885022` passed CI; later `main` changes need their own CI checks. Ordinary `main` push does NOT deploy BETA (release workflow gated separately).

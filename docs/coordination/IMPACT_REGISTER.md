@@ -98,6 +98,16 @@
 - **Tasks:** [B XTR-20261024-P-01](requests/XTR-20261024-P-01.md), [W -02](requests/XTR-20261024-P-02.md), [A -03](requests/XTR-20261024-P-03.md), [R -04](requests/XTR-20261024-P-04.md). Architecture [ADR-TEMPLATES-001](../architecture/ADR-TEMPLATES-001.md), prior [onboarding plan](../MULTI_FAMILY_ONBOARDING_PLAN.md).
 - **Test/release:** empty first family/skip/resume, existing family select one or bundle, parent-member mapping, cross-family deny, competing import requests, idempotent retries and duplicate detection, reward task prerequisites by key, historical data untouched, no ledger credit/debit, four languages, migration/rollback, client tests and separate Release approval. **No implementation/CI/deploy is implied by this impact registration.**
 
+## IMP-0009 — Workspace-owned data reset, credential revalidation and onboarding restart
+- **Producer / date / status:** Architecture / 2026-10-24 / **PROPOSED, ACK NEEDED**; user requested admin family reset with checklist of data cleared/preserved, current password verification and ability to restart original template/setup wizard.
+- **Old → new:** current Settings page supports password/accounts, but no family data reset API, preview, dependent delete planner or offline reset version. Proposed privileged, reauthenticated, dry-run reviewed, workspace-scoped clear/zero with explicit dependency masks, preserved Workspace/owner identity, ledger coherence and secure audit. Global UserAccount and other workspaces never deleted.
+- **Consumers:** Backend [ ]; Web [ ]; Android [ ]; Release [ ]; Architecture [x] (design drafted, no tests).
+- **Security:** fresh actor password or equivalent Google reauth; one-use TTL challenge bound to preview/scope/workspace generation, typed family-name confirmation and server-side membership/permission recheck. Reject children and other family admins; rate-limit; no plaintext password in logs.
+- **Data impact:** TaskDefinition/WorkNode/TaskInstance/history; RewardCategory/RewardDefinition/purchases/obligations; MemberGroup, group/member links; member/group point and reputation ledgers; economy settings; invitations; managed devices; uploaded media bindings; only supported combinations shown in UI after FK dependency tests. Balance reset with history retained uses auditable adjustments, not silent field overwrite.
+- **Sync/compatibility:** increment workspaceDataGeneration epoch on completion, invalidate/reset affected caches and stale Android offline mutations; preserve unrelated families; **reset never silently disables on-device Device Owner restrictions**. When restart requested, set setup draft and open existing ADR-TEMPLATES-001 onboarding; keep admin alive and safe template re-import provenance.
+- **Handoffs:** [B XTR-20261024-P-05](requests/XTR-20261024-P-05.md), [W -06](requests/XTR-20261024-P-06.md), [A -07](requests/XTR-20261024-P-07.md), [R -08](requests/XTR-20261024-P-08.md); [ADR-FAMILY-RESET-001](../architecture/ADR-FAMILY-RESET-001.md).
+- **Release gate:** side-effect-free preview, explicit password checks, idempotent execution and rollback, tenant/owner survival, FK integrity, device/reward entitlement handling, exact count preview and backup/retention policy verified only on disposable test data. No live purge, migration or deployment authorized.
+
 ## Template for each next impact
 ```md
 ## IMP-000X — Summary

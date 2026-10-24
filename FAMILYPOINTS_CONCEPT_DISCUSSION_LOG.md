@@ -1847,3 +1847,7 @@ The negotiation form is initialized from the current TaskInstance reward snapsho
 ## 2026-10-24 — FamilyPoints initial-family presets and templates (USER REQUEST; PLAN RECORDED)
 - Product request: optional selection from starter family variants, initial people groups, task categories and task definitions, reward categories and reward definitions; avoid creating all manually from zero. Support ready packs and individual selection, edit/assignee/point/recurrence preview, import later into an existing family, and reuse existing task/reward as private template.
 - Product direction AGREED; pack quantities/exact currency values and detailed API remain PROPOSED. No fake persisted children/account/point ledger, no cross-family mutable references. See ADR-TEMPLATES-001, IMP-0008, XTR-20261024-P-01..04.
+
+## 2026-10-24 — Admin-selectable family reset and re-run setup (REQUESTED)
+- User requested settings-only administrator action to reset all or selected family data with password identity confirmation and checkboxes of what to clear/keep, followed by optional repeated initial family setup/templates. Preserve login/identity and other families; verify dependencies between tasks, rewards, balances, histories, people, devices and private media.
+- Planned three modes: reset progress, selective cleanup, restart setup; preview actual category counts before irreversible confirmation. Global template/image bank remains. Current implementation not present. Architecture ADR-FAMILY-RESET-001, IMP-0009, XTR-20261024-P-05..08.

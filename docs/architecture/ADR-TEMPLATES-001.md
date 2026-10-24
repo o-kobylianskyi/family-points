@@ -36,3 +36,6 @@ Two isolated families; active workspace switch; child cannot import/change membe
 3. Future: optional cross-family template sharing, AI selection, template subscriptions, reward category trees — not part of this implementation.
 
 This extends the 2026-10-12 first-run plan, not a parallel second onboarding system.
+
+## Optional restart after selective family reset (2026-10-24)
+The user also requires an administrator-only **reset family data** settings function with selectable categories to clear/retain, fresh password confirmation and option to rerun this same initial setup wizard. Reset does not recreate Workspace/global UserAccount or affect other families; it preserves admin access, real member mapping unless explicitly selected and catalog version. After server-confirmed reset+workspace generation change, wizard state becomes DRAFT and template packs may be selected and installed again without unintended old provenance dedupe. See ADR-FAMILY-RESET-001, IMP-0009; details are PROPOSED until implemented.
