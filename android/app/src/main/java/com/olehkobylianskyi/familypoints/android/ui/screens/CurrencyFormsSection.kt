@@ -1,6 +1,8 @@
 package com.olehkobylianskyi.familypoints.android.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -79,8 +81,15 @@ fun CurrencyFormsSection(
         AlertDialog(
             onDismissRequest = { if (!busy) selected = null },
             title = { Text(localizedCurrencyName(language, type.code, type.name)) },
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 2.dp,
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 420.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     OutlinedButton(onClick = { languageMenu = true }) {
                         Text(languageCode.uppercase() + " ▾")
                     }
