@@ -444,6 +444,119 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    void mediaSchemaIsInstalledWithScopedBlobAndBindingTables() {
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT count(*) FROM flyway_schema_history
+            WHERE version='36' AND success=true
+            """, Integer.class));
+        for (String table : java.util.List.of("media_assets","media_blobs","media_bindings")) {
+            assertEquals(1, jdbc.queryForObject("""
+                SELECT count(*) FROM information_schema.tables
+                WHERE table_schema='public' AND table_name=?
+                """, Integer.class, table));
+        }
+    }
+
+    @Test
+    @Transactional
+    void scopedMediaHttpCannotReadAnotherFamilysPrivateImageEvenKnowingUuid() throws Exception {
+        Workspace alpha = new Workspace("Private media family A");
+        Workspace beta = new Workspace("Private media family B");
+        entityManager.persist(alpha);
+        entityManager.persist(beta);
+        WorkspaceRole alphaRole = new WorkspaceRole(alpha, "CHILD", "Child A", false);
+        WorkspaceRole betaRole = new WorkspaceRole(beta, "CHILD", "Child B", false);
+        entityManager.persist(alphaRole);
+        entityManager.persist(betaRole);
+        WorkspaceMember alphaMember = new WorkspaceMember("Media member A",
+                WorkspaceMemberType.CHILD, alphaRole, alpha);
+        WorkspaceMember betaMember = new WorkspaceMember("Media member B",
+                WorkspaceMemberType.CHILD, betaRole, beta);
+        entityManager.persist(alphaMember);
+        entityManager.persist(betaMember);
+        UserAccount accountA = new UserAccount("http-media-alpha", "hash", alphaMember);
+        UserAccount accountB = new UserAccount("http-media-beta", "hash", betaMember);
+        entityManager.persist(accountA);
+        entityManager.persist(accountB);
+        entityManager.persist(new AccountWorkspaceMembership(accountA, alphaMember));
+        entityManager.persist(new AccountWorkspaceMembership(accountB, betaMember));
+        entityManager.flush();
+        java.util.UUID mediaId=java.util.UUID.randomUUID();
+        byte[] fakeImage=new byte[]{1,2,3,4}; // HTTP retrieval tests authorization, not decoder.
+        jdbc.update("""
+            INSERT INTO media_assets
+                (id,workspace_id,mime_type,width,height,byte_size,sha256,created_by_member_id)
+            VALUES (?::uuid,?,'image/png',1,1,4,?,?)
+            """,mediaId.toString(),alpha.getId(),"a".repeat(64),alphaMember.getId());
+        jdbc.update("INSERT INTO media_blobs(asset_id,variant,bytes) VALUES (?::uuid,'THUMB',?)",
+                mediaId.toString(),fakeImage);
+        jdbc.update("""
+            INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,asset_id)
+            VALUES (?,'MEMBER',?,'AVATAR',?::uuid)
+            """,alpha.getId(),alphaMember.getId(),mediaId.toString());
+
+        var principalA=User.withUsername(accountA.getUsername())
+                .password("hash").authorities("USER").build();
+        var principalB=User.withUsername(accountB.getUsername())
+                .password("hash").authorities("USER").build();
+        String alphaJwt="Bearer "+jwtService.generateWorkspaceAccessToken(principalA,alpha.getId());
+        String betaJwt="Bearer "+jwtService.generateWorkspaceAccessToken(principalB,beta.getId());
+        String alphaRoute="/workspaces/"+alpha.getId()+"/media/"+mediaId+"/variants/THUMB";
+        String forgedBetaRoute="/workspaces/"+beta.getId()+"/media/"+mediaId+"/variants/THUMB";
+
+        mockMvc.perform(get(alphaRoute).header("Authorization",alphaJwt))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .header().string("X-Content-Type-Options","nosniff"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .content().bytes(fakeImage));
+        mockMvc.perform(get(alphaRoute).header("Authorization",betaJwt))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get(forgedBetaRoute).header("Authorization",betaJwt))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get(alphaRoute)).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/workspaces/{workspaceId}/media/bindings/MEMBER/{memberId}/AVATAR",
+                        alpha.getId(),alphaMember.getId())
+                .header("Authorization",betaJwt)).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @Transactional
+    void mediaClearRetainsVersionAndRejectsStaleEditorThroughDatabase() {
+        Workspace workspace = new Workspace("Media optimistic lock family");
+        entityManager.persist(workspace);
+        entityManager.flush();
+        Long wid=workspace.getId();
+        // A previously selected catalog image at version one.
+        jdbc.update("""
+            INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,catalog_key,version)
+            VALUES (?,'WORKSPACE',?,'ICON','family-default',1)
+            """,wid,wid);
+        // The clear operation preserves a tombstone at version two.
+        jdbc.update("""
+            UPDATE media_bindings SET catalog_key=NULL,asset_id=NULL,
+                version=version+1 WHERE workspace_id=? AND target_type='WORKSPACE'
+                AND target_id=? AND slot='ICON'
+            """,wid,wid);
+        assertEquals(2,jdbc.queryForObject("""
+            SELECT version FROM media_bindings WHERE workspace_id=?
+            AND target_type='WORKSPACE' AND target_id=? AND slot='ICON'
+            """,Integer.class,wid,wid));
+        assertEquals(0,jdbc.update("""
+            INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,catalog_key)
+            VALUES (?,'WORKSPACE',?,'ICON','family-cover-default')
+            ON CONFLICT(workspace_id,target_type,target_id,slot)
+            DO UPDATE SET catalog_key=excluded.catalog_key,
+                asset_id=NULL,version=media_bindings.version+1
+            WHERE media_bindings.version=1
+            """,wid,wid));
+        assertNull(jdbc.queryForObject("""
+            SELECT catalog_key FROM media_bindings WHERE workspace_id=?
+            AND target_type='WORKSPACE' AND target_id=? AND slot='ICON'
+            """,String.class,wid,wid));
+    }
+
+    @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
