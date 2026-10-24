@@ -521,6 +521,42 @@ class FamilyPointsApplicationTests {
     }
 
     @Test
+    @Transactional
+    void mediaClearRetainsVersionAndRejectsStaleEditorThroughDatabase() {
+        Workspace workspace = new Workspace("Media optimistic lock family");
+        entityManager.persist(workspace);
+        entityManager.flush();
+        Long wid=workspace.getId();
+        // A previously selected catalog image at version one.
+        jdbc.update("""
+            INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,catalog_key,version)
+            VALUES (?,'WORKSPACE',?,'ICON','family-default',1)
+            """,wid,wid);
+        // The clear operation preserves a tombstone at version two.
+        jdbc.update("""
+            UPDATE media_bindings SET catalog_key=NULL,asset_id=NULL,
+                version=version+1 WHERE workspace_id=? AND target_type='WORKSPACE'
+                AND target_id=? AND slot='ICON'
+            """,wid,wid);
+        assertEquals(2,jdbc.queryForObject("""
+            SELECT version FROM media_bindings WHERE workspace_id=?
+            AND target_type='WORKSPACE' AND target_id=? AND slot='ICON'
+            """,Integer.class,wid,wid));
+        assertEquals(0,jdbc.update("""
+            INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,catalog_key)
+            VALUES (?,'WORKSPACE',?,'ICON','family-cover-default')
+            ON CONFLICT(workspace_id,target_type,target_id,slot)
+            DO UPDATE SET catalog_key=excluded.catalog_key,
+                asset_id=NULL,version=media_bindings.version+1
+            WHERE media_bindings.version=1
+            """,wid,wid));
+        assertNull(jdbc.queryForObject("""
+            SELECT catalog_key FROM media_bindings WHERE workspace_id=?
+            AND target_type='WORKSPACE' AND target_id=? AND slot='ICON'
+            """,String.class,wid,wid));
+    }
+
+    @Test
     void contextLoads() {
         // Spring starts, Flyway migrates V1..V29, and Hibernate validates the schema.
     }
