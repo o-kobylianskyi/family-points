@@ -205,3 +205,10 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Restored one clean member avatar position and moved image selection/upload/reset to compact pencil-triggered modal in `EntityMedia` (d2c2565) and `MembersPage` (819d975). Scoped Soft Family CSS `EntityMedia.css` (7804b47) imported at f72194c. Existing avatar fallback persists; no duplicate 'no image' on card and file controls never render inline in member grid. Modal width bounded and file buttons styled for themes.
 - Keep original member card click for editing member details; pencil stops bubbling, so media action opens separately. Standard Dashboard CSS/art untouched.
 - Manual browser QA deferred by user, but screenshot regression is a clear rejection of previous layout. Verify member cards with 3+ members, avatar upload modal, role edit click, responsive widths and light/dark, eventual rendering after refresh. CI exact integrated SHA must pass independently.
+
+
+## 2026-10-24 — Screenshot fixes: task header and family cover editor
+- The user provided two screenshots showing remaining raw Media forms in Task Details and Family Cover Settings. Earlier image mockups were NOT code changes; confirmed this explicitly and shipped actual source corrections.
+- Task details now uses compact EntityMedia thumbnail/placeholder and pencil-triggered modal, removing inline select/native file upload from task header (5565f31); scoped task header styles (e79faf6).
+- Family cover settings now displays wide existing preview, human-readable catalog labels, responsive cover option controls and visually hidden native file input behind styled upload action (215b83d/8e48eee); scoped CSS (4c02046). No invented remote image preview for incomplete catalog choices; only selectable entries with verified previewPath are presented.
+- Backend Media API, selected-workspace scope and approved Home artwork stay untouched. CI and user/browser QA remain independently required; no release claim.
