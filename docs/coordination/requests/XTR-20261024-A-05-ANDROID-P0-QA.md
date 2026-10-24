@@ -100,3 +100,9 @@ Do not mark READY FOR QA or RELEASE until the final SHA passes Android Gradle/un
 - QA MED-AVATAR-WEB-ANDROID-02: switch to another account/family and verify former avatar disappears without cross-account leak; a 401/403 media failure must not log user out.
 - Known limitation: Android's BitmapFactory cannot decode catalog SVG avatar defaults; upload JPG/PNG should render, SVG requires dedicated decoding and testing. Android avatar upload/picker not yet wired.
 - CI for exact-head changes pending at creation of this note. No on-device PASS claim.
+
+## 2026-10-24 — MED-AVATAR-CATALOG-01 Web catalog avatar missing in Android (user screenshots)
+- Reproduced through source: Web fetches `MediaService.Ref.path` pointing to `/workspaces/{id}/media/catalog/{key}/preview` and shows catalog SVG. Android MemberMediaAvatar previously requested image only when `mediaId` non-null, so bound catalog avatars with `mediaId=null, catalogKey=avatar-*` always fell back to initials in both shared AppHeader and MembersScreen.
+- Android adds MediaApi.catalogPreview authenticated endpoint, AndroidSVG dependency and capped SVG bytes rendering to 128x128 bitmap, then circular crop. Only safe catalogKey pattern is interpolated; DEFAULT without explicit binding remains initials.
+- QA: assign catalog avatar to self via Web, open Android on same workspace/account, verify image is visible in header and member card (not letter), survive tab changes; use another avatar catalog option and reopen Android; check user photo uploads still work; wrong workspace, missing bearer, 401/403, offline must show initials, not crash. Verify CI dependency resolution and debug compile.
+- Commits: 2c49ecc, a9b7d31, b038e5a. Device and end-to-end results pending.
