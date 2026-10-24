@@ -1183,14 +1183,19 @@ fun RewardsScreen(
                                             )
                                             Text(purchase.memberName)
                                             Text(
-                                                purchase.priceAmount
-                                                    .toString() +
-                                                    " " +
+                                                formatPointAmount(
+                                                    purchase.priceAmount.toLong(),
+                                                    language,
+                                                    purchase.pointTypeCode,
                                                     pointTypeLabel(
                                                         current.pointTypes,
                                                         purchase.pointTypeId,
                                                         purchase.pointTypeCode
-                                                    )
+                                                    ),
+                                                    purchase.pointTypeId?.let { nameForms[it] }
+                                                        .orEmpty()
+                                                        .map { PointNameForms(it.language, it.one, it.few, it.many) }
+                                                )
                                             )
                                         }
                                     }
