@@ -76,3 +76,15 @@
 **Previously verified CI**: run 40117259515, exact integration candidate `c70d28d`, all four jobs green. Android journal also identifies run 40118508340 on `dbb4148` green; later Web Media/reward patches require their *own* pinned final SHA CI. Independent source i18n mandatory-key parity on 4 languages PASS (QA journal). No manual browser/handset PASSES yet.
 
 **Next human testing wave (when matching build deployed):** WEB-SF-01 smoke and F01/F02/R01 retest; V36 RewardAvailability weekly windows + ONE_TIME; V37 Media A/B isolation; Android AUTH/REF; child -20 reward ledger. Manual cases may remain BLOCKED when BETA/APK stale. Report each failure once by track, deliver consolidated remediation package, then repeat failed + neighboring regression cases.
+
+
+## Incoming checks 2026-10-25 — Android account isolation and avatars
+| QA ID | Priority | Test source | Status | Acceptance |
+|---|---|---|---|---|
+| OFF-ACCOUNT-01..05 | P0 | XTR-A-05 Android | BLOCKED | two global accounts same member; ownerless v2→v3 quarantine; mismatched /api/me; partial 401/403; no cross-account ledger replay |
+| MED-AVATAR-WEB-ANDROID-01/02 | P1 | XTR-A-05 Android | BLOCKED | Web uploaded JPG/PNG appears Android header/member; change account/workspace and media error cannot leak image/logout |
+| MED-AVATAR-CATALOG-01 | P1 | XTR-A-05 Android | BLOCKED | catalog SVG bound in Web appears in Android header/card; changed catalog entry, offline and unauthorized fallback |
+| MED-AVATAR-RESUME-01/02 | P1 | XTR-A-05 Android | BLOCKED | Web avatar A→B→none visible on Android ON_RESUME; no stale cross-account cached avatar |
+| MEDIA-BE-CATALOG | P1 | Backend media journal | NOT_VERIFIED | authenticated catalog sortOrder/tags and bound-read/clear race tests in real isolated API |
+
+**CI freshness:** run 40134239527 independently checked: Maven/Postgres, Web, Compose success; Android cancelled. These are not current-head E2E passes. No signed handset APK or BETA deployed SHA verified. Full manual cases require version-pinned environment.
