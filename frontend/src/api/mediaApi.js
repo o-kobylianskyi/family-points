@@ -1,4 +1,5 @@
 import { apiRequest } from './client'
+import { optimizeMediaUpload } from '../utils/optimizeMediaUpload'
 
 async function json(response) {
   if (!response.ok) {
@@ -41,7 +42,8 @@ export async function fetchAuthorizedMediaObjectUrl(token, path, workspaceId) {
 
 export async function uploadMedia(token, workspaceId, file) {
   const form = new FormData()
-  form.append('file', file)
+  const prepared = await optimizeMediaUpload(file)
+  form.append('file', prepared)
   // multipart must set its own boundary; do not use the JSON apiRequest helper.
   const { API_URL } = await import('./baseUrl')
   const response = await fetch(`${API_URL}/workspaces/${workspaceId}/media/uploads`, {
