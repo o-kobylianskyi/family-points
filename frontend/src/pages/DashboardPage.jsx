@@ -22,7 +22,7 @@ function StatCard({ icon, tone, label, value, note, destination }) {
       <strong className="fp-stat-value">{value}</strong>
       {note && <span className="fp-stat-note">{note}</span>}
     </span>
-    <span className="fp-stat-arrow" aria-hidden="true">›</span>
+    <span className="fp-stat-arrow" aria-hidden="true"><span>›</span></span>
   </Link>
 }
 
