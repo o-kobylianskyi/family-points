@@ -42,6 +42,8 @@ function PointOperationModal({
   const handleSubmit = async (event) => {
     event.preventDefault()
 
+    if (submitting) return
+
     const numericAmount = Number(amount)
 
     if (
@@ -76,7 +78,7 @@ function PointOperationModal({
   return (
     <div
       className="modal-backdrop"
-      onMouseDown={onClose}
+      onMouseDown={() => { if (!submitting) onClose() }}
     >
       <div
         className="modal-card"
@@ -97,6 +99,7 @@ function PointOperationModal({
             type="button"
             className="modal-close"
             onClick={onClose}
+            disabled={submitting}
           >
             ×
           </button>
