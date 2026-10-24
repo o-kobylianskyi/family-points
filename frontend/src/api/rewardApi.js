@@ -16,6 +16,16 @@ async function handleResponse(response, fallbackMessage) {
   return response.status === 204 ? null : response.json()
 }
 
+export async function getRewardAvailability(token, workspaceId, rewardId) {
+  const response = await apiRequest(`/workspaces/${workspaceId}/rewards/${rewardId}/availability`, { token })
+  return handleResponse(response, 'Failed to load reward availability')
+}
+export async function updateRewardAvailability(token, workspaceId, rewardId, schedule) {
+  const response = await apiRequest(`/workspaces/${workspaceId}/rewards/${rewardId}/availability`,
+    { token, method: 'PUT', body: schedule })
+  return handleResponse(response, 'Failed to update reward availability')
+}
+
 export async function getRewards(token, workspaceId) {
   const response = await apiRequest(`/workspaces/${workspaceId}/rewards`, { token })
   return handleResponse(response, 'Failed to load rewards')
