@@ -1072,9 +1072,21 @@ private fun PointTransactionCard(
                 )
 
                 Text(
-                    formatAmount(transaction.amount) +
-                        " " +
-                        pointTypeLabel,
+                    // Numeric amount must use the same plural forms as the balance.
+                    // Never append the currency display name directly (e.g. "10 бали").
+                    if (transaction.pointTypeCode.equals("POINTS", ignoreCase = true) ||
+                        transaction.pointTypeCode.isNullOrBlank()
+                    ) {
+                        val sign = if (transaction.amount > 0) "+" else ""
+                        sign + formatPointAmount(
+                            transaction.amount.toLong(),
+                            language,
+                            "POINTS",
+                            pointTypeLabel
+                        )
+                    } else {
+                        formatAmount(transaction.amount) + " " + pointTypeLabel
+                    },
                     style =
                         MaterialTheme.typography.titleMedium
                 )
