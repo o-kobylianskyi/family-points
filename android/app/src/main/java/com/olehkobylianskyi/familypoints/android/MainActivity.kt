@@ -439,13 +439,7 @@ class MainActivity : ComponentActivity() {
                             if (refreshable && !pullRefreshing) {
                                 pullRefreshing = true
                                 refreshNonce++
-                                if (destination != AppDestination.REWARDS) {
-                                    // Other tabs still need real request-completion signals.
-                                    pullScope.launch {
-                                        delay(1200L)
-                                        pullRefreshing = false
-                                    }
-                                }
+
                             }
                         },
                         modifier = Modifier.fillMaxSize()
@@ -511,6 +505,9 @@ class MainActivity : ComponentActivity() {
                     destination == AppDestination.DASHBOARD -> {
                         DashboardScreen(
                             refreshNonce = refreshNonce,
+                            onRefreshComplete = { completedNonce ->
+                                if (completedNonce == refreshNonce) pullRefreshing = false
+                            },
                             language = language,
                             currentUser = currentUser!!,
                             loadDashboard = {
@@ -556,6 +553,9 @@ class MainActivity : ComponentActivity() {
                     destination == AppDestination.TASKS -> {
                         TasksScreen(
                             refreshNonce = refreshNonce,
+                            onRefreshComplete = { completedNonce ->
+                                if (completedNonce == refreshNonce) pullRefreshing = false
+                            },
                             language = language,
                             currentUser = currentUser!!,
                             repository = tasksRepository,
@@ -686,6 +686,9 @@ class MainActivity : ComponentActivity() {
                     destination == AppDestination.MEMBERS -> {
                         MembersScreen(
                             refreshNonce = refreshNonce,
+                            onRefreshComplete = { completedNonce ->
+                                if (completedNonce == refreshNonce) pullRefreshing = false
+                            },
                             language = language,
                             currentUser = currentUser!!,
                             repository = membersRepository,
@@ -700,6 +703,9 @@ class MainActivity : ComponentActivity() {
                     destination == AppDestination.POINTS -> {
                         PointsScreen(
                             refreshNonce = refreshNonce,
+                            onRefreshComplete = { completedNonce ->
+                                if (completedNonce == refreshNonce) pullRefreshing = false
+                            },
                             language = language,
                             currentUser = currentUser!!,
                             repository = pointsRepository,
