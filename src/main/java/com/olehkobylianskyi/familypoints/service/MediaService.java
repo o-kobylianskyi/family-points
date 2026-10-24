@@ -288,6 +288,7 @@ public class MediaService {
                 SELECT b.target_type,b.target_id,b.slot FROM media_bindings b
                 JOIN media_assets a ON a.id=b.asset_id
                 WHERE b.asset_id=?::uuid AND b.workspace_id=? AND a.workspace_id=?
+                FOR SHARE OF b
                 """,(rs,n)->new String[]{rs.getString(1),Long.toString(rs.getLong(2)),rs.getString(3)},
                 uuid.toString(),ws,ws);
         boolean visible=false;
@@ -335,7 +336,31 @@ public class MediaService {
     // Stable global identifiers. A catalog entry never belongs to an individual
     // workspace and must not be counted against private media quotas.
     public record CatalogItem(String key, String category, String labelKey, int version,
-                              boolean selectable, String previewPath) {}
+                              boolean selectable, String previewPath,
+                              List<String> tags, int sortOrder) {
+        // Existing Java call sites and V37 JSON fields remain compatible.
+        public CatalogItem(String key, String category, String labelKey, int version,
+                           boolean selectable, String previewPath) {
+            this(key, category, labelKey, version, selectable, previewPath,
+                    classify(key, category), orderOf(key));
+        }
+    }
+    private static int orderOf(String key) {
+        int position = catalogKeysInDisplayOrder().indexOf(key);
+        return position < 0 ? 999 : position * 10;
+    }
+    private static List<String> catalogKeysInDisplayOrder() {
+        return List.of("member-default","avatar-sunflower","avatar-sky","avatar-berry",
+            "avatar-mint","avatar-peach","avatar-violet","avatar-ocean","avatar-forest",
+            "family-default","family-cover-default","people-group-default",
+            "task-group-default","task-default","reward-star");
+    }
+    private static List<String> classify(String key, String category) {
+        if (!"AVATAR".equals(category)) return List.of("UNIVERSAL");
+        // Optional presentation recommendations, not a gender or age restriction.
+        // Current bundled V37 assets are abstract rather than demographic portraits.
+        return List.of("UNIVERSAL", "ABSTRACT");
+    }
     public List<CatalogItem> catalog() {
         return List.of(
             new CatalogItem("member-default", "AVATAR", "media.catalog.memberDefault", 1, true, "/workspaces/{workspaceId}/media/catalog/member-default/preview"),
