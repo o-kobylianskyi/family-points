@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import SoftFamilyIcon from './SoftFamilyIcon'
 
-// Web-only presentation. Backend media references are pending IMP-0007.
-// Image URLs must come from trusted application DTOs, never guessed from emails.
+// Presentation only. Private media may arrive as a revocable Blob URL from the authenticated Media API.
+// Image sources must be supplied by trusted components, never inferred from emails.
 export default function FamilyAvatar({ name = '', imageUrl = null, kind = 'member', className = '', size = 'normal', title }) {
   const [failedUrl, setFailedUrl] = useState(null)
   const fallback = Array.from(String(name).trim())[0]?.toLocaleUpperCase() || '?'
   const showImage = typeof imageUrl === 'string'
-    && (imageUrl.startsWith('/') || imageUrl.startsWith('https://'))
+    && (imageUrl.startsWith('/') || imageUrl.startsWith('https://') || imageUrl.startsWith('blob:'))
     && failedUrl !== imageUrl
   const label = title || name || (kind === 'family' ? 'Family' : 'Member')
   return <span
