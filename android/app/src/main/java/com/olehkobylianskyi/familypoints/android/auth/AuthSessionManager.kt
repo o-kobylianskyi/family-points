@@ -215,7 +215,10 @@ class AuthSessionManager(
             // Offline profile access still requires a future local PIN challenge.
             null
         } catch (error: retrofit2.HttpException) {
-            if (error.code() !in listOf(502, 503, 504)) clearSession()
+            // Server failures are not proof of revoked credentials. Keep the
+            // scoped token and retry session restoration on a later launch.
+            // Only a definitive authorization denial invalidates enrollment.
+            if (error.code() == 401 || error.code() == 403) clearSession()
             null
         } catch (_: Exception) {
             clearSession()
@@ -267,9 +270,13 @@ class AuthSessionManager(
                 // The token remains subject to idle timeout and online validation.
                 return true
             } catch (error: retrofit2.HttpException) {
-                if (error.code() in listOf(502, 503, 504)) return true
-                clearSession()
-                return false
+                // Avoid wiping an otherwise valid session on transient 5xx.
+                if (error.code() >= 500 || error.code() == 408 || error.code() == 429) return true
+                if (error.code() == 401 || error.code() == 403) {
+                    clearSession()
+                    return false
+                }
+                return true
             } catch (_: Exception) {
                 clearSession()
                 return false
