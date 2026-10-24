@@ -5495,3 +5495,13 @@ button:focus-visible {
   .modal-card .modal-actions { flex-wrap: wrap; }
   .modal-card .modal-actions > button { min-height: 44px; }
 }
+
+
+/* Preserve the shared number control's seamless surface in dark modal forms.
+   The modal generic input rule must not repaint its internal number input. */
+[data-theme="dark"] .modal-card .fp-number-control.fp-number-control-shared > input[type="number"] {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
