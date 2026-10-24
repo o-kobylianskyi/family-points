@@ -1,5 +1,6 @@
 {
   "numberInput": {
+    "controls": "Number controls",
     "increase": "Increase value {{field}}",
     "decrease": "Decrease value {{field}}"
   },
