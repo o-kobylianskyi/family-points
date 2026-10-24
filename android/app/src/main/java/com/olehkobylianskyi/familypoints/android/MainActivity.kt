@@ -26,6 +26,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.Group
@@ -70,6 +71,7 @@ import com.olehkobylianskyi.familypoints.android.storage.LanguageStore
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import com.olehkobylianskyi.familypoints.android.ui.screens.CreateTaskScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardDestination
+import com.olehkobylianskyi.familypoints.android.ui.screens.CalendarScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.DashboardScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.SettingsScreen
 import com.olehkobylianskyi.familypoints.android.ui.screens.MembersScreen
@@ -91,6 +93,7 @@ import kotlinx.coroutines.launch
 
 private enum class AppDestination {
     DASHBOARD,
+    CALENDAR,
     TASKS,
     TASK_DETAILS,
     CREATE_TASK,
@@ -519,6 +522,10 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    destination == AppDestination.CALENDAR -> {
+                        CalendarScreen(language = language)
+                    }
+
                     destination == AppDestination.TASKS -> {
                         TasksScreen(
                             language = language,
@@ -731,7 +738,7 @@ class MainActivity : ComponentActivity() {
                     }
                     // Fixed native navigation remains visible on all main screens.
                     if (currentUser != null && !authLoading &&
-                        destination in listOf(AppDestination.DASHBOARD, AppDestination.TASKS,
+                        destination in listOf(AppDestination.DASHBOARD, AppDestination.CALENDAR, AppDestination.TASKS,
                             AppDestination.MEMBERS, AppDestination.POINTS, AppDestination.REWARDS,
                             AppDestination.SETTINGS)) {
                         NavigationBar(
@@ -742,12 +749,12 @@ class MainActivity : ComponentActivity() {
                             val destinations = listOf(
                                 Triple(AppDestination.DASHBOARD, Icons.Outlined.Home,
                                     when(language) { AppLanguage.UK -> "Головна"; AppLanguage.DE -> "Start"; AppLanguage.EN -> "Home"; AppLanguage.RU -> "Главная" }),
+                                Triple(AppDestination.CALENDAR, Icons.Outlined.DateRange,
+                                    when(language) { AppLanguage.UK -> "Календар"; AppLanguage.DE -> "Kalender"; AppLanguage.EN -> "Calendar"; AppLanguage.RU -> "Календарь" }),
                                 Triple(AppDestination.TASKS, Icons.Outlined.Checklist,
                                     when(language) { AppLanguage.UK -> "Завдання"; AppLanguage.DE -> "Aufgaben"; AppLanguage.EN -> "Tasks"; AppLanguage.RU -> "Задачи" }),
                                 Triple(AppDestination.MEMBERS, Icons.Outlined.Group,
                                     when(language) { AppLanguage.UK -> "Учасники"; AppLanguage.DE -> "Familie"; AppLanguage.EN -> "Members"; AppLanguage.RU -> "Участники" }),
-                                Triple(AppDestination.POINTS, Icons.Outlined.Payments,
-                                    when(language) { AppLanguage.UK -> "Бали"; AppLanguage.DE -> "Punkte"; AppLanguage.EN -> "Points"; AppLanguage.RU -> "Баллы" }),
                                 Triple(AppDestination.REWARDS, Icons.Outlined.CardGiftcard,
                                     when(language) { AppLanguage.UK -> "Нагороди"; AppLanguage.DE -> "Prämien"; AppLanguage.EN -> "Rewards"; AppLanguage.RU -> "Награды" })
                             )
