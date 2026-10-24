@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext'
-import FamilyAvatar from '../components/FamilyAvatar'
+import MemberAvatar from '../components/MemberAvatar'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 
 import {
@@ -309,7 +309,7 @@ const handlePointOperation = async ({
               setSelectedMemberId(member.id)
             }
           >
-            <FamilyAvatar name={member.name} className="selector-avatar" />
+            <MemberAvatar memberId={member.id} name={member.name} className="selector-avatar" />
 
             <span>
               <strong>{member.name}</strong>
@@ -325,7 +325,7 @@ const handlePointOperation = async ({
       {selectedMember && (
         <section className="points-summary-card">
           <div className="points-summary-member">
-            <FamilyAvatar name={selectedMember.name} className="points-large-avatar" size="large" />
+            <MemberAvatar memberId={selectedMember.id} name={selectedMember.name} className="points-large-avatar" size="large" />
 
             <div>
               <h2>{selectedMember.name}</h2>
