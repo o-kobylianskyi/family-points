@@ -29,4 +29,18 @@ class MediaManifestControllerTest {
         verify(service).catalog();
         verifyNoMoreInteractions(service);
     }
+
+    @Test
+    void authenticatedCatalogPreviewIsNotStoredInSharedPublicCaches() {
+        var service=mock(MediaService.class);
+        var controller=new MediaController(service);
+        byte[] image="<svg/>".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        when(service.catalogPreview(42L,"family-default")).thenReturn(image);
+        var response=controller.catalogPreview(42L,"family-default");
+        assertEquals("private, max-age=86400",
+                response.getHeaders().getFirst(org.springframework.http.HttpHeaders.CACHE_CONTROL));
+        assertArrayEquals(image,response.getBody());
+        verify(service).catalogPreview(42L,"family-default");
+    }
+
 }

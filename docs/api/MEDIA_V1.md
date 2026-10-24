@@ -62,3 +62,6 @@ The V36 migration now enforces a **composite foreign key** from `media_bindings(
 
 ## Interim BETA Flyway integration decision — 2026-10-24
 Existing `main` introduced emergency V35 for REWARD_PURCHASE, validated by CI. This draft feature's migration has been **renumbered to V37** to avoid the duplicate V35 checksum/name. The V37 migration is new and must not be rewritten after it has been applied to a persistent database. Older disposable PR #8 V35/V36 combined proof is obsolete and must never merge. Release must verify main V35 → calendar V36 → media V37 on a backed-up populated BETA clone, and review old disposable/dev Flyway checksums first.
+
+## Integrated pre-BETA candidate — PR #13
+This document began in Media PR #5. In consolidated integration PR #13, media migration is **V37**, following reward-ledger V35 and calendar V36. Catalog SVG responses use `Cache-Control: private, max-age=86400` because preview requests are authenticated; private family uploads use `private, no-store`. No endpoint from this PR is deployed until Release approves.

@@ -70,7 +70,7 @@ public class MediaController {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("image/svg+xml"))
                 .header("X-Content-Type-Options","nosniff")
-                .header(HttpHeaders.CACHE_CONTROL,"public, max-age=86400")
+                .header(HttpHeaders.CACHE_CONTROL,"private, max-age=86400")
                 .body(image);
     }
     @PostMapping(value="/uploads",consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
