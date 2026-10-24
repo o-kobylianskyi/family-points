@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getMemberGroups } from '../api/memberGroupApi'
 import { useAuth } from '../context/AuthContext'
+import EntityMedia from '../components/EntityMedia'
 
 export default function GroupPage() {
   const { t } = useTranslation()
@@ -19,6 +20,7 @@ export default function GroupPage() {
   if (!group) return <div className="page-loading">{t("common.loading")}</div>
   return <>
     <div className="page-title"><h1>{group.name}</h1><p>{group.description || t('groupPageUi.description')}</p></div>
+    <EntityMedia type="MEMBER_GROUP" targetId={group.id} slot="ICON" canEdit={currentUser.permissions?.includes("MANAGE_GROUPS")||currentUser.permissions?.includes("ADMIN_OVERRIDE")} />
     <div className="page-tabs">
       {['overview','tasks','members','points'].map(x => <button key={x} type="button" className={tab === x ? 'page-tab active' : 'page-tab'} onClick={() => setTab(x)}>{t(`groupPageUi.${x}`)}</button>)}
     </div>
