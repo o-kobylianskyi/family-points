@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import com.olehkobylianskyi.familypoints.android.network.MediaRefDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -78,6 +77,7 @@ import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
 import com.olehkobylianskyi.familypoints.android.ui.components.MemberMediaAvatar
 import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import com.olehkobylianskyi.familypoints.android.network.MediaTargetDto
+import com.olehkobylianskyi.familypoints.android.network.MediaRefDto
 import com.olehkobylianskyi.familypoints.android.network.MediaReferenceBatchDto
 import com.olehkobylianskyi.familypoints.android.network.MediaRefDto
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
@@ -625,6 +625,7 @@ fun MembersScreen(
             },
             confirmButton = {
                 Button(enabled = !busy && name.isNotBlank() && roleId != null &&
+                    (editing == null || (avatarDraftKey == null && avatarDraftPhoto == null && !avatarDraftClear) || avatarVersion != null) &&
                     (accessMode != "account" || (childLogin.matches(Regex("[a-zA-Z0-9._-]{3,64}")) && childPassword.length in 8..128 && childPassword == confirmChildPassword)) &&
                     (accessMode != "invite" || android.util.Patterns.EMAIL_ADDRESS.matcher(invitationEmail).matches()), onClick = {
                     val request = MemberSaveRequest(name.trim(), type, roleId!!)
