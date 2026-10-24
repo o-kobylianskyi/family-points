@@ -65,6 +65,7 @@ private fun memberText(language: AppLanguage, uk: String, de: String, en: String
 
 @Composable
 fun MembersScreen(
+    refreshNonce: Int = 0,
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     repository: MembersRepository,
@@ -135,7 +136,7 @@ fun MembersScreen(
             }
         }
     }
-    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus) {
+    LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
         loading = false
         error = ""
         val saved = repository.cached(currentUser.workspaceId, currentUser.memberId)
@@ -282,7 +283,7 @@ fun MembersScreen(
         }
     }
 
-    LaunchedEffect(editingGroupId, serverStatus) {
+    LaunchedEffect(editingGroupId, serverStatus, refreshNonce) {
         if (!online) return@LaunchedEffect
         val id = editingGroupId ?: return@LaunchedEffect
         try { grants = repository.getGroupPermissions(currentUser.workspaceId, id) }
