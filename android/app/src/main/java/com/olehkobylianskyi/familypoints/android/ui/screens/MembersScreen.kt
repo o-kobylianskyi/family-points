@@ -238,7 +238,7 @@ fun MembersScreen(
                 operation()
                 reload()
             } catch (e: Exception) {
-                failure(e)
+                if (avatarEditorError.isBlank()) failure(e)
             } finally {
                 busy = false
             }
@@ -653,7 +653,8 @@ fun MembersScreen(
                         if (id != null && (avatarDraftClear || avatarDraftKey != null || avatarDraftPhoto != null)) {
                             val auth = bearer ?: throw IllegalStateException("Sign in online to save avatar")
                             val version = avatarVersion ?: throw IllegalStateException("Avatar version unavailable")
-                            val savedAvatar = if (avatarDraftClear) {
+                            val savedAvatar = try {
+                                if (avatarDraftClear) {
                                 ApiClient.mediaApi.clearMemberAvatar(auth, currentUser.workspaceId, id, version)
                             } else {
                                 val photo = avatarDraftPhoto
@@ -678,7 +679,29 @@ fun MembersScreen(
                                 } else null
                                 ApiClient.mediaApi.bindMemberAvatar(auth, currentUser.workspaceId, id,
                                     MediaBindRequest(asset, avatarDraftKey, version))
+                                }
+                            } catch (conflict: HttpException) {
+                                if (conflict.code() == 409) {
+                                    // Preserve staged selection, refresh CAS version, require explicit retry.
+                                    avatarVersion = null
+                                    avatarEditorError = memberText(language,
+                                        "Аватар змінено в іншому пристрої. Перевірте зміни та натисніть «Зберегти» ще раз.",
+                                        "Avatar wurde auf einem anderen Gerät geändert. Bitte prüfen und erneut speichern.",
+                                        "Avatar changed on another device. Review and save again.",
+                                        "Аватар изменён на другом устройстве. Проверьте и сохраните снова.")
+                                    avatarVersion = try {
+                                        ApiClient.mediaApi.memberAvatar(auth, currentUser.workspaceId, id).version
+                                    } catch (_: Exception) { null }
+                                } else if (conflict.code() == 413) {
+                                    avatarEditorError = memberText(language,
+                                        "Файл завеликий для сервера. Оберіть менше зображення.",
+                                        "Die Datei ist für den Server zu groß. Bitte ein kleineres Bild auswählen.",
+                                        "Image exceeds server upload limit. Choose a smaller image.",
+                                        "Файл слишком большой для сервера. Выберите изображение меньшего размера.")
+                                }
+                                throw conflict
                             }
+                            avatarEditorError = ""
                             // Use the mutation response; a second GET can fail after a successful write.
                             avatarRefs = avatarRefs + (id to savedAvatar)
                         }
