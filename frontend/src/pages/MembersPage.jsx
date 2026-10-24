@@ -448,7 +448,7 @@ function MembersPage() {
               role={canManageMembers ? "button" : undefined}
               tabIndex={canManageMembers ? 0 : undefined}
             >
-              <EntityMedia compact type="MEMBER" targetId={member.id} slot="AVATAR" canEdit={canManageMembers}>
+              <EntityMedia compact type="MEMBER" targetId={member.id} slot="AVATAR" canEdit={false}>
                 <FamilyAvatar name={member.name} kind="member" className="member-avatar" />
               </EntityMedia>
 
