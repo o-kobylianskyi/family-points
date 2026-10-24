@@ -164,17 +164,13 @@ public class MediaService {
             if(db.queryForObject("SELECT count(*) FROM media_assets WHERE id=?::uuid AND workspace_id=?",Integer.class,parsed.toString(),ws)!=1)
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Media asset not found");
         }
+        lockWorkspaceMedia(ws);
         Integer currentVersion=db.query("SELECT version FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=? FOR UPDATE",
                 rs->rs.next()?rs.getInt(1):null,ws,type,target,slot);
         if (expectedVersion == null || expectedVersion < 0)
             throw new IllegalArgumentException("expectedVersion is required");
         if (!Objects.equals(expectedVersion,currentVersion==null?0:currentVersion))
             throw new ResponseStatusException(HttpStatus.CONFLICT,"MEDIA_VERSION_CONFLICT");
-        // Serialize first-write for a target row that does not exist yet. Without
-        // a workspace lock, two "expectedVersion=0" uploads can race on INSERT.
-        Integer acquired=db.query("SELECT 1 FROM families WHERE id=? FOR UPDATE",
-                rs -> rs.next() ? rs.getInt(1) : null, ws);
-        if (acquired == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         int written=db.update("""
                 INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,asset_id,catalog_key)
                 VALUES (?,?,?,?,?::uuid,?)
@@ -192,7 +188,8 @@ public class MediaService {
     public Ref clear(long ws,String type,long target,String slot,Integer expectedVersion) {
         requireManager(ws,type,target);
         checkTarget(ws,type,target,slot);
-        // Same optimistic semantics as bind. Keep absence represented by version zero.
+        // Preserve tombstone version after clearing to prevent the ABA anomaly.
+        lockWorkspaceMedia(ws);
         Integer version=db.query("SELECT version FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=? FOR UPDATE",
                 rs -> rs.next() ? rs.getInt(1) : null,ws,type,target,slot);
         if (expectedVersion == null || expectedVersion < 0)
@@ -200,7 +197,11 @@ public class MediaService {
         if (!Objects.equals(expectedVersion,version==null?0:version))
             throw new ResponseStatusException(HttpStatus.CONFLICT,"MEDIA_VERSION_CONFLICT");
         if (version != null)
-            db.update("DELETE FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=?",ws,type,target,slot);
+            db.update("""
+                UPDATE media_bindings SET asset_id=NULL,catalog_key=NULL,
+                version=version+1,updated_at=now()
+                WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=?
+                """,ws,type,target,slot);
         return effective(ws,type,target,slot);
     }
 
@@ -244,7 +245,7 @@ public class MediaService {
         return new Ref("DEFAULT",null,key,0,null);
     }
     private Ref getBinding(long ws,String type,long target,String slot,String source) {
-        return db.query("SELECT asset_id::text,catalog_key,version FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=?",
+        return db.query("SELECT asset_id::text,catalog_key,version FROM media_bindings WHERE workspace_id=? AND target_type=? AND target_id=? AND slot=? AND (asset_id IS NOT NULL OR catalog_key IS NOT NULL)",
                 rs->rs.next()?new Ref(source,rs.getString(1),rs.getString(2),rs.getInt(3),
                         rs.getString(1)==null?null:"/workspaces/"+ws+"/media/"+rs.getString(1)+"/variants/THUMB"):null,
                 ws,type,target,slot);
@@ -290,6 +291,12 @@ public class MediaService {
                     AND a.workspace_id=? AND v.variant=?
                     """,(rs,n)->new ImageData(rs.getString(1),rs.getBytes(2)),uuid.toString(),ws,variant);
         }catch(EmptyResultDataAccessException e) {throw new ResponseStatusException(HttpStatus.NOT_FOUND);}
+    }
+
+    private void lockWorkspaceMedia(long ws) {
+        Integer locked=db.query("SELECT 1 FROM families WHERE id=? FOR UPDATE",
+                rs -> rs.next() ? rs.getInt(1) : null, ws);
+        if (locked == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
     public void assertCatalogWorkspace(long ws) {requireWorkspace(ws);}

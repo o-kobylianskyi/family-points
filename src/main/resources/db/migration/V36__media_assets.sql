@@ -25,7 +25,7 @@ CREATE TABLE media_bindings (
  version integer NOT NULL DEFAULT 1,
  updated_at timestamptz NOT NULL DEFAULT now(),
  PRIMARY KEY(workspace_id,target_type,target_id,slot),
- CHECK ((asset_id IS NULL) <> (catalog_key IS NULL))
+ CHECK (NOT (asset_id IS NOT NULL AND catalog_key IS NOT NULL))
 );
 CREATE INDEX idx_media_bindings_asset ON media_bindings(asset_id);
 CREATE INDEX idx_media_assets_workspace ON media_assets(workspace_id);
