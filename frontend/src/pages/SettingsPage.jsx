@@ -8,6 +8,7 @@ import CurrencyFormsSettings from '../components/CurrencyFormsSettings'
 import GoogleAccountLink from '../components/GoogleAccountLink'
 import GooglePasswordSetup from '../components/GooglePasswordSetup'
 import ThemePreference from '../components/ThemePreference'
+import FamilyCoverSettings from '../components/FamilyCoverSettings'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
 function SettingsPage() {
@@ -157,6 +158,7 @@ function SettingsPage() {
     {error && <div className="error-message settings-message">{error}</div>}
     {notice && <div className="settings-success settings-message">{notice}</div>}
     <ThemePreference />
+    <FamilyCoverSettings />
 
     <section className="settings-section">
       <h2>{t('settings.password.title')}</h2>
