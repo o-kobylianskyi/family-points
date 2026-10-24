@@ -230,3 +230,7 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - Audited `MainActivity` global pull refresh: currently uses fixed `delay(1200L)` regardless of network completion. **Not complete**; to finish, wire explicit completion signals from all five content screens and guard stale responses, then device-test. No claim of completed refresh implementation.
 - Commit `8062bc1` hardens `AuthSessionManager` session restoration and token-refresh against transient 5xx/408/429 responses. These no longer clear a stored scoped session simply due to Backend outage; definitive 401/403 still clear session. This targets unexpected login behavior during Backend failures, without changing permission checks or retrying reward purchases.
 - No Gradle build/device runtime validation; rollout remains blocked on tests and Backend Flyway reward-purchase fix. Current stack OPEN.
+
+## 2026-10-24 — Pull-to-refresh completion: Rewards tab (SOURCE ONLY)
+- Commit `2a65d83` makes RewardsScreen report completion of its actual catalog load for a given refreshNonce. Commit `7c8175e` wires this into MainActivity pull indicator and retains the old 1.2-second placeholder for Dashboard/Tasks/Members/Points (not yet fixed). The supplemental/background data calls are intentionally not counted as critical catalog load.
+- Needs device/Gradle tests and a remaining pass for other 4 tabs. No APK released; CURRENT STACK OPEN.
