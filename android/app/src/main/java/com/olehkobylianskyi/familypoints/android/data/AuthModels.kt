@@ -20,5 +20,6 @@ data class CurrentUserResponse(
     val workspaceRoleId: Long,
     val workspaceRoleCode: String,
     val workspaceRoleName: String,
-    val permissions: List<String>
+    val permissions: List<String>,
+    val accountId: Long? = null
 )
