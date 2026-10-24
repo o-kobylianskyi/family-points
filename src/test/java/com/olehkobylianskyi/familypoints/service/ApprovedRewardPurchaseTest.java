@@ -32,6 +32,7 @@ class ApprovedRewardPurchaseTest {
                 77L,RewardRequirementPhase.AFTER_REWARD)).thenReturn(List.of());
         var request=new RewardRequest(workspace,member,null,"20-point reward",null);
         request.approve(pointType,20,null,null,false);
+        org.springframework.test.util.ReflectionTestUtils.setField(request,"id",77L);
         when(requests.findByIdAndWorkspaceId(77L,8L)).thenReturn(Optional.of(request));
         when(purchases.save(any(RewardPurchase.class))).thenAnswer(inv->inv.getArgument(0));
 
