@@ -62,6 +62,7 @@ private enum class ManagementView(val apiValue: String) {
 @Composable
 fun TasksScreen(
     refreshNonce: Int = 0,
+    onRefreshComplete: (Int) -> Unit = {},
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     repository: TasksRepository,
@@ -211,8 +212,10 @@ fun TasksScreen(
     }
 
     LaunchedEffect(selectedMemberId, selectedDate, serverStatus, refreshNonce) {
-        if (selectedMemberId != null) {
-            loadMyTasks()
+        try {
+            if (selectedMemberId != null) loadMyTasks()
+        } finally {
+            if (refreshNonce > 0 && tab == TasksPageTab.MY) onRefreshComplete(refreshNonce)
         }
     }
 
