@@ -244,3 +244,47 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 - Implemented draft-only inline EntityMedia selection (catalog/clear/file), stored in parent MemberEditor; no upload/PUT/DELETE on selection, Cancel, close or Escape. Uploaded JPEG/PNG preview is temporary local object URL, revoked on change/unmount. Changes applied by MembersPage saveMember only after member form Save, and cross-screen member-avatar-changed fired only after successful Media binding. Commits 2c8be5e, e3b712b, 9bc0804.
 - Limitation: Backend endpoints for member profile and Media binding are separate; the Save handler sequentially updates member profile then avatar. If profile update succeeds but Media upload/binding fails, the modal stays open and shows the error, but earlier profile changes may already be persisted. True atomic save requires Backend transaction API and is not claimed.
 - Browser QA deferred: select catalog/file/clear then Cancel (no HTTP mutation); submit successful saves both; upload failure and 409 remains in editor; change family mid-dialog; image preview URL cleanup; save with no avatar draft does no Media write.
+
+
+## 2026-10-24 — CROSS-TEAM HANDOFF: Global avatar catalog and visual picker (Architecture / Backend / Web / Android / QA)
+
+**Status: PRODUCT REQUIREMENT CONFIRMED; implementation pending cross-team coordination.** User will notify other direction chats to read this log. This is a global FamilyPoints media concern, NOT Web-only. Do not interpret the current technical catalog as the final avatar bank.
+
+### User-confirmed problems and acceptance
+- Existing member-avatar editor offers a raw text select with technical labels / unhelpful names; user must see **rendered thumbnail images in a gallery**, not guess from labels.
+- Current curated avatar bank appears heavily adult/female-biased; it lacks a sufficiently varied selection for **adult men, adult women, boys, girls, and gender-neutral / universal options**. Extend actual curated image assets, not just names/metadata.
+- All users may select any suitable avatar; grouping and recommendations are **discovery/order only**, never a gender/age restriction. PARENT should prioritize adult imagery and CHILD should prioritize younger imagery, but all groups remain accessible.
+- Avatar editing belongs **inside the existing "Редагувати учасника" (Edit Member) modal**, Variant E (avatar next to "Змінити" button). No separate avatar modal or intrusive edit pencil on member cards.
+- Choosing a catalog image, selecting a file, or clearing the avatar is **draft-only**. No Media API mutation until the user presses the **main member form "Зберегти"**. Cancel/close/Escape discards all avatar changes; local file previews are temporary and revoked.
+- Selected image must display consistently in Web Member cards, Points selectors/detail, account header, and corresponding Android screens after save; no fallback to initials where a valid effective image exists.
+
+### Architecture / Planning — owner of the common decision
+- Define platform-wide avatar-bank taxonomy: adult male/female, boy/girl, universal/neutral (prefer descriptive *optional* tags and free selection, avoid mandatory user gender fields).
+- Define versioned global catalog asset keys, categories/tags, stable sorting, display/localization metadata, and asset provenance/licensing. Catalog is shared across workspaces; uploaded photos remain private to their own family.
+- Define Save semantics and conflict/error model between member profile and media binding. Current Web uses separate Backend transactions; if the member update succeeds and image binding fails, partially committed profile is possible. Decide whether a consolidated atomic backend endpoint is necessary.
+
+### Backend / Media API — implementation owner
+- Grow curated **actual usable imagery** across the above categories (varied ages/appearances, neutral choices), ensuring vetted image provenance and previews.
+- Expose metadata usable by *both* Web and Android, e.g. stable `key`, `category=AVATAR`, localized `labelKey`/display names, tags/age recommendation, `sortOrder`, `selectable`, authenticated `previewPath`, version. Extend the existing Media catalog schema without breaking V37 clients if practical. Do NOT pretend a null preview renders.
+- Keep JWT authorization, strict family isolation for uploads, CAS `expectedVersion`, file type/size validations. Clarify category eligibility and per-family upload retention; assess atomic member + avatar Save or compensating design.
+- Coordinate the API contract first; do not impose a Web-specific classification server-wide.
+
+### Web — implementation owner
+- Replace the current <select> with a responsive visual gallery of **image thumbnails** (selection outline/check, grouping/filtering, usable fallback when catalog empty), using JWT-authenticated preview reads and bounded/revoked Blob URLs; display no technical `media.catalog.*` keys.
+- Keep the gallery *inside MemberEditor*, Variant E, with staged selections/uploads/clear only committed by the existing main Save action. Preserve permissions and ensure the currently saved avatar, draft preview and error states are understandable.
+- Keep existing accepted Soft Family Dashboard art untouched. Avoid reintroducing inline file inputs on member cards.
+
+### Android — implementation owner
+- Implement the same server catalog and visual avatar gallery, grouping/recommendations, effective-image rendering across profile/member/points views and offline-safe cache isolation between accounts/workspaces.
+- Stage edits until the relevant screen's Save; no immediate mutation on thumbnail tap. Follow shared backend contract rather than duplicating Web-only label maps.
+
+### QA — verification owner (manual tests may arrive later)
+- Catalog coverage by adult man/woman, boy/girl, universal; image previews visible, selectable and properly localized (UK/DE/EN/RU); all categories accessible to all users.
+- Selecting an image/file/clear then Cancel must yield **zero media writes** and preserve old image on reopen/other clients; Save succeeds, propagates to Header, Members, Points and Android.
+- Check mismatched permissions, stale-version HTTP 409, upload failures, image fallback, large catalog scrolling, desktop/mobile themes, switches family A↔B, logout, private photo isolation and revocation.
+- Test partial member-profile success + failed avatar Save; do not mark atomicity PASS until Backend contract supports it.
+
+### Existing groundwork / important caveat
+- Existing Web Variant E, draft-only selection and Save sequence were implemented in prior commits in `MemberEditor.jsx`, `EntityMedia.jsx`, `MembersPage.jsx`; **the current text-select and limited curated assets remain unsatisfactory** and this new task explicitly supersedes that UI.
+- Initial avatar catalog includes named color/avatar styles; a more balanced **real image bank** needs coordination and actual asset generation/curation.
+- No release acceptance or automated/manual test PASS is claimed by this handoff.
