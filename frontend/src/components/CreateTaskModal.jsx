@@ -118,19 +118,6 @@ function CreateTaskModal({
   const { currentUser, getAccessToken } = useAuth()
 
   const editing = Boolean(initialTask)
-  // Restore standard modal Escape behavior without submitting or mutating the form.
-  useEffect(() => {
-    const handleEscape = (event) => {
-      if (event.key !== 'Escape' || event.defaultPrevented) return
-      event.preventDefault()
-      event.stopPropagation()
-      onClose()
-    }
-    window.addEventListener('keydown', handleEscape)
-    return () => window.removeEventListener('keydown', handleEscape)
-  }, [onClose])
-
-
   const firstFreeTaskTitle = () => {
     // A provisional family-local name while the authoritative count loads.
     const number = existingTaskDefinitions.length + 1
@@ -202,6 +189,19 @@ function CreateTaskModal({
     useState(initialTask?.penaltyReputationAmount ?? TASK_ECONOMY_PRESETS.SIMPLE.penaltyReputationAmount)
 
   const [loading, setLoading] = useState(false)
+
+  // Escape is safe while editing, but must not dismiss a save in progress.
+  useEffect(() => {
+    if (loading) return
+    const handleEscape = (event) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      event.preventDefault()
+      onClose()
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [onClose, loading])
+
   const [loadingPointTypes, setLoadingPointTypes] =
     useState(true)
   const [error, setError] = useState('')
