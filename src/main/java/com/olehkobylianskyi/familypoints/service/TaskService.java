@@ -708,6 +708,75 @@ public class TaskService {
         return List.copyOf(occurrences.values());
     }
 
+    /**
+     * Range projection for the shared calendar. Loads definitions, slots and instances once,
+     * unlike invoking the existing single-day endpoint for every date in a month.
+     * No TaskInstance is materialized by this method.
+     */
+    @Transactional(readOnly = true)
+    public List<com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse> getMemberScheduleRange(
+            Long workspaceId, Long memberId, LocalDate from, LocalDate to) {
+        getWorkspaceOrThrow(workspaceId);
+        WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
+        WorkspaceMember current = taskAuthorizationService.currentMember();
+        if (!member.getId().equals(current.getId())
+                && !current.hasPermission(WorkspacePermission.VIEW_ALL_TASKS)
+                && !current.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Current user cannot inspect another member's schedule");
+        }
+        if (from == null || to == null || from.isAfter(to)
+                || java.time.temporal.ChronoUnit.DAYS.between(from, to) > 61) {
+            throw new IllegalArgumentException("Calendar range must contain 1..62 days");
+        }
+        var definitions = taskDefinitionRepository
+                .findByWorkspaceIdAndAssignedMemberIdAndActiveTrueOrderByIdAsc(workspaceId, memberId).stream()
+                .filter(taskAuthorizationService::canRead)
+                .toList();
+        var slotsByDefinition = new java.util.HashMap<Long, java.util.List<TaskScheduleSlot>>();
+        if (!definitions.isEmpty()) {
+            for (TaskScheduleSlot slot : taskScheduleSlots.findByTaskDefinitionIdIn(
+                    definitions.stream().map(TaskDefinition::getId).toList())) {
+                slotsByDefinition.computeIfAbsent(slot.getTaskDefinition().getId(), id -> new java.util.ArrayList<>())
+                        .add(slot);
+            }
+        }
+        var occurrences = new java.util.LinkedHashMap<String,
+                com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse>();
+        for (TaskDefinition d : definitions) {
+            var configured = slotsByDefinition.getOrDefault(d.getId(), java.util.List.of());
+            for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
+                if (!taskGenerationService.shouldGenerate(d, date)) continue;
+                if (configured.isEmpty()) {
+                    var item = com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse.planned(
+                            d, memberId, date);
+                    occurrences.put(item.occurrenceKey(), item);
+                } else {
+                    for (TaskScheduleSlot slot : configured) {
+                        if (!slot.isEnabled()) continue;
+                        var item = com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse.plannedSlot(
+                                d, memberId, date, slot.getSlotKey(), slot.getScheduledTime());
+                        occurrences.put(item.occurrenceKey(), item);
+                    }
+                }
+            }
+        }
+        for (TaskInstance instance : taskInstanceRepository
+                .findByMemberIdAndTaskDefinitionWorkspaceIdAndScheduledDateBetweenOrderByScheduledDateAscIdAsc(
+                        memberId, workspaceId, from, to)) {
+            if (!taskAuthorizationService.canRead(instance.getTaskDefinition())) continue;
+            var persisted = com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse.existing(instance);
+            occurrences.put(persisted.occurrenceKey(), persisted);
+        }
+        return occurrences.values().stream()
+                .sorted(java.util.Comparator
+                        .comparing(com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse::scheduledDate)
+                        .thenComparing(com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse::scheduledTime,
+                                java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                        .thenComparing(com.olehkobylianskyi.familypoints.dto.TaskScheduleOccurrenceResponse::occurrenceKey))
+                .toList();
+    }
+
     @Transactional(readOnly = true)
     public List<TaskDefinition> getOpenDefinitions(Long workspaceId, LocalDate date, Long memberId) {
         getWorkspaceOrThrow(workspaceId);

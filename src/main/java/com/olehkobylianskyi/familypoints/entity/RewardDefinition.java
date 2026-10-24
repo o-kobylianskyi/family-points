@@ -2,6 +2,9 @@ package com.olehkobylianskyi.familypoints.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -70,6 +73,21 @@ public class RewardDefinition {
     @Enumerated(EnumType.STRING)
     @Column(name = "acquisition_mode", nullable = false, length = 30)
     private RewardAcquisitionMode acquisitionMode = RewardAcquisitionMode.DIRECT;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "availability_mode", nullable = false, length = 24)
+    private RewardAvailabilityMode availabilityMode = RewardAvailabilityMode.ALWAYS;
+
+    @Column(name = "availability_starts_at")
+    private Instant availabilityStartsAt;
+
+    @Column(name = "availability_ends_at")
+    private Instant availabilityEndsAt;
+
+    @ElementCollection
+    @CollectionTable(name = "reward_weekly_windows", joinColumns = @JoinColumn(name = "reward_definition_id"))
+    @OrderColumn(name = "position")
+    private List<RewardWeeklyWindow> weeklyWindows = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -175,6 +193,13 @@ public class RewardDefinition {
     public RewardKind getRewardKind() { return rewardKind; }
     public Integer getDefaultDurationMinutes() { return defaultDurationMinutes; }
     public RewardAcquisitionMode getAcquisitionMode() { return acquisitionMode; }
+    public RewardAvailabilityMode getAvailabilityMode() { return availabilityMode; }
+    public void setAvailabilityMode(RewardAvailabilityMode mode) { this.availabilityMode = mode; }
+    public Instant getAvailabilityStartsAt() { return availabilityStartsAt; }
+    public void setAvailabilityStartsAt(Instant value) { availabilityStartsAt = value; }
+    public Instant getAvailabilityEndsAt() { return availabilityEndsAt; }
+    public void setAvailabilityEndsAt(Instant value) { availabilityEndsAt = value; }
+    public List<RewardWeeklyWindow> getWeeklyWindows() { return weeklyWindows; }
     public Set<RewardCategory> getCategories() { return categories; }
     public boolean isActive() { return active; }
     public LocalDateTime getCreatedAt() { return createdAt; }

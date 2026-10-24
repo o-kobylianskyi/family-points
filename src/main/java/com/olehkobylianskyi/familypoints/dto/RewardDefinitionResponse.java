@@ -27,6 +27,8 @@ public class RewardDefinitionResponse {
     private final String rewardKind;
     private final Integer defaultDurationMinutes;
     private final String acquisitionMode;
+    // Additive catalog hint; authoritative schedule eligibility comes from /availability.
+    private final String availabilityMode;
     private final List<RewardCategoryResponse> categories;
     private final List<RewardRequirementResponse> requirements;
     private final boolean active;
@@ -57,6 +59,8 @@ public class RewardDefinitionResponse {
         this.rewardKind = reward.getRewardKind().name();
         this.defaultDurationMinutes = reward.getDefaultDurationMinutes();
         this.acquisitionMode = reward.getAcquisitionMode().name();
+        this.availabilityMode = reward.getAvailabilityMode() == null
+                ? "ALWAYS" : reward.getAvailabilityMode().name();
         this.categories = reward.getCategories().stream()
                 .map(RewardCategoryResponse::new)
                 .toList();
@@ -97,6 +101,7 @@ public class RewardDefinitionResponse {
     public String getRewardKind() { return rewardKind; }
     public Integer getDefaultDurationMinutes() { return defaultDurationMinutes; }
     public String getAcquisitionMode() { return acquisitionMode; }
+    public String getAvailabilityMode() { return availabilityMode; }
     public List<RewardCategoryResponse> getCategories() { return categories; }
     public List<RewardRequirementResponse> getRequirements() { return requirements; }
     public boolean isActive() { return active; }

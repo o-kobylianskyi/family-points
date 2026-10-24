@@ -15,6 +15,10 @@ public interface RewardDefinitionRepository extends JpaRepository<RewardDefiniti
     List<RewardDefinition> findByWorkspaceIdOrderByIdAsc(Long workspaceId);
     Optional<RewardDefinition> findByIdAndWorkspaceId(Long id, Long workspaceId);
 
+    @Query("select distinct r from RewardDefinition r left join fetch r.weeklyWindows "
+            + "where r.workspace.id = :workspaceId and r.active = true order by r.id")
+    List<RewardDefinition> findActiveWithAvailability(@Param("workspaceId") Long workspaceId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select r from RewardDefinition r where r.id = :id and r.workspace.id = :workspaceId")
     Optional<RewardDefinition> findForPurchase(@Param("id") Long id,

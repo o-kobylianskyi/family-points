@@ -1,6 +1,7 @@
 package com.olehkobylianskyi.familypoints.entity;
 
 import jakarta.persistence.*;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "families")
@@ -12,6 +13,10 @@ public class Workspace {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    // Explicit IANA zone. Legacy LocalDateTime history and quotas are NOT rewritten.
+    @Column(name = "time_zone", nullable = false, length = 64)
+    private String timeZone = "UTC";
 
     protected Workspace() {
     }
@@ -30,5 +35,10 @@ public class Workspace {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getTimeZone() { return timeZone; }
+    public void setTimeZone(String value) {
+        this.timeZone = ZoneId.of(value).getId();
     }
 }
