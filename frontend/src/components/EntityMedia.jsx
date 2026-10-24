@@ -9,7 +9,7 @@ const dictionary = {
   en: ['Image','Choose','Upload JPEG/PNG','Reset','Saving…','No image'],
   ru: ['Изображение','Выбрать','Загрузить JPEG/PNG','Сбросить','Сохранение…','Нет изображения'],
 }
-export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false }) {
+export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false, compact=false, children=null }) {
   const {currentUser,getAccessToken}=useAuth()
   const {i18n}=useTranslation()
   const words=dictionary[i18n.language.split('-')[0]]||dictionary.en
@@ -19,6 +19,7 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
   const [url,setUrl]=useState('')
   const [error,setError]=useState('')
   const [busy,setBusy]=useState(false)
+  const [editorOpen,setEditorOpen]=useState(false)
   const [revision,setRevision]=useState(0)
   const lock=useRef(false)
   const activeTarget=useRef('')
@@ -62,17 +63,30 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
       await putMediaBinding(getAccessToken(),workspaceId,type,targetId,slot,{assetId,catalogKey:null},reference.version)
     })
   }
-  return <section className="entity-media" style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-    {url&&<img src={url} alt={words[0]} style={{width:64,height:64,objectFit:'cover',borderRadius:12}}/>}
-    {!url&&<small>{words[5]}</small>}
-    {canEdit&&reference&&<div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-      <select aria-label={words[1]} value="" disabled={busy} onChange={e=>{if(e.target.value)choose(e.target.value)}}>
-        <option value="">{words[1]}</option>
-        {catalog.filter(x=>x.selectable&&x.previewPath).map(item=><option key={item.key} value={item.key}>{item.labelKey||item.key}</option>)}
-      </select>
-      <label>{words[2]}<input type="file" accept="image/png,image/jpeg" disabled={busy} onChange={e=>{upload(e.target.files?.[0]);e.target.value=''}}/></label>
-      <button type="button" className="secondary-button" disabled={busy||reference.source==='DEFAULT'} onClick={clear}>{words[3]}</button>
+  const editor = canEdit && reference && <div className="entity-media-controls">
+    <select aria-label={words[1]} value="" disabled={busy} onChange={e=>{if(e.target.value)choose(e.target.value)}}>
+      <option value="">{words[1]}</option>
+      {catalog.filter(x=>x.selectable&&x.previewPath).map(item=><option key={item.key} value={item.key}>{item.labelKey||item.key}</option>)}
+    </select>
+    <label className="entity-media-upload">{words[2]}<input type="file" accept="image/png,image/jpeg" disabled={busy} onChange={e=>{upload(e.target.files?.[0]);e.target.value=''}}/></label>
+    <button type="button" className="secondary-button" disabled={busy||reference.source==='DEFAULT'} onClick={clear}>{words[3]}</button>
+  </div>
+  if(compact) return <div className="entity-media-compact" onClick={e=>e.stopPropagation()}>
+    <div className="entity-media-avatar">{url?<img src={url} alt={words[0]}/>:children}</div>
+    {canEdit&&<button type="button" className="entity-media-edit" aria-label={words[1]} title={words[1]} onClick={()=>setEditorOpen(true)}>✎</button>}
+    {editorOpen&&<div className="entity-media-backdrop" role="presentation" onClick={()=>{if(!busy)setEditorOpen(false)}}>
+      <section role="dialog" aria-modal="true" aria-label={words[0]} className="entity-media-dialog" onClick={e=>e.stopPropagation()}>
+        <div className="entity-media-dialog-heading"><strong>{words[0]}</strong><button type="button" className="secondary-button" disabled={busy} onClick={()=>setEditorOpen(false)}>×</button></div>
+        {url?<img src={url} alt={words[0]} className="entity-media-preview"/>:<div className="entity-media-preview-placeholder">{children}</div>}
+        {editor}
+        {busy&&<small>{words[4]}</small>}
+        {error&&<small role="alert">{error}</small>}
+      </section>
     </div>}
+  </div>
+  return <section className="entity-media">
+    {url&&<img src={url} alt={words[0]} className="entity-media-preview-small"/>}
+    {editor}
     {busy&&<small>{words[4]}</small>}
     {error&&<small role="alert">{error}</small>}
   </section>
