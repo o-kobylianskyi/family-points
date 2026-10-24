@@ -18,8 +18,8 @@ object AvatarUploadOptimizer {
         require(mime == "image/jpeg" || mime == "image/png") { "Only JPEG/PNG images are supported" }
 
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-            ?: error("Cannot read image")
+        val boundsStream = resolver.openInputStream(uri) ?: error("Cannot read image")
+        boundsStream.use { BitmapFactory.decodeStream(it, null, bounds) }
         require(bounds.outWidth > 0 && bounds.outHeight > 0) { "Invalid image" }
         var sample = 1
         while (maxOf(bounds.outWidth, bounds.outHeight) / sample > MAX_EDGE * 2) sample *= 2
