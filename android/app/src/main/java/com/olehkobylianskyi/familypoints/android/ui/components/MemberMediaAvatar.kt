@@ -2,6 +2,8 @@ package com.olehkobylianskyi.familypoints.android.ui.components
 
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -52,7 +54,7 @@ fun MemberMediaAvatar(workspaceId: Long, bearer: String?, image: MediaRefDto?, n
             .background(MaterialTheme.colorScheme.surfaceVariant),
         contentAlignment = Alignment.Center
     ) {
-        bitmap?.let { Image(bitmap = it.asImageBitmap(), contentDescription = name) }
+        bitmap?.let { Image(bitmap = it.asImageBitmap(), contentDescription = name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
             ?: Text(name.take(1).uppercase(), style = MaterialTheme.typography.titleMedium)
     }
 }
