@@ -802,8 +802,8 @@ class MainActivity : ComponentActivity() {
                                     when(language) { AppLanguage.UK -> "Календар"; AppLanguage.DE -> "Kalender"; AppLanguage.EN -> "Calendar"; AppLanguage.RU -> "Календарь" }),
                                 Triple(AppDestination.TASKS, Icons.Outlined.Checklist,
                                     when(language) { AppLanguage.UK -> "Завдання"; AppLanguage.DE -> "Aufgaben"; AppLanguage.EN -> "Tasks"; AppLanguage.RU -> "Задачи" }),
-                                Triple(AppDestination.MEMBERS, Icons.Outlined.Group,
-                                    when(language) { AppLanguage.UK -> "Учасники"; AppLanguage.DE -> "Familie"; AppLanguage.EN -> "Members"; AppLanguage.RU -> "Участники" }),
+                                Triple(AppDestination.POINTS, Icons.Outlined.Payments,
+                                    when(language) { AppLanguage.UK -> "Бали"; AppLanguage.DE -> "Punkte"; AppLanguage.EN -> "Points"; AppLanguage.RU -> "Баллы" }),
                                 Triple(AppDestination.REWARDS, Icons.Outlined.CardGiftcard,
                                     when(language) { AppLanguage.UK -> "Нагороди"; AppLanguage.DE -> "Prämien"; AppLanguage.EN -> "Rewards"; AppLanguage.RU -> "Награды" })
                             )
