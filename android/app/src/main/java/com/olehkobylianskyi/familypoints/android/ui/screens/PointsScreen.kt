@@ -235,7 +235,7 @@ fun PointsScreen(
     LaunchedEffect(currentUser.workspaceId, currentUser.memberId, serverStatus, refreshNonce) {
         loadingMembers = false
         error = ""
-        pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId)
+        pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId, currentUser.accountId)
         val cached = repository.cachedMembers(currentUser.workspaceId, currentUser.memberId)
         members = (if (canManage) cached else cached.filter { it.id == currentUser.memberId }).ifEmpty { listOf(WorkspaceMemberResponse(
             id = currentUser.memberId,
@@ -269,8 +269,8 @@ fun PointsScreen(
             }.toMap()
             // Replay only after a fresh online authentication confirms permissions.
             if (canManage) {
-                val count = repository.synchronizePending(currentUser.workspaceId, currentUser.memberId)
-                pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId)
+                val count = repository.synchronizePending(currentUser.workspaceId, currentUser.memberId, currentUser.accountId)
+                pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId, currentUser.accountId)
                 if (count > 0) {
                     syncMessage = when (language) {
                         AppLanguage.UK -> "Синхронізовано операцій: $count"
@@ -292,7 +292,7 @@ fun PointsScreen(
             else {
                 // A forbidden replay is not an expired session: retain pending
                 // operations for parental review rather than logging the user out.
-                pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId)
+                pendingOperations = repository.pending(currentUser.workspaceId, currentUser.memberId, currentUser.accountId)
                 syncMessage = if (exception.code() == 403) {
                     when (language) {
                         AppLanguage.UK -> "Сервер заборонив синхронізацію (403). Операції залишилися в черзі. Перевірте права керування балами."
@@ -372,6 +372,7 @@ fun PointsScreen(
                             repository.queueOffline(
                                 currentUser.workspaceId,
                                 currentUser.memberId,
+                                currentUser.accountId,
                                 selectedMember.id,
                                 pointType,
                                 kind,
@@ -379,7 +380,7 @@ fun PointsScreen(
                                 description.trim().ifBlank { null }
                             )
                             pendingOperations = repository.pending(
-                                currentUser.workspaceId, currentUser.memberId
+                                currentUser.workspaceId, currentUser.memberId, currentUser.accountId
                             )
                             syncMessage = when (language) {
                                 AppLanguage.UK -> "Операцію збережено на телефоні. Вона очікує підтвердження сервера."
@@ -471,10 +472,10 @@ fun PointsScreen(
                                     processing = true
                                     try {
                                         val synced = repository.synchronizePending(
-                                            currentUser.workspaceId, currentUser.memberId
+                                            currentUser.workspaceId, currentUser.memberId, currentUser.accountId
                                         )
                                         pendingOperations = repository.pending(
-                                            currentUser.workspaceId, currentUser.memberId
+                                            currentUser.workspaceId, currentUser.memberId, currentUser.accountId
                                         )
                                         memberBalances = members.mapNotNull { member ->
                                             repository.cachedConfirmedBalance(currentUser.workspaceId, member.id)
