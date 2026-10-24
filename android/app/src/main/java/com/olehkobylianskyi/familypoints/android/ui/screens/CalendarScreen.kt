@@ -315,7 +315,7 @@ fun CalendarScreen(
                 )
                 metrics.forEach { (label, count, destination) ->
                     FpCard(modifier = Modifier.weight(1f).clickable { kind = destination }) {
-                        Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Column(Modifier.padding(start = 20.dp, end = 10.dp, top = 10.dp, bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(if (hasProjection) count.toString() else "—", style = MaterialTheme.typography.titleLarge)
                             Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 2)
                         }
