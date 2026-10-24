@@ -50,3 +50,29 @@
 - Ten WEB-SF-01 browser matrix blocks: **BLOCKED (0 PASSED)** due no authenticated browser session, no deployed BETA SHA, missing visual evidence. Local clone/npm blocked by runner DNS.
 - Confirmed source defects: F01 P1 Ukrainian literal in reward negotiation reputation label; F02 P2 English-only shared number stepper accessibility labels. R01 repeated submit is a risk, **not** reproduced.
 - Owner Web to fix in one batch; QA retests complete 4-locale × 2-theme responsive matrix at pinned deployed SHA. Release remains **NO-GO** for WEB-SF-01.
+
+
+## CURRENT QA INTAKE / authoritative latest snapshot — 2026-10-24 evening
+> This section supersedes older snapshot rows above where they refer to PR #13 as Draft or Calendar/Media migrations as not integrated. **CI success is not a user-acceptance PASS.** Actual BETA deployed SHA, signed APK version and real test identities remain unverified.
+
+| ID | Priority | Owning track | QA acceptance scenario | Status | Prerequisites / evidence |
+|---|---|---|---|---|---|
+| QA-WEB-01 | P1 | Web | WEB-SF-01 seven main routes, two themes, uk/de/en/ru, 1440/1366/390/360 widths, 200% zoom, dialog keyboard and approved Home baseline | NEEDS_RETEST | Source fixes F01/F02 and synchronous modal mutation guards; real browser screenshots+exact SHA missing |
+| QA-WEB-02 | P0 | Web | Reward V36 availability editor: 0..56 weekly windows; preserve all ID/values on edit; add/delete/disable, overlaps, limits, ONE_TIME +01/+02 offset round trip, DST, 403/409 and no debit outside window | BLOCKED | V36 verified deployed, authorized adult/child test identities, test wallet |
+| QA-WEB-03 | P0 | Web | Media V37 cover/avatar/group/task icons: catalog + private upload <=5MiB, authorized bytes, 403/404/409, clear/default and A→B switch with delayed responses, revoke Blob URLs | BLOCKED | Deployed V37, two synthetic workspaces, browser Network/screenshots. Dashboard approved art unchanged |
+| QA-WEB-04 | P1 | Web | Calendar V36 list/from-to 62 vs 63 day, type/member filters, workspace timezone manager permissions, DST and empty/virtual rows | BLOCKED | Deployed V36 and role-specific test accounts |
+| QA-AND-01 | P0 | Android | AUTH-01..04, RW-01..02, OFF-01..03, REF-01..03, UI-01..02 per XTR-A-05 including transient 5xx / true 401 and offline queue exactly once | BLOCKED | Matching installed APK, BETA backend SHA/flags, test account + wallet; RW additionally requires deployed V35 |
+| QA-AND-02 | P0 | Android+Backend | OFF-04 cross-*global-account* offline queue must never leak/replay, legacy queue ownership migration | BLOCKED | Immutable verified accountId contract and approved legacy migration required; never replay ambiguous queue |
+| QA-AND-03 | P1 | Android | Calendar native day/week/month real V36 events, workspace switching/stale responses, timezone/permissions | BLOCKED | Compatible installed APK, V36 deployed, two workspaces |
+| QA-AND-04 | P1 | Android | Media V37 typed API transport and authorization contract | NOT_VERIFIED | Source Retrofit transport exists; full native Media presentation/upload is NOT built; do not demand unavailable UI |
+| QA-BE-01 | P0 | Backend+QA | Approved child reward -20 once, PURCHASED, repeat 409, ownership/cancellation guards, session retained after non-auth error | BLOCKED | Isolated or BETA pinned deployed V35 API, sanitized HTTP/ledger counts |
+| QA-BE-02 | P0 | Backend+QA | V36 62/63-day calendar, timezone/DST/window eligibility & member permissions; V37 tenant-negative JWT/UUID, optimistic version, clear 404 and upload constraints | BLOCKED | Isolated deployed V36/V37 candidate with two synthetic families |
+| QA-REL-01 | P0 | Release | Restore real backed-up **clone** before/after Flyway V35–V37, check preserved ledger+schema, repeat boot and rollback | BLOCKED | Explicit Release-approved disposable environment; synthetic Testcontainers green does not substitute BETA clone |
+| QA-REL-02 | P0 | Release+Android | Signed APK incremental versionCode, checksum, in-place upgrade and on-device login/core smoke | BLOCKED | Release-approved signed candidate + real handset, no premature publication |
+| QA-REL-03 | P0 | Release | BETA release acceptance, HTTPS health/auth, deployed SHA, cross-role E2E and rollback proof | BLOCKED | Release records exact deployed versions, approvals and all critical manual checks |
+
+**Latest source handoffs checked:** `logs/web.md` RewardAvailabilityEditor full 0..56 weekly windows + Media EntityMedia/member/group/task + stale version/cover workspace transitions; `logs/android.md` Calendar V36, Retrofit V37 transport, XTR-A-05 P0 matrix; `logs/backend.md` V35/V36/V37 integration, PR #13 merged as previously independently verified; `logs/release.md` no confirmed BETA deployment. Source/automated integration must not be confused with deployed feature availability.
+
+**Previously verified CI**: run 40117259515, exact integration candidate `c70d28d`, all four jobs green. Android journal also identifies run 40118508340 on `dbb4148` green; later Web Media/reward patches require their *own* pinned final SHA CI. Independent source i18n mandatory-key parity on 4 languages PASS (QA journal). No manual browser/handset PASSES yet.
+
+**Next human testing wave (when matching build deployed):** WEB-SF-01 smoke and F01/F02/R01 retest; V36 RewardAvailability weekly windows + ONE_TIME; V37 Media A/B isolation; Android AUTH/REF; child -20 reward ledger. Manual cases may remain BLOCKED when BETA/APK stale. Report each failure once by track, deliver consolidated remediation package, then repeat failed + neighboring regression cases.
