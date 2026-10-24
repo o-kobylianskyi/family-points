@@ -28,3 +28,10 @@
 2. Compare Git commit versus real BETA deployed version and APK versionCode; `main` is **not necessarily BETA**. When unknown, ask tester to report exact installed version or Release log.
 3. Prefer quick realistic tests runnable without new deploy (Web login, existing task editor, Android installed app checks) while marking version uncertainty; never claim success without user's observed result.
 4. After manual result update row status, date, environment/build and add a reproducible issue to QA log if failed. The QA chat suggests next 3–5 tasks and a progress scale (verified pass / tested fail / blocked / not run).
+
+
+## Web QA handoff: WEB-SF-01 — Soft Family full stabilization (2026-10-24)
+- **Owner executing QA:** QA track. **Owner fixing failures:** Web. **Current state:** NOT_VERIFIED, waiting exact deployed Web SHA and manual viewport/theme tests. **Source suite:** `docs/coordination/QA_TEST_CASES.md#web-sf-01--complete-soft-family-visual-regression-package-handoff-from-web-2026-10-24`.
+- Execute entire WEB-SF-01 matrix as a *single test package*, not isolated reports on one CSS rule: navigation, tasks, members/groups, points, rewards, auth/settings, keyboard, responsive sizes, 4 locales and unchanged approved Home. Record per-case PASS/FAIL with browser, viewport, theme, locale, screenshots and reproduction.
+- Next Web cycle: consolidate **all** QA defects into one coherent correction package, check Web build/lint/i18n, submit exact SHA to QA for whole regression. Do not close on CI alone.
+- Existing QA-012 remains NOT_VERIFIED until test reports are recorded; new features outside intermediate-release scope remain blocked.
