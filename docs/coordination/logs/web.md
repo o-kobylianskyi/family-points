@@ -98,3 +98,8 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 ## 2026-10-24 — Pre-release Web: point-operation in-flight modal safety
 - Audited current `NumberInput` integration and `PointOperationModal`. Found that, although Escape was blocked during submission, backdrop click and header × still closed the modal during pending point mutation; form submit lacked an immediate repeat-submit guard. Fixed in `main` commit `809a07f`: prevent backdrop/× dismissal while submitting and reject duplicate submit attempts in the active submitting state. Existing cancel button and Escape protections preserved; no backend transaction logic or dashboard assets modified.
 - Source inspection only. **Still open:** verify browser double-click and delayed-request paths, point ledger results, reward approval flows, CI/Web build/lint/i18n, responsive and role-based smoke. Do not claim release readiness before those tests.
+
+
+## 2026-10-24 — Release stack: task-reward negotiation duplicate submission guard
+- Source audit confirmed TaskRewardNegotiationModal disabled submit visually during `saving` but had no immediate submit guard, and the header × remained clickable in-flight. Commit `10188d8` adds `if (saving) return` before payload/remote submission and disables header close during save, aligning with the existing Escape/cancel protection. No reward request APIs, ledger operations or approved dashboard files changed.
+- Pending validation: browser double-click/delayed-response, review/create paths, backend idempotency and role permissions; build/lint/i18n and release smoke remain open. Source-level fix alone does not constitute verified readiness.
