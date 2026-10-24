@@ -11,7 +11,7 @@ const dictionary = {
   en: ['Image','Choose','Upload JPEG/PNG','Reset','Saving…','No image'],
   ru: ['Изображение','Выбрать','Загрузить JPEG/PNG','Сбросить','Сохранение…','Нет изображения'],
 }
-export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false, compact=false, inlineEditor=false, children=null }) {
+export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false, compact=false, inlineEditor=false, staged=false, draft=null, onDraftChange=null, children=null }) {
   const {currentUser,getAccessToken}=useAuth()
   const {i18n}=useTranslation()
   const words=dictionary[i18n.language.split('-')[0]]||dictionary.en
@@ -23,6 +23,13 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
   const [busy,setBusy]=useState(false)
   const [editorOpen,setEditorOpen]=useState(false)
   const [revision,setRevision]=useState(0)
+  const [draftPreview,setDraftPreview]=useState('')
+  useEffect(()=>{
+    if(!staged || draft?.kind!=='upload' || !draft.file)return
+    const preview=URL.createObjectURL(draft.file)
+    setDraftPreview(preview)
+    return ()=>{URL.revokeObjectURL(preview);setDraftPreview('')}
+  },[staged,draft])
   const lock=useRef(false)
   const activeTarget=useRef('')
   activeTarget.current=`${workspaceId}:${type}:${targetId}:${slot}`
@@ -56,11 +63,12 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
     catch(e){if(activeTarget.current===targetKey){setError(e.message);if(e.status===409)setRevision(v=>v+1)}}
     finally{lock.current=false;if(activeTarget.current===targetKey)setBusy(false)}
   }
-  const choose=key=>mutate(()=>putMediaBinding(getAccessToken(),workspaceId,type,targetId,slot,{catalogKey:key,assetId:null},reference.version))
-  const clear=()=>mutate(()=>deleteMediaBinding(getAccessToken(),workspaceId,type,targetId,slot,reference.version))
+  const choose=key=>staged?onDraftChange?.({kind:'catalog',key,expectedVersion:reference?.version}):mutate(()=>putMediaBinding(getAccessToken(),workspaceId,type,targetId,slot,{catalogKey:key,assetId:null},reference.version))
+  const clear=()=>staged?onDraftChange?.({kind:'clear',expectedVersion:reference?.version}):mutate(()=>deleteMediaBinding(getAccessToken(),workspaceId,type,targetId,slot,reference.version))
   const upload=file=>{
     if(!file)return
     if(!['image/png','image/jpeg'].includes(file.type)||file.size>5*1024*1024){setError('JPEG/PNG · max 5 MiB');return}
+    if(staged){onDraftChange?.({kind:'upload',file,expectedVersion:reference?.version});return}
     mutate(async()=>{
       const data=await uploadMedia(getAccessToken(),workspaceId,file)
       const assetId=data.assetId||data.id
@@ -96,21 +104,21 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
     allowedCategories.includes(String(item.category||'').toUpperCase())
   )
   const editor = canEdit && reference && <div className="entity-media-controls">
-    <select aria-label={words[1]} value="" disabled={busy} onChange={e=>{if(e.target.value)choose(e.target.value)}}>
+    <select aria-label={words[1]} value={staged&&draft?.kind==='catalog'?draft.key:''} disabled={busy} onChange={e=>{if(e.target.value)choose(e.target.value)}}>
       <option value="">{words[1]}</option>
       {availableCatalog.map(item=><option key={item.key} value={item.key}>{catalogName(item)}</option>)}
     </select>
     <label className="entity-media-upload">{words[2]}<input type="file" accept="image/png,image/jpeg" disabled={busy} onChange={e=>{upload(e.target.files?.[0]);e.target.value=''}}/></label>
-    <button type="button" className="secondary-button" disabled={busy||reference.source==='DEFAULT'} onClick={clear}>{words[3]}</button>
+    <button type="button" className="secondary-button" disabled={busy||(!draft&&reference.source==='DEFAULT')} onClick={clear}>{words[3]}</button>
   </div>
   if(inlineEditor) return <div className="member-avatar-editor">
     <div className="member-avatar-editor-top">
-      <div className="entity-media-avatar">{url?<img src={url} alt={words[0]}/>:children}</div>
+      <div className="entity-media-avatar">{draftPreview?<img src={draftPreview} alt={words[0]}/>:draft?.kind==='clear'?children:url?<img src={url} alt={words[0]}/>:children}</div>
       <button type="button" className="secondary-button member-avatar-change" disabled={!canEdit} onClick={()=>setEditorOpen(v=>!v)}>
         {({uk:'Змінити',de:'Ändern',en:'Change',ru:'Изменить'})[locale]||'Change'}
       </button>
     </div>
-    {editorOpen&&<div className="member-avatar-editor-panel">{editor}{busy&&<small>{words[4]}</small>}{error&&<small role="alert">{error}</small>}</div>}
+    {editorOpen&&<div className="member-avatar-editor-panel">{editor}{staged&&draft&&<small role="status">{({uk:'Зміни будуть застосовані після збереження',de:'Änderungen erst beim Speichern',en:'Changes apply after Save',ru:'Изменения применятся после сохранения'})[locale]}</small>}{busy&&<small>{words[4]}</small>}{error&&<small role="alert">{error}</small>}</div>}
   </div>
   if(compact) return <div className="entity-media-compact" onClick={e=>e.stopPropagation()}>
     <div className="entity-media-avatar">{url?<img src={url} alt={words[0]}/>:children}</div>
