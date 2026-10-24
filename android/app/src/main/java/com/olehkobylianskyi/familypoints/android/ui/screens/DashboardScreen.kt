@@ -54,6 +54,7 @@ enum class DashboardDestination {
 
 @Composable
 fun DashboardScreen(
+    refreshNonce: Int = 0,
     language: AppLanguage,
     currentUser: CurrentUserResponse,
     loadDashboard: suspend () -> DashboardData,
@@ -77,7 +78,7 @@ fun DashboardScreen(
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
 
-    LaunchedEffect(currentUser.memberId, currentUser.workspaceId, serverStatus) {
+    LaunchedEffect(currentUser.memberId, currentUser.workspaceId, serverStatus, refreshNonce) {
         error = ""
         cachedDashboard()?.let { snapshot ->
             if (data == null) {
@@ -113,7 +114,7 @@ fun DashboardScreen(
         }
     }
 
-    LaunchedEffect(currentUser.memberId, currentUser.workspaceId, serverStatus) {
+    LaunchedEffect(currentUser.memberId, currentUser.workspaceId, serverStatus, refreshNonce) {
         if (serverStatus == ServerStatus.ONLINE && canSwitchWorkspaces) {
             while (true) {
                 delay(30_000L)
