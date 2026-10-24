@@ -44,9 +44,9 @@ class ApprovedRewardPurchaseTest {
         service.purchaseRequest(8L,3L,77L);
         assertEquals(RewardRequestStatus.PURCHASED,request.getStatus());
         verify(points).spend(eq(8L),eq(3L),eq(5L),eq(20),
-                eq(PointTransactionSourceType.REWARD_PURCHASE),any(),anyString());
+                eq(PointTransactionSourceType.REWARD_PURCHASE),nullable(Long.class),anyString());
         assertThrows(IllegalArgumentException.class,()->service.purchaseRequest(8L,3L,77L));
         verify(purchases,times(1)).save(any(RewardPurchase.class));
-        verify(points,times(1)).spend(any(),any(),any(),anyInt(),any(),any(),anyString());
+        verify(points,times(1)).spend(any(),any(),any(),anyInt(),any(),nullable(Long.class),anyString());
     }
 }
