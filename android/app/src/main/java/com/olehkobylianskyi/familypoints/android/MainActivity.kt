@@ -554,7 +554,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     destination == AppDestination.CALENDAR -> {
-                        CalendarScreen(language = language)
+                        CalendarScreen(language = language, currentUser = currentUser, onUnauthorized = unauthorized)
                     }
 
                     destination == AppDestination.TASKS -> {
