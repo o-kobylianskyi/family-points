@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -62,6 +61,8 @@ fun CalendarScreen(language: AppLanguage, modifier: Modifier = Modifier, events:
         }
     }
     val counts = selectedEvents.groupingBy { it.type }.eachCount()
+    // Absence of a loaded backend projection is not a confirmed zero-count day.
+    val hasProjection = events.isNotEmpty()
     val timed = selectedEvents.filter { it.startsAt != null }
     val untimed = selectedEvents.filter { it.startsAt == null }
     val locale = localeFor(language)
@@ -159,7 +160,7 @@ fun CalendarScreen(language: AppLanguage, modifier: Modifier = Modifier, events:
                 metrics.forEach { (label, count, destination) ->
                     FpCard(modifier = Modifier.weight(1f).clickable { kind = destination }) {
                         Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(count.toString(), style = MaterialTheme.typography.titleLarge)
+                            Text(if (hasProjection) count.toString() else "—", style = MaterialTheme.typography.titleLarge)
                             Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 2)
                         }
                     }
