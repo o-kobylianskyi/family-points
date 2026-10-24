@@ -279,6 +279,10 @@ fun CalendarScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
                                     Box(contentAlignment = Alignment.Center,
                                         modifier = Modifier.size(34.dp).background(
                                             if (day == visualDate) MaterialTheme.colorScheme.primary
@@ -291,14 +295,15 @@ fun CalendarScreen(
                                                 else -> MaterialTheme.colorScheme.onSurface
                                             })
                                     }
-                                    if (visualMode == CalendarMode.DAY) {
-                                        Text(
-                                            day.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, locale)
-                                                .replaceFirstChar { it.titlecase(locale) },
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            maxLines = 1
-                                        )
+                                        if (visualMode == CalendarMode.DAY) {
+                                            Text(
+                                                day.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, locale)
+                                                    .replaceFirstChar { it.titlecase(locale) },
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                maxLines = 1
+                                            )
+                                        }
                                     }
                                     Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                         if (hasTasks) Box(Modifier.size(5.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
