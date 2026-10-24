@@ -316,3 +316,8 @@ New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST con
 ## 2026-10-25 — Calendar settings timezone selector
 - User screenshot flagged raw editable `UTC` textbox with cramped controls. Replaced with a readable curated IANA timezone dropdown (Europe/Berlin, Europe/Kyiv, other common zones, UTC) showing city/country labels and exact zone IDs; the server-provided timezone remains selectable even if outside the curated list. Only privileged roles can change it; writes still use existing Calendar V36 timezone API on Save, no auto-setting from browser locale.
 - Commits 441f969 and following CalendarPage.css scoped style. Does not modify event scheduling or Backend. QA deferred: existing UTC and Europe/Berlin, other server-returned zone retained, disabled for non-admin, long German options, both themes and mobile, DST correctness.
+
+
+## 2026-10-25 — Reward catalog button lower-right alignment
+- User screenshot requested 'Отримати нагороду' button at bottom-right of catalog reward card.
+- Scoped catalog action container with reward-card-actions (RewardsPage.jsx commit 6ecd4c9), flex column card and bottom-pushed, right-justified action row in App.css (0f87e35). Applies to catalog reward cards only; keeps actual purchase/request/edit handlers, enabled states, and other reward panels unchanged. Test narrow responsive cards and rewards with variable description lengths.
