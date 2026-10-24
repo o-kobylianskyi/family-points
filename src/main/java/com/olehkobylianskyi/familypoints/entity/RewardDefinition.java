@@ -1,6 +1,9 @@
 package com.olehkobylianskyi.familypoints.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -8,6 +11,22 @@ import java.util.Set;
 @Entity
 @Table(name = "reward_definitions")
 public class RewardDefinition {
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "availability_mode", nullable = false, length = 24)
+    private RewardAvailabilityMode availabilityMode = RewardAvailabilityMode.ALWAYS;
+
+    @Column(name = "availability_starts_at")
+    private Instant availabilityStartsAt;
+
+    @Column(name = "availability_ends_at")
+    private Instant availabilityEndsAt;
+
+    @ElementCollection
+    @CollectionTable(name = "reward_weekly_windows", joinColumns = @JoinColumn(name = "reward_definition_id"))
+    @OrderColumn(name = "position")
+    private List<RewardWeeklyWindow> weeklyWindows = new ArrayList<>();
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -194,4 +213,11 @@ public class RewardDefinition {
         if (categories != null) this.categories.addAll(categories);
     }
     public void setActive(boolean active) { this.active = active; }
+    public RewardAvailabilityMode getAvailabilityMode() { return availabilityMode; }
+    public void setAvailabilityMode(RewardAvailabilityMode mode) { this.availabilityMode = mode; }
+    public Instant getAvailabilityStartsAt() { return availabilityStartsAt; }
+    public void setAvailabilityStartsAt(Instant value) { availabilityStartsAt = value; }
+    public Instant getAvailabilityEndsAt() { return availabilityEndsAt; }
+    public void setAvailabilityEndsAt(Instant value) { availabilityEndsAt = value; }
+    public List<RewardWeeklyWindow> getWeeklyWindows() { return weeklyWindows; }
 }

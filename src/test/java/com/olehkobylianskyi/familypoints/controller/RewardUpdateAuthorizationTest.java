@@ -19,7 +19,7 @@ class RewardUpdateAuthorizationTest {
         when(current.getCurrentMember()).thenReturn(member);
         when(member.getWorkspaceRole()).thenReturn(role);
 
-        var controller = new RewardController(service, current);
+        var controller = new RewardController(service, mock(com.olehkobylianskyi.familypoints.service.RewardAvailabilityService.class), current);
         assertThrows(IllegalArgumentException.class,
                 () -> controller.updateReward(8L, 13L, new RewardDefinitionRequest()));
         verifyNoInteractions(service);
@@ -31,7 +31,7 @@ class RewardUpdateAuthorizationTest {
         var service = mock(RewardService.class);
         when(current.belongsToWorkspace(99L)).thenReturn(false);
         assertThrows(IllegalArgumentException.class,
-                () -> new RewardController(service, current).updateReward(
+                () -> new RewardController(service, mock(com.olehkobylianskyi.familypoints.service.RewardAvailabilityService.class), current).updateReward(
                         99L, 13L, new RewardDefinitionRequest()));
         verifyNoInteractions(service);
     }

@@ -33,4 +33,6 @@ public interface TaskDefinitionRepository
 
     List<TaskDefinition>
     findByWorkspaceIdAndActiveTrue(Long workspaceId);
+    List<TaskDefinition> findByWorkspaceIdAndAssignedMemberIdAndActiveTrueOrderByIdAsc(
+            Long workspaceId, Long memberId);
 }
