@@ -24,3 +24,10 @@ Read each request's own latest status and the cross-track register: this section
 - **Android:** [XTR-20261023-P-05](XTR-20261023-P-05.md) — protect 18 local-only Android commits and uncommitted files; merge safely into current main and verify tests.
 - **Web:** [XTR-20261023-P-06](XTR-20261023-P-06.md) — preserve Vite local work and switch to main, without overwriting Android/other track changes.
 - [Safe Windows branch migration and recovery](../MAIN_BRANCH_MIGRATION.md); `main` is the only accepted project integration branch. Draft Backend PR #4/#5 target main.
+
+## 2026-10-24 — Template library and family setup package
+- [Backend XTR-20261024-P-01](XTR-20261024-P-01.md) — versioned catalog, preview, idempotent workspace import, safe group/task/reward refs.
+- [Web XTR-20261024-P-02](XTR-20261024-P-02.md) — first-family wizard and existing-family selectable template library.
+- [Android XTR-20261024-P-03](XTR-20261024-P-03.md) — native browse/preview/apply after current calendar/media work.
+- [Release XTR-20261024-P-04](XTR-20261024-P-04.md) — Flyway, catalog versioning, isolation, import retries and launch gates.
+- [Architecture ADR](../../architecture/ADR-TEMPLATES-001.md) · IMP-0008; all receiving-track acceptance pending.

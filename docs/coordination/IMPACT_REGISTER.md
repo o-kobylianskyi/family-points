@@ -90,6 +90,14 @@
 
 - **Backend PR #5 security progress 2026-10-24:** current draft source `ee313fb` adds scoped media upload, 100 MiB PostgreSQL blob quota, versioned removal, active targets and guarded effective metadata. 2a12cfe intermediate Java CI failure was stale test authorization mocks, adjusted in 3a89f2b; latest SHA CI needs confirmation. All Web/Android/Release ACK, full tenant-negative and V35/V36 combined upgrade remain pending. No merge/deploy.
 
+## IMP-0008 — Starter workspace generation and task/reward template library
+- **Producer / date / status:** Architecture / 2026-10-24 / **PROPOSED; CONSUMER ACK NEEDED**. User requested re-usable task templates, initial family/group/task/reward structure, reward groups and selectable options. Exact pack content/counts are examples pending content review.
+- **Existing → target:** first-family service currently provisions Workspace, first owner, roles and POINTS only; TaskSuggestionController is member suggestion flow and SIMPLE/NORMAL/HARD task presets only economics. Add read-only global template catalog, optional wizard and add-later library, preview/editor/mapping and tenant-transactional confirmed import. Existing user data untouched on re-run; no implicit ledger, purchases, real members or user accounts. Private reusable templates follow in Phase 2.
+- **Domain / compatibility:** distinct MemberGroup, WorkNode(GROUP/TASK), RewardCategory, TaskDefinition, RewardDefinition. Backend needs safe task-to-folder import path. Stable versioned template codes, localized text, catalog icon keys, dependency remapping and provenance, idempotency, scoped ACL. Do not claim inheritance of pending calendar/media endpoint work.
+- **Consumers:** Backend [ ]; Web [ ]; Android [ ]; Release [ ]; Architecture [x] (Architecture design recorded; others not yet source-reviewed).
+- **Tasks:** [B XTR-20261024-P-01](requests/XTR-20261024-P-01.md), [W -02](requests/XTR-20261024-P-02.md), [A -03](requests/XTR-20261024-P-03.md), [R -04](requests/XTR-20261024-P-04.md). Architecture [ADR-TEMPLATES-001](../architecture/ADR-TEMPLATES-001.md), prior [onboarding plan](../MULTI_FAMILY_ONBOARDING_PLAN.md).
+- **Test/release:** empty first family/skip/resume, existing family select one or bundle, parent-member mapping, cross-family deny, competing import requests, idempotent retries and duplicate detection, reward task prerequisites by key, historical data untouched, no ledger credit/debit, four languages, migration/rollback, client tests and separate Release approval. **No implementation/CI/deploy is implied by this impact registration.**
+
 ## Template for each next impact
 ```md
 ## IMP-000X — Summary

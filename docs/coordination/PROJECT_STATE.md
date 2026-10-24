@@ -1,5 +1,12 @@
 # FamilyPoints — shared status snapshot
 
+## 2026-10-24 — Template library and starter family setup (DESIGNED ONLY)
+- New cross-track planning packet: `docs/architecture/ADR-TEMPLATES-001.md`, IMP-0008, XTR-20261024-P-01 Backend / -02 Web / -03 Android / -04 Release. Optional initial wizard + existing-family template library; packs + selected individual groups/tasks/reward categories/rewards; user preview/edit/member mapping, explicit idempotent import.
+- Current code provisions roles and base points on family creation and provides task economy presets and suggestion flow; it does **not** have full reusable global template-catalog/import. Existing onboarding plan contains a compatible proposed M4 but is not product implementation.
+- Task folder WorkNode(GROUP), people MemberGroup and RewardCategory are distinct. Install copies tenant-local editable data with no automatic ledger/purchase, child account or invented member. Dependencies on calendar PR #4 and media work may require compatibility review.
+- Documentation committed via PR #7, implementation/consumer ACK, DB migration/tests and release **not done**; inspect new Git main HEAD before work. Previous dated main SHA examples are historical only.
+
+
 ## 2026-10-24 — Verified cross-track audit at main `89a14240` (GitHub source/CI only)
 - `main` confirmed default and canonical, currently `89a142400b78002fb814896d23ab049a2a25b390`. Its GitHub Actions run `40083755080` succeeded across Java21/Maven/PostgreSQL Testcontainers, Web Vite, Android Gradle and Compose config at this exact SHA. `main` currently has **no branch protection**; direct changes can land before CI/review.
 - Android Soft Family remote branch `9088cf3` is now fully included via merged PR #6 `a961624` on 2026-10-23 19:00 UTC. Remote compare `main...feature/android-soft-family-structure` has 0 commits ahead and 106 behind, meaning no remote-only Android commits remain; user-PC unpushed/untracked content remains unknowable by GitHub and must not be claimed secured. Recent Android version/about + manual update-check code `24e44dd`/`37913aa` was committed to main and built by CI; **signed beta.9 APK install/publication NOT VERIFIED**.
