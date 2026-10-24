@@ -447,7 +447,7 @@ class FamilyPointsApplicationTests {
     void flywayCreatesCalendarAvailabilitySchemaWithoutMigratingLegacyPurchases() {
         assertEquals(1, jdbc.queryForObject("""
             SELECT count(*) FROM flyway_schema_history
-            WHERE version = '35' AND success = true
+            WHERE version = '36' AND success = true
             """, Integer.class));
         assertEquals(1, jdbc.queryForObject("""
             SELECT count(*) FROM information_schema.tables
@@ -467,9 +467,9 @@ class FamilyPointsApplicationTests {
 
     @Test
     void calendarAndMediaMigrationsApplyTogetherOnFreshPostgres() {
-        assertEquals(2, jdbc.queryForObject("""
+        assertEquals(3, jdbc.queryForObject("""
             SELECT count(*) FROM flyway_schema_history
-            WHERE version IN ('35','36') AND success = true
+            WHERE version IN ('35','36','37') AND success = true
             """, Integer.class));
         for (String table : java.util.List.of("media_assets","media_blobs","media_bindings",
                 "reward_weekly_windows")) {
@@ -478,6 +478,19 @@ class FamilyPointsApplicationTests {
                 WHERE table_schema='public' AND table_name=?
                 """, Integer.class, table), table);
         }
+    }
+
+    @Test
+    void combinedMigrationsPreserveApprovedRewardLedgerSource() {
+        String constraint=jdbc.queryForObject("""
+            SELECT pg_get_constraintdef(c.oid) FROM pg_constraint c
+            JOIN pg_class t ON t.oid=c.conrelid
+            WHERE t.relname='point_transactions'
+              AND c.conname='point_transactions_source_type_check'
+            """,String.class);
+        assertNotNull(constraint);
+        assertTrue(constraint.contains("REWARD_PURCHASE"));
+        assertTrue(constraint.contains("MANUAL"));
     }
 
     @Test
