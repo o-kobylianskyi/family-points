@@ -221,3 +221,7 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 ## 2026-10-24 — Reward purchase history currency declension (SOURCE ONLY)
 - Commit `266b818`: `RewardsScreen` purchase-history row now calls existing `formatPointAmount` with applicable user-configured forms by pointTypeId, instead of concatenating numeric amount and fixed currency name. This closes an additional `10 бали` path for recent purchases without changing rewards business logic/API.
 - Audited other Android UI points: Rewards catalog/request price already uses configured forms; TaskDetails uses formatter but custom forms not yet wired consistently. No Gradle build/device test, APK signing or deployment performed. Continue stabilization and verify offline/network behavior before intermediate BETA.
+
+## 2026-10-24 — Task details configured point forms (SOURCE ONLY)
+- `c2ac031`: Android TaskDetailsScreen fetches configured currency name forms scoped by workspace and point type, then applies them to task reward, penalty and subtask reward labels; falls back to built-in plural rules if configuration unavailable. `b6a7168`: wires SettingsRepository from MainActivity. No Backend changes.
+- Release stack remains OPEN: Gradle compilation and physical device checks not run, offline form caching, real-refresh completion, session regression, offline queue tests and Backend reward purchase Flyway gate outstanding. No APK signed/published.
