@@ -21,6 +21,7 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
   const [memberType, setMemberType] = useState(member?.memberType ?? 'CHILD')
   const [workspaceRoleId, setWorkspaceRoleId] = useState(member?.workspaceRoleId ?? roles[0]?.id ?? '')
   const [error, setError] = useState('')
+  const [avatarDraft,setAvatarDraft]=useState(null)
   const [accessMode, setAccessMode] = useState('profile')
   const [childUsername, setChildUsername] = useState('')
   const [childPassword, setChildPassword] = useState('')
@@ -58,7 +59,8 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
       accessMode === 'account'
         ? { username: childUsername.trim(), password: childPassword }
         : null,
-      accessMode === 'invite' ? inviteEmail.trim() : null)
+      accessMode === 'invite' ? inviteEmail.trim() : null,
+      avatarDraft)
   }
 
   const remove = async () => {
@@ -75,7 +77,7 @@ function MemberEditor({ member, roles, busy, externalError, onSave, onDelete, on
         </div>
         <button type="button" className="modal-close" onClick={onClose} disabled={busy}>×</button>
       </div>
-      {editing && <EntityMedia inlineEditor type="MEMBER" targetId={member.id} slot="AVATAR" canEdit>
+      {editing && <EntityMedia inlineEditor staged draft={avatarDraft} onDraftChange={setAvatarDraft} type="MEMBER" targetId={member.id} slot="AVATAR" canEdit>
         <FamilyAvatar name={member.name} kind="member" />
       </EntityMedia>}
       <form onSubmit={submit}>
