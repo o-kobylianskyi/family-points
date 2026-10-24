@@ -35,3 +35,11 @@
 - Execute entire WEB-SF-01 matrix as a *single test package*, not isolated reports on one CSS rule: navigation, tasks, members/groups, points, rewards, auth/settings, keyboard, responsive sizes, 4 locales and unchanged approved Home. Record per-case PASS/FAIL with browser, viewport, theme, locale, screenshots and reproduction.
 - Next Web cycle: consolidate **all** QA defects into one coherent correction package, check Web build/lint/i18n, submit exact SHA to QA for whole regression. Do not close on CI alone.
 - Existing QA-012 remains NOT_VERIFIED until test reports are recorded; new features outside intermediate-release scope remain blocked.
+
+## Critical Backend B-03/B-04/B-05 — QA intake (2026-10-24)
+- **Pinned candidate:** draft PR #13, SHA `a19b2adfa68a3e8a4fc625239289bc01f9ef7efa` (Reward V35 + Calendar V36 + Media V37).
+- **Automated evidence:** CI run 40110260210: Backend/PostgreSQL, Web and Compose passed; Android failed. A green `main` run on a different SHA does not validate PR #13.
+- **Suite:** `docs/qa/QA_BACKEND_INTEGRATION_V35_V37.md` on PR #13; intake `docs/coordination/requests/XTR-20261024-B-03-QA.md` on `main`.
+- **Status:** Manual Backend API QA **NOT_VERIFIED**, BETA database clone / signed APK / device / Release **BLOCKED**. No QA feedback or recorded manual failures were found at intake.
+- **Check together:** child-approved 20-point reward exactly once and 409 retry without logout; two-family Media ACL/revoke/stale version; calendar 62/63 days, permissions/DST/availability windows; populated PostgreSQL V35→V36→V37; Android account session and signed APK. Report actual SHA/environment, expected/actual, redacted HTTP/SQL and screenshots.
+- Collect defects into one return-to-Backend remediation batch on same PR. No merge/deploy or manual PASS inferred from code/CI alone.
