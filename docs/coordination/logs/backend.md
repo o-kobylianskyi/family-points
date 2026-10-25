@@ -225,3 +225,10 @@ At exact integration SHA `c70d28d9812d13a85e2f6cfd62186fb344aff510`, GitHub Acti
 - GitHub Actions 40237952475: Web Vite PASS, Android debug PASS, Docker Compose PASS; Java backend 181 tests with 1 failure + 1 error in EconomyDefaultCurrenciesTest. StandardCurrencyFormsTest 3/3 PASS. Root cause: mock WorkspaceRepository.findById(42L) absent from currency deactivation test fixtures; production code reached getOrCreateSettings and threw ResourceNotFoundException.
 - Corrected both fixtures, GitHub commit f39c946a4782e86398fda5153689f782fb8599e8.
 - Follow-up Actions run 40239280406 started; at last check Java job IN PROGRESS, Web PASS. Do not claim backend green until run completes. No DEV deployment or DB changes.
+
+## 2026-10-26 — BKL-007 actual DEV PostgreSQL verification
+- Connected DEV PostgreSQL via FamilyPoints DEV PostgreSQL MCP, read-only queries. After user restarted DEV backend and opened currency settings for family 1, DB now has POINTS/COPPER/SILVER/GOLD with 4 language records each (16/16), economy mode SIMPLE unchanged. This demonstrates family 1 automatic form backfill working in DEV.
+- Existing family 1 COPPER/SILVER/GOLD uk and ru rows remain manually customized as generic `монета/монети/монет` and `монета/монеты/монет`; preservation is intentional, unlike the built-in coin-specific defaults. DE/EN default forms present.
+- Families 11/12/13 still have only POINTS and 0 name forms; lazy reconciliation is executed when authenticated API settings/point-types is accessed per workspace; no evidence those API routes have been visited for these families.
+- GitHub Actions 40240665891 passed Java/Maven/Testcontainers, Web/Vite, Android/Gradle, Compose.
+- No SQL writes or deployment performed by Backend chat. Remaining: QA review custom currency UI and full per-family backfill; verify unchanged financial totals and cross-family protection.
