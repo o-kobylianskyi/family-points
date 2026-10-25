@@ -604,7 +604,7 @@ function RewardsPage() {
                     myRequestForReward(reward.id).status !== 'READY_TO_PURCHASE' && (
                     <span className="reward-status">{requestStatusLabel(myRequestForReward(reward.id).status)}</span>
                   )}
-                  {reward.acquisitionMode !== 'REQUEST' && !reward.requiresApproval && (
+                  {!myRequestForReward(reward.id) && reward.acquisitionMode !== 'REQUEST' && !reward.requiresApproval && (
                     <button
                       type="button"
                       className="primary-button"
