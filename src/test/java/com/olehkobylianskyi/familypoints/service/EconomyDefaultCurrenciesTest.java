@@ -58,6 +58,7 @@ class EconomyDefaultCurrenciesTest {
         when(points.getId()).thenReturn(10L);
         when(points.getCode()).thenReturn("POINTS");
         var economySettings = new EconomySettings(workspace, EconomyMode.SIMPLE, points);
+        when(workspaces.findById(42L)).thenReturn(Optional.of(workspace));
         when(types.findByIdAndWorkspaceId(10L, 42L)).thenReturn(Optional.of(points));
         when(settings.findByWorkspaceId(42L)).thenReturn(Optional.of(economySettings));
         assertThrows(IllegalArgumentException.class,
@@ -71,6 +72,7 @@ class EconomyDefaultCurrenciesTest {
         when(points.getId()).thenReturn(10L);
         var silver = new PointType(workspace, "SILVER", "Silver", 20);
         when(types.findByIdAndWorkspaceId(11L, 42L)).thenReturn(Optional.of(silver));
+        when(workspaces.findById(42L)).thenReturn(Optional.of(workspace));
         when(settings.findByWorkspaceId(42L)).thenReturn(Optional.of(new EconomySettings(
                 workspace, EconomyMode.SIMPLE, points)));
         when(types.save(silver)).thenReturn(silver);
