@@ -111,6 +111,7 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
     {id:'ANIMAL', names:{uk:'Тварини',de:'Tiere',en:'Animals',ru:'Животные'}},
     {id:'PLAYER', names:{uk:'Гравці',de:'Spieler',en:'Players',ru:'Игроки'}},
     {id:'MONSTER', names:{uk:'Монстри',de:'Monster',en:'Monsters',ru:'Монстры'}},
+    {id:'FRIENDLY_MOB', names:{uk:'Дружні моби',de:'Freundliche Mobs',en:'Friendly mobs',ru:'Дружелюбные мобы'}},
     {id:'ROBOT', names:{uk:'Роботи',de:'Roboter',en:'Robots',ru:'Роботы'}},
     {id:'VEHICLE', names:{uk:'Транспорт',de:'Fahrzeuge',en:'Vehicles',ru:'Транспорт'}},
   ]
