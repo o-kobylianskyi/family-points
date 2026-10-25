@@ -51,3 +51,11 @@ export async function savePointNameForms(token, workspaceId, pointTypeId, langua
   )
   return handleResponse(response, 'Failed to save currency forms')
 }
+
+export async function createPointType(token, workspaceId, { code, name, sortOrder = 100 }) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/economy/point-types`,
+    { token, method: 'POST', body: { code, name, sortOrder } }
+  )
+  return handleResponse(response, 'Failed to create currency')
+}
