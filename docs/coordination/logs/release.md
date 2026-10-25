@@ -85,3 +85,58 @@ User has **frozen all further Web development until the first interim BETA is pu
 - One-click Release Manager succeeded: `release.bat status` -> public versionCode 10; `release.bat build` -> signed 0.1.0-beta.11 versionCode 11, Gradle BUILD SUCCESSFUL, release cert SHA-256 `167d63a05676a8fc9a1671be11a6d7c1246ff9d97286efca30cb5e104c152d4f` verified; APK SHA256 `87a0afdf7188d35ab01d89c8c9123c8faabe4f548a5105d0b6add317733f9b9f`; `release.bat install` -> Success on selected Huawei.
 - User confirmed **Google-account sign-in works** on beta.11 after changing config to correct Google OAuth **Web application** Client ID. This resolves observed sign-in blocker for the tested device/account; no claim of full Android regression.
 - APK beta.11 **NOT YET published** to Contabo (last public APK beta.10). Next: `release.bat publish` (requires confirmations and SSH), verify public manifest versionCode 11/SHA256, download endpoint and user flow. Backend/Web remain pinned at beta.10; APK publication changes only downloads files. Do not trigger a new backend/web deploy or DB backup/reset.
+
+## 2026-10-25 — CANONICAL HANDOFF: Android BETA build, device check and APK publication (for all future chats)
+
+**Read this first in a new Release/Android/QA chat.** The implementation guide is `docs/ANDROID_ONE_CLICK_BETA_RELEASE.md`; checked-in entry points: `scripts/android/release.bat`, `scripts/android/release.ps1`, `scripts/android/release-config.example.json`, `scripts/android/build-release-apk.ps1`, `scripts/android/publish-to-contabo.ps1`, server `scripts/android/publish-apk.sh`. The operator's actual non-committed configuration is `scripts/android/release-config.local.json` (**gitignored; do not overwrite, commit or request its secrets**).
+
+### Windows command reference (working root `C:\Users\Oleh\IdeaProjects\family-points`)
+
+```powershell
+cd C:\Users\Oleh\IdeaProjects\family-points
+git status --short
+git pull --ff-only origin main
+.\scripts\android\release.bat status
+.\scripts\android\release.bat build
+.\scripts\android\release.bat install
+.\scripts\android\release.bat logs
+# Run ONLY after checking the tested local build:
+.\scripts\android\release.bat publish
+```
+
+Also `release.bat` without arguments presents menu: 1 Status, 2 Build, 3 Install, 4 Google logs, 5 Publish, 6 All. `release.bat build -VersionCode 12` may override the default. **Do not recommend All before phone acceptance**; it may publish a faulty build. `release.bat` uses per-process PowerShell ExecutionPolicy Bypass so an administrator or system-wide policy change is unnecessary. For PowerShell syntax use local Windows `PS C:\...>`; SSH `adminfp@...$>` is Ubuntu Bash, not PowerShell.
+
+### Configuration and credentials
+
+First run creates `release-config.local.json` from the example, then asks once for the OAuth **WEB application** Client ID. The correct Google Auth Platform entry is **FamilyPoints / Web application**, NOT either of the two Android OAuth client entries. Client ID must match the production Backend's Google ID-token audience; the correct Web entry has authorized origin `https://family-point.com`. Android OAuth client SHA-1 for **the new release signing key** was already registered in Google Cloud; do not remove the older Android client. The local config contains paths to SDK, release keystore, alias, expected certificate fingerprint, ADB Huawei serial, Contabo SSH identity, deployment host, version prefix and public manifest. It stores NO keystore/key passwords. `build` prompts for these two passwords via hidden SecureString. SSH may separately ask for the private key passphrase.
+
+Required release signing identity: `%USERPROFILE%\.android\family-points-release\familypoints-release.jks`, alias `familypoints`, certificate SHA-256 `167d63a05676a8fc9a1671be11a6d7c1246ff9d97286efca30cb5e104c152d4f` (pin embedded in local config and checked by wrapper). Preserve this file and store a separate **secure off-device copy of the signing key**; user's waiver of disposable BETA database backup does NOT extend to signing keys. Public beta.9 was signed by a DIFFERENT certificate and cannot update in place to beta.10/11; updates starting from beta.10 use the same expected signing key. **Never auto-uninstall Android** or discard cached unsynced operations.
+
+### Exactly what each command does
+
+- **status** checks live `https://family-point.com/downloads/familypoints-beta.json` for published `versionCode`, local SDK/keystore paths and existing APK; no write to host.
+- **build** selects next `versionCode=published+1` unless explicitly provided (must still exceed public), names `0.1.0-beta.N`, sets Android env variables automatically, securely prompts passwords, assembles signed Release using Gradle, verifies APK signature fingerprint, generates `android-release-output/familypoints-beta.apk`, `.json` and `.apk.sha256`. This does NOT push or publish.
+- **install** targets configured Huawei ADB device only (`adb -s`), runs `install -r`, leaves data intact; manually test launch, password/Google sign-in, core screen/API operations. If signature incompatible, stop rather than uninstall automatically.
+- **logs** reads phone's `FamilyPointsGoogleAuth` diagnostic tag; for fresh trace run `adb -s WCR7N18505002589 logcat -c`, reproduce, then `release.bat logs`. It logs auth phase/status and exception type only, NOT tokens.
+- **publish** requires locally tested APK newer than live, re-verifies signing fingerprint; prompts `PUBLISH`, then delegated uploader prompts `UPLOAD` and SSH private key passphrase, then server publisher prompts `PUBLISH`. Validates SHA-256, remote manifest and public version, without restarting Backend/Web/Docker or touching PostgreSQL.
+- Verify publication independently, especially after script nonzero exit (publication may already have succeeded):
+```powershell
+curl.exe -i https://family-point.com/downloads/familypoints-beta.json
+curl.exe -I https://family-point.com/downloads/familypoints-beta.apk
+```
+Expected JSON: new `versionCode`, `versionName` and SHA-256 matching the locally signed APK; APK HTTP 200 with Android-package Content-Type. Do NOT run publisher again for same code: server enforces monotonically rising versionCode.
+
+### Verified user/operator facts and release boundary
+
+- Operator demonstrated `release.bat status` success (public versionCode **10**, SDK/keystore True); `release.bat build` success with signed local **0.1.0-beta.11**, versionCode **11**, SHA-256 `87a0afdf7188d35ab01d89c8c9123c8faabe4f548a5105d0b6add317733f9b9f`, correct signer; `release.bat install` **Success** on real Huawei. User explicitly confirmed **Google account sign-in WORKS** after fixing Web OAuth Client ID in local config. This is an Android on-device smoke, not broad QA clearance.
+- **Last verified public APK is beta.10, code 10**. The user has been instructed to publish beta.11, but no publication output has yet been supplied; **do not claim beta.11 is public** unless verified from manifest/operator evidence.
+- Backend/Web beta.10 deployed at pinned SHA `da02b677f424874b34388b86646f758a1f5cd9d0`, Flyway **V38** success and public health `UP`; APK publishing is entirely separate, requires no backend/web redeploy, and no DB backup/reset is needed. Other Google-signin/cross-family QA remains separate.
+- For future Android changes commit code to `main`, run available CI, and build/publish via this script sequence; never republish a stale local binary merely because script sources changed. Check `git status --short` before pulling. Never commit the local config, APK, keystore, SSH identity, passwords, or tokens.
+
+### Known failure modes
+
+- PowerShell policies: use `release.bat` instead of directly invoking `.ps1`.
+- Before first successful run, a malformed `release.ps1` caused parser errors and an older PowerShell 5.1 JSON parse failed. Corrected in `main` (commits `4870564` and `fdfbd76`). Both **status and build/install subsequently succeeded on user's Windows**.
+- Incorrect Google OAuth *Android* client ID used as `googleWebClientId` caused beta.10 Google sign-in failure; correct *Web application* ID on beta.11 fixed the observed failure.
+- Having real Huawei plus emulator connected means unspecific `adb logcat` errors with `more than one device/emulator`; wrapper always selects configured Huawei.
+- A failed local publisher verification does NOT necessarily mean server publication failed: beta.10 was publicly verified even though an older uploader returned a false-negative after successful server publication. Read public manifest and checksum before retrying.
