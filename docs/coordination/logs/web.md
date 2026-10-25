@@ -438,3 +438,6 @@ Show only relevant fields but never silently discard persisted data; apply categ
 **Deliberately deferred until after BETA publication:** broad QA matrix, UI polish, categories/templates, reset flows, retrospective history editing, catalog aesthetics, noncritical avatar UX, new screens. This handoff does NOT instruct Release to wait for those items and does NOT grant Release or other tracks permission to change unrelated VPS services/1C/DB data.
 
 **Acceptance owner:** Release/DevOps. Web is frozen and available for post-BETA fixes only.
+
+## 2026-10-25 — Architecture task allocation: templates, currencies, rewards and timers
+**Shared checklist:** `docs/coordination/PRODUCT_BACKLOG_EXECUTION_CHECKLIST.md`. BKL-007: investigate absent GOLD/SILVER/COPPER and default word forms; existing suggestions are not persisted and formatter defaults only POINTS. Post-BETA: task/reward/family template UI, selective-reset confirmations, adult corrections, timed reward display/alerts and Android app reward label/icon (Web cannot directly launch apps). Wait for Backend contracts, preserve 4 locales and current BETA freeze until post-release work is approved. Status PLANNED.
