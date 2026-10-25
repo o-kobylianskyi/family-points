@@ -47,4 +47,31 @@ class EconomyDefaultCurrenciesTest {
         verifyNoInteractions(types, workspaces);
         verify(settings, never()).save(any());
     }
+
+    @Test void cannotDeactivateDefaultCurrency() {
+        var workspace = mock(Workspace.class);
+        var points = mock(PointType.class);
+        when(points.getId()).thenReturn(10L);
+        var economySettings = new EconomySettings(workspace, EconomyMode.SIMPLE, points);
+        when(types.findByIdAndWorkspaceId(10L, 42L)).thenReturn(Optional.of(points));
+        when(settings.findByWorkspaceId(42L)).thenReturn(Optional.of(economySettings));
+        assertThrows(IllegalArgumentException.class,
+                () -> economy.updatePointType(42L, 10L, "Points", 0, false));
+        verify(types, never()).save(any());
+    }
+
+    @Test void canDeactivateNonDefaultCurrencyWithoutDeletingIt() {
+        var workspace = mock(Workspace.class);
+        var points = mock(PointType.class);
+        when(points.getId()).thenReturn(10L);
+        var silver = new PointType(workspace, "SILVER", "Silver", 20);
+        when(types.findByIdAndWorkspaceId(11L, 42L)).thenReturn(Optional.of(silver));
+        when(settings.findByWorkspaceId(42L)).thenReturn(Optional.of(new EconomySettings(
+                workspace, EconomyMode.SIMPLE, points)));
+        when(types.save(silver)).thenReturn(silver);
+        assertSame(silver, economy.updatePointType(42L, 11L, "My silver", 25, false));
+        assertFalse(silver.isActive());
+        assertEquals("My silver", silver.getName());
+        assertEquals(25, silver.getSortOrder());
+    }
 }
