@@ -10,10 +10,13 @@ export function useCurrencyQuantity(token, workspaceId) {
   const [forms, setForms] = useState({})
 
   useEffect(() => {
-    if (!workspaceId || !token) return
     let active = true
+    setTypes([])
+    setForms({})
+    if (!workspaceId || !token) return () => { active = false }
     getPointTypes(token, workspaceId).then(async result => {
       if (!active) return
+      if (!Array.isArray(result)) return
       setTypes(result)
       const entries = await Promise.all(result.map(async type => {
         try { return [type.id, await getPointNameForms(token, workspaceId, type.id)] }
@@ -25,7 +28,8 @@ export function useCurrencyQuantity(token, workspaceId) {
   }, [token, workspaceId])
 
   return (amount, code, id = null, fallback = null) => {
-    const type = types.find(item => (id != null && item.id === id) || item.code === code)
+    const type = types.find(item => (id != null && String(item.id) === String(id)) ||
+      (code != null && String(item.code).toUpperCase() === String(code).toUpperCase()))
     return currencyQuantity(amount, {
       code: type?.code || code,
       name: fallback || type?.name || code,
