@@ -394,3 +394,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - Main source after Backend commits 7e6648c (seed builtins on new families), d0b20d8/8ec9531/745b5f2 (currency admin/list including inactive/update validation); old-family migration/repair remains Backend-owned, not proved.
 - Android currency forms editor race identified: form fields and Save were enabled while pointNameForms request was unresolved; default suggestion could be edited/saved prematurely and late response could reset a draft. Source fix 0a806f0 adds visible loading state, disables language picker, fields and Save until authoritative remote forms have loaded, and keys the load effect by workspaceId+selected type.
 - Unit tests from prior 9ffc2cb are committed but no Android CI/job result observed at this exact follow-up source SHA. Keep beta.11 untouched. Validate on DEV old/new families and run Android Gradle CI before claiming done.
+
+## 2026-10-25 — DEV BKL-007 failed-fetch safety
+- Backend main now contains currency admin listing/update and disabled-type tests. Android SettingsApi still uses active-only point-types endpoint; no missing currency or balance will be fabricated client-side.
+- CurrencyFormsSection previously reenabled Save after failed pointNameForms GET; at 8adea42 formsLoaded now remains false until authoritative success. Fields/Save are disabled after fetch failure, and the dialog cannot dismiss during an active request.
+- QA: simulate 403/5xx GET => never save suggested/stale values; empty successful GET => built-in suggestions; saved user forms => overrides; switch workspace/type => no cross-family stale save. Gradle and device check at latest SHA pending.
