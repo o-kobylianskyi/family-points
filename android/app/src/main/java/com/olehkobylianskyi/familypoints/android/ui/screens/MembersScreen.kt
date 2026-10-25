@@ -21,7 +21,6 @@ import com.olehkobylianskyi.familypoints.android.data.AvatarUploadOptimizer
 import com.olehkobylianskyi.familypoints.android.network.MediaBindRequest
 import com.olehkobylianskyi.familypoints.android.network.MediaCatalogItemDto
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
