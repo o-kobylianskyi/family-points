@@ -68,7 +68,7 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
 
   useEffect(() => {
     let alive = true
-    setSelectedId('')
+    setSelectedId('');
     (canManage ? getAllPointTypes(token, workspaceId) : getPointTypes(token, workspaceId))
       .then(data => { if (alive) { setTypes(data); if (data.length) setSelectedId(String(data[0].id)) } })
       .catch(e => { if (alive) setError(e.message) })
