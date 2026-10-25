@@ -53,3 +53,6 @@ backups/
 
 # Local TSD project - never commit
 /TSD/
+
+# Local Android release settings (contains public OAuth ID, device and SSH paths; never commit)
+/scripts/android/release-config.local.json
