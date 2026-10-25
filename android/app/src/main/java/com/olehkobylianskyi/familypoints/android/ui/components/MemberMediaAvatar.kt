@@ -55,12 +55,18 @@ fun MemberMediaAvatar(workspaceId: Long, bearer: String?, image: MediaRefDto?, n
                 ApiClient.mediaApi.catalogPreview(bearer, workspaceId, catalogKey).use { body ->
                     val bytes = body.bytes()
                     if (bytes.size in 1..256_000) {
-                        val svg = SVG.getFromString(String(bytes, Charsets.UTF_8))
-                        val rendered = Bitmap.createBitmap(128, 128, Bitmap.Config.ARGB_8888)
-                        svg.documentWidth = 128f
-                        svg.documentHeight = 128f
-                        svg.renderToCanvas(Canvas(rendered))
-                        bitmap = rendered
+                        // V38 catalog may return PNG, while legacy V37 keys are SVG.
+                        val raster = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        if (raster != null) {
+                            bitmap = raster
+                        } else {
+                            val svg = SVG.getFromString(String(bytes, Charsets.UTF_8))
+                            val rendered = Bitmap.createBitmap(128, 128, Bitmap.Config.ARGB_8888)
+                            svg.documentWidth = 128f
+                            svg.documentHeight = 128f
+                            svg.renderToCanvas(Canvas(rendered))
+                            bitmap = rendered
+                        }
                     }
                 }
             }
