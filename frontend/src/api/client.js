@@ -7,12 +7,14 @@ export async function apiRequest(
     method = 'GET',
     body,
     headers = {},
+    cache,
   } = {}
 ) {
   const response = await fetch(
     `${API_URL}${path}`,
     {
       method,
+      ...(cache ? { cache } : {}),
       headers: {
         ...(body ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
