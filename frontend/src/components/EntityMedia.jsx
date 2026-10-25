@@ -23,6 +23,7 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
   const [error,setError]=useState('')
   const [busy,setBusy]=useState(false)
   const [editorOpen,setEditorOpen]=useState(false)
+  const [avatarFilter,setAvatarFilter]=useState('ALL')
   const [revision,setRevision]=useState(0)
   const [draftPreview,setDraftPreview]=useState('')
   useEffect(()=>{
@@ -104,10 +105,33 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
     item.selectable && item.previewPath &&
     allowedCategories.includes(String(item.category||'').toUpperCase())
   )
+  const avatarGroups = [
+    {id:'ALL', names:{uk:'Усі',de:'Alle',en:'All',ru:'Все'}},
+    {id:'HUMAN', names:{uk:'Люди',de:'Menschen',en:'People',ru:'Люди'}},
+    {id:'ANIMAL', names:{uk:'Тварини',de:'Tiere',en:'Animals',ru:'Животные'}},
+    {id:'PLAYER', names:{uk:'Гравці',de:'Spieler',en:'Players',ru:'Игроки'}},
+    {id:'MONSTER', names:{uk:'Монстри',de:'Monster',en:'Monsters',ru:'Монстры'}},
+    {id:'ROBOT', names:{uk:'Роботи',de:'Roboter',en:'Robots',ru:'Роботы'}},
+    {id:'VEHICLE', names:{uk:'Транспорт',de:'Fahrzeuge',en:'Vehicles',ru:'Транспорт'}},
+  ]
+  const avatarGroupOf = item => {
+    const tags=(item.tags||[]).map(tag=>String(tag).toUpperCase())
+    return avatarGroups.find(group=>group.id!=='ALL'&&tags.includes(group.id))?.id||'OTHER'
+  }
+  const visibleAvatarGroups = avatarGroups.filter(group=>
+    group.id==='ALL'||availableCatalog.some(item=>avatarGroupOf(item)===group.id))
+  const visibleAvatars = avatarFilter==='ALL' ? availableCatalog
+    : availableCatalog.filter(item=>avatarGroupOf(item)===avatarFilter)
   const editor = canEdit && reference && <div className="entity-media-controls">
     {type==='MEMBER' && inlineEditor ? <div className="avatar-catalog-picker" role="group" aria-label={words[1]}>
+      <div className="avatar-catalog-filters" role="group" aria-label={words[1]}>
+        {visibleAvatarGroups.map(group=><button type="button" key={group.id}
+          aria-pressed={avatarFilter===group.id}
+          className={'avatar-catalog-filter'+(avatarFilter===group.id?' active':'')}
+          onClick={()=>setAvatarFilter(group.id)}>{group.names[locale]||group.names.en}</button>)}
+      </div>
       <div className="avatar-catalog-grid">
-        {availableCatalog.map(item=><AvatarCatalogTile key={item.key} item={item} workspaceId={workspaceId}
+        {visibleAvatars.map(item=><AvatarCatalogTile key={item.key} item={item} workspaceId={workspaceId}
           token={getAccessToken()} selected={draft?.kind==='catalog'&&draft.key===item.key}
           onSelect={choose} label={catalogName(item)}/>)}
       </div>
