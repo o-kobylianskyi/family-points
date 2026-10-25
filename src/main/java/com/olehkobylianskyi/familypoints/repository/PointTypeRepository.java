@@ -19,6 +19,8 @@ public interface PointTypeRepository
             Long workspaceId
     );
 
+    List<PointType> findByWorkspaceIdOrderBySortOrderAsc(Long workspaceId);
+
     List<PointType> findByWorkspaceIdAndActiveTrueOrderBySortOrderAsc(
             Long workspaceId
     );
