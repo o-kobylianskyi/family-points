@@ -12,7 +12,8 @@ class EconomyDefaultCurrenciesTest {
     private final EconomySettingsRepository settings = mock(EconomySettingsRepository.class);
     private final WorkspaceRepository workspaces = mock(WorkspaceRepository.class);
     private final PointTypeRepository types = mock(PointTypeRepository.class);
-    private final EconomyService economy = new EconomyService(settings, workspaces, types);
+    private final StandardCurrencyForms forms = mock(StandardCurrencyForms.class);
+    private final EconomyService economy = new EconomyService(settings, workspaces, types, forms);
 
     @Test void initializesMissingDefaultCurrenciesWithoutDuplicatingExistingTypes() {
         var workspace = mock(Workspace.class);
@@ -42,10 +43,12 @@ class EconomyDefaultCurrenciesTest {
         var points = new PointType(workspace, "POINTS", "Custom points", 88);
         var existing = new EconomySettings(workspace, EconomyMode.MULTI_TYPE, points);
         when(settings.findByWorkspaceId(42L)).thenReturn(Optional.of(existing));
+        when(workspaces.findById(42L)).thenReturn(Optional.of(workspace));
+        when(types.save(any(PointType.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         assertSame(existing, economy.getOrCreateSettings(42L));
-        verifyNoInteractions(types, workspaces);
         verify(settings, never()).save(any());
+        verify(types).findByWorkspaceIdAndCode(42L, "COPPER");
     }
 
     @Test void cannotDeactivateDefaultCurrency() {
