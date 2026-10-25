@@ -152,6 +152,12 @@ function SettingsPage() {
     } catch (e2) { setError(e2.message) } finally { setBusy(false) }
   }
 
+  // Authentication context may briefly be empty during session refresh.
+  // Do not dereference it while rendering SettingsPage.
+  if (!currentUser?.workspaceId) {
+    return <div className="page-loading" role="status">{t('common.loading')}</div>
+  }
+
   return <>
     <h1>{t('settings.title')}</h1>
     <p>{t('settings.description')}</p>
