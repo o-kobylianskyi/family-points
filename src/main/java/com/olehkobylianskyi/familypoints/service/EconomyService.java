@@ -41,11 +41,9 @@ public class EconomyService {
         return settings;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<PointType> getActivePointTypes(Long workspaceId) {
-
-        getWorkspaceOrThrow(workspaceId);
-
+        getOrCreateSettings(workspaceId);
         return pointTypeRepository
                 .findByWorkspaceIdAndActiveTrueOrderBySortOrderAsc(
                         workspaceId
@@ -94,9 +92,9 @@ public class EconomyService {
         return pointTypeRepository.save(pointType);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<PointType> getAllPointTypes(Long workspaceId) {
-        getWorkspaceOrThrow(workspaceId);
+        getOrCreateSettings(workspaceId);
         return pointTypeRepository.findByWorkspaceIdOrderBySortOrderAsc(workspaceId);
     }
 
