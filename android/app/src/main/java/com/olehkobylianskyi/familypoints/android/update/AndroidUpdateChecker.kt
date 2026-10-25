@@ -27,6 +27,8 @@ object AndroidUpdateChecker {
         "com.olehkobylianskyi.familypoints.android"
 
     suspend fun check(): AvailableAndroidUpdate? = withContext(Dispatchers.IO) {
+        // Developer builds must never offer to replace themselves with the published BETA APK.
+        if (BuildConfig.DEBUG) return@withContext null
         val connection = (URL(MANIFEST_URL).openConnection() as HttpURLConnection)
         try {
             connection.connectTimeout = 8_000
