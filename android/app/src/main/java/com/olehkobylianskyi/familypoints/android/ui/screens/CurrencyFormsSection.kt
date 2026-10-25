@@ -31,18 +31,18 @@ fun CurrencyFormsSection(
     val scope = rememberCoroutineScope()
     var types by remember(workspaceId) { mutableStateOf<List<PointTypeResponse>>(emptyList()) }
     var selected by remember(workspaceId) { mutableStateOf<PointTypeResponse?>(null) }
-    var languageCode by remember { mutableStateOf("uk") }
-    var languageMenu by remember { mutableStateOf(false) }
-    var forms by remember { mutableStateOf<List<PointNameFormDto>>(emptyList()) }
-    var one by remember { mutableStateOf("") }
-    var few by remember { mutableStateOf("") }
-    var many by remember { mutableStateOf("") }
-    var busy by remember { mutableStateOf(false) }
+    var languageCode by remember(workspaceId) { mutableStateOf("uk") }
+    var languageMenu by remember(workspaceId) { mutableStateOf(false) }
+    var forms by remember(workspaceId) { mutableStateOf<List<PointNameFormDto>>(emptyList()) }
+    var one by remember(workspaceId) { mutableStateOf("") }
+    var few by remember(workspaceId) { mutableStateOf("") }
+    var many by remember(workspaceId) { mutableStateOf("") }
+    var busy by remember(workspaceId) { mutableStateOf(false) }
     var loadingForms by remember(workspaceId) { mutableStateOf(false) }
     var formsLoaded by remember(workspaceId) { mutableStateOf(false) }
     var formsRetryNonce by remember(workspaceId) { mutableIntStateOf(0) }
-    var error by remember { mutableStateOf("") }
-    var notice by remember { mutableStateOf("") }
+    var error by remember(workspaceId) { mutableStateOf("") }
+    var notice by remember(workspaceId) { mutableStateOf("") }
 
     fun failure(e: Exception) {
         if (e is HttpException && e.code() == 401) onUnauthorized()
