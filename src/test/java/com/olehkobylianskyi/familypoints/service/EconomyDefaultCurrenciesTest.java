@@ -40,6 +40,7 @@ class EconomyDefaultCurrenciesTest {
 
     @Test void existingEconomyConfigurationRemainsUntouched() {
         var workspace = mock(Workspace.class);
+        when(workspace.getId()).thenReturn(42L);
         var points = new PointType(workspace, "POINTS", "Custom points", 88);
         var existing = new EconomySettings(workspace, EconomyMode.MULTI_TYPE, points);
         when(settings.findByWorkspaceId(42L)).thenReturn(Optional.of(existing));
@@ -55,6 +56,7 @@ class EconomyDefaultCurrenciesTest {
         var workspace = mock(Workspace.class);
         var points = mock(PointType.class);
         when(points.getId()).thenReturn(10L);
+        when(points.getCode()).thenReturn("POINTS");
         var economySettings = new EconomySettings(workspace, EconomyMode.SIMPLE, points);
         when(types.findByIdAndWorkspaceId(10L, 42L)).thenReturn(Optional.of(points));
         when(settings.findByWorkspaceId(42L)).thenReturn(Optional.of(economySettings));
