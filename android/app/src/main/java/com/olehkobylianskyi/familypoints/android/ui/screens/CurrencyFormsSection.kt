@@ -30,7 +30,7 @@ fun CurrencyFormsSection(
 ) {
     val scope = rememberCoroutineScope()
     var types by remember(workspaceId) { mutableStateOf<List<PointTypeResponse>>(emptyList()) }
-    var selected by remember { mutableStateOf<PointTypeResponse?>(null) }
+    var selected by remember(workspaceId) { mutableStateOf<PointTypeResponse?>(null) }
     var languageCode by remember { mutableStateOf("uk") }
     var languageMenu by remember { mutableStateOf(false) }
     var forms by remember { mutableStateOf<List<PointNameFormDto>>(emptyList()) }
@@ -51,14 +51,16 @@ fun CurrencyFormsSection(
     }
     LaunchedEffect(selected?.id) {
         val type = selected ?: return@LaunchedEffect
+        forms = emptyList()
         try { forms = repository.pointNameForms(workspaceId, type.id) }
         catch (e: Exception) { failure(e) }
     }
-    LaunchedEffect(forms, languageCode) {
-        val current = forms.firstOrNull { it.language == languageCode }
-        one = current?.one ?: ""
-        few = current?.few ?: ""
-        many = current?.many ?: ""
+    LaunchedEffect(forms, languageCode, selected?.id) {
+        val current = forms.firstOrNull { it.language.equals(languageCode, ignoreCase = true) }
+        val suggested = builtInCurrencyForms(selected?.code, languageCode)
+        one = current?.one ?: suggested?.one.orEmpty()
+        few = current?.few ?: suggested?.few.orEmpty()
+        many = current?.many ?: suggested?.many.orEmpty()
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(cf(language, "Відмінювання валют", "Währungsformen", "Currency word forms",
