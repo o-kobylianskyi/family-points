@@ -31,14 +31,22 @@ function Read-Config {
     return $config
 }
 function Get-PublishedVersion($config) {
-    $response = Invoke-WebRequest -Uri $config.manifestUrl -UseBasicParsing -TimeoutSec 20 -Headers @{
-        'Accept' = 'application/json'; 'Cache-Control' = 'no-cache'
+    # Windows PowerShell 5.1 can expose IWR.Content unexpectedly in a pipeline.
+    # curl.exe avoids object/string coercion and works with this site's JSON endpoint.
+    $lines = @(& curl.exe --fail --silent --show-error --location --max-time 20 --header 'Accept: application/json' --header 'Cache-Control: no-cache' -- $config.manifestUrl)
+    if ($LASTEXITCODE -ne 0) { throw 'Could not read the published APK manifest (curl.exe failed).' }
+    $raw = ($lines -join [Environment]::NewLine).Trim().TrimStart([char]0xFEFF)
+    if (-not $raw.StartsWith('{')) {
+        throw 'Published APK manifest did not return a JSON object. Check URL and site routing.'
     }
-    $parsed = [string]$response.Content | ConvertFrom-Json
+    try { $parsed = ConvertFrom-Json -InputObject $raw -ErrorAction Stop }
+    catch { throw 'Public APK manifest contains invalid JSON. Check server response.' }
     if ($null -eq $parsed -or $null -eq $parsed.PSObject.Properties['versionCode']) {
         throw 'Public Android manifest has no versionCode; cannot choose release number.'
     }
-    return [int]$parsed.versionCode
+    $code = [int]$parsed.versionCode
+    if ($code -le 0) { throw 'Published versionCode must be positive.' }
+    return $code
 }
 function Set-AndroidSdk($config) {
     $sdk = Expand-Setting $config.androidSdk
