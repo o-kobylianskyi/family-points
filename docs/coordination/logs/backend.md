@@ -214,3 +214,9 @@ At exact integration SHA `c70d28d9812d13a85e2f6cfd62186fb344aff510`, GitHub Acti
 - Commits: 7e6648cd, 1abe149d, e9863278, 74cffc73, d0b20d8f, 8ec9531c, 745b5f2b, 47b1e79a, 388d7932, 744448d3, 7b45cd2d.
 - **NOT COMPLETE:** automatic persisted UK/RU/EN/DE forms for all standard currencies; safe idempotent backfill for pre-existing workspaces; full frontend/backend integration tests/CI; DEV deployment/smoke. Current GET active types remains active-only by design, and existing SIMPLE mode unchanged. No BETA/PROD DB access or changes.
 - NOTE: design review needed: default currency cannot be deactivated; changing names/active types does not alter balances or ledger. Verify invalid input/error behavior and no cross-family access regression in QA. User assigned MCP PostgreSQL access to QA separately (QA log).
+
+## 2026-10-25 — BKL-007 currency baseline reconciliation + persisted localized defaults
+- Implemented `StandardCurrencyForms` persistent UK/RU/EN/DE one/few/many presets for POINTS/COPPER/SILVER/GOLD, inserting missing rows only and respecting custom forms.
+- Existing workspaces now reconcile missing standard currency types via `EconomyService.getOrCreateSettings` and list endpoints, without changing existing currency rows, mode, balances or ledger. New workspaces also seed and persist all four types and language forms. No Flyway data migration and no changes to BETA/Production.
+- Tests added `StandardCurrencyFormsTest` for all language inserts, custom preservation and nonstandard currency skip; adapted `EconomyDefaultCurrenciesTest`. Relevant commits dd9d6f7b, d0037597, eb794a57, 86299cbf, bada9085, 0923039d, 5cba2c73.
+- **Verification:** latest GitHub Actions run 40237921440 queued when inspected; do not mark tests passed without completion. Follow up CI result, contract checks, QA and DEV smoke. MCP access remains assigned QA.
