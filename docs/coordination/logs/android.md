@@ -380,3 +380,12 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - User directly confirms signed `0.1.0-beta.11` runs on a phone and no critical issues have been observed **so far**. This is an operator-reported positive real-device smoke, not comprehensive QA and not independently verified public manifest or all scenarios.
 - Android baseline startup critical-blocker is provisionally cleared on the tested device. Keep detailed test matrix, offline account isolation, exact-once reward/point writes, other Android devices, background behavior and cross-client media synchronization unverified until specific evidence.
 - Continue post-BETA backlog intake and prioritized BKL-007 coordination; actual resumption of implementation remains subject to user direction. No Android source or APK changed in this entry.
+
+## 2026-10-25 — DEV ACTIVE: BKL-007 Android currency forms pack (SOURCE IMPLEMENTED; CI PENDING)
+- User resumed development on DEV after beta.11 phone smoke; published signed BETA unchanged.
+- Cross-track context: Backend four-currency new-workspace defaults at 7e6648c, tests 1abe149; Web fallbacks 1f6efb1. Old workspace currencies missing/disabled/hidden requires Backend diagnosis.
+- Android source 35f7e35: built-in POINTS/COPPER/SILVER/GOLD forms for UK/RU/EN/DE, quantity boundaries 11–14 and 21/22/25, respect nonempty saved custom overrides.
+- Android source 4f40cbf: CurrencyFormsSection previews suggested forms when saved language row is absent; never silently replaces saved rows or persists suggestions without Save.
+- Android tests 9ffc2cb: JUnit regression tests for plural boundaries, 16 built-in locale/type combinations, explicit overrides, EN/DE.
+- Validation: code and tests committed to main, actual Gradle/CI on new SHA and real DEV API/device verification NOT yet confirmed. No APK/deploy.
+- Next: run Android CI and manual QA for old/new workspace pointTypes and pointNameForms; Backend owns missing old currency visibility/seeding diagnosis and authoritative automatic persistence.
