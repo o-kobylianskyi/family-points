@@ -59,3 +59,16 @@ export async function createPointType(token, workspaceId, { code, name, sortOrde
   )
   return handleResponse(response, 'Failed to create currency')
 }
+
+export async function getAllPointTypes(token, workspaceId) {
+  const response = await apiRequest(`/workspaces/${workspaceId}/economy/point-types/all`, { token })
+  return handleResponse(response, 'Failed to load all currencies')
+}
+
+export async function updatePointType(token, workspaceId, id, { name, sortOrder, active }) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/economy/point-types/${id}`,
+    { token, method: 'PUT', body: { name, sortOrder, active } }
+  )
+  return handleResponse(response, 'Failed to update currency')
+}
