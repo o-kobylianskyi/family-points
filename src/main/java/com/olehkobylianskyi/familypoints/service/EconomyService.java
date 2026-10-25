@@ -159,6 +159,12 @@ public class EconomyService {
                                 )
                         );
 
+        // Provision the standard currencies only when a workspace is first initialized.
+        // Existing rows (including intentionally inactive ones) are left untouched.
+        ensureStandardPointType(workspace, "COPPER", "Copper", 10);
+        ensureStandardPointType(workspace, "SILVER", "Silver", 20);
+        ensureStandardPointType(workspace, "GOLD", "Gold", 30);
+
         EconomySettings settings =
                 new EconomySettings(
                         workspace,
@@ -167,6 +173,12 @@ public class EconomyService {
                 );
 
         return settingsRepository.save(settings);
+    }
+
+    private void ensureStandardPointType(Workspace workspace, String code, String name, int order) {
+        if (pointTypeRepository.findByWorkspaceIdAndCode(workspace.getId(), code).isEmpty()) {
+            pointTypeRepository.save(new PointType(workspace, code, name, order));
+        }
     }
 
     private Workspace getWorkspaceOrThrow(Long workspaceId) {
