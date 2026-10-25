@@ -37,7 +37,7 @@ class MediaManifestControllerTest {
         byte[] image="<svg/>".getBytes(java.nio.charset.StandardCharsets.UTF_8);
         when(service.catalogPreview(42L,"family-default")).thenReturn(image);
         var response=controller.catalogPreview(42L,"family-default");
-        assertEquals("private, max-age=86400",
+        assertEquals("private, no-store",
                 response.getHeaders().getFirst(org.springframework.http.HttpHeaders.CACHE_CONTROL));
         assertArrayEquals(image,response.getBody());
         verify(service).catalogPreview(42L,"family-default");
