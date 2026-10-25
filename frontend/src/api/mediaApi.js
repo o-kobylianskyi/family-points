@@ -33,7 +33,7 @@ export async function fetchAuthorizedMediaObjectUrl(token, path, workspaceId) {
       !/^\/workspaces\/\d+\/media\/[A-Za-z0-9/_-]+$/.test(path)) {
     throw new Error('Invalid workspace media path')
   }
-  const response = await apiRequest(path, { token })
+  const response = await apiRequest(path, { token, cache: 'no-store' })
   if (!response.ok) throw new Error(`Media image unavailable (HTTP ${response.status})`)
   const blob = await response.blob()
   if (!blob.type.startsWith('image/')) throw new Error('Unexpected media content type')
