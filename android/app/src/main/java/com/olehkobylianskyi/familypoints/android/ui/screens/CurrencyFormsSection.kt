@@ -40,6 +40,7 @@ fun CurrencyFormsSection(
     var busy by remember { mutableStateOf(false) }
     var loadingForms by remember(workspaceId) { mutableStateOf(false) }
     var formsLoaded by remember(workspaceId) { mutableStateOf(false) }
+    var formsRetryNonce by remember(workspaceId) { mutableIntStateOf(0) }
     var error by remember { mutableStateOf("") }
     var notice by remember { mutableStateOf("") }
 
@@ -51,7 +52,7 @@ fun CurrencyFormsSection(
     LaunchedEffect(workspaceId) {
         try { types = repository.pointTypes(workspaceId) } catch (e: Exception) { failure(e) }
     }
-    LaunchedEffect(workspaceId, selected?.id) {
+    LaunchedEffect(workspaceId, selected?.id, formsRetryNonce) {
         val type = selected ?: return@LaunchedEffect
         loadingForms = true
         formsLoaded = false
@@ -101,6 +102,16 @@ fun CurrencyFormsSection(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     if (loadingForms) CircularProgressIndicator()
+                    if (!formsLoaded && !loadingForms) {
+                        Text(cf(language, "Не вдалося завантажити форми валюти.",
+                            "Währungsformen konnten nicht geladen werden.",
+                            "Could not load currency forms.",
+                            "Не удалось загрузить формы валюты."),
+                            color = MaterialTheme.colorScheme.error)
+                        TextButton(onClick = { error = ""; formsRetryNonce++ }) {
+                            Text(cf(language, "Повторити", "Erneut versuchen", "Retry", "Повторить"))
+                        }
+                    }
                     OutlinedButton(enabled = formsLoaded && !loadingForms && !busy, onClick = { languageMenu = true }) {
                         Text(languageCode.uppercase() + " ▾")
                     }
