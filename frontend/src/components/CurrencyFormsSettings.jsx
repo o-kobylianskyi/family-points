@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getPointTypes, getPointNameForms, savePointNameForms, createPointType } from '../api/economyApi'
+import { getPointTypes, getPointNameForms, savePointNameForms, createPointType, getAllPointTypes, updatePointType } from '../api/economyApi'
 import { currencyQuantity } from '../utils/formatCurrencyAmount'
 
 const languages = [['uk', 'Українська'], ['ru', 'Русский'], ['en', 'English'], ['de', 'Deutsch']]
@@ -56,6 +56,9 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editActive, setEditActive] = useState(true)
+  const [editing, setEditing] = useState(false)
   const [newCurrencyName, setNewCurrencyName] = useState('')
   const [newCurrencyCode, setNewCurrencyCode] = useState('')
   const selected = types.find(type => String(type.id) === String(selectedId))
@@ -66,11 +69,11 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
   useEffect(() => {
     let alive = true
     setSelectedId('')
-    getPointTypes(token, workspaceId)
+    (canManage ? getAllPointTypes(token, workspaceId) : getPointTypes(token, workspaceId))
       .then(data => { if (alive) { setTypes(data); if (data.length) setSelectedId(String(data[0].id)) } })
       .catch(e => { if (alive) setError(e.message) })
     return () => { alive = false }
-  }, [token, workspaceId])
+  }, [token, workspaceId, canManage])
 
   useEffect(() => {
     let alive = true
@@ -96,6 +99,25 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
       : preset ? { one: preset[0], few: preset[1], many: preset[2] } : blank)
     setDirty(false)
   }, [forms, selectedId, language])
+
+  useEffect(() => {
+    setEditName(selected?.name || '')
+    setEditActive(selected?.active ?? true)
+  }, [selected?.id, selected?.name, selected?.active])
+
+  async function saveCurrency(event) {
+    event.preventDefault()
+    if (!canManage || !selected || !editName.trim() || editing) return
+    setEditing(true); setError(''); setNotice('')
+    try {
+      const updated = await updatePointType(token, workspaceId, selected.id, {
+        name: editName.trim(), active: editActive, sortOrder: selected.sortOrder,
+      })
+      setTypes(previous => previous.map(type => type.id === updated.id ? updated : type))
+      setNotice(uiLang === 'uk' ? 'Валюту оновлено' : uiLang === 'ru' ? 'Валюта обновлена' : uiLang === 'de' ? 'Währung aktualisiert' : 'Currency updated')
+    } catch(e) { setError(e.message) }
+    finally { setEditing(false) }
+  }
 
   async function addCurrency(event) {
     event.preventDefault()
@@ -161,10 +183,25 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
             {localizedCurrency(type, uiLang)} ({type.code})
           </option>)}
         </select>
+        {selected && !selected.active && <div className="currency-forms-status">{uiLang === 'uk' ? 'Неактивна' : uiLang === 'ru' ? 'Неактивна' : uiLang === 'de' ? 'Inaktiv' : 'Inactive'}</div>}
         {selected && <div className="currency-forms-status">
           {loading ? l.loading : loaded ? status : l.retry}
         </div>}
       </div>
+      {selected && canManage && <form className="currency-forms-editor" onSubmit={saveCurrency}>
+        <h3>{uiLang === 'uk' ? 'Налаштування валюти' : uiLang === 'ru' ? 'Настройки валюты' : uiLang === 'de' ? 'Währungseinstellungen' : 'Currency settings'}</h3>
+        <div className="currency-forms-fields">
+          <label><span>{uiLang === 'uk' ? 'Назва' : uiLang === 'ru' ? 'Название' : uiLang === 'de' ? 'Name' : 'Name'}</span>
+            <input maxLength={100} required disabled={editing} value={editName} onChange={e => setEditName(e.target.value)} />
+          </label>
+          <label><span>{uiLang === 'uk' ? 'Активна' : uiLang === 'ru' ? 'Активна' : uiLang === 'de' ? 'Aktiv' : 'Active'}</span>
+            <input type="checkbox" disabled={editing} checked={editActive} onChange={e => setEditActive(e.target.checked)} />
+          </label>
+        </div>
+        <button className="primary-button" type="submit" disabled={editing || !editName.trim() || (editName === selected.name && editActive === selected.active)}>
+          {editing ? l.loading : l.save}
+        </button>
+      </form>}
       {selected && <form className="currency-forms-editor" onSubmit={save}>
         <label className="currency-forms-language" htmlFor="currency-language">{l.language}
           <select id="currency-language" value={language} onChange={e => setLanguage(e.target.value)} disabled={busy}>
