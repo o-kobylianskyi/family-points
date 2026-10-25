@@ -26,12 +26,28 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
   const [avatarFilter,setAvatarFilter]=useState('ALL')
   const [revision,setRevision]=useState(0)
   const [draftPreview,setDraftPreview]=useState('')
+  const [catalogDraftPreview,setCatalogDraftPreview]=useState('')
   useEffect(()=>{
     if(!staged || draft?.kind!=='upload' || !draft.file)return
     const preview=URL.createObjectURL(draft.file)
     setDraftPreview(preview)
     return ()=>{URL.revokeObjectURL(preview);setDraftPreview('')}
   },[staged,draft])
+  useEffect(()=>{
+    let active=true
+    let objectUrl=''
+    setCatalogDraftPreview('')
+    if(!staged || draft?.kind!=='catalog' || !workspaceId) return ()=>{active=false}
+    const item=catalog.find(entry=>entry.key===draft.key)
+    const path=item?.previewPath?.replaceAll('{workspaceId}',String(workspaceId))
+    if(!path) return ()=>{active=false}
+    fetchAuthorizedMediaObjectUrl(getAccessToken(),path,workspaceId).then(result=>{
+      objectUrl=result
+      if(active)setCatalogDraftPreview(result)
+      else URL.revokeObjectURL(result)
+    }).catch(()=>{if(active)setCatalogDraftPreview('')})
+    return ()=>{active=false;if(objectUrl)URL.revokeObjectURL(objectUrl)}
+  },[staged,draft,catalog,workspaceId,getAccessToken])
   const lock=useRef(false)
   const activeTarget=useRef('')
   activeTarget.current=`${workspaceId}:${type}:${targetId}:${slot}`
@@ -146,7 +162,7 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
   </div>
   if(inlineEditor) return <div className="member-avatar-editor">
     <div className="member-avatar-editor-top">
-      <div className="entity-media-avatar">{draftPreview?<img src={draftPreview} alt={words[0]}/>:draft?.kind==='clear'?children:url?<img src={url} alt={words[0]}/>:children}</div>
+      <div className="entity-media-avatar">{draft?.kind==='clear'?children:draft?.kind==='upload'&&draftPreview?<img src={draftPreview} alt={words[0]}/>:draft?.kind==='catalog'&&catalogDraftPreview?<img src={catalogDraftPreview} alt={words[0]}/>:url?<img src={url} alt={words[0]}/>:children}</div>
       <button type="button" className="secondary-button member-avatar-change" disabled={!canEdit} onClick={()=>setEditorOpen(v=>!v)}>
         {({uk:'Змінити',de:'Ändern',en:'Change',ru:'Изменить'})[locale]||'Change'}
       </button>
