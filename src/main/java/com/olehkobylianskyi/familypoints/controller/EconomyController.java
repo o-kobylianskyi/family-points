@@ -56,6 +56,21 @@ public class EconomyController {
                 .toList();
     }
 
+    @GetMapping("/point-types/all")
+    @PreAuthorize("@workspaceSecurity.canManageEconomy(#workspaceId)")
+    public List<PointTypeResponse> getAllPointTypes(@PathVariable Long workspaceId) {
+        return economyService.getAllPointTypes(workspaceId).stream()
+                .map(PointTypeResponse::from).toList();
+    }
+
+    @PutMapping("/point-types/{pointTypeId}")
+    @PreAuthorize("@workspaceSecurity.canManageEconomy(#workspaceId)")
+    public PointTypeResponse updatePointType(@PathVariable Long workspaceId,
+            @PathVariable Long pointTypeId, @Valid @RequestBody PointTypeUpdateRequest request) {
+        return PointTypeResponse.from(economyService.updatePointType(
+                workspaceId, pointTypeId, request.name(), request.sortOrder(), request.active()));
+    }
+
     @PreAuthorize("@workspaceSecurity.canManageEconomy(#workspaceId)")
     @PostMapping("/point-types")
     public ResponseEntity<PointTypeResponse> createPointType(
