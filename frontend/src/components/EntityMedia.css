@@ -52,3 +52,9 @@ body > .entity-media-backdrop .entity-media-dialog{position:relative;transform:n
 .member-avatar-editor .avatar-catalog-check{position:absolute;right:2px;bottom:2px;display:grid;place-items:center;width:20px;height:20px;background:var(--fp-accent);color:#07202a;border-radius:50%;font-weight:800;font-size:13px}
 .member-avatar-editor .avatar-catalog-fallback{opacity:.35}
 @media(max-width:450px){.member-avatar-editor .avatar-catalog-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}}
+
+/* Catalog-driven avatar filters; only categories actually returned by the API appear. */
+.member-avatar-editor .avatar-catalog-filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
+.member-avatar-editor .avatar-catalog-filter{border:1px solid var(--fp-border);border-radius:999px;background:var(--fp-surface);color:var(--fp-text);font-size:12px;min-height:30px;padding:5px 10px;cursor:pointer}
+.member-avatar-editor .avatar-catalog-filter.active{border-color:var(--fp-accent);background:var(--fp-surface-muted);color:var(--fp-accent)}
+.member-avatar-editor .avatar-catalog-filter:focus-visible{outline:2px solid var(--fp-accent);outline-offset:2px}
