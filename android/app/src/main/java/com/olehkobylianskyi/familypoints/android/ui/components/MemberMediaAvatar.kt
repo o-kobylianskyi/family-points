@@ -54,7 +54,7 @@ fun MemberMediaAvatar(workspaceId: Long, bearer: String?, image: MediaRefDto?, n
                 catalogKey != null && catalogKey.matches(Regex("[a-z0-9-]{1,64}"))) {
                 ApiClient.mediaApi.catalogPreview(bearer, workspaceId, catalogKey).use { body ->
                     val bytes = body.bytes()
-                    if (bytes.size in 1..256_000) {
+                    if (bytes.size in 1..2_000_000) {
                         // V38 catalog may return PNG, while legacy V37 keys are SVG.
                         val raster = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                         if (raster != null) {
