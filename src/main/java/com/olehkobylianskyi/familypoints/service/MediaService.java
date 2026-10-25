@@ -447,17 +447,49 @@ public class MediaService {
             new CatalogItem("animal_cat_002", "AVATAR", "media.catalog.animal_cat_002", 1, true, "/workspaces/{workspaceId}/media/catalog/animal_cat_002/preview", List.of("ANIMAL","UNSPECIFIED","ANY"), 1270),
             new CatalogItem("robot_003", "AVATAR", "media.catalog.robot_003", 1, true, "/workspaces/{workspaceId}/media/catalog/robot_003/preview", List.of("ROBOT","UNSPECIFIED","ANY"), 1280),
             new CatalogItem("vehicle_car_002", "AVATAR", "media.catalog.vehicle_car_002", 1, true, "/workspaces/{workspaceId}/media/catalog/vehicle_car_002/preview", List.of("VEHICLE","UNSPECIFIED","ANY"), 1290)
-            ).stream()).toList();
+            ).stream(), extraAvatars().stream()).toList();
     }
-    public boolean isPngCatalogKey(String key) { return V38_AVATARS.contains(key); }
+    private List<CatalogItem> extraAvatars() {
+        try {
+            var resources = new org.springframework.core.io.support.PathMatchingResourcePatternResolver()
+                    .getResources("classpath*:/media/catalog/**/*.png");
+            var keys = new java.util.TreeMap<String, CatalogItem>();
+            for (var res : resources) {
+                var name = res.getFilename();
+                if (name == null || !name.matches("[a-zA-Z0-9_-]+[.]png")) continue;
+                var key = name.substring(0, name.length() - 4);
+                if (V38_AVATARS.contains(key)) continue;
+                var location = res.getURL().toExternalForm();
+                List<String> tags;
+                if (location.contains("/animals/") || key.startsWith("animal_")) tags = List.of("ANIMAL");
+                else if (location.contains("/friendly_mobs/")) tags = List.of("FRIENDLY_MOB");
+                else if (location.contains("/monsters/")) tags = List.of("MONSTER");
+                else if (location.contains("/players/")) tags = List.of("PLAYER");
+                else if (key.startsWith("human_")) tags = List.of("HUMAN");
+                else if (key.startsWith("robot_")) tags = List.of("ROBOT");
+                else if (key.startsWith("vehicle_")) tags = List.of("VEHICLE");
+                else tags = List.of("OTHER");
+                var item = new CatalogItem(key, "AVATAR", "media.catalog." + key, 1, true,
+                        "/workspaces/{workspaceId}/media/catalog/" + key + "/preview", tags, 2000 + keys.size() * 10);
+                if (keys.putIfAbsent(key, item) != null)
+                    throw new IllegalStateException("Duplicate media catalog PNG key: " + key);
+            }
+            return List.copyOf(keys.values());
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to discover media catalog PNGs", e);
+        }
+    }
+    public boolean isPngCatalogKey(String key) {
+        return V38_AVATARS.contains(key) || extraAvatars().stream().anyMatch(x -> x.key().equals(key));
+    }
     public byte[] catalogPreview(long workspaceId, String key) {
         requireWorkspace(workspaceId);
 
-        if (!(CATALOG.contains(key) || V38_AVATARS.contains(key))) {
+        if (!(CATALOG.contains(key) || isPngCatalogKey(key))) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
-        String ext = V38_AVATARS.contains(key) ? ".png" : ".svg";
+        String ext = isPngCatalogKey(key) ? ".png" : ".svg";
 
         try {
             var resolver =
