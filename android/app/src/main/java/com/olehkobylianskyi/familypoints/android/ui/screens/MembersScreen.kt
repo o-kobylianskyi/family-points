@@ -20,6 +20,8 @@ import okhttp3.MultipartBody
 import com.olehkobylianskyi.familypoints.android.data.AvatarUploadOptimizer
 import com.olehkobylianskyi.familypoints.android.network.MediaBindRequest
 import com.olehkobylianskyi.familypoints.android.network.MediaCatalogItemDto
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
@@ -512,23 +514,47 @@ fun MembersScreen(
                             }
                         }
                         if (avatarCatalog.isNotEmpty()) {
-                            androidx.compose.foundation.layout.Box {
-                                OutlinedButton(onClick = { menu = "avatar" }, enabled = !busy,
-                                    modifier = Modifier.fillMaxWidth()) {
-                                    Text((avatarDraftKey ?: memberText(language, "Обрати аватар",
-                                        "Avatar auswählen", "Choose avatar", "Выбрать аватар")) + " ▾")
+                            val collections = avatarCatalog.map {
+                                it.collection?.takeIf { value -> value.isNotBlank() } ?: "Усі"
+                            }.distinct()
+                            val currentCollection = if (menu.startsWith("gallery:")) menu.removePrefix("gallery:")
+                                else collections.first()
+                            Text(memberText(language, "Каталог аватарів", "Avatar-Galerie",
+                                "Avatar gallery", "Галерея аватаров"),
+                                style = MaterialTheme.typography.labelMedium)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                                collections.forEach { collection ->
+                                    TextButton(onClick = { menu = "gallery:$collection" }, enabled = !busy) {
+                                        Text(collection)
+                                    }
                                 }
-                                DropdownMenu(expanded = menu == "avatar",
-                                    onDismissRequest = { menu = "" }) {
-                                    avatarCatalog.forEach { option ->
-                                        DropdownMenuItem(text = {
-                                            Text(option.key.removePrefix("avatar-").replace('-', ' '))
-                                        }, onClick = {
-                                            avatarDraftKey = option.key
-                                            avatarDraftPhoto = null
-                                            avatarDraftClear = false
-                                            menu = ""
-                                        })
+                            }
+                            val visibleAvatars = avatarCatalog.filter {
+                                (it.collection?.takeIf { value -> value.isNotBlank() } ?: "Усі") == currentCollection
+                            }
+                            visibleAvatars.chunked(4).forEach { options ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()) {
+                                    options.forEach { option ->
+                                        OutlinedButton(
+                                            modifier = Modifier.weight(1f),
+                                            contentPadding = PaddingValues(4.dp),
+                                            enabled = !busy,
+                                            onClick = {
+                                                avatarDraftKey = option.key
+                                                avatarDraftPhoto = null
+                                                avatarDraftClear = false
+                                                avatarEditorError = ""
+                                            }
+                                        ) {
+                                            MemberMediaAvatar(currentUser.workspaceId, bearer,
+                                                MediaRefDto("CATALOG", null, option.key, option.version, null),
+                                                option.labelKey)
+                                        }
+                                    }
+                                    repeat(4 - options.size) {
+                                        androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
                                     }
                                 }
                             }
