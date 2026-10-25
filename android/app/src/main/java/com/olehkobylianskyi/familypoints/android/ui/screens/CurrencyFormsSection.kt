@@ -38,6 +38,7 @@ fun CurrencyFormsSection(
     var few by remember { mutableStateOf("") }
     var many by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
+    var loadingForms by remember(workspaceId) { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
     var notice by remember { mutableStateOf("") }
 
@@ -49,11 +50,13 @@ fun CurrencyFormsSection(
     LaunchedEffect(workspaceId) {
         try { types = repository.pointTypes(workspaceId) } catch (e: Exception) { failure(e) }
     }
-    LaunchedEffect(selected?.id) {
+    LaunchedEffect(workspaceId, selected?.id) {
         val type = selected ?: return@LaunchedEffect
+        loadingForms = true
         forms = emptyList()
         try { forms = repository.pointNameForms(workspaceId, type.id) }
         catch (e: Exception) { failure(e) }
+        finally { loadingForms = false }
     }
     LaunchedEffect(forms, languageCode, selected?.id) {
         val current = forms.firstOrNull { it.language.equals(languageCode, ignoreCase = true) }
@@ -92,7 +95,8 @@ fun CurrencyFormsSection(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    OutlinedButton(onClick = { languageMenu = true }) {
+                    if (loadingForms) CircularProgressIndicator()
+                    OutlinedButton(enabled = !loadingForms && !busy, onClick = { languageMenu = true }) {
                         Text(languageCode.uppercase() + " ▾")
                     }
                     DropdownMenu(expanded = languageMenu, onDismissRequest = { languageMenu = false }) {
@@ -104,12 +108,15 @@ fun CurrencyFormsSection(
                         }
                     }
                     OutlinedTextField(one, { one = it.take(100) },
+                        enabled = !loadingForms && !busy,
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text(cf(language, "Для 1", "Für 1", "For 1", "Для 1")) })
                     OutlinedTextField(few, { few = it.take(100) },
+                        enabled = !loadingForms && !busy,
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text(cf(language, "Для 2–4", "Für 2–4", "For 2–4", "Для 2–4")) })
                     OutlinedTextField(many, { many = it.take(100) },
+                        enabled = !loadingForms && !busy,
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text(cf(language, "Для 5+", "Für 5+", "For 5+", "Для 5+")) })
                     val chosen = listOf(PointNameForms(languageCode, one, few, many))
@@ -126,7 +133,7 @@ fun CurrencyFormsSection(
             },
             confirmButton = {
                 Button(
-                    enabled = canManage && !busy && one.isNotBlank() && few.isNotBlank() && many.isNotBlank(),
+                    enabled = canManage && !busy && !loadingForms && one.isNotBlank() && few.isNotBlank() && many.isNotBlank(),
                     onClick = {
                         val id = type.id
                         val code = languageCode
