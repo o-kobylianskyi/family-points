@@ -452,11 +452,36 @@ public class MediaService {
     public boolean isPngCatalogKey(String key) { return V38_AVATARS.contains(key); }
     public byte[] catalogPreview(long workspaceId, String key) {
         requireWorkspace(workspaceId);
-        if (!(CATALOG.contains(key) || V38_AVATARS.contains(key))) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+        if (!(CATALOG.contains(key) || V38_AVATARS.contains(key))) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
         String ext = V38_AVATARS.contains(key) ? ".png" : ".svg";
-        try (InputStream in = getClass().getResourceAsStream("/media/catalog/" + key + ext)) {
-            if (in == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-            return in.readAllBytes();
-        } catch (IOException e) { throw new IllegalStateException("Catalog asset unavailable", e); }
+
+        try {
+            var resolver =
+                    new org.springframework.core.io.support.PathMatchingResourcePatternResolver();
+
+            var resources = resolver.getResources(
+                    "classpath*:/media/catalog/**/" + key + ext
+            );
+
+            if (resources.length != 1) {
+                throw new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Catalog image missing or duplicated: " + key
+                );
+            }
+
+            try (InputStream in = resources[0].getInputStream()) {
+                return in.readAllBytes();
+            }
+
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                    "Unable to load catalog image: " + key, e
+            );
+        }
     }
 }
