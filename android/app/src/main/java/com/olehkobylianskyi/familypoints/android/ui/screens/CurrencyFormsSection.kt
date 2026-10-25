@@ -39,6 +39,7 @@ fun CurrencyFormsSection(
     var many by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var loadingForms by remember(workspaceId) { mutableStateOf(false) }
+    var formsLoaded by remember(workspaceId) { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
     var notice by remember { mutableStateOf("") }
 
@@ -53,12 +54,16 @@ fun CurrencyFormsSection(
     LaunchedEffect(workspaceId, selected?.id) {
         val type = selected ?: return@LaunchedEffect
         loadingForms = true
+        formsLoaded = false
         forms = emptyList()
-        try { forms = repository.pointNameForms(workspaceId, type.id) }
-        catch (e: Exception) { failure(e) }
+        try {
+            forms = repository.pointNameForms(workspaceId, type.id)
+            formsLoaded = true
+        } catch (e: Exception) { failure(e) }
         finally { loadingForms = false }
     }
     LaunchedEffect(forms, languageCode, selected?.id) {
+        if (!formsLoaded) return@LaunchedEffect
         val current = forms.firstOrNull { it.language.equals(languageCode, ignoreCase = true) }
         val suggested = builtInCurrencyForms(selected?.code, languageCode)
         one = current?.one ?: suggested?.one.orEmpty()
@@ -84,7 +89,7 @@ fun CurrencyFormsSection(
     val type = selected
     if (type != null) {
         AlertDialog(
-            onDismissRequest = { if (!busy) selected = null },
+            onDismissRequest = { if (!busy && !loadingForms) selected = null },
             title = { Text(localizedCurrencyName(language, type.code, type.name)) },
             containerColor = MaterialTheme.colorScheme.surface,
             tonalElevation = 2.dp,
@@ -96,7 +101,7 @@ fun CurrencyFormsSection(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     if (loadingForms) CircularProgressIndicator()
-                    OutlinedButton(enabled = !loadingForms && !busy, onClick = { languageMenu = true }) {
+                    OutlinedButton(enabled = formsLoaded && !loadingForms && !busy, onClick = { languageMenu = true }) {
                         Text(languageCode.uppercase() + " ▾")
                     }
                     DropdownMenu(expanded = languageMenu, onDismissRequest = { languageMenu = false }) {
@@ -133,7 +138,7 @@ fun CurrencyFormsSection(
             },
             confirmButton = {
                 Button(
-                    enabled = canManage && !busy && !loadingForms && one.isNotBlank() && few.isNotBlank() && many.isNotBlank(),
+                    enabled = canManage && formsLoaded && !busy && !loadingForms && one.isNotBlank() && few.isNotBlank() && many.isNotBlank(),
                     onClick = {
                         val id = type.id
                         val code = languageCode
@@ -153,7 +158,7 @@ fun CurrencyFormsSection(
                 ) { Text(cf(language, "Зберегти", "Speichern", "Save", "Сохранить")) }
             },
             dismissButton = {
-                TextButton(onClick = { if (!busy) selected = null }) {
+                TextButton(onClick = { if (!busy && !loadingForms) selected = null }) {
                     Text(cf(language, "Закрити", "Schließen", "Close", "Закрыть"))
                 }
             }
