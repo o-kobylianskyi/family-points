@@ -14,6 +14,8 @@
 - [ ] **P1 / BKL-008 — Timed reward countdown.** Start only at actual consumption, persist server-authoritative expiry; device/web countdown, one short beep at 5m, two at 2m, three at 1m, distinct expiry alert, no duplicate alerts after resume/reconnect; foreground/background OS notification limits; parent-scoped actions.
 - [ ] **P1 / BKL-009 — Installed Android app reward.** Device app picker imports label/icon/package name; permission-scoped metadata and safe image preview on Web; save stable Android package name; when user starts granted reward, atomically start BKL-008 time session and launch installed app from foreground. Missing-app fallback, repeat taps idempotent, no false claim automatic app lock on expiry.
 
+- [ ] **P1 / DESIGNER — Initial seed-content bank (schema-dependent).** After Backend/Architecture approve template schema, prepare age-appropriate task and reward preset collections, first-run family starter packs, UK/DE/EN/RU localizations and matching reviewed icons/artwork; deliver schema-valid versioned seed manifest, no direct DB writes. Brief: `docs/coordination/requests/DESIGNER_INITIAL_SEED_CONTENT.md`.
+
 ## Responsibility / ordered handoff
 
 | Track | Responsibilities | Completion evidence |
