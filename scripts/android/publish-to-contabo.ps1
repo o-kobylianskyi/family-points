@@ -50,18 +50,18 @@ Write-Host "Running publisher on Contabo. Enter PUBLISH when prompted."
 if ($LASTEXITCODE -ne 0) { throw "Remote publisher failed or was cancelled" }
 
 if (-not $SkipPublicVerification) {
-    # Force JSON parsing: PowerShell 5.1 can return an unparsed response depending on server headers.
+    # Windows PowerShell 5.1 Invoke-WebRequest.Content is not reliably decoded here.
+    # curl.exe was independently verified on the operator's Windows installation.
     $manifestUrl = "https://family-point.com/downloads/familypoints-beta.json"
-    $response = Invoke-WebRequest -Uri $manifestUrl -Headers @{ 'Cache-Control'='no-cache'; 'Accept'='application/json' } -UseBasicParsing -TimeoutSec 20
-    $raw = [string]$response.Content
-    try {
-        $public = $raw | ConvertFrom-Json -ErrorAction Stop
-    } catch {
-        throw "Published manifest is not valid JSON (HTTP $($response.StatusCode)); inspect $manifestUrl"
-    }
+    $jsonLines = @(& curl.exe --fail --silent --show-error --location --max-time 20 --header 'Accept: application/json' --header 'Cache-Control: no-cache' -- $manifestUrl)
+    if ($LASTEXITCODE -ne 0) { throw "Could not fetch public release manifest. APK may ALREADY be published; inspect $manifestUrl" }
+    $raw = ($jsonLines -join [Environment]::NewLine).Trim().TrimStart([char]0xFEFF)
+    if (-not $raw.StartsWith('{')) { throw "Public manifest response is not a JSON object; inspect $manifestUrl (APK may ALREADY be published)" }
+    try { $public = ConvertFrom-Json -InputObject $raw -ErrorAction Stop }
+    catch { throw "Published manifest JSON parsing failed; inspect $manifestUrl (APK may ALREADY be published)" }
     if ($null -eq $public -or $null -eq $public.PSObject.Properties['versionCode'] -or
         $null -eq $public.PSObject.Properties['sha256']) {
-        throw "Published manifest missing required fields (HTTP $($response.StatusCode)); inspect $manifestUrl"
+        throw "Published manifest is missing versionCode or sha256; inspect $manifestUrl"
     }
     if ([int]$public.versionCode -ne [int]$metadata.versionCode -or
         [string]$public.sha256 -ne $hash) {
