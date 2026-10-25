@@ -55,8 +55,13 @@ public class EconomyService {
     ) {
         Workspace workspace = getWorkspaceOrThrow(workspaceId);
 
-        String normalizedCode =
-                code.trim().toUpperCase();
+        if (code == null || !code.trim().toUpperCase(java.util.Locale.ROOT).matches("[A-Z][A-Z0-9_]{1,49}")) {
+            throw new IllegalArgumentException("Invalid currency code");
+        }
+        if (name == null || name.isBlank() || name.trim().length() > 100) {
+            throw new IllegalArgumentException("Invalid currency name");
+        }
+        String normalizedCode = code.trim().toUpperCase(java.util.Locale.ROOT);
 
         if (pointTypeRepository
                 .findByWorkspaceIdAndCode(
@@ -81,6 +86,31 @@ public class EconomyService {
                 );
 
         return pointTypeRepository.save(pointType);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PointType> getAllPointTypes(Long workspaceId) {
+        getWorkspaceOrThrow(workspaceId);
+        return pointTypeRepository.findByWorkspaceIdOrderBySortOrderAsc(workspaceId);
+    }
+
+    @Transactional
+    public PointType updatePointType(Long workspaceId, Long pointTypeId, String name,
+                                     int sortOrder, boolean active) {
+        PointType type = getPointTypeOrThrow(workspaceId, pointTypeId);
+        if (name == null || name.isBlank() || name.trim().length() > 100) {
+            throw new IllegalArgumentException("Currency name must contain 1–100 characters");
+        }
+        if (!active) {
+            EconomySettings settings = getOrCreateSettings(workspaceId);
+            if (settings.getDefaultPointType().getId().equals(type.getId())) {
+                throw new IllegalArgumentException("Cannot deactivate the default currency");
+            }
+        }
+        type.setName(name.trim());
+        type.setSortOrder(sortOrder);
+        type.setActive(active);
+        return pointTypeRepository.save(type);
     }
 
     @Transactional
