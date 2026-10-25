@@ -475,3 +475,8 @@ Show only relevant fields but never silently discard persisted data; apply categ
 - User screenshot shows full dark background with no page chrome. Exact browser console exception not provided, so root cause NOT independently established.
 - Reviewed SettingsPage: dereferenced `currentUser.workspaceId` and `currentUser.permissions` unguarded in JSX before auth context guaranteed initialized; this can throw TypeError during session transition. Added safe early loading return when workspace/user missing, while preserving hook invocation order. Commit `8834dfa`.
 - Latest pre-patch Actions `40240665891` on `f8f3746` SUCCESS but is build-only, not browser DEV proof. Must confirm DEV local checkout pulled latest and check Chrome DevTools Console stack + Network if page remains blank; other runtime faults remain possible. No BETA deployment.
+
+## 2026-10-25 — DEV /settings white/blank screen — ROOT CAUSE CONFIRMED
+- User provided Chrome Console screenshot showing `Uncaught TypeError: setSelectedId(...) is not a function` at `CurrencyFormsSettings.jsx:71:22` in `/settings`. This is JavaScript automatic-semicolon-insertion hazard: `setSelectedId('')` followed immediately by line beginning `(canManage ? getAllPointTypes(...) : getPointTypes(...))`, parsed as invoking the return of `setSelectedId`.
+- Fixed by terminating `setSelectedId('');` explicitly. Source commit `a9f6ed652d6c07e55681baac109a4f6f97c0d732`. Earlier auth guard `8834dfa` was not the screenshot's confirmed cause.
+- User should pull `main` and hard reload DEV localhost; browser confirmation and CI on patch pending. No BETA/production deployment performed.
