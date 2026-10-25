@@ -63,7 +63,8 @@ class EconomyDefaultCurrenciesTest {
         when(settings.findByWorkspaceId(42L)).thenReturn(Optional.of(economySettings));
         assertThrows(IllegalArgumentException.class,
                 () -> economy.updatePointType(42L, 10L, "Points", 0, false));
-        verify(types, never()).save(any());
+        // Backfill may persist missing *other* currencies, but never change the default.
+        verify(types, never()).save(same(points));
     }
 
     @Test void canDeactivateNonDefaultCurrencyWithoutDeletingIt() {
