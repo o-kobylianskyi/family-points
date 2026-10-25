@@ -50,8 +50,21 @@ Write-Host "Running publisher on Contabo. Enter PUBLISH when prompted."
 if ($LASTEXITCODE -ne 0) { throw "Remote publisher failed or was cancelled" }
 
 if (-not $SkipPublicVerification) {
-    $public = Invoke-RestMethod -Uri "https://family-point.com/downloads/familypoints-beta.json" -Headers @{ 'Cache-Control'='no-cache' } -TimeoutSec 20
-    if ($public.versionCode -ne $metadata.versionCode -or $public.sha256 -ne $hash) {
+    # Force JSON parsing: PowerShell 5.1 can return an unparsed response depending on server headers.
+    $manifestUrl = "https://family-point.com/downloads/familypoints-beta.json"
+    $response = Invoke-WebRequest -Uri $manifestUrl -Headers @{ 'Cache-Control'='no-cache'; 'Accept'='application/json' } -UseBasicParsing -TimeoutSec 20
+    $raw = [string]$response.Content
+    try {
+        $public = $raw | ConvertFrom-Json -ErrorAction Stop
+    } catch {
+        throw "Published manifest is not valid JSON (HTTP $($response.StatusCode)); inspect $manifestUrl"
+    }
+    if ($null -eq $public -or $null -eq $public.PSObject.Properties['versionCode'] -or
+        $null -eq $public.PSObject.Properties['sha256']) {
+        throw "Published manifest missing required fields (HTTP $($response.StatusCode)); inspect $manifestUrl"
+    }
+    if ([int]$public.versionCode -ne [int]$metadata.versionCode -or
+        [string]$public.sha256 -ne $hash) {
         throw "Published manifest does not match uploaded APK; check Contabo!"
     }
     Write-Host "Public manifest verified: $($public.versionName) / code $($public.versionCode)"
