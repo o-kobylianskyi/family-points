@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getPointTypes, getPointNameForms, savePointNameForms } from '../api/economyApi'
+import { getPointTypes, getPointNameForms, savePointNameForms, createPointType } from '../api/economyApi'
 import { currencyQuantity } from '../utils/formatCurrencyAmount'
 
 const languages = [['uk', 'Українська'], ['ru', 'Русский'], ['en', 'English'], ['de', 'Deutsch']]
@@ -55,6 +55,9 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [newCurrencyName, setNewCurrencyName] = useState('')
+  const [newCurrencyCode, setNewCurrencyCode] = useState('')
   const selected = types.find(type => String(type.id) === String(selectedId))
   const current = forms.find(form => form.language === language)
   const suggested = defaults[selected?.code?.toUpperCase()]?.[language]
@@ -94,6 +97,26 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
     setDirty(false)
   }, [forms, selectedId, language])
 
+  async function addCurrency(event) {
+    event.preventDefault()
+    if (!canManage || busy || !newCurrencyName.trim() || !/^[A-Z][A-Z0-9_]{1,49}$/.test(newCurrencyCode.trim().toUpperCase())) return
+    setCreating(true); setError(''); setNotice('')
+    try {
+      const created = await createPointType(token, workspaceId, {
+        name: newCurrencyName.trim(),
+        code: newCurrencyCode.trim().toUpperCase(),
+        sortOrder: Math.max(100, ...types.map(type => type.sortOrder + 10)),
+      })
+      const refreshed = await getPointTypes(token, workspaceId)
+      setTypes(refreshed)
+      setSelectedId(String(created.id))
+      setNewCurrencyCode('')
+      setNewCurrencyName('')
+      setNotice('Валюту створено. Тепер налаштуйте її відмінювання.')
+    } catch (e) { setError(e.message) }
+    finally { setCreating(false) }
+  }
+
   async function save(event) {
     event.preventDefault()
     if (!selected || !canManage || !loaded || Object.values(draft).some(value => !value.trim())) return
@@ -113,6 +136,22 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
     <p>{l.intro}</p>
     {error && <div className="error-message" role="alert">{error}</div>}
     {notice && <div className="settings-success" role="status">{notice}</div>}
+    {canManage && <form onSubmit={addCurrency} className="currency-forms-editor" style={{ marginBottom: '1rem' }}>
+      <h3>{uiLang === 'ru' ? 'Добавить валюту' : uiLang === 'de' ? 'Währung hinzufügen' : uiLang === 'en' ? 'Add currency' : 'Додати валюту'}</h3>
+      <div className="currency-forms-fields">
+        <label><span>{uiLang === 'ru' ? 'Название' : uiLang === 'de' ? 'Name' : uiLang === 'en' ? 'Name' : 'Назва'}</span>
+          <input required maxLength={100} value={newCurrencyName} disabled={creating}
+            onChange={e => setNewCurrencyName(e.target.value)} placeholder="Кристали" />
+        </label>
+        <label><span>{uiLang === 'ru' ? 'Код (латиница)' : uiLang === 'de' ? 'Code (lateinisch)' : uiLang === 'en' ? 'Code (Latin letters)' : 'Код (латиниця)'}</span>
+          <input required maxLength={50} pattern="[A-Za-z][A-Za-z0-9_]{1,49}" value={newCurrencyCode} disabled={creating}
+            onChange={e => setNewCurrencyCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))} placeholder="CRYSTALS" />
+        </label>
+      </div>
+      <button className="primary-button" type="submit" disabled={creating || busy || !newCurrencyName.trim() || !/^[A-Z][A-Z0-9_]{1,49}$/.test(newCurrencyCode)}>
+        {creating ? l.loading : uiLang === 'ru' ? 'Создать валюту' : uiLang === 'de' ? 'Währung erstellen' : uiLang === 'en' ? 'Create currency' : 'Створити валюту'}
+      </button>
+    </form>}
     <div className="currency-forms-layout">
       <div className="currency-forms-picker">
         <label htmlFor="currency-type">{l.currency}</label>
