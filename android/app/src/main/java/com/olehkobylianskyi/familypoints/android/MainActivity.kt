@@ -195,6 +195,7 @@ class MainActivity : ComponentActivity() {
                     // Foreground check on app launch and every six hours while open.
                     // The public manifest requires no session and offline failures are ignored.
                     LaunchedEffect(Unit) {
+                        if (BuildConfig.DEBUG) return@LaunchedEffect
                         while (true) {
                             val next = AndroidUpdateChecker.check()
                             if (next != null && next.versionCode != skippedUpdateVersion) {
@@ -755,8 +756,10 @@ class MainActivity : ComponentActivity() {
                             onNavigate = navigate,
                             onUnauthorized = unauthorized,
                             onUpdateFound = { update ->
-                                skippedUpdateVersion = null
-                                availableUpdate = update
+                                if (!BuildConfig.DEBUG && update.versionCode > BuildConfig.VERSION_CODE) {
+                                    skippedUpdateVersion = null
+                                    availableUpdate = update
+                                }
                             }
                         )
                     }
