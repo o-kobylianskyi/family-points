@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -331,6 +332,7 @@ fun LoginScreen(
                             error = ""
                             loading = true
                             try {
+                                Log.i("FamilyPointsGoogleAuth", "phase=credential_request")
                                 val googleOption = GetGoogleIdOption.Builder()
                                     .setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT_ID)
                                     .setFilterByAuthorizedAccounts(false)
@@ -345,13 +347,19 @@ fun LoginScreen(
                                     credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
                                 ) throw IllegalStateException("Invalid Google credential")
                                 val idToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
+                                Log.i("FamilyPointsGoogleAuth", "phase=id_token_received")
+                                Log.i("FamilyPointsGoogleAuth", "phase=backend_request register=$registrationMode")
                                 val user = onGoogleAuth(idToken, registrationMode)
+                                Log.i("FamilyPointsGoogleAuth", "phase=backend_success")
                                 onLoginSuccess(user)
                             } catch (_: WorkspaceSelectionRequiredException) {
+                                Log.i("FamilyPointsGoogleAuth", "phase=workspace_selection")
                                 // Global account session was established; choose workspace next.
                             } catch (_: GetCredentialCancellationException) {
+                                Log.i("FamilyPointsGoogleAuth", "phase=credential_cancelled")
                                 // The user dismissed the Google account picker.
                             } catch (e: HttpException) {
+                                Log.w("FamilyPointsGoogleAuth", "phase=backend_http_error status=${e.code()}")
                                 // Avoid leaking raw server responses or identity tokens into the UI.
                                 error = when (e.code()) {
                                     401, 403 -> when (language) {
@@ -374,6 +382,8 @@ fun LoginScreen(
                                     }
                                 }
                             } catch (e: Exception) {
+                                // Never log credentials, tokens, exception messages, or stack traces.
+                                Log.w("FamilyPointsGoogleAuth", "phase=unexpected_error type=${e.javaClass.simpleName}")
                                 error = when (language) {
                                     AppLanguage.UK -> "Не вдалося отримати Google-акаунт. Перевірте Google Play Services і підключення до мережі."
                                     AppLanguage.DE -> "Google-Konto nicht verfügbar. Google Play-Dienste und Netzwerk prüfen."
