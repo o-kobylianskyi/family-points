@@ -16,23 +16,27 @@ public class EconomyService {
     private final EconomySettingsRepository settingsRepository;
     private final WorkspaceRepository workspaceRepository;
     private final PointTypeRepository pointTypeRepository;
+    private final StandardCurrencyForms standardCurrencyForms;
 
     public EconomyService(
             EconomySettingsRepository settingsRepository,
             WorkspaceRepository workspaceRepository,
-            PointTypeRepository pointTypeRepository
+            PointTypeRepository pointTypeRepository,
+            StandardCurrencyForms standardCurrencyForms
     ) {
         this.settingsRepository = settingsRepository;
         this.workspaceRepository = workspaceRepository;
         this.pointTypeRepository = pointTypeRepository;
+        this.standardCurrencyForms = standardCurrencyForms;
     }
 
     @Transactional
     public EconomySettings getOrCreateSettings(Long workspaceId) {
 
-        return settingsRepository
-                .findByWorkspaceId(workspaceId)
+        EconomySettings settings = settingsRepository.findByWorkspaceId(workspaceId)
                 .orElseGet(() -> createDefaultSettings(workspaceId));
+        ensureStandardCurrencies(getWorkspaceOrThrow(workspaceId));
+        return settings;
     }
 
     @Transactional(readOnly = true)
@@ -189,12 +193,6 @@ public class EconomyService {
                                 )
                         );
 
-        // Provision the standard currencies only when a workspace is first initialized.
-        // Existing rows (including intentionally inactive ones) are left untouched.
-        ensureStandardPointType(workspace, "COPPER", "Copper", 10);
-        ensureStandardPointType(workspace, "SILVER", "Silver", 20);
-        ensureStandardPointType(workspace, "GOLD", "Gold", 30);
-
         EconomySettings settings =
                 new EconomySettings(
                         workspace,
@@ -205,10 +203,20 @@ public class EconomyService {
         return settingsRepository.save(settings);
     }
 
-    private void ensureStandardPointType(Workspace workspace, String code, String name, int order) {
-        if (pointTypeRepository.findByWorkspaceIdAndCode(workspace.getId(), code).isEmpty()) {
-            pointTypeRepository.save(new PointType(workspace, code, name, order));
-        }
+    private void ensureStandardCurrencies(Workspace workspace) {
+        PointType points = ensureStandardPointType(workspace, "POINTS", "Points", 0);
+        PointType copper = ensureStandardPointType(workspace, "COPPER", "Copper", 10);
+        PointType silver = ensureStandardPointType(workspace, "SILVER", "Silver", 20);
+        PointType gold = ensureStandardPointType(workspace, "GOLD", "Gold", 30);
+        standardCurrencyForms.ensureFor(points);
+        standardCurrencyForms.ensureFor(copper);
+        standardCurrencyForms.ensureFor(silver);
+        standardCurrencyForms.ensureFor(gold);
+    }
+
+    private PointType ensureStandardPointType(Workspace workspace, String code, String name, int order) {
+        return pointTypeRepository.findByWorkspaceIdAndCode(workspace.getId(), code)
+                .orElseGet(() -> pointTypeRepository.save(new PointType(workspace, code, name, order)));
     }
 
     private Workspace getWorkspaceOrThrow(Long workspaceId) {
