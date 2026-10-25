@@ -81,7 +81,6 @@ import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import com.olehkobylianskyi.familypoints.android.network.MediaTargetDto
 import com.olehkobylianskyi.familypoints.android.network.MediaRefDto
 import com.olehkobylianskyi.familypoints.android.network.MediaReferenceBatchDto
-import com.olehkobylianskyi.familypoints.android.network.MediaRefDto
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CancellationException
