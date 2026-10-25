@@ -398,7 +398,7 @@ public class MediaService {
         return List.of("UNIVERSAL", "ABSTRACT");
     }
     public List<CatalogItem> catalog() {
-        return java.util.stream.Stream.concat(
+        return java.util.stream.Stream.<java.util.stream.Stream<CatalogItem>>of(
             List.of(
             new CatalogItem("member-default", "AVATAR", "media.catalog.memberDefault", 1, true, "/workspaces/{workspaceId}/media/catalog/member-default/preview"),
             new CatalogItem("avatar-sunflower", "AVATAR", "media.catalog.avatarSunflower", 1, true, "/workspaces/{workspaceId}/media/catalog/avatar-sunflower/preview"),
@@ -447,7 +447,7 @@ public class MediaService {
             new CatalogItem("animal_cat_002", "AVATAR", "media.catalog.animal_cat_002", 1, true, "/workspaces/{workspaceId}/media/catalog/animal_cat_002/preview", List.of("ANIMAL","UNSPECIFIED","ANY"), 1270),
             new CatalogItem("robot_003", "AVATAR", "media.catalog.robot_003", 1, true, "/workspaces/{workspaceId}/media/catalog/robot_003/preview", List.of("ROBOT","UNSPECIFIED","ANY"), 1280),
             new CatalogItem("vehicle_car_002", "AVATAR", "media.catalog.vehicle_car_002", 1, true, "/workspaces/{workspaceId}/media/catalog/vehicle_car_002/preview", List.of("VEHICLE","UNSPECIFIED","ANY"), 1290)
-            ).stream(), extraAvatars().stream()).toList();
+            ).stream(), extraAvatars().stream()).flatMap(java.util.function.Function.identity()).toList();
     }
     private List<CatalogItem> extraAvatars() {
         try {
