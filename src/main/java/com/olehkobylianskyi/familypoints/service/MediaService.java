@@ -193,7 +193,7 @@ public class MediaService {
         requireManager(ws,type,target);
         checkTarget(ws,type,target,slot);
         if ((assetId==null)==(catalogKey==null)) throw new IllegalArgumentException("Provide exactly one assetId or catalogKey");
-        if(catalogKey!=null && !(CATALOG.contains(catalogKey) || V38_AVATARS.contains(catalogKey))) throw new IllegalArgumentException("Unknown catalog key");
+        if(catalogKey!=null && !(CATALOG.contains(catalogKey) || isPngCatalogKey(catalogKey))) throw new IllegalArgumentException("Unknown catalog key");
         if (catalogKey!=null && type.equals("WORKSPACE") && slot.equals("COVER")
                 && !Set.of("family-cover-default","family-default").contains(catalogKey))
             throw new IllegalArgumentException("Catalog item is not a cover");
