@@ -4,8 +4,13 @@
 set -Eeuo pipefail
 cd "$(dirname "$0")/../.."
 tag="${1:-}"
+backup_mode="${2:-}"
+if [[ -n "$backup_mode" && "$backup_mode" != "--skip-backup" ]]; then
+  echo "Usage: bash scripts/beta/deploy-release.sh vX.Y.Z-beta.N [--skip-backup]" >&2
+  exit 2
+fi
 if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
-  echo "Usage: bash scripts/beta/deploy-release.sh vX.Y.Z-beta.N" >&2
+  echo "Usage: bash scripts/beta/deploy-release.sh vX.Y.Z-beta.N [--skip-backup]" >&2
   exit 2
 fi
 [[ -f .env ]] || { echo "Missing private .env" >&2; exit 2; }
@@ -20,9 +25,16 @@ sudo docker compose --env-file .env -f compose.beta.yml config --quiet
 echo "Current: $prev"
 echo "Deploy:  $target"
 echo "NOTE: Flyway migrations are forward-only; reverting images does NOT revert a database migration."
-read -r -p "Backup BETA database and deploy pinned revision? Type DEPLOY: " answer
-[[ "$answer" == DEPLOY ]] || exit 2
-sudo bash scripts/beta/backup.sh
+if [[ "$backup_mode" == "--skip-backup" ]]; then
+  echo "WARNING: Deploying WITHOUT a BETA database backup as explicitly requested."
+  echo "Flyway migrations may irreversibly change existing data; binary rollback cannot undo them."
+  read -r -p "Confirm no database backup and deploy pinned revision? Type DEPLOY-NO-BACKUP: " answer
+  [[ "$answer" == DEPLOY-NO-BACKUP ]] || exit 2
+else
+  read -r -p "Backup BETA database and deploy pinned revision? Type DEPLOY: " answer
+  [[ "$answer" == DEPLOY ]] || exit 2
+  sudo bash scripts/beta/backup.sh
+fi
 git switch --detach "$target"
 sudo docker compose --env-file .env -f compose.beta.yml up -d --build --no-deps backend web
 echo "Waiting for localhost health status (no public port changes)"
