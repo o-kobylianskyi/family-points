@@ -453,6 +453,8 @@ public class MediaService {
         try {
             var resources = new org.springframework.core.io.support.PathMatchingResourcePatternResolver()
                     .getResources("classpath*:/media/catalog/**/*.png");
+            java.util.Arrays.sort(resources, java.util.Comparator.comparing(
+                    resource -> resource.getFilename() == null ? "" : resource.getFilename()));
             var keys = new java.util.TreeMap<String, CatalogItem>();
             for (var res : resources) {
                 var name = res.getFilename();
