@@ -1,0 +1,14 @@
+{
+  "versionPrefix": "0.1.0-beta",
+  "androidSdk": "%LOCALAPPDATA%\\Android\\Sdk",
+  "keystoreFile": "%USERPROFILE%\\.android\\family-points-release\\familypoints-release.jks",
+  "keyAlias": "familypoints",
+  "expectedCertificateSha256": "167d63a05676a8fc9a1671be11a6d7c1246ff9d97286efca30cb5e104c152d4f",
+  "googleWebClientId": "REPLACE_WITH_WEB_CLIENT_ID.apps.googleusercontent.com",
+  "deviceSerial": "WCR7N18505002589",
+  "apiBaseUrl": "https://family-point.com/",
+  "manifestUrl": "https://family-point.com/downloads/familypoints-beta.json",
+  "contaboHost": "184.174.37.206",
+  "contaboUser": "adminfp",
+  "sshKey": "%USERPROFILE%\\.ssh\\contabo_admin_ed25519"
+}
