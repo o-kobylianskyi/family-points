@@ -220,3 +220,8 @@ At exact integration SHA `c70d28d9812d13a85e2f6cfd62186fb344aff510`, GitHub Acti
 - Existing workspaces now reconcile missing standard currency types via `EconomyService.getOrCreateSettings` and list endpoints, without changing existing currency rows, mode, balances or ledger. New workspaces also seed and persist all four types and language forms. No Flyway data migration and no changes to BETA/Production.
 - Tests added `StandardCurrencyFormsTest` for all language inserts, custom preservation and nonstandard currency skip; adapted `EconomyDefaultCurrenciesTest`. Relevant commits dd9d6f7b, d0037597, eb794a57, 86299cbf, bada9085, 0923039d, 5cba2c73.
 - **Verification:** latest GitHub Actions run 40237921440 queued when inspected; do not mark tests passed without completion. Follow up CI result, contract checks, QA and DEV smoke. MCP access remains assigned QA.
+
+## 2026-10-25 — BKL-007 full CI regression and fixes
+- GitHub Actions 40237952475: Web Vite PASS, Android debug PASS, Docker Compose PASS; Java backend 181 tests with 1 failure + 1 error in EconomyDefaultCurrenciesTest. StandardCurrencyFormsTest 3/3 PASS. Root cause: mock WorkspaceRepository.findById(42L) absent from currency deactivation test fixtures; production code reached getOrCreateSettings and threw ResourceNotFoundException.
+- Corrected both fixtures, GitHub commit f39c946a4782e86398fda5153689f782fb8599e8.
+- Follow-up Actions run 40239280406 started; at last check Java job IN PROGRESS, Web PASS. Do not claim backend green until run completes. No DEV deployment or DB changes.
