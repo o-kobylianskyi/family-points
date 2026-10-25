@@ -26,7 +26,8 @@ data class MediaCatalogItemDto(
     val key: String,
     val category: String,
     val labelKey: String,
-    val version: Int
+    val version: Int,
+    val collection: String? = null
 )
 data class MediaManifestDto(
     val cover: MediaRefDto?,
