@@ -35,7 +35,9 @@ public class EconomyService {
 
         EconomySettings settings = settingsRepository.findByWorkspaceId(workspaceId)
                 .orElseGet(() -> createDefaultSettings(workspaceId));
-        ensureStandardCurrencies(getWorkspaceOrThrow(workspaceId));
+        ensureStandardCurrencies(getWorkspaceOrThrow(workspaceId),
+                "POINTS".equals(settings.getDefaultPointType().getCode())
+                        ? settings.getDefaultPointType() : null);
         return settings;
     }
 
@@ -203,8 +205,8 @@ public class EconomyService {
         return settingsRepository.save(settings);
     }
 
-    private void ensureStandardCurrencies(Workspace workspace) {
-        PointType points = ensureStandardPointType(workspace, "POINTS", "Points", 0);
+    private void ensureStandardCurrencies(Workspace workspace, PointType defaultPoints) {
+        PointType points = defaultPoints != null ? defaultPoints : ensureStandardPointType(workspace, "POINTS", "Points", 0);
         PointType copper = ensureStandardPointType(workspace, "COPPER", "Copper", 10);
         PointType silver = ensureStandardPointType(workspace, "SILVER", "Silver", 20);
         PointType gold = ensureStandardPointType(workspace, "GOLD", "Gold", 30);
