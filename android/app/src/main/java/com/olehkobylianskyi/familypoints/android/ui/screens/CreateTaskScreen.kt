@@ -84,6 +84,12 @@ fun CreateTaskScreen(
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
 
+    var taskTemplates by remember(currentUser.workspaceId) {
+        mutableStateOf<List<com.olehkobylianskyi.familypoints.android.network.PrivateTemplateDto>>(emptyList())
+    }
+    var templateMenuOpen by remember { mutableStateOf(false) }
+    var chosenTemplateId by remember { mutableStateOf<Long?>(null) }
+    var templateWarning by remember { mutableStateOf("") }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var mandatory by remember { mutableStateOf(false) }
@@ -383,6 +389,16 @@ fun CreateTaskScreen(
     }
 
     LaunchedEffect(currentUser.workspaceId) {
+        taskTemplates = emptyList()
+        chosenTemplateId = null
+        try {
+            taskTemplates = repository.taskTemplates(currentUser.workspaceId)
+        } catch (_: Exception) {
+            // Private template lookup is optional; normal task creation still works.
+        }
+    }
+
+    LaunchedEffect(currentUser.workspaceId) {
         loading = true
         error = ""
 
@@ -543,6 +559,70 @@ fun CreateTaskScreen(
                         AppLanguage.RU -> "Загрузка..."
                     }
                 )
+            }
+        }
+
+        if (parentTaskDefinitionId == null) item {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(when (language) {
+                    AppLanguage.UK -> "Шаблон завдання"
+                    AppLanguage.DE -> "Aufgabenvorlage"
+                    AppLanguage.EN -> "Task template"
+                    AppLanguage.RU -> "Шаблон задания"
+                }, style = MaterialTheme.typography.titleMedium)
+                OutlinedButton(onClick = { templateMenuOpen = true },
+                    enabled = !saving && taskTemplates.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth()) {
+                    Text(taskTemplates.firstOrNull { it.id == chosenTemplateId }?.title
+                        ?: when(language) {
+                            AppLanguage.UK -> if (taskTemplates.isEmpty()) "Немає приватних шаблонів" else "Обрати шаблон"
+                            AppLanguage.DE -> if (taskTemplates.isEmpty()) "Keine privaten Vorlagen" else "Vorlage auswählen"
+                            AppLanguage.EN -> if (taskTemplates.isEmpty()) "No private templates" else "Choose a template"
+                            AppLanguage.RU -> if (taskTemplates.isEmpty()) "Нет личных шаблонов" else "Выбрать шаблон"
+                        })
+                }
+                DropdownMenu(expanded = templateMenuOpen,
+                    onDismissRequest = { templateMenuOpen = false }) {
+                    taskTemplates.forEach { template ->
+                        DropdownMenuItem(text = { Text(template.title.orEmpty()) }, onClick = {
+                            templateMenuOpen = false
+                            val root = runCatching {
+                                com.google.gson.JsonParser.parseString(template.definitionJson).asJsonObject
+                            }.getOrNull()
+                            val data = root?.get("definition")
+                                ?.takeIf { it.isJsonObject }?.asJsonObject ?: root
+                            if (data != null) {
+                                fun read(key: String): String? = data.get(key)
+                                    ?.takeUnless { it.isJsonNull || !it.isJsonPrimitive }?.asString
+                                chosenTemplateId = template.id
+                                title = template.title.orEmpty().take(150)
+                                description = read("description").orEmpty().take(1000)
+                                mandatory = read("mandatory")?.toBooleanStrictOrNull() ?: false
+                                val recurrence = read("recurrenceType")
+                                recurrenceType = if (recurrence in listOf("ONCE", "DAILY", "WEEKLY", "MONTHLY"))
+                                    recurrence!! else "ONCE"
+                                dueTime = read("dueTime").orEmpty()
+                                read("rewardAmount")?.toIntOrNull()?.let {
+                                    rewardAmount = it.toString(); economyPreset = EconomyPreset.CUSTOM
+                                }
+                                read("penaltyAmount")?.toIntOrNull()?.let {
+                                    penaltyAmount = it.toString(); economyPreset = EconomyPreset.CUSTOM
+                                }
+                                // Never copy workspace member IDs, currency IDs or execution history.
+                                templateWarning = when(language) {
+                                    AppLanguage.UK -> "Параметри запропоновані шаблоном. Перевірте виконавців, валюту, дати й бали перед створенням."
+                                    AppLanguage.DE -> "Vorlagenwerte übernommen. Mitglieder, Währung, Termine und Punkte vor dem Erstellen prüfen."
+                                    AppLanguage.EN -> "Template fields suggested. Review assignees, currency, dates and points before creating."
+                                    AppLanguage.RU -> "Параметры предложены шаблоном. Проверьте исполнителей, валюту, даты и баллы."
+                                }
+                            }
+                        })
+                    }
+                }
+                if (templateWarning.isNotBlank()) {
+                    Text(templateWarning, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary)
+                }
             }
         }
 
