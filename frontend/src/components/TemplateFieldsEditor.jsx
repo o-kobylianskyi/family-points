@@ -41,6 +41,7 @@ const names = {
 }
 export default function TemplateFieldsEditor({ kind, definition, onChange, language='uk', disabled=false }) {
   const object = useMemo(() => { try { const value=JSON.parse(definition); return value && !Array.isArray(value) && typeof value==='object' ? value : null } catch {return null} },[definition])
+  const safeText = value => typeof value === 'string' ? value : value == null ? '' : typeof value === 'object' ? (value[language] || value.uk || value.en || Object.values(value).find(v => typeof v === 'string') || '') : String(value)
   if (!object || !fields[kind]) return null
   const labels = names[language] || names.en
   const setField = (key,value) => onChange(JSON.stringify({ ...object, [key]: value }, null, 2))
@@ -50,7 +51,7 @@ export default function TemplateFieldsEditor({ kind, definition, onChange, langu
         {type === 'boolean'
           ? <input type="checkbox" checked={object[key] === true} disabled={disabled} onChange={e => setField(key, e.target.checked)}/>
           : enumValues[key] && (object[key] == null || enumValues[key].includes(object[key]))
-            ? <select value={object[key] ?? ''} disabled={disabled} onChange={e => setField(key, e.target.value || null)}>
+            ? <select value={type === 'number' ? (object[key] ?? '') : safeText(object[key])} disabled={disabled} onChange={e => setField(key, e.target.value || null)}>
                 {object[key] == null && <option value="">—</option>}
                 {enumValues[key].map(value => <option key={value} value={value}>{value.replaceAll('_', ' ')}</option>)}
               </select>
@@ -59,7 +60,7 @@ export default function TemplateFieldsEditor({ kind, definition, onChange, langu
                 max={type === 'number' ? bounded[key]?.[1] : undefined}
                 value={object[key] ?? ''} disabled={disabled}
                 onChange={e => {
-                  if (type !== 'number') return setField(key, e.target.value || null)
+                  if (type !== 'number') return setField(key, typeof object[key] === 'object' && object[key] !== null ? {...object[key], [language]: e.target.value} : (e.target.value || null))
                   if (e.target.value === '') return setField(key, null)
                   const value = Number(e.target.value)
                   if (!Number.isFinite(value) || nonNegative.has(key) && value < 0 || bounded[key] && (value < bounded[key][0] || value > bounded[key][1] || !Number.isInteger(value)) || wholeNumbers.has(key) && !Number.isInteger(value)) return
