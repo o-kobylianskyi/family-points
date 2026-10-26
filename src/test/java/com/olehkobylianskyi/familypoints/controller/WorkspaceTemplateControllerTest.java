@@ -216,4 +216,21 @@ class WorkspaceTemplateControllerTest {
                 java.util.UUID.randomUUID(),request));
         verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
     }
+
+    @Test void activationRequiresGroupForGroupSharedPolicy() {
+        when(db.query(contains("SELECT kind FROM workspace_private_templates"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(18L),eq(1L)))
+                .thenReturn(List.of("TASK"));
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(18L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"TASK","Cleanup","{}"}));
+        var req=new com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest();
+        req.setTitle("Cleanup");
+        req.setStartDate(java.time.LocalDate.of(2026,10,27));
+        req.setRecurrenceType(com.olehkobylianskyi.familypoints.entity.TaskRecurrenceType.ONCE);
+        req.setAssignmentPolicy(com.olehkobylianskyi.familypoints.entity.AssignmentPolicy.GROUP_SHARED);
+        assertThrows(ResponseStatusException.class,()->controller.activateTask(1L,18L,
+                java.util.UUID.randomUUID(),req));
+        verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
+    }
 }
