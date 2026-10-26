@@ -128,6 +128,12 @@ function CreateTaskModal({
   const [taskTemplates, setTaskTemplates] = useState([])
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [templateLoading, setTemplateLoading] = useState(false)
+  const templateRequestGeneration = useRef(0)
+  const templateWorkspaceRef = useRef(currentUser?.workspaceId)
+  if (templateWorkspaceRef.current !== currentUser?.workspaceId) {
+    templateWorkspaceRef.current = currentUser?.workspaceId
+    templateRequestGeneration.current += 1
+  }
   const participantKeys = (role) => initialParticipants
     .filter((p) => p.role === role)
     .map((p) => `${p.actorType}:${p.actorId}`)
@@ -276,12 +282,15 @@ function CreateTaskModal({
   }, [currentUser.workspaceId, getAccessToken, editing])
 
   const applyTaskTemplate = async (templateId) => {
+    const generation = ++templateRequestGeneration.current
+    const origin = currentUser.workspaceId
     setSelectedTemplateId(templateId)
-    if (!templateId) return
+    if (!templateId) { setTemplateLoading(false); return }
     setTemplateLoading(true)
     setError('')
     try {
-      const draft = await getTemplateCreationDraft(getAccessToken(), currentUser.workspaceId, templateId)
+      const draft = await getTemplateCreationDraft(getAccessToken(), origin, templateId)
+      if (templateRequestGeneration.current !== generation || templateWorkspaceRef.current !== origin) return
       if (draft.kind !== 'TASK' || !draft.request) throw new Error('Invalid task template')
       const d = draft.request
       if (d.title) { setTitle(d.title); setTitleTouched(true) }
@@ -297,8 +306,11 @@ function CreateTaskModal({
       if (d.penaltyPointTypeId != null) setPenaltyPointTypeId(d.penaltyPointTypeId)
       // Family-specific assignment and scheduled date remain explicitly chosen by the user.
     } catch {
+      if (templateRequestGeneration.current !== generation || templateWorkspaceRef.current !== origin) return
       setError(({uk:'Не вдалося завантажити шаблон завдання.',ru:'Не удалось загрузить шаблон задачи.',de:'Aufgabenvorlage konnte nicht geladen werden.',en:'Could not load task template.'})[i18n.language.split('-')[0]] || 'Could not load task template.')
-    } finally { setTemplateLoading(false) }
+    } finally {
+      if (templateRequestGeneration.current === generation && templateWorkspaceRef.current === origin) setTemplateLoading(false)
+    }
   }
 
   const actorKey = (actorType, actorId) => `${actorType}:${actorId}`
