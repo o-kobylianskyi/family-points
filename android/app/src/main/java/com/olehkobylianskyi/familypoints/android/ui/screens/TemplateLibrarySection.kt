@@ -341,7 +341,7 @@ fun TemplateLibrarySection(
                     }
                     if (canManage) TextButton(enabled = !busy, onClick = {
                         editing = item
-                        editTitle = item.title.orEmpty()
+                        editTitle = item.title.orEmpty().take(150)
                         editJson = item.definitionJson.orEmpty()
                         confirmDelete = false
                     }) { Text(tl(language, "Змінити", "Bearbeiten", "Edit", "Изменить")) }
@@ -415,12 +415,16 @@ fun TemplateLibrarySection(
             title = { Text(tl(language, "Редагувати шаблон", "Vorlage bearbeiten", "Edit template", "Редактировать шаблон")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(editTitle, { editTitle = it.take(200) },
+                    OutlinedTextField(editTitle, { editTitle = it.take(150) },
                         enabled = !busy, modifier = Modifier.fillMaxWidth(),
                         label = { Text(tl(language, "Назва", "Titel", "Title", "Название")) })
-                    OutlinedTextField(editJson, { editJson = it.take(30001) },
-                        enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp),
-                        label = { Text(tl(language, "Визначення JSON", "Definition (JSON)", "Definition JSON", "Определение JSON")) })
+                    TemplateFieldsEditor(
+                        language = language,
+                        kind = current.kind.orEmpty(),
+                        jsonText = editJson,
+                        enabled = !busy,
+                        onChange = { editJson = it }
+                    )
                     if (!validJson) Text(tl(language, "Потрібен коректний JSON-об’єкт до 30 000 символів.",
                         "Gültiges JSON-Objekt bis 30.000 Zeichen erforderlich.",
                         "Valid JSON object up to 30,000 characters required.",
