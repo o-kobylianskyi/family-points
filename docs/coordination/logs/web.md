@@ -582,3 +582,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Architect P0 Web: TIME reward catalog duration visibility
 - CI run 40390915206 passed all four jobs (Web/Backend/Android/BETA config); later CI checks ongoing. Reviewed seed: catalog `rewardKind: TIME` and `durationMinutes:15/30`; Backend enum uses `TIME_BASED` and creation-draft mapping is Backend-owned. No client coercion or overwrite.
 - Web catalog cards now display source `durationMinutes` in UK/RU/DE/EN when a positive duration exists. Commit `b1e1a04`, for visual verification before import. No one-click activation or ledger modifications. DEV browser QA and new CI pending; BETA untouched.
+
+## 2026-10-26 — Web creation-draft integration read-only checkpoint
+- Wired GET workspace-private template `/{templateId}/creation-draft` into frontend template API (`df9450d`) and added explicit preview-only view to selected TASK/REWARD private template (`216cbdc`). Shows Backend `request` untouched, including defaultDurationMinutes, pointTypeId and task assignment placeholders. Copy is localized UK/RU/DE/EN and explicitly states no activation. No POST activate or auto-creation added; no ledger or live data mutations.
+- Remaining: replace JSON-only draft with domain-valid editable form, field validation, user confirmation and exact-once semantics only after consumer/security QA. DEV browser E2E and latest CI pending. BETA unchanged.
