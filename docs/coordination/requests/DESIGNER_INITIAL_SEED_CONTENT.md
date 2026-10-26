@@ -42,3 +42,13 @@ Once Architecture + Backend confirm the final **template database schema, import
 - Users can uncheck any irrelevant suggestion and save only selected ones to **their private template library**. Unselected items remain discoverable in the global catalog later. Zero selection is valid.
 - The initial import must NOT automatically activate tasks or rewards in the family; activation/instantiation is a separate deliberate user action.
 - Supply category grouping, reasonable suggested selection defaults, and clear preview/count labels for the Web/Android checklist. Dependency warnings should be understandable when optional entries are deselected.
+
+## 2026-10-26 — Adult/self and shared family planner starter content
+**New requirement from user:** suggestions are not child-only. Designer must provide independently selectable, localized templates for adult personal schedules and shared household planning:
+- Adult/self tasks: clean the home, grocery shopping, home maintenance, exercise, walk, bills/administration, personal project.
+- Family/shared tasks: general cleaning, joint walk, shopping preparation, packing for vacation, family organization.
+- Calendar EVENT suggestions (after Backend event contract): doctor appointment, public-office appointment, travel/departure, holiday/vacation, family outing, birthday/event; support time, all-day, location, reminder, participants, and private visibility, but no real private/patient data in global seeds.
+- Recurring ROUTINE patterns: weekly cleaning, daily walk, weekly planning; align with real recurrence semantics rather than duplicate executable tasks.
+- Separate `TASK` (completion), `EVENT` (calendar occurrence) and `REWARD` (benefit); do not make adult events require points or child approval.
+- Labels/description uk/de/en/ru, recommended target `ADULT`/`FAMILY`/`ANY` metadata for UX filters only; individual checkboxes/selective import to family template library; no automatic scheduling or creating records.
+- Designer may draft EVENT/ROUTINE content inventory while schema is pending; **do not add unsupported kinds to catalog-v1.json** until Backend updates validation and public DTO contract.
