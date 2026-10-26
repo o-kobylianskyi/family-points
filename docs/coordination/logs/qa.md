@@ -198,3 +198,8 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 ## 2026-10-26 — TPL-03 repeat-import DEV SQL check
 - After user repeated selection/import UI step, live DEV workspace 1 private library remains 3 TASK codes: fp.task.family.010, fp.task.family.020, fp.task.hygiene.001, each count 1. Duplicate catalog-code groups 0. template_activation_requests count 0. Financial/control totals unchanged: point_transactions 188, reward_purchases 47, reward_definitions 3.
 - SQL baseline PASS (no duplicate/no finance changes). UI retry message and precise HTTP import response not independently captured; do not call complete HTTP TPL-03A (32-code overlapping packs) PASS. No QA write operations.
+
+
+## 2026-10-26 — TPL-08 DEV readiness probe after user continuation
+- Live read-only DEV workspace 1 still holds only 3 TASK private templates (fp.task.family.010, fp.task.family.020, fp.task.hygiene.001); expected fp.reward.time.002 absent. Activation requests remain 0; reward_definitions 3, reward_purchases 47, point_transactions 188 unchanged.
+- TPL-08 TIME 30-minute creation draft not testable yet: no imported TIME source in workspace 1 and no Web/API draft response. State PENDING (not defect). Next manual action: select fp.reward.time.002 in catalog, import privately, open creation draft, confirm defaultDurationMinutes=30 with null price and no activation.
