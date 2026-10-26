@@ -1698,17 +1698,26 @@ private fun TaskChecklist(
     selected: Set<Long>,
     onToggle: (Long) -> Unit
 ) {
-    Column {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleMedium
-        )
-        tasks.forEach { task ->
+    var expanded by remember { mutableStateOf(false) }
+    val visible = if (expanded || tasks.size <= 3) tasks else tasks.take(3)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title, style = MaterialTheme.typography.titleMedium)
+        visible.forEach { task ->
             CheckOption(
                 checked = task.id in selected,
                 label = "№" + task.id + " · " + task.title,
                 onChange = { onToggle(task.id) }
             )
+        }
+        if (tasks.size > 3) {
+            TextButton(onClick = { expanded = !expanded }) {
+                Text(if (expanded) "Згорнути" else "Показати всі (" + tasks.size + ")")
+            }
+            if (!expanded && selected.any { id -> tasks.drop(3).any { it.id == id } }) {
+                Text("Вибрані елементи є також у згорнутій частині",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary)
+            }
         }
     }
 }
