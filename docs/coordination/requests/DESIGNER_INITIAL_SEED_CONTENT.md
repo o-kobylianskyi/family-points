@@ -55,3 +55,9 @@ Once Architecture + Backend confirm the final **template database schema, import
 
 ## 2026-10-26 — Coordinated sprint assignment (DESIGNER)
 **Source of truth:** `docs/coordination/CURRENT_PRIORITY_SPRINT.md`. **P0 CONTENT:** 142 curated seeds (110 TASK/32 REWARD, six packs) exist; audit TIME rewards for explicit durationMinutes (30min example), price/currency, nested definition and meaningful category; ensure four-language titles/descriptions and imagery. **P1:** review 65 records outside starter packs (may be intentional), age appropriateness, non-stereotypical family setups, suggested costs and durations. Provide corrected versioned catalog with stable codes; no DB inserts, no frontend coding. Dependencies: Backend agreed import contract.
+
+## 2026-10-26 — Default economy: task difficulty is independent of duration
+**User clarification / Designer requirement:** Suggested task rewards must **not** be determined by estimated minutes alone. Model difficulty explicitly as a separate dimension and consider task complexity, required effort/skill, responsibility, independence, conditions and optional frequency. Short but difficult or high-responsibility tasks may merit more points than long, easy tasks; time remains only one factor.
+- Designer: prepare a reviewable effort/difficulty scale (e.g. EASY / MEDIUM / HARD, pending Architecture approval), example comparisons and age-appropriate, non-stereotyped suggested ratings for TASK seed content.
+- Backend/Architecture: approve actual template fields/rules, versioning and validation before accepting economy defaults. Do not treat difficulty as a hard age restriction; administrators can override recommendations.
+- No automatic retroactive changes to existing tasks, balances, ledgers or rewards. Current economy v0.1 is a draft, **not an approved time-to-points formula**.
