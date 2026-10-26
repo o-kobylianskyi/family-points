@@ -130,6 +130,10 @@ object ApiClient {
         retrofit.create(CalendarApi::class.java)
     }
 
+    val templateApi: TemplateApi by lazy {
+        retrofit.create(TemplateApi::class.java)
+    }
+
     val mediaApi: MediaApi by lazy {
         retrofit.create(MediaApi::class.java)
     }
