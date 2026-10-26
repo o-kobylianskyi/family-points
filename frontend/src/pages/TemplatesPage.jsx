@@ -10,9 +10,17 @@ const texts = {
   en: ['Template library','Global suggestions','My templates','Select templates individually. Import saves them to your private library, not as active tasks or rewards.','No global suggestions yet.','Preview import','Import selected','Clear selection','Already imported','To be imported','Save','Delete','No private templates yet.','Title','Definition (JSON)','Saved','Select a template to edit','Delete this template from the library?','Templates imported','No templates selected.','Only workspace administrators can manage templates.','Create active tasks and rewards separately later.'],
   ru: ['Библиотека шаблонов','Глобальные рекомендации','Мои шаблоны','Выбирайте шаблоны отдельно. Импорт добавляет их в библиотеку без создания активных задач и наград.','Пока нет глобальных рекомендаций.','Предпросмотр импорта','Импортировать выбранные','Очистить выбор','Уже импортированы','Будут добавлены','Сохранить','Удалить','Пока нет личных шаблонов.','Название','Определение (JSON)','Сохранено','Выберите шаблон для редактирования','Удалить шаблон из библиотеки?','Шаблоны импортированы','Шаблоны не выбраны.','Только администратор семьи может менять библиотеку.','Активные задачи и награды создаются отдельно.']
 }
+const timeErrors = {
+  uk: ['Вкажіть дату й час у форматі ISO-8601.', 'Час завершення має бути пізнішим за час початку.'],
+  ru: ['Укажите дату и время в формате ISO-8601.', 'Время окончания должно быть позже начала.'],
+  de: ['Datum und Uhrzeit müssen dem ISO-8601-Format entsprechen.', 'Die Endzeit muss nach der Startzeit liegen.'],
+  en: ['Date and time must use ISO-8601 format.', 'End time must be later than start time.'],
+}
 export default function TemplatesPage() {
   const { i18n } = useTranslation()
-  const l = texts[i18n.language.split('-')[0]] || texts.uk
+  const lang = i18n.language.split('-')[0]
+  const l = texts[lang] || texts.uk
+  const timeErrorTexts = timeErrors[lang] || timeErrors.en
   const { currentUser, getAccessToken } = useAuth()
   const workspaceId = currentUser?.workspaceId
   const [catalog, setCatalog] = useState({ templates: [], packs: [] })
@@ -57,10 +65,10 @@ export default function TemplatesPage() {
     const value = JSON.parse(definition)
     const start = value.availabilityStartsAt
     const end = value.availabilityEndsAt
-    const isIso = s => typeof s === 'string' && /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})?$/.test(s) && !Number.isNaN(Date.parse(s))
+    const isIso = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/.test(s) && !Number.isNaN(Date.parse(s))
     const invalid = [start, end].some(s => s != null && s !== '' && !isIso(s))
-    if (invalid) return 'Date/time must use valid ISO-8601 format.'
-    if (start && end && Date.parse(end) <= Date.parse(start)) return 'End time must be later than start time.'
+    if (invalid) return timeErrorTexts[0]
+    if (start && end && Date.parse(end) <= Date.parse(start)) return timeErrorTexts[1]
     return ''
   })()
   if (!workspaceId) return <div className="page-loading">...</div>
