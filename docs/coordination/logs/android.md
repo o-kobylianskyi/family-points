@@ -508,3 +508,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 
 ## Architecture dispatch 2026-10-26 (late)
 Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat priority assignment. **ANDROID owner:** P0: prior Kotlin TextButton/language fix already committed; check latest all-four CI, repair new failures only, emulator collapsed lists and template QA.
+
+## 2026-10-26 — Late Architecture dispatch and collapsed-list UX follow-up
+- Read docs/coordination/DISPATCH_20261026_LATE.md. Architecture P0: obtain current all-four-jobs green, emulator QA three-row collapsible secondary lists; P1 template import, TIME duration, two-family isolation; do not implement future timers or unapproved economy pricing now.
+- Checked Actions 40398812683: Java, Web, Compose SUCCESS but Android CANCELLED, so that run is NOT full green. User previously reported local Android Gradle BUILD SUCCESSFUL after Kotlin import fixes, distinct evidence.
+- Commit bccdc7c improves RewardsScreen before/after condition checklists: selected prerequisite tasks sort first, selection count displayed alongside heading, selection retained while collapsing. Code change unverified by new build/emulator; user should pull latest main and rerun assembleDebug/testDebugUnitTest. Huawei remains BETA-only.
