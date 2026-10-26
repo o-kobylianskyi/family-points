@@ -91,7 +91,7 @@ export default function TemplatesPage() {
     {notice && <p role="status">{notice}</p>}
     <section className="settings-section">
       <h2>{l[1]}</h2>
-      {!(catalog.templates || []).length && <p>{l[4]}</p>
+      {!(catalog.templates || []).length && <p>{l[4]}</p>}
       {(catalog.packs || []).length > 0 && <label style={{display:'flex', gap:12, alignItems:'center', margin:'12px 0'}}>
         <span>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}</span>
         <select value={packFilter} onChange={e => setPackFilter(e.target.value)} disabled={busy}>
