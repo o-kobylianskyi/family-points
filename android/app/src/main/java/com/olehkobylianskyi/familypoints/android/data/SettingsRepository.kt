@@ -4,6 +4,8 @@ import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 
 class SettingsRepository(private val store: TokenStore) {
+    fun templates(): TemplateRepository = TemplateRepository(store)
+
     private fun auth(): String = "Bearer " + (store.getAccessToken()
         ?: error("Missing access token"))
 
