@@ -46,6 +46,8 @@ public class WorkspaceTemplateController {
     public record TemplateRequest(@NotBlank @Size(max = 150) String title, @NotBlank String definitionJson,
                                   @NotBlank String kind) {}
     public record ImportRequest(@NotNull List<@NotBlank String> selectedCodes) {}
+    public record InstantiateDraft(Long templateId, String kind, String title, JsonNode definition,
+                                   boolean requiresAssignment, boolean requiresCurrencySelection) {}
     public record ImportPreview(List<String> selectedCodes, List<String> alreadyImported,
                                 List<String> toImport) {}
 
@@ -150,6 +152,37 @@ public class WorkspaceTemplateController {
         int count=db.update("DELETE FROM workspace_private_templates WHERE id=? AND workspace_id=?",
                 templateId,workspaceId);
         if(count!=1)throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Template not found");
+    }
+
+
+    /**
+     * Explicit-use preparation endpoint. No executable object is created here.
+     * The client must choose actors/currencies and submit through the existing
+     * authorized task/reward creation flow after reviewing the configuration.
+     */
+    @GetMapping("/{templateId}/instantiate-preview")
+    public InstantiateDraft instantiatePreview(@PathVariable Long workspaceId,
+                                               @PathVariable Long templateId) {
+        var rows = db.query("""
+                SELECT kind,title,definition_json FROM workspace_private_templates
+                WHERE id=? AND workspace_id=?
+                """, (rs,i) -> new String[]{rs.getString(1),rs.getString(2),rs.getString(3)},
+                templateId,workspaceId);
+        if(rows.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Template not found");
+        String[] row=rows.get(0);
+        try {
+            JsonNode payload=json.readTree(row[2]);
+            if(payload == null || !payload.isObject())
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Invalid template payload");
+            // Portable templates store currency codes rather than tenant-specific IDs.
+            // Those IDs and assigned members must be chosen/resolved per workspace at activation.
+            return new InstantiateDraft(templateId,row[0],row[1],payload,
+                    "TASK".equals(row[0]),
+                    "REWARD".equals(row[0]) || payload.hasNonNull("rewardCurrencyCode")
+                            || payload.hasNonNull("penaltyCurrencyCode"));
+        } catch(JsonProcessingException ex) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Invalid template payload");
+        }
     }
 
     @PostMapping("/imports/preview")
