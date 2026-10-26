@@ -183,4 +183,21 @@ class WorkspaceTemplateControllerTest {
                 java.util.UUID.randomUUID(),request));
         verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
     }
+
+    @Test void activationRejectsCurrencyFromAnotherFamilyBeforeClaim() {
+        when(db.query(contains("SELECT kind FROM workspace_private_templates"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(12L),eq(1L)))
+                .thenReturn(List.of("REWARD"));
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(12L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Prize","{}"}));
+        when(db.queryForObject(contains("FROM point_types"),eq(Integer.class),
+                eq(998L),eq(1L))).thenReturn(0);
+        var request=new com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest();
+        request.setTitle("Prize");
+        request.setPointTypeId(998L);
+        assertThrows(ResponseStatusException.class, () -> controller.activateReward(1L,12L,
+                java.util.UUID.randomUUID(),request));
+        verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
+    }
 }
