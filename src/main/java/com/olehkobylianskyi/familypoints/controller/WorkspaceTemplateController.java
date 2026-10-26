@@ -31,14 +31,19 @@ public class WorkspaceTemplateController {
     private final TaskDefinitionRepository taskDefinitions;
     private final RewardDefinitionRepository rewardDefinitions;
     private final ObjectMapper json = new ObjectMapper();
+    private final TaskController taskController;
+    private final RewardController rewardController;
 
     public WorkspaceTemplateController(JdbcTemplate db, TemplateCatalogService catalog,
                                        TaskDefinitionRepository taskDefinitions,
-                                       RewardDefinitionRepository rewardDefinitions) {
+                                       RewardDefinitionRepository rewardDefinitions,
+                                       TaskController taskController, RewardController rewardController) {
         this.db = db;
         this.catalog = catalog;
         this.taskDefinitions = taskDefinitions;
         this.rewardDefinitions = rewardDefinitions;
+        this.taskController = taskController;
+        this.rewardController = rewardController;
     }
 
     public record PrivateTemplate(Long id, String kind, String title, String definitionJson,
@@ -183,6 +188,42 @@ public class WorkspaceTemplateController {
         } catch(JsonProcessingException ex) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Invalid template payload");
         }
+    }
+
+
+    /**
+     * Separate explicit activation confirmation. Reuses the established creation
+     * controllers (and their service validators) rather than writing SQL into
+     * task/reward tables. Caller supplies the final, editable creation request.
+     * No activation occurs during catalog or private-library imports.
+     */
+    @PostMapping("/{templateId}/activate-task")
+    @PreAuthorize("@workspaceSecurity.canManageWorkspace(#workspaceId) and hasAuthority('CREATE_TASKS')")
+    @Transactional
+    public org.springframework.http.ResponseEntity<com.olehkobylianskyi.familypoints.dto.TaskDefinitionResponse>
+    activateTask(@PathVariable Long workspaceId, @PathVariable Long templateId,
+                 @Valid @RequestBody com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest request) {
+        requireKind(workspaceId, templateId, "TASK");
+        return taskController.createDefinition(workspaceId, request);
+    }
+
+    @PostMapping("/{templateId}/activate-reward")
+    @PreAuthorize("@workspaceSecurity.canManageWorkspace(#workspaceId) and hasAuthority('MANAGE_REWARDS')")
+    @Transactional
+    public com.olehkobylianskyi.familypoints.dto.RewardDefinitionResponse
+    activateReward(@PathVariable Long workspaceId, @PathVariable Long templateId,
+                   @Valid @RequestBody com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest request) {
+        requireKind(workspaceId, templateId, "REWARD");
+        return rewardController.createReward(workspaceId, request);
+    }
+
+    private void requireKind(Long workspaceId, Long templateId, String expected) {
+        var kinds = db.query("SELECT kind FROM workspace_private_templates WHERE id=? AND workspace_id=?",
+                (rs,i)->rs.getString(1),templateId,workspaceId);
+        if (kinds.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Template not found");
+        if (!expected.equals(kinds.get(0)))
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Template kind mismatch");
     }
 
     @PostMapping("/imports/preview")
