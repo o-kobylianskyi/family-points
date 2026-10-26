@@ -531,3 +531,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web templates packet 7: recurrence day and availability window editing
 - Added structured editing of existing recurrenceDayOfWeek (1..7) and recurrenceDayOfMonth (1..31) integer properties in TASK definitions and availabilityStartsAt/availabilityEndsAt text fields in REWARD definitions, with UK/RU/DE/EN labels. Only fields already present in definition JSON are shown, preserving absent/unknown keys. Commit `356859b`.
 - Availability timestamps remain exact ISO text from Backend snapshots: no implicit local-time conversion, timezone rewrite or unsupported weekly-window creation. Full validity/cross-field consistency is a Backend follow-up; DEV browser validation pending. BETA/production unchanged.
+
+## 2026-10-26 — Web template packet 8: reward availability boundary validation
+- TemplatesPage now validates existing REWARD availabilityStartsAt/availabilityEndsAt fields before editing can be saved: ISO date-time parsing (including optional offset), rejects malformed timestamps and end <= start, and renders a visible error. Existing values and unrelated fields remain untouched; no conversion of timezones or update of current reward data. Commit `7da374b`.
+- Browser DEV E2E and CI for this SHA are pending. Next: localized error text, guided date/time inputs with explicit timezone contract, further Backend checks. BETA untouched.
