@@ -58,7 +58,7 @@ export default function TemplateFieldsEditor({ kind, definition, onChange, langu
             : <input type={type} step={type === 'number' ? wholeNumbers.has(key) ? 1 : 'any' : undefined}
                 min={type === 'number' ? (bounded[key]?.[0] ?? (nonNegative.has(key) ? 0 : undefined)) : undefined}
                 max={type === 'number' ? bounded[key]?.[1] : undefined}
-                value={object[key] ?? ''} disabled={disabled}
+                value={type === 'number' ? (object[key] ?? '') : safeText(object[key])} disabled={disabled}
                 onChange={e => {
                   if (type !== 'number') return setField(key, typeof object[key] === 'object' && object[key] !== null ? {...object[key], [language]: e.target.value} : (e.target.value || null))
                   if (e.target.value === '') return setField(key, null)
