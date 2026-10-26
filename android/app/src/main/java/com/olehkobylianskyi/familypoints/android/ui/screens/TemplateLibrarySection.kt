@@ -32,6 +32,8 @@ fun TemplateLibrarySection(
 ) {
     val scope = rememberCoroutineScope()
     var catalog by remember(workspaceId) { mutableStateOf<List<CatalogTemplateDto>>(emptyList()) }
+    var packs by remember(workspaceId) { mutableStateOf<List<com.google.gson.JsonObject>>(emptyList()) }
+    var packFilter by remember(workspaceId) { mutableStateOf("ALL") }
     var library by remember(workspaceId) { mutableStateOf<List<PrivateTemplateDto>>(emptyList()) }
     var selected by remember(workspaceId) { mutableStateOf<Set<String>>(emptySet()) }
     var preview by remember(workspaceId) { mutableStateOf<TemplateImportPreviewDto?>(null) }
@@ -67,10 +69,14 @@ fun TemplateLibrarySection(
         previewCodes = emptyList()
         catalog = emptyList()
         library = emptyList()
+        packs = emptyList()
+        packFilter = "ALL"
         catalogLoaded = false
         libraryLoaded = false
         try {
-            catalog = repository.catalog().templates.orEmpty()
+            val result = repository.catalog()
+            catalog = result.templates.orEmpty()
+            packs = result.packs.orEmpty()
             catalogLoaded = true
             library = repository.privateTemplates(workspaceId)
             libraryLoaded = true
@@ -107,6 +113,13 @@ fun TemplateLibrarySection(
             }
         }
         if (notice.isNotBlank()) Text(notice, color = MaterialTheme.colorScheme.primary)
+        val visibleTemplates = if (packFilter == "ALL") catalog else {
+            val pack = packs.firstOrNull { it.get("code")?.asString == packFilter }
+            val codes = pack?.getAsJsonArray("templateCodes")?.mapNotNull {
+                if (it.isJsonPrimitive) it.asString else null
+            }?.toSet().orEmpty()
+            catalog.filter { it.code in codes }
+        }
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             item {
                 Text(tl(language, "Рекомендовані шаблони", "Empfohlene Vorlagen", "Suggested templates", "Рекомендуемые шаблоны"),
@@ -114,7 +127,29 @@ fun TemplateLibrarySection(
                 if (!loading && catalogLoaded && catalog.isEmpty()) Text(tl(language, "Каталог поки порожній.", "Der Katalog ist noch leer.",
                     "Catalog is empty for now.", "Каталог пока пуст."))
             }
-            items(catalog, key = { it.code }) { item ->
+            if (packs.isNotEmpty()) item {
+                Text(tl(language, "Набори", "Pakete", "Packs", "Наборы"))
+                androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    item {
+                        FilterChip(selected = packFilter == "ALL", onClick = { packFilter = "ALL" },
+                            label = { Text(tl(language, "Усі", "Alle", "All", "Все")) })
+                    }
+                    items(packs, key = { it.get("code")?.asString ?: it.toString() }) { pack ->
+                        val code = pack.get("code")?.asString.orEmpty()
+                        val lang = when (language) {
+                            AppLanguage.UK -> "uk"
+                            AppLanguage.DE -> "de"
+                            AppLanguage.EN -> "en"
+                            AppLanguage.RU -> "ru"
+                        }
+                        val title = pack.getAsJsonObject("title")
+                        val label = title?.get(lang)?.asString ?: title?.get("en")?.asString ?: code
+                        FilterChip(selected = packFilter == code, onClick = { packFilter = code },
+                            label = { Text(label) })
+                    }
+                }
+            }
+            items(visibleTemplates, key = { it.code }) { item ->
                 val title = item.title?.get(when(language) {
                     AppLanguage.UK -> "uk"
                     AppLanguage.DE -> "de"
