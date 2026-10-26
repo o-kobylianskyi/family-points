@@ -2,6 +2,9 @@ package com.olehkobylianskyi.familypoints.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.olehkobylianskyi.familypoints.repository.TaskDefinitionRepository;
+import com.olehkobylianskyi.familypoints.repository.RewardDefinitionRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.olehkobylianskyi.familypoints.service.TemplateCatalogService;
 import jakarta.validation.Valid;
@@ -25,11 +28,17 @@ import java.util.List;
 public class WorkspaceTemplateController {
     private final JdbcTemplate db;
     private final TemplateCatalogService catalog;
+    private final TaskDefinitionRepository taskDefinitions;
+    private final RewardDefinitionRepository rewardDefinitions;
     private final ObjectMapper json = new ObjectMapper();
 
-    public WorkspaceTemplateController(JdbcTemplate db, TemplateCatalogService catalog) {
+    public WorkspaceTemplateController(JdbcTemplate db, TemplateCatalogService catalog,
+                                       TaskDefinitionRepository taskDefinitions,
+                                       RewardDefinitionRepository rewardDefinitions) {
         this.db = db;
         this.catalog = catalog;
+        this.taskDefinitions = taskDefinitions;
+        this.rewardDefinitions = rewardDefinitions;
     }
 
     public record PrivateTemplate(Long id, String kind, String title, String definitionJson,
@@ -39,6 +48,70 @@ public class WorkspaceTemplateController {
     public record ImportRequest(@NotNull List<@NotBlank String> selectedCodes) {}
     public record ImportPreview(List<String> selectedCodes, List<String> alreadyImported,
                                 List<String> toImport) {}
+
+
+    /**
+     * Snapshot configuration only; references to participants, history, purchases
+     * and ledgers are intentionally excluded from portable private templates.
+     */
+    @PostMapping("/from-tasks/{taskId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
+    public void saveFromTask(@PathVariable Long workspaceId, @PathVariable Long taskId) {
+        var task = taskDefinitions.findByIdAndWorkspaceId(taskId, workspaceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
+        ObjectNode data = json.createObjectNode();
+        data.put("source", "TASK");
+        data.put("title", task.getTitle());
+        data.put("description", task.getDescription());
+        data.put("mandatory", task.isMandatory());
+        data.put("recurrenceType", task.getRecurrenceType() == null ? null : task.getRecurrenceType().name());
+        data.put("recurrenceDayOfWeek", task.getRecurrenceDayOfWeek());
+        data.put("recurrenceDayOfMonth", task.getRecurrenceDayOfMonth());
+        data.put("dueTime", task.getDueTime() == null ? null : task.getDueTime().toString());
+        data.put("rewardCurrencyCode", task.getRewardPointType() == null ? null : task.getRewardPointType().getCode());
+        data.put("rewardAmount", task.getRewardAmount());
+        data.put("penaltyCurrencyCode", task.getPenaltyPointType() == null ? null : task.getPenaltyPointType().getCode());
+        data.put("penaltyAmount", task.getPenaltyAmount());
+        data.put("rewardReputation", task.getRewardReputationAmount());
+        data.put("penaltyReputation", task.getPenaltyReputationAmount());
+        create(workspaceId, new TemplateRequest(task.getTitle(), data.toString(), "TASK"));
+    }
+
+    @PostMapping("/from-rewards/{rewardId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
+    public void saveFromReward(@PathVariable Long workspaceId, @PathVariable Long rewardId) {
+        var reward = rewardDefinitions.findByIdAndWorkspaceId(rewardId, workspaceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reward not found"));
+        ObjectNode data = json.createObjectNode();
+        data.put("source", "REWARD");
+        data.put("title", reward.getTitle());
+        data.put("description", reward.getDescription());
+        data.put("currencyCode", reward.getPointType().getCode());
+        data.put("priceAmount", reward.getPriceAmount());
+        data.put("rewardKind", reward.getRewardKind().name());
+        data.put("durationMinutes", reward.getDefaultDurationMinutes());
+        data.put("acquisitionMode", reward.getAcquisitionMode().name());
+        data.put("requiresApproval", reward.isRequiresApproval());
+        data.put("minimumReputation", reward.getMinimumReputation());
+        data.put("cooldownSeconds", reward.getCooldownSeconds());
+        data.put("memberTotalLimit", reward.getMemberTotalLimit());
+        data.put("memberDailyLimit", reward.getMemberDailyLimit());
+        data.put("memberWeeklyLimit", reward.getMemberWeeklyLimit());
+        data.put("workspaceTotalLimit", reward.getWorkspaceTotalLimit());
+        data.put("workspaceDailyLimit", reward.getWorkspaceDailyLimit());
+        data.put("workspaceWeeklyLimit", reward.getWorkspaceWeeklyLimit());
+        data.put("extraRequestAllowed", reward.isExtraRequestAllowed());
+        data.put("availabilityMode", reward.getAvailabilityMode().name());
+        data.put("availabilityStartsAt", reward.getAvailabilityStartsAt() == null ? null : reward.getAvailabilityStartsAt().toString());
+        data.put("availabilityEndsAt", reward.getAvailabilityEndsAt() == null ? null : reward.getAvailabilityEndsAt().toString());
+        // Weekly windows are not copied until their exact portable DTO is implemented.
+        if (!reward.getWeeklyWindows().isEmpty())
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Weekly availability templates are not yet supported");
+        create(workspaceId, new TemplateRequest(reward.getTitle(), data.toString(), "REWARD"));
+    }
 
     @GetMapping
     public List<PrivateTemplate> list(@PathVariable Long workspaceId) {
