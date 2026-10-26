@@ -545,3 +545,6 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 - Code bf60568 changes description expand affordance from TextButton 'Опис/Менше' to OutlinedButton 'Читати повністю/Згорнути опис' with four locales; edit dialog uses theme surface color and clearer localized heading/field separation; private list TASK/REWARD labels localized.
 - Import preview now displays authoritative alreadyImported/toImport counts rather than raw catalog codes, and explicitly explains duplicate-only selection (no new items) without claiming an API failure; actual import remains disabled when toImport empty. No Backend changes, no auto-activation, no wallet/ledger writes.
 - Follow-up: prove single NEW-item import, duplicate-only import, mixed selection; inspect emulator light/dark themes and Gradle assembleDebug/testDebugUnitTest after bf60568. Current new commit CI NOT VERIFIED. Huawei BETA unchanged.
+
+## 2026-10-26 — Current BETA architecture dispatch
+Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **ANDROID:** P1 verify template dialog/one-new-vs-duplicate-only import; reset-aware offline state, emulator verification. Economy v0.7 preliminarily accepted for DEV; reset BKL-002 mandatory before next BETA, not an authorization to erase any family.

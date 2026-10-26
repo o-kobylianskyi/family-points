@@ -203,3 +203,6 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 ## 2026-10-26 — TPL-08 DEV readiness probe after user continuation
 - Live read-only DEV workspace 1 still holds only 3 TASK private templates (fp.task.family.010, fp.task.family.020, fp.task.hygiene.001); expected fp.reward.time.002 absent. Activation requests remain 0; reward_definitions 3, reward_purchases 47, point_transactions 188 unchanged.
 - TPL-08 TIME 30-minute creation draft not testable yet: no imported TIME source in workspace 1 and no Web/API draft response. State PENDING (not defect). Next manual action: select fp.reward.time.002 in catalog, import privately, open creation draft, confirm defaultDurationMinutes=30 with null price and no activation.
+
+## 2026-10-26 — Current BETA architecture dispatch
+Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **QA:** P0 end-to-end authorized disposable-family reset → wizard → one template import; tenant/ledger/currency/replay guards. Economy v0.7 preliminarily accepted for DEV; reset BKL-002 mandatory before next BETA, not an authorization to erase any family.

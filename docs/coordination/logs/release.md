@@ -158,3 +158,6 @@ Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat pri
 
 ## 2026-10-26 — User reprioritization: reset BEFORE beta and economy v0.7 start
 Source of truth: `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **RELEASE:** P1: publish the next BETA after BKL-002 selective reset + onboarding are working with targeted DEV smoke and green CI; no real data deletion without user confirmation.
+
+## 2026-10-26 — Current BETA architecture dispatch
+Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **RELEASE:** P1 package next BETA only after reset onboarding works and green CI; live manifest smoke, no real data deletion. Economy v0.7 preliminarily accepted for DEV; reset BKL-002 mandatory before next BETA, not an authorization to erase any family.

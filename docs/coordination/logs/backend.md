@@ -264,3 +264,6 @@ Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat pri
 
 ## 2026-10-26 — User reprioritization: reset BEFORE next BETA, economy v0.7 IN DEVELOPMENT
 Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous parked status of BKL-002. **BACKEND:** P0 BKL-002 selective reset preview/execute, scoped FK/order/audit/idempotency, safe re-onboarding and economy v0.7 suggestions without overwriting existing data. Planning/assignment only: no data deletion authorized.
+
+## 2026-10-26 — Current BETA architecture dispatch
+Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **BACKEND:** P0 reset API and DB safety tests, and verify exact-head media ordering CI before changing code. Economy v0.7 preliminarily accepted for DEV; reset BKL-002 mandatory before next BETA, not an authorization to erase any family.

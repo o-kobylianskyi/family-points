@@ -663,3 +663,6 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 - Confirmed source race in CreateTaskModal: late GET creation-draft responses could overwrite task fields after changing template selection or family. Added request-generation and workspace guards; empty selection invalidates pending request; stale success/errors/loading do not affect current choice. Commit `acae190`.
 - No template activation, ledger writes, actual family reset, or BETA/production deployment. Browser QA: select A then B rapidly; select A then 'without template'; switch family while A is loading; verify no old field injection; test UK/RU/DE/EN. CI verification must use exact post-commit SHA.
 - Next: verify exact-head Web CI; finish full locale/error audit and structured template editor visual responsive acceptance; integrate selective reset only after Backend contract.
+
+## 2026-10-26 — Current BETA architecture dispatch
+Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **WEB:** P0 selective reset UI and guided first-run/template import after Backend contract; preserve family-scoped async state. Economy v0.7 preliminarily accepted for DEV; reset BKL-002 mandatory before next BETA, not an authorization to erase any family.

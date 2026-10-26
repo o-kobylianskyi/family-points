@@ -67,3 +67,6 @@ Read `docs/coordination/DISPATCH_20261026_LATE.md`. P1: audit all 142 templates,
 
 ## 2026-10-26 — User reprioritization: reset BEFORE beta and economy v0.7 start
 Source of truth: `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **DESIGNER:** P1: economy v0.7 preliminarily approved for DEV implementation with corrections after BETA tests. Finalize versioned optional difficulty/price proposals for 142 seeds; retain null != 0 and user customization; no automatic changes to ledger or families.
+
+## 2026-10-26 — Current BETA architecture dispatch
+Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. P1 review approved 18 category vectors integration, 142 templates/6 packs, economy v0.7 suggestions and localized categories. No automatic modifications to existing family balances/data.
