@@ -640,3 +640,7 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 ## 2026-10-26 — P0 reset priority intake and safe Web contract readiness
 - Latest `REVISED_BETA_SCOPE_20261026.md` overrides historical deferral: selective family reset and first-run import required before next BETA. Audited current main source tree: no Backend family reset controller/API exposed yet. Created `docs/coordination/requests/WEB_RESET_CONTRACT_READINESS_20261026.md` (`06e01b0`) defining minimum API, dry-run, fresh authorization, dependency confirmation, generation/tenant safety, idempotency, localized UX, and QA/release acceptance. No fake enabled reset button and no data deletion.
 - CI 40403747655 in progress at observation; recent prior Web CI runs cancelled by concurrent main pushes. Existing TPL browser DEV smoke still pending. Next owner Backend/Architecture: publish actual reset contract, then Web UI integration.
+
+## 2026-10-26 — Web Settings build identification for QA
+- Added compile-time Web build metadata in vite.config.js: frontend package version, Git SHA (CI GITHUB_SHA/env override or local git), UTC build timestamp, channel (explicit VITE_APP_CHANNEL or default BUILD/DEV). Commit `d3f724b`.
+- Added Settings readout + copy-build-information button with UK/RU/DE/EN labels; source `465c292`. These identify *frontend assets served to this browser*, not Backend version or Android APK. Package currently version 0.0.0, so SHA/build timestamp are primary QA identifiers. CI/build and DEV browser inspection pending; BETA not deployed.
