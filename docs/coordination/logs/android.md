@@ -463,3 +463,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 ## 2026-10-26 — DEV starter pack catalog filters
 - Android 75fd5a0 adds localized catalog pack filters using Backend catalog packs[].code/title/templateCodes, including ALL fallback; c9dcefd adds select/deselect visible items while retaining selections in other packs. Selection changes invalidate prior import preview and preserve explicit server confirmation; no active tasks/rewards created.
 - Existing global catalog may still be empty until Designer seed. No current-source Android CI evidence from connected PR-only runs lookup; current build/device/API QA remains pending. Signed BETA beta.11 unchanged.
+
+## 2026-10-26 — DEV template seed integration, localized descriptions
+- Backend main introduced 142 curated TASK/REWARD suggestions with four-language title+description across 6 starter packs in src/main/resources/templates/catalog-v1.json (5c38fda). Verified actual JSON template and pack counts and language keys by reading source; not evidence of DEV deployment.
+- Android commits d40ec0b + 555d166 extend CatalogTemplateDto and native starter catalog with localized descriptive text so users understand items before selecting. Existing pack filter/multi-select and preview/import remain in place. Did not infer “already imported” from title/JSON text (unreliable); authoritative import preview remains sole source for duplicate status.
+- No successful current-source Gradle/device QA result yet. Verify 142 catalog item render, 6 localized packs, import one/many/none, long descriptions on handset, 403/409 and two-family separation. BETA beta.11 unchanged.
