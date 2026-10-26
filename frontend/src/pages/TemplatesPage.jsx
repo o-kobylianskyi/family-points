@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates, updatePrivateTemplate, deletePrivateTemplate } from '../api/templateApi'
@@ -22,6 +22,10 @@ export default function TemplatesPage() {
   const [title, setTitle] = useState('')
   const [definition, setDefinition] = useState('')
   const [busy, setBusy] = useState(false)
+  const actionLock = useRef(false)
+  const selectionRevision = useRef(0)
+  const workspaceRef = useRef(workspaceId)
+  workspaceRef.current = workspaceId
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   useEffect(() => {
@@ -33,14 +37,20 @@ export default function TemplatesPage() {
       .catch(e => { if (alive) setError(e.message) })
     return () => { alive = false }
   }, [workspaceId, getAccessToken])
-  const toggle = code => { setSelected(v => v.includes(code) ? v.filter(x=>x!==code) : [...v,code]); setPreview(null) }
+  const toggle = code => { selectionRevision.current += 1; setSelected(v => v.includes(code) ? v.filter(x=>x!==code) : [...v,code]); setPreview(null) }
   const execute = async action => {
-    if (busy) return
+    if (actionLock.current) return
+    actionLock.current = true
+    const originWorkspace = workspaceId
     setBusy(true); setError(''); setNotice('')
-    try { await action() } catch(e) { setError(e.message) } finally { setBusy(false) }
+    try { await action() } catch(e) { if (workspaceRef.current === originWorkspace) setError(e.message) } finally {
+      actionLock.current = false
+      if (workspaceRef.current === originWorkspace) setBusy(false)
+    }
   }
   const refresh = async () => setPrivateItems(await getPrivateTemplates(getAccessToken(), workspaceId))
   const chooseEdit = item => { setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
+  const validDefinition = (() => { try { return definition.length <= 30000 && !Array.isArray(JSON.parse(definition)) && JSON.parse(definition) !== null && typeof JSON.parse(definition) === 'object' } catch { return false } })()
   if (!workspaceId) return <div className="page-loading">...</div>
   return <div className="templates-page">
     <h1>{l[0]}</h1>
@@ -58,8 +68,8 @@ export default function TemplatesPage() {
       </div>
       <p>{selected.length} / {(catalog.templates || []).length}</p>
       <div className="modal-actions">
-        <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>{setSelected([]);setPreview(null)}}>{l[7]}</button>
-        <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>execute(async()=>setPreview(await previewTemplateImport(getAccessToken(),workspaceId,selected)))}>{l[5]}</button>
+        <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>{selectionRevision.current += 1;setSelected([]);setPreview(null)}}>{l[7]}</button>
+        <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>execute(async()=>{const revision=selectionRevision.current;const origin=workspaceId;const result=await previewTemplateImport(getAccessToken(),workspaceId,selected);if(workspaceRef.current===origin && selectionRevision.current===revision)setPreview(result)})}>{l[5]}</button>
       </div>
       {preview && <div className="settings-section">
         <p>{l[8]}: {(preview.alreadyImported || []).join(', ') || '—'}</p>
@@ -79,7 +89,7 @@ export default function TemplatesPage() {
         </button>)}
       </div>
       {editing && <form onSubmit={e=>{e.preventDefault();execute(async()=>{
-        JSON.parse(definition)
+        if (!validDefinition) throw new Error('Template definition must be a valid JSON object (max 30,000 characters)')
         await updatePrivateTemplate(getAccessToken(),workspaceId,editing.id,{title,definitionJson:definition,kind:editing.kind})
         await refresh();setNotice(l[15])
       })}}>
@@ -87,7 +97,7 @@ export default function TemplatesPage() {
         <label>{l[13]}<input required maxLength={150} value={title} onChange={e=>setTitle(e.target.value)}/></label>
         <label>{l[14]}<textarea required rows={8} value={definition} onChange={e=>setDefinition(e.target.value)}/></label>
         <div className="modal-actions">
-          <button className="primary-button" disabled={busy} type="submit">{l[10]}</button>
+          <button className="primary-button" disabled={busy || !validDefinition || !title.trim()} type="submit">{l[10]}</button>
           <button className="secondary-button" disabled={busy} type="button" onClick={()=>{if(window.confirm(l[17]))execute(async()=>{
             await deletePrivateTemplate(getAccessToken(),workspaceId,editing.id);await refresh();setEditing(null)
           })}}>{l[11]}</button>
