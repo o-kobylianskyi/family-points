@@ -27,7 +27,7 @@ interface TemplateApi {
     suspend fun updatePrivateTemplate(@Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long, @Path("templateId") templateId: Long, @Body body: PrivateTemplateUpdateRequest): retrofit2.Response<okhttp3.ResponseBody>
 
     @DELETE("workspaces/{workspaceId}/templates/{templateId}")
-    suspend fun deletePrivateTemplate(@Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long, @Path("templateId") templateId: Long): retrofit2.Response<Unit>
+    suspend fun deletePrivateTemplate(@Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long, @Path("templateId") templateId: Long): retrofit2.Response<Void>
 
     @GET("template-catalog")
     suspend fun catalog(@Header("Authorization") authorization: String): TemplateCatalogDto
@@ -50,5 +50,5 @@ interface TemplateApi {
         @Header("Authorization") authorization: String,
         @Path("workspaceId") workspaceId: Long,
         @Body request: TemplateSelectionRequest
-    ): retrofit2.Response<Unit>
+    ): retrofit2.Response<Void>
 }
