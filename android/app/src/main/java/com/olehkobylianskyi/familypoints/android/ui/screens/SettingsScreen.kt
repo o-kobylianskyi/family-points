@@ -28,6 +28,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.layout.fillMaxHeight
 import com.olehkobylianskyi.familypoints.android.network.ServerReachability
 import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import androidx.compose.ui.Modifier
@@ -339,6 +343,32 @@ fun SettingsScreen(
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+    if (online && showTemplateLibrary) {
+        Dialog(
+            onDismissRequest = { showTemplateLibrary = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(0.96f).fillMaxHeight(0.92f),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                key(currentUser.workspaceId) {
+                    TemplateLibrarySection(
+                        language = language,
+                        workspaceId = currentUser.workspaceId,
+                        canManage = "ADMIN_OVERRIDE" in currentUser.permissions ||
+                            "MANAGE_TEMPLATES" in currentUser.permissions ||
+                            "MANAGE_TASKS" in currentUser.permissions ||
+                            "MANAGE_REWARDS" in currentUser.permissions,
+                        repository = remember(currentUser.workspaceId) { repository.templates() },
+                        onUnauthorized = onUnauthorized,
+                        onClose = { showTemplateLibrary = false }
+                    )
                 }
             }
         }
