@@ -505,3 +505,6 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 ## 2026-10-26 — User confirmed Gradle PASS after collapsed-list compile fixes
 - Following code commits 535a250 (CreateTaskScreen TextButton import) and d3fb111 (RewardsScreen TextButton import and required language arg), user reran the prescribed Gradle `:app:assembleDebug :app:testDebugUnitTest --console=plain` and reported **BUILD SUCCESSFUL**. This is user-reported local build/test task success, not independent GitHub Actions run; test counts and exact checked-out local SHA not separately supplied.
 - Next QA: Android Studio emulator visual smoke: role set >3, task actor section >3 selected-first and counts, rewards before/after prerequisite checklists >3; expand/collapse and preserve selections, assess viewport/nav bar. Huawei reserved for signed BETA beta.11; no DEV APK on handset.
+
+## Architecture dispatch 2026-10-26 (late)
+Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat priority assignment. **ANDROID owner:** P0: prior Kotlin TextButton/language fix already committed; check latest all-four CI, repair new failures only, emulator collapsed lists and template QA.
