@@ -1,0 +1,421 @@
+{
+  "schema": "designer-economy-packs-decision-review/0.7",
+  "status": "REVIEW_REQUIRED",
+  "catalogVersion": 1,
+  "counts": {
+    "catalog": 142,
+    "packs": 6,
+    "uniqueInPacks": 77,
+    "notInAnyPack": 65,
+    "unlistedTasks": 43,
+    "unlistedRewards": 22
+  },
+  "unlistedTemplates": [
+    {
+      "code": "fp.task.hygiene.004",
+      "kind": "TASK",
+      "titleUk": "Прийняти душ",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.routine.008",
+      "kind": "TASK",
+      "titleUk": "Вчасно встати",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.routine.012",
+      "kind": "TASK",
+      "titleUk": "Виконати ранковий чекліст",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.chores.016",
+      "kind": "TASK",
+      "titleUk": "Витерти пил",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.chores.020",
+      "kind": "TASK",
+      "titleUk": "Допомогти накрити стіл",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.chores.024",
+      "kind": "TASK",
+      "titleUk": "Допомогти скласти покупки",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.school.026",
+      "kind": "TASK",
+      "titleUk": "Підготуватися до контрольної",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.school.028",
+      "kind": "TASK",
+      "titleUk": "Повторити нові слова",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.school.032",
+      "kind": "TASK",
+      "titleUk": "Розв'язати логічні задачі",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.reading.034",
+      "kind": "TASK",
+      "titleUk": "Переказати прочитане",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.reading.036",
+      "kind": "TASK",
+      "titleUk": "Прочитати розділ книжки",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.activity.040",
+      "kind": "TASK",
+      "titleUk": "Зробити вправи на розтяжку",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.activity.042",
+      "kind": "TASK",
+      "titleUk": "Потренувати спортивну навичку",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.creativity.044",
+      "kind": "TASK",
+      "titleUk": "Зробити поробку",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.creativity.045",
+      "kind": "TASK",
+      "titleUk": "Пограти на музичному інструменті",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.social.047",
+      "kind": "TASK",
+      "titleUk": "Допомогти молодшому члену сім'ї",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.social.048",
+      "kind": "TASK",
+      "titleUk": "Зробити добру справу",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.social.049",
+      "kind": "TASK",
+      "titleUk": "Пограти разом без сварок",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.social.050",
+      "kind": "TASK",
+      "titleUk": "Попросити вибачення після конфлікту",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.social.051",
+      "kind": "TASK",
+      "titleUk": "Підтримати сімейну розмову",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.habits.052",
+      "kind": "TASK",
+      "titleUk": "Провести день без зайвого екрана",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.habits.053",
+      "kind": "TASK",
+      "titleUk": "Завершити завдання без нагадувань",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.habits.054",
+      "kind": "TASK",
+      "titleUk": "Підготувати план на завтра",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.habits.055",
+      "kind": "TASK",
+      "titleUk": "Записати три хороші події дня",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.family.056",
+      "kind": "TASK",
+      "titleUk": "Допомогти приготувати вечерю",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.family.057",
+      "kind": "TASK",
+      "titleUk": "Підготувати сімейну гру",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.family.058",
+      "kind": "TASK",
+      "titleUk": "Вигуляти собаку з дорослим",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.family.059",
+      "kind": "TASK",
+      "titleUk": "Допомогти доглядати домашню тварину",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.family.060",
+      "kind": "TASK",
+      "titleUk": "Разом скласти меню на вихідні",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.017",
+      "kind": "TASK",
+      "titleUk": "Розкласти чисту білизну",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.018",
+      "kind": "TASK",
+      "titleUk": "Замінити постільну білизну",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.019",
+      "kind": "TASK",
+      "titleUk": "Винести сміття",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.020",
+      "kind": "TASK",
+      "titleUk": "Перевірити запаси вдома",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.021",
+      "kind": "TASK",
+      "titleUk": "Полагодити дрібну несправність",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.022",
+      "kind": "TASK",
+      "titleUk": "Замовити необхідні товари",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.023",
+      "kind": "TASK",
+      "titleUk": "Підготувати обід",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.024",
+      "kind": "TASK",
+      "titleUk": "Підготувати вечерю",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.025",
+      "kind": "TASK",
+      "titleUk": "Перевірити особистий календар",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.026",
+      "kind": "TASK",
+      "titleUk": "Спланувати робочий тиждень",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.027",
+      "kind": "TASK",
+      "titleUk": "Завершити важливе робоче завдання",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.028",
+      "kind": "TASK",
+      "titleUk": "Відповісти на важливі повідомлення",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.029",
+      "kind": "TASK",
+      "titleUk": "Розібрати робочий стіл",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.task.adult.030",
+      "kind": "TASK",
+      "titleUk": "Зробити резервну копію важливих файлів",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.time.004",
+      "kind": "REWARD",
+      "titleUk": "30 хвилин відеогри",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.time.008",
+      "kind": "REWARD",
+      "titleUk": "30 хвилин творчості з дорослим",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.privilege.012",
+      "kind": "REWARD",
+      "titleUk": "Обрати музику в авто",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.privilege.014",
+      "kind": "REWARD",
+      "titleUk": "Обрати книжку для читання",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.activity.015",
+      "kind": "REWARD",
+      "titleUk": "Сімейний похід у парк",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.activity.016",
+      "kind": "REWARD",
+      "titleUk": "Спільна настільна гра",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.activity.017",
+      "kind": "REWARD",
+      "titleUk": "Пікнік із сім'єю",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.activity.018",
+      "kind": "REWARD",
+      "titleUk": "Відвідати дитячий майданчик",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.activity.019",
+      "kind": "REWARD",
+      "titleUk": "Спільний велосипедний виїзд",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.activity.020",
+      "kind": "REWARD",
+      "titleUk": "Кулінарний вечір разом",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.items.021",
+      "kind": "REWARD",
+      "titleUk": "Невеликий набір наліпок",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.items.022",
+      "kind": "REWARD",
+      "titleUk": "Новий олівець або ручка",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.items.023",
+      "kind": "REWARD",
+      "titleUk": "Маленька іграшка",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.items.024",
+      "kind": "REWARD",
+      "titleUk": "Нова книжка",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.items.025",
+      "kind": "REWARD",
+      "titleUk": "Набір для творчості",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.items.026",
+      "kind": "REWARD",
+      "titleUk": "Колекційна фігурка",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.family.027",
+      "kind": "REWARD",
+      "titleUk": "Додаткова казка перед сном",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.family.028",
+      "kind": "REWARD",
+      "titleUk": "Похід у бібліотеку",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.family.029",
+      "kind": "REWARD",
+      "titleUk": "Вечір конструктора з дорослим",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.family.030",
+      "kind": "REWARD",
+      "titleUk": "Особливий сімейний сніданок",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.family.031",
+      "kind": "REWARD",
+      "titleUk": "Обрати сімейну активність у вихідні",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    },
+    {
+      "code": "fp.reward.family.032",
+      "kind": "REWARD",
+      "titleUk": "Сімейний творчий проєкт",
+      "classification": "REQUIRES_PACK_SELECTION_REVIEW"
+    }
+  ],
+  "economyDecisionIds": [
+    "ECO-001",
+    "ECO-002",
+    "ECO-003",
+    "ECO-004",
+    "ECO-005",
+    "ECO-006",
+    "ECO-007",
+    "ECO-008",
+    "ECO-009",
+    "ECO-010",
+    "ECO-011",
+    "ECO-012"
+  ],
+  "economyDecisionStatus": "NOT_APPROVED",
+  "policy": "Preserve runtime monetary nulls; never auto-activate, auto-pay, or auto-charge"
+}
