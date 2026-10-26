@@ -108,6 +108,24 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
     peopleGroupDefault:['Група людей','Personengruppe','People group','Группа людей'],
     taskGroupDefault:['Група завдань','Aufgabengruppe','Task group','Группа заданий'],
     taskDefault:['Завдання','Aufgabe','Task','Задание'],
+    achievements:["Досягнення","Erfolge","Achievements","Достижения"],
+    activity:["Активність","Aktivität","Activity","Активность"],
+    adultTasks:["Справи дорослих","Aufgaben für Erwachsene","Adult tasks","Дела взрослых"],
+    chores:["Домашні справи","Hausarbeit","Chores","Домашние дела"],
+    creativity:["Творчість","Kreativität","Creativity","Творчество"],
+    familyCommunication:["Спілкування в сім’ї","Familienkommunikation","Family communication","Общение в семье"],
+    familyEvents:["Сімейні події","Familienereignisse","Family events","Семейные события"],
+    helpOthers:["Допомога іншим","Anderen helfen","Helping others","Помощь другим"],
+    home:["Дім","Zuhause","Home","Дом"],
+    initiative:["Ініціативність","Eigeninitiative","Initiative","Инициативность"],
+    learning:["Навчання","Lernen","Learning","Обучение"],
+    materialReward:["Матеріальна нагорода","Materielle Belohnung","Material reward","Материальная награда"],
+    nature:["Природа","Natur","Nature","Природа"],
+    planning:["Планування","Planung","Planning","Планирование"],
+    practicalSkills:["Практичні навички","Praktische Fähigkeiten","Practical skills","Практические навыки"],
+    privilege:["Привілей","Privileg","Privilege","Привилегия"],
+    screenTime:["Екранний час","Bildschirmzeit","Screen time","Экранное время"],
+    selfCare:["Турбота про себе","Selbstfürsorge","Self care","Забота о себе"],
   }
   const languageIndex={uk:0,de:1,en:2,ru:3}[locale]??2
   const catalogName=item=>{
@@ -116,7 +134,7 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
       item.key.replace(/^(avatar|member|task|peopleGroup)[-_]?/i,'').replace(/[-_]/g,' ')||
       words[0]
   }
-  const allowedCategories=type==='MEMBER'?['AVATAR']:type==='MEMBER_GROUP'?['GROUP']:type==='TASK'?['TASK','TASK_CATEGORY']:['FAMILY']
+  const allowedCategories=type==='MEMBER'?['AVATAR']:type==='MEMBER_GROUP'?['GROUP']:type==='TASK'?['TASK','TASK_CATEGORY']:type==='REWARD'?['REWARD']:['FAMILY']
   const availableCatalog=catalog.filter(item=>
     item.selectable && item.previewPath &&
     allowedCategories.includes(String(item.category||'').toUpperCase())
