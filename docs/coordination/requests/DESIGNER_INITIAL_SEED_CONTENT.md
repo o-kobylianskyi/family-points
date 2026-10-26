@@ -28,3 +28,11 @@ Once Architecture + Backend confirm the final **template database schema, import
 5. **QA/Release:** verify actual import and UI in a later BETA update.
 
 **Do not begin actual seed INSERTs until schema approval.** This request is a Designer brief, not authorization to deploy.
+
+## 2026-10-26 — Confirmed product requirement: suggested starter template catalog
+**User explicitly requested** initial prepopulation with a **list of suggested templates**, authored by Designer. This is a deliverable of BKL-001/004/006, not merely a documentation wishlist.
+- **Designer ownership:** curate and review actual named task/reward templates and pre-grouped family starter collections; each item includes stable ID, four-language text, suggested age/context (nonbinding), optional icon key, recommended points/currency/duration/schedule and opt-in defaults. Provide a human-readable suggested catalog for approval before packaging.
+- **Backend ownership:** publish versioned template JSON contract/schema + validation; consume Designer manifest into a GLOBAL read-only catalog through bundled seed resources or versioned data import, idempotent by stable key/version. No direct SQL instructions for Designer; never auto-create user tasks/rewards or modify existing families without explicit confirmation.
+- **Web/Android ownership:** during onboarding and later from Template Library, display suggested catalog immediately, support preview, customize, select/deselect, skip, safe apply. Suggested presets are available on fresh install even before any family has chosen a template; no dependence on manually entering seed records in UI.
+- **Acceptance:** nonempty curated suggested list after catalog installation, localized labels (UK/DE/EN/RU), working media fallback, no duplicate catalog entries after restart/reimport, existing family edits preserved, selecting a pack does not generate history, balances or ledger transactions. Seed manifest review precedes import test and QA release.
+- **Sequence:** Architect/Backend approve contract → Designer supplies *real initial content* and artwork refs → Backend validates/bundles manifest and importer → Web/Android exposes suggestions → QA accepts. Release separately authorizes deployment.
