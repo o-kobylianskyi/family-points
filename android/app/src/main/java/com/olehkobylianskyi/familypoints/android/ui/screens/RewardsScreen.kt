@@ -1703,9 +1703,13 @@ private fun TaskChecklist(
     onToggle: (Long) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val visible = if (expanded || tasks.size <= 3) tasks else tasks.take(3)
+    val ordered = tasks.sortedBy { if (it.id in selected) 0 else 1 }
+    val visible = if (expanded || ordered.size <= 3) ordered else ordered.take(3)
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(title, style = MaterialTheme.typography.titleMedium)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            Text("${selected.count { id -> tasks.any { it.id == id } }}/${tasks.size}", style = MaterialTheme.typography.labelSmall)
+        }
         visible.forEach { task ->
             CheckOption(
                 checked = task.id in selected,
@@ -1727,7 +1731,7 @@ private fun TaskChecklist(
                     AppLanguage.RU -> "Показать все"
                 }) + " (" + tasks.size + ")")
             }
-            if (!expanded && selected.any { id -> tasks.drop(3).any { it.id == id } }) {
+            if (!expanded && selected.any { id -> ordered.drop(3).any { it.id == id } }) {
                 Text(when (language) {
                     AppLanguage.UK -> "Є вибрані елементи серед прихованих"
                     AppLanguage.DE -> "Ausgewählte Einträge sind ausgeblendet"
