@@ -573,3 +573,8 @@ Show only relevant fields but never silently discard persisted data; apply categ
 
 ## 2026-10-26 — Coordinated sprint assignment (WEB)
 **Source of truth:** `docs/coordination/CURRENT_PRIORITY_SPRINT.md`. **P0:** stay green, regression-check designer TIME duration into editable reward creation form on DEV after Backend fix; cover selected import, no duplicate, tenant switch, API errors localized four languages. **P1:** batch real browser QA across task/reward template library, packs, draft edit/activate and settings error locale. Fix confirmed defects as one coherent package. Don't start BKL-008/009 now.
+
+## 2026-10-26 — Architect P0 Web stabilization: template import and tenant switch
+- Reviewed CURRENT_PRIORITY_SPRINT.md, checked green full GitHub Actions run 40390915206 (Web/Java/Android/BETA config jobs passed). The latest subsequent CI remains independent.
+- Fixed Web pack/bulk selection to exclude catalog entries already imported to the workspace; existing items are visually checked/disabled rather than actionable. Enforced invalid reward availability on save handler as well as disabled button. Guarded post-update/delete success UI against workspace switch and cleared stale success banner on change. Source commit `c6d8255`.
+- No Backend workaround for TIME 30→0, pending backend validated mapping. User-data browser smoke, actual cross-family API QA and release remain NOT VERIFIED. BETA unchanged.
