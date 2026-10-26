@@ -262,4 +262,16 @@ class WorkspaceTemplateControllerTest {
         assertEquals(30,request.path("defaultDurationMinutes").asInt());
         assertTrue(request.path("pointTypeId").isNull());
     }
+
+    @Test void explicitDurationTakesPriorityOverLegacyDesignerDuration() {
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(43L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Timed",
+                        """
+                        {"definition":{"rewardKind":"TIME","durationMinutes":15,
+                         "defaultDurationMinutes":45}}
+                        """}));
+        assertEquals(45,controller.creationDraft(1L,43L).path("request")
+                .path("defaultDurationMinutes").asInt());
+    }
 }
