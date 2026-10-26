@@ -28,6 +28,27 @@ public class MediaService {
     private static final Set<String> TYPES = Set.of("WORKSPACE","MEMBER","MEMBER_GROUP","WORK_NODE","TASK");
     private static final Set<String> SLOTS = Set.of("COVER","ICON","AVATAR");
     private static final Set<String> CATALOG = Set.of("member-default","avatar-sunflower","avatar-sky","avatar-berry","avatar-mint","avatar-peach","avatar-violet","avatar-ocean","avatar-forest","family-default","family-cover-default","people-group-default","task-group-default","task-default","reward-star");
+    // Designer-approved immutable category registry. No dynamic file paths.
+    private static final Map<String,String> CATEGORY_ICONS = Map.ofEntries(
+            Map.entry("category-achievements", "categories/achievements.svg"),
+            Map.entry("category-activity", "categories/activity.svg"),
+            Map.entry("category-adult-tasks", "categories/adult_tasks.svg"),
+            Map.entry("category-chores", "categories/chores.svg"),
+            Map.entry("category-creativity", "categories/creativity.svg"),
+            Map.entry("category-family-communication", "categories/family_communication.svg"),
+            Map.entry("category-family-events", "categories/family_events.svg"),
+            Map.entry("category-help-others", "categories/help_others.svg"),
+            Map.entry("category-home", "categories/home.svg"),
+            Map.entry("category-initiative", "categories/initiative.svg"),
+            Map.entry("category-learning", "categories/learning.svg"),
+            Map.entry("category-material-reward", "categories/material_reward.svg"),
+            Map.entry("category-nature", "categories/nature.svg"),
+            Map.entry("category-planning", "categories/planning.svg"),
+            Map.entry("category-practical-skills", "categories/practical_skills.svg"),
+            Map.entry("category-privilege", "categories/privilege.svg"),
+            Map.entry("category-screen-time", "categories/screen_time.svg"),
+            Map.entry("category-self-care", "categories/self_care.svg")
+    );
     // MEDIA_V38_START: allow new portrait assets and preserve bound legacy keys.
     private static final Set<String> V38_AVATARS = Set.of(
             "human_male_child_001",
@@ -193,7 +214,7 @@ public class MediaService {
         requireManager(ws,type,target);
         checkTarget(ws,type,target,slot);
         if ((assetId==null)==(catalogKey==null)) throw new IllegalArgumentException("Provide exactly one assetId or catalogKey");
-        if(catalogKey!=null && !(CATALOG.contains(catalogKey) || isPngCatalogKey(catalogKey))) throw new IllegalArgumentException("Unknown catalog key");
+        if(catalogKey!=null && !(CATALOG.contains(catalogKey) || CATEGORY_ICONS.containsKey(catalogKey) || isPngCatalogKey(catalogKey))) throw new IllegalArgumentException("Unknown catalog key");
         if (catalogKey!=null && type.equals("WORKSPACE") && slot.equals("COVER")
                 && !Set.of("family-cover-default","family-default").contains(catalogKey))
             throw new IllegalArgumentException("Catalog item is not a cover");
@@ -397,6 +418,28 @@ public class MediaService {
         // Current bundled V37 assets are abstract rather than demographic portraits.
         return List.of("UNIVERSAL", "ABSTRACT");
     }
+    private static List<CatalogItem> categoryIcons() {
+        return List.of(
+            new CatalogItem("category-achievements", "REWARD", "media.catalog.category.achievements", 1, true, "/workspaces/{workspaceId}/media/catalog/category-achievements/preview", List.of("CATEGORY"), 3000),
+            new CatalogItem("category-activity", "TASK_CATEGORY", "media.catalog.category.activity", 1, true, "/workspaces/{workspaceId}/media/catalog/category-activity/preview", List.of("CATEGORY"), 3010),
+            new CatalogItem("category-adult-tasks", "TASK_CATEGORY", "media.catalog.category.adult_tasks", 1, true, "/workspaces/{workspaceId}/media/catalog/category-adult-tasks/preview", List.of("CATEGORY"), 3020),
+            new CatalogItem("category-chores", "TASK_CATEGORY", "media.catalog.category.chores", 1, true, "/workspaces/{workspaceId}/media/catalog/category-chores/preview", List.of("CATEGORY"), 3030),
+            new CatalogItem("category-creativity", "TASK_CATEGORY", "media.catalog.category.creativity", 1, true, "/workspaces/{workspaceId}/media/catalog/category-creativity/preview", List.of("CATEGORY"), 3040),
+            new CatalogItem("category-family-communication", "TASK_CATEGORY", "media.catalog.category.family_communication", 1, true, "/workspaces/{workspaceId}/media/catalog/category-family-communication/preview", List.of("CATEGORY"), 3050),
+            new CatalogItem("category-family-events", "TASK_CATEGORY", "media.catalog.category.family_events", 1, true, "/workspaces/{workspaceId}/media/catalog/category-family-events/preview", List.of("CATEGORY"), 3060),
+            new CatalogItem("category-help-others", "TASK_CATEGORY", "media.catalog.category.help_others", 1, true, "/workspaces/{workspaceId}/media/catalog/category-help-others/preview", List.of("CATEGORY"), 3070),
+            new CatalogItem("category-home", "TASK_CATEGORY", "media.catalog.category.home", 1, true, "/workspaces/{workspaceId}/media/catalog/category-home/preview", List.of("CATEGORY"), 3080),
+            new CatalogItem("category-initiative", "TASK_CATEGORY", "media.catalog.category.initiative", 1, true, "/workspaces/{workspaceId}/media/catalog/category-initiative/preview", List.of("CATEGORY"), 3090),
+            new CatalogItem("category-learning", "TASK_CATEGORY", "media.catalog.category.learning", 1, true, "/workspaces/{workspaceId}/media/catalog/category-learning/preview", List.of("CATEGORY"), 3100),
+            new CatalogItem("category-material-reward", "REWARD", "media.catalog.category.material_reward", 1, true, "/workspaces/{workspaceId}/media/catalog/category-material-reward/preview", List.of("CATEGORY"), 3110),
+            new CatalogItem("category-nature", "TASK_CATEGORY", "media.catalog.category.nature", 1, true, "/workspaces/{workspaceId}/media/catalog/category-nature/preview", List.of("CATEGORY"), 3120),
+            new CatalogItem("category-planning", "TASK_CATEGORY", "media.catalog.category.planning", 1, true, "/workspaces/{workspaceId}/media/catalog/category-planning/preview", List.of("CATEGORY"), 3130),
+            new CatalogItem("category-practical-skills", "TASK_CATEGORY", "media.catalog.category.practical_skills", 1, true, "/workspaces/{workspaceId}/media/catalog/category-practical-skills/preview", List.of("CATEGORY"), 3140),
+            new CatalogItem("category-privilege", "REWARD", "media.catalog.category.privilege", 1, true, "/workspaces/{workspaceId}/media/catalog/category-privilege/preview", List.of("CATEGORY"), 3150),
+            new CatalogItem("category-screen-time", "REWARD", "media.catalog.category.screen_time", 1, true, "/workspaces/{workspaceId}/media/catalog/category-screen-time/preview", List.of("CATEGORY"), 3160),
+            new CatalogItem("category-self-care", "TASK_CATEGORY", "media.catalog.category.self_care", 1, true, "/workspaces/{workspaceId}/media/catalog/category-self-care/preview", List.of("CATEGORY"), 3170)
+        );
+    }
     public List<CatalogItem> catalog() {
         return java.util.stream.Stream.<java.util.stream.Stream<CatalogItem>>of(
             List.of(
@@ -447,7 +490,7 @@ public class MediaService {
             new CatalogItem("animal_cat_002", "AVATAR", "media.catalog.animal_cat_002", 1, true, "/workspaces/{workspaceId}/media/catalog/animal_cat_002/preview", List.of("ANIMAL","UNSPECIFIED","ANY"), 1270),
             new CatalogItem("robot_003", "AVATAR", "media.catalog.robot_003", 1, true, "/workspaces/{workspaceId}/media/catalog/robot_003/preview", List.of("ROBOT","UNSPECIFIED","ANY"), 1280),
             new CatalogItem("vehicle_car_002", "AVATAR", "media.catalog.vehicle_car_002", 1, true, "/workspaces/{workspaceId}/media/catalog/vehicle_car_002/preview", List.of("VEHICLE","UNSPECIFIED","ANY"), 1290)
-            ).stream(), extraAvatars().stream()).flatMap(java.util.function.Function.identity()).toList();
+            ).stream(), categoryIcons().stream(), extraAvatars().stream()).flatMap(java.util.function.Function.identity()).toList();
     }
     private List<CatalogItem> extraAvatars() {
         try {
@@ -487,18 +530,21 @@ public class MediaService {
     public byte[] catalogPreview(long workspaceId, String key) {
         requireWorkspace(workspaceId);
 
-        if (!(CATALOG.contains(key) || isPngCatalogKey(key))) {
+        if (!(CATALOG.contains(key) || CATEGORY_ICONS.containsKey(key) || isPngCatalogKey(key))) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
         String ext = isPngCatalogKey(key) ? ".png" : ".svg";
+        String approvedResource = CATEGORY_ICONS.get(key);
 
         try {
             var resolver =
                     new org.springframework.core.io.support.PathMatchingResourcePatternResolver();
 
             var resources = resolver.getResources(
-                    "classpath*:/media/catalog/**/" + key + ext
+                    approvedResource == null
+                            ? "classpath*:/media/catalog/**/" + key + ext
+                            : "classpath*:/media/catalog/" + approvedResource
             );
 
             if (resources.length != 1) {
