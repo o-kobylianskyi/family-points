@@ -82,6 +82,25 @@ public class WorkspaceDataResetPreviewController {
                     WHERE m.family_id=?
                     """, Long.class, workspaceId), false,
                 "Immutable reputation transaction history is protected"));
+        categories.put("MEMBER_GROUPS", new ResetCategory("MEMBER_GROUPS",
+                countFamily("member_groups", workspaceId), false,
+                "Memberships, nested groups, permissions and group balances require coordinated cleanup"));
+        categories.put("WORK_NODES", new ResetCategory("WORK_NODES",
+                countFamily("work_nodes", workspaceId), false,
+                "Task hierarchy and descendant references must be preserved until dependency plan approved"));
+        categories.put("TASK_SCHEDULE_SLOTS", new ResetCategory("TASK_SCHEDULE_SLOTS",
+                db.queryForObject("""
+                    SELECT count(*) FROM task_schedule_slots s
+                    JOIN task_definitions d ON d.id=s.task_definition_id
+                    WHERE d.family_id=?
+                    """, Long.class, workspaceId), false,
+                "Scheduled occurrences and task history depend on these slots"));
+        categories.put("MEDIA_ASSETS", new ResetCategory("MEDIA_ASSETS",
+                count("media_assets", workspaceId), false,
+                "Media blobs and bindings require coordinated removal; global catalog images unaffected"));
+        categories.put("MEDIA_BINDINGS", new ResetCategory("MEDIA_BINDINGS",
+                count("media_bindings", workspaceId), false,
+                "Member/group/task image references must be reconciled"));
         return new ResetPreview(workspaceId, false, false,
                 List.of("Global account and authentication", "Workspace identity and members",
                         "Other workspaces", "Global bundled template catalog",
@@ -96,7 +115,7 @@ public class WorkspaceDataResetPreviewController {
     }
 
     private long count(String trustedTable, Long workspaceId) {
-        // Invoked exclusively with three hardcoded internal table identifiers;
+        // Invoked exclusively with hardcoded internal table identifiers;
         // workspaceId remains a prepared-statement parameter.
         Long count = db.queryForObject(
                 "SELECT count(*) FROM " + trustedTable + " WHERE workspace_id=?",
