@@ -152,3 +152,6 @@ Expected JSON: new `versionCode`, `versionName` and SHA-256 matching the locally
 
 ## 2026-10-26 — Coordinated sprint assignment (RELEASE)
 **Source of truth:** `docs/coordination/CURRENT_PRIORITY_SPRINT.md`. **P0:** do not deploy current RED CI SHA. Record green commit when Backend duration bug fixed; select matched Backend+Web package, V39/V40 Flyway and catalog seed in release candidate. **P1:** quick staging/BETA smoke (login, 142 template catalog, private library, reward TIME 30min, currency, ledger), APK version/signing + manifest. Publish early BETA after minimal smoke, not full regression. No data reset without scoped approval.
+
+## Architecture dispatch 2026-10-26 (late)
+Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat priority assignment. **RELEASE owner:** P1: pin next all-green SHA, quick V39/V40 catalog/private template/30min/currency smoke; publish next early BETA, no DB reset.
