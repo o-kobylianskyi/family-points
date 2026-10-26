@@ -30,7 +30,7 @@ interface TemplateApi {
     ): TemplateImportPreviewDto
 
     @POST("workspaces/{workspaceId}/templates/imports")
-    suspend fun import(
+    suspend fun importSelected(
         @Header("Authorization") authorization: String,
         @Path("workspaceId") workspaceId: Long,
         @Body request: TemplateSelectionRequest
