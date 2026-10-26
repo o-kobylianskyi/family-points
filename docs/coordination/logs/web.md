@@ -523,3 +523,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web template editor input controls packet 5
 - Updated TemplateFieldsEditor to show dropdowns for Backend enums RewardKind STANDARD/TIME_BASED and RewardAcquisitionMode DIRECT/REQUEST/DIRECT_OR_REQUEST only. Existing unknown values remain plain text rather than being overwritten. Other free-form enums await exact Backend contract.
 - Numeric inputs protect nonnegative duration/price/usage limits/cooldown, integer duration/limit fields, reject nonfinite values. Unknown keys remain unchanged in JSON. Commit `faf9d32d`; BETA untouched. CI and manual DEV smoke pending.
+
+## 2026-10-26 — BKL templates Web packet 6: recurrence/availability enum controls
+- Added backend-aligned TaskRecurrenceType dropdown ONCE/DAILY/WEEKLY/MONTHLY/CUSTOM and RewardAvailabilityMode dropdown ALWAYS/ONE_TIME/RECURRING_WEEKLY to TemplateFieldsEditor, preserving unknown stored values in free-text fallback. Commit a6327c1.
+- A broader patch for recurrence day/time fields initially hit concurrent GitHub 409; it was deliberately NOT overwritten. Those fields, constraints, complex schedule editor, CI and actual DEV browser tests remain outstanding. BETA unchanged.
