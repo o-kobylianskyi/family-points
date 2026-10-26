@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
 import com.olehkobylianskyi.familypoints.android.ui.components.FpCard as Card
 import androidx.compose.material3.Checkbox
@@ -365,7 +366,7 @@ fun SettingsScreen(
                             "MANAGE_TEMPLATES" in currentUser.permissions ||
                             "MANAGE_TASKS" in currentUser.permissions ||
                             "MANAGE_REWARDS" in currentUser.permissions,
-                        repository = remember(currentUser.workspaceId) { repository.templates() },
+                        repository = remember(currentUser.workspaceId, repository) { repository.templates() },
                         onUnauthorized = onUnauthorized,
                         onClose = { showTemplateLibrary = false }
                     )
