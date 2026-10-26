@@ -10,6 +10,63 @@ const texts = {
   en: ['Template library','Global suggestions','My templates','Select templates individually. Import saves them to your private library, not as active tasks or rewards.','No global suggestions yet.','Preview import','Import selected','Clear selection','Already imported','To be imported','Save','Delete','No private templates yet.','Title','Definition (JSON)','Saved','Select a template to edit','Delete this template from the library?','Templates imported','No templates selected.','Only workspace administrators can manage templates.','Create active tasks and rewards separately later.'],
   ru: ['Библиотека шаблонов','Глобальные рекомендации','Мои шаблоны','Выбирайте шаблоны отдельно. Импорт добавляет их в библиотеку без создания активных задач и наград.','Пока нет глобальных рекомендаций.','Предпросмотр импорта','Импортировать выбранные','Очистить выбор','Уже импортированы','Будут добавлены','Сохранить','Удалить','Пока нет личных шаблонов.','Название','Определение (JSON)','Сохранено','Выберите шаблон для редактирования','Удалить шаблон из библиотеки?','Шаблоны импортированы','Шаблоны не выбраны.','Только администратор семьи может менять библиотеку.','Активные задачи и награды создаются отдельно.']
 }
+const requestErrors = {
+  uk: {
+    INVALID_DEFINITION: 'Визначення шаблону має бути коректним JSON-об’єктом (не більше 30 000 символів).',
+    NETWORK: 'Немає зв’язку із сервером. Перевірте підключення та повторіть спробу.',
+    400: 'Некоректні дані шаблону або вибору. Перевірте введені значення.',
+    401: 'Сеанс завершився. Увійдіть знову.',
+    403: 'Недостатньо прав для керування шаблонами цієї сім’ї.',
+    404: 'Шаблон або сім’ю не знайдено. Оновіть сторінку.',
+    409: 'Дані змінилися або шаблон уже імпортовано. Оновіть список і повторіть спробу.',
+    413: 'Розмір шаблону перевищує допустимий.',
+    422: 'Шаблон містить непідтримувані параметри або залежності.',
+    DEFAULT: 'Не вдалося виконати операцію із шаблонами. Повторіть спробу.'
+  },
+  ru: {
+    INVALID_DEFINITION: 'Определение шаблона должно быть корректным JSON-объектом (не более 30 000 символов).',
+    NETWORK: 'Нет связи с сервером. Проверьте подключение и повторите попытку.',
+    400: 'Некорректные данные шаблона или выбора. Проверьте значения.',
+    401: 'Сеанс завершён. Войдите снова.',
+    403: 'Недостаточно прав для управления шаблонами этой семьи.',
+    404: 'Шаблон или семья не найдены. Обновите страницу.',
+    409: 'Данные изменились или шаблон уже импортирован. Обновите список.',
+    413: 'Размер шаблона превышает допустимый.',
+    422: 'Шаблон содержит неподдерживаемые параметры или зависимости.',
+    DEFAULT: 'Не удалось выполнить операцию с шаблонами. Повторите попытку.'
+  },
+  de: {
+    INVALID_DEFINITION: 'Die Vorlage muss ein gültiges JSON-Objekt sein (maximal 30.000 Zeichen).',
+    NETWORK: 'Keine Verbindung zum Server. Bitte Verbindung prüfen und erneut versuchen.',
+    400: 'Ungültige Vorlagen- oder Auswahldaten. Bitte Eingaben prüfen.',
+    401: 'Die Sitzung ist abgelaufen. Bitte erneut anmelden.',
+    403: 'Keine Berechtigung, Vorlagen dieser Familie zu verwalten.',
+    404: 'Vorlage oder Familie nicht gefunden. Bitte Seite aktualisieren.',
+    409: 'Daten wurden geändert oder die Vorlage wurde bereits importiert. Bitte Liste aktualisieren.',
+    413: 'Die Vorlage ist zu groß.',
+    422: 'Die Vorlage enthält nicht unterstützte Einstellungen oder Abhängigkeiten.',
+    DEFAULT: 'Die Vorlagenaktion konnte nicht ausgeführt werden. Bitte erneut versuchen.'
+  },
+  en: {
+    INVALID_DEFINITION: 'Template definition must be a valid JSON object (maximum 30,000 characters).',
+    NETWORK: 'Cannot connect to the server. Check your connection and try again.',
+    400: 'Invalid template or selection data. Check the entered values.',
+    401: 'Session expired. Please sign in again.',
+    403: 'You do not have permission to manage templates in this family.',
+    404: 'Template or family not found. Refresh the page.',
+    409: 'Data changed or template was already imported. Refresh the list and retry.',
+    413: 'Template size exceeds the limit.',
+    422: 'Template contains unsupported settings or dependencies.',
+    DEFAULT: 'Template operation failed. Please try again.'
+  }
+}
+function localizedTemplateError(error, language) {
+  const messages = requestErrors[language] || requestErrors.en
+  if (error?.message === 'INVALID_DEFINITION') return messages.INVALID_DEFINITION
+  if (typeof error?.status === 'number') return messages[error.status] || messages.DEFAULT
+  if (error instanceof TypeError || error?.name === 'NetworkError') return messages.NETWORK
+  return messages.DEFAULT
+}
 const timeErrors = {
   uk: ['Вкажіть дату й час у форматі ISO-8601.', 'Час завершення має бути пізнішим за час початку.'],
   ru: ['Укажите дату и время в формате ISO-8601.', 'Время окончания должно быть позже начала.'],
@@ -45,7 +102,7 @@ export default function TemplatesPage() {
     if (!workspaceId) return () => { alive = false }
     Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
       .then(([a,b]) => { if (alive) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
-      .catch(e => { if (alive) setError(e.message) })
+      .catch(e => { if (alive) setError(e) })
     return () => { alive = false }
   }, [workspaceId, getAccessToken])
   const importedCodes = new Set(privateItems.map(item => item.catalogCode).filter(Boolean))
@@ -89,7 +146,7 @@ export default function TemplatesPage() {
   return <div className="templates-page">
     <h1>{l[0]}</h1>
     <p>{l[3]}</p>
-    {error && <div className="error-message" role="alert">{error}</div>}
+    {error && <div className="error-message" role="alert">{localizedTemplateError(error, lang)}</div>}
     {notice && <p role="status">{notice}</p>}
     <section className="settings-section">
       <h2>{l[1]}</h2>
@@ -134,7 +191,7 @@ export default function TemplatesPage() {
         </button>)}
       </div>
       {editing && <form onSubmit={e=>{e.preventDefault();execute(async()=>{
-        if (!validDefinition) throw new Error('Template definition must be a valid JSON object (max 30,000 characters)')
+        if (!validDefinition) throw new Error('INVALID_DEFINITION')
         await updatePrivateTemplate(getAccessToken(),workspaceId,editing.id,{title,definitionJson:definition,kind:editing.kind})
         await refresh();setNotice(l[15])
       })}}>
