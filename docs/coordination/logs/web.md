@@ -561,3 +561,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web template stabilization after JSX CI failure
 - GitHub Actions run 40386183381 Web/Vite job PASSED after fix commit 9d84265; Java/Android were still in progress at observation. Previous failure was missing JSX `}` in TemplatesPage.jsx.
 - Template catalog now shows an Already in library marker for entries with matching workspace-private catalogCode; displays remaining non-imported suggestion count; preview action disabled when selected codes contain no new entries. Import completion clears preview selection only for the original workspace. Source commit dad89cb. Backend unique workspace/catalog_code remains authoritative against duplicates. Current seed catalog empty, so full import E2E awaits content. BETA untouched.
+
+## 2026-10-26 — Web templates: localized errors and warnings
+- User reported nonlocalized error/warning text. Updated TemplatesPage to render localized UK/RU/DE/EN messages for invalid JSON, failed network request, HTTP 400/401/403/404/409/413/422, unexpected server errors. UI does not surface arbitrary backend English diagnostic details to family users. Validation errors are stored as errors and translated at render time; language switch updates displayed message. Source commit `f177934`.
+- Existing delete confirmation and reward availability messages already localized in all four languages. No changes to backend or BETA. New Vite CI and DEV browser smoke remain required; broader Web sections should be audited separately.
