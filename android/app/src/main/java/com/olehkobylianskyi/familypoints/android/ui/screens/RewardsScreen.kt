@@ -974,6 +974,7 @@ fun RewardsScreen(
                                         }
 
                                         TaskChecklist(
+                                            language = language,
                                             title = text.beforeConditions,
                                             tasks = current.tasks,
                                             selected = beforeTaskIds,
@@ -1693,6 +1694,7 @@ private fun CheckOption(
 
 @Composable
 private fun TaskChecklist(
+    language: AppLanguage,
     title: String,
     tasks: List<com.olehkobylianskyi.familypoints.android.data.TaskDefinitionResponse>,
     selected: Set<Long>,
@@ -1711,10 +1713,25 @@ private fun TaskChecklist(
         }
         if (tasks.size > 3) {
             TextButton(onClick = { expanded = !expanded }) {
-                Text(if (expanded) "Згорнути" else "Показати всі (" + tasks.size + ")")
+                Text(if (expanded) when (language) {
+                    AppLanguage.UK -> "Згорнути"
+                    AppLanguage.DE -> "Weniger anzeigen"
+                    AppLanguage.EN -> "Show less"
+                    AppLanguage.RU -> "Свернуть"
+                } else (when (language) {
+                    AppLanguage.UK -> "Показати всі"
+                    AppLanguage.DE -> "Alle anzeigen"
+                    AppLanguage.EN -> "Show all"
+                    AppLanguage.RU -> "Показать все"
+                }) + " (" + tasks.size + ")")
             }
             if (!expanded && selected.any { id -> tasks.drop(3).any { it.id == id } }) {
-                Text("Вибрані елементи є також у згорнутій частині",
+                Text(when (language) {
+                    AppLanguage.UK -> "Є вибрані елементи серед прихованих"
+                    AppLanguage.DE -> "Ausgewählte Einträge sind ausgeblendet"
+                    AppLanguage.EN -> "Some selected items are hidden"
+                    AppLanguage.RU -> "Среди скрытых есть выбранные элементы"
+                },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary)
             }
