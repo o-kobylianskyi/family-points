@@ -76,6 +76,21 @@ class WorkspacePrivateTemplatePostgresTest {
                 """, Long.class, a);
         assertEquals(30, controller.creationDraft(a, rewardTemplateId)
                 .path("request").path("defaultDurationMinutes").asInt());
+        // Overlapping pack selections must be reduced to unique catalog codes by
+        // the client; repeating an already-imported code alongside a new one is
+        // still idempotent server-side.
+        var overlap = new WorkspaceTemplateController.ImportRequest(
+                List.of("fp.task.hygiene.001", "fp.task.hygiene.002"));
+        controller.importSelected(a, overlap);
+        controller.importSelected(a, overlap);
+        assertEquals(3, jdbc.queryForObject("""
+                SELECT count(*) FROM workspace_private_templates
+                WHERE workspace_id=? AND catalog_code IS NOT NULL
+                """, Integer.class, a));
+        assertEquals(0, jdbc.queryForObject("""
+                SELECT count(*) FROM workspace_private_templates
+                WHERE workspace_id=? AND catalog_code IS NOT NULL
+                """, Integer.class, b));
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM task_definitions", Integer.class));
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM reward_definitions", Integer.class));
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM point_transactions", Integer.class));
