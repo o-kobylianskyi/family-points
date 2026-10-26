@@ -20,7 +20,8 @@ class WorkspaceTemplateControllerTest {
     private final RewardDefinitionRepository rewards = mock(RewardDefinitionRepository.class);
     private final WorkspaceTemplateController controller =
             new WorkspaceTemplateController(db, new TemplateCatalogService(),
-                    tasks, rewards);
+                    tasks, rewards,
+                    mock(TaskController.class), mock(RewardController.class));
 
     @Test void rejectsMalformedDefinitionWithoutWriting() {
         var invalid = new WorkspaceTemplateController.TemplateRequest("Test", "{bad", "TASK");
