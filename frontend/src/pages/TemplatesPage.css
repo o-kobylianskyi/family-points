@@ -63,3 +63,10 @@
   .templates-page .template-card-icon { flex-basis: 36px; width: 36px; height: 36px; }
   .templates-page .template-card-icon img { width: 28px; height: 28px; }
 }
+
+.templates-page .template-private-card {
+  width: 100%; text-align: start; font: inherit; color: inherit;
+}
+.templates-page .template-private-card:hover { border-color: var(--primary-color, #647fbd); }
+.templates-page .template-private-card:focus-visible { outline: 2px solid var(--primary-color, #647fbd); outline-offset: 2px; }
+.templates-page .template-private-card[aria-pressed="true"] { border-color: var(--primary-color, #647fbd); }
