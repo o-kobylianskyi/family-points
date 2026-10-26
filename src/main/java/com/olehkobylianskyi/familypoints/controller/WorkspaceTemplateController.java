@@ -192,6 +192,52 @@ public class WorkspaceTemplateController {
 
 
     /**
+     * Materialize a safe creation-form draft. Tenant-specific identifiers are
+     * never inherited from templates; the UI must resolve currency and actors.
+     * No writes are performed.
+     */
+    @GetMapping("/{templateId}/creation-draft")
+    public ObjectNode creationDraft(@PathVariable Long workspaceId, @PathVariable Long templateId) {
+        InstantiateDraft template = instantiatePreview(workspaceId, templateId);
+        if (!List.of("TASK", "REWARD").contains(template.kind()))
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "This template kind cannot create an active definition yet");
+        JsonNode source = template.definition();
+        ObjectNode output = json.createObjectNode();
+        output.put("templateId", templateId);
+        output.put("kind", template.kind());
+        ObjectNode form = output.putObject("request");
+        form.put("title", template.title());
+        copyIfPresent(source,form,"description");
+        if ("TASK".equals(template.kind())) {
+            for (String field : List.of("mandatory","recurrenceType","recurrenceDayOfWeek",
+                    "recurrenceDayOfMonth","dueTime","rewardAmount","penaltyAmount",
+                    "rewardReputationAmount","penaltyReputationAmount"))
+                copyIfPresent(source,form,field);
+            // A task must be explicitly assigned/scheduled in the new family.
+            form.putNull("assignedMemberId");
+            form.putNull("startDate");
+            form.putNull("rewardPointTypeId");
+            form.putNull("penaltyPointTypeId");
+            form.put("assignmentPolicy","SINGLE_MEMBER");
+        } else {
+            for (String field : List.of("priceAmount","rewardKind","defaultDurationMinutes",
+                    "acquisitionMode","requiresApproval","minimumReputation","cooldownSeconds",
+                    "memberTotalLimit","memberDailyLimit","memberWeeklyLimit",
+                    "workspaceTotalLimit","workspaceDailyLimit","workspaceWeeklyLimit",
+                    "extraRequestAllowed"))
+                copyIfPresent(source,form,field);
+            form.putNull("pointTypeId");
+        }
+        output.put("requiresConfirmation",true);
+        return output;
+    }
+
+    private static void copyIfPresent(JsonNode source, ObjectNode target, String key) {
+        if (source.hasNonNull(key)) target.set(key, source.get(key).deepCopy());
+    }
+
+    /**
      * Separate explicit activation confirmation. Reuses the established creation
      * controllers (and their service validators) rather than writing SQL into
      * task/reward tables. Caller supplies the final, editable creation request.
