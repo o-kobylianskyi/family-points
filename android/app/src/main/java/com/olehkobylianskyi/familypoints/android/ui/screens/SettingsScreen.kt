@@ -350,8 +350,12 @@ fun SettingsScreen(
     }
     if (online && showTemplateLibrary) {
         Dialog(
-            onDismissRequest = { showTemplateLibrary = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
+            onDismissRequest = {},
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false
+            )
         ) {
             Surface(
                 modifier = Modifier.fillMaxWidth(0.96f).fillMaxHeight(0.92f),
