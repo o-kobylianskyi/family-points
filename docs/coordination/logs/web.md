@@ -624,3 +624,7 @@ Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat pri
 
 ## 2026-10-26 — User reprioritization: reset BEFORE next BETA, economy v0.7 IN DEVELOPMENT
 Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous parked status of BKL-002. **WEB:** P0 selective reset preview/checklist/confirmation and first-run 142/6 template import; economy v0.7 configurable suggestion display, null != 0. Planning/assignment only: no data deletion authorized.
+
+## 2026-10-26 — Web TPL QA static audit, A→B→A race mitigation
+- Reviewed TPL-01..15 handoff and latest full green CI 40401118395. Static code audit found rare A→B→A workspace-switch race: old async private-library refresh and creation-draft response previously checked only workspace id, allowing stale A data if user switches A→B→A during same request. Added request-generation guards on refresh, draft fetch and import preview (`6dd26a4`).
+- Browser DEV execution of TPL test cases is NOT VERIFIED; tests for actual Backend request/response, activation, ledger and cross-tenant access belong QA/Backend. No BETA deployment or active data writes.
