@@ -48,6 +48,9 @@ class PointsRepository(
 
     fun quarantinedLegacyCount(): Int = queue.legacyUnassignedCount()
 
+    fun holdOfflineOperationsAfterReset(workspaceId: Long) = queue.holdForReset(workspaceId)
+    fun isOfflineReplayHeld(workspaceId: Long): Boolean = queue.isHeldForReset(workspaceId)
+
     fun pending(workspaceId: Long, viewerId: Long, accountId: Long?): List<OfflinePointsQueueStore.Pending> =
         if (accountId != null && accountId > 0) queue.pending(workspaceId, viewerId, accountId) else emptyList()
 
@@ -55,9 +58,11 @@ class PointsRepository(
         workspaceId: Long, viewerId: Long, accountId: Long?, memberId: Long,
         pointType: PointTypeResponse,
         operation: String, amount: Int, description: String?
-    ): OfflinePointsQueueStore.Pending =
-        queue.enqueue(workspaceId, viewerId, requireNotNull(accountId?.takeIf { it > 0 }) { "Offline queue requires verified account identity; sign in online" }, memberId, pointType.id,
+    ): OfflinePointsQueueStore.Pending {
+        check(!queue.isHeldForReset(workspaceId)) { "Reset reconciliation required before offline operations" }
+        return queue.enqueue(workspaceId, viewerId, requireNotNull(accountId?.takeIf { it > 0 }) { "Offline queue requires verified account identity; sign in online" }, memberId, pointType.id,
             pointType.code, pointType.name, operation, amount, description)
+    }
 
     /**
      * Requires online authentication; the server rechecks MANAGE_POINTS
@@ -66,6 +71,7 @@ class PointsRepository(
     suspend fun synchronizePending(workspaceId: Long, viewerId: Long, accountId: Long?): Int {
         replayMutex.lock()
         try {
+            if (queue.isHeldForReset(workspaceId)) return 0
             if (ServerReachability.status.value != ServerStatus.ONLINE) return 0
             val owner = accountId?.takeIf { it > 0 } ?: return 0
             val auth = authorization()
