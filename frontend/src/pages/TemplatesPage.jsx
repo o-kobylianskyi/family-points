@@ -123,7 +123,7 @@ export default function TemplatesPage() {
     actionLock.current = true
     const originWorkspace = workspaceId
     setBusy(true); setError(''); setNotice('')
-    try { await action() } catch(e) { if (workspaceRef.current === originWorkspace) setError(e.message) } finally {
+    try { await action() } catch(e) { if (workspaceRef.current === originWorkspace) setError(e) } finally {
       actionLock.current = false
       if (workspaceRef.current === originWorkspace) setBusy(false)
     }
