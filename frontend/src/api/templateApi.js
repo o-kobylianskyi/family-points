@@ -1,6 +1,7 @@
 import { apiRequest } from './client'
 
 async function read(response) {
+  response = await response
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
     const error = new Error(body.message || body.detail || `Template API: HTTP ${response.status}`)
