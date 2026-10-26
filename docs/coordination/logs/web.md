@@ -515,3 +515,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 - Added TemplateFieldsEditor.jsx: structured controls for existing TASK/REWARD definition properties (description, recurrence/due time, monetary/reputation amounts, reward kind/limits/approval/duration); only edits keys already present in server-provided JSON, leaving unknown fields untouched. Absent values are NOT invented or converted to new backend schema.
 - Integrated in TemplatesPage private library form; advanced raw JSON retained as expandable fallback. Editing does not create active tasks/rewards. Source commits `83daa7e`, `3234f96`. No EVENT editor until real model, no pack seed. QA should verify edits to existing saved task/reward, reload preservation, invalid payload, unknown fields and cross-workspace isolation.
 - Structured labels currently supplied for uk/en; ru/de fall back to English pending localization completion. CI and browser DEV verification required before claiming pass. BETA untouched.
+
+## 2026-10-26 — Web templates package 4 localization completion
+- Added RU and DE strings for every currently displayed structured TASK/REWARD property in `TemplateFieldsEditor.jsx`; existing UK/EN retained. Source commit `49f8327` on main. This only affects field labels; no template payload transformations or writes to BETA.
+- Current Backend private template contract persists JSON definitions and global catalog remains initially empty; manual DEV editor/reload checks and exact CI confirmation still needed. No claim of passed E2E.
