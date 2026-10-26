@@ -61,3 +61,6 @@ Once Architecture + Backend confirm the final **template database schema, import
 - Designer: prepare a reviewable effort/difficulty scale (e.g. EASY / MEDIUM / HARD, pending Architecture approval), example comparisons and age-appropriate, non-stereotyped suggested ratings for TASK seed content.
 - Backend/Architecture: approve actual template fields/rules, versioning and validation before accepting economy defaults. Do not treat difficulty as a hard age restriction; administrators can override recommendations.
 - No automatic retroactive changes to existing tasks, balances, ledgers or rewards. Current economy v0.1 is a draft, **not an approved time-to-points formula**.
+
+## 2026-10-26 — Architecture late dispatch to Designer
+Read `docs/coordination/DISPATCH_20261026_LATE.md`. P1: audit all 142 templates, six starter packs, 65 unassigned pack items, and trace each optional price/bonus recommendation in economy v0.6. Keep difficulty separate from time, nullable amounts distinct from zero, and 12 ECO decisions awaiting Architecture approval. No new seed pricing or DB writes automatically.
