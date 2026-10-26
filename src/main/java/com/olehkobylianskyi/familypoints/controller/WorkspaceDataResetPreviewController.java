@@ -52,7 +52,11 @@ public class WorkspaceDataResetPreviewController {
                 countFamily("reward_definitions", workspaceId), false,
                 "Purchases, requests, time sessions and point ledger dependencies not yet resolved"));
         categories.put("TASK_EXECUTIONS", new ResetCategory("TASK_EXECUTIONS",
-                countFamily("task_instances", workspaceId), false,
+                db.queryForObject("""
+                    SELECT count(*) FROM task_instances i
+                    JOIN family_members m ON m.id=i.member_id
+                    WHERE m.family_id=?
+                    """, Long.class, workspaceId), false,
                 "Task audit, participants and rewards must be accounted for"));
         categories.put("REWARD_REQUESTS", new ResetCategory("REWARD_REQUESTS",
                 countFamily("reward_requests", workspaceId), false,
