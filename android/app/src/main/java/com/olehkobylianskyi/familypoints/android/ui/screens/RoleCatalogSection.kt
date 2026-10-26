@@ -121,18 +121,25 @@ fun RoleCatalogSection(
             }
         }
         val without = roles.filter { it.roleSetId == null }
+        var withoutExpanded by remember(workspaceId) { mutableStateOf(false) }
         if (without.isNotEmpty() || canManage) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(10.dp)) {
                     Text(rt(language, "Без набору", "Ohne Set", "Without set", "Без набора"),
                         style = MaterialTheme.typography.titleMedium)
-                    without.forEach { role ->
+                    (if (withoutExpanded) without else without.take(3)).forEach { role ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(role.name, modifier = Modifier.weight(1f))
                             if (canManage && !role.systemDefault) TextButton(onClick = { openRole(role, null) }) {
                                 Text(rt(language, "Змінити", "Ändern", "Edit", "Изменить"))
                             }
                         }
+                    }
+                    if (without.size > 3) TextButton(onClick = { withoutExpanded = !withoutExpanded }) {
+                        Text(if (withoutExpanded)
+                            rt(language, "Згорнути", "Weniger anzeigen", "Show less", "Свернуть")
+                            else rt(language, "Показати всі", "Alle anzeigen", "Show all", "Показать все") +
+                                " (" + without.size + ")")
                     }
                     if (canManage) TextButton(onClick = { openRole(null, null) }) {
                         Text(rt(language, "+ Роль", "+ Rolle", "+ Role", "+ Роль"))
