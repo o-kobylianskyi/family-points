@@ -548,3 +548,8 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 
 ## 2026-10-26 — Current BETA architecture dispatch
 Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **ANDROID:** P1 verify template dialog/one-new-vs-duplicate-only import; reset-aware offline state, emulator verification. Economy v0.7 preliminarily accepted for DEV; reset BKL-002 mandatory before next BETA, not an authorization to erase any family.
+
+## 2026-10-26 — DEV Android task creation from private templates and editor localization
+- User screenshots demonstrate missing `New task -> select template` and untranslated template editor recurrence enum values. Added `CreateTaskRepository.taskTemplates(workspaceId)` reading scoped private library TASK-only (2aa2cf0). Added CreateTaskScreen native private template chooser, selecting one pre-fills title/description/mandatory/recurrence/dueTime and explicitly present reward/penalty amounts, but does not copy actor IDs/currency IDs, instances or history, does not auto-submit, and warns to review assignees/currency/date/points (4d80ba4). Existing explicit task creation validation remains authoritative. Template lookup failure must not block creating a task manually.
+- Localized recurrence (`NONE`, `ONCE`, `DAILY`, `WEEKLY`, `MONTHLY`) and reward kind (`STANDARD`, `TIME`, `ITEM`) picker display texts in four languages while retaining API codes (fe3919b).
+- **Latest Gradle/CI unverified**. Need build `:app:assembleDebug :app:testDebugUnitTest`, emulator QA task template chooser after importing a TASK, choose another workspace, modify title and recurrence, check safe create only after explicit tap. Potential special case: source recurrence `NONE` maps to ONCE in creation UI. No BETA release or Huawei change.
