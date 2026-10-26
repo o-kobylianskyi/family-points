@@ -1,0 +1,39 @@
+/* Template catalog: independent from legacy global form and grid styles. */
+.templates-page .template-toolbar {
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 18px 0 12px;
+}
+.templates-page .template-toolbar label {
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+  flex: 1 1 240px; min-width: 0; font-weight: 500;
+}
+.templates-page .template-toolbar input,
+.templates-page .template-toolbar select {
+  min-height: 40px; width: 100%; max-width: 100%;
+}
+.templates-page .template-selection-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 10px 0 14px;
+}
+.templates-page .template-selection-toolbar > span { margin-right: auto; }
+.templates-page .template-grid {
+  display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,285px),1fr));
+  align-items: stretch; gap: 10px; margin: 12px 0;
+}
+.templates-page .template-card {
+  display: flex; align-items: flex-start; gap: 12px;
+  margin: 0; padding: 13px; min-width: 0; border-radius: 10px;
+  border: 1px solid var(--border-color, rgba(140,160,180,.28));
+  background: var(--card-background, rgba(120,145,165,.07));
+  cursor: pointer; font-weight: normal; overflow-wrap: anywhere;
+}
+.templates-page .template-card:has(input:disabled) { opacity: .65; cursor: default; }
+.templates-page .template-card input[type="checkbox"] {
+  flex: 0 0 17px; width: 17px; height: 17px; margin: 3px 0 0;
+}
+.templates-page .template-card-body { display:flex; flex-direction:column; gap:5px; min-width:0; }
+.templates-page .template-card-body strong { line-height:1.35; font-weight: 600; }
+.templates-page .template-card-body small { font-size: .78rem; font-weight: 400; opacity: .78; }
+.templates-page .template-more { display:block; margin: 12px auto 6px; }
+@media(max-width:640px) {
+  .templates-page .template-grid { grid-template-columns: minmax(0,1fr); }
+  .templates-page .template-selection-toolbar > span { flex: 0 0 100%; }
+}
