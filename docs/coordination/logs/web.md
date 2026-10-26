@@ -683,3 +683,8 @@ Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **WEB:** P0 selectiv
 ## 2026-10-26 — WEB-DESIGN-04 partial consumer integration
 - Added read-only EntityMedia for managed TASK card binding, respecting stored user-selected image, workspace-scoped authorized media fetch and fallback. Source e524f3c. Did NOT attach speculative REWARD media target: Backend target/slot contract needs verification. Private template cards were updated earlier at c406321/fe2510a.
 - No writes to bindings/family data/BETA/production. Exact CI and real DEV browser smoke still pending. QA: A/B workspace isolation, existing custom task image, no-image fallback, 401/403 preview, responsive lists.
+
+## 2026-10-26 — WEB-RESET-01 safe readiness shell
+- Checked Backend and Architecture logs plus WEB_RESET_CONTRACT_READINESS: no verified Backend reset preview/execute/challenge contract is published. Destructive operations remain blocked.
+- Added four-language informational FamilyResetReadiness panel for workspace managers/admins in Settings. It explains authorization, dry-run, reauthentication, retained identities/other families and disabled reset status. No operation buttons or invented API calls. Commits 01e5c36 and 37be604.
+- Browser UX and exact-head CI NOT VERIFIED. No reset, migration, BETA or production actions. Next: Backend publishes verified DTO/endpoints; then build an interactive preview/category/dependency/confirmation flow and QA on disposable DEV family only.
