@@ -19,6 +19,8 @@ const fields = {
 const enumValues = {
   rewardKind: ['STANDARD', 'TIME_BASED'],
   acquisitionMode: ['DIRECT', 'REQUEST', 'DIRECT_OR_REQUEST'],
+  recurrenceType: ['ONCE', 'DAILY', 'WEEKLY', 'MONTHLY', 'CUSTOM'],
+  availabilityMode: ['ALWAYS', 'ONE_TIME', 'RECURRING_WEEKLY'],
 }
 const nonNegative = new Set([
   'priceAmount', 'durationMinutes', 'cooldownSeconds', 'minimumReputation',
