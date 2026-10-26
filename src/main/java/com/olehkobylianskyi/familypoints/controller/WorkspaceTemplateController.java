@@ -228,6 +228,8 @@ public class WorkspaceTemplateController {
                     "workspaceTotalLimit","workspaceDailyLimit","workspaceWeeklyLimit",
                     "extraRequestAllowed"))
                 copyIfPresent(source,form,field);
+            if (!form.hasNonNull("defaultDurationMinutes") && source.hasNonNull("durationMinutes"))
+                form.set("defaultDurationMinutes", source.get("durationMinutes").deepCopy());
             resolveCurrency(workspaceId, source, form, "currencyCode", "pointTypeId");
         }
         output.put("requiresConfirmation",true);
