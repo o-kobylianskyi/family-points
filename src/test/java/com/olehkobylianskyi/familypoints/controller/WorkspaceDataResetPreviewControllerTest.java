@@ -91,4 +91,22 @@ class WorkspaceDataResetPreviewControllerTest {
         verify(db).query(contains("FROM pg_catalog.pg_constraint"),
                 any(org.springframework.jdbc.core.RowMapper.class));
     }
+
+    @Test void resetPlanRejectsInvalidCategoriesAndNeverAllowsExecution() {
+        JdbcTemplate db=mock(JdbcTemplate.class);
+        when(db.queryForObject(contains("FROM families"),eq(Integer.class),eq(7L))).thenReturn(1);
+        var controller=new WorkspaceDataResetPreviewController(db);
+        assertThrows(ResponseStatusException.class,()->controller.plan(7L,
+                new WorkspaceDataResetPreviewController.ResetPlanRequest(java.util.Set.of("BOGUS"))));
+        var plan=controller.plan(7L,
+                new WorkspaceDataResetPreviewController.ResetPlanRequest(
+                        java.util.Set.of("TASK_DEFINITIONS","MEDIA_ASSETS")));
+        assertFalse(plan.executable());
+        assertTrue(plan.blockers().stream().anyMatch(x->x.contains("TASK_EXECUTIONS")));
+        assertTrue(plan.blockers().stream().anyMatch(x->x.contains("MEDIA_BINDINGS")));
+        assertTrue(plan.preserved().contains("Other workspaces"));
+        assertFalse(controller.plan(7L,
+                new WorkspaceDataResetPreviewController.ResetPlanRequest(java.util.Set.of())).executable());
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
 }
