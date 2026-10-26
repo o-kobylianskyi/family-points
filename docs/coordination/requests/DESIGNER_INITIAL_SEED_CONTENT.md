@@ -52,3 +52,6 @@ Once Architecture + Backend confirm the final **template database schema, import
 - Separate `TASK` (completion), `EVENT` (calendar occurrence) and `REWARD` (benefit); do not make adult events require points or child approval.
 - Labels/description uk/de/en/ru, recommended target `ADULT`/`FAMILY`/`ANY` metadata for UX filters only; individual checkboxes/selective import to family template library; no automatic scheduling or creating records.
 - Designer may draft EVENT/ROUTINE content inventory while schema is pending; **do not add unsupported kinds to catalog-v1.json** until Backend updates validation and public DTO contract.
+
+## 2026-10-26 — Coordinated sprint assignment (DESIGNER)
+**Source of truth:** `docs/coordination/CURRENT_PRIORITY_SPRINT.md`. **P0 CONTENT:** 142 curated seeds (110 TASK/32 REWARD, six packs) exist; audit TIME rewards for explicit durationMinutes (30min example), price/currency, nested definition and meaningful category; ensure four-language titles/descriptions and imagery. **P1:** review 65 records outside starter packs (may be intentional), age appropriateness, non-stereotypical family setups, suggested costs and durations. Provide corrected versioned catalog with stable codes; no DB inserts, no frontend coding. Dependencies: Backend agreed import contract.

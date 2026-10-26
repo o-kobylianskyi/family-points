@@ -43,3 +43,6 @@
 ## Status rules
 - [ ] PLANNED -> [ ] IN_PROGRESS -> [ ] IMPLEMENTED -> [ ] CI_PASS -> [ ] DEVICE/WEB_QA -> [x] RELEASED only with linked commit/run and deployed version.
 - Track journals contain owner-specific work; this file is cross-track source of truth. Never check off implementation based on planning commit.
+
+## 2026-10-26 — Coordinated sprint assignment (ARCHITECTURE)
+**Source of truth:** `docs/coordination/CURRENT_PRIORITY_SPRINT.md`. Coordinate single critical path Backend CI fix -> QA targeted template regression -> Web/Android DEV smoke -> Release pinned BETA update. BKL-007 regression parallel. Future BKL-002 reset, BKL-003/005 historical edits, BKL-008 timers, BKL-009 app launch, BKL-010 enforcement, BKL-011 adult schedule deferred. Implementation percentage based on Backend/Web/Android only; QA/Release separate. Log statuses only with SHA and evidence.

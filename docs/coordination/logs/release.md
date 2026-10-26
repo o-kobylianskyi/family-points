@@ -149,3 +149,6 @@ Expected JSON: new `versionCode`, `versionName` and SHA-256 matching the locally
 
 ## 2026-10-25 — Architecture task allocation: planned backlog and BETA release boundary
 **Shared checklist:** `docs/coordination/PRODUCT_BACKLOG_EXECUTION_CHECKLIST.md`. Continue publishing functioning early BETA updates; BKL-007 (reported missing standard currencies) may be prioritized as stabilization after source triage. BKL-001/002/003/004/005/006/008/009 are planned future features, not blockers for current BETA. After implementation, release per green exact SHA and compatible Backend/Web/signed APK, smoke money/tenant boundaries; destructive reset only after fresh explicit scoped user approval. No host/database/APK changes made by allocation.
+
+## 2026-10-26 — Coordinated sprint assignment (RELEASE)
+**Source of truth:** `docs/coordination/CURRENT_PRIORITY_SPRINT.md`. **P0:** do not deploy current RED CI SHA. Record green commit when Backend duration bug fixed; select matched Backend+Web package, V39/V40 Flyway and catalog seed in release candidate. **P1:** quick staging/BETA smoke (login, 142 template catalog, private library, reward TIME 30min, currency, ledger), APK version/signing + manifest. Publish early BETA after minimal smoke, not full regression. No data reset without scoped approval.

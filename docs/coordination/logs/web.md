@@ -570,3 +570,6 @@ Show only relevant fields but never silently discard persisted data; apply categ
 - CI 40386872661 passed after template errors i18n. Audit exposed regression: TemplatesPage catch used `setError(e.message)`, discarding HTTP status needed by localizedTemplateError. Fixed to store original error object (`6bb9bf1`).
 - SettingsPage workspace/account management and own password errors used raw server messages. Added four-language UI error mapping (UK/RU/DE/EN) for 400/401/403/404/409/422, network failures, generic fallback, retaining already-localized client-side validation. Source `d6c84bd`.
 - No Backend/BETA changes; browser DEV language switching + new CI still require confirmation. Further pages/components require separate audit.
+
+## 2026-10-26 — Coordinated sprint assignment (WEB)
+**Source of truth:** `docs/coordination/CURRENT_PRIORITY_SPRINT.md`. **P0:** stay green, regression-check designer TIME duration into editable reward creation form on DEV after Backend fix; cover selected import, no duplicate, tenant switch, API errors localized four languages. **P1:** batch real browser QA across task/reward template library, packs, draft edit/activate and settings error locale. Fix confirmed defects as one coherent package. Don't start BKL-008/009 now.
