@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '../context/AuthContext'
 import MemberAvatar from '../components/MemberAvatar'
+import EntityMedia from '../components/EntityMedia'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 import {
   claimTask,
@@ -982,7 +983,7 @@ function TasksPage() {
         {managedTasks.length === 0 ? <div className="empty-state compact">{t('tasks.management.empty')}</div> : (
           <div className="task-list">{hierarchyRows(managedTasks, (task) => task).map(({ item: task, depth }) => (
             <article className="task-card" key={`managed-${task.id}`} style={{ marginLeft: `${Math.min(depth, 6) * 28}px` }}>
-              <div className="task-card-main"><div className="task-title-row"><h3>№{task.id} · {task.title}</h3></div>
+              <div className="task-card-main"><div className="task-title-row"><EntityMedia type="TASK" targetId={task.id} canEdit={false} compact><span aria-hidden="true">✓</span></EntityMedia><h3>№{task.id} · {task.title}</h3></div>
                 {task.description && <p className="task-description">{task.description}</p>}
                 <div className="task-participant-summary">
                   {['ADMIN','OBSERVER','EXECUTOR'].map((role) => {
