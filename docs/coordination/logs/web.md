@@ -544,3 +544,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 - Audited frontend template API adapter against WorkspaceTemplateController paths, confirmed GET catalog/private list, POST preview/import, PUT/DELETE templates route signatures. Current global catalog remains empty; cannot claim catalog import E2E in DEV yet.
 - Fixed lingering double escape of decimal separator in timestamp fractional-seconds regex and stale cross-workspace private library refresh after async GET. Source commit `aa05f9d`. No user test data edits, no BETA changes.
 - CI independent status pending; requires browser smoke (switch families, edit/save/reload, preview/import once seed is populated). Known gap: no automated Web E2E suite for these scenarios.
+
+## 2026-10-26 — Web UI screenshot: templates link overlaps Settings heading
+- User screenshot shows `Settings > Бібліотека шаблонів` title overlapped by `Відкрити шаблони` link in dark theme. Fixed dedicated flex-column section and block-like inline-flex link with 16px separation and normal position. Source commits `edc98a8`, `aa4f24e`; no Backend/BETA data changes.
+- Browser confirmation requested after pulling main/reloading. CI not yet independently confirmed.
