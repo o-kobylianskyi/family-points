@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import './TemplatesPage.css'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import TemplateFieldsEditor from '../components/TemplateFieldsEditor'
@@ -87,6 +88,8 @@ export default function TemplatesPage() {
   const [privateItems, setPrivateItems] = useState([])
   const [selected, setSelected] = useState([])
   const [packFilter, setPackFilter] = useState('ALL')
+  const [templateSearch, setTemplateSearch] = useState('')
+  const [showAllTemplates, setShowAllTemplates] = useState(false)
   const [preview, setPreview] = useState(null)
   const [previewSelection, setPreviewSelection] = useState(null)
   const [editing, setEditing] = useState(null)
@@ -111,7 +114,7 @@ export default function TemplatesPage() {
     const generation = requestGeneration.current
     setBusy(false)
     editingRef.current = null
-    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setError(''); setNotice('')
+    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setTemplateSearch(''); setShowAllTemplates(false); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setError(''); setNotice('')
     if (!workspaceId) return () => { alive = false }
     Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
       .then(([a,b]) => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
@@ -122,6 +125,12 @@ export default function TemplatesPage() {
   const packItems = packFilter === 'ALL'
     ? (catalog.templates || [])
     : (catalog.templates || []).filter(item => (catalog.packs || []).find(pack => pack.code === packFilter)?.templateCodes?.includes(item.code))
+  const matchingItems = packItems.filter(item => {
+    const haystack = [item.title?.[lang], item.title?.en, item.code, item.description?.[lang]].filter(Boolean).join(' ').toLocaleLowerCase()
+    return haystack.includes(templateSearch.trim().toLocaleLowerCase())
+  })
+  const displayedItems = showAllTemplates ? matchingItems : matchingItems.slice(0, 8)
+  const kindLabel = kind => ({TASK:{uk:'Завдання',ru:'Задача',de:'Aufgabe',en:'Task'},REWARD:{uk:'Нагорода',ru:'Награда',de:'Belohnung',en:'Reward'}}[kind]?.[lang] || kind)
   const visibleNewCount = packItems.filter(item => !importedCodes.has(item.code)).length
   const selectedNewCodes = selected.filter(code => !importedCodes.has(code))
   const visibleSelectedCount = packItems.filter(item => selected.includes(item.code) && !importedCodes.has(item.code)).length
@@ -202,23 +211,35 @@ export default function TemplatesPage() {
     <section className="settings-section">
       <h2>{l[1]}</h2>
       {!(catalog.templates || []).length && <p>{l[4]}</p>}
-      {(catalog.packs || []).length > 0 && <label style={{display:'flex', gap:12, alignItems:'center', margin:'12px 0'}}>
-        <span>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}</span>
-        <select value={packFilter} onChange={e => setPackFilter(e.target.value)} disabled={busy}>
-          <option value="ALL">{({uk:'Усі шаблони',ru:'Все шаблоны',de:'Alle Vorlagen',en:'All templates'})[lang] || 'All templates'}</option>
-          {(catalog.packs || []).map(pack => <option key={pack.code} value={pack.code}>{pack.title?.[lang] || pack.title?.en || pack.code}</option>)}
-        </select>
-      </label>}
-      {packItems.length > 0 && <div className="modal-actions">
-        <button type="button" className="secondary-button" disabled={busy} onClick={() => selectVisible(true)}>{({uk:'Вибрати показані',ru:'Выбрать показанные',de:'Sichtbare auswählen',en:'Select visible'})[lang] || 'Select visible'}</button>
-        <button type="button" className="secondary-button" disabled={busy} onClick={() => selectVisible(false)}>{({uk:'Зняти вибір показаних',ru:'Снять выбор показанных',de:'Sichtbare abwählen',en:'Deselect visible'})[lang] || 'Deselect visible'}</button>
-      </div>}
+      <div className="template-toolbar">
+        <label>
+          <span>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}</span>
+          <select value={packFilter} onChange={e => {setPackFilter(e.target.value);setShowAllTemplates(false)}} disabled={busy}>
+            <option value="ALL">{({uk:'Усі шаблони',ru:'Все шаблоны',de:'Alle Vorlagen',en:'All templates'})[lang] || 'All templates'}</option>
+            {(catalog.packs || []).map(pack => <option key={pack.code} value={pack.code}>{pack.title?.[lang] || pack.title?.en || pack.code}</option>)}
+          </select>
+        </label>
+        <label>
+          <span>{({uk:'Пошук',ru:'Поиск',de:'Suche',en:'Search'})[lang] || 'Search'}</span>
+          <input type="search" value={templateSearch} onChange={e=>{setTemplateSearch(e.target.value);setShowAllTemplates(false)}} placeholder={({uk:'Назва шаблону…',ru:'Название шаблона…',de:'Vorlagenname…',en:'Template name…'})[lang] || 'Template name…'}/>
+        </label>
+      </div>
+      <div className="template-selection-toolbar">
+        <span>{({uk:'Знайдено',ru:'Найдено',de:'Gefunden',en:'Found'})[lang] || 'Found'}: {matchingItems.length}</span>
+        <button type="button" className="secondary-button" disabled={busy || !matchingItems.length} onClick={() => {selectionRevision.current += 1; const codes=matchingItems.filter(item=>!importedCodes.has(item.code)).map(item=>item.code);setSelected(prev=>[...new Set([...prev,...codes])]);setPreview(null);setPreviewSelection(null)}}>{({uk:'Вибрати знайдені',ru:'Выбрать найденные',de:'Gefundene auswählen',en:'Select matching'})[lang] || 'Select matching'}</button>
+        <button type="button" className="secondary-button" disabled={busy || !matchingItems.length} onClick={() => {selectionRevision.current += 1;const codes=new Set(matchingItems.map(item=>item.code));setSelected(prev=>prev.filter(code=>!codes.has(code)));setPreview(null);setPreviewSelection(null)}}>{({uk:'Зняти вибір',ru:'Снять выбор',de:'Auswahl aufheben',en:'Deselect matching'})[lang] || 'Deselect matching'}</button>
+      </div>
       <div className="template-grid">
-        {packItems.map(item => <label key={item.code} className="template-card">
+        {displayedItems.map(item => <label key={item.code} className="template-card">
           <input type="checkbox" checked={selected.includes(item.code) || importedCodes.has(item.code)} onChange={()=>toggle(item.code)} disabled={busy || importedCodes.has(item.code)}/>
-          <span><strong>{item.title?.[i18n.language.split('-')[0]] || item.title?.en || item.code}</strong> <small>{item.kind}</small>{item.kind === 'REWARD' && Number.isFinite(Number(item.definition?.durationMinutes)) && Number(item.definition?.durationMinutes) > 0 && <small style={{display:'block', opacity:.85}}>{({uk:'Тривалість',ru:'Продолжительность',de:'Dauer',en:'Duration'})[lang] || 'Duration'}: {item.definition.durationMinutes} {({uk:'хв',ru:'мин',de:'Min.',en:'min'})[lang] || 'min'}</small>}{importedCodes.has(item.code) && <small style={{display:'block', opacity:.8}}>{({uk:'Уже в бібліотеці',ru:'Уже в библиотеке',de:'Bereits in der Bibliothek',en:'Already in library'})[lang] || 'Already in library'}</small>}</span>
+          <span className="template-card-body"><strong>{item.title?.[lang] || item.title?.en || item.code}</strong>
+            <small>{kindLabel(item.kind)}{item.kind === 'REWARD' && Number(item.definition?.durationMinutes)>0 ? ` · ${item.definition.durationMinutes} ${({uk:'хв',ru:'мин',de:'Min.',en:'min'})[lang] || 'min'}` : ''}</small>
+            {importedCodes.has(item.code) && <small>{({uk:'Уже в бібліотеці',ru:'Уже в библиотеке',de:'Bereits in der Bibliothek',en:'Already in library'})[lang] || 'Already in library'}</small>}
+          </span>
         </label>)}
       </div>
+      {matchingItems.length > 8 && <button type="button" className="secondary-button template-more" onClick={()=>setShowAllTemplates(v=>!v)}>{showAllTemplates ? ({uk:'Згорнути список',ru:'Свернуть список',de:'Liste einklappen',en:'Collapse list'})[lang] : `${({uk:'Показати всі',ru:'Показать все',de:'Alle anzeigen',en:'Show all'})[lang]} (${matchingItems.length})`}</button>}
+      {!matchingItems.length && <p>{({uk:'За цим пошуком нічого не знайдено.',ru:'По этому запросу ничего не найдено.',de:'Keine passenden Vorlagen gefunden.',en:'No matching templates found.'})[lang] || 'No matches.'}</p>}
       <p>{visibleSelectedCount} / {packItems.length} · {({uk:'Нових доступно',ru:'Новых доступно',de:'Neue verfügbar',en:'New available'})[lang] || 'New available'}: {visibleNewCount}</p>
       <div className="modal-actions">
         <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>{selectionRevision.current += 1;setSelected([]);setPreview(null);setPreviewSelection(null)}}>{l[7]}</button>
@@ -239,7 +260,7 @@ export default function TemplatesPage() {
       {!privateItems.length && <p>{l[12]}</p>}
       <div className="template-grid">
         {privateItems.map(item => <button key={item.id} type="button" className="secondary-button" onClick={()=>chooseEdit(item)}>
-          {item.title} · {item.kind}
+          {item.title} · {kindLabel(item.kind)}
         </button>)}
       </div>
       {editing && ['TASK','REWARD'].includes(editing.kind) && <div className="modal-actions">
