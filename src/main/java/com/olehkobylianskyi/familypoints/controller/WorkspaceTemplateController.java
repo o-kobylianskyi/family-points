@@ -299,6 +299,17 @@ public class WorkspaceTemplateController {
         if (request.getAssignmentPolicy()==com.olehkobylianskyi.familypoints.entity.AssignmentPolicy.SINGLE_MEMBER
                 && request.getAssignedMemberId()==null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select a task assignee");
+        var policy=request.getAssignmentPolicy();
+        if ((policy==com.olehkobylianskyi.familypoints.entity.AssignmentPolicy.GROUP_SHARED
+                || policy==com.olehkobylianskyi.familypoints.entity.AssignmentPolicy.OPEN_GROUP)
+                && request.getTargetGroupId()==null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select a task target group");
+        if (policy==com.olehkobylianskyi.familypoints.entity.AssignmentPolicy.PREFERRED_MEMBER
+                && request.getPreferredMemberId()==null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select a preferred member");
+        if (policy==com.olehkobylianskyi.familypoints.entity.AssignmentPolicy.PARTICIPANTS
+                && (request.getExecutors()==null || request.getExecutors().isEmpty()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select task participants");
         if (request.getRecurrenceType()==com.olehkobylianskyi.familypoints.entity.TaskRecurrenceType.WEEKLY
                 && (request.getRecurrenceDayOfWeek()==null
                 || request.getRecurrenceDayOfWeek()<1 || request.getRecurrenceDayOfWeek()>7))
