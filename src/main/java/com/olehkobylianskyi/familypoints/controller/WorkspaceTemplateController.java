@@ -263,6 +263,7 @@ public class WorkspaceTemplateController {
                  @RequestHeader("Idempotency-Key") java.util.UUID operationId,
                  @Valid @RequestBody com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest request) {
         requireKind(workspaceId, templateId, "TASK");
+        validateTaskAgainstTemplate(workspaceId,templateId,request);
         claimActivation(workspaceId,templateId,"TASK",operationId);
         return taskController.createDefinition(workspaceId, request);
     }
@@ -275,8 +276,36 @@ public class WorkspaceTemplateController {
                    @RequestHeader("Idempotency-Key") java.util.UUID operationId,
                    @Valid @RequestBody com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest request) {
         requireKind(workspaceId, templateId, "REWARD");
+        validateRewardAgainstTemplate(workspaceId,templateId,request);
         claimActivation(workspaceId,templateId,"REWARD",operationId);
         return rewardController.createReward(workspaceId, request);
+    }
+
+    /**
+     * Activation is explicitly editable, but must originate from a meaningful
+     * template configuration. Essential missing fields cannot be fabricated by
+     * the client without first correcting the private template.
+     */
+    private void validateTaskAgainstTemplate(Long workspaceId,Long templateId,
+            com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest request) {
+        var draft=creationDraft(workspaceId,templateId);
+        JsonNode fields=draft.path("request");
+        if (request.getTitle()==null || request.getTitle().isBlank()
+                || request.getRecurrenceType()==null || request.getStartDate()==null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Task title, recurrence and date required");
+        if (request.getAssignmentPolicy()==null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Task assignment policy required");
+        if (fields.path("rewardAmount").asInt(0)>0 && request.getRewardPointTypeId()==null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select reward currency for this template");
+        if (fields.path("penaltyAmount").asInt(0)>0 && request.getPenaltyPointTypeId()==null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select penalty currency for this template");
+    }
+
+    private void validateRewardAgainstTemplate(Long workspaceId,Long templateId,
+            com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest request) {
+        creationDraft(workspaceId,templateId);
+        if (request.getTitle()==null || request.getTitle().isBlank() || request.getPointTypeId()==null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Reward title and currency required");
     }
 
     private void claimActivation(Long workspaceId,Long templateId,String kind,java.util.UUID operationId) {
