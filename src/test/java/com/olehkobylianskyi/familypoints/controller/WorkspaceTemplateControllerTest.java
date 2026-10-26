@@ -233,4 +233,18 @@ class WorkspaceTemplateControllerTest {
                 java.util.UUID.randomUUID(),req));
         verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
     }
+
+    @Test void importedCatalogDefinitionProducesUsableTaskDraft() {
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(24L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"TASK","Brush teeth",
+                        """
+                        {"code":"fp.task.hygiene.001","kind":"TASK",
+                         "definition":{"recurrenceType":"DAILY","mandatory":false,"rewardAmount":10}}
+                        """}));
+        var request=controller.creationDraft(1L,24L).path("request");
+        assertEquals("DAILY",request.path("recurrenceType").asText());
+        assertEquals(10,request.path("rewardAmount").asInt());
+        assertTrue(request.path("assignedMemberId").isNull());
+    }
 }
