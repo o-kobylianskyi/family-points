@@ -87,4 +87,22 @@ class WorkspaceTemplateControllerTest {
                 eq(1L), eq("REWARD"), eq("Game time"), argThat((String raw) ->
                     raw.contains("POINTS") && !raw.contains("purchaseId") && !raw.contains("memberId")));
     }
+    @Test void instantiatePreviewDoesNotWriteAndRequiresScopedTemplate() {
+        when(db.query(contains("SELECT kind,title,definition_json"), any(org.springframework.jdbc.core.RowMapper.class),
+                eq(99L),eq(1L))).thenReturn(List.of());
+        assertThrows(ResponseStatusException.class,()->controller.instantiatePreview(1L,99L));
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
+
+    @Test void previewPayloadIndicatesAssignmentAndCurrencySelection() {
+        when(db.query(contains("SELECT kind,title,definition_json"), any(org.springframework.jdbc.core.RowMapper.class),
+                eq(7L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"TASK","Walk",
+                        "{\\"source\\":\\"TASK\\",\\"rewardCurrencyCode\\":\\"POINTS\\"}"}));
+        var draft=controller.instantiatePreview(1L,7L);
+        assertEquals("Walk",draft.title());
+        assertTrue(draft.requiresAssignment());
+        assertTrue(draft.requiresCurrencySelection());
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
 }
