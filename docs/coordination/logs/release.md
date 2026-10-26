@@ -155,3 +155,6 @@ Expected JSON: new `versionCode`, `versionName` and SHA-256 matching the locally
 
 ## Architecture dispatch 2026-10-26 (late)
 Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat priority assignment. **RELEASE owner:** P1: pin next all-green SHA, quick V39/V40 catalog/private template/30min/currency smoke; publish next early BETA, no DB reset.
+
+## 2026-10-26 — User reprioritization: reset BEFORE beta and economy v0.7 start
+Source of truth: `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **RELEASE:** P1: publish the next BETA after BKL-002 selective reset + onboarding are working with targeted DEV smoke and green CI; no real data deletion without user confirmation.
