@@ -648,3 +648,7 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 ## 2026-10-26 — Localized family chooser errors
 - Fixed `ChooseFamilyPage.jsx` raw `Failed to fetch` and arbitrary exception display: typed network errors and 401/403/404/409/5xx translate through UK/RU/DE/EN familyChoice localization keys. Load, switch and create paths use shared mapper. Commits `97174c1`, `b66b130`, `913fb52`, `7636702`, `a09fae6`.
 - Original screenshot network request failure remains a connection/API availability issue; localization does not fix a down Backend. DEV/browser verification and latest CI pending.
+
+## 2026-10-26 — Template catalog UX screenshot correction
+- User screenshots showed all 142 template checkbox labels concatenating in an unstyled wall, raw TASK/REWARD labels and unbounded page. Added `TemplatesPage.css` with scoped responsive card grid/toolbar layout, search, first 8 cards default with explicit Show all/Collapse, localized type labels and filter actions. Commits `21e0b73`, `f39a3db`.
+- Selection across starter packs remains supported; search/filter only changes visible cards, not previously selected codes. Imports remain explicitly previewed. CI and browser DEV visual smoke pending. No BETA deployment.
