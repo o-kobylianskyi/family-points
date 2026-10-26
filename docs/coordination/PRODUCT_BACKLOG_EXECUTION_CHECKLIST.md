@@ -20,6 +20,8 @@
 
 - [ ] **P2 / BKL-010 — Managed device app usage and enforcement (future).** Extend optional app-linked TIME/game rewards with actual Android usage control: timer/session tracking, expiry, supported managed-device blocking/restriction of app relaunch, parent override, offline/reboot protection, capability downgrade disclosure. Standard Android app mode is reminder/launch only where OS restrictions prevent enforcement; Device Owner/managed-device mode may provide stronger controls after privilege and device capability verification. Template catalog must not require app binding, and manual/non-launch rewards remain supported. Dependency: BKL-008 + BKL-009 + Device Management security design.
 
+- [ ] **P1 / BKL-011 — Adult and family scheduling templates & calendar events.** Expand suggested catalog with adult SELF/MEMBER/FAMILY task templates, shared routines, appointments/travel/holiday EVENT patterns. Distinguish TASK completion from EVENT start/end and REWARD benefit, optional points only; privacy-scoped participation, timezone/DST, reminders, recurrence, permissions. Designer authors 4-language starter inventory; Backend first approves EVENT contract and scoped persistence/API, then Web/Android provide personal/family calendar views and selective private-library import. No actual appointment records in globally seeded catalog.
+
 ## Responsibility / ordered handoff
 
 | Track | Responsibilities | Completion evidence |
