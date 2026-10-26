@@ -104,4 +104,23 @@ class MediaServiceSafetyTest {
         verifyNoMoreInteractions(db);
     }
 
+
+    @Test void designerCategoryIconsAreRegisteredAndServedOnlyToWorkspaceMembers() {
+        var catalog=media.catalog();
+        var approved=catalog.stream().filter(item->item.key().startsWith("category-")).toList();
+        assertEquals(18,approved.size());
+        assertEquals(18,approved.stream().map(MediaService.CatalogItem::key).distinct().count());
+        when(current.belongsToWorkspace(123L)).thenReturn(true);
+        for(var item:approved) {
+            byte[] svg=media.catalogPreview(123L,item.key());
+            assertTrue(svg.length>80,item.key());
+            assertTrue(new String(svg,java.nio.charset.StandardCharsets.UTF_8).contains("<svg"),item.key());
+        }
+        assertEquals(HttpStatus.NOT_FOUND,assertThrows(ResponseStatusException.class,
+                ()->media.catalogPreview(123L,"category-../../secrets")).getStatusCode());
+        when(current.belongsToWorkspace(123L)).thenReturn(false);
+        assertEquals(HttpStatus.FORBIDDEN,assertThrows(ResponseStatusException.class,
+                ()->media.catalogPreview(123L,"category-chores")).getStatusCode());
+        verifyNoInteractions(db);
+    }
 }
