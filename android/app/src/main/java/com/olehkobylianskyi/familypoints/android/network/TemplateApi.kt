@@ -8,11 +8,11 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 
-data class PrivateTemplateUpdateRequest(val title: String, val definitionJson: String)
+data class PrivateTemplateUpdateRequest(val title: String, val definitionJson: String, val kind: String)
 data class TemplateSelectionRequest(val selectedCodes: List<String>)
 data class CatalogTemplateDto(val code: String, val kind: String, val title: Map<String, String>?, val description: Map<String, String>?)
 data class TemplateCatalogDto(val version: Int, val templates: List<CatalogTemplateDto>?, val packs: List<com.google.gson.JsonObject>?)
-data class PrivateTemplateDto(val id: Long, val kind: String?, val title: String?, val definitionJson: String?)
+data class PrivateTemplateDto(val id: Long, val kind: String?, val title: String?, val definitionJson: String?, val catalogCode: String?, val catalogVersion: Int?)
 data class TemplateImportPreviewDto(val alreadyImported: List<String>?, val toImport: List<String>?)
 
 interface TemplateApi {
