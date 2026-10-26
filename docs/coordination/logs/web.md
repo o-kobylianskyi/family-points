@@ -598,3 +598,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web creation draft workspace-scoped selectors
 - Added scoped dropdowns for assignedMemberId and point type IDs (rewardPointTypeId, penaltyPointTypeId, pointTypeId) in non-activating draft editor; selected IDs come from GET workspace members / active workspace point types, not globally mixed UI state. Source commits `cf3df61`, `df8b9bc`.
 - Fresh reads made per explicitly requested draft; on workspace/template switch stale draft responses remain guarded. Unknown current IDs shown as disabled legacy options instead of silent remapping. No activation or live data changes. CI and browser checks pending. Future enhancement: empty-data explanations, proper API response validation, improved accessibility and normalization of active flags.
+
+## 2026-10-26 — Web draft readiness validation
+- Added localized non-activating readiness warnings for title, TASK family member/start date, positive TIME_BASED reward duration, and family-scoped currency references. Commit `24e55ba`; no activation or BETA changes.
+- CI run 40397086671 Web/Java/BETA PASS, Android FAIL. New CI and manual DEV smoke pending.
