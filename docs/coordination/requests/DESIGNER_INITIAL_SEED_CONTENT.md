@@ -36,3 +36,9 @@ Once Architecture + Backend confirm the final **template database schema, import
 - **Web/Android ownership:** during onboarding and later from Template Library, display suggested catalog immediately, support preview, customize, select/deselect, skip, safe apply. Suggested presets are available on fresh install even before any family has chosen a template; no dependence on manually entering seed records in UI.
 - **Acceptance:** nonempty curated suggested list after catalog installation, localized labels (UK/DE/EN/RU), working media fallback, no duplicate catalog entries after restart/reimport, existing family edits preserved, selecting a pack does not generate history, balances or ledger transactions. Seed manifest review precedes import test and QA release.
 - **Sequence:** Architect/Backend approve contract → Designer supplies *real initial content* and artwork refs → Backend validates/bundles manifest and importer → Web/Android exposes suggestions → QA accepts. Release separately authorizes deployment.
+
+## 2026-10-26 — Selective initial recommendations: content/UX requirement
+- Designer must structure starter packs as **individually selectable** task/reward suggestions (with stable IDs and short descriptions). Do not design an all-or-nothing pack.
+- Users can uncheck any irrelevant suggestion and save only selected ones to **their private template library**. Unselected items remain discoverable in the global catalog later. Zero selection is valid.
+- The initial import must NOT automatically activate tasks or rewards in the family; activation/instantiation is a separate deliberate user action.
+- Supply category grouping, reasonable suggested selection defaults, and clear preview/count labels for the Web/Android checklist. Dependency warnings should be understandable when optional entries are deselected.
