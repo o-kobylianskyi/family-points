@@ -232,3 +232,10 @@ At exact integration SHA `c70d28d9812d13a85e2f6cfd62186fb344aff510`, GitHub Acti
 - Families 11/12/13 still have only POINTS and 0 name forms; lazy reconciliation is executed when authenticated API settings/point-types is accessed per workspace; no evidence those API routes have been visited for these families.
 - GitHub Actions 40240665891 passed Java/Maven/Testcontainers, Web/Vite, Android/Gradle, Compose.
 - No SQL writes or deployment performed by Backend chat. Remaining: QA review custom currency UI and full per-family backfill; verify unchanged financial totals and cross-family protection.
+
+## 2026-10-26 — BKL-001/004/006 templates: implementation STARTED (foundation only)
+- User explicitly approved starting after roadmap review. Highest-priority behavior: selectively check suggested global templates during onboarding, save only selected definitions to **private family template library**, no automatic active TaskDefinition/RewardDefinition or history/ledger changes.
+- Added `TemplateCatalogService` read-only classpath JSON loader validating version, unique codes, TASK/REWARD kinds, four-language titles and pack references; API `GET /template-catalog`; seed resource `templates/catalog-v1.json` currently `{version:1,templates:[],packs:[]}`, deliberately **EMPTY** until Designer provides curated data; tests validate loader/defensive copy.
+- Source commits: 88e9597f, cf5a0e5b, c645284c, 201bbd8b, 87d17413. This is a foundation only, **NOT** template selection, persistence, preview or import. No DB migration or writes; no beta/prod deploy.
+- Next concrete Backend packages: (1) approved schema/manifest for designer TASK/REWARD attributes and pack metadata, (2) workspace private template persistence + Flyway and read/save CRUD, (3) preview + atomic idempotent selection import, (4) instantiate only via separate explicit confirmation, (5) PostgreSQL/tenant/security tests and cross-track Web/Android handoff.
+- Respect ADR-TEMPLATES-001 selective private-library import amendment and existing permission boundaries; keep global suggestions separate from workspace records.
