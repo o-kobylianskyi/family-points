@@ -164,3 +164,9 @@
 - Verified via connected DEV MCP `database_health` user fp_dev_mcp on family_points PostgreSQL 18.1; `describe_table(workspace_private_templates)` succeeds.
 - Live SELECT COUNT(*) confirms workspace_private_templates=0, template_activation_requests=0; no private template rows by workspace/kind. Source global catalog (142 suggestions) is separate from private library, so zero rows is a valid pre-import baseline, not proof of failure.
 - User granted SELECT in pgAdmin; no QA data mutations. Follow up with authenticated DEV import using approved disposable test family and compare baseline/idempotency; HTTP runtime not yet tested.
+
+
+## 2026-10-26 — QA catalog cross-pack audit (source only)
+- Parsed current catalog-v1.json: 142 templates, no definition.source vs kind mismatches, no invalid code/version fields, no invalid TIME duration.
+- 65 templates appear in no starter pack; 32 appear in multiple packs. Cross-pack overlap is an explicit QA regression risk: selecting overlapping packs must yield one private record per (workspace_id,catalog_code), not one per pack; verify through authenticated DEV import and API list when compatible build is available. Neither condition alone is classified a defect.
+- All 32 reward definitions have priceAmount null; null means unset/not free. Do not auto-activate as free or infer prices. This is source-only PASS, not UI/API acceptance.
