@@ -548,3 +548,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web UI screenshot: templates link overlaps Settings heading
 - User screenshot shows `Settings > Бібліотека шаблонів` title overlapped by `Відкрити шаблони` link in dark theme. Fixed dedicated flex-column section and block-like inline-flex link with 16px separation and normal position. Source commits `edc98a8`, `aa4f24e`; no Backend/BETA data changes.
 - Browser confirmation requested after pulling main/reloading. CI not yet independently confirmed.
+
+## 2026-10-26 — Web template catalog pack selection
+- Implemented optional filter for catalog packs by `pack.code`/`templateCodes`, plus select/deselect visible entries. Individual item checkboxes remain independent; changing selections invalidates prior preview. Source commit `0b3201a`.
+- Global catalog remains empty until Designer seed; Web manual smoke and latest CI remain unverified. No automatic active tasks/rewards or BETA deployment.
