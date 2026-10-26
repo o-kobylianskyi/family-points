@@ -64,3 +64,6 @@ Once Architecture + Backend confirm the final **template database schema, import
 
 ## 2026-10-26 — Architecture late dispatch to Designer
 Read `docs/coordination/DISPATCH_20261026_LATE.md`. P1: audit all 142 templates, six starter packs, 65 unassigned pack items, and trace each optional price/bonus recommendation in economy v0.6. Keep difficulty separate from time, nullable amounts distinct from zero, and 12 ECO decisions awaiting Architecture approval. No new seed pricing or DB writes automatically.
+
+## 2026-10-26 — User reprioritization: reset BEFORE beta and economy v0.7 start
+Source of truth: `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **DESIGNER:** P1: economy v0.7 preliminarily approved for DEV implementation with corrections after BETA tests. Finalize versioned optional difficulty/price proposals for 142 seeds; retain null != 0 and user customization; no automatic changes to ledger or families.
