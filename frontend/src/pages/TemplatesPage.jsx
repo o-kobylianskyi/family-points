@@ -26,6 +26,7 @@ export default function TemplatesPage() {
   const [catalog, setCatalog] = useState({ templates: [], packs: [] })
   const [privateItems, setPrivateItems] = useState([])
   const [selected, setSelected] = useState([])
+  const [packFilter, setPackFilter] = useState('ALL')
   const [preview, setPreview] = useState(null)
   const [editing, setEditing] = useState(null)
   const [title, setTitle] = useState('')
@@ -39,13 +40,22 @@ export default function TemplatesPage() {
   const [notice, setNotice] = useState('')
   useEffect(() => {
     let alive = true
-    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPreview(null); setEditing(null); setError('')
+    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setPreview(null); setEditing(null); setError('')
     if (!workspaceId) return () => { alive = false }
     Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
       .then(([a,b]) => { if (alive) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
       .catch(e => { if (alive) setError(e.message) })
     return () => { alive = false }
   }, [workspaceId, getAccessToken])
+  const packItems = packFilter === 'ALL'
+    ? (catalog.templates || [])
+    : (catalog.templates || []).filter(item => (catalog.packs || []).find(pack => pack.code === packFilter)?.templateCodes?.includes(item.code))
+  const selectVisible = checked => {
+    selectionRevision.current += 1
+    const codes = packItems.map(item => item.code)
+    setSelected(current => checked ? [...new Set([...current, ...codes])] : current.filter(code => !codes.includes(code)))
+    setPreview(null)
+  }
   const toggle = code => { selectionRevision.current += 1; setSelected(v => v.includes(code) ? v.filter(x=>x!==code) : [...v,code]); setPreview(null) }
   const execute = async action => {
     if (actionLock.current) return
@@ -79,9 +89,21 @@ export default function TemplatesPage() {
     {notice && <p role="status">{notice}</p>}
     <section className="settings-section">
       <h2>{l[1]}</h2>
-      {!(catalog.templates || []).length && <p>{l[4]}</p>}
+      {!(catalog.templates || []).length && <p>{l[4]}</p>
+      {(catalog.packs || []).length > 0 && <label style={{display:'flex', gap:12, alignItems:'center', margin:'12px 0'}}>
+        <span>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}</span>
+        <select value={packFilter} onChange={e => setPackFilter(e.target.value)} disabled={busy}>
+          <option value="ALL">{({uk:'Усі шаблони',ru:'Все шаблоны',de:'Alle Vorlagen',en:'All templates'})[lang] || 'All templates'}</option>
+          {(catalog.packs || []).map(pack => <option key={pack.code} value={pack.code}>{pack.title?.[lang] || pack.title?.en || pack.code}</option>)}
+        </select>
+      </label>}
+      {packItems.length > 0 && <div className="modal-actions">
+        <button type="button" className="secondary-button" disabled={busy} onClick={() => selectVisible(true)}>{({uk:'Вибрати показані',ru:'Выбрать показанные',de:'Sichtbare auswählen',en:'Select visible'})[lang] || 'Select visible'}</button>
+        <button type="button" className="secondary-button" disabled={busy} onClick={() => selectVisible(false)}>{({uk:'Зняти вибір показаних',ru:'Снять выбор показанных',de:'Sichtbare abwählen',en:'Deselect visible'})[lang] || 'Deselect visible'}</button>
+      </div>}
+}
       <div className="template-grid">
-        {(catalog.templates || []).map(item => <label key={item.code} className="template-card">
+        {packItems.map(item => <label key={item.code} className="template-card">
           <input type="checkbox" checked={selected.includes(item.code)} onChange={()=>toggle(item.code)} disabled={busy}/>
           <span><strong>{item.title?.[i18n.language.split('-')[0]] || item.title?.en || item.code}</strong> <small>{item.kind}</small></span>
         </label>)}
