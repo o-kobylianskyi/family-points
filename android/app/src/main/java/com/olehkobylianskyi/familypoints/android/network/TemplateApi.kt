@@ -17,7 +17,7 @@ data class TemplateImportPreviewDto(val alreadyImported: List<String>?, val toIm
 
 interface TemplateApi {
     @PUT("workspaces/{workspaceId}/templates/{templateId}")
-    suspend fun updatePrivateTemplate(@Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long, @Path("templateId") templateId: Long, @Body body: PrivateTemplateUpdateRequest): retrofit2.Response<Unit>
+    suspend fun updatePrivateTemplate(@Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long, @Path("templateId") templateId: Long, @Body body: PrivateTemplateUpdateRequest): retrofit2.Response<okhttp3.ResponseBody>
 
     @DELETE("workspaces/{workspaceId}/templates/{templateId}")
     suspend fun deletePrivateTemplate(@Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long, @Path("templateId") templateId: Long): retrofit2.Response<Unit>
