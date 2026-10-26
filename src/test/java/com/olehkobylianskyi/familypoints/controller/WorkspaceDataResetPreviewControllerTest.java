@@ -30,6 +30,16 @@ class WorkspaceDataResetPreviewControllerTest {
                 .thenReturn(8L);
         when(db.queryForObject(contains("FROM reputation_transactions t"),eq(Long.class),eq(7L)))
                 .thenReturn(9L);
+        when(db.queryForObject(contains("FROM member_groups"),eq(Long.class),eq(7L)))
+                .thenReturn(10L);
+        when(db.queryForObject(contains("FROM work_nodes"),eq(Long.class),eq(7L)))
+                .thenReturn(11L);
+        when(db.queryForObject(contains("FROM task_schedule_slots s"),eq(Long.class),eq(7L)))
+                .thenReturn(12L);
+        when(db.queryForObject(contains("FROM media_assets"),eq(Long.class),eq(7L)))
+                .thenReturn(13L);
+        when(db.queryForObject(contains("FROM media_bindings"),eq(Long.class),eq(7L)))
+                .thenReturn(14L);
         var preview = new WorkspaceDataResetPreviewController(db).preview(7L);
         assertEquals(7L, preview.workspaceId());
         assertFalse(preview.executionEnabled());
@@ -42,6 +52,11 @@ class WorkspaceDataResetPreviewControllerTest {
         assertEquals(7, preview.categories().get("REWARD_PURCHASES").recordCount());
         assertEquals(8, preview.categories().get("POINT_LEDGER").recordCount());
         assertEquals(9, preview.categories().get("REPUTATION_LEDGER").recordCount());
+        assertEquals(10,preview.categories().get("MEMBER_GROUPS").recordCount());
+        assertEquals(11,preview.categories().get("WORK_NODES").recordCount());
+        assertEquals(12,preview.categories().get("TASK_SCHEDULE_SLOTS").recordCount());
+        assertEquals(13,preview.categories().get("MEDIA_ASSETS").recordCount());
+        assertEquals(14,preview.categories().get("MEDIA_BINDINGS").recordCount());
         assertTrue(preview.categories().values().stream().noneMatch(
                 WorkspaceDataResetPreviewController.ResetCategory::executable));
         assertTrue(preview.alwaysPreserved().contains("Other workspaces"));
