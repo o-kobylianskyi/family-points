@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { getWorkspaceMembers } from '../api/workspaceApi'
@@ -161,6 +162,11 @@ function SettingsPage() {
   return <>
     <h1>{t('settings.title')}</h1>
     <p>{t('settings.description')}</p>
+    {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) &&
+      <section className="settings-section">
+        <h2>{({uk:'Бібліотека шаблонів',de:'Vorlagenbibliothek',en:'Template library',ru:'Библиотека шаблонов'})[t('language.code', { defaultValue: 'uk' })] || 'Template library'}</h2>
+        <Link to="/templates" className="secondary-button">{({uk:'Відкрити шаблони',de:'Vorlagen öffnen',en:'Open templates',ru:'Открыть шаблоны'})[t('language.code', { defaultValue: 'uk' })] || 'Open templates'}</Link>
+      </section>}
     {error && <div className="error-message settings-message">{error}</div>}
     {notice && <div className="settings-success settings-message">{notice}</div>}
     <ThemePreference />
