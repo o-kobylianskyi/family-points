@@ -586,3 +586,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web creation-draft integration read-only checkpoint
 - Wired GET workspace-private template `/{templateId}/creation-draft` into frontend template API (`df9450d`) and added explicit preview-only view to selected TASK/REWARD private template (`216cbdc`). Shows Backend `request` untouched, including defaultDurationMinutes, pointTypeId and task assignment placeholders. Copy is localized UK/RU/DE/EN and explicitly states no activation. No POST activate or auto-creation added; no ledger or live data mutations.
 - Remaining: replace JSON-only draft with domain-valid editable form, field validation, user confirmation and exact-once semantics only after consumer/security QA. DEV browser E2E and latest CI pending. BETA unchanged.
+
+## 2026-10-26 — Web draft editing checkpoint (non-activating)
+- Added editable JSON request buffer for GET `/creation-draft` TASK/REWARD templates, with localized UK/RU/DE/EN labels, parse/size validation, and explicit local-only/non-activating notice. It is intentionally not persisted, does not call activate-task/reward and does not create ledger or task/reward rows. Source `3238ffc`.
+- Previous GitHub Actions full run 40393430466 succeeded. Latest feature CI pending. Follow-up: replace raw draft JSON with safe structured creation form, resolve workspace member/currency IDs, run DEV browser QA and activation security checks before introducing any POST action. BETA unchanged.
