@@ -516,3 +516,7 @@ Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat pri
 
 ## 2026-10-26 — User reprioritization: reset BEFORE next BETA, economy v0.7 IN DEVELOPMENT
 Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous parked status of BKL-002. **ANDROID:** P1 safe account-scoped cache/offline handling after reset, refresh onboarding and template suggestions, provisional economy review UI. Planning/assignment only: no data deletion authorized.
+
+## 2026-10-26 — DEV emulator smoke results and collapsed transaction journal
+- User checklist: startup/navigation/theme 4/4 PASS, collapsed role/task actor/reward condition lists 7/7 PASS, template library opens PASS. Global catalog 0/0 and private list empty (screenshot), blocking all catalog, import and draft smoke. Root cause not established: possible DEV Backend deployment older than catalog source main; verify authenticated GET /template-catalog and effective deployed Backend SHA before changing Android. No claim that 142 are served in DEV.
+- User requests journals of operations fully collapsed by default. Android PointsScreen commit e942920 adds historyExpanded initially false, keyed by family/member, with localized Show/Collapse toggle and count. No history list renders until explicitly expanded; financial data unchanged. New Gradle/emulator check pending. Only DEV emulator, not Huawei BETA.
