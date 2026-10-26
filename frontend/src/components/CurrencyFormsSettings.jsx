@@ -121,20 +121,25 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
 
   async function addCurrency(event) {
     event.preventDefault()
-    if (!canManage || busy || !newCurrencyName.trim() || !/^[A-Z][A-Z0-9_]{1,49}$/.test(newCurrencyCode.trim().toUpperCase())) return
+    const code = newCurrencyCode.trim().toUpperCase()
+    if (!canManage || busy || creating || !newCurrencyName.trim() || !/^[A-Z][A-Z0-9_]{1,49}$/.test(code)) return
+    if (types.some(type => type.code?.toUpperCase() === code)) {
+      setError(({ uk: 'Валюта з таким кодом уже існує.', ru: 'Валюта с таким кодом уже существует.', de: 'Eine Währung mit diesem Code existiert bereits.', en: 'A currency with this code already exists.' })[uiLang] || 'Currency code already exists')
+      return
+    }
     setCreating(true); setError(''); setNotice('')
     try {
       const created = await createPointType(token, workspaceId, {
         name: newCurrencyName.trim(),
-        code: newCurrencyCode.trim().toUpperCase(),
-        sortOrder: Math.max(100, ...types.map(type => type.sortOrder + 10)),
+        code,
+        sortOrder: Math.max(100, ...types.map(type => Number(type.sortOrder) + 10).filter(Number.isFinite)),
       })
-      const refreshed = await getPointTypes(token, workspaceId)
+      const refreshed = await getAllPointTypes(token, workspaceId)
       setTypes(refreshed)
       setSelectedId(String(created.id))
       setNewCurrencyCode('')
       setNewCurrencyName('')
-      setNotice('Валюту створено. Тепер налаштуйте її відмінювання.')
+      setNotice(({ uk: 'Валюту створено. Тепер налаштуйте її відмінювання.', ru: 'Валюта создана. Теперь настройте её склонение.', de: 'Währung erstellt. Legen Sie nun die Wortformen fest.', en: 'Currency created. Now configure its word forms.' })[uiLang] || 'Currency created')
     } catch (e) { setError(e.message) }
     finally { setCreating(false) }
   }
