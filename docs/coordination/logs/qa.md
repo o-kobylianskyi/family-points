@@ -178,3 +178,9 @@
 
 ## Architecture dispatch 2026-10-26 (late)
 Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat priority assignment. **QA owner:** P0: template TPL-01..15 plus TPL-03A overlap/replay/tenant, currencies per-family backfill; targeted evidence and no blanket BETA hold.
+
+
+## 2026-10-26 — Late Architecture dispatch QA intake
+- Received docs/coordination/DISPATCH_20261026_LATE.md. QA critical additions: TPL-03A shared starter-pack import dedup; test replaying same activation operation UUID against a *different* template ID must be rejected without creating an unrelated definition; null reward price must never be treated as free; explicit-only activation and family A/B access. Test only against authenticated disposable DEV workspaces, source/SQL invariant alone cannot certify REST security.
+- Ran read-only DEV SQL grouping workspace_private_templates by workspace_id/catalog_code: zero duplicate groups. This is current database invariant PASS, not a successful import E2E. No DB mutations.
+- Android P0 current CI/emulator secondary-list collapse assigned Android; current signed Huawei BETA is separate from DEV emulator. Designer numerical economy still not approved. BKL-007 older-family backfill pending.
