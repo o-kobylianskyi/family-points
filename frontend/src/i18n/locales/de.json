@@ -4,7 +4,6 @@
     "increase": "Wert erhöhen {{field}}",
     "decrease": "Wert verringern {{field}}"
   },
-
   "common": {
     "loading": "Wird geladen...",
     "logout": "Abmelden",
@@ -505,7 +504,13 @@
     "name": "Familienname",
     "ownerName": "Ihr Name",
     "create": "Familie erstellen",
-    "logout": "Abmelden"
+    "logout": "Abmelden",
+    "networkError": "Verbindung zum Server fehlgeschlagen. Internetverbindung oder DEV-Backend prüfen und erneut versuchen.",
+    "serverError": "Der Server ist vorübergehend nicht verfügbar. Bitte später erneut versuchen.",
+    "sessionExpired": "Die Sitzung ist abgelaufen. Bitte erneut anmelden.",
+    "forbidden": "Keine Berechtigung für diese Familie.",
+    "notFound": "Familie nicht gefunden. Liste aktualisieren.",
+    "conflict": "Daten wurden geändert. Bitte erneut versuchen."
   },
   "workspaceUi": {
     "brandSubtitle": "Familienbereich",
