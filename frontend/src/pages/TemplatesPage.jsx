@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
+import TemplateFieldsEditor from '../components/TemplateFieldsEditor'
 import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates, updatePrivateTemplate, deletePrivateTemplate } from '../api/templateApi'
 
 const texts = {
@@ -95,7 +96,11 @@ export default function TemplatesPage() {
       })}}>
         <h3>{l[16]}</h3>
         <label>{l[13]}<input required maxLength={150} value={title} onChange={e=>setTitle(e.target.value)}/></label>
-        <label>{l[14]}<textarea required rows={8} value={definition} onChange={e=>setDefinition(e.target.value)}/></label>
+        <TemplateFieldsEditor kind={editing.kind} definition={definition} onChange={setDefinition} language={i18n.language.split('-')[0]} disabled={busy}/>
+        <details>
+          <summary>{l[14]} — JSON</summary>
+          <label>{l[14]}<textarea required rows={8} value={definition} onChange={e=>setDefinition(e.target.value)} disabled={busy}/></label>
+        </details>
         <div className="modal-actions">
           <button className="primary-button" disabled={busy || !validDefinition || !title.trim()} type="submit">{l[10]}</button>
           <button className="secondary-button" disabled={busy} type="button" onClick={()=>{if(window.confirm(l[17]))execute(async()=>{
