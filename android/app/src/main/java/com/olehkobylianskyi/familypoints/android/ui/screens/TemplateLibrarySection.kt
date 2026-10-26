@@ -39,6 +39,10 @@ fun TemplateLibrarySection(
     var busy by remember(workspaceId) { mutableStateOf(false) }
     var error by remember(workspaceId) { mutableStateOf("") }
     var notice by remember(workspaceId) { mutableStateOf("") }
+    var editing by remember(workspaceId) { mutableStateOf<PrivateTemplateDto?>(null) }
+    var editTitle by remember(workspaceId) { mutableStateOf("") }
+    var editJson by remember(workspaceId) { mutableStateOf("") }
+    var confirmDelete by remember(workspaceId) { mutableStateOf(false) }
     var refresh by remember(workspaceId) { mutableIntStateOf(0) }
     var previewCodes by remember(workspaceId) { mutableStateOf<List<String>>(emptyList()) }
 
@@ -167,11 +171,82 @@ fun TemplateLibrarySection(
                     "Library is empty.", "Библиотека пуста."))
             }
             items(library, key = { it.id }) { item ->
-                Column {
-                    Text(item.title.orEmpty().ifBlank { "#${item.id}" })
-                    Text(item.kind.orEmpty(), style = MaterialTheme.typography.bodySmall)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(Modifier.weight(1f)) {
+                        Text(item.title.orEmpty().ifBlank { "#${item.id}" })
+                        Text(item.kind.orEmpty(), style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (canManage) TextButton(enabled = !busy, onClick = {
+                        editing = item
+                        editTitle = item.title.orEmpty()
+                        editJson = item.definitionJson.orEmpty()
+                        confirmDelete = false
+                    }) { Text(tl(language, "Змінити", "Bearbeiten", "Edit", "Изменить")) }
                 }
             }
         }
+    }
+    val current = editing
+    if (current != null) {
+        val validJson = remember(editJson) {
+            editJson.length <= 30000 && try {
+                val parsed = com.google.gson.JsonParser.parseString(editJson)
+                parsed.isJsonObject
+            } catch (_: Exception) { false }
+        }
+        AlertDialog(
+            onDismissRequest = { if (!busy) editing = null },
+            title = { Text(tl(language, "Редагувати шаблон", "Vorlage bearbeiten", "Edit template", "Редактировать шаблон")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(editTitle, { editTitle = it.take(200) },
+                        enabled = !busy, modifier = Modifier.fillMaxWidth(),
+                        label = { Text(tl(language, "Назва", "Titel", "Title", "Название")) })
+                    OutlinedTextField(editJson, { editJson = it.take(30001) },
+                        enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp),
+                        label = { Text(tl(language, "Визначення JSON", "Definition (JSON)", "Definition JSON", "Определение JSON")) })
+                    if (!validJson) Text(tl(language, "Потрібен коректний JSON-об’єкт до 30 000 символів.",
+                        "Gültiges JSON-Objekt bis 30.000 Zeichen erforderlich.",
+                        "Valid JSON object up to 30,000 characters required.",
+                        "Требуется корректный JSON-объект до 30 000 символов."),
+                        color = MaterialTheme.colorScheme.error)
+                    TextButton(enabled = !busy, onClick = { confirmDelete = true }) {
+                        Text(tl(language, "Видалити шаблон", "Vorlage löschen", "Delete template", "Удалить шаблон"))
+                    }
+                }
+            },
+            confirmButton = {
+                Button(enabled = canManage && !busy && editTitle.isNotBlank() && validJson, onClick = {
+                    val id = current.id
+                    val title = editTitle.trim()
+                    val json = editJson
+                    perform {
+                        repository.update(workspaceId, id, title, json)
+                        library = repository.privateTemplates(workspaceId)
+                        editing = null
+                        notice = tl(language, "Збережено", "Gespeichert", "Saved", "Сохранено")
+                    }
+                }) { Text(tl(language, "Зберегти", "Speichern", "Save", "Сохранить")) }
+            },
+            dismissButton = { TextButton(enabled = !busy, onClick = { editing = null }) {
+                Text(tl(language, "Скасувати", "Abbrechen", "Cancel", "Отмена"))
+            } }
+        )
+        if (confirmDelete) AlertDialog(
+            onDismissRequest = { if (!busy) confirmDelete = false },
+            title = { Text(tl(language, "Видалити шаблон?", "Vorlage löschen?", "Delete template?", "Удалить шаблон?")) },
+            text = { Text(current.title.orEmpty()) },
+            confirmButton = { Button(enabled = canManage && !busy, onClick = {
+                perform {
+                    repository.delete(workspaceId, current.id)
+                    library = repository.privateTemplates(workspaceId)
+                    confirmDelete = false
+                    editing = null
+                }
+            }) { Text(tl(language, "Видалити", "Löschen", "Delete", "Удалить")) } },
+            dismissButton = { TextButton(enabled = !busy, onClick = { confirmDelete = false }) {
+                Text(tl(language, "Скасувати", "Abbrechen", "Cancel", "Отмена"))
+            } }
+        )
     }
 }
