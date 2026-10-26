@@ -487,3 +487,7 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - Reviewed latest Designer economy v0.3 draft (not approved as reward amounts) and Web fix b1e1a04: display published TIME reward minutes before template import.
 - Android commits 7d7be07, 81cf292, 0a8ba3a add catalog `definition` JsonObject to DTO and render localized minute duration on REWARD suggestions when positive `defaultDurationMinutes` or `durationMinutes` is present. Source catalog has eight entries with a duration. Values are descriptive only, never start a timer/session, change price or write ledger.
 - No matching full Gradle CI run for these commits established. Baseline e05677c/40390915206 precedes Android fixes; current Gradle/device DEV QA pending. BETA beta.11 untouched.
+
+## 2026-10-26 — USER-REPORTED local Android Gradle success
+- User executed the previously provided PowerShell Gradle sequence from Android project: `:app:clean :app:assembleDebug :app:testDebugUnitTest --stacktrace --console=plain` and reported **BUILD SUCCESSFUL**. Mark local build and unit-test task success as USER-REPORTED, not independently observed CI; exact local git SHA and test case counts were not supplied.
+- DEV APK is for Android Studio emulator only; Huawei P20 Pro is reserved for signed BETA, currently beta.11. Next smoke: emulator Settings > Template Library, 142 catalog entries and six starter packs, selection/import preview, private library update/delete, TIME duration, account/workspace switch and offline error behavior. Do not install DEV/debug APK on Huawei.
