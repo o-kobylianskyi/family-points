@@ -153,3 +153,8 @@
 
 ## 2026-10-26 — Coordinated sprint assignment (QA)
 **Source of truth:** `docs/coordination/CURRENT_PRIORITY_SPRINT.md`. **P0:** log CI backend duration defect exactly 30 vs 0 (run 40389295693); after Backend fix rerun regression TASK/REWARD drafts, timed duration and import/activation, 142 catalog entries, six packs, permissions and repeated import. BKL-007: family1 4 currencies/16 forms verified DEV SQL, families11/12/13 lazy backfill pending, tenant negative and 1/2/5/11/21/22/25 formatting. **P1:** targeted Web+Android smoke tied to exact DEV SHA. Report specific reproducible bugs, no blanket QA gate for BETA.
+
+
+## 2026-10-26 — Targeted TIME seed regression and V39/V40 permission diagnosis
+- Parsed current catalog-v1.json: 32 REWARD seeds, exactly 8 rewardKind=TIME with positive integer durationMinutes (3 x 15, 5 x 30); no non-TIME reward carries a nonzero duration. SOURCE CATALOG PASS only; controller mapping/draft/activation runtime NOT_VERIFIED. Sprint CI previously observed 30 to 0 in WorkspaceTemplateControllerTest; Backend owns correction.
+- Exact DB privilege probe for current_user fp_dev_mcp: has_table_privilege(...workspace_private_templates, SELECT)=false and has_table_privilege(...template_activation_requests, SELECT)=false. Tables exist; V39/V40 applied. CONFIRMED QA MCP read privilege blocker for new tables. Backend/DB owner should grant narrow SELECT on these two public tables to fp_dev_mcp if approved. No grants or mutations done by QA.
