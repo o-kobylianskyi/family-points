@@ -16,7 +16,7 @@ class TemplateCatalogServiceTest {
 
     @Test void returnedCatalogIsDefensiveCopy() {
         var service = new TemplateCatalogService(new ObjectMapper());
-        service.getCatalog().put("version", 99);
+        ((com.fasterxml.jackson.databind.node.ObjectNode) service.getCatalog()).put("version", 99);
         assertEquals(1, service.getCatalog().path("version").asInt());
     }
 }
