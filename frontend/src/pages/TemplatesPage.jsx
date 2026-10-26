@@ -52,6 +52,17 @@ export default function TemplatesPage() {
   const refresh = async () => setPrivateItems(await getPrivateTemplates(getAccessToken(), workspaceId))
   const chooseEdit = item => { setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
   const validDefinition = (() => { try { return definition.length <= 30000 && !Array.isArray(JSON.parse(definition)) && JSON.parse(definition) !== null && typeof JSON.parse(definition) === 'object' } catch { return false } })()
+  const availabilityError = (() => {
+    if (!validDefinition || editing?.kind !== 'REWARD') return ''
+    const value = JSON.parse(definition)
+    const start = value.availabilityStartsAt
+    const end = value.availabilityEndsAt
+    const isIso = s => typeof s === 'string' && /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})?$/.test(s) && !Number.isNaN(Date.parse(s))
+    const invalid = [start, end].some(s => s != null && s !== '' && !isIso(s))
+    if (invalid) return 'Date/time must use valid ISO-8601 format.'
+    if (start && end && Date.parse(end) <= Date.parse(start)) return 'End time must be later than start time.'
+    return ''
+  })()
   if (!workspaceId) return <div className="page-loading">...</div>
   return <div className="templates-page">
     <h1>{l[0]}</h1>
@@ -96,13 +107,14 @@ export default function TemplatesPage() {
       })}}>
         <h3>{l[16]}</h3>
         <label>{l[13]}<input required maxLength={150} value={title} onChange={e=>setTitle(e.target.value)}/></label>
+        {availabilityError && <p className="error-message" role="alert">{availabilityError}</p>}
         <TemplateFieldsEditor kind={editing.kind} definition={definition} onChange={setDefinition} language={i18n.language.split('-')[0]} disabled={busy}/>
         <details>
           <summary>{l[14]} — JSON</summary>
           <label>{l[14]}<textarea required rows={8} value={definition} onChange={e=>setDefinition(e.target.value)} disabled={busy}/></label>
         </details>
         <div className="modal-actions">
-          <button className="primary-button" disabled={busy || !validDefinition || !title.trim()} type="submit">{l[10]}</button>
+          <button className="primary-button" disabled={busy || !validDefinition || Boolean(availabilityError) || !title.trim()} type="submit">{l[10]}</button>
           <button className="secondary-button" disabled={busy} type="button" onClick={()=>{if(window.confirm(l[17]))execute(async()=>{
             await deletePrivateTemplate(getAccessToken(),workspaceId,editing.id);await refresh();setEditing(null)
           })}}>{l[11]}</button>
