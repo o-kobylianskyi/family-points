@@ -33,6 +33,7 @@ public class WorkspaceTemplateController {
     private final ObjectMapper json = new ObjectMapper();
     private final TaskController taskController;
     private final RewardController rewardController;
+    private final com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService economySuggestions;
 
     public WorkspaceTemplateController(JdbcTemplate db, TemplateCatalogService catalog,
                                        TaskDefinitionRepository taskDefinitions,
@@ -44,6 +45,22 @@ public class WorkspaceTemplateController {
         this.rewardDefinitions = rewardDefinitions;
         this.taskController = taskController;
         this.rewardController = rewardController;
+        this.economySuggestions = null;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public WorkspaceTemplateController(JdbcTemplate db, TemplateCatalogService catalog,
+                                       TaskDefinitionRepository taskDefinitions,
+                                       RewardDefinitionRepository rewardDefinitions,
+                                       TaskController taskController, RewardController rewardController,
+                                       com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService economySuggestions) {
+        this.db = db;
+        this.catalog = catalog;
+        this.taskDefinitions = taskDefinitions;
+        this.rewardDefinitions = rewardDefinitions;
+        this.taskController = taskController;
+        this.rewardController = rewardController;
+        this.economySuggestions = economySuggestions;
     }
 
     public record PrivateTemplate(Long id, String kind, String title, String definitionJson,
@@ -231,6 +248,13 @@ public class WorkspaceTemplateController {
             if (!form.hasNonNull("defaultDurationMinutes") && source.hasNonNull("durationMinutes"))
                 form.set("defaultDurationMinutes", source.get("durationMinutes").deepCopy());
             resolveCurrency(workspaceId, source, form, "currencyCode", "pointTypeId");
+        }
+        // Suggestions are display-only. They never mutate request fields or
+        // turn an unset price into a zero-cost reward.
+        String catalogCode = template.definition().path("code").asText(null);
+        if (economySuggestions != null && catalogCode != null) {
+            JsonNode suggestion = economySuggestions.findSuggestion(template.kind(), catalogCode);
+            if (suggestion != null) output.set("economySuggestion", suggestion);
         }
         output.put("requiresConfirmation",true);
         return output;
