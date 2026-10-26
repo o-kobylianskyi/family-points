@@ -471,3 +471,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 
 ## 2026-10-26 — Coordinated sprint assignment (ANDROID)
 **Source of truth:** `docs/coordination/CURRENT_PRIORITY_SPRINT.md`. **P0:** maintain green Gradle; test template catalog 142 entries/six packs/description, selected import and no duplicate, TASK/REWARD draft time duration after Backend P0. **P1:** real Huawei DEV tests two-family isolation, offline safety and localized view; fix current failures as a package. BKL-008 timer alerts and BKL-009 app launcher stay next phase, not parallel now.
+
+## 2026-10-26 — P0 Android template contract repair (sprint)
+- Inspected authoritative Backend WorkspaceTemplateController.TemplateRequest: PUT /workspaces/{workspaceId}/templates/{id} requires `title`, `definitionJson`, **`kind`**. Android previously omitted kind, causing validation HTTP 400. Fixed TemplateApi and TemplateRepository and passed existing kind through editor in commits 882cb21, 1bb83b8, 4d9831a.
+- Backend PrivateTemplate response includes `catalogCode` and `catalogVersion`. Android now deserializes these fields, and displays an already-imported label using exact `catalogCode` equality; no heuristic title/JSON matching. All copy operations still require explicit selected-codes preview/import, and never create active task/reward/history.
+- Contract inspected from main. CI for the latest Kotlin SHA and DEV Huawei handset regression **not confirmed**; previous Actions 40389295693 succeeded Android but predates these changes. CI proof and on-device QA are required before candidate release; no APK/BETA publish.
