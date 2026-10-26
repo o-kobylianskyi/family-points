@@ -363,4 +363,43 @@ class WorkspaceTemplateControllerTest {
         assertTrue(draft.path("requiresConfirmation").asBoolean());
         verify(db,never()).update(anyString(),any(Object[].class));
     }
+
+    @Test void explicitEconomyApplyRequiresActiveFamilyPointsAndDoesNotWrite() {
+        var catalog=new TemplateCatalogService();
+        var economy=new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
+        var scoped=new WorkspaceTemplateController(db,catalog,tasks,rewards,
+                mock(TaskController.class),mock(RewardController.class),economy);
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(81L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Cartoons",
+                        """
+                        {"code":"fp.reward.time.002","definition":{"rewardKind":"TIME","durationMinutes":30}}
+                        """}));
+        when(db.query(contains("SELECT id FROM point_types WHERE family_id=? AND code='POINTS'"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(1L)))
+                .thenReturn(List.of(7L));
+        var draft=scoped.applyEconomySuggestion(1L,81L);
+        assertEquals(45,draft.path("request").path("priceAmount").asInt());
+        assertEquals(7L,draft.path("request").path("pointTypeId").asLong());
+        assertTrue(draft.path("requiresConfirmation").asBoolean());
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
+
+    @Test void missingFamilyCurrencyCannotApplySuggestedRewardPrice() {
+        var catalog=new TemplateCatalogService();
+        var economy=new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
+        var scoped=new WorkspaceTemplateController(db,catalog,tasks,rewards,
+                mock(TaskController.class),mock(RewardController.class),economy);
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(82L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Cartoons",
+                        """
+                        {"code":"fp.reward.time.002","definition":{"rewardKind":"TIME","durationMinutes":30}}
+                        """}));
+        when(db.query(contains("SELECT id FROM point_types WHERE family_id=? AND code='POINTS'"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(1L)))
+                .thenReturn(List.of());
+        assertThrows(ResponseStatusException.class,()->scoped.applyEconomySuggestion(1L,82L));
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
 }
