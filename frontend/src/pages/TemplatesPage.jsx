@@ -142,7 +142,7 @@ export default function TemplatesPage() {
       if (workspaceRef.current === originWorkspace && requestGeneration.current === generation) { actionLock.current = false; setBusy(false) }
     }
   }
-  const refresh = async () => { const id = workspaceId; const items = await getPrivateTemplates(getAccessToken(), id); if (workspaceRef.current === id) setPrivateItems(items) }
+  const refresh = async () => { const id = workspaceId; const generation = requestGeneration.current; const items = await getPrivateTemplates(getAccessToken(), id); if (workspaceRef.current === id && requestGeneration.current === generation) setPrivateItems(items) }
   const chooseEdit = item => { editingRef.current = item.id; setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
   const validDefinition = (() => { try { return definition.length <= 30000 && !Array.isArray(JSON.parse(definition)) && JSON.parse(definition) !== null && typeof JSON.parse(definition) === 'object' } catch { return false } })()
   const validDraft = (() => { try { const value = JSON.parse(draftText); return value !== null && typeof value === 'object' && !Array.isArray(value) && draftText.length <= 30000 } catch { return false } })()
@@ -221,7 +221,7 @@ export default function TemplatesPage() {
       <p>{selectedNewCodes.length} / {packItems.length} · {({uk:'Нових доступно',ru:'Новых доступно',de:'Neue verfügbar',en:'New available'})[lang] || 'New available'}: {visibleNewCount}</p>
       <div className="modal-actions">
         <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>{selectionRevision.current += 1;setSelected([]);setPreview(null);setPreviewSelection(null)}}>{l[7]}</button>
-        <button type="button" className="secondary-button" disabled={busy || !selectedNewCodes.length} onClick={()=>execute(async()=>{const revision=selectionRevision.current;const origin=workspaceId;const requestedCodes = [...selectedNewCodes];const result=await previewTemplateImport(getAccessToken(),workspaceId,requestedCodes);if(workspaceRef.current===origin && selectionRevision.current===revision){setPreview(result);setPreviewSelection(requestedCodes)}})}>{l[5]}</button>
+        <button type="button" className="secondary-button" disabled={busy || !selectedNewCodes.length} onClick={()=>execute(async()=>{const revision=selectionRevision.current;const origin=workspaceId;const requestedCodes = [...selectedNewCodes];const result=await previewTemplateImport(getAccessToken(),workspaceId,requestedCodes);if(workspaceRef.current===origin && requestGeneration.current===generation && selectionRevision.current===revision){setPreview(result);setPreviewSelection(requestedCodes)}})}>{l[5]}</button>
       </div>
       {preview && <div className="settings-section">
         <p>{l[8]}: {(preview.alreadyImported || []).join(', ') || '—'}</p>
@@ -244,13 +244,14 @@ export default function TemplatesPage() {
         <button type="button" className="secondary-button" disabled={busy} onClick={() => execute(async () => {
           const origin = workspaceId
           const itemId = editing.id
+          const generation = requestGeneration.current
           const token = getAccessToken()
           const [draft, members, types] = await Promise.all([
             getTemplateCreationDraft(token, origin, itemId),
             getWorkspaceMembers(token, origin),
             getPointTypes(token, origin)
           ])
-          if (workspaceRef.current === origin && editingRef.current === itemId) { setCreationDraft(draft); setDraftText(JSON.stringify(draft.request, null, 2)); setDraftMembers(Array.isArray(members) ? members : []); setDraftPointTypes(Array.isArray(types) ? types.filter(type => type.active !== false) : []) }
+          if (workspaceRef.current === origin && requestGeneration.current === generation && editingRef.current === itemId) { setCreationDraft(draft); setDraftText(JSON.stringify(draft.request, null, 2)); setDraftMembers(Array.isArray(members) ? members : []); setDraftPointTypes(Array.isArray(types) ? types.filter(type => type.active !== false) : []) }
         })}>{({uk:'Переглянути чернетку створення',ru:'Просмотреть черновик создания',de:'Erstellungsentwurf prüfen',en:'Preview creation draft'})[lang] || 'Preview creation draft'}</button>
       </div>}
       {creationDraft && editing && creationDraft.templateId === editing.id && <div className="settings-section">
