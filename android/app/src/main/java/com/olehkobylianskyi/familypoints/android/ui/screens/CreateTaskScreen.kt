@@ -758,6 +758,7 @@ fun CreateTaskScreen(
         referenceData?.let { data ->
             item {
                 ParticipantSection(
+                    language = language,
                     title = text.administrators,
                     members = data.members,
                     groups = emptyList(),
@@ -776,6 +777,7 @@ fun CreateTaskScreen(
 
             item {
                 ParticipantSection(
+                    language = language,
                     title = text.observers,
                     members = data.members,
                     groups = emptyList(),
@@ -794,6 +796,7 @@ fun CreateTaskScreen(
 
             item {
                 ParticipantSection(
+                    language = language,
                     title = text.executors,
                     members = data.members,
                     groups = data.groups,
@@ -1016,6 +1019,7 @@ private fun CheckRow(
 
 @Composable
 private fun ParticipantSection(
+    language: AppLanguage,
     title: String,
     members: List<WorkspaceMemberResponse>,
     groups: List<MemberGroupSummary>,
@@ -1023,37 +1027,45 @@ private fun ParticipantSection(
     includeGroups: Boolean,
     onToggle: (String) -> Unit
 ) {
+    var expanded by remember(title) { mutableStateOf(false) }
+    val options = members.map { ("MEMBER:" + it.id) to it.name } +
+        (if (includeGroups) groups.map { ("GROUP:" + it.id) to ("👥 " + it.name) }
+         else emptyList())
+    val ordered = options.sortedBy { if (it.first in selected) 0 else 1 }
+    val visible = if (expanded || ordered.size <= 3) ordered else ordered.take(3)
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            members.forEach { member ->
-                val key = "MEMBER:" + member.id
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                if (options.isNotEmpty()) {
+                    Text("${options.count { it.first in selected }}/${options.size}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            visible.forEach { (key, name) ->
                 CheckRow(
                     checked = key in selected,
-                    label = member.name,
-                    onCheckedChange = {
-                        onToggle(key)
-                    }
+                    label = name,
+                    onCheckedChange = { onToggle(key) }
                 )
             }
-
-            if (includeGroups) {
-                groups.forEach { group ->
-                    val key = "GROUP:" + group.id
-                    CheckRow(
-                        checked = key in selected,
-                        label = "👥 " + group.name,
-                        onCheckedChange = {
-                            onToggle(key)
-                        }
-                    )
+            if (options.size > 3) {
+                TextButton(onClick = { expanded = !expanded }) {
+                    Text(if (expanded) when (language) {
+                        AppLanguage.UK -> "Згорнути"
+                        AppLanguage.DE -> "Weniger anzeigen"
+                        AppLanguage.EN -> "Show less"
+                        AppLanguage.RU -> "Свернуть"
+                    } else (when (language) {
+                        AppLanguage.UK -> "Показати всі"
+                        AppLanguage.DE -> "Alle anzeigen"
+                        AppLanguage.EN -> "Show all"
+                        AppLanguage.RU -> "Показать все"
+                    }) + " (${options.size})")
                 }
             }
         }
