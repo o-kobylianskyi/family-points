@@ -79,4 +79,16 @@ class WorkspaceDataResetPreviewControllerTest {
         assertNotNull(annotation);
         assertTrue(annotation.value().contains("canManageWorkspace"));
     }
+
+    @Test void dependencyInspectionIsReadOnlyAndRequiresExistingWorkspace() {
+        JdbcTemplate db=mock(JdbcTemplate.class);
+        when(db.queryForObject(contains("FROM families"),eq(Integer.class),eq(7L))).thenReturn(1);
+        when(db.query(contains("FROM pg_catalog.pg_constraint"),
+                any(org.springframework.jdbc.core.RowMapper.class))).thenReturn(java.util.List.of());
+        var data=new WorkspaceDataResetPreviewController(db).dependencies(7L);
+        assertTrue(data.isEmpty());
+        verify(db,never()).update(anyString(),any(Object[].class));
+        verify(db).query(contains("FROM pg_catalog.pg_constraint"),
+                any(org.springframework.jdbc.core.RowMapper.class));
+    }
 }
