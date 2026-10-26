@@ -206,3 +206,9 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 
 ## 2026-10-26 — Current BETA architecture dispatch
 Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **QA:** P0 end-to-end authorized disposable-family reset → wizard → one template import; tenant/ledger/currency/replay guards. Economy v0.7 preliminarily accepted for DEV; reset BKL-002 mandatory before next BETA, not an authorization to erase any family.
+
+
+## 2026-10-26 — TPL-05 structural tenant-isolation probe
+- Live read-only DEV SQL confirms 3 private TASK templates all in workspace 1; no other workspace private rows. TPL-08 fp.reward.time.002 still absent. template_activation_requests=0, point_transactions=188, reward_definitions=3.
+- pg_constraint confirms workspace_private_templates.workspace_id FK -> families(id) ON DELETE CASCADE; activation_requests primary key (workspace_id,operation_id), separate FK (workspace_id) -> families(id), FK (template_id) -> private_templates(id). The latter is not a composite tenant+template FK, so DB constraints alone cannot certify matching tenants. Source/API negative cross-family test remains required; no breach reproduced.
+- TPL-05 DB structural checks PASS, end-to-end authorization PENDING. No DB mutations.
