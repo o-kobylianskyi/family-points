@@ -613,3 +613,7 @@ Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat pri
 ## 2026-10-26 — Late Architecture dispatch / Web preflight (P1)
 - Read `docs/coordination/DISPATCH_20261026_LATE.md`. Implemented local-only preflight in template creation drafts: null reward price is explicitly unresolved, not automatically free/zero; require nonnegative whole-number price, TASK recurrence, basic ISO start-date shape, display four-language preliminary readiness status when no warnings. Commit `f44ee91`.
 - No activate-task/activate-reward POST wired; no ledger writes. Architecture explicitly directs Web not to activate pending Backend/QA acceptance. Need real browser DEV QA (family scoped selectors, null price, TIME duration, overlapping-pack import), current commit CI confirmation. New BETA release is Release-owned.
+
+## 2026-10-26 — WEB pack-overlap selection regression packet
+- Corrected global catalog pack view counters to use displayed pack items, not all 142 templates. Preview request now uses only selected not-yet-imported template codes, excluding already-imported entries even if a previous selection contained them; same filtered snapshot drives preview confirmation. Commit `80838afd`. Prevents redundant import attempts across overlapping packs (TPL-03A). No activation or BETA changes.
+- Browser DEV API E2E and latest CI still require confirmation; backend owns unique constraint/idempotent imports.
