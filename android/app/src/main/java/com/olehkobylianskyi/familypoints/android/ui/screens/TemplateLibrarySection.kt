@@ -172,6 +172,13 @@ fun TemplateLibrarySection(
                     AppLanguage.EN -> "en"
                     AppLanguage.RU -> "ru"
                 }) ?: item.title?.get("en") ?: item.code
+                val lang = when(language) {
+                    AppLanguage.UK -> "uk"
+                    AppLanguage.DE -> "de"
+                    AppLanguage.EN -> "en"
+                    AppLanguage.RU -> "ru"
+                }
+                val description = item.description?.get(lang) ?: item.description?.get("en").orEmpty()
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Checkbox(checked = item.code in selected, enabled = canManage && !busy && !loading && catalogLoaded && libraryLoaded,
                         onCheckedChange = { yes ->
@@ -182,6 +189,7 @@ fun TemplateLibrarySection(
                     Column {
                         Text(title)
                         Text(item.kind, style = MaterialTheme.typography.bodySmall)
+                        if (description.isNotBlank()) Text(description, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
