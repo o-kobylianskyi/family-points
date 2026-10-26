@@ -621,3 +621,6 @@ Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat pri
 ## 2026-10-26 — Web template tenant-switch async isolation
 - Added request generation invalidation on workspace change; stale initial catalog/private-library responses, errors and operation completion no longer update newly selected family's view. Reset busy/action-lock when changing family rather than keeping an old operation blocking new requests. Added editingRef guard so slow creation-draft response for previously selected template cannot overwrite newly selected draft in same family. Commit `1bd6fa3`.
 - No Backend/API writes added; server remains authoritative for tenant permission checks. CI and real browser multi-family race QA pending; BETA unchanged.
+
+## 2026-10-26 — User reprioritization: reset BEFORE next BETA, economy v0.7 IN DEVELOPMENT
+Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous parked status of BKL-002. **WEB:** P0 selective reset preview/checklist/confirmation and first-run 142/6 template import; economy v0.7 configurable suggestion display, null != 0. Planning/assignment only: no data deletion authorized.
