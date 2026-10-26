@@ -260,6 +260,39 @@ public class WorkspaceTemplateController {
         return output;
     }
 
+    /**
+     * Explicit preview action only. The caller opts in by requesting this
+     * endpoint; it never saves, activates or changes existing definitions.
+     * Unset amounts remain unset rather than becoming zero-cost rewards.
+     */
+    @PostMapping("/{templateId}/creation-draft/apply-economy-suggestion")
+    public JsonNode applyEconomySuggestion(@PathVariable Long workspaceId,
+                                            @PathVariable Long templateId) {
+        ObjectNode draft = (ObjectNode) creationDraft(workspaceId, templateId);
+        JsonNode suggestion = draft.path("economySuggestion");
+        if (!suggestion.isObject() || !"OPTIONAL_SUGGESTION".equals(suggestion.path("pricingState").asText()))
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "No applicable numerical recommendation for this template");
+        String kind = draft.path("kind").asText();
+        String sourceAmount = "TASK".equals(kind) ? "suggestedRewardPoints" : "suggestedPricePoints";
+        String targetAmount = "TASK".equals(kind) ? "rewardAmount" : "priceAmount";
+        if (!suggestion.path(sourceAmount).isIntegralNumber())
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Recommendation has no price");
+        String targetCurrency = "TASK".equals(kind) ? "rewardPointTypeId" : "pointTypeId";
+        var ids = db.query("""
+                SELECT id FROM point_types WHERE family_id=? AND code='POINTS' AND active=true
+                """,(rs,i)->rs.getLong(1), workspaceId);
+        if (ids.size()!=1)
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Active POINTS currency required to apply suggestion");
+        ObjectNode request = (ObjectNode) draft.path("request");
+        request.set(targetAmount, suggestion.get(sourceAmount).deepCopy());
+        request.put(targetCurrency,ids.get(0));
+        draft.put("suggestionAppliedToDraft",true);
+        draft.put("requiresConfirmation",true);
+        return draft;
+    }
+
     private void resolveCurrency(Long workspaceId, JsonNode source, ObjectNode form,
                                  String sourceKey, String targetKey) {
         form.putNull(targetKey);
