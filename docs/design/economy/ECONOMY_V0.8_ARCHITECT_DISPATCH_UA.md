@@ -31,3 +31,11 @@
 5. Після рішення Архітектора — окремий затверджений версійний preset, а не редагування історичних приватних шаблонів.
 
 **Реліз і DEV deployment цим аудитом не підтверджені.**
+
+## 2026-10-26 — User preliminary approval of economy
+**Decision by user:** economy proposal is **PRELIMINARILY APPROVED** as the working baseline for Architecture/Backend integration design. This supersedes the previous `review-only` gate for planning, **but is not a final numeric rate/price sign-off or authorization to mutate workspaces or balances**.
+- Keep separate difficulty and duration; allow administrator editing of suggested amounts/prices.
+- The v0.8 per-code mapping is the baseline for integration review, not active data migration.
+- Architecture/Backend must validate DTO, null semantics, reward restrictions, exact-once ledger accrual and existing-family preservation before publishing a versioned preset.
+- Do not automatically enable point rewards for basic needs, school, family contact, or adult schedules.
+- Existing `catalog-v1.json`, private templates, wallets, ledger and BETA remain unchanged pending implementation and QA.
