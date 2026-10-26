@@ -170,3 +170,8 @@
 - Parsed current catalog-v1.json: 142 templates, no definition.source vs kind mismatches, no invalid code/version fields, no invalid TIME duration.
 - 65 templates appear in no starter pack; 32 appear in multiple packs. Cross-pack overlap is an explicit QA regression risk: selecting overlapping packs must yield one private record per (workspace_id,catalog_code), not one per pack; verify through authenticated DEV import and API list when compatible build is available. Neither condition alone is classified a defect.
 - All 32 reward definitions have priceAmount null; null means unset/not free. Do not auto-activate as free or infer prices. This is source-only PASS, not UI/API acceptance.
+
+
+## 2026-10-26 — TPL-03A overlapping starter packs source audit
+- Cross-compared all six packs from current catalog-v1.json. early_school vs mixed_age have exactly 32 shared of 32 entries each (identical membership); early_school vs older_children share 31/32 (union 33); preschool vs early_school share 24 (union 40). Six pack-pairs overlap; adult_personal and family_shared have no overlap in inspected combinations.
+- Proposed DEV authenticated API test TPL-03A: selecting both early_school + mixed_age must import only 32 workspace-private catalog codes, repeat import adds 0, and ledger/reward-purchase/task-definition counts remain unchanged. These are expectations, NOT a performed HTTP PASS. Designer to confirm identical packs are intentional rather than catalogue curation oversight. No DB changes.
