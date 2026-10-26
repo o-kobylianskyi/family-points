@@ -4,7 +4,6 @@
     "increase": "Increase value {{field}}",
     "decrease": "Decrease value {{field}}"
   },
-
   "common": {
     "loading": "Loading...",
     "logout": "Log out",
@@ -505,7 +504,13 @@
     "name": "Family name",
     "ownerName": "Your name",
     "create": "Create family",
-    "logout": "Log out"
+    "logout": "Log out",
+    "networkError": "Cannot connect to the server. Check your connection or DEV Backend availability and retry.",
+    "serverError": "The server is temporarily unavailable. Try again later.",
+    "sessionExpired": "Session expired. Please sign in again.",
+    "forbidden": "You do not have access to this family.",
+    "notFound": "Family not found. Refresh the list.",
+    "conflict": "Data changed. Please try again."
   },
   "workspaceUi": {
     "brandSubtitle": "Family workspace",
