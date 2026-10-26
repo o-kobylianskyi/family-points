@@ -20,155 +20,160 @@
       "key": "hygiene",
       "concept": "Toothbrush and water drop",
       "kind": "TASK",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "routine",
       "concept": "Checklist with checkmark",
       "kind": "TASK",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "chores",
       "concept": "Broom and tidy shelf",
       "kind": "TASK",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "school",
       "concept": "Book and pencil",
       "kind": "TASK",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "reading",
       "concept": "Open book",
       "kind": "TASK",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "activity",
       "concept": "Shoe and movement arc",
       "kind": "TASK",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "creativity",
       "concept": "Paint palette",
       "kind": "TASK",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "social",
       "concept": "Two hands supporting",
       "kind": "TASK",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "habits",
       "concept": "Calendar with check",
       "kind": "TASK",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "family",
       "concept": "House with connected hearts",
       "kind": "TASK",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "adult",
       "concept": "Planner and clock",
       "kind": "TASK",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "reward-time",
       "concept": "Stopwatch with play",
       "kind": "REWARD",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "reward-privilege",
       "concept": "Ticket with star",
       "kind": "REWARD",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "reward-activity",
       "concept": "Board-game pieces",
       "kind": "REWARD",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "reward-items",
       "concept": "Wrapped gift",
       "kind": "REWARD",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "reward-family",
       "concept": "Two hands around heart",
       "kind": "REWARD",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "reward-app",
       "concept": "Phone with app grid (future contract)",
       "kind": "FUTURE",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     },
     {
       "key": "reward-achievement",
       "concept": "Medal/check (provisional)",
       "kind": "FUTURE",
-      "approved": false,
+      "approved": true,
       "mediaCatalogKey": null,
-      "assetStatus": "NOT_CREATED"
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
     }
   ],
   "reviewBatch": {
-    "version": "v1 concept sheet",
-    "status": "VISUAL_CONCEPTS_RENDERED_NOT_PRODUCTION_ASSETS",
+    "version": "v3 SVG vector",
+    "status": "USER_VISUAL_APPROVED_TECHNICAL_ALPHA_PASS",
     "total": 18,
-    "format": "comparison sheet with separately cropped concept previews",
-    "transparentPNGVerified": false,
-    "lightDarkIndependentAssetsVerified": false,
-    "smallSizeQA": "PENDING",
-    "catalogMappingsAllowed": false
+    "svgCount": 18,
+    "pngCount": 54,
+    "lightDarkPreview": true,
+    "mediaCatalogIntegrated": false
+  },
+  "userApproval": {
+    "status": "APPROVED",
+    "date": "2026-10-26",
+    "scope": "v3 vector icon visual design, 18 icons",
+    "releaseAuthorization": false
   }
 }
