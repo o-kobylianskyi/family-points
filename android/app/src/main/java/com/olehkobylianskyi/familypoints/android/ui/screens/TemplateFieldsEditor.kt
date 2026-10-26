@@ -77,13 +77,24 @@ internal fun TemplateFieldsEditor(
     @Composable
     fun choice(key: String, title: String, choices: List<String>) {
         var opened by remember { mutableStateOf(false) }
+        fun display(option: String): String = when (option) {
+            "NONE" -> label("Не задано", "Nicht festgelegt", "Not set", "Не задано")
+            "ONCE" -> label("Один раз", "Einmal", "Once", "Один раз")
+            "DAILY" -> label("Щодня", "Täglich", "Daily", "Ежедневно")
+            "WEEKLY" -> label("Щотижня", "Wöchentlich", "Weekly", "Еженедельно")
+            "MONTHLY" -> label("Щомісяця", "Monatlich", "Monthly", "Ежемесячно")
+            "STANDARD" -> label("Звичайна", "Standard", "Standard", "Обычная")
+            "TIME" -> label("Часова", "Zeitbasiert", "Timed", "Временная")
+            "ITEM" -> label("Предмет", "Gegenstand", "Item", "Предмет")
+            else -> option
+        }
         Column {
             Text(title, style = MaterialTheme.typography.labelMedium)
             OutlinedButton(enabled = enabled, onClick = { opened = true },
-                modifier = Modifier.fillMaxWidth()) { Text(value(key).ifEmpty { "—" } + " ▾") }
+                modifier = Modifier.fillMaxWidth()) { Text(display(value(key).ifEmpty { "NONE" }) + " ▾") }
             DropdownMenu(expanded = opened, onDismissRequest = { opened = false }) {
                 choices.forEach { option ->
-                    DropdownMenuItem(text = { Text(option) }, onClick = {
+                    DropdownMenuItem(text = { Text(display(option)) }, onClick = {
                         change(key, option)
                         opened = false
                     })
@@ -103,7 +114,7 @@ internal fun TemplateFieldsEditor(
         if (kind == "TASK") {
             field("category", label("Категорія", "Kategorie", "Category", "Категория"))
             choice("recurrenceType", label("Повторення", "Wiederholung", "Recurrence", "Повторение"),
-                listOf("ONCE", "DAILY", "WEEKLY", "MONTHLY"))
+                listOf("NONE", "ONCE", "DAILY", "WEEKLY", "MONTHLY"))
             field("dueTime", label("Час (HH:mm)", "Uhrzeit (HH:mm)", "Time (HH:mm)", "Время (HH:mm)"))
             field("rewardAmount", label("Бали за виконання", "Aufgabenpunkte", "Task points", "Баллы за выполнение"), numeric = true)
             field("penaltyAmount", label("Штрафні бали", "Strafpunkte", "Penalty points", "Штрафные баллы"), numeric = true)
