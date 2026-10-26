@@ -212,3 +212,9 @@ Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **QA:** P0 end-to-en
 - Live read-only DEV SQL confirms 3 private TASK templates all in workspace 1; no other workspace private rows. TPL-08 fp.reward.time.002 still absent. template_activation_requests=0, point_transactions=188, reward_definitions=3.
 - pg_constraint confirms workspace_private_templates.workspace_id FK -> families(id) ON DELETE CASCADE; activation_requests primary key (workspace_id,operation_id), separate FK (workspace_id) -> families(id), FK (template_id) -> private_templates(id). The latter is not a composite tenant+template FK, so DB constraints alone cannot certify matching tenants. Source/API negative cross-family test remains required; no breach reproduced.
 - TPL-05 DB structural checks PASS, end-to-end authorization PENDING. No DB mutations.
+
+
+## 2026-10-26 — New private REWARD import and TPL-05 user walkthrough
+- User responded ++ to TPL-05 family switching walkthrough, with no reported visible cross-family leak; browser HTTP denial not independently observed, so security API test stays PENDING.
+- New read-only DEV observation: workspace 1 now holds 3 TASK and 1 REWARD private template. New id 4 code fp.reward.activity.020, ITEM reward 'Кулінарний вечір разом', definition.priceAmount=null, durationMinutes=null. Activation request count 0, reward_definitions=3 and reward_purchases=47 unchanged. Private import did not auto-activate reward. No other workspace private templates.
+- TPL-08 fp.reward.time.002 still not imported; cannot validate TIME 30-minute draft. No QA data mutation.
