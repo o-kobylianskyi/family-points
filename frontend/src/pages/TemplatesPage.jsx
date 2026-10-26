@@ -99,17 +99,23 @@ export default function TemplatesPage() {
   const [busy, setBusy] = useState(false)
   const actionLock = useRef(false)
   const selectionRevision = useRef(0)
+  const requestGeneration = useRef(0)
+  const editingRef = useRef(null)
   const workspaceRef = useRef(workspaceId)
+  if (workspaceRef.current !== workspaceId) { requestGeneration.current += 1; actionLock.current = false }
   workspaceRef.current = workspaceId
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   useEffect(() => {
     let alive = true
+    const generation = requestGeneration.current
+    setBusy(false)
+    editingRef.current = null
     setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setError(''); setNotice('')
     if (!workspaceId) return () => { alive = false }
     Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
-      .then(([a,b]) => { if (alive) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
-      .catch(e => { if (alive) setError(e) })
+      .then(([a,b]) => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
+      .catch(e => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) setError(e) })
     return () => { alive = false }
   }, [workspaceId, getAccessToken])
   const importedCodes = new Set(privateItems.map(item => item.catalogCode).filter(Boolean))
@@ -130,14 +136,14 @@ export default function TemplatesPage() {
     if (actionLock.current) return
     actionLock.current = true
     const originWorkspace = workspaceId
+    const generation = requestGeneration.current
     setBusy(true); setError(''); setNotice('')
-    try { await action() } catch(e) { if (workspaceRef.current === originWorkspace) setError(e) } finally {
-      actionLock.current = false
-      if (workspaceRef.current === originWorkspace) setBusy(false)
+    try { await action() } catch(e) { if (workspaceRef.current === originWorkspace && requestGeneration.current === generation) setError(e) } finally {
+      if (workspaceRef.current === originWorkspace && requestGeneration.current === generation) { actionLock.current = false; setBusy(false) }
     }
   }
   const refresh = async () => { const id = workspaceId; const items = await getPrivateTemplates(getAccessToken(), id); if (workspaceRef.current === id) setPrivateItems(items) }
-  const chooseEdit = item => { setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
+  const chooseEdit = item => { editingRef.current = item.id; setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
   const validDefinition = (() => { try { return definition.length <= 30000 && !Array.isArray(JSON.parse(definition)) && JSON.parse(definition) !== null && typeof JSON.parse(definition) === 'object' } catch { return false } })()
   const validDraft = (() => { try { const value = JSON.parse(draftText); return value !== null && typeof value === 'object' && !Array.isArray(value) && draftText.length <= 30000 } catch { return false } })()
   const draftWarnings = (() => {
@@ -244,7 +250,7 @@ export default function TemplatesPage() {
             getWorkspaceMembers(token, origin),
             getPointTypes(token, origin)
           ])
-          if (workspaceRef.current === origin && editing?.id === itemId) { setCreationDraft(draft); setDraftText(JSON.stringify(draft.request, null, 2)); setDraftMembers(Array.isArray(members) ? members : []); setDraftPointTypes(Array.isArray(types) ? types.filter(type => type.active !== false) : []) }
+          if (workspaceRef.current === origin && editingRef.current === itemId) { setCreationDraft(draft); setDraftText(JSON.stringify(draft.request, null, 2)); setDraftMembers(Array.isArray(members) ? members : []); setDraftPointTypes(Array.isArray(types) ? types.filter(type => type.active !== false) : []) }
         })}>{({uk:'Переглянути чернетку створення',ru:'Просмотреть черновик создания',de:'Erstellungsentwurf prüfen',en:'Preview creation draft'})[lang] || 'Preview creation draft'}</button>
       </div>}
       {creationDraft && editing && creationDraft.templateId === editing.id && <div className="settings-section">
@@ -278,7 +284,7 @@ export default function TemplatesPage() {
         <div className="modal-actions">
           <button className="primary-button" disabled={busy || !validDefinition || Boolean(availabilityError) || !title.trim()} type="submit">{l[10]}</button>
           <button className="secondary-button" disabled={busy} type="button" onClick={()=>{if(window.confirm(l[17]))execute(async()=>{
-            await deletePrivateTemplate(getAccessToken(),workspaceId,editing.id);await refresh();if (workspaceRef.current === workspaceId) setEditing(null)
+            await deletePrivateTemplate(getAccessToken(),workspaceId,editing.id);await refresh();if (workspaceRef.current === workspaceId) { editingRef.current = null; setEditing(null) }
           })}}>{l[11]}</button>
         </div>
       </form>}
