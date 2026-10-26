@@ -509,3 +509,9 @@ Show only relevant fields but never silently discard persisted data; apply categ
 - Asynchronously received import previews now checked against original workspace and selection revision. Changing selected template invalidates previous preview; a late response no longer reinstates it.
 - Definition editor validates that JSON parses as a nonnull object and is <=30k characters before enabling Save (aligned with WorkspaceTemplateController). No active task/reward instantiation or catalog seed additions.
 - Source commit `7aab029c`; manual DEV QA pending. Source still has limitations: global catalog seed empty, raw JSON advanced editor until stable DTO/schema, list/page not independently smoke-tested. BETA remains unchanged.
+
+
+## 2026-10-26 — BKL-001/004/006 DEV template structured editor package 3
+- Added TemplateFieldsEditor.jsx: structured controls for existing TASK/REWARD definition properties (description, recurrence/due time, monetary/reputation amounts, reward kind/limits/approval/duration); only edits keys already present in server-provided JSON, leaving unknown fields untouched. Absent values are NOT invented or converted to new backend schema.
+- Integrated in TemplatesPage private library form; advanced raw JSON retained as expandable fallback. Editing does not create active tasks/rewards. Source commits `83daa7e`, `3234f96`. No EVENT editor until real model, no pack seed. QA should verify edits to existing saved task/reward, reload preservation, invalid payload, unknown fields and cross-workspace isolation.
+- Structured labels currently supplied for uk/en; ru/de fall back to English pending localization completion. CI and browser DEV verification required before claiming pass. BETA untouched.
