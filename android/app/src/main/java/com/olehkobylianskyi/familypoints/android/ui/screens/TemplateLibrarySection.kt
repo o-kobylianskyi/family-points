@@ -45,6 +45,8 @@ fun TemplateLibrarySection(
     var editJson by remember(workspaceId) { mutableStateOf("") }
     var confirmDelete by remember(workspaceId) { mutableStateOf(false) }
     var refresh by remember(workspaceId) { mutableIntStateOf(0) }
+    var catalogLoaded by remember(workspaceId) { mutableStateOf(false) }
+    var libraryLoaded by remember(workspaceId) { mutableStateOf(false) }
     var previewCodes by remember(workspaceId) { mutableStateOf<List<String>>(emptyList()) }
 
     fun failure(e: Exception) {
@@ -60,9 +62,13 @@ fun TemplateLibrarySection(
         previewCodes = emptyList()
         catalog = emptyList()
         library = emptyList()
+        catalogLoaded = false
+        libraryLoaded = false
         try {
             catalog = repository.catalog().templates.orEmpty()
+            catalogLoaded = true
             library = repository.privateTemplates(workspaceId)
+            libraryLoaded = true
         } catch (e: Exception) { failure(e) }
         finally { loading = false }
     }
@@ -100,7 +106,7 @@ fun TemplateLibrarySection(
             item {
                 Text(tl(language, "Рекомендовані шаблони", "Empfohlene Vorlagen", "Suggested templates", "Рекомендуемые шаблоны"),
                     style = MaterialTheme.typography.titleMedium)
-                if (!loading && catalog.isEmpty()) Text(tl(language, "Каталог поки порожній.", "Der Katalog ist noch leer.",
+                if (!loading && catalogLoaded && catalog.isEmpty()) Text(tl(language, "Каталог поки порожній.", "Der Katalog ist noch leer.",
                     "Catalog is empty for now.", "Каталог пока пуст."))
             }
             items(catalog, key = { it.code }) { item ->
@@ -111,7 +117,7 @@ fun TemplateLibrarySection(
                     AppLanguage.RU -> "ru"
                 }) ?: item.title?.get("en") ?: item.code
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Checkbox(checked = item.code in selected, enabled = canManage && !busy && !loading,
+                    Checkbox(checked = item.code in selected, enabled = canManage && !busy && !loading && catalogLoaded && libraryLoaded,
                         onCheckedChange = { yes ->
                             selected = if (yes) selected + item.code else selected - item.code
                             preview = null
@@ -131,7 +137,7 @@ fun TemplateLibrarySection(
                         preview = null
                         previewCodes = emptyList()
                     }) { Text(tl(language, "Очистити", "Leeren", "Clear", "Очистить")) }
-                    Button(enabled = canManage && !busy && !loading && selected.isNotEmpty(), onClick = {
+                    Button(enabled = canManage && !busy && !loading && catalogLoaded && libraryLoaded && selected.isNotEmpty(), onClick = {
                         val codes = selected.sorted()
                         perform {
                             val response = repository.preview(workspaceId, codes)
@@ -149,7 +155,7 @@ fun TemplateLibrarySection(
                     ": " + result.alreadyImported.orEmpty().joinToString().ifBlank { "—" })
                 Text(tl(language, "Будуть додані", "Wird hinzugefügt", "Will be added", "Будут добавлены") +
                     ": " + result.toImport.orEmpty().joinToString().ifBlank { "—" })
-                Button(enabled = canManage && !busy && !loading && previewCodes == selected.sorted() && result.toImport.orEmpty().isNotEmpty(),
+                Button(enabled = canManage && !busy && !loading && catalogLoaded && libraryLoaded && previewCodes == selected.sorted() && result.toImport.orEmpty().isNotEmpty(),
                     onClick = {
                         val codes = previewCodes.toList()
                         perform {
@@ -168,7 +174,7 @@ fun TemplateLibrarySection(
                 HorizontalDivider()
                 Text(tl(language, "Мої шаблони", "Meine Vorlagen", "My templates", "Мои шаблоны"),
                     style = MaterialTheme.typography.titleMedium)
-                if (!loading && library.isEmpty()) Text(tl(language, "Бібліотека порожня.", "Bibliothek ist leer.",
+                if (!loading && libraryLoaded && library.isEmpty()) Text(tl(language, "Бібліотека порожня.", "Bibliothek ist leer.",
                     "Library is empty.", "Библиотека пуста."))
             }
             items(library, key = { it.id }) { item ->
