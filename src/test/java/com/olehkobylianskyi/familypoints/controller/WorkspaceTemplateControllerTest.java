@@ -301,4 +301,25 @@ class WorkspaceTemplateControllerTest {
                 1L,302L,java.util.UUID.randomUUID(),req));
         verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
     }
+
+    @Test void activationEndpointsDeclareBothWorkspaceAndActionPermissions() throws Exception {
+        var type=WorkspaceTemplateController.class;
+        var base=type.getAnnotation(org.springframework.security.access.prepost.PreAuthorize.class);
+        assertNotNull(base);
+        assertTrue(base.value().contains("canManageWorkspace"));
+        var task=type.getMethod("activateTask",Long.class,Long.class,java.util.UUID.class,
+                com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest.class);
+        var reward=type.getMethod("activateReward",Long.class,Long.class,java.util.UUID.class,
+                com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest.class);
+        var taskRule=task.getAnnotation(org.springframework.security.access.prepost.PreAuthorize.class);
+        var rewardRule=reward.getAnnotation(org.springframework.security.access.prepost.PreAuthorize.class);
+        assertNotNull(taskRule);
+        assertNotNull(rewardRule);
+        assertTrue(taskRule.value().contains("canManageWorkspace"));
+        assertTrue(taskRule.value().contains("CREATE_TASKS"));
+        assertTrue(rewardRule.value().contains("canManageWorkspace"));
+        assertTrue(rewardRule.value().contains("MANAGE_REWARDS"));
+        assertNotNull(task.getAnnotation(org.springframework.transaction.annotation.Transactional.class));
+        assertNotNull(reward.getAnnotation(org.springframework.transaction.annotation.Transactional.class));
+    }
 }
