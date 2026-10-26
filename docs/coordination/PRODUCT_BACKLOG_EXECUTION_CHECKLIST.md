@@ -17,6 +17,9 @@
 - [ ] **P1 / DESIGNER + BACKEND — Mandatory initial suggested-template catalog (schema-dependent).** Curated, nonempty suggested task/reward/starter-pack list must ship as versioned global seed content on initial install, usable by onboarding and later Template Library. Designer owns actual sample content, localizations and icons; Backend owns schema, importer, idempotent seed loading and validation; users choose/edit/skip before any workspace instances are created. Do not insert test records into user workspaces. Details: `docs/coordination/requests/DESIGNER_INITIAL_SEED_CONTENT.md`.
 - [ ] **P1 / DESIGNER — Initial seed-content bank (schema-dependent).** After Backend/Architecture approve template schema, prepare age-appropriate task and reward preset collections, first-run family starter packs, UK/DE/EN/RU localizations and matching reviewed icons/artwork; deliver schema-valid versioned seed manifest, no direct DB writes. Brief: `docs/coordination/requests/DESIGNER_INITIAL_SEED_CONTENT.md`.
 
+
+- [ ] **P2 / BKL-010 — Managed device app usage and enforcement (future).** Extend optional app-linked TIME/game rewards with actual Android usage control: timer/session tracking, expiry, supported managed-device blocking/restriction of app relaunch, parent override, offline/reboot protection, capability downgrade disclosure. Standard Android app mode is reminder/launch only where OS restrictions prevent enforcement; Device Owner/managed-device mode may provide stronger controls after privilege and device capability verification. Template catalog must not require app binding, and manual/non-launch rewards remain supported. Dependency: BKL-008 + BKL-009 + Device Management security design.
+
 ## Responsibility / ordered handoff
 
 | Track | Responsibilities | Completion evidence |
