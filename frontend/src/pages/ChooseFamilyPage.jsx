@@ -3,6 +3,17 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 
+function familyErrorMessage(error, t, fallbackKey) {
+  const status = error?.status
+  if (status === 401) return t('familyChoice.sessionExpired')
+  if (status === 403) return t('familyChoice.forbidden')
+  if (status === 404) return t('familyChoice.notFound')
+  if (status === 409) return t('familyChoice.conflict')
+  if (status >= 500) return t('familyChoice.serverError')
+  if (error instanceof TypeError || /failed to fetch|networkerror|network request failed|load failed/i.test(error?.message || '')) return t('familyChoice.networkError')
+  return t(fallbackKey)
+}
+
 export default function ChooseFamilyPage() {
   const { t } = useTranslation()
   const { currentUser, loading, needsWorkspace, getAvailableWorkspaces,
@@ -20,7 +31,7 @@ export default function ChooseFamilyPage() {
     if (!needsWorkspace) return
     let alive = true
     getAvailableWorkspaces().then(value => { if (alive) { setChoices(value); setChoicesLoaded(true); setError('') } })
-      .catch(e => { if (alive) { setChoicesLoaded(false); setError(e.message || t('familyChoice.loadingError')) } })
+      .catch(e => { if (alive) { setChoicesLoaded(false); setError(familyErrorMessage(e, t, 'familyChoice.loadingError')) } })
     return () => { alive = false }
   }, [needsWorkspace, retryKey])
 
@@ -34,7 +45,7 @@ export default function ChooseFamilyPage() {
     try {
       await switchWorkspace(workspaceId)
     } catch (e) {
-      setError(e.message || t('familyChoice.selectionError'))
+      setError(familyErrorMessage(e, t, 'familyChoice.selectionError'))
       setBusy(false)
     }
   }
@@ -46,7 +57,7 @@ export default function ChooseFamilyPage() {
     try {
       await createFirstFamily(familyName, ownerName)
     } catch (e) {
-      setError(e.message || t('familyChoice.creationError'))
+      setError(familyErrorMessage(e, t, 'familyChoice.creationError'))
       setBusy(false)
     }
   }
@@ -54,7 +65,7 @@ export default function ChooseFamilyPage() {
   return <div className="login-page">
     <div className="login-card family-choice-card">
       <h1>{t('familyChoice.title')}</h1>
-      {(error || sessionError) && <p className="error-message" role="alert">{error || sessionError}</p>}
+      {(error || sessionError) && <p className="error-message" role="alert">{error || familyErrorMessage(sessionError, t, 'familyChoice.sessionExpired')}</p>}
       {!choicesLoaded && <button type="button" disabled={busy}
         onClick={() => setRetryKey(value => value + 1)}>{t('familyChoice.retry')}</button>}
       {choicesLoaded && choices.length > 0 ? <>
