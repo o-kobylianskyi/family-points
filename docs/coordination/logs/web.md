@@ -565,3 +565,8 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web templates: localized errors and warnings
 - User reported nonlocalized error/warning text. Updated TemplatesPage to render localized UK/RU/DE/EN messages for invalid JSON, failed network request, HTTP 400/401/403/404/409/413/422, unexpected server errors. UI does not surface arbitrary backend English diagnostic details to family users. Validation errors are stored as errors and translated at render time; language switch updates displayed message. Source commit `f177934`.
 - Existing delete confirmation and reward availability messages already localized in all four languages. No changes to backend or BETA. New Vite CI and DEV browser smoke remain required; broader Web sections should be audited separately.
+
+## 2026-10-26 — Web API errors localization follow-up
+- CI 40386872661 passed after template errors i18n. Audit exposed regression: TemplatesPage catch used `setError(e.message)`, discarding HTTP status needed by localizedTemplateError. Fixed to store original error object (`6bb9bf1`).
+- SettingsPage workspace/account management and own password errors used raw server messages. Added four-language UI error mapping (UK/RU/DE/EN) for 400/401/403/404/409/422, network failures, generic fallback, retaining already-localized client-side validation. Source `d6c84bd`.
+- No Backend/BETA changes; browser DEV language switching + new CI still require confirmation. Further pages/components require separate audit.
