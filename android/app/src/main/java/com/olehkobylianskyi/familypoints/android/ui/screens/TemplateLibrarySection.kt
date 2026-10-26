@@ -200,7 +200,7 @@ fun TemplateLibrarySection(
                         if (duration != null && duration > 0) {
                             Text(
                                 tl(language, "Тривалість: ", "Dauer: ", "Duration: ", "Длительность: ") +
-                                    "$"+"{duration} " + tl(language, "хв", "Min.", "min", "мин"),
+                                    duration.toString() + " " + tl(language, "хв", "Min.", "min", "мин"),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
