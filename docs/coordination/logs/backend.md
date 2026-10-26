@@ -242,3 +242,11 @@ At exact integration SHA `c70d28d9812d13a85e2f6cfd62186fb344aff510`, GitHub Acti
 
 ## 2026-10-26 — Coordinated sprint assignment (BACKEND)
 **Source of truth:** `docs/coordination/CURRENT_PRIORITY_SPRINT.md`. **P0 NOW:** fix failing `WorkspaceTemplateControllerTest.designerTimeRewardDurationMapsToCreationDto` (30 expected, 0 actual) at run 40389295693; inspect imported designer TIME reward mapping and save/create draft. Commit coherent fix+tests, reach green full CI. **P1:** finish template catalog -> private library -> explicit activation contract and idempotency/tenant tests, verify 142 TASK/REWARD seed records, 6 packs and Flyway V39/V40. **P2:** complete BKL-007 API-triggered per-family lazy currency backfill and inherited custom form preservation. No unrelated big feature.
+
+
+## 2026-10-26 — Templates P0 resolution and targeted QA handoff (Backend)
+- Confirmed designer TIME reward duration regression fixed: nested catalog `definition.durationMinutes` maps to DTO `defaultDurationMinutes` (30 minutes preserved); explicit DTO duration takes precedence. Commits `b9995181` and `e05677c5`.
+- Exact full green CI `40390915206` at `e05677c5df06e3ed07e0e31e6042b2017b832f5b` confirmed Java/Postgres Testcontainers, Web, Android debug, Compose SUCCESS.
+- Dedicated TPL-01..TPL-15 acceptance plan: `docs/coordination/requests/TEMPLATES_BACKEND_QA_HANDOFF_20261026.md`. API consumer documentation updated, reflecting real 142 curated entries and six starter packs; economy recommendations remain null until Designer delivers.
+- QA's read-only DEV probes establish Flyway V39/V40 exist but SQL inspection of both private tables is restricted for `fp_dev_mcp`. No blanket SELECT grant issued because it would bypass family-scoped permissions. DEV authenticated API tenant/role/idempotency tests remain PENDING; don't mark QA PASS.
+- Source/CI evidence does not prove DEV deployment SHA, authenticated HTTP smoke, or BETA publication. Await actionable QA defect before additional Backend functional changes; no SQL changes, Production or BETA release performed.
