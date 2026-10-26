@@ -501,3 +501,7 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 ## 2026-10-26 — Kotlin errors in collapsed-list UI: root-cause patch
 - User showed 5 Android Studio compileDebugKotlin errors: CreateTaskScreen TextButton unresolved/composable cascade and RewardsScreen errors. Main source audit identified missing Material3 TextButton imports in both files and omitted `language` at second TaskChecklist call.
 - Fixed in commits 535a250 and d3fb111. Compile/test after fix NOT YET CONFIRMED. Next: pull current main; Gradle :app:assembleDebug :app:testDebugUnitTest, smoke three collapsed lists on emulator; Huawei BETA unchanged.
+
+## 2026-10-26 — User confirmed Gradle PASS after collapsed-list compile fixes
+- Following code commits 535a250 (CreateTaskScreen TextButton import) and d3fb111 (RewardsScreen TextButton import and required language arg), user reran the prescribed Gradle `:app:assembleDebug :app:testDebugUnitTest --console=plain` and reported **BUILD SUCCESSFUL**. This is user-reported local build/test task success, not independent GitHub Actions run; test counts and exact checked-out local SHA not separately supplied.
+- Next QA: Android Studio emulator visual smoke: role set >3, task actor section >3 selected-first and counts, rewards before/after prerequisite checklists >3; expand/collapse and preserve selections, assess viewport/nav bar. Huawei reserved for signed BETA beta.11; no DEV APK on handset.
