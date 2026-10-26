@@ -202,7 +202,8 @@ public class WorkspaceTemplateController {
         if (!List.of("TASK", "REWARD").contains(template.kind()))
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "This template kind cannot create an active definition yet");
-        JsonNode source = template.definition();
+        JsonNode source = template.definition().path("definition").isObject()
+                ? template.definition().path("definition") : template.definition();
         ObjectNode output = json.createObjectNode();
         output.put("templateId", templateId);
         output.put("kind", template.kind());
