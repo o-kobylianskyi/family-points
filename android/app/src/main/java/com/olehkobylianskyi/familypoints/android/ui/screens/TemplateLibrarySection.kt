@@ -250,11 +250,11 @@ fun TemplateLibrarySection(
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = if (descriptionExpanded) Int.MAX_VALUE else 2,
                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                            if (description.length > 85) TextButton(
+                            if (description.length > 85) OutlinedButton(
                                 onClick = { descriptionExpanded = !descriptionExpanded }
                             ) { Text(if (descriptionExpanded)
-                                tl(language, "Менше", "Weniger", "Less", "Меньше")
-                                else tl(language, "Опис", "Beschreibung", "Description", "Описание")) }
+                                tl(language, "Згорнути опис", "Beschreibung einklappen", "Hide description", "Свернуть описание")
+                                else tl(language, "Читати повністю", "Vollständig lesen", "Read more", "Читать полностью")) }
                         }
                     }
                 }
@@ -284,9 +284,16 @@ fun TemplateLibrarySection(
             if (preview != null) item {
                 val result = preview!!
                 Text(tl(language, "Уже збережені", "Bereits vorhanden", "Already saved", "Уже сохранены") +
-                    ": " + result.alreadyImported.orEmpty().joinToString().ifBlank { "—" })
+                    ": " + result.alreadyImported.orEmpty().size)
                 Text(tl(language, "Будуть додані", "Wird hinzugefügt", "Will be added", "Будут добавлены") +
-                    ": " + result.toImport.orEmpty().joinToString().ifBlank { "—" })
+                    ": " + result.toImport.orEmpty().size)
+                if (result.toImport.orEmpty().isEmpty()) {
+                    Text(tl(language, "Усі вибрані шаблони вже збережено. Оберіть інший для імпорту.",
+                        "Alle ausgewählten Vorlagen sind bereits gespeichert. Wählen Sie eine andere.",
+                        "All selected templates are already saved. Choose another to import.",
+                        "Все выбранные шаблоны уже сохранены. Выберите другой для импорта."),
+                        style = MaterialTheme.typography.bodySmall)
+                }
                 Button(enabled = canManage && !busy && !loading && catalogLoaded && libraryLoaded && previewCodes == selected.sorted() && result.toImport.orEmpty().isNotEmpty(),
                     onClick = {
                         val codes = previewCodes.toList()
@@ -321,7 +328,9 @@ fun TemplateLibrarySection(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column(Modifier.weight(1f)) {
                         Text(item.title.orEmpty().ifBlank { "#${item.id}" })
-                        Text(item.kind.orEmpty(), style = MaterialTheme.typography.bodySmall)
+                        Text(if (item.kind == "TASK") tl(language, "Завдання", "Aufgabe", "Task", "Задание")
+                            else tl(language, "Нагорода", "Belohnung", "Reward", "Награда"),
+                            style = MaterialTheme.typography.bodySmall)
                     }
                     if (canManage && item.kind in listOf("TASK", "REWARD")) {
                         TextButton(enabled = !busy && !loading, onClick = {
@@ -412,9 +421,14 @@ fun TemplateLibrarySection(
         }
         AlertDialog(
             onDismissRequest = { if (!busy) editing = null },
-            title = { Text(tl(language, "Редагувати шаблон", "Vorlage bearbeiten", "Edit template", "Редактировать шаблон")) },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text(tl(language, "Параметри шаблону", "Vorlageneinstellungen", "Template settings", "Параметры шаблона")) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(if (current.kind == "TASK") tl(language, "Завдання", "Aufgabe", "Task", "Задание")
+                        else tl(language, "Нагорода", "Belohnung", "Reward", "Награда"),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary)
                     OutlinedTextField(editTitle, { editTitle = it.take(150) },
                         enabled = !busy, modifier = Modifier.fillMaxWidth(),
                         label = { Text(tl(language, "Назва", "Titel", "Title", "Название")) })
