@@ -513,3 +513,6 @@ Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat pri
 - Read docs/coordination/DISPATCH_20261026_LATE.md. Architecture P0: obtain current all-four-jobs green, emulator QA three-row collapsible secondary lists; P1 template import, TIME duration, two-family isolation; do not implement future timers or unapproved economy pricing now.
 - Checked Actions 40398812683: Java, Web, Compose SUCCESS but Android CANCELLED, so that run is NOT full green. User previously reported local Android Gradle BUILD SUCCESSFUL after Kotlin import fixes, distinct evidence.
 - Commit bccdc7c improves RewardsScreen before/after condition checklists: selected prerequisite tasks sort first, selection count displayed alongside heading, selection retained while collapsing. Code change unverified by new build/emulator; user should pull latest main and rerun assembleDebug/testDebugUnitTest. Huawei remains BETA-only.
+
+## 2026-10-26 — User reprioritization: reset BEFORE next BETA, economy v0.7 IN DEVELOPMENT
+Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous parked status of BKL-002. **ANDROID:** P1 safe account-scoped cache/offline handling after reset, refresh onboarding and template suggestions, provisional economy review UI. Planning/assignment only: no data deletion authorized.
