@@ -274,4 +274,31 @@ class WorkspaceTemplateControllerTest {
         assertEquals(45,controller.creationDraft(1L,43L).path("request")
                 .path("defaultDurationMinutes").asInt());
     }
+
+    @Test void foreignFamilyTemplateCannotBeActivatedEvenWithValidLookingRequest() {
+        // The template ID is valid elsewhere, but the scoped lookup must fail.
+        when(db.query(contains("SELECT kind FROM workspace_private_templates"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(301L),eq(2L)))
+                .thenReturn(List.of());
+        var req = new com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest();
+        req.setTitle("Foreign reward");
+        req.setPointTypeId(12L);
+        assertThrows(ResponseStatusException.class, () -> controller.activateReward(
+                2L,301L,java.util.UUID.randomUUID(),req));
+        verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
+        verify(db,never()).queryForObject(contains("FROM point_types"),
+                eq(Integer.class),any(Object[].class));
+    }
+
+    @Test void taskCannotBeActivatedThroughRewardEndpoint() {
+        when(db.query(contains("SELECT kind FROM workspace_private_templates"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(302L),eq(1L)))
+                .thenReturn(List.of("TASK"));
+        var req = new com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest();
+        req.setTitle("Wrong kind");
+        req.setPointTypeId(12L);
+        assertThrows(ResponseStatusException.class, () -> controller.activateReward(
+                1L,302L,java.util.UUID.randomUUID(),req));
+        verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
+    }
 }
