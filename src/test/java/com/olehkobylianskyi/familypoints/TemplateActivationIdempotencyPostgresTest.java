@@ -45,6 +45,16 @@ class TemplateActivationIdempotencyPostgresTest {
                 """;
         assertEquals(1,db.update(claim,familyA,key,templateA,"TASK"));
         assertEquals(0,db.update(claim,familyA,key,templateA,"TASK"));
+        long secondTemplateA=db.queryForObject("""
+                INSERT INTO workspace_private_templates(workspace_id,kind,title,definition_json)
+                VALUES(?,?,?,?) RETURNING id
+                """,Long.class,familyA,"REWARD","Other template","{}");
+        // Reusing an operation key for another template in the SAME workspace
+        // must not claim a second activation, even if its kind differs.
+        assertEquals(0,db.update(claim,familyA,key,secondTemplateA,"REWARD"));
+        // A fresh key is intentionally a separate activation operation.
+        UUID freshKey=UUID.randomUUID();
+        assertEquals(1,db.update(claim,familyA,freshKey,secondTemplateA,"REWARD"));
         assertEquals(1,db.update(claim,familyB,key,templateB,"TASK"));
         UUID rolledBack=UUID.randomUUID();
         assertThrows(IllegalStateException.class,()->tx.executeWithoutResult(status->{
@@ -52,6 +62,6 @@ class TemplateActivationIdempotencyPostgresTest {
             throw new IllegalStateException("Simulated create failure");
         }));
         assertEquals(1,db.update(claim,familyA,rolledBack,templateA,"TASK"));
-        assertEquals(3,db.queryForObject("SELECT count(*) FROM template_activation_requests",Integer.class));
+        assertEquals(4,db.queryForObject("SELECT count(*) FROM template_activation_requests",Integer.class));
     }
 }
