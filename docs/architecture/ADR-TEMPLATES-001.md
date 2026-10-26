@@ -41,3 +41,13 @@ This extends the 2026-10-12 first-run plan, not a parallel second onboarding sys
 
 ## Optional restart after selective family reset (2026-10-24)
 The user also requires an administrator-only **reset family data** settings function with selectable categories to clear/retain, fresh password confirmation and option to rerun this same initial setup wizard. Reset does not recreate Workspace/global UserAccount or affect other families; it preserves admin access, real member mapping unless explicitly selected and catalog version. After server-confirmed reset+workspace generation change, wizard state becomes DRAFT and template packs may be selected and installed again without unintended old provenance dedupe. See ADR-FAMILY-RESET-001, IMP-0009; details are PROPOSED until implemented.
+
+
+## 2026-10-26 — Selective onboarding import into private template library (user requirement)
+- Initial setup shows a curated list of suggested global templates with **independent checkboxes** on every task and reward, and optional pack-level **select all/clear all** as convenience only. No forced import of a whole pack.
+- Selection defaults must be explicit and clear; show selected count and preview. The user can inspect and optionally edit individual templates before confirmation.
+- **Crucial distinction:** confirmed selection copies only the selected template *definitions* to the workspace's **private template library**, not immediately to executable TaskDefinitions or purchasable RewardDefinitions. Creation/activation of live tasks/rewards is a later deliberate action, unless explicitly offered and independently confirmed.
+- Unselected suggestions stay available in the global catalog for later import. A user can skip all without blocking onboarding.
+- Import must be atomic, idempotent per workspace + template key/version and operationId, preserving existing private edits and preventing duplicates. Dependencies must be shown: if a selected template depends on another unselected item, prompt to add the dependency or omit its requirement with explicit consent; never silently insert extra templates.
+- Catalog updates never overwrite user-owned private templates; imported template provenance is retained. Tests cover partial selection, zero selection, different packs, repeat import and cross-workspace isolation.
+- Backend API contract must expose selection identifiers and a preview of the **private-library copy** impact; Web and Android implement the checkbox UI, preview, and explicit confirmation.
