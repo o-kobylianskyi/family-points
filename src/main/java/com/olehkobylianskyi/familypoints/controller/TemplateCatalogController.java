@@ -11,7 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/template-catalog")
 public class TemplateCatalogController {
     private final TemplateCatalogService service;
-    public TemplateCatalogController(TemplateCatalogService service) { this.service = service; }
+    private final com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService economy;
+    public TemplateCatalogController(TemplateCatalogService service,
+            com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService economy) {
+        this.service = service;
+        this.economy = economy;
+    }
+    @GetMapping("/economy-suggestions")
+    public JsonNode getEconomySuggestions() { return economy.getSuggestions(); }
     @GetMapping
     public JsonNode getCatalog() { return service.getCatalog(); }
 }
