@@ -666,3 +666,9 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 
 ## 2026-10-26 — Current BETA architecture dispatch
 Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **WEB:** P0 selective reset UI and guided first-run/template import after Backend contract; preserve family-scoped async state. Economy v0.7 preliminarily accepted for DEV; reset BKL-002 mandatory before next BETA, not an authorization to erase any family.
+
+## 2026-10-26 — Designer 18 category SVG consumer integration checkpoint
+- Read `docs/coordination/requests/DESIGNER_MEDIA_CONSUMER_HANDOFF_20261026.md`, `docs/design/ICON_REGISTRY_CONTRACT_V1.json` and current `EntityMedia.jsx`. Designer has approved 18 category vectors; Backend registration was reported, but DEV/browser Media API results not independently verified.
+- Fixed current Web catalog picker: all 18 new `media.catalog.category.*` label keys now resolve local UK/DE/EN/RU names rather than opaque `category-*` strings; `REWARD` media target now filters reward catalog items rather than incorrectly falling through to FAMILY only. Commit `6140a0b`.
+- Existing TASK target filters TASK/TASK_CATEGORY. Category auto-selection via designer templateCategoryMapping is NOT wired: needs an explicit bound domain target/default precedence rather than rewriting private bindings. Browser 24/48px, dark/light, missing preview, 401/403 and family A/B tests NOT VERIFIED. No deployments, media mutations or automatic economy prices.
+- Next: run exact-head CI and authenticated DEV visual QA; then integrate non-destructive category default icon mapping at a verified component/API boundary.
