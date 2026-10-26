@@ -28,6 +28,7 @@ export default function TemplatesPage() {
   const [selected, setSelected] = useState([])
   const [packFilter, setPackFilter] = useState('ALL')
   const [preview, setPreview] = useState(null)
+  const [previewSelection, setPreviewSelection] = useState(null)
   const [editing, setEditing] = useState(null)
   const [title, setTitle] = useState('')
   const [definition, setDefinition] = useState('')
@@ -40,7 +41,7 @@ export default function TemplatesPage() {
   const [notice, setNotice] = useState('')
   useEffect(() => {
     let alive = true
-    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setPreview(null); setEditing(null); setError('')
+    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setPreview(null); setPreviewSelection(null); setEditing(null); setError('')
     if (!workspaceId) return () => { alive = false }
     Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
       .then(([a,b]) => { if (alive) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
@@ -55,8 +56,9 @@ export default function TemplatesPage() {
     const codes = packItems.map(item => item.code)
     setSelected(current => checked ? [...new Set([...current, ...codes])] : current.filter(code => !codes.includes(code)))
     setPreview(null)
+    setPreviewSelection(null)
   }
-  const toggle = code => { selectionRevision.current += 1; setSelected(v => v.includes(code) ? v.filter(x=>x!==code) : [...v,code]); setPreview(null) }
+  const toggle = code => { selectionRevision.current += 1; setSelected(v => v.includes(code) ? v.filter(x=>x!==code) : [...v,code]); setPreview(null); setPreviewSelection(null) }
   const execute = async action => {
     if (actionLock.current) return
     actionLock.current = true
@@ -101,7 +103,6 @@ export default function TemplatesPage() {
         <button type="button" className="secondary-button" disabled={busy} onClick={() => selectVisible(true)}>{({uk:'Вибрати показані',ru:'Выбрать показанные',de:'Sichtbare auswählen',en:'Select visible'})[lang] || 'Select visible'}</button>
         <button type="button" className="secondary-button" disabled={busy} onClick={() => selectVisible(false)}>{({uk:'Зняти вибір показаних',ru:'Снять выбор показанных',de:'Sichtbare abwählen',en:'Deselect visible'})[lang] || 'Deselect visible'}</button>
       </div>}
-}
       <div className="template-grid">
         {packItems.map(item => <label key={item.code} className="template-card">
           <input type="checkbox" checked={selected.includes(item.code)} onChange={()=>toggle(item.code)} disabled={busy}/>
@@ -110,14 +111,14 @@ export default function TemplatesPage() {
       </div>
       <p>{selected.length} / {(catalog.templates || []).length}</p>
       <div className="modal-actions">
-        <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>{selectionRevision.current += 1;setSelected([]);setPreview(null)}}>{l[7]}</button>
-        <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>execute(async()=>{const revision=selectionRevision.current;const origin=workspaceId;const result=await previewTemplateImport(getAccessToken(),workspaceId,selected);if(workspaceRef.current===origin && selectionRevision.current===revision)setPreview(result)})}>{l[5]}</button>
+        <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>{selectionRevision.current += 1;setSelected([]);setPreview(null);setPreviewSelection(null)}}>{l[7]}</button>
+        <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>execute(async()=>{const revision=selectionRevision.current;const origin=workspaceId;const result=await previewTemplateImport(getAccessToken(),workspaceId,selected);if(workspaceRef.current===origin && selectionRevision.current===revision){setPreview(result);setPreviewSelection([...selected])}})}>{l[5]}</button>
       </div>
       {preview && <div className="settings-section">
         <p>{l[8]}: {(preview.alreadyImported || []).join(', ') || '—'}</p>
         <p>{l[9]}: {(preview.toImport || []).join(', ') || '—'}</p>
-        <button className="primary-button" type="button" disabled={busy || !(preview.toImport || []).length} onClick={()=>execute(async()=>{
-          await importTemplates(getAccessToken(),workspaceId,selected)
+        <button className="primary-button" type="button" disabled={busy || !(preview.toImport || []).length || !previewSelection || previewSelection.join('|') !== selected.join('|')} onClick={()=>execute(async()=>{
+          await importTemplates(getAccessToken(),workspaceId,previewSelection)
           await refresh(); setPreview(null);setSelected([]);setNotice(l[18])
         })}>{l[6]}</button>
       </div>}
