@@ -28,6 +28,15 @@ public class TemplateEconomySuggestionsService {
     }
 
     public JsonNode getSuggestions() { return suggestions.deepCopy(); }
+    public JsonNode findSuggestion(String kind, String catalogCode) {
+        if (catalogCode == null || catalogCode.isBlank()) return null;
+        String collection = "TASK".equals(kind) ? "tasks" : "REWARD".equals(kind) ? "rewards" : null;
+        if (collection == null) return null;
+        for (JsonNode item : suggestions.path(collection))
+            if (catalogCode.equals(item.path("code").asText())) return item.deepCopy();
+        return null;
+    }
+
 
     private static void validate(JsonNode proposal, JsonNode catalog) {
         if (!"familypoints.economy.suggestions.v1".equals(proposal.path("schema").asText())
