@@ -40,6 +40,7 @@ fun TemplateLibrarySection(
     var error by remember(workspaceId) { mutableStateOf("") }
     var notice by remember(workspaceId) { mutableStateOf("") }
     var refresh by remember(workspaceId) { mutableIntStateOf(0) }
+    var previewCodes by remember(workspaceId) { mutableStateOf<List<String>>(emptyList()) }
 
     fun failure(e: Exception) {
         if (e is HttpException && e.code() == 401) onUnauthorized()
@@ -51,6 +52,7 @@ fun TemplateLibrarySection(
         error = ""
         selected = emptySet()
         preview = null
+        previewCodes = emptyList()
         catalog = emptyList()
         library = emptyList()
         try {
@@ -108,6 +110,7 @@ fun TemplateLibrarySection(
                         onCheckedChange = { yes ->
                             selected = if (yes) selected + item.code else selected - item.code
                             preview = null
+                            previewCodes = emptyList()
                         })
                     Column {
                         Text(title)
@@ -121,10 +124,17 @@ fun TemplateLibrarySection(
                     OutlinedButton(enabled = !busy && selected.isNotEmpty(), onClick = {
                         selected = emptySet()
                         preview = null
+                        previewCodes = emptyList()
                     }) { Text(tl(language, "Очистити", "Leeren", "Clear", "Очистить")) }
                     Button(enabled = canManage && !busy && !loading && selected.isNotEmpty(), onClick = {
                         val codes = selected.sorted()
-                        perform { preview = repository.preview(workspaceId, codes) }
+                        perform {
+                            val response = repository.preview(workspaceId, codes)
+                            if (selected.sorted() == codes) {
+                                previewCodes = codes
+                                preview = response
+                            }
+                        }
                     }) { Text(tl(language, "Перегляд імпорту", "Import prüfen", "Preview import", "Просмотр импорта")) }
                 }
             }
@@ -134,14 +144,16 @@ fun TemplateLibrarySection(
                     ": " + result.alreadyImported.orEmpty().joinToString().ifBlank { "—" })
                 Text(tl(language, "Будуть додані", "Wird hinzugefügt", "Will be added", "Будут добавлены") +
                     ": " + result.toImport.orEmpty().joinToString().ifBlank { "—" })
-                Button(enabled = canManage && !busy && !loading && result.toImport.orEmpty().isNotEmpty(),
+                Button(enabled = canManage && !busy && !loading && previewCodes == selected.sorted() && result.toImport.orEmpty().isNotEmpty(),
                     onClick = {
-                        val codes = selected.sorted()
+                        val codes = previewCodes.toList()
                         perform {
+                            if (selected.sorted() != codes) return@perform
                             repository.importSelected(workspaceId, codes)
                             library = repository.privateTemplates(workspaceId)
                             selected = emptySet()
                             preview = null
+                            previewCodes = emptyList()
                             notice = tl(language, "Імпортовано", "Importiert", "Imported", "Импортировано")
                         }
                     }) { Text(tl(language, "Імпортувати вибране", "Auswahl importieren",
