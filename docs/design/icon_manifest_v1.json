@@ -160,5 +160,15 @@
       "mediaCatalogKey": null,
       "assetStatus": "NOT_CREATED"
     }
-  ]
+  ],
+  "reviewBatch": {
+    "version": "v1 concept sheet",
+    "status": "VISUAL_CONCEPTS_RENDERED_NOT_PRODUCTION_ASSETS",
+    "total": 18,
+    "format": "comparison sheet with separately cropped concept previews",
+    "transparentPNGVerified": false,
+    "lightDarkIndependentAssetsVerified": false,
+    "smallSizeQA": "PENDING",
+    "catalogMappingsAllowed": false
+  }
 }
