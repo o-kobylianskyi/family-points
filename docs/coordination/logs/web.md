@@ -672,3 +672,10 @@ Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **WEB:** P0 selectiv
 - Fixed current Web catalog picker: all 18 new `media.catalog.category.*` label keys now resolve local UK/DE/EN/RU names rather than opaque `category-*` strings; `REWARD` media target now filters reward catalog items rather than incorrectly falling through to FAMILY only. Commit `6140a0b`.
 - Existing TASK target filters TASK/TASK_CATEGORY. Category auto-selection via designer templateCategoryMapping is NOT wired: needs an explicit bound domain target/default precedence rather than rewriting private bindings. Browser 24/48px, dark/light, missing preview, 401/403 and family A/B tests NOT VERIFIED. No deployments, media mutations or automatic economy prices.
 - Next: run exact-head CI and authenticated DEV visual QA; then integrate non-destructive category default icon mapping at a verified component/API boundary.
+
+
+## 2026-10-26 — WEB-DESIGN-02 category thumbnails in starter catalog
+- Integrated Designer's approved templateCategoryMapping as a display-only frontend lookup in TemplatesPage: catalog item suggested/definition category resolves to category-* key, with task-default / reward-star fallback.
+- Fetches Media catalog per active workspace, preloads only mapped keys via authenticated workspace-scoped blob URLs (no public media token URLs), revokes object URLs on workspace change/unmount. Cards show responsive 40px preview with local glyph fallback when catalog/preview is unavailable. Source commits `5ebd00e`, `9a59f33`.
+- No persistent media binding changes, no migration, no reset, no economy price writes, no deployment. Private-template card / live TASK and REWARD category auto-presets remain distinct future integration points; explicit user-selected binding must win.
+- Source review only. QA MUST verify 142 cards/6 packs after authenticated DEV catalog, media 401/403 fallback, family A/B switch, four languages, light/dark + mobile at 360/390/1366/1440, ensure no console errors or broken images. Exact-head CI not yet certified.
