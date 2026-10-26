@@ -217,8 +217,8 @@ public class WorkspaceTemplateController {
             // A task must be explicitly assigned/scheduled in the new family.
             form.putNull("assignedMemberId");
             form.putNull("startDate");
-            form.putNull("rewardPointTypeId");
-            form.putNull("penaltyPointTypeId");
+            resolveCurrency(workspaceId, source, form, "rewardCurrencyCode", "rewardPointTypeId");
+            resolveCurrency(workspaceId, source, form, "penaltyCurrencyCode", "penaltyPointTypeId");
             form.put("assignmentPolicy","SINGLE_MEMBER");
         } else {
             for (String field : List.of("priceAmount","rewardKind","defaultDurationMinutes",
@@ -227,10 +227,22 @@ public class WorkspaceTemplateController {
                     "workspaceTotalLimit","workspaceDailyLimit","workspaceWeeklyLimit",
                     "extraRequestAllowed"))
                 copyIfPresent(source,form,field);
-            form.putNull("pointTypeId");
+            resolveCurrency(workspaceId, source, form, "currencyCode", "pointTypeId");
         }
         output.put("requiresConfirmation",true);
         return output;
+    }
+
+    private void resolveCurrency(Long workspaceId, JsonNode source, ObjectNode form,
+                                 String sourceKey, String targetKey) {
+        form.putNull(targetKey);
+        if (!source.hasNonNull(sourceKey)) return;
+        String code=source.path(sourceKey).asText();
+        var ids=db.query("""
+                SELECT id FROM point_types WHERE family_id=? AND code=? AND active=true
+                """,(rs,i)->rs.getLong(1), workspaceId, code);
+        if (ids.size()==1) form.put(targetKey,ids.get(0));
+        // Unresolved currency remains null, requiring explicit user selection.
     }
 
     private static void copyIfPresent(JsonNode source, ObjectNode target, String key) {
