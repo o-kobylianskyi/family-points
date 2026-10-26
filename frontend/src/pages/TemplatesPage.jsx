@@ -139,6 +139,28 @@ export default function TemplatesPage() {
   const chooseEdit = item => { setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
   const validDefinition = (() => { try { return definition.length <= 30000 && !Array.isArray(JSON.parse(definition)) && JSON.parse(definition) !== null && typeof JSON.parse(definition) === 'object' } catch { return false } })()
   const validDraft = (() => { try { const value = JSON.parse(draftText); return value !== null && typeof value === 'object' && !Array.isArray(value) && draftText.length <= 30000 } catch { return false } })()
+  const draftWarnings = (() => {
+    if (!creationDraft || !validDraft) return []
+    const data = JSON.parse(draftText)
+    const warnings = []
+    const local = {
+      uk: {title:'Вкажіть назву.', member:'Оберіть учасника цієї сім’ї.',currency:'Оберіть активну валюту цієї сім’ї.',duration:'Тривалість часової нагороди має бути більшою за нуль.',start:'Укажіть дату початку завдання.'},
+      ru: {title:'Укажите название.',member:'Выберите участника этой семьи.',currency:'Выберите активную валюту этой семьи.',duration:'Длительность временной награды должна быть больше нуля.',start:'Укажите дату начала задачи.'},
+      de: {title:'Bitte einen Titel eingeben.',member:'Bitte ein Mitglied dieser Familie auswählen.',currency:'Bitte eine aktive Währung dieser Familie auswählen.',duration:'Die Dauer einer zeitbasierten Belohnung muss positiv sein.',start:'Bitte ein Startdatum angeben.'},
+      en: {title:'Enter a title.',member:'Select a member of this family.',currency:'Select an active currency of this family.',duration:'Timed reward duration must be greater than zero.',start:'Enter a task start date.'}
+    }[lang] || {title:'Enter a title.',member:'Select a member of this family.',currency:'Select an active currency of this family.',duration:'Duration must be positive.',start:'Enter a start date.'}
+    if (!String(data.title ?? '').trim()) warnings.push(local.title)
+    if (creationDraft.kind === 'TASK') {
+      if (!draftMembers.some(member => String(member.id) === String(data.assignedMemberId))) warnings.push(local.member)
+      if (!data.startDate) warnings.push(local.start)
+    }
+    if (creationDraft.kind === 'REWARD' && data.rewardKind === 'TIME_BASED' && !(Number(data.defaultDurationMinutes) > 0)) warnings.push(local.duration)
+    const ids = creationDraft.kind === 'TASK' ? ['rewardPointTypeId','penaltyPointTypeId'] : ['pointTypeId']
+    for (const key of ids) {
+      if (data[key] != null && !draftPointTypes.some(type => String(type.id) === String(data[key]))) warnings.push(local.currency)
+    }
+    return [...new Set(warnings)]
+  })()
   const availabilityError = (() => {
     if (!validDefinition || editing?.kind !== 'REWARD') return ''
     const value = JSON.parse(definition)
@@ -221,6 +243,7 @@ export default function TemplatesPage() {
         </label>
         </details>
         {!validDraft && <p className="error-message" role="alert">{({uk:'Потрібен коректний JSON-об’єкт (до 30 000 символів).',ru:'Нужен корректный JSON-объект (до 30 000 символов).',de:'Gültiges JSON-Objekt erforderlich (bis 30.000 Zeichen).',en:'A valid JSON object is required (up to 30,000 characters).'})[lang] || 'Invalid JSON'}</p>}
+        {validDraft && draftWarnings.length > 0 && <div className="error-message" role="alert"><ul>{draftWarnings.map(message => <li key={message}>{message}</li>)}</ul></div>}
         <p role="status">{({uk:'Зміни лише у браузері. Для створення потрібне окреме підтвердження; активація тут недоступна.',ru:'Изменения только в браузере. Создание требует отдельного подтверждения; активация здесь недоступна.',de:'Änderungen nur im Browser. Erstellung erfordert separate Bestätigung; hier keine Aktivierung.',en:'Changes stay in your browser. Creation requires separate confirmation; activation is unavailable here.'})[lang] || 'Not activated'}</p>
       </div>}
       {editing && <form onSubmit={e=>{e.preventDefault();execute(async()=>{
