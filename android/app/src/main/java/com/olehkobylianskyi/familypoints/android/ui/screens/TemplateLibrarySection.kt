@@ -204,8 +204,38 @@ fun TemplateLibrarySection(
                         "Nur Vorschau. Mitglied, Währung und Pflichtfelder sind vor dem Erstellen nötig. Nichts aktiviert.",
                         "Preview only. Member, currency and required fields must be supplied before creation. Nothing activated.",
                         "Только просмотр. Для создания нужны участник, валюта и обязательные поля. Ничего не активировано."))
-                    Text(creationDraft.toString().take(10000),
-                        style = MaterialTheme.typography.bodySmall)
+                    val request = creationDraft?.getAsJsonObject("request")
+                    if (request == null) {
+                        Text(tl(language, "Сервер не повернув поля чернетки.",
+                            "Der Server hat keine Entwurfsfelder geliefert.",
+                            "The server did not return draft fields.",
+                            "Сервер не вернул поля черновика."),
+                            color = MaterialTheme.colorScheme.error)
+                    } else {
+                        val mandatory = request.entrySet().filter { (_, value) ->
+                            value == null || value.isJsonNull
+                        }.map { it.key }
+                        if (mandatory.isNotEmpty()) {
+                            Text(tl(language, "Потрібно уточнити: ", "Noch auszufüllen: ",
+                                "Still required: ", "Нужно заполнить: ") +
+                                mandatory.joinToString(", "),
+                                color = MaterialTheme.colorScheme.error)
+                        }
+                        androidx.compose.foundation.lazy.LazyColumn(
+                            modifier = Modifier.heightIn(max = 320.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            items(request.entrySet().toList()) { entry ->
+                                Column {
+                                    Text(entry.key, style = MaterialTheme.typography.labelMedium)
+                                    Text(if (entry.value == null || entry.value.isJsonNull) "—"
+                                        else if (entry.value.isJsonPrimitive) entry.value.asString
+                                        else entry.value.toString().take(300),
+                                        style = MaterialTheme.typography.bodyMedium)
+                                }
+                            }
+                        }
+                    }
                 }
             },
             confirmButton = {
