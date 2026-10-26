@@ -247,4 +247,19 @@ class WorkspaceTemplateControllerTest {
         assertEquals(10,request.path("rewardAmount").asInt());
         assertTrue(request.path("assignedMemberId").isNull());
     }
+
+    @Test void designerTimeRewardDurationMapsToCreationDto() {
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(42L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Cartoons",
+                        """
+                        {"code":"fp.reward.time.002","kind":"REWARD",
+                         "definition":{"rewardKind":"TIME","durationMinutes":30,
+                                       "priceAmount":null,"currencyCode":null}}
+                        """}));
+        var request=controller.creationDraft(1L,42L).path("request");
+        assertEquals("TIME",request.path("rewardKind").asText());
+        assertEquals(30,request.path("defaultDurationMinutes").asInt());
+        assertTrue(request.path("pointTypeId").isNull());
+    }
 }
