@@ -221,14 +221,15 @@ export default function TemplatesPage() {
       <p>{selectedNewCodes.length} / {packItems.length} · {({uk:'Нових доступно',ru:'Новых доступно',de:'Neue verfügbar',en:'New available'})[lang] || 'New available'}: {visibleNewCount}</p>
       <div className="modal-actions">
         <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>{selectionRevision.current += 1;setSelected([]);setPreview(null);setPreviewSelection(null)}}>{l[7]}</button>
-        <button type="button" className="secondary-button" disabled={busy || !selectedNewCodes.length} onClick={()=>execute(async()=>{const revision=selectionRevision.current;const origin=workspaceId;const requestedCodes = [...selectedNewCodes];const result=await previewTemplateImport(getAccessToken(),workspaceId,requestedCodes);if(workspaceRef.current===origin && requestGeneration.current===generation && selectionRevision.current===revision){setPreview(result);setPreviewSelection(requestedCodes)}})}>{l[5]}</button>
+        <button type="button" className="secondary-button" disabled={busy || !selectedNewCodes.length} onClick={()=>execute(async()=>{const revision=selectionRevision.current;const origin=workspaceId;const generation=requestGeneration.current;const requestedCodes = [...selectedNewCodes];const result=await previewTemplateImport(getAccessToken(),workspaceId,requestedCodes);if(workspaceRef.current===origin && requestGeneration.current===generation && selectionRevision.current===revision){setPreview(result);setPreviewSelection(requestedCodes)}})}>{l[5]}</button>
       </div>
       {preview && <div className="settings-section">
         <p>{l[8]}: {(preview.alreadyImported || []).join(', ') || '—'}</p>
         <p>{l[9]}: {(preview.toImport || []).join(', ') || '—'}</p>
         <button className="primary-button" type="button" disabled={busy || !(preview.toImport || []).length || !previewSelection || previewSelection.join('|') !== selectedNewCodes.join('|')} onClick={()=>execute(async()=>{
+          const generation=requestGeneration.current
           await importTemplates(getAccessToken(),workspaceId,previewSelection)
-          await refresh(); if (workspaceRef.current === workspaceId) { setPreview(null); setPreviewSelection(null); setSelected([]); setNotice(l[18]) }
+          await refresh(); if (workspaceRef.current === workspaceId && requestGeneration.current === generation) { setPreview(null); setPreviewSelection(null); setSelected([]); setNotice(l[18]) }
         })}>{l[6]}</button>
       </div>}
     </section>
@@ -269,10 +270,11 @@ export default function TemplatesPage() {
         <p role="status">{({uk:'Зміни лише у браузері. Для створення потрібне окреме підтвердження; активація тут недоступна.',ru:'Изменения только в браузере. Создание требует отдельного подтверждения; активация здесь недоступна.',de:'Änderungen nur im Browser. Erstellung erfordert separate Bestätigung; hier keine Aktivierung.',en:'Changes stay in your browser. Creation requires separate confirmation; activation is unavailable here.'})[lang] || 'Not activated'}</p>
       </div>}
       {editing && <form onSubmit={e=>{e.preventDefault();execute(async()=>{
+        const generation=requestGeneration.current
         if (!validDefinition) throw new Error('INVALID_DEFINITION')
         if (availabilityError) throw new Error('INVALID_DEFINITION')
         await updatePrivateTemplate(getAccessToken(),workspaceId,editing.id,{title,definitionJson:definition,kind:editing.kind})
-        await refresh();if (workspaceRef.current === workspaceId) setNotice(l[15])
+        await refresh();if (workspaceRef.current === workspaceId && requestGeneration.current === generation) setNotice(l[15])
       })}}>
         <h3>{l[16]}</h3>
         <label>{l[13]}<input required maxLength={150} value={title} onChange={e=>setTitle(e.target.value)}/></label>
@@ -285,7 +287,8 @@ export default function TemplatesPage() {
         <div className="modal-actions">
           <button className="primary-button" disabled={busy || !validDefinition || Boolean(availabilityError) || !title.trim()} type="submit">{l[10]}</button>
           <button className="secondary-button" disabled={busy} type="button" onClick={()=>{if(window.confirm(l[17]))execute(async()=>{
-            await deletePrivateTemplate(getAccessToken(),workspaceId,editing.id);await refresh();if (workspaceRef.current === workspaceId) { editingRef.current = null; setEditing(null) }
+            const generation=requestGeneration.current
+            await deletePrivateTemplate(getAccessToken(),workspaceId,editing.id);await refresh();if (workspaceRef.current === workspaceId && requestGeneration.current === generation) { editingRef.current = null; setEditing(null) }
           })}}>{l[11]}</button>
         </div>
       </form>}
