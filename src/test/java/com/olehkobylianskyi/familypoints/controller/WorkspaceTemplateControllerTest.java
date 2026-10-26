@@ -112,7 +112,7 @@ class WorkspaceTemplateControllerTest {
                 any(org.springframework.jdbc.core.RowMapper.class), eq(999L), eq(1L)))
                 .thenReturn(List.of());
         assertThrows(ResponseStatusException.class,
-                () -> controller.activateTask(1L,999L,
+                () -> controller.activateTask(1L,999L,java.util.UUID.randomUUID(),
                         new com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest()));
         verify(db,never()).update(anyString(),any(Object[].class));
     }
@@ -122,7 +122,7 @@ class WorkspaceTemplateControllerTest {
                 any(org.springframework.jdbc.core.RowMapper.class), eq(5L), eq(1L)))
                 .thenReturn(List.of("REWARD"));
         assertThrows(ResponseStatusException.class,
-                () -> controller.activateTask(1L,5L,
+                () -> controller.activateTask(1L,5L,java.util.UUID.randomUUID(),
                         new com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest()));
         verify(db,never()).update(anyString(),any(Object[].class));
     }
