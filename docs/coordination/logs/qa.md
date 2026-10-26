@@ -158,3 +158,9 @@
 ## 2026-10-26 — Targeted TIME seed regression and V39/V40 permission diagnosis
 - Parsed current catalog-v1.json: 32 REWARD seeds, exactly 8 rewardKind=TIME with positive integer durationMinutes (3 x 15, 5 x 30); no non-TIME reward carries a nonzero duration. SOURCE CATALOG PASS only; controller mapping/draft/activation runtime NOT_VERIFIED. Sprint CI previously observed 30 to 0 in WorkspaceTemplateControllerTest; Backend owns correction.
 - Exact DB privilege probe for current_user fp_dev_mcp: has_table_privilege(...workspace_private_templates, SELECT)=false and has_table_privilege(...template_activation_requests, SELECT)=false. Tables exist; V39/V40 applied. CONFIRMED QA MCP read privilege blocker for new tables. Backend/DB owner should grant narrow SELECT on these two public tables to fp_dev_mcp if approved. No grants or mutations done by QA.
+
+
+## 2026-10-26 — V39/V40 QA read access restored
+- Verified via connected DEV MCP `database_health` user fp_dev_mcp on family_points PostgreSQL 18.1; `describe_table(workspace_private_templates)` succeeds.
+- Live SELECT COUNT(*) confirms workspace_private_templates=0, template_activation_requests=0; no private template rows by workspace/kind. Source global catalog (142 suggestions) is separate from private library, so zero rows is a valid pre-import baseline, not proof of failure.
+- User granted SELECT in pgAdmin; no QA data mutations. Follow up with authenticated DEV import using approved disposable test family and compare baseline/idempotency; HTTP runtime not yet tested.
