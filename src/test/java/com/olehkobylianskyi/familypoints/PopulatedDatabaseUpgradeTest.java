@@ -78,7 +78,7 @@ class PopulatedDatabaseUpgradeTest {
         }
 
         var migrationResult = flyway(false).migrate();
-        assertEquals(3, migrationResult.migrationsExecuted, "V36, V37 and V38 must run during upgrade");
+        assertEquals(4, migrationResult.migrationsExecuted, "V36 through V39 must run during upgrade");
 
         try (Connection db = DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {
@@ -90,6 +90,9 @@ class PopulatedDatabaseUpgradeTest {
                     " AND source_type='MANUAL' AND amount=15"));
             assertEquals(4, scalar(db,
                     "SELECT count(*) FROM flyway_schema_history WHERE version IN ('35','36','37','38') AND success=true"));
+            assertEquals(1, scalar(db,
+                    "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' " +
+                    "AND table_name='workspace_private_templates'"));
             assertEquals(3, scalar(db,
                     "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' " +
                     "AND table_name IN ('media_assets','media_blobs','media_bindings')"));
