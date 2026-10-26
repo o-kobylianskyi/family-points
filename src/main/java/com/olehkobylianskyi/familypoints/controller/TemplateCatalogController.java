@@ -1,24 +1,39 @@
 package com.olehkobylianskyi.familypoints.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.olehkobylianskyi.familypoints.service.TemplateCatalogService;
+import com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Suggested templates are public catalog data; importing requires workspace authorization separately. */
+/**
+ * Boot 4 uses Jackson 3 for HTTP conversion, whereas curated catalog resources
+ * are Jackson 2 JsonNode. Return serialized JSON text as application/json to
+ * avoid exposing JsonNode bean introspection fields (array, nodeType, etc.).
+ */
 @RestController
 @RequestMapping("/template-catalog")
 public class TemplateCatalogController {
     private final TemplateCatalogService service;
-    private final com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService economy;
+    private final TemplateEconomySuggestionsService economy;
+
     public TemplateCatalogController(TemplateCatalogService service,
-            com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService economy) {
+                                     TemplateEconomySuggestionsService economy) {
         this.service = service;
         this.economy = economy;
     }
-    @GetMapping("/economy-suggestions")
-    public JsonNode getEconomySuggestions() { return economy.getSuggestions(); }
-    @GetMapping
-    public JsonNode getCatalog() { return service.getCatalog(); }
+
+    @GetMapping(value="/economy-suggestions", produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getEconomySuggestions() {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                .body(economy.getSuggestions().toString());
+    }
+
+    @GetMapping(produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getCatalog() {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                .body(service.getCatalog().toString());
+    }
 }
