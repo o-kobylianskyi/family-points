@@ -112,6 +112,7 @@ fun PointsScreen(
         mutableStateOf<List<PointTransactionResponse>>(emptyList())
     }
 
+    var historyExpanded by remember(currentUser.workspaceId, selectedMemberId) { mutableStateOf(false) }
     var loadingMembers by remember { mutableStateOf(true) }
     var loadingPoints by remember { mutableStateOf(false) }
     var processing by remember { mutableStateOf(false) }
@@ -722,22 +723,30 @@ fun PointsScreen(
             }
 
             item {
-                Text(
-                    text.history,
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Text(text.historyDescription)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(text.history, style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.weight(1f))
+                    TextButton(onClick = { historyExpanded = !historyExpanded }) {
+                        Text(when (language) {
+                            AppLanguage.UK -> if (historyExpanded) "Згорнути" else "Показати"
+                            AppLanguage.DE -> if (historyExpanded) "Zuklappen" else "Anzeigen"
+                            AppLanguage.EN -> if (historyExpanded) "Collapse" else "Show"
+                            AppLanguage.RU -> if (historyExpanded) "Свернуть" else "Показать"
+                        } + " (" + history.size + ")")
+                    }
+                }
+                if (historyExpanded) Text(text.historyDescription)
             }
 
-            if (loadingPoints) {
+            if (historyExpanded && loadingPoints) {
                 item {
                     Text(text.loading)
                 }
-            } else if (history.isEmpty()) {
+            } else if (historyExpanded && history.isEmpty()) {
                 item {
                     Text(text.noHistory)
                 }
-            } else {
+            } else if (historyExpanded) {
                 items(
                     history,
                     key = { it.id }
