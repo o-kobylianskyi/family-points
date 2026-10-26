@@ -47,3 +47,12 @@
 QA: execute TPL-01..15 on DEV, report case IDs with request/response and observed DB counts; avoid real-data mutations unless using a designated test family.
 Web / Android: integrate `creation-draft` with editable forms and make UUID reuse explicit; don't promise one-click activation.
 Release: only when QA finds no critical privacy/ledger defects, pin exact server/web/android SHA, validate V39/V40 migration backup/smoke, publish through release-owned workflow.
+
+
+## QA follow-up — 2026-10-26: access and test evidence
+- P0 designer TIME duration mapping has CI PASS at commit `e05677c5df06e3ed07e0e31e6042b2017b832f5b`, run https://github.com/o-kobylianskyi/family-points/actions/runs/40390915206. This is CI evidence, **not** a DEV HTTP acceptance.
+- QA independently confirmed `V39` and `V40` exist in DEV Flyway history, and `fp_dev_mcp` does **not** have SELECT privilege on their private tables. Do **not** grant unrestricted SELECT: that would bypass FamilyPoints workspace authorization and expose other families' private templates or operation metadata.
+- For tenant/privacy acceptance use authenticated, permission-scoped DEV REST requests in an expendable test family, including cross-workspace negative cases; for raw SQL assertions use disposable Testcontainers PostgreSQL only. A DB-owner-approved purpose-limited view/role could be separately designed if QA later truly needs database counts; no automatic role grant is authorized.
+- In the meantime classify direct SQL count verification of the two tables as **BLOCKED BY READ ROLE**, not a Backend feature defect or QA PASS. API isolation test remains **PENDING** until executed.
+- Catalog audit confirmed 142 localized entries and six packs. 65 templates are not listed in starter packs: catalog browse remains available and Architecture/Designer must confirm whether omission is intentional.
+- Designer-recommended amounts and prices remain unspecified (null); wait for Designer economy handoff, never inject guessed defaults into existing families.
