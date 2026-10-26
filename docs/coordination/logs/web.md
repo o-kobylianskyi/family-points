@@ -605,3 +605,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 
 ## Architecture dispatch 2026-10-26 (late)
 Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat priority assignment. **WEB owner:** P1: structured local-only draft and family-scoped selectors/nullable price, browser DEV smoke; do not prematurely activate.
+
+## 2026-10-26 — Web activation-readiness contract audit
+- Checked TaskDefinitionCreateRequest/RewardDefinitionRequest DTOs. Reward creation requires non-null pointTypeId, TIME_BASED duration must be a positive integer. Tightened local-only creation-draft warnings accordingly; TASK member requirement applies only to SINGLE_MEMBER assignment policy. Commit `255a8dd`. No activation API call, no ledger modifications, no BETA deployment.
+- Broader validations/confirmation and browser tenant tests remain open; CI on this commit pending. Concurrent main edits required SHA refetch after initial 409.
