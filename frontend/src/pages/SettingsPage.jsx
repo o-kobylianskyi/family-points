@@ -12,6 +12,21 @@ import ThemePreference from '../components/ThemePreference'
 import FamilyCoverSettings from '../components/FamilyCoverSettings'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
+
+const settingsErrorMessages = {
+  uk: { 400:'Перевірте введені дані.',401:'Сеанс завершився. Увійдіть знову.',403:'Недостатньо прав для цієї дії.',404:'Запис не знайдено. Оновіть сторінку.',409:'Конфлікт даних. Оновіть сторінку й спробуйте знову.',422:'Введені дані не відповідають вимогам.',network:'Немає зв’язку із сервером. Перевірте мережу.',general:'Не вдалося виконати дію. Спробуйте ще раз.' },
+  ru: { 400:'Проверьте введённые данные.',401:'Сеанс завершён. Войдите снова.',403:'Недостаточно прав для этого действия.',404:'Запись не найдена. Обновите страницу.',409:'Конфликт данных. Обновите страницу и повторите попытку.',422:'Введённые данные не соответствуют требованиям.',network:'Нет связи с сервером. Проверьте сеть.',general:'Не удалось выполнить действие. Попробуйте ещё раз.' },
+  de: { 400:'Bitte Eingaben überprüfen.',401:'Die Sitzung ist abgelaufen. Bitte erneut anmelden.',403:'Keine Berechtigung für diese Aktion.',404:'Eintrag nicht gefunden. Bitte Seite aktualisieren.',409:'Datenkonflikt. Bitte Seite aktualisieren und erneut versuchen.',422:'Die Eingaben erfüllen nicht die Anforderungen.',network:'Keine Verbindung zum Server. Bitte Netzwerk prüfen.',general:'Aktion fehlgeschlagen. Bitte erneut versuchen.' },
+  en: { 400:'Check the entered data.',401:'Session expired. Please sign in again.',403:'You do not have permission for this action.',404:'Record not found. Refresh the page.',409:'Data conflict. Refresh and try again.',422:'The entered data does not meet the requirements.',network:'Cannot connect to server. Check your network.',general:'Action failed. Please try again.' },
+}
+function localizedSettingsError(error, language) {
+  if (typeof error === 'string') return error
+  const messages = settingsErrorMessages[language] || settingsErrorMessages.en
+  if (typeof error?.status === 'number') return messages[error.status] || messages.general
+  if (error instanceof TypeError || error?.name === 'NetworkError') return messages.network
+  return messages.general
+}
+
 function SettingsPage() {
   const { t, i18n } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
@@ -38,7 +53,7 @@ function SettingsPage() {
       const memberData = await getWorkspaceMembers(token, currentUser.workspaceId)
       setMembers(memberData)
       if (canManage) setAccounts(await getWorkspaceAccounts(token, currentUser.workspaceId))
-    } catch (e) { setError(e.message) }
+    } catch (e) { setError(e) }
   }
   useEffect(() => { load() }, [currentUser?.workspaceId, canManage])
 
@@ -136,7 +151,7 @@ function SettingsPage() {
       await load()
 
     } catch (e2) {
-      setEditingError(e2.message)
+      setEditingError(e2)
     } finally {
       setBusy(false)
     }
@@ -150,7 +165,7 @@ function SettingsPage() {
     try {
       await changeOwnPassword(getAccessToken(), own.currentPassword, own.newPassword)
       setOwn({ currentPassword: '', newPassword: '', confirm: '' }); setNotice(t('settings.password.changed'))
-    } catch (e2) { setError(e2.message) } finally { setBusy(false) }
+    } catch (e2) { setError(e2) } finally { setBusy(false) }
   }
 
   // Authentication context may briefly be empty during session refresh.
@@ -167,7 +182,7 @@ function SettingsPage() {
         <h2>{({uk:'Бібліотека шаблонів',de:'Vorlagenbibliothek',en:'Template library',ru:'Библиотека шаблонов'})[i18n.language.split('-')[0]] || 'Template library'}</h2>
         <Link to="/templates" className="secondary-button settings-template-library-link">{({uk:'Відкрити шаблони',de:'Vorlagen öffnen',en:'Open templates',ru:'Открыть шаблоны'})[i18n.language.split('-')[0]] || 'Open templates'}</Link>
       </section>}
-    {error && <div className="error-message settings-message">{error}</div>}
+    {error && <div className="error-message settings-message">{localizedSettingsError(error, i18n.language.split('-')[0])}</div>}
     {notice && <div className="settings-success settings-message">{notice}</div>}
     <ThemePreference />
     <FamilyCoverSettings />
@@ -218,7 +233,7 @@ function SettingsPage() {
       <form onSubmit={saveAccount}>
           {editingError && (
             <div className="error-message">
-              {editingError}
+              {localizedSettingsError(editingError, i18n.language.split('-')[0])}
             </div>
           )}
         <label>{t('settings.accounts.username')}<input value={editing.username} onChange={e => setEditing({ ...editing, username: e.target.value })} autoComplete="off" /></label>
