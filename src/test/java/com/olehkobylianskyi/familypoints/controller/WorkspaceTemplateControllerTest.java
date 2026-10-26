@@ -126,4 +126,18 @@ class WorkspaceTemplateControllerTest {
                         new com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest()));
         verify(db,never()).update(anyString(),any(Object[].class));
     }
+
+    @Test void creationDraftUsesTemplateTitleAndDropsWorkspaceSpecificIds() {
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class), eq(7L), eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"TASK","Walk",
+                        "{\"description\":\"Outside\",\"rewardAmount\":20,\"assignedMemberId\":999,\"rewardPointTypeId\":888}"}));
+        var draft=controller.creationDraft(1L,7L);
+        assertEquals("Walk",draft.path("request").path("title").asText());
+        assertEquals(20,draft.path("request").path("rewardAmount").asInt());
+        assertTrue(draft.path("request").path("assignedMemberId").isNull());
+        assertTrue(draft.path("request").path("rewardPointTypeId").isNull());
+        assertTrue(draft.path("request").path("startDate").isNull());
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
 }
