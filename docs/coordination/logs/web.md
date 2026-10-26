@@ -652,3 +652,8 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 ## 2026-10-26 — Template catalog UX screenshot correction
 - User screenshots showed all 142 template checkbox labels concatenating in an unstyled wall, raw TASK/REWARD labels and unbounded page. Added `TemplatesPage.css` with scoped responsive card grid/toolbar layout, search, first 8 cards default with explicit Show all/Collapse, localized type labels and filter actions. Commits `21e0b73`, `f39a3db`.
 - Selection across starter packs remains supported; search/filter only changes visible cards, not previously selected codes. Imports remain explicitly previewed. CI and browser DEV visual smoke pending. No BETA deployment.
+
+## 2026-10-26 — User screenshot Web UI fixes: template editor and task creation
+- User demonstrated poor template card styles and `[object Object]` description plus absent template selection in CreateTaskModal. Added `getPrivateTemplates` TASK-only picker to CreateTaskModal; upon selection fetches backend creation-draft and prefills title, description, mandatory, recurrence, due time and reward/penalty values, while user still explicitly saves and chooses family assignment/date. Commits `bd9bc5d`, `16961e0`.
+- Made template editing structured, raw JSON under optional advanced details, responsive grid form CSS; localized-description object preserved while editing and rendered as a readable locale string. Commits `c8e1849`, `a60c94a`, `d20aa40`, `b24a793`.
+- Checked TaskDetailsPage: existing CreateTaskModal editOpen already supplies editable full task definition; need QA verify edit workflow and follow-up UX if missing fields. New Web Vite CI/browser QA pending. No automatic template activation or BETA deployment.
