@@ -402,4 +402,44 @@ class WorkspaceTemplateControllerTest {
         assertThrows(ResponseStatusException.class,()->scoped.applyEconomySuggestion(1L,82L));
         verify(db,never()).update(anyString(),any(Object[].class));
     }
+
+    @Test void explicitEconomyApplyRejectsNullPriceWithoutCurrencyLookup() {
+        var catalog=new TemplateCatalogService();
+        var economy=new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
+        var scoped=new WorkspaceTemplateController(db,catalog,tasks,rewards,
+                mock(TaskController.class),mock(RewardController.class),economy);
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(83L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Family time",
+                        """
+                        {"code":"fp.reward.privilege.013","definition":{"rewardKind":"STANDARD"}}
+                        """}));
+        assertThrows(ResponseStatusException.class,()->scoped.applyEconomySuggestion(1L,83L));
+        verify(db,never()).query(contains("SELECT id FROM point_types WHERE family_id=? AND code='POINTS'"),
+                any(org.springframework.jdbc.core.RowMapper.class),anyLong());
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
+
+    @Test void explicitEconomyApplySupportsTaskPointsWithoutSchedulingOrLedgerWrites() {
+        var catalog=new TemplateCatalogService();
+        var economy=new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
+        var scoped=new WorkspaceTemplateController(db,catalog,tasks,rewards,
+                mock(TaskController.class),mock(RewardController.class),economy);
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(84L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"TASK","Routine",
+                        """
+                        {"code":"fp.task.routine.007","definition":{"recurrenceType":"DAILY"}}
+                        """}));
+        when(db.query(contains("SELECT id FROM point_types WHERE family_id=? AND code='POINTS'"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(1L)))
+                .thenReturn(List.of(7L));
+        var draft=scoped.applyEconomySuggestion(1L,84L);
+        assertEquals(5,draft.path("request").path("rewardAmount").asInt());
+        assertEquals(7L,draft.path("request").path("rewardPointTypeId").asLong());
+        assertTrue(draft.path("request").path("startDate").isNull());
+        assertTrue(draft.path("request").path("assignedMemberId").isNull());
+        assertTrue(draft.path("requiresConfirmation").asBoolean());
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
 }
