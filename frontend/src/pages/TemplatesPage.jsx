@@ -291,7 +291,7 @@ export default function TemplatesPage() {
         {validDraft && draftWarnings.length === 0 && <p role="status">{({uk:'Попередні перевірки пройдені. Це не підтвердження Backend і не створення.',ru:'Предварительные проверки пройдены. Это не подтверждение Backend и не создание.',de:'Vorprüfungen bestanden. Keine Backend-Bestätigung und keine Erstellung.',en:'Preliminary checks passed. This is not Backend approval or creation.'})[lang] || 'Preliminary checks passed.'}</p>}
         <p role="status">{({uk:'Зміни лише у браузері. Для створення потрібне окреме підтвердження; активація тут недоступна.',ru:'Изменения только в браузере. Создание требует отдельного подтверждения; активация здесь недоступна.',de:'Änderungen nur im Browser. Erstellung erfordert separate Bestätigung; hier keine Aktivierung.',en:'Changes stay in your browser. Creation requires separate confirmation; activation is unavailable here.'})[lang] || 'Not activated'}</p>
       </div>}
-      {editing && <form onSubmit={e=>{e.preventDefault();execute(async()=>{
+      {editing && <form className="template-editor-form" onSubmit={e=>{e.preventDefault();execute(async()=>{
         const generation=requestGeneration.current
         if (!validDefinition) throw new Error('INVALID_DEFINITION')
         if (availabilityError) throw new Error('INVALID_DEFINITION')
@@ -299,12 +299,12 @@ export default function TemplatesPage() {
         await refresh();if (workspaceRef.current === workspaceId && requestGeneration.current === generation) setNotice(l[15])
       })}}>
         <h3>{l[16]}</h3>
-        <label>{l[13]}<input required maxLength={150} value={title} onChange={e=>setTitle(e.target.value)}/></label>
+        <label className="template-edit-field"><span>{l[13]}</span><input required maxLength={150} value={title} onChange={e=>setTitle(e.target.value)}/></label>
         {availabilityError && <p className="error-message" role="alert">{availabilityError}</p>}
         <TemplateFieldsEditor kind={editing.kind} definition={definition} onChange={setDefinition} language={i18n.language.split('-')[0]} disabled={busy}/>
-        <details>
-          <summary>{l[14]} — JSON</summary>
-          <label>{l[14]}<textarea required rows={8} value={definition} onChange={e=>setDefinition(e.target.value)} disabled={busy}/></label>
+        <details className="template-advanced-json">
+          <summary>{({uk:'Додаткові параметри (JSON)',ru:'Дополнительные параметры (JSON)',de:'Erweiterte Einstellungen (JSON)',en:'Advanced settings (JSON)'})[lang]}</summary>
+          <label><span>{l[14]}</span><textarea required rows={8} value={definition} onChange={e=>setDefinition(e.target.value)} disabled={busy}/></label>
         </details>
         <div className="modal-actions">
           <button className="primary-button" disabled={busy || !validDefinition || Boolean(availabilityError) || !title.trim()} type="submit">{l[10]}</button>
