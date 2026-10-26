@@ -531,3 +531,12 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 - Added `TemplateFieldsEditor.kt` (68c8f65, da15eb7) and integrated it in `TemplateLibrarySection.kt` (f09e210). Native editor supports TASK description/category/recurrence/due time/reward and penalty values/mandatory and REWARD description/category/kind/duration/price/cooldown/adult approval. Fields are localized UK/DE/EN/RU and preserve unknown original JSON properties, including imported catalog envelope and codes. Clearing a numeric field removes its optional property rather than substituting zero.
 - Current form edits only private template configuration using existing scoped PUT; it neither chooses actors/currency IDs nor creates an active TaskDefinition or RewardDefinition. Do not equate it to completed activation form. No ledger or history writes from form.
 - CODE ONLY: current GitHub and local Gradle/CI verification after this change not established. Next: `:app:assembleDebug :app:testDebugUnitTest`, emulator edit imported TASK/REWARD, verify save/reopen, null price handling, permissions, nested definition preservation. Huawei BETA untouched.
+
+## 2026-10-26 — User screenshot feedback: Android template library
+**User-directed handoff to Android chat.** Screenshot feedback (three user screenshots):
+- Buttons **«Опис» / «Менше»** do not look like buttons, poor affordance/contrast; improve labels, layout, padding and hit targets.
+- **Gray template editing dialog** looks inconsistent with chosen theme; align dark/light colors, typography, spacing and scroll/Save/Cancel usability.
+- **Import anomaly:** user tried importing a single selected task and could not; adding a second task allowed the operation. Verify single NEW task selection, existing item, mixed selection, button disabled states and preview/import responses. Show understandable localized message when all selected items already exist.
+- In screenshot preview: «Уже збережені: fp.task.hygiene.001»; «Будуть додані: —». This may be correct duplicate prevention, rather than failure on any single task. Reproduce with known never-imported item before classifying bug.
+- QA should test one new, one already imported, mixed selection, repeated import, UI in both themes and all four languages.
+**Owner:** Android UX + import triage, one coherent fixes package; pin commit, CI and emulator smoke. No DB reset/deployment authorized.
