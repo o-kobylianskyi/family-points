@@ -98,7 +98,7 @@ export default function TemplatesPage() {
   const [notice, setNotice] = useState('')
   useEffect(() => {
     let alive = true
-    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setPreview(null); setPreviewSelection(null); setEditing(null); setError('')
+    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setPreview(null); setPreviewSelection(null); setEditing(null); setError(''); setNotice('')
     if (!workspaceId) return () => { alive = false }
     Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
       .then(([a,b]) => { if (alive) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
@@ -112,12 +112,12 @@ export default function TemplatesPage() {
     : (catalog.templates || []).filter(item => (catalog.packs || []).find(pack => pack.code === packFilter)?.templateCodes?.includes(item.code))
   const selectVisible = checked => {
     selectionRevision.current += 1
-    const codes = packItems.map(item => item.code)
+    const codes = packItems.filter(item => !importedCodes.has(item.code)).map(item => item.code)
     setSelected(current => checked ? [...new Set([...current, ...codes])] : current.filter(code => !codes.includes(code)))
     setPreview(null)
     setPreviewSelection(null)
   }
-  const toggle = code => { selectionRevision.current += 1; setSelected(v => v.includes(code) ? v.filter(x=>x!==code) : [...v,code]); setPreview(null); setPreviewSelection(null) }
+  const toggle = code => { if (importedCodes.has(code)) return; selectionRevision.current += 1; setSelected(v => v.includes(code) ? v.filter(x=>x!==code) : [...v,code]); setPreview(null); setPreviewSelection(null) }
   const execute = async action => {
     if (actionLock.current) return
     actionLock.current = true
@@ -164,7 +164,7 @@ export default function TemplatesPage() {
       </div>}
       <div className="template-grid">
         {packItems.map(item => <label key={item.code} className="template-card">
-          <input type="checkbox" checked={selected.includes(item.code)} onChange={()=>toggle(item.code)} disabled={busy}/>
+          <input type="checkbox" checked={selected.includes(item.code) || importedCodes.has(item.code)} onChange={()=>toggle(item.code)} disabled={busy || importedCodes.has(item.code)}/>
           <span><strong>{item.title?.[i18n.language.split('-')[0]] || item.title?.en || item.code}</strong> <small>{item.kind}</small>{importedCodes.has(item.code) && <small style={{display:'block', opacity:.8}}>{({uk:'Уже в бібліотеці',ru:'Уже в библиотеке',de:'Bereits in der Bibliothek',en:'Already in library'})[lang] || 'Already in library'}</small>}</span>
         </label>)}
       </div>
@@ -192,8 +192,9 @@ export default function TemplatesPage() {
       </div>
       {editing && <form onSubmit={e=>{e.preventDefault();execute(async()=>{
         if (!validDefinition) throw new Error('INVALID_DEFINITION')
+        if (availabilityError) throw new Error('INVALID_DEFINITION')
         await updatePrivateTemplate(getAccessToken(),workspaceId,editing.id,{title,definitionJson:definition,kind:editing.kind})
-        await refresh();setNotice(l[15])
+        await refresh();if (workspaceRef.current === workspaceId) setNotice(l[15])
       })}}>
         <h3>{l[16]}</h3>
         <label>{l[13]}<input required maxLength={150} value={title} onChange={e=>setTitle(e.target.value)}/></label>
@@ -206,7 +207,7 @@ export default function TemplatesPage() {
         <div className="modal-actions">
           <button className="primary-button" disabled={busy || !validDefinition || Boolean(availabilityError) || !title.trim()} type="submit">{l[10]}</button>
           <button className="secondary-button" disabled={busy} type="button" onClick={()=>{if(window.confirm(l[17]))execute(async()=>{
-            await deletePrivateTemplate(getAccessToken(),workspaceId,editing.id);await refresh();setEditing(null)
+            await deletePrivateTemplate(getAccessToken(),workspaceId,editing.id);await refresh();if (workspaceRef.current === workspaceId) setEditing(null)
           })}}>{l[11]}</button>
         </div>
       </form>}
