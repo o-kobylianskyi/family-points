@@ -182,7 +182,6 @@ public class WorkspaceTemplateController {
      * The client must choose actors/currencies and submit through the existing
      * authorized task/reward creation flow after reviewing the configuration.
      */
-    @GetMapping("/{templateId}/instantiate-preview")
     public InstantiateDraft instantiatePreview(@PathVariable Long workspaceId,
                                                @PathVariable Long templateId) {
         var rows = db.query("""
@@ -213,7 +212,6 @@ public class WorkspaceTemplateController {
      * never inherited from templates; the UI must resolve currency and actors.
      * No writes are performed.
      */
-    @GetMapping("/{templateId}/creation-draft")
     public ObjectNode creationDraft(@PathVariable Long workspaceId, @PathVariable Long templateId) {
         InstantiateDraft template = instantiatePreview(workspaceId, templateId);
         if (!List.of("TASK", "REWARD").contains(template.kind()))
@@ -265,7 +263,6 @@ public class WorkspaceTemplateController {
      * endpoint; it never saves, activates or changes existing definitions.
      * Unset amounts remain unset rather than becoming zero-cost rewards.
      */
-    @PostMapping("/{templateId}/creation-draft/apply-economy-suggestion")
     public JsonNode applyEconomySuggestion(@PathVariable Long workspaceId,
                                             @PathVariable Long templateId) {
         ObjectNode draft = (ObjectNode) creationDraft(workspaceId, templateId);
@@ -291,6 +288,41 @@ public class WorkspaceTemplateController {
         draft.put("suggestionAppliedToDraft",true);
         draft.put("requiresConfirmation",true);
         return draft;
+    }
+
+    // Jackson 2 tree nodes must not reach the Boot 4 / Jackson 3 HTTP
+    // converter: it serializes bean properties rather than the JSON tree.
+    @GetMapping(value="/{templateId}/instantiate-preview", produces="application/json")
+    public org.springframework.http.ResponseEntity<String> instantiatePreviewHttp(
+            @PathVariable Long workspaceId, @PathVariable Long templateId) {
+        InstantiateDraft draft = instantiatePreview(workspaceId, templateId);
+        ObjectNode payload = json.createObjectNode();
+        payload.put("templateId", draft.templateId());
+        payload.put("kind", draft.kind());
+        payload.put("title", draft.title());
+        payload.set("definition", draft.definition().deepCopy());
+        payload.put("requiresAssignment", draft.requiresAssignment());
+        payload.put("requiresCurrencySelection", draft.requiresCurrencySelection());
+        return jsonResponse(payload);
+    }
+
+    @GetMapping(value="/{templateId}/creation-draft", produces="application/json")
+    public org.springframework.http.ResponseEntity<String> creationDraftHttp(
+            @PathVariable Long workspaceId, @PathVariable Long templateId) {
+        return jsonResponse(creationDraft(workspaceId, templateId));
+    }
+
+    @PostMapping(value="/{templateId}/creation-draft/apply-economy-suggestion",
+            produces="application/json")
+    public org.springframework.http.ResponseEntity<String> applyEconomySuggestionHttp(
+            @PathVariable Long workspaceId, @PathVariable Long templateId) {
+        return jsonResponse(applyEconomySuggestion(workspaceId, templateId));
+    }
+
+    private static org.springframework.http.ResponseEntity<String> jsonResponse(JsonNode node) {
+        return org.springframework.http.ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(node.toString());
     }
 
     private void resolveCurrency(Long workspaceId, JsonNode source, ObjectNode form,
