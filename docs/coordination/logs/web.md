@@ -535,3 +535,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web template packet 8: reward availability boundary validation
 - TemplatesPage now validates existing REWARD availabilityStartsAt/availabilityEndsAt fields before editing can be saved: ISO date-time parsing (including optional offset), rejects malformed timestamps and end <= start, and renders a visible error. Existing values and unrelated fields remain untouched; no conversion of timezones or update of current reward data. Commit `7da374b`.
 - Browser DEV E2E and CI for this SHA are pending. Next: localized error text, guided date/time inputs with explicit timezone contract, further Backend checks. BETA untouched.
+
+## 2026-10-26 — Web templates packet 9: timestamp validation repair + i18n
+- Fixed JavaScript RegExp in TemplatesPage availability validator: previous code incorrectly contained double-escaped `\\d` in regex literal, rejecting valid ISO dates. Corrected to digit classes; messages localized in UK/RU/DE/EN, preserving blocked save for bad order/format. Commit `c9e60ea`.
+- Source only; calendar date picker remains pending explicit timezone semantics, no BETA deployment or browser smoke claimed.
