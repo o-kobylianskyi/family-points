@@ -16,6 +16,13 @@ data class PrivateTemplateDto(val id: Long, val kind: String?, val title: String
 data class TemplateImportPreviewDto(val alreadyImported: List<String>?, val toImport: List<String>?)
 
 interface TemplateApi {
+    @GET("workspaces/{workspaceId}/templates/{templateId}/creation-draft")
+    suspend fun creationDraft(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("templateId") templateId: Long
+    ): com.google.gson.JsonObject
+
     @PUT("workspaces/{workspaceId}/templates/{templateId}")
     suspend fun updatePrivateTemplate(@Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long, @Path("templateId") templateId: Long, @Body body: PrivateTemplateUpdateRequest): retrofit2.Response<okhttp3.ResponseBody>
 
