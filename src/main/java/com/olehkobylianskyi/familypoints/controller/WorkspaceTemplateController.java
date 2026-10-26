@@ -295,6 +295,20 @@ public class WorkspaceTemplateController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Task title, recurrence and date required");
         if (request.getAssignmentPolicy()==null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Task assignment policy required");
+        // Assignment and recurrence must be coherent before creating the definition.
+        if (request.getAssignmentPolicy()==com.olehkobylianskyi.familypoints.entity.AssignmentPolicy.SINGLE_MEMBER
+                && request.getAssignedMemberId()==null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select a task assignee");
+        if (request.getRecurrenceType()==com.olehkobylianskyi.familypoints.entity.TaskRecurrenceType.WEEKLY
+                && (request.getRecurrenceDayOfWeek()==null
+                || request.getRecurrenceDayOfWeek()<1 || request.getRecurrenceDayOfWeek()>7))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select a valid weekly day");
+        if (request.getRecurrenceType()==com.olehkobylianskyi.familypoints.entity.TaskRecurrenceType.MONTHLY
+                && (request.getRecurrenceDayOfMonth()==null
+                || request.getRecurrenceDayOfMonth()<1 || request.getRecurrenceDayOfMonth()>31))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select a valid monthly day");
+        if (request.getEndDate()!=null && request.getEndDate().isBefore(request.getStartDate()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"End date precedes start date");
         if (fields.path("rewardAmount").asInt(0)>0 && request.getRewardPointTypeId()==null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select reward currency for this template");
         if (fields.path("penaltyAmount").asInt(0)>0 && request.getPenaltyPointTypeId()==null)
