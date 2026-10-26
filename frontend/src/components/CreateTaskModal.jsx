@@ -115,7 +115,7 @@ function CreateTaskModal({
   parentTaskDefinitionId = null,
   parentTaskTitle = null,
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
 
   const editing = Boolean(initialTask)
@@ -297,7 +297,7 @@ function CreateTaskModal({
       if (d.penaltyPointTypeId != null) setPenaltyPointTypeId(d.penaltyPointTypeId)
       // Family-specific assignment and scheduled date remain explicitly chosen by the user.
     } catch {
-      setError(({uk:'Не вдалося завантажити шаблон завдання.',ru:'Не удалось загрузить шаблон задачи.',de:'Aufgabenvorlage konnte nicht geladen werden.',en:'Could not load task template.'})[t('navigation.settings') === 'Налаштування' ? 'uk' : (typeof navigator !== 'undefined' ? navigator.language.slice(0,2) : 'en')] || 'Could not load task template.')
+      setError(({uk:'Не вдалося завантажити шаблон завдання.',ru:'Не удалось загрузить шаблон задачи.',de:'Aufgabenvorlage konnte nicht geladen werden.',en:'Could not load task template.'})[i18n.language.split('-')[0]] || 'Could not load task template.')
     } finally { setTemplateLoading(false) }
   }
 
@@ -601,12 +601,14 @@ function CreateTaskModal({
           )}
 
           {!editing && !parentTaskDefinitionId && <label className="form-field">
-            <span>{({uk:'Створити на основі шаблону',ru:'Создать из шаблона',de:'Auf Vorlage basieren',en:'Create from template'})[t('navigation.settings') === 'Налаштування' ? 'uk' : (t('navigation.settings') === 'Настройки' ? 'ru' : (t('navigation.settings') === 'Einstellungen' ? 'de' : 'en'))]}</span>
+            <span>{({uk:'На основі шаблону',ru:'На основе шаблона',de:'Aus Vorlage',en:'From template'})[i18n.language.split('-')[0]] || 'From template'}</span>
             <select value={selectedTemplateId} disabled={templateLoading || loading} onChange={event => applyTaskTemplate(event.target.value)}>
-              <option value="">{({uk:'Без шаблону — порожнє завдання',ru:'Без шаблона — новая задача',de:'Ohne Vorlage',en:'No template'})[t('navigation.settings') === 'Налаштування' ? 'uk' : (t('navigation.settings') === 'Настройки' ? 'ru' : (t('navigation.settings') === 'Einstellungen' ? 'de' : 'en'))]}</option>
+              <option value="">{({uk:'Без шаблону',ru:'Без шаблона',de:'Ohne Vorlage',en:'Without template'})[i18n.language.split('-')[0]] || 'Without template'}</option>
               {taskTemplates.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
             </select>
+            <small>{({uk:'Параметри шаблону заповнять форму; перевірте їх перед створенням.',ru:'Параметры шаблона заполнят форму; проверьте перед созданием.',de:'Vorlagenfelder werden übernommen; vor dem Erstellen prüfen.',en:'Template fields prefill this form; review before creating.'})[i18n.language.split('-')[0]] || 'Review before creating'}</small>
           </label>}
+
           <label className="form-field">
             <span>{t('tasks.create.taskTitle')}</span>
 
