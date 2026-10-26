@@ -191,6 +191,19 @@ fun TemplateLibrarySection(
                         Text(title)
                         Text(item.kind, style = MaterialTheme.typography.bodySmall)
                         if (alreadyImported) Text(tl(language, "Уже в бібліотеці", "Bereits gespeichert", "Already in library", "Уже в библиотеке"), color = MaterialTheme.colorScheme.primary)
+                        val duration = if (item.kind == "REWARD") {
+                            item.definition?.get("defaultDurationMinutes")
+                                ?.takeUnless { it.isJsonNull }?.asInt
+                                ?: item.definition?.get("durationMinutes")
+                                    ?.takeUnless { it.isJsonNull }?.asInt
+                        } else null
+                        if (duration != null && duration > 0) {
+                            Text(
+                                tl(language, "Тривалість: ", "Dauer: ", "Duration: ", "Длительность: ") +
+                                    "$"+"{duration} " + tl(language, "хв", "Min.", "min", "мин"),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                         if (description.isNotBlank()) Text(description, style = MaterialTheme.typography.bodySmall)
                     }
                 }
