@@ -299,6 +299,8 @@ public class WorkspaceTemplateController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select reward currency for this template");
         if (fields.path("penaltyAmount").asInt(0)>0 && request.getPenaltyPointTypeId()==null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Select penalty currency for this template");
+        verifyActiveFamilyCurrency(workspaceId,request.getRewardPointTypeId());
+        verifyActiveFamilyCurrency(workspaceId,request.getPenaltyPointTypeId());
     }
 
     private void validateRewardAgainstTemplate(Long workspaceId,Long templateId,
@@ -306,6 +308,18 @@ public class WorkspaceTemplateController {
         creationDraft(workspaceId,templateId);
         if (request.getTitle()==null || request.getTitle().isBlank() || request.getPointTypeId()==null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Reward title and currency required");
+        verifyActiveFamilyCurrency(workspaceId,request.getPointTypeId());
+    }
+
+    private void verifyActiveFamilyCurrency(Long workspaceId, Long pointTypeId) {
+        if (pointTypeId == null) return;
+        Integer count=db.queryForObject("""
+                SELECT count(*) FROM point_types
+                WHERE id=? AND family_id=? AND active=true
+                """,Integer.class,pointTypeId,workspaceId);
+        if (count == null || count != 1)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Currency must belong to the current family and be active");
     }
 
     private void claimActivation(Long workspaceId,Long templateId,String kind,java.util.UUID operationId) {
