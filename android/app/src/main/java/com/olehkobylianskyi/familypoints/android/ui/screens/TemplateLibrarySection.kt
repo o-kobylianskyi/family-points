@@ -152,6 +152,18 @@ fun TemplateLibrarySection(
                     }
                 }
             }
+            if (packs.isNotEmpty() && packFilter != "ALL") item {
+                val chosen = packs.firstOrNull { it.get("code")?.asString == packFilter }
+                val langCode = when (language) {
+                    AppLanguage.UK -> "uk"
+                    AppLanguage.DE -> "de"
+                    AppLanguage.EN -> "en"
+                    AppLanguage.RU -> "ru"
+                }
+                val name = chosen?.getAsJsonObject("title")?.get(langCode)?.asString
+                    ?: chosen?.getAsJsonObject("title")?.get("en")?.asString ?: packFilter
+                Text(name, style = MaterialTheme.typography.titleSmall)
+            }
             if (visibleTemplates.isNotEmpty()) item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(enabled = canManage && !busy && catalogLoaded && libraryLoaded,
