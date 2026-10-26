@@ -115,7 +115,7 @@ internal fun TemplateFieldsEditor(
         } else if (kind == "REWARD") {
             field("category", label("Категорія", "Kategorie", "Category", "Категория"))
             choice("rewardKind", label("Тип нагороди", "Belohnungsart", "Reward type", "Тип награды"),
-                listOf("STANDARD", "TIME"))
+                listOf("STANDARD", "TIME", "ITEM"))
             field("durationMinutes", label("Тривалість (хв)", "Dauer (Min.)", "Duration (min)", "Длительность (мин)"), numeric = true)
             field("priceAmount", label("Вартість у балах", "Preis in Punkten", "Point price", "Стоимость в баллах"), numeric = true)
             field("cooldownSeconds", label("Пауза (сек)", "Pause (Sek.)", "Cooldown (sec)", "Пауза (сек)"), numeric = true)
