@@ -482,3 +482,8 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 - Checked Android TemplateApi against Backend contracts and corrected DELETE and import responses from `Response<Unit>` to `Response<Void>` (0000738) so Retrofit handles successful empty HTTP response bodies without converting Kotlin Unit as JSON; repository still checks non-2xx and throws HttpException.
 - Earlier Android template PUT now sends required title/kind/definitionJson; provenance `catalogCode` used to label imported items. QA still needs live import/delete/edit for two scoped accounts, server request 403/409, no ledger/task instance side effects, device smoke and current Gradle build.
 - No changes to BETA beta.11.
+
+## 2026-10-26 — P0 Android template TIME duration visibility
+- Reviewed latest Designer economy v0.3 draft (not approved as reward amounts) and Web fix b1e1a04: display published TIME reward minutes before template import.
+- Android commits 7d7be07, 81cf292, 0a8ba3a add catalog `definition` JsonObject to DTO and render localized minute duration on REWARD suggestions when positive `defaultDurationMinutes` or `durationMinutes` is present. Source catalog has eight entries with a duration. Values are descriptive only, never start a timer/session, change price or write ledger.
+- No matching full Gradle CI run for these commits established. Baseline e05677c/40390915206 precedes Android fixes; current Gradle/device DEV QA pending. BETA beta.11 untouched.
