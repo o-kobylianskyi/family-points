@@ -165,7 +165,7 @@ export default function TemplatesPage() {
       <div className="template-grid">
         {packItems.map(item => <label key={item.code} className="template-card">
           <input type="checkbox" checked={selected.includes(item.code) || importedCodes.has(item.code)} onChange={()=>toggle(item.code)} disabled={busy || importedCodes.has(item.code)}/>
-          <span><strong>{item.title?.[i18n.language.split('-')[0]] || item.title?.en || item.code}</strong> <small>{item.kind}</small>{importedCodes.has(item.code) && <small style={{display:'block', opacity:.8}}>{({uk:'Уже в бібліотеці',ru:'Уже в библиотеке',de:'Bereits in der Bibliothek',en:'Already in library'})[lang] || 'Already in library'}</small>}</span>
+          <span><strong>{item.title?.[i18n.language.split('-')[0]] || item.title?.en || item.code}</strong> <small>{item.kind}</small>{item.kind === 'REWARD' && Number.isFinite(Number(item.definition?.durationMinutes)) && Number(item.definition?.durationMinutes) > 0 && <small style={{display:'block', opacity:.85}}>{({uk:'Тривалість',ru:'Продолжительность',de:'Dauer',en:'Duration'})[lang] || 'Duration'}: {item.definition.durationMinutes} {({uk:'хв',ru:'мин',de:'Min.',en:'min'})[lang] || 'min'}</small>}{importedCodes.has(item.code) && <small style={{display:'block', opacity:.8}}>{({uk:'Уже в бібліотеці',ru:'Уже в библиотеке',de:'Bereits in der Bibliothek',en:'Already in library'})[lang] || 'Already in library'}</small>}</span>
         </label>)}
       </div>
       <p>{selected.length} / {(catalog.templates || []).length} · {({uk:'Нових доступно',ru:'Новых доступно',de:'Neue verfügbar',en:'New available'})[lang] || 'New available'}: {visibleNewCount}</p>
