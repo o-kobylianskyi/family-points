@@ -602,3 +602,6 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web draft readiness validation
 - Added localized non-activating readiness warnings for title, TASK family member/start date, positive TIME_BASED reward duration, and family-scoped currency references. Commit `24e55ba`; no activation or BETA changes.
 - CI run 40397086671 Web/Java/BETA PASS, Android FAIL. New CI and manual DEV smoke pending.
+
+## Architecture dispatch 2026-10-26 (late)
+Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat priority assignment. **WEB owner:** P1: structured local-only draft and family-scoped selectors/nullable price, browser DEV smoke; do not prematurely activate.
