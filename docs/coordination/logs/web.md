@@ -552,3 +552,8 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web template catalog pack selection
 - Implemented optional filter for catalog packs by `pack.code`/`templateCodes`, plus select/deselect visible entries. Individual item checkboxes remain independent; changing selections invalidates prior preview. Source commit `0b3201a`.
 - Global catalog remains empty until Designer seed; Web manual smoke and latest CI remain unverified. No automatic active tasks/rewards or BETA deployment.
+
+## 2026-10-26 — Web templates CI regression triage / selective import guard
+- Observed main Actions run 40381339684 FAILURE after pack filter implementation. Inspected TemplatesPage.jsx and found a stray standalone `}` after pack selection controls, causing invalid JSX compilation. Removed it in commit `d708625`.
+- Import preview now snapshots selected template codes; Import button is disabled if the current selection diverges and confirmation submits the snapshot instead of a mutable live selection. Family switch + prior selection preview guards remain intact.
+- Actual global catalog still EMPTY. End-to-end seed/import cannot be asserted; latest CI of fix pending. No BETA writes.
