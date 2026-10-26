@@ -679,3 +679,7 @@ Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **WEB:** P0 selectiv
 - Fetches Media catalog per active workspace, preloads only mapped keys via authenticated workspace-scoped blob URLs (no public media token URLs), revokes object URLs on workspace change/unmount. Cards show responsive 40px preview with local glyph fallback when catalog/preview is unavailable. Source commits `5ebd00e`, `9a59f33`.
 - No persistent media binding changes, no migration, no reset, no economy price writes, no deployment. Private-template card / live TASK and REWARD category auto-presets remain distinct future integration points; explicit user-selected binding must win.
 - Source review only. QA MUST verify 142 cards/6 packs after authenticated DEV catalog, media 401/403 fallback, family A/B switch, four languages, light/dark + mobile at 360/390/1366/1440, ensure no console errors or broken images. Exact-head CI not yet certified.
+
+## 2026-10-26 — WEB-DESIGN-04 partial consumer integration
+- Added read-only EntityMedia for managed TASK card binding, respecting stored user-selected image, workspace-scoped authorized media fetch and fallback. Source e524f3c. Did NOT attach speculative REWARD media target: Backend target/slot contract needs verification. Private template cards were updated earlier at c406321/fe2510a.
+- No writes to bindings/family data/BETA/production. Exact CI and real DEV browser smoke still pending. QA: A/B workspace isolation, existing custom task image, no-image fallback, 401/403 preview, responsive lists.
