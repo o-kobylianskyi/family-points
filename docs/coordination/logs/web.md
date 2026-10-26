@@ -527,3 +527,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — BKL templates Web packet 6: recurrence/availability enum controls
 - Added backend-aligned TaskRecurrenceType dropdown ONCE/DAILY/WEEKLY/MONTHLY/CUSTOM and RewardAvailabilityMode dropdown ALWAYS/ONE_TIME/RECURRING_WEEKLY to TemplateFieldsEditor, preserving unknown stored values in free-text fallback. Commit a6327c1.
 - A broader patch for recurrence day/time fields initially hit concurrent GitHub 409; it was deliberately NOT overwritten. Those fields, constraints, complex schedule editor, CI and actual DEV browser tests remain outstanding. BETA unchanged.
+
+## 2026-10-26 — Web templates packet 7: recurrence day and availability window editing
+- Added structured editing of existing recurrenceDayOfWeek (1..7) and recurrenceDayOfMonth (1..31) integer properties in TASK definitions and availabilityStartsAt/availabilityEndsAt text fields in REWARD definitions, with UK/RU/DE/EN labels. Only fields already present in definition JSON are shown, preserving absent/unknown keys. Commit `356859b`.
+- Availability timestamps remain exact ISO text from Backend snapshots: no implicit local-time conversion, timezone rewrite or unsupported weekly-window creation. Full validity/cross-field consistency is a Backend follow-up; DEV browser validation pending. BETA/production unchanged.
