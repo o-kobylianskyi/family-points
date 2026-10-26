@@ -3,6 +3,7 @@ import './TemplatesPage.css'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import TemplateFieldsEditor from '../components/TemplateFieldsEditor'
+import { getMediaCatalog, fetchAuthorizedMediaObjectUrl } from '../api/mediaApi'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 import { getPointTypes } from '../api/economyApi'
 import TemplateDraftFieldsEditor from '../components/TemplateDraftFieldsEditor'
@@ -77,6 +78,18 @@ const timeErrors = {
   de: ['Datum und Uhrzeit müssen dem ISO-8601-Format entsprechen.', 'Die Endzeit muss nach der Startzeit liegen.'],
   en: ['Date and time must use ISO-8601 format.', 'End time must be later than start time.'],
 }
+
+// Designer-approved catalog mapping; display-only, never writes private media bindings.
+const templateIconKeys = {
+  hygiene:'category-self-care', routine:'category-planning', chores:'category-chores',
+  school:'category-learning', reading:'category-learning', activity:'category-activity',
+  creativity:'category-creativity', social:'category-family-communication',
+  habits:'category-initiative', family:'category-home', adult:'category-adult-tasks',
+  time:'category-screen-time', privilege:'category-privilege', items:'category-material-reward'
+}
+const iconKeyForTemplate = item => templateIconKeys[item?.suggested?.category || item?.definition?.category]
+  || (item?.kind === 'REWARD' ? 'reward-star' : 'task-default')
+
 export default function TemplatesPage() {
   const { i18n } = useTranslation()
   const lang = i18n.language.split('-')[0]
@@ -86,6 +99,7 @@ export default function TemplatesPage() {
   const workspaceId = currentUser?.workspaceId
   const [catalog, setCatalog] = useState({ templates: [], packs: [] })
   const [privateItems, setPrivateItems] = useState([])
+  const [iconUrls, setIconUrls] = useState({})
   const [selected, setSelected] = useState([])
   const [packFilter, setPackFilter] = useState('ALL')
   const [templateSearch, setTemplateSearch] = useState('')
@@ -121,6 +135,30 @@ export default function TemplatesPage() {
       .catch(e => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) setError(e) })
     return () => { alive = false }
   }, [workspaceId, getAccessToken])
+
+  useEffect(() => {
+    let active = true
+    const urls = []
+    setIconUrls({})
+    if (!workspaceId) return () => { active = false }
+    const token = getAccessToken()
+    getMediaCatalog(token, workspaceId).then(async entries => {
+      if (!active || !Array.isArray(entries)) return
+      const wanted = new Set([...Object.values(templateIconKeys), 'reward-star', 'task-default'])
+      await Promise.all(entries.filter(item => wanted.has(item.key) && item.previewPath)
+        .map(async item => {
+          const path = item.previewPath.replaceAll('{workspaceId}', String(workspaceId))
+          try {
+            const url = await fetchAuthorizedMediaObjectUrl(token, path, workspaceId)
+            urls.push(url)
+            if (active) setIconUrls(old => ({...old, [item.key]:url}))
+            else URL.revokeObjectURL(url)
+          } catch { /* Fallback remains visible; never use unprotected SVG URLs. */ }
+        }))
+    }).catch(() => {})
+    return () => { active = false; urls.forEach(url => URL.revokeObjectURL(url)) }
+  }, [workspaceId, getAccessToken])
+
   const importedCodes = new Set(privateItems.map(item => item.catalogCode).filter(Boolean))
   const packItems = packFilter === 'ALL'
     ? (catalog.templates || [])
@@ -232,6 +270,7 @@ export default function TemplatesPage() {
       <div className="template-grid">
         {displayedItems.map(item => <label key={item.code} className="template-card">
           <input type="checkbox" checked={selected.includes(item.code) || importedCodes.has(item.code)} onChange={()=>toggle(item.code)} disabled={busy || importedCodes.has(item.code)}/>
+          <span className="template-card-icon" aria-hidden="true">{iconUrls[iconKeyForTemplate(item)] ? <img src={iconUrls[iconKeyForTemplate(item)]} alt="" loading="lazy"/> : item.kind === "REWARD" ? "★" : "✓"}</span>
           <span className="template-card-body"><strong>{item.title?.[lang] || item.title?.en || item.code}</strong>
             <small>{kindLabel(item.kind)}{item.kind === 'REWARD' && Number(item.definition?.durationMinutes)>0 ? ` · ${item.definition.durationMinutes} ${({uk:'хв',ru:'мин',de:'Min.',en:'min'})[lang] || 'min'}` : ''}</small>
             {importedCodes.has(item.code) && <small>{({uk:'Уже в бібліотеці',ru:'Уже в библиотеке',de:'Bereits in der Bibliothek',en:'Already in library'})[lang] || 'Already in library'}</small>}
