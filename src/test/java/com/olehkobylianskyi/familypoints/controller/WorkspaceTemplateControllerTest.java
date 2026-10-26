@@ -322,4 +322,45 @@ class WorkspaceTemplateControllerTest {
         assertNotNull(task.getAnnotation(org.springframework.transaction.annotation.Transactional.class));
         assertNotNull(reward.getAnnotation(org.springframework.transaction.annotation.Transactional.class));
     }
+
+    @Test void creationDraftExposesSuggestionWithoutApplyingPriceOrPoints() {
+        var catalog = new TemplateCatalogService();
+        var economy = new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
+        var scopedController = new WorkspaceTemplateController(db, catalog, tasks, rewards,
+                mock(TaskController.class), mock(RewardController.class), economy);
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(71L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Cartoons",
+                        """
+                        {"code":"fp.reward.time.002","kind":"REWARD",
+                         "definition":{"rewardKind":"TIME","durationMinutes":30,
+                                       "priceAmount":null,"currencyCode":null}}
+                        """}));
+        var draft = scopedController.creationDraft(1L,71L);
+        assertEquals(30,draft.path("request").path("defaultDurationMinutes").asInt());
+        assertFalse(draft.path("request").has("priceAmount"));
+        assertTrue(draft.path("request").path("pointTypeId").isNull());
+        assertTrue(draft.path("economySuggestion").path("suggestedPricePoints").isNumber());
+        assertTrue(draft.path("requiresConfirmation").asBoolean());
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
+
+    @Test void nullSuggestionIsNotCoercedIntoFreeReward() {
+        var catalog=new TemplateCatalogService();
+        var economy=new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
+        var scopedController=new WorkspaceTemplateController(db,catalog,tasks,rewards,
+                mock(TaskController.class),mock(RewardController.class),economy);
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(72L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Family time",
+                        """
+                        {"code":"fp.reward.privilege.013","kind":"REWARD",
+                         "definition":{"rewardKind":"STANDARD","priceAmount":null,"currencyCode":null}}
+                        """}));
+        var draft=scopedController.creationDraft(1L,72L);
+        assertFalse(draft.path("request").has("priceAmount"));
+        assertTrue(draft.path("request").path("pointTypeId").isNull());
+        assertTrue(draft.path("requiresConfirmation").asBoolean());
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
 }
