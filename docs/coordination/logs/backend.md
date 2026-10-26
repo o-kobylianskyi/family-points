@@ -261,3 +261,6 @@ At exact integration SHA `c70d28d9812d13a85e2f6cfd62186fb344aff510`, GitHub Acti
 
 ## Architecture dispatch 2026-10-26 (late)
 Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat priority assignment. **BACKEND owner:** P0/P1: real-seed 142/6 PostgreSQL template/idempotency/TIME/tenant tests; freeze unsafe activation until consumer contract approved.
+
+## 2026-10-26 — User reprioritization: reset BEFORE next BETA, economy v0.7 IN DEVELOPMENT
+Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous parked status of BKL-002. **BACKEND:** P0 BKL-002 selective reset preview/execute, scoped FK/order/audit/idempotency, safe re-onboarding and economy v0.7 suggestions without overwriting existing data. Planning/assignment only: no data deletion authorized.
