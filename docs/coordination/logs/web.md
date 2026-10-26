@@ -502,3 +502,10 @@ Show only relevant fields but never silently discard persisted data; apply categ
 - Web new frontend/src/api/templateApi.js and frontend/src/pages/TemplatesPage.jsx: authorized catalog/private library loading, individual checkbox selection, preview alreadyImported/toImport before explicit import, private library listing, editable title/JSON definition, explicit delete confirm; import does NOT instantiate active tasks or rewards. Route /templates and a Settings link for managers. Source commits 51ee447,0366af3,ec45ae4,a756e8b,bb01f40,2362c42,605e5f9.
 - This is **DEV source delivery only**; direct edits of definition JSON are advanced temporary UI pending product editor forms, and the backend global catalog is empty so user sees empty suggestions until Designer seed. No event/routine functionality, no active object creation or browser testing claimed. Backend canManageWorkspace is authoritative; workspace isolation delegated to backend. Automatic build on newest SHA needs checking.
 - Next package: improve template editor forms/UX and expand catalog selection once Backend/Designer supply stable schema and curated entries. BETA/PROD left unchanged.
+
+
+## 2026-10-26 — DEV templates library stabilization packet 2
+- Source review revealed concurrent import preview/save operations were guarded only by React state; rapid clicks can race before disabled state renders. Added synchronous `useRef` lock, rejecting a second operation while first pending.
+- Asynchronously received import previews now checked against original workspace and selection revision. Changing selected template invalidates previous preview; a late response no longer reinstates it.
+- Definition editor validates that JSON parses as a nonnull object and is <=30k characters before enabling Save (aligned with WorkspaceTemplateController). No active task/reward instantiation or catalog seed additions.
+- Source commit `7aab029c`; manual DEV QA pending. Source still has limitations: global catalog seed empty, raw JSON advanced editor until stable DTO/schema, list/page not independently smoke-tested. BETA remains unchanged.
