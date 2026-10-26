@@ -113,10 +113,11 @@ export default function TemplatesPage() {
     return () => { alive = false }
   }, [workspaceId, getAccessToken])
   const importedCodes = new Set(privateItems.map(item => item.catalogCode).filter(Boolean))
-  const visibleNewCount = (catalog.templates || []).filter(item => !importedCodes.has(item.code)).length
   const packItems = packFilter === 'ALL'
     ? (catalog.templates || [])
     : (catalog.templates || []).filter(item => (catalog.packs || []).find(pack => pack.code === packFilter)?.templateCodes?.includes(item.code))
+  const visibleNewCount = packItems.filter(item => !importedCodes.has(item.code)).length
+  const selectedNewCodes = selected.filter(code => !importedCodes.has(code))
   const selectVisible = checked => {
     selectionRevision.current += 1
     const codes = packItems.filter(item => !importedCodes.has(item.code)).map(item => item.code)
@@ -211,15 +212,15 @@ export default function TemplatesPage() {
           <span><strong>{item.title?.[i18n.language.split('-')[0]] || item.title?.en || item.code}</strong> <small>{item.kind}</small>{item.kind === 'REWARD' && Number.isFinite(Number(item.definition?.durationMinutes)) && Number(item.definition?.durationMinutes) > 0 && <small style={{display:'block', opacity:.85}}>{({uk:'Тривалість',ru:'Продолжительность',de:'Dauer',en:'Duration'})[lang] || 'Duration'}: {item.definition.durationMinutes} {({uk:'хв',ru:'мин',de:'Min.',en:'min'})[lang] || 'min'}</small>}{importedCodes.has(item.code) && <small style={{display:'block', opacity:.8}}>{({uk:'Уже в бібліотеці',ru:'Уже в библиотеке',de:'Bereits in der Bibliothek',en:'Already in library'})[lang] || 'Already in library'}</small>}</span>
         </label>)}
       </div>
-      <p>{selected.length} / {(catalog.templates || []).length} · {({uk:'Нових доступно',ru:'Новых доступно',de:'Neue verfügbar',en:'New available'})[lang] || 'New available'}: {visibleNewCount}</p>
+      <p>{selectedNewCodes.length} / {packItems.length} · {({uk:'Нових доступно',ru:'Новых доступно',de:'Neue verfügbar',en:'New available'})[lang] || 'New available'}: {visibleNewCount}</p>
       <div className="modal-actions">
         <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>{selectionRevision.current += 1;setSelected([]);setPreview(null);setPreviewSelection(null)}}>{l[7]}</button>
-        <button type="button" className="secondary-button" disabled={busy || !selected.length || !selected.some(code => !importedCodes.has(code))} onClick={()=>execute(async()=>{const revision=selectionRevision.current;const origin=workspaceId;const result=await previewTemplateImport(getAccessToken(),workspaceId,selected);if(workspaceRef.current===origin && selectionRevision.current===revision){setPreview(result);setPreviewSelection([...selected])}})}>{l[5]}</button>
+        <button type="button" className="secondary-button" disabled={busy || !selectedNewCodes.length} onClick={()=>execute(async()=>{const revision=selectionRevision.current;const origin=workspaceId;const requestedCodes = [...selectedNewCodes];const result=await previewTemplateImport(getAccessToken(),workspaceId,requestedCodes);if(workspaceRef.current===origin && selectionRevision.current===revision){setPreview(result);setPreviewSelection(requestedCodes)}})}>{l[5]}</button>
       </div>
       {preview && <div className="settings-section">
         <p>{l[8]}: {(preview.alreadyImported || []).join(', ') || '—'}</p>
         <p>{l[9]}: {(preview.toImport || []).join(', ') || '—'}</p>
-        <button className="primary-button" type="button" disabled={busy || !(preview.toImport || []).length || !previewSelection || previewSelection.join('|') !== selected.join('|')} onClick={()=>execute(async()=>{
+        <button className="primary-button" type="button" disabled={busy || !(preview.toImport || []).length || !previewSelection || previewSelection.join('|') !== selectedNewCodes.join('|')} onClick={()=>execute(async()=>{
           await importTemplates(getAccessToken(),workspaceId,previewSelection)
           await refresh(); if (workspaceRef.current === workspaceId) { setPreview(null); setPreviewSelection(null); setSelected([]); setNotice(l[18]) }
         })}>{l[6]}</button>
