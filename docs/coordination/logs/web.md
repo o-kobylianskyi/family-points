@@ -644,3 +644,7 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 ## 2026-10-26 — Web Settings build identification for QA
 - Added compile-time Web build metadata in vite.config.js: frontend package version, Git SHA (CI GITHUB_SHA/env override or local git), UTC build timestamp, channel (explicit VITE_APP_CHANNEL or default BUILD/DEV). Commit `d3f724b`.
 - Added Settings readout + copy-build-information button with UK/RU/DE/EN labels; source `465c292`. These identify *frontend assets served to this browser*, not Backend version or Android APK. Package currently version 0.0.0, so SHA/build timestamp are primary QA identifiers. CI/build and DEV browser inspection pending; BETA not deployed.
+
+## 2026-10-26 — Localized family chooser errors
+- Fixed `ChooseFamilyPage.jsx` raw `Failed to fetch` and arbitrary exception display: typed network errors and 401/403/404/409/5xx translate through UK/RU/DE/EN familyChoice localization keys. Load, switch and create paths use shared mapper. Commits `97174c1`, `b66b130`, `913fb52`, `7636702`, `a09fae6`.
+- Original screenshot network request failure remains a connection/API availability issue; localization does not fix a down Backend. DEV/browser verification and latest CI pending.
