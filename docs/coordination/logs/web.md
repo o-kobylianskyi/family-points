@@ -590,3 +590,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web draft editing checkpoint (non-activating)
 - Added editable JSON request buffer for GET `/creation-draft` TASK/REWARD templates, with localized UK/RU/DE/EN labels, parse/size validation, and explicit local-only/non-activating notice. It is intentionally not persisted, does not call activate-task/reward and does not create ledger or task/reward rows. Source `3238ffc`.
 - Previous GitHub Actions full run 40393430466 succeeded. Latest feature CI pending. Follow-up: replace raw draft JSON with safe structured creation form, resolve workspace member/currency IDs, run DEV browser QA and activation security checks before introducing any POST action. BETA unchanged.
+
+## 2026-10-26 — Web structured creation-draft editor checkpoint
+- Added `TemplateDraftFieldsEditor.jsx` with structured controls for existing TASK/REWARD creation draft keys, preserving unknown JSON keys, and retaining advanced JSON editing in expandable details (`b82ea1c`, `4747450`). Draft edits remain strictly local-only; **no activation endpoint** called or live task/reward/ledger records created.
+- Labels UK/RU/DE/EN; Backend remains authority for TIME->TIME_BASED normalization and durationMinutes->defaultDurationMinutes. CI run 40394449361 SUCCESS before this change; new CI and DEV browser QA pending. Follow-up: proper workspace member/currency pickers, domain validation and separate explicit activation after contract/QA signoff.
