@@ -66,12 +66,12 @@ export default function TemplatesPage() {
         <p>{l[9]}: {(preview.toImport || []).join(', ') || '—'}</p>
         <button className="primary-button" type="button" disabled={busy || !(preview.toImport || []).length} onClick={()=>execute(async()=>{
           await importTemplates(getAccessToken(),workspaceId,selected)
-          await refresh(); setPreview(null);setSelected([]);setNotice(l[17])
+          await refresh(); setPreview(null);setSelected([]);setNotice(l[18])
         })}>{l[6]}</button>
       </div>}
     </section>
     <section className="settings-section">
-      <h2>{l[2]}</h2><p>{l[20]}</p>
+      <h2>{l[2]}</h2><p>{l[21]}</p>
       {!privateItems.length && <p>{l[12]}</p>}
       <div className="template-grid">
         {privateItems.map(item => <button key={item.id} type="button" className="secondary-button" onClick={()=>chooseEdit(item)}>
@@ -81,14 +81,14 @@ export default function TemplatesPage() {
       {editing && <form onSubmit={e=>{e.preventDefault();execute(async()=>{
         JSON.parse(definition)
         await updatePrivateTemplate(getAccessToken(),workspaceId,editing.id,{title,definitionJson:definition,kind:editing.kind})
-        await refresh();setNotice(l[14])
+        await refresh();setNotice(l[15])
       })}}>
-        <h3>{l[15]}</h3>
+        <h3>{l[16]}</h3>
         <label>{l[13]}<input required maxLength={150} value={title} onChange={e=>setTitle(e.target.value)}/></label>
         <label>{l[14]}<textarea required rows={8} value={definition} onChange={e=>setDefinition(e.target.value)}/></label>
         <div className="modal-actions">
           <button className="primary-button" disabled={busy} type="submit">{l[10]}</button>
-          <button className="secondary-button" disabled={busy} type="button" onClick={()=>{if(window.confirm(l[16]))execute(async()=>{
+          <button className="secondary-button" disabled={busy} type="button" onClick={()=>{if(window.confirm(l[17]))execute(async()=>{
             await deletePrivateTemplate(getAccessToken(),workspaceId,editing.id);await refresh();setEditing(null)
           })}}>{l[11]}</button>
         </div>
