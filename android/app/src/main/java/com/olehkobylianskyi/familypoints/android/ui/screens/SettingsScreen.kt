@@ -86,6 +86,7 @@ fun SettingsScreen(
     var accountConfirm by remember { mutableStateOf("") }
     var enabled by remember { mutableStateOf(true) }
     var accountError by remember { mutableStateOf("") }
+    var showTemplateLibrary by remember(currentUser.workspaceId) { mutableStateOf(false) }
     var checkingAppUpdate by remember { mutableStateOf(false) }
     var appUpdateStatus by remember { mutableStateOf("") }
 
@@ -270,6 +271,19 @@ fun SettingsScreen(
                             Text(st(language, "Паролі не збігаються", "Passwörter stimmen nicht überein",
                                 "Passwords do not match", "Пароли не совпадают"),
                                 color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+            }
+            if (online) item {
+                Card {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(st(language, "Шаблони завдань і нагород", "Aufgaben- und Belohnungsvorlagen",
+                            "Task and reward templates", "Шаблоны заданий и наград"),
+                            style = MaterialTheme.typography.titleMedium)
+                        Button(onClick = { showTemplateLibrary = true }) {
+                            Text(st(language, "Відкрити бібліотеку", "Bibliothek öffnen",
+                                "Open library", "Открыть библиотеку"))
                         }
                     }
                 }
