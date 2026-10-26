@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import TemplateFieldsEditor from '../components/TemplateFieldsEditor'
+import TemplateDraftFieldsEditor from '../components/TemplateDraftFieldsEditor'
 import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates, updatePrivateTemplate, deletePrivateTemplate, getTemplateCreationDraft } from '../api/templateApi'
 
 const texts = {
@@ -204,9 +205,12 @@ export default function TemplatesPage() {
       {creationDraft && editing && creationDraft.templateId === editing.id && <div className="settings-section">
         <h3>{({uk:'Чернетка (без створення завдання чи нагороди)',ru:'Черновик (без создания задачи или награды)',de:'Entwurf (ohne Aufgabe oder Belohnung anzulegen)',en:'Draft (no task or reward created)'})[lang] || 'Draft preview'}</h3>
         <p>{({uk:'Перевірте тривалість, валюту та призначення. Цей перегляд нічого не активує.',ru:'Проверьте длительность, валюту и назначение. Просмотр ничего не активирует.',de:'Bitte Dauer, Währung und Zuweisung prüfen. Diese Ansicht aktiviert nichts.',en:'Check duration, currency and assignment. This preview activates nothing.'})[lang] || 'Preview only'}</p>
+        <TemplateDraftFieldsEditor kind={creationDraft.kind} value={draftText} onChange={setDraftText} language={lang} disabled={busy}/>
+        <details><summary>{({uk:'Розширені параметри JSON',ru:'Расширенные параметры JSON',de:'Erweiterte JSON-Parameter',en:'Advanced JSON parameters'})[lang] || 'Advanced JSON'}</summary>
         <label style={{display:'block'}}>{({uk:'Параметри чернетки (JSON)',ru:'Параметры черновика (JSON)',de:'Entwurfsparameter (JSON)',en:'Draft parameters (JSON)'})[lang] || 'Draft JSON'}
           <textarea rows={10} value={draftText} onChange={e => setDraftText(e.target.value)} disabled={busy} spellCheck={false} style={{width:'100%'}}/>
         </label>
+        </details>
         {!validDraft && <p className="error-message" role="alert">{({uk:'Потрібен коректний JSON-об’єкт (до 30 000 символів).',ru:'Нужен корректный JSON-объект (до 30 000 символов).',de:'Gültiges JSON-Objekt erforderlich (bis 30.000 Zeichen).',en:'A valid JSON object is required (up to 30,000 characters).'})[lang] || 'Invalid JSON'}</p>}
         <p role="status">{({uk:'Зміни лише у браузері. Для створення потрібне окреме підтвердження; активація тут недоступна.',ru:'Изменения только в браузере. Создание требует отдельного подтверждения; активация здесь недоступна.',de:'Änderungen nur im Browser. Erstellung erfordert separate Bestätigung; hier keine Aktivierung.',en:'Changes stay in your browser. Creation requires separate confirmation; activation is unavailable here.'})[lang] || 'Not activated'}</p>
       </div>}
