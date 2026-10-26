@@ -628,3 +628,7 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 ## 2026-10-26 — Web TPL QA static audit, A→B→A race mitigation
 - Reviewed TPL-01..15 handoff and latest full green CI 40401118395. Static code audit found rare A→B→A workspace-switch race: old async private-library refresh and creation-draft response previously checked only workspace id, allowing stale A data if user switches A→B→A during same request. Added request-generation guards on refresh, draft fetch and import preview (`6dd26a4`).
 - Browser DEV execution of TPL test cases is NOT VERIFIED; tests for actual Backend request/response, activation, ledger and cross-tenant access belong QA/Backend. No BETA deployment or active data writes.
+
+## 2026-10-26 — Web async audit: preview ReferenceError and stale mutation completions
+- Static audit found `generation` referenced in import-preview callback without definition, causing runtime ReferenceError after successful API response (the preview could never appear). Captured requestGeneration before await; also guarded import, update, delete completion UI against A→B→A workspace switches. Source `c53bdb5`.
+- Source fix only; new CI and browser DEV smoke required. No activation API wired, no BETA changes.
