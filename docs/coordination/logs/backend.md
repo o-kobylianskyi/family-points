@@ -258,3 +258,6 @@ At exact integration SHA `c70d28d9812d13a85e2f6cfd62186fb344aff510`, GitHub Acti
 - Architecture action: agree domain-level earning uniqueness `(workspace, occurrence, beneficiary, earning event)`, parent/child payment policy, stable offline operation keys, reward purchase/redeem idempotency responses, and compensating ledger corrections before introducing new API/migrations.
 - Backend holds economy-related code work pending Architecture approval. QA should test repeated same-key requests, distinct-key same occurrence, concurrent device approval/purchase and ledger equality on disposable family before marking exact-once safe.
 - Current priority remains targeted template DEV acceptance; `V39/V40` QA read role now restored per QA log. No BETA/PROD changes.
+
+## Architecture dispatch 2026-10-26 (late)
+Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat priority assignment. **BACKEND owner:** P0/P1: real-seed 142/6 PostgreSQL template/idempotency/TIME/tenant tests; freeze unsafe activation until consumer contract approved.
