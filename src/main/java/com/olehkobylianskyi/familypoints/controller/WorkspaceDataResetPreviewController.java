@@ -49,12 +49,46 @@ public class WorkspaceDataResetPreviewController {
                 count("task_definitions", workspaceId), false,
                 "Executions, schedules, approvals, history and ledger dependencies not yet resolved"));
         categories.put("REWARD_DEFINITIONS", new ResetCategory("REWARD_DEFINITIONS",
-                count("reward_definitions", workspaceId), false,
+                countFamily("reward_definitions", workspaceId), false,
                 "Purchases, requests, time sessions and point ledger dependencies not yet resolved"));
+        categories.put("TASK_EXECUTIONS", new ResetCategory("TASK_EXECUTIONS",
+                countFamily("task_instances", workspaceId), false,
+                "Task audit, participants and rewards must be accounted for"));
+        categories.put("REWARD_REQUESTS", new ResetCategory("REWARD_REQUESTS",
+                countFamily("reward_requests", workspaceId), false,
+                "Approvals, obligations and purchases must be reviewed"));
+        categories.put("REWARD_PURCHASES", new ResetCategory("REWARD_PURCHASES",
+                db.queryForObject("""
+                    SELECT count(*) FROM reward_purchases p
+                    JOIN family_members m ON m.id=p.member_id
+                    WHERE m.family_id=?
+                    """, Long.class, workspaceId), false,
+                "Historical spending and obligation dependencies are protected"));
+        categories.put("POINT_LEDGER", new ResetCategory("POINT_LEDGER",
+                db.queryForObject("""
+                    SELECT count(*) FROM point_transactions t
+                    JOIN family_members m ON m.id=t.member_id
+                    WHERE m.family_id=?
+                    """, Long.class, workspaceId), false,
+                "Immutable point transaction history is protected"));
+        categories.put("REPUTATION_LEDGER", new ResetCategory("REPUTATION_LEDGER",
+                db.queryForObject("""
+                    SELECT count(*) FROM reputation_transactions t
+                    JOIN family_members m ON m.id=t.member_id
+                    WHERE m.family_id=?
+                    """, Long.class, workspaceId), false,
+                "Immutable reputation transaction history is protected"));
         return new ResetPreview(workspaceId, false, false,
                 List.of("Global account and authentication", "Workspace identity and members",
                         "Other workspaces", "Global bundled template catalog",
                         "Existing financial balances and ledger"), categories);
+    }
+
+    private long countFamily(String trustedTable, Long workspaceId) {
+        // Only hardcoded names from this controller may reach this method.
+        Long value = db.queryForObject("SELECT count(*) FROM " + trustedTable +
+                " WHERE family_id=?", Long.class, workspaceId);
+        return value == null ? 0L : value;
     }
 
     private long count(String trustedTable, Long workspaceId) {
