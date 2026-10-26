@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext'
 import { getPointTypes } from '../api/economyApi'
+import { getPrivateTemplates, getTemplateCreationDraft } from '../api/templateApi'
 import { createTaskDefinition, updateTaskDefinition, getNextDefaultTaskNumber } from '../api/taskApi'
 import { getMemberGroups } from '../api/memberGroupApi'
 
@@ -124,6 +125,9 @@ function CreateTaskModal({
     return `${t('tasks.create.defaultTitleBase')} №${number}`
   }
   const [memberGroups, setMemberGroups] = useState([])
+  const [taskTemplates, setTaskTemplates] = useState([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
+  const [templateLoading, setTemplateLoading] = useState(false)
   const participantKeys = (role) => initialParticipants
     .filter((p) => p.role === role)
     .map((p) => `${p.actorType}:${p.actorId}`)
@@ -261,6 +265,41 @@ function CreateTaskModal({
     }
     loadGroups()
   }, [currentUser.workspaceId, getAccessToken])
+
+  useEffect(() => {
+    if (editing) return
+    let alive = true
+    getPrivateTemplates(getAccessToken(), currentUser.workspaceId)
+      .then(items => { if (alive) setTaskTemplates((Array.isArray(items) ? items : []).filter(item => item.kind === 'TASK')) })
+      .catch(() => { if (alive) setTaskTemplates([]) })
+    return () => { alive = false }
+  }, [currentUser.workspaceId, getAccessToken, editing])
+
+  const applyTaskTemplate = async (templateId) => {
+    setSelectedTemplateId(templateId)
+    if (!templateId) return
+    setTemplateLoading(true)
+    setError('')
+    try {
+      const draft = await getTemplateCreationDraft(getAccessToken(), currentUser.workspaceId, templateId)
+      if (draft.kind !== 'TASK' || !draft.request) throw new Error('Invalid task template')
+      const d = draft.request
+      if (d.title) { setTitle(d.title); setTitleTouched(true) }
+      if (typeof d.description === 'string') setDescription(d.description)
+      if (typeof d.mandatory === 'boolean') setMandatory(d.mandatory)
+      if (d.recurrenceType) setRecurrenceType(d.recurrenceType)
+      if (Number.isInteger(d.recurrenceDayOfWeek)) setRecurrenceDayOfWeek(String(d.recurrenceDayOfWeek))
+      if (Number.isInteger(d.recurrenceDayOfMonth)) setRecurrenceDayOfMonth(String(d.recurrenceDayOfMonth))
+      if (d.dueTime) setDueTime(d.dueTime.slice(0,5))
+      if (d.rewardAmount != null) setRewardAmount(d.rewardAmount)
+      if (d.penaltyAmount != null) setPenaltyAmount(d.penaltyAmount)
+      if (d.rewardPointTypeId != null) setRewardPointTypeId(d.rewardPointTypeId)
+      if (d.penaltyPointTypeId != null) setPenaltyPointTypeId(d.penaltyPointTypeId)
+      // Family-specific assignment and scheduled date remain explicitly chosen by the user.
+    } catch {
+      setError(({uk:'Не вдалося завантажити шаблон завдання.',ru:'Не удалось загрузить шаблон задачи.',de:'Aufgabenvorlage konnte nicht geladen werden.',en:'Could not load task template.'})[t('navigation.settings') === 'Налаштування' ? 'uk' : (typeof navigator !== 'undefined' ? navigator.language.slice(0,2) : 'en')] || 'Could not load task template.')
+    } finally { setTemplateLoading(false) }
+  }
 
   const actorKey = (actorType, actorId) => `${actorType}:${actorId}`
   const toggleActor = (setter, actorType, actorId) => {
@@ -561,6 +600,13 @@ function CreateTaskModal({
             </div>
           )}
 
+          {!editing && !parentTaskDefinitionId && <label className="form-field">
+            <span>{({uk:'Створити на основі шаблону',ru:'Создать из шаблона',de:'Auf Vorlage basieren',en:'Create from template'})[t('navigation.settings') === 'Налаштування' ? 'uk' : (t('navigation.settings') === 'Настройки' ? 'ru' : (t('navigation.settings') === 'Einstellungen' ? 'de' : 'en'))]}</span>
+            <select value={selectedTemplateId} disabled={templateLoading || loading} onChange={event => applyTaskTemplate(event.target.value)}>
+              <option value="">{({uk:'Без шаблону — порожнє завдання',ru:'Без шаблона — новая задача',de:'Ohne Vorlage',en:'No template'})[t('navigation.settings') === 'Налаштування' ? 'uk' : (t('navigation.settings') === 'Настройки' ? 'ru' : (t('navigation.settings') === 'Einstellungen' ? 'de' : 'en'))]}</option>
+              {taskTemplates.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
+            </select>
+          </label>}
           <label className="form-field">
             <span>{t('tasks.create.taskTitle')}</span>
 
