@@ -442,4 +442,24 @@ class WorkspaceTemplateControllerTest {
         assertTrue(draft.path("requiresConfirmation").asBoolean());
         verify(db,never()).update(anyString(),any(Object[].class));
     }
+
+    @Test void httpCreationDraftAndPreviewSerializeJsonTreesNotBeanProperties() throws Exception {
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(101L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Screen time",
+                        """
+                        {"code":"fp.reward.time.002","definition":{"rewardKind":"TIME","durationMinutes":30}}
+                        """}));
+        var preview=controller.instantiatePreviewHttp(1L,101L);
+        var draft=controller.creationDraftHttp(1L,101L);
+        assertEquals(org.springframework.http.MediaType.APPLICATION_JSON,preview.getHeaders().getContentType());
+        var mapper=new com.fasterxml.jackson.databind.ObjectMapper();
+        var previewJson=mapper.readTree(preview.getBody());
+        var draftJson=mapper.readTree(draft.getBody());
+        assertEquals(30,previewJson.path("definition").path("definition").path("durationMinutes").asInt());
+        assertEquals(30,draftJson.path("request").path("defaultDurationMinutes").asInt());
+        assertFalse(previewJson.path("definition").has("nodeType"));
+        assertFalse(draftJson.has("nodeType"));
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
 }
