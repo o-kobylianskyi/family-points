@@ -149,6 +149,22 @@ fun TemplateLibrarySection(
                     }
                 }
             }
+            if (visibleTemplates.isNotEmpty()) item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(enabled = canManage && !busy && catalogLoaded && libraryLoaded,
+                        onClick = {
+                            selected = selected + visibleTemplates.map { it.code }
+                            preview = null
+                            previewCodes = emptyList()
+                        }) { Text(tl(language, "Вибрати видимі", "Sichtbare wählen", "Select visible", "Выбрать видимые")) }
+                    OutlinedButton(enabled = canManage && !busy && catalogLoaded && libraryLoaded,
+                        onClick = {
+                            selected = selected - visibleTemplates.map { it.code }.toSet()
+                            preview = null
+                            previewCodes = emptyList()
+                        }) { Text(tl(language, "Зняти вибір", "Auswahl aufheben", "Deselect visible", "Снять выбор")) }
+                }
+            }
             items(visibleTemplates, key = { it.code }) { item ->
                 val title = item.title?.get(when(language) {
                     AppLanguage.UK -> "uk"
