@@ -1,0 +1,164 @@
+{
+  "schema": "family-points-designer-icon-plan/1",
+  "status": "DESIGN_SPEC_NO_RENDERED_ASSETS",
+  "style": {
+    "shape": "single centered pictogram",
+    "grid": "64x64",
+    "safeAreaPx": 6,
+    "formats": [
+      "SVG original",
+      "PNG 256px",
+      "PNG 512px"
+    ],
+    "background": "transparent",
+    "avoid": "trademarks, existing avatar style, logos, text, age/gender stereotypes",
+    "contrast": "light and dark themes",
+    "accessibility": "meaning distinct at 24px"
+  },
+  "icons": [
+    {
+      "key": "hygiene",
+      "concept": "Toothbrush and water drop",
+      "kind": "TASK",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "routine",
+      "concept": "Checklist with checkmark",
+      "kind": "TASK",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "chores",
+      "concept": "Broom and tidy shelf",
+      "kind": "TASK",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "school",
+      "concept": "Book and pencil",
+      "kind": "TASK",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "reading",
+      "concept": "Open book",
+      "kind": "TASK",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "activity",
+      "concept": "Shoe and movement arc",
+      "kind": "TASK",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "creativity",
+      "concept": "Paint palette",
+      "kind": "TASK",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "social",
+      "concept": "Two hands supporting",
+      "kind": "TASK",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "habits",
+      "concept": "Calendar with check",
+      "kind": "TASK",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "family",
+      "concept": "House with connected hearts",
+      "kind": "TASK",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "adult",
+      "concept": "Planner and clock",
+      "kind": "TASK",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "reward-time",
+      "concept": "Stopwatch with play",
+      "kind": "REWARD",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "reward-privilege",
+      "concept": "Ticket with star",
+      "kind": "REWARD",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "reward-activity",
+      "concept": "Board-game pieces",
+      "kind": "REWARD",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "reward-items",
+      "concept": "Wrapped gift",
+      "kind": "REWARD",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "reward-family",
+      "concept": "Two hands around heart",
+      "kind": "REWARD",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "reward-app",
+      "concept": "Phone with app grid (future contract)",
+      "kind": "FUTURE",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    },
+    {
+      "key": "reward-achievement",
+      "concept": "Medal/check (provisional)",
+      "kind": "FUTURE",
+      "approved": false,
+      "mediaCatalogKey": null,
+      "assetStatus": "NOT_CREATED"
+    }
+  ]
+}
