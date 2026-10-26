@@ -162,6 +162,16 @@ export default function TemplatesPage() {
     for (const key of ids) {
       if (data[key] != null && !draftPointTypes.some(type => String(type.id) === String(data[key]))) warnings.push(local.currency)
     }
+    // A recommendation with no price is incomplete, not a free reward.
+    if (creationDraft.kind === 'REWARD' && (data.priceAmount == null || !Number.isInteger(data.priceAmount) || data.priceAmount < 0)) {
+      warnings.push(({uk:'Вкажіть ціну цілим невід’ємним числом. Порожня ціна не означає безкоштовно.',ru:'Укажите цену целым неотрицательным числом. Пустая цена не означает бесплатно.',de:'Preis als nichtnegative ganze Zahl angeben. Ein leerer Preis bedeutet nicht kostenlos.',en:'Enter a nonnegative whole-number price. An empty price does not mean free.'})[lang] || 'Enter a valid price.')
+    }
+    if (creationDraft.kind === 'TASK' && !data.recurrenceType) {
+      warnings.push(({uk:'Оберіть тип повторення.',ru:'Выберите тип повторения.',de:'Bitte Wiederholungsart auswählen.',en:'Select a recurrence type.'})[lang] || 'Select recurrence.')
+    }
+    if (creationDraft.kind === 'TASK' && data.startDate && !/^\\d{4}-\\d{2}-\\d{2}$/.test(String(data.startDate))) {
+      warnings.push(({uk:'Дата початку повинна мати формат РРРР-ММ-ДД.',ru:'Дата начала должна быть в формате ГГГГ-ММ-ДД.',de:'Startdatum im Format JJJJ-MM-TT angeben.',en:'Start date must use YYYY-MM-DD format.'})[lang] || 'Invalid date.')
+    }
     return [...new Set(warnings)]
   })()
   const availabilityError = (() => {
@@ -247,6 +257,7 @@ export default function TemplatesPage() {
         </details>
         {!validDraft && <p className="error-message" role="alert">{({uk:'Потрібен коректний JSON-об’єкт (до 30 000 символів).',ru:'Нужен корректный JSON-объект (до 30 000 символов).',de:'Gültiges JSON-Objekt erforderlich (bis 30.000 Zeichen).',en:'A valid JSON object is required (up to 30,000 characters).'})[lang] || 'Invalid JSON'}</p>}
         {validDraft && draftWarnings.length > 0 && <div className="error-message" role="alert"><ul>{draftWarnings.map(message => <li key={message}>{message}</li>)}</ul></div>}
+        {validDraft && draftWarnings.length === 0 && <p role="status">{({uk:'Попередні перевірки пройдені. Це не підтвердження Backend і не створення.',ru:'Предварительные проверки пройдены. Это не подтверждение Backend и не создание.',de:'Vorprüfungen bestanden. Keine Backend-Bestätigung und keine Erstellung.',en:'Preliminary checks passed. This is not Backend approval or creation.'})[lang] || 'Preliminary checks passed.'}</p>}
         <p role="status">{({uk:'Зміни лише у браузері. Для створення потрібне окреме підтвердження; активація тут недоступна.',ru:'Изменения только в браузере. Создание требует отдельного подтверждения; активация здесь недоступна.',de:'Änderungen nur im Browser. Erstellung erfordert separate Bestätigung; hier keine Aktivierung.',en:'Changes stay in your browser. Creation requires separate confirmation; activation is unavailable here.'})[lang] || 'Not activated'}</p>
       </div>}
       {editing && <form onSubmit={e=>{e.preventDefault();execute(async()=>{
