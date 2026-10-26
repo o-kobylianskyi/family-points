@@ -43,6 +43,10 @@ class CreateTaskRepository(
         )
     }
 
+    suspend fun taskTemplates(workspaceId: Long) =
+        ApiClient.templateApi.privateTemplates(authorization(), workspaceId)
+            .filter { it.kind == "TASK" }
+
     suspend fun create(
         workspaceId: Long,
         request: TaskDefinitionCreateRequest
