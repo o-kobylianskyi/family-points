@@ -39,6 +39,7 @@ fun TemplateLibrarySection(
     var busy by remember(workspaceId) { mutableStateOf(false) }
     var error by remember(workspaceId) { mutableStateOf("") }
     var notice by remember(workspaceId) { mutableStateOf("") }
+    var creationDraft by remember(workspaceId) { mutableStateOf<com.google.gson.JsonObject?>(null) }
     var editing by remember(workspaceId) { mutableStateOf<PrivateTemplateDto?>(null) }
     var editTitle by remember(workspaceId) { mutableStateOf("") }
     var editJson by remember(workspaceId) { mutableStateOf("") }
@@ -176,6 +177,11 @@ fun TemplateLibrarySection(
                         Text(item.title.orEmpty().ifBlank { "#${item.id}" })
                         Text(item.kind.orEmpty(), style = MaterialTheme.typography.bodySmall)
                     }
+                    if (canManage && item.kind in listOf("TASK", "REWARD")) {
+                        TextButton(enabled = !busy && !loading, onClick = {
+                            perform { creationDraft = repository.creationDraft(workspaceId, item.id) }
+                        }) { Text(tl(language, "Чернетка", "Entwurf", "Draft", "Черновик")) }
+                    }
                     if (canManage) TextButton(enabled = !busy, onClick = {
                         editing = item
                         editTitle = item.title.orEmpty()
@@ -185,6 +191,29 @@ fun TemplateLibrarySection(
                 }
             }
         }
+    }
+    if (creationDraft != null) {
+        AlertDialog(
+            onDismissRequest = { creationDraft = null },
+            title = { Text(tl(language, "Чернетка створення", "Erstellungsentwurf",
+                "Creation draft", "Черновик создания")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(tl(language,
+                        "Лише перегляд. Учасника, валюту та обов'язкові поля треба вказати перед створенням. Нічого ще не активовано.",
+                        "Nur Vorschau. Mitglied, Währung und Pflichtfelder sind vor dem Erstellen nötig. Nichts aktiviert.",
+                        "Preview only. Member, currency and required fields must be supplied before creation. Nothing activated.",
+                        "Только просмотр. Для создания нужны участник, валюта и обязательные поля. Ничего не активировано."))
+                    Text(creationDraft.toString().take(10000),
+                        style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { creationDraft = null }) {
+                    Text(tl(language, "Закрити", "Schließen", "Close", "Закрыть"))
+                }
+            }
+        )
     }
     val current = editing
     if (current != null) {
