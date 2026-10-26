@@ -1,0 +1,2010 @@
+{
+  "schema": "familypoints-designer-economy-review/0.4",
+  "status": "REVIEW_ONLY_NOT_APPROVED",
+  "baseCatalog": "src/main/resources/templates/catalog-v1.json",
+  "baseCatalogVersion": 1,
+  "method": "Individual-code editorial exceptions on top of v0.3; no automatic time-only scoring",
+  "summary": {
+    "taskCount": 110,
+    "rewardCount": 32,
+    "withSuggestedPoints": 11,
+    "noSuggestedPoints": 99,
+    "withSuggestedPrice": 12,
+    "noSuggestedPrice": 20,
+    "changedTaskCodes": [
+      "fp.task.routine.007",
+      "fp.task.routine.009",
+      "fp.task.routine.011",
+      "fp.task.routine.012",
+      "fp.task.chores.013",
+      "fp.task.chores.014",
+      "fp.task.chores.015",
+      "fp.task.chores.016",
+      "fp.task.chores.017",
+      "fp.task.chores.018",
+      "fp.task.chores.019",
+      "fp.task.chores.020",
+      "fp.task.chores.021",
+      "fp.task.chores.022",
+      "fp.task.chores.023",
+      "fp.task.chores.024"
+    ],
+    "flaggedTasks": 28
+  },
+  "taskSuggestions": [
+    {
+      "code": "fp.task.hygiene.001",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 3,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Почистити зуби вранці",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.002",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 3,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Почистити зуби ввечері",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.003",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 2,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Помити руки перед їжею",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.004",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Прийняти душ",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.005",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 2,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Причесатися",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.006",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Підготувати одяг на завтра",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.routine.007",
+      "category": "routine",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 5,
+      "suggestedPoints": 5,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Заправити ліжко",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Необов'язковий бонус за погоджену додаткову роботу; оцінка не тільки за часом",
+      "riskFlags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.routine.008",
+      "category": "routine",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Вчасно встати",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.routine.009",
+      "category": "routine",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 7,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Зібрати шкільний рюкзак",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Необов'язковий бонус за погоджену додаткову роботу; оцінка не тільки за часом",
+      "riskFlags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.routine.010",
+      "category": "routine",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Лягти спати за розкладом",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.routine.011",
+      "category": "routine",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Підготувати речі до садочка",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.routine.012",
+      "category": "routine",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Виконати ранковий чекліст",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.013",
+      "category": "chores",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Прибрати іграшки",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Необов'язковий бонус за погоджену додаткову роботу; оцінка не тільки за часом",
+      "riskFlags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.014",
+      "category": "chores",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Прибрати письмовий стіл",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Необов'язковий бонус за погоджену додаткову роботу; оцінка не тільки за часом",
+      "riskFlags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.015",
+      "category": "chores",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 20,
+      "suggestedPoints": 25,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Прибрати кімнату",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Необов'язковий бонус за погоджену додаткову роботу; оцінка не тільки за часом",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.016",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": 15,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Витерти пил",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Необов'язковий бонус за погоджену додаткову роботу; оцінка не тільки за часом",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.017",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": 15,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Пропилососити кімнату",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Необов'язковий бонус за погоджену додаткову роботу; оцінка не тільки за часом",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.018",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Скласти чистий одяг",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Необов'язковий бонус за погоджену додаткову роботу; оцінка не тільки за часом",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.019",
+      "category": "chores",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 3,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Покласти брудний одяг у кошик",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.020",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Допомогти накрити стіл",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Необов'язковий бонус за погоджену додаткову роботу; оцінка не тільки за часом",
+      "riskFlags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.021",
+      "category": "chores",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Прибрати посуд після їжі",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.022",
+      "category": "chores",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 8,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Полити кімнатні рослини",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.023",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Посортувати сміття",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Необов'язковий бонус за погоджену додаткову роботу; оцінка не тільки за часом",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.024",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards",
+      "titleUk": "Допомогти скласти покупки",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Необов'язковий бонус за погоджену додаткову роботу; оцінка не тільки за часом",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.school.025",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Зробити домашнє завдання",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.school.026",
+      "category": "school",
+      "difficultySuggestion": "ADVANCED",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Підготуватися до контрольної",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.school.027",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Повторити таблицю множення",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.028",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Повторити нові слова",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.029",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Написати короткий текст",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.030",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Потренувати читання вголос",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.031",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Зібрати матеріали для уроків",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.032",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Розв'язати логічні задачі",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.reading.033",
+      "category": "reading",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Почитати книжку 15 хвилин",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.reading.034",
+      "category": "reading",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Переказати прочитане",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.reading.035",
+      "category": "reading",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Обрати нову книжку",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.reading.036",
+      "category": "reading",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Прочитати розділ книжки",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.037",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Зробити ранкову зарядку",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.038",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Прогулятися надворі",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.039",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Покататися на велосипеді",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.040",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Зробити вправи на розтяжку",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.041",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Пограти в рухливу гру",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.042",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Потренувати спортивну навичку",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.creativity.043",
+      "category": "creativity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Намалювати малюнок",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.creativity.044",
+      "category": "creativity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Зробити поробку",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.creativity.045",
+      "category": "creativity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Пограти на музичному інструменті",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.creativity.046",
+      "category": "creativity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Скласти конструкцію з кубиків",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.social.047",
+      "category": "social",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Допомогти молодшому члену сім'ї",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.social.048",
+      "category": "social",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Зробити добру справу",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.social.049",
+      "category": "social",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Пограти разом без сварок",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.social.050",
+      "category": "social",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Попросити вибачення після конфлікту",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.social.051",
+      "category": "social",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Підтримати сімейну розмову",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.052",
+      "category": "habits",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Провести день без зайвого екрана",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.habits.053",
+      "category": "habits",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Завершити завдання без нагадувань",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.054",
+      "category": "habits",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Підготувати план на завтра",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.055",
+      "category": "habits",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default",
+      "titleUk": "Записати три хороші події дня",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.family.056",
+      "category": "family",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Family participation: no points default",
+      "titleUk": "Допомогти приготувати вечерю",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.057",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Family participation: no points default",
+      "titleUk": "Підготувати сімейну гру",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.058",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Family participation: no points default",
+      "titleUk": "Вигуляти собаку з дорослим",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.059",
+      "category": "family",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Family participation: no points default",
+      "titleUk": "Допомогти доглядати домашню тварину",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.060",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Family participation: no points default",
+      "titleUk": "Разом скласти меню на вихідні",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.001",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Оплатити комунальні рахунки",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.002",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Перевірити сімейний бюджет",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.003",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Скласти список покупок",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.004",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 75,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Купити продукти на тиждень",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.005",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Записатися до лікаря",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.006",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Забрати ліки з аптеки",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.007",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Перевірити пошту й документи",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.008",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Підготувати документи до установи",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.009",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Оплатити страховку",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.010",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Перевірити терміни договорів",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.011",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Записати автомобіль на сервіс",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.012",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Перевірити автомобіль перед поїздкою",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.013",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Заправити автомобіль",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.014",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Прибрати кухню",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.015",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Вимити ванну кімнату",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.016",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Випрати одяг",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.017",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 25,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Розкласти чисту білизну",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.018",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Замінити постільну білизну",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.019",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Винести сміття",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.020",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Перевірити запаси вдома",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.021",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Полагодити дрібну несправність",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.022",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Замовити необхідні товари",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.023",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Підготувати обід",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.024",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Підготувати вечерю",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.025",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Перевірити особистий календар",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.026",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Спланувати робочий тиждень",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.027",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Завершити важливе робоче завдання",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.028",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Відповісти на важливі повідомлення",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.029",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Розібрати робочий стіл",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.030",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Зробити резервну копію важливих файлів",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.001",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Спланувати сімейний вихідний",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.002",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Узгодити сімейний розклад",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.003",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Зробити спільне прибирання",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.004",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Приготувати вечерю разом",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.005",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Провести сімейну розмову",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.006",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Організувати спільну прогулянку",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.007",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Спланувати сімейну поїздку",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.008",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Підготувати речі для поїздки",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.009",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Перевірити шкільні повідомлення",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.010",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Підготувати речі до школи й садочка",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.011",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Організувати домашні обов'язки",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.012",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Погодити меню на тиждень",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.013",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Провести час із кожною дитиною",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.014",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Зробити сімейне фото",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.015",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Підготувати подарунок близькій людині",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.016",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Перевірити сімейну аптечку",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.017",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Організувати сімейний ігровий вечір",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.018",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Обговорити плани на канікули",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.019",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Розібрати спільні речі",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.020",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default",
+      "titleUk": "Подякувати одне одному за допомогу",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "reason": "Без автоматичної винагороди за базові потреби, догляд, навчання або сімейні відносини; індивідуально налаштовується",
+      "riskFlags": []
+    }
+  ],
+  "rewardSuggestions": [
+    {
+      "code": "fp.reward.time.001",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "suggestedPricePoints": 25,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "15 хвилин мультфільмів",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.002",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": 45,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "30 хвилин мультфільмів",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.003",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "suggestedPricePoints": 35,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "15 хвилин відеогри",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.004",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": 60,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "30 хвилин відеогри",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.005",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": 55,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "30 хвилин планшета",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.006",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "suggestedPricePoints": 30,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "15 хвилин додаткового екранного часу",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.007",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "30 хвилин гри з батьками",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.time.008",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "30 хвилин творчості з дорослим",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.009",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати сімейний фільм",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.010",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати гру для вечора",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.011",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати десерт",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.012",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати музику в авто",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.013",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати маршрут прогулянки",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.014",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати книжку для читання",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.015",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Сімейний похід у парк",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.016",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Спільна настільна гра",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.017",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Пікнік із сім'єю",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.018",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Відвідати дитячий майданчик",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.019",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Спільний велосипедний виїзд",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.020",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Кулінарний вечір разом",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.items.021",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 50,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Невеликий набір наліпок",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.022",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 60,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Новий олівець або ручка",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.023",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 250,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Маленька іграшка",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.024",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 300,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Нова книжка",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.025",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 200,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Набір для творчості",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.026",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 350,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Колекційна фігурка",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.family.027",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Додаткова казка перед сном",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.028",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Похід у бібліотеку",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.029",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Вечір конструктора з дорослим",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.030",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Особливий сімейний сніданок",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.031",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати сімейну активність у вихідні",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.032",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Сімейний творчий проєкт",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    }
+  ],
+  "illustrativeWeekScenarios": [
+    {
+      "code": "low",
+      "bonusTasksPerWeek": 5,
+      "avgPoints": 10,
+      "earned": 50,
+      "cartoons30Possible": 1,
+      "game30Possible": 0
+    },
+    {
+      "code": "middle",
+      "bonusTasksPerWeek": 12,
+      "avgPoints": 12,
+      "earned": 144,
+      "cartoons30Possible": 3,
+      "game30Possible": 2
+    },
+    {
+      "code": "high",
+      "bonusTasksPerWeek": 20,
+      "avgPoints": 15,
+      "earned": 300,
+      "cartoons30Possible": 6,
+      "game30Possible": 5
+    }
+  ],
+  "openIssues": [
+    "Confirm discretionary scoring for short regular chores vs expected household contribution",
+    "Parent settings for screen-time caps",
+    "Check equity/accessibility and age-appropriate activity",
+    "Define null price explicitly without making family connection purchasable",
+    "Define idempotent reward accrual and caps"
+  ]
+}
