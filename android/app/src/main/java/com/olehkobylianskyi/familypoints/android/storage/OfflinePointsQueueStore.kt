@@ -12,7 +12,7 @@ import java.util.UUID
  * removes the pending operation from the queue.
  */
 class OfflinePointsQueueStore(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "fp_pending_points.db", null, 3) {
+    SQLiteOpenHelper(context.applicationContext, "fp_pending_points.db", null, 4) {
 
     data class Pending(
         val operationId: String,
@@ -30,6 +30,7 @@ class OfflinePointsQueueStore(context: Context) :
     )
 
     override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL("CREATE TABLE reset_holds (workspace_id INTEGER NOT NULL PRIMARY KEY, reason TEXT NOT NULL)")
         db.execSQL("""
             CREATE TABLE pending_points (
                 operation_id TEXT NOT NULL PRIMARY KEY,
@@ -60,7 +61,30 @@ class OfflinePointsQueueStore(context: Context) :
             // Existing owner-ambiguous rows remain NULL, quarantined and durable.
             db.execSQL("ALTER TABLE pending_points ADD COLUMN account_id INTEGER")
         }
+        if (oldVersion < 4) {
+            db.execSQL("CREATE TABLE reset_holds (workspace_id INTEGER NOT NULL PRIMARY KEY, reason TEXT NOT NULL)")
+        }
     }
+
+    /** Fail-closed workspace reset quarantine. Pending rows are retained for audit/review. */
+    @Synchronized
+    fun holdForReset(workspaceId: Long) {
+        require(workspaceId > 0)
+        val row = ContentValues().apply {
+            put("workspace_id", workspaceId)
+            put("reason", "RESET_REQUIRES_SERVER_RECONCILIATION")
+        }
+        writableDatabase.insertWithOnConflict(
+            "reset_holds", null, row, SQLiteDatabase.CONFLICT_REPLACE
+        )
+    }
+
+    @Synchronized
+    fun isHeldForReset(workspaceId: Long): Boolean =
+        readableDatabase.rawQuery(
+            "SELECT 1 FROM reset_holds WHERE workspace_id=? LIMIT 1",
+            arrayOf(workspaceId.toString())
+        ).use { it.moveToFirst() }
 
     @Synchronized
     fun legacyUnassignedCount(): Int = readableDatabase.rawQuery(
