@@ -151,10 +151,13 @@ export default function TemplatesPage() {
     }[lang] || {title:'Enter a title.',member:'Select a member of this family.',currency:'Select an active currency of this family.',duration:'Duration must be positive.',start:'Enter a start date.'}
     if (!String(data.title ?? '').trim()) warnings.push(local.title)
     if (creationDraft.kind === 'TASK') {
-      if (!draftMembers.some(member => String(member.id) === String(data.assignedMemberId))) warnings.push(local.member)
+      if ((!data.assignmentPolicy || data.assignmentPolicy === 'SINGLE_MEMBER') && !draftMembers.some(member => String(member.id) === String(data.assignedMemberId))) warnings.push(local.member)
       if (!data.startDate) warnings.push(local.start)
     }
-    if (creationDraft.kind === 'REWARD' && data.rewardKind === 'TIME_BASED' && !(Number(data.defaultDurationMinutes) > 0)) warnings.push(local.duration)
+    if (creationDraft.kind === 'REWARD') {
+      if (data.rewardKind === 'TIME_BASED' && (!Number.isInteger(data.defaultDurationMinutes) || data.defaultDurationMinutes <= 0)) warnings.push(local.duration)
+      if (data.pointTypeId == null) warnings.push(local.currency)
+    }
     const ids = creationDraft.kind === 'TASK' ? ['rewardPointTypeId','penaltyPointTypeId'] : ['pointTypeId']
     for (const key of ids) {
       if (data[key] != null && !draftPointTypes.some(type => String(type.id) === String(data[key]))) warnings.push(local.currency)
