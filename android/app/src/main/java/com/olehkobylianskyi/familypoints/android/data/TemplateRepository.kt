@@ -9,6 +9,8 @@ class TemplateRepository(private val tokens: TokenStore) {
     suspend fun privateTemplates(workspaceId: Long) = ApiClient.templateApi.privateTemplates(auth(), workspaceId)
     suspend fun preview(workspaceId: Long, codes: List<String>) =
         ApiClient.templateApi.preview(auth(), workspaceId, TemplateSelectionRequest(codes))
-    suspend fun import(workspaceId: Long, codes: List<String>) =
-        ApiClient.templateApi.import(auth(), workspaceId, TemplateSelectionRequest(codes))
+    suspend fun importSelected(workspaceId: Long, codes: List<String>) {
+        val response = ApiClient.templateApi.importSelected(auth(), workspaceId, TemplateSelectionRequest(codes))
+        if (!response.isSuccessful) throw retrofit2.HttpException(response)
+    }
 }
