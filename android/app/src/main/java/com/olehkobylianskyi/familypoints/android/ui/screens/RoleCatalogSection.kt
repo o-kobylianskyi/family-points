@@ -86,6 +86,8 @@ fun RoleCatalogSection(
         if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
         if (loading) Text(rt(language, "Завантаження…", "Laden…", "Loading…", "Загрузка…"))
         sets.forEach { set ->
+            val setRoles = roles.filter { it.roleSetId == set.id }
+            var expanded by remember(workspaceId, set.id) { mutableStateOf(false) }
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -96,12 +98,20 @@ fun RoleCatalogSection(
                         }
                     }
                     localizedRoleSetDescription(language, set.systemCode, set.description)?.takeIf { it.isNotBlank() }?.let { Text(it) }
-                    roles.filter { it.roleSetId == set.id }.forEach { role ->
+                    (if (expanded) setRoles else setRoles.take(3)).forEach { role ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(localizedSystemRoleName(language, role.systemCode, role.name), modifier = Modifier.weight(1f))
                             if (canManage && !role.systemDefault) TextButton(onClick = { openRole(role, set.id) }) {
                                 Text(rt(language, "Змінити", "Ändern", "Edit", "Изменить"))
                             }
+                        }
+                    }
+                    if (setRoles.size > 3) {
+                        TextButton(onClick = { expanded = !expanded }) {
+                            Text(if (expanded)
+                                rt(language, "Згорнути", "Weniger anzeigen", "Show less", "Свернуть")
+                                else rt(language, "Показати всі", "Alle anzeigen", "Show all", "Показать все") +
+                                    " (" + setRoles.size + ")")
                         }
                     }
                     if (canManage) TextButton(onClick = { openRole(null, set.id) }) {
