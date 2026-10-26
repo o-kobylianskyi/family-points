@@ -609,3 +609,7 @@ Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat pri
 ## 2026-10-26 — Web activation-readiness contract audit
 - Checked TaskDefinitionCreateRequest/RewardDefinitionRequest DTOs. Reward creation requires non-null pointTypeId, TIME_BASED duration must be a positive integer. Tightened local-only creation-draft warnings accordingly; TASK member requirement applies only to SINGLE_MEMBER assignment policy. Commit `255a8dd`. No activation API call, no ledger modifications, no BETA deployment.
 - Broader validations/confirmation and browser tenant tests remain open; CI on this commit pending. Concurrent main edits required SHA refetch after initial 409.
+
+## 2026-10-26 — Late Architecture dispatch / Web preflight (P1)
+- Read `docs/coordination/DISPATCH_20261026_LATE.md`. Implemented local-only preflight in template creation drafts: null reward price is explicitly unresolved, not automatically free/zero; require nonnegative whole-number price, TASK recurrence, basic ISO start-date shape, display four-language preliminary readiness status when no warnings. Commit `f44ee91`.
+- No activate-task/activate-reward POST wired; no ledger writes. Architecture explicitly directs Web not to activate pending Backend/QA acceptance. Need real browser DEV QA (family scoped selectors, null price, TIME duration, overlapping-pack import), current commit CI confirmation. New BETA release is Release-owned.
