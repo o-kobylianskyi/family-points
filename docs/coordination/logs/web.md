@@ -557,3 +557,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 - Observed main Actions run 40381339684 FAILURE after pack filter implementation. Inspected TemplatesPage.jsx and found a stray standalone `}` after pack selection controls, causing invalid JSX compilation. Removed it in commit `d708625`.
 - Import preview now snapshots selected template codes; Import button is disabled if the current selection diverges and confirmation submits the snapshot instead of a mutable live selection. Family switch + prior selection preview guards remain intact.
 - Actual global catalog still EMPTY. End-to-end seed/import cannot be asserted; latest CI of fix pending. No BETA writes.
+
+## 2026-10-26 — Web template stabilization after JSX CI failure
+- GitHub Actions run 40386183381 Web/Vite job PASSED after fix commit 9d84265; Java/Android were still in progress at observation. Previous failure was missing JSX `}` in TemplatesPage.jsx.
+- Template catalog now shows an Already in library marker for entries with matching workspace-private catalogCode; displays remaining non-imported suggestion count; preview action disabled when selected codes contain no new entries. Import completion clears preview selection only for the original workspace. Source commit dad89cb. Backend unique workspace/catalog_code remains authoritative against duplicates. Current seed catalog empty, so full import E2E awaits content. BETA untouched.
