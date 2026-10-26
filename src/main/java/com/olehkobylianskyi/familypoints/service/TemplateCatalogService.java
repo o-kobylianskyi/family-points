@@ -19,7 +19,8 @@ import java.util.Set;
 public class TemplateCatalogService {
     private final JsonNode catalog;
 
-    public TemplateCatalogService(ObjectMapper mapper) {
+    public TemplateCatalogService() {
+        ObjectMapper mapper = new ObjectMapper();
         try (InputStream input = new ClassPathResource("templates/catalog-v1.json").getInputStream()) {
             this.catalog = mapper.readTree(input);
             validate(catalog);
