@@ -459,3 +459,7 @@ New batches: Kotlin/Jetpack Compose, REST, native UX, device features, offline/s
 ## 2026-10-26 — DEV template dialog lifecycle
 - Android SettingsScreen commit ffc6112 disables Android system Back/outside tap dismissal for the template library dialog; its own Close button already requires !busy && !loading. Prevents dismissing a library while a template import/update/delete request is in flight and later completing without visible feedback. This is client UX hardening, not a guarantee of network transaction cancellation or server dedupe.
 - Reviewed new Web starter pack filters: Android pack filtering is not yet implemented and remains follow-up, along with UI build/QA. Latest Android Gradle result still unconfirmed; previous baseline CI should not be reused. Beta beta.11 unchanged.
+
+## 2026-10-26 — DEV starter pack catalog filters
+- Android 75fd5a0 adds localized catalog pack filters using Backend catalog packs[].code/title/templateCodes, including ALL fallback; c9dcefd adds select/deselect visible items while retaining selections in other packs. Selection changes invalidate prior import preview and preserve explicit server confirmation; no active tasks/rewards created.
+- Existing global catalog may still be empty until Designer seed. No current-source Android CI evidence from connected PR-only runs lookup; current build/device/API QA remains pending. Signed BETA beta.11 unchanged.
