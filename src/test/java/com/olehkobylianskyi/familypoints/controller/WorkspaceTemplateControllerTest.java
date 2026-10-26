@@ -106,4 +106,24 @@ class WorkspaceTemplateControllerTest {
         assertTrue(draft.requiresCurrencySelection());
         verify(db,never()).update(anyString(),any(Object[].class));
     }
+
+    @Test void missingTemplateCannotBeActivated() {
+        when(db.query(contains("SELECT kind FROM workspace_private_templates"),
+                any(org.springframework.jdbc.core.RowMapper.class), eq(999L), eq(1L)))
+                .thenReturn(List.of());
+        assertThrows(ResponseStatusException.class,
+                () -> controller.activateTask(1L,999L,
+                        new com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest()));
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
+
+    @Test void rewardCannotBeActivatedAsTask() {
+        when(db.query(contains("SELECT kind FROM workspace_private_templates"),
+                any(org.springframework.jdbc.core.RowMapper.class), eq(5L), eq(1L)))
+                .thenReturn(List.of("REWARD"));
+        assertThrows(ResponseStatusException.class,
+                () -> controller.activateTask(1L,5L,
+                        new com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest()));
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
 }
