@@ -57,7 +57,7 @@ export default function TemplatesPage() {
       if (workspaceRef.current === originWorkspace) setBusy(false)
     }
   }
-  const refresh = async () => setPrivateItems(await getPrivateTemplates(getAccessToken(), workspaceId))
+  const refresh = async () => { const id = workspaceId; const items = await getPrivateTemplates(getAccessToken(), id); if (workspaceRef.current === id) setPrivateItems(items) }
   const chooseEdit = item => { setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
   const validDefinition = (() => { try { return definition.length <= 30000 && !Array.isArray(JSON.parse(definition)) && JSON.parse(definition) !== null && typeof JSON.parse(definition) === 'object' } catch { return false } })()
   const availabilityError = (() => {
@@ -65,7 +65,7 @@ export default function TemplatesPage() {
     const value = JSON.parse(definition)
     const start = value.availabilityStartsAt
     const end = value.availabilityEndsAt
-    const isIso = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/.test(s) && !Number.isNaN(Date.parse(s))
+    const isIso = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/.test(s) && !Number.isNaN(Date.parse(s))
     const invalid = [start, end].some(s => s != null && s !== '' && !isIso(s))
     if (invalid) return timeErrorTexts[0]
     if (start && end && Date.parse(end) <= Date.parse(start)) return timeErrorTexts[1]
