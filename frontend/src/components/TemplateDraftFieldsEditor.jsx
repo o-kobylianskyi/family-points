@@ -10,7 +10,7 @@ const labels = {
   ru: {title:'Название',description:'Описание',mandatory:'Обязательно',recurrenceType:'Повторение',recurrenceDayOfWeek:'День недели',recurrenceDayOfMonth:'День месяца',dueTime:'Время',startDate:'Дата начала',assignedMemberId:'ID участника',rewardAmount:'Награда',penaltyAmount:'Штраф',rewardPointTypeId:'ID валюты награды',penaltyPointTypeId:'ID валюты штрафа',rewardKind:'Тип награды',defaultDurationMinutes:'Длительность, мин',priceAmount:'Цена',pointTypeId:'ID валюты',requiresApproval:'Нужно одобрение',acquisitionMode:'Способ получения',minimumReputation:'Минимальная репутация',cooldownSeconds:'Пауза, с'},
   de: {title:'Titel',description:'Beschreibung',mandatory:'Pflicht',recurrenceType:'Wiederholung',recurrenceDayOfWeek:'Wochentag',recurrenceDayOfMonth:'Monatstag',dueTime:'Zeit',startDate:'Startdatum',assignedMemberId:'Mitglied-ID',rewardAmount:'Belohnung',penaltyAmount:'Strafe',rewardPointTypeId:'Belohnungswährung-ID',penaltyPointTypeId:'Strafwährung-ID',rewardKind:'Belohnungsart',defaultDurationMinutes:'Dauer, Min.',priceAmount:'Preis',pointTypeId:'Währung-ID',requiresApproval:'Genehmigung',acquisitionMode:'Einlöseart',minimumReputation:'Mindest-Reputation',cooldownSeconds:'Wartezeit, Sek.'},
 }
-export default function TemplateDraftFieldsEditor({kind, value, onChange, language='uk', disabled=false}) {
+export default function TemplateDraftFieldsEditor({kind, value, onChange, language='uk', disabled=false, members=[], pointTypes=[]}) {
   const draft = useMemo(() => { try {const v=JSON.parse(value); return v && typeof v==='object' && !Array.isArray(v)?v:null} catch {return null}}, [value])
   if (!draft || !config[kind]) return null
   const names=labels[language] || labels.en
@@ -18,7 +18,11 @@ export default function TemplateDraftFieldsEditor({kind, value, onChange, langua
   return <div className="currency-forms-fields">
     {config[kind].filter(([key])=>Object.hasOwn(draft,key)).map(([key,type])=><label key={key}>
       <span>{names[key]||key}</span>
-      {type==='checkbox' ? <input type="checkbox" checked={draft[key]===true} disabled={disabled} onChange={e=>set(key,e.target.checked)}/> :
+      {['assignedMemberId','rewardPointTypeId','penaltyPointTypeId','pointTypeId'].includes(key) && (key==='assignedMemberId' ? members : pointTypes).length > 0 ? <select disabled={disabled} value={draft[key]??''} onChange={e=>set(key,e.target.value ? Number(e.target.value) : null)}>
+          <option value="">—</option>
+          {(key==='assignedMemberId' ? members : pointTypes).map(item=><option key={item.id} value={item.id}>{item.displayName || item.name || item.code || item.username || item.id}</option>)}
+          {draft[key] != null && !(key==='assignedMemberId' ? members : pointTypes).some(item=>String(item.id)===String(draft[key])) && <option value={draft[key]} disabled>{draft[key]}</option>}
+        </select> : type==='checkbox' ? <input type="checkbox" checked={draft[key]===true} disabled={disabled} onChange={e=>set(key,e.target.checked)}/> :
         type.startsWith('select:') ? <select disabled={disabled} value={draft[key]??''} onChange={e=>set(key,e.target.value||null)}>
           <option value="">—</option>{type.slice(7).split(',').map(item=><option key={item} value={item}>{item.replaceAll('_',' ')}</option>)}
           {draft[key] && !type.slice(7).split(',').includes(draft[key]) && <option value={draft[key]}>{draft[key]}</option>}
