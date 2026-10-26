@@ -47,6 +47,7 @@ fun TemplateLibrarySection(
     var refresh by remember(workspaceId) { mutableIntStateOf(0) }
     var catalogLoaded by remember(workspaceId) { mutableStateOf(false) }
     var libraryLoaded by remember(workspaceId) { mutableStateOf(false) }
+    var loadedDraftWorkspace by remember(workspaceId) { mutableStateOf<Long?>(null) }
     var previewCodes by remember(workspaceId) { mutableStateOf<List<String>>(emptyList()) }
 
     fun failure(e: Exception) {
@@ -59,6 +60,10 @@ fun TemplateLibrarySection(
         error = ""
         selected = emptySet()
         preview = null
+        creationDraft = null
+        loadedDraftWorkspace = null
+        editing = null
+        confirmDelete = false
         previewCodes = emptyList()
         catalog = emptyList()
         library = emptyList()
@@ -88,7 +93,7 @@ fun TemplateLibrarySection(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(tl(language, "Бібліотека шаблонів", "Vorlagenbibliothek", "Template library", "Библиотека шаблонов"),
                 style = MaterialTheme.typography.titleLarge)
-            TextButton(onClick = onClose) { Text(tl(language, "Закрити", "Schließen", "Close", "Закрыть")) }
+            TextButton(enabled = !busy && !loading, onClick = onClose) { Text(tl(language, "Закрити", "Schließen", "Close", "Закрыть")) }
         }
         Text(tl(language, "Імпорт зберігає вибрані шаблони в бібліотеці сім'ї, але не створює активні завдання або нагороди.",
             "Import speichert Vorlagen nur in der Familienbibliothek, nicht als aktive Aufgaben oder Belohnungen.",
@@ -185,7 +190,18 @@ fun TemplateLibrarySection(
                     }
                     if (canManage && item.kind in listOf("TASK", "REWARD")) {
                         TextButton(enabled = !busy && !loading, onClick = {
-                            perform { creationDraft = repository.creationDraft(workspaceId, item.id) }
+                            perform {
+                                val draft = repository.creationDraft(workspaceId, item.id)
+                                if (draft.get("templateId")?.asLong == item.id) {
+                                    creationDraft = draft
+                                    loadedDraftWorkspace = workspaceId
+                                } else {
+                                    error = tl(language, "Відповідь сервера не відповідає вибраному шаблону.",
+                                        "Serverantwort passt nicht zur gewählten Vorlage.",
+                                        "Server response does not match the selected template.",
+                                        "Ответ сервера не соответствует выбранному шаблону.")
+                                }
+                            }
                         }) { Text(tl(language, "Чернетка", "Entwurf", "Draft", "Черновик")) }
                     }
                     if (canManage) TextButton(enabled = !busy, onClick = {
@@ -198,7 +214,7 @@ fun TemplateLibrarySection(
             }
         }
     }
-    if (creationDraft != null) {
+    if (creationDraft != null && loadedDraftWorkspace == workspaceId) {
         AlertDialog(
             onDismissRequest = { creationDraft = null },
             title = { Text(tl(language, "Чернетка створення", "Erstellungsentwurf",
