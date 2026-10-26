@@ -21,3 +21,10 @@
 5. Catalog category choice never mutates personal family data before confirmation.
 
 **Next owner:** Backend implement registry; Web/Android consume after API acceptance; QA test; Release publish independently.
+
+## Backend implementation update — 2026-10-26
+- Implemented fixed 18-key SVG registry in `MediaService` at commit `c406aa75197561810ae13e87522435bcdc5f323e`. Map resolves approved `category-*` keys to exact `media/catalog/categories/*.svg` resources. All 18 entries are in `catalog()`, with designer-specified category, labelKey, sortOrder.
+- Existing legacy catalog and portrait PNG keys remain accepted. `bind` validates approved category keys; `catalogPreview` retains workspace membership check. MediaController responds `image/svg+xml`, `nosniff`, private no-store.
+- Tests for 18 distinct catalog keys, SVG bytes, unauthorized workspace and unrecognized path-like keys at `587be2bbaa225c9b4a0a9381dd6d9dafbaf728a9`.
+- CI `40409633907` pending as inspected; **no runtime PASS yet**. Authenticated DEV preview and 24/48px Web QA pending. Android might need PNG fallback.
+- **Web/Android handoff:** discover keys through `GET /workspaces/{workspaceId}/media/catalog`, obtain preview at `GET /workspaces/{workspaceId}/media/catalog/{key}/preview`; maintain fallback for unavailable keys. Use `docs/design/ICON_REGISTRY_CONTRACT_V1.json` for proposed semantic mapping. No automatic changes to family bindings or economy.
