@@ -87,8 +87,14 @@ const templateIconKeys = {
   habits:'category-initiative', family:'category-home', adult:'category-adult-tasks',
   time:'category-screen-time', privilege:'category-privilege', items:'category-material-reward'
 }
-const iconKeyForTemplate = item => templateIconKeys[item?.suggested?.category || item?.definition?.category]
-  || (item?.kind === 'REWARD' ? 'reward-star' : 'task-default')
+const iconKeyForTemplate = item => {
+  let definition = item?.definition
+  if (!definition && typeof item?.definitionJson === 'string') {
+    try { definition = JSON.parse(item.definitionJson) } catch { definition = null }
+  }
+  const category = item?.suggested?.category || definition?.category
+  return templateIconKeys[category] || (item?.kind === 'REWARD' ? 'reward-star' : 'task-default')
+}
 
 export default function TemplatesPage() {
   const { i18n } = useTranslation()
@@ -298,8 +304,9 @@ export default function TemplatesPage() {
       <h2>{l[2]}</h2><p>{l[21]}</p>
       {!privateItems.length && <p>{l[12]}</p>}
       <div className="template-grid">
-        {privateItems.map(item => <button key={item.id} type="button" className="secondary-button" onClick={()=>chooseEdit(item)}>
-          {item.title} · {kindLabel(item.kind)}
+        {privateItems.map(item => <button key={item.id} type="button" className="template-card template-private-card" onClick={()=>chooseEdit(item)} aria-pressed={editing?.id === item.id}>
+          <span className="template-card-icon" aria-hidden="true">{iconUrls[iconKeyForTemplate(item)] ? <img src={iconUrls[iconKeyForTemplate(item)]} alt="" loading="lazy"/> : item.kind === 'REWARD' ? '★' : '✓'}</span>
+          <span className="template-card-body"><strong>{item.title}</strong><small>{kindLabel(item.kind)}</small></span>
         </button>)}
       </div>
       {editing && ['TASK','REWARD'].includes(editing.kind) && <div className="modal-actions">
