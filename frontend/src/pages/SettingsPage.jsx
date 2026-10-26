@@ -163,9 +163,9 @@ function SettingsPage() {
     <h1>{t('settings.title')}</h1>
     <p>{t('settings.description')}</p>
     {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) &&
-      <section className="settings-section">
+      <section className="settings-section settings-template-library">
         <h2>{({uk:'Бібліотека шаблонів',de:'Vorlagenbibliothek',en:'Template library',ru:'Библиотека шаблонов'})[i18n.language.split('-')[0]] || 'Template library'}</h2>
-        <Link to="/templates" className="secondary-button">{({uk:'Відкрити шаблони',de:'Vorlagen öffnen',en:'Open templates',ru:'Открыть шаблоны'})[i18n.language.split('-')[0]] || 'Open templates'}</Link>
+        <Link to="/templates" className="secondary-button settings-template-library-link">{({uk:'Відкрити шаблони',de:'Vorlagen öffnen',en:'Open templates',ru:'Открыть шаблоны'})[i18n.language.split('-')[0]] || 'Open templates'}</Link>
       </section>}
     {error && <div className="error-message settings-message">{error}</div>}
     {notice && <div className="settings-success settings-message">{notice}</div>}
