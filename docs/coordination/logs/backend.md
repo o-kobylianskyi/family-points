@@ -250,3 +250,11 @@ At exact integration SHA `c70d28d9812d13a85e2f6cfd62186fb344aff510`, GitHub Acti
 - Dedicated TPL-01..TPL-15 acceptance plan: `docs/coordination/requests/TEMPLATES_BACKEND_QA_HANDOFF_20261026.md`. API consumer documentation updated, reflecting real 142 curated entries and six starter packs; economy recommendations remain null until Designer delivers.
 - QA's read-only DEV probes establish Flyway V39/V40 exist but SQL inspection of both private tables is restricted for `fp_dev_mcp`. No blanket SELECT grant issued because it would bypass family-scoped permissions. DEV authenticated API tenant/role/idempotency tests remain PENDING; don't mark QA PASS.
 - Source/CI evidence does not prove DEV deployment SHA, authenticated HTTP smoke, or BETA publication. Await actionable QA defect before additional Backend functional changes; no SQL changes, Production or BETA release performed.
+
+
+## 2026-10-26 — Designer economy v0.5 backend intake (review only)
+- Read latest Designer `docs/design/economy/ECONOMY_V0.5_REWARDS_AND_IDEMPOTENCY_UA.md`. Proposal remains DESIGN REVIEW / NOT ACTIVE; 12 optional reward price candidates, 20 null (null is NOT free), optional task difficulty separate from time; no automatic catalog/ledger/workspace migration.
+- Source spot-check `RewardService.purchaseReward` and `purchaseRequest` shows member locking on purchase and existing conflict for previously purchased reward request; this is NOT proof of caller-key idempotency or concurrency/replay QA across all paths.
+- Architecture action: agree domain-level earning uniqueness `(workspace, occurrence, beneficiary, earning event)`, parent/child payment policy, stable offline operation keys, reward purchase/redeem idempotency responses, and compensating ledger corrections before introducing new API/migrations.
+- Backend holds economy-related code work pending Architecture approval. QA should test repeated same-key requests, distinct-key same occurrence, concurrent device approval/purchase and ledger equality on disposable family before marking exact-once safe.
+- Current priority remains targeted template DEV acceptance; `V39/V40` QA read role now restored per QA log. No BETA/PROD changes.
