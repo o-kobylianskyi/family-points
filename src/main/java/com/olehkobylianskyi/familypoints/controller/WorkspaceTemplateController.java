@@ -1,6 +1,8 @@
 package com.olehkobylianskyi.familypoints.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.olehkobylianskyi.familypoints.service.TemplateCatalogService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -23,6 +25,7 @@ import java.util.List;
 public class WorkspaceTemplateController {
     private final JdbcTemplate db;
     private final TemplateCatalogService catalog;
+    private final ObjectMapper json = new ObjectMapper();
 
     public WorkspaceTemplateController(JdbcTemplate db, TemplateCatalogService catalog) {
         this.db = db;
@@ -50,8 +53,7 @@ public class WorkspaceTemplateController {
     @ResponseStatus(HttpStatus.CREATED)
     public void create(@PathVariable Long workspaceId,@Valid @RequestBody TemplateRequest request) {
         checkKind(request.kind());
-        if (request.definitionJson().length() > 30000)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Template too large");
+        validateDefinition(request.definitionJson());
         db.update("""
                 INSERT INTO workspace_private_templates(workspace_id,kind,title,definition_json)
                 VALUES(?,?,?,?)
@@ -62,8 +64,7 @@ public class WorkspaceTemplateController {
     public void update(@PathVariable Long workspaceId,@PathVariable Long templateId,
                        @Valid @RequestBody TemplateRequest request) {
         checkKind(request.kind());
-        if (request.definitionJson().length() > 30000)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Template too large");
+        validateDefinition(request.definitionJson());
         int count=db.update("""
                 UPDATE workspace_private_templates SET kind=?,title=?,definition_json=?,updated_at=CURRENT_TIMESTAMP
                 WHERE id=? AND workspace_id=?
@@ -124,6 +125,18 @@ public class WorkspaceTemplateController {
             out.add(found);
         }
         return out;
+    }
+
+    private void validateDefinition(String raw) {
+        if (raw.length() > 30000)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Template too large");
+        try {
+            JsonNode node = json.readTree(raw);
+            if (node == null || !node.isObject())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Template definition must be a JSON object");
+        } catch (JsonProcessingException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Malformed template JSON");
+        }
     }
 
     private static void checkKind(String kind) {
