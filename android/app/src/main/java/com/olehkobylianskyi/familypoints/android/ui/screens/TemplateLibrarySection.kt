@@ -50,6 +50,9 @@ fun TemplateLibrarySection(
     var catalogLoaded by remember(workspaceId) { mutableStateOf(false) }
     var libraryLoaded by remember(workspaceId) { mutableStateOf(false) }
     var loadedDraftWorkspace by remember(workspaceId) { mutableStateOf<Long?>(null) }
+    var taskGroupExpanded by remember(workspaceId, packFilter) { mutableStateOf(false) }
+    var rewardGroupExpanded by remember(workspaceId, packFilter) { mutableStateOf(false) }
+    var libraryExpanded by remember(workspaceId) { mutableStateOf(false) }
     var previewCodes by remember(workspaceId) { mutableStateOf<List<String>>(emptyList()) }
 
     fun failure(e: Exception) {
@@ -165,7 +168,28 @@ fun TemplateLibrarySection(
                         }) { Text(tl(language, "Зняти вибір", "Auswahl aufheben", "Deselect visible", "Снять выбор")) }
                 }
             }
-            items(visibleTemplates, key = { it.code }) { item ->
+            for (kind in listOf("TASK", "REWARD")) {
+                val group = visibleTemplates.filter { it.kind == kind }
+                if (group.isNotEmpty()) {
+                    val expanded = if (kind == "TASK") taskGroupExpanded else rewardGroupExpanded
+                    item(key = "section-" + kind) {
+                        Row(Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text((if (kind == "TASK")
+                                tl(language, "Завдання", "Aufgaben", "Tasks", "Задания")
+                                else tl(language, "Нагороди", "Belohnungen", "Rewards", "Награды")) +
+                                " (" + group.size + ")", style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f))
+                            if (group.size > 3) TextButton(onClick = {
+                                if (kind == "TASK") taskGroupExpanded = !taskGroupExpanded
+                                else rewardGroupExpanded = !rewardGroupExpanded
+                            }) { Text(if (expanded)
+                                tl(language, "Згорнути", "Weniger", "Show less", "Свернуть")
+                                else tl(language, "Усі", "Alle", "Show all", "Все")) }
+                        }
+                    }
+                    val displayedTemplates = if (expanded) group else group.take(3)
+            items(displayedTemplates, key = { it.code }) { item ->
                 val alreadyImported = library.any { it.catalogCode == item.code }
                 val title = item.title?.get(when(language) {
                     AppLanguage.UK -> "uk"
@@ -189,7 +213,11 @@ fun TemplateLibrarySection(
                         })
                     Column {
                         Text(title)
-                        Text(item.kind, style = MaterialTheme.typography.bodySmall)
+                        Text(if (item.kind == "TASK")
+                            tl(language, "Завдання", "Aufgabe", "Task", "Задание")
+                            else tl(language, "Нагорода", "Belohnung", "Reward", "Награда"),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (alreadyImported) Text(tl(language, "Уже в бібліотеці", "Bereits gespeichert", "Already in library", "Уже в библиотеке"), color = MaterialTheme.colorScheme.primary)
                         val duration = if (item.kind == "REWARD") {
                             item.definition?.get("defaultDurationMinutes")
@@ -204,8 +232,21 @@ fun TemplateLibrarySection(
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
-                        if (description.isNotBlank()) Text(description, style = MaterialTheme.typography.bodySmall)
+                        if (description.isNotBlank()) {
+                            var descriptionExpanded by remember(item.code) { mutableStateOf(false) }
+                            Text(description,
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = if (descriptionExpanded) Int.MAX_VALUE else 2,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            if (description.length > 85) TextButton(
+                                onClick = { descriptionExpanded = !descriptionExpanded }
+                            ) { Text(if (descriptionExpanded)
+                                tl(language, "Менше", "Weniger", "Less", "Меньше")
+                                else tl(language, "Опис", "Beschreibung", "Description", "Описание")) }
+                        }
                     }
+                }
+            }
                 }
             }
             item {
@@ -256,7 +297,15 @@ fun TemplateLibrarySection(
                 if (!loading && libraryLoaded && library.isEmpty()) Text(tl(language, "Бібліотека порожня.", "Bibliothek ist leer.",
                     "Library is empty.", "Библиотека пуста."))
             }
-            items(library, key = { it.id }) { item ->
+            if (library.size > 3) item {
+                TextButton(onClick = { libraryExpanded = !libraryExpanded }) {
+                    Text(if (libraryExpanded)
+                        tl(language, "Згорнути", "Weniger", "Show less", "Свернуть")
+                        else tl(language, "Показати всі", "Alle anzeigen", "Show all", "Показать все") +
+                            " (" + library.size + ")")
+                }
+            }
+            items(if (libraryExpanded) library else library.take(3), key = { it.id }) { item ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column(Modifier.weight(1f)) {
                         Text(item.title.orEmpty().ifBlank { "#${item.id}" })
