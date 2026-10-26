@@ -13,6 +13,8 @@ class TemplateRepository(private val tokens: TokenStore) {
         val response = ApiClient.templateApi.deletePrivateTemplate(auth(), workspaceId, id)
         if (!response.isSuccessful) throw retrofit2.HttpException(response)
     }
+    suspend fun creationDraft(workspaceId: Long, id: Long) =
+        ApiClient.templateApi.creationDraft(auth(), workspaceId, id)
     suspend fun catalog() = ApiClient.templateApi.catalog(auth())
     suspend fun privateTemplates(workspaceId: Long) = ApiClient.templateApi.privateTemplates(auth(), workspaceId)
     suspend fun preview(workspaceId: Long, codes: List<String>) =
