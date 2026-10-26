@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TemplateCatalogServiceTest {
     @Test void loadsVersionedCatalogWithoutWorkspaceSideEffects() {
-        var service = new TemplateCatalogService(new ObjectMapper());
+        var service = new TemplateCatalogService();
         var data = service.getCatalog();
         assertEquals(1, data.path("version").asInt());
         assertTrue(data.path("templates").isArray());
@@ -15,7 +15,7 @@ class TemplateCatalogServiceTest {
     }
 
     @Test void returnedCatalogIsDefensiveCopy() {
-        var service = new TemplateCatalogService(new ObjectMapper());
+        var service = new TemplateCatalogService();
         ((com.fasterxml.jackson.databind.node.ObjectNode) service.getCatalog()).put("version", 99);
         assertEquals(1, service.getCatalog().path("version").asInt());
     }
