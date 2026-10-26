@@ -32,7 +32,9 @@ class WorkspacePrivateTemplatePostgresTest {
         long b = jdbc.queryForObject("INSERT INTO families(name) VALUES ('Template family B') RETURNING id", Long.class);
         var controller = new WorkspaceTemplateController(jdbc, new TemplateCatalogService(),
                 org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.repository.TaskDefinitionRepository.class),
-                org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.repository.RewardDefinitionRepository.class));
+                org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.repository.RewardDefinitionRepository.class),
+                org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.controller.TaskController.class),
+                org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.controller.RewardController.class));
         controller.create(a, new WorkspaceTemplateController.TemplateRequest("Adult walk", "{\"schedule\":\"WEEKLY\"}", "TASK"));
         assertEquals(1, controller.list(a).size());
         assertTrue(controller.list(b).isEmpty());
