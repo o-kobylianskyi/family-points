@@ -88,6 +88,7 @@ export default function TemplatesPage() {
   const [previewSelection, setPreviewSelection] = useState(null)
   const [editing, setEditing] = useState(null)
   const [creationDraft, setCreationDraft] = useState(null)
+  const [draftText, setDraftText] = useState('')
   const [title, setTitle] = useState('')
   const [definition, setDefinition] = useState('')
   const [busy, setBusy] = useState(false)
@@ -99,7 +100,7 @@ export default function TemplatesPage() {
   const [notice, setNotice] = useState('')
   useEffect(() => {
     let alive = true
-    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setError(''); setNotice('')
+    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setDraftText(''); setError(''); setNotice('')
     if (!workspaceId) return () => { alive = false }
     Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
       .then(([a,b]) => { if (alive) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
@@ -130,8 +131,9 @@ export default function TemplatesPage() {
     }
   }
   const refresh = async () => { const id = workspaceId; const items = await getPrivateTemplates(getAccessToken(), id); if (workspaceRef.current === id) setPrivateItems(items) }
-  const chooseEdit = item => { setCreationDraft(null); setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
+  const chooseEdit = item => { setCreationDraft(null); setDraftText(''); setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
   const validDefinition = (() => { try { return definition.length <= 30000 && !Array.isArray(JSON.parse(definition)) && JSON.parse(definition) !== null && typeof JSON.parse(definition) === 'object' } catch { return false } })()
+  const validDraft = (() => { try { const value = JSON.parse(draftText); return value !== null && typeof value === 'object' && !Array.isArray(value) && draftText.length <= 30000 } catch { return false } })()
   const availabilityError = (() => {
     if (!validDefinition || editing?.kind !== 'REWARD') return ''
     const value = JSON.parse(definition)
@@ -196,13 +198,17 @@ export default function TemplatesPage() {
           const origin = workspaceId
           const itemId = editing.id
           const draft = await getTemplateCreationDraft(getAccessToken(), origin, itemId)
-          if (workspaceRef.current === origin) setCreationDraft(draft)
+          if (workspaceRef.current === origin && editing?.id === itemId) { setCreationDraft(draft); setDraftText(JSON.stringify(draft.request, null, 2)) }
         })}>{({uk:'Переглянути чернетку створення',ru:'Просмотреть черновик создания',de:'Erstellungsentwurf prüfen',en:'Preview creation draft'})[lang] || 'Preview creation draft'}</button>
       </div>}
       {creationDraft && editing && creationDraft.templateId === editing.id && <div className="settings-section">
         <h3>{({uk:'Чернетка (без створення завдання чи нагороди)',ru:'Черновик (без создания задачи или награды)',de:'Entwurf (ohne Aufgabe oder Belohnung anzulegen)',en:'Draft (no task or reward created)'})[lang] || 'Draft preview'}</h3>
         <p>{({uk:'Перевірте тривалість, валюту та призначення. Цей перегляд нічого не активує.',ru:'Проверьте длительность, валюту и назначение. Просмотр ничего не активирует.',de:'Bitte Dauer, Währung und Zuweisung prüfen. Diese Ansicht aktiviert nichts.',en:'Check duration, currency and assignment. This preview activates nothing.'})[lang] || 'Preview only'}</p>
-        <pre style={{whiteSpace:'pre-wrap', overflowWrap:'anywhere'}}>{JSON.stringify(creationDraft.request, null, 2)}</pre>
+        <label style={{display:'block'}}>{({uk:'Параметри чернетки (JSON)',ru:'Параметры черновика (JSON)',de:'Entwurfsparameter (JSON)',en:'Draft parameters (JSON)'})[lang] || 'Draft JSON'}
+          <textarea rows={10} value={draftText} onChange={e => setDraftText(e.target.value)} disabled={busy} spellCheck={false} style={{width:'100%'}}/>
+        </label>
+        {!validDraft && <p className="error-message" role="alert">{({uk:'Потрібен коректний JSON-об’єкт (до 30 000 символів).',ru:'Нужен корректный JSON-объект (до 30 000 символов).',de:'Gültiges JSON-Objekt erforderlich (bis 30.000 Zeichen).',en:'A valid JSON object is required (up to 30,000 characters).'})[lang] || 'Invalid JSON'}</p>}
+        <p role="status">{({uk:'Зміни лише у браузері. Для створення потрібне окреме підтвердження; активація тут недоступна.',ru:'Изменения только в браузере. Создание требует отдельного подтверждения; активация здесь недоступна.',de:'Änderungen nur im Browser. Erstellung erfordert separate Bestätigung; hier keine Aktivierung.',en:'Changes stay in your browser. Creation requires separate confirmation; activation is unavailable here.'})[lang] || 'Not activated'}</p>
       </div>}
       {editing && <form onSubmit={e=>{e.preventDefault();execute(async()=>{
         if (!validDefinition) throw new Error('INVALID_DEFINITION')
