@@ -98,7 +98,7 @@ class WorkspaceTemplateControllerTest {
         when(db.query(contains("SELECT kind,title,definition_json"), any(org.springframework.jdbc.core.RowMapper.class),
                 eq(7L),eq(1L)))
                 .thenReturn(List.<String[]>of(new String[]{"TASK","Walk",
-                        "{\\"source\\":\\"TASK\\",\\"rewardCurrencyCode\\":\\"POINTS\\"}"}));
+                        "{\"source\":\"TASK\",\"rewardCurrencyCode\":\"POINTS\"}"}));
         var draft=controller.instantiatePreview(1L,7L);
         assertEquals("Walk",draft.title());
         assertTrue(draft.requiresAssignment());
