@@ -540,3 +540,8 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 - In screenshot preview: «Уже збережені: fp.task.hygiene.001»; «Будуть додані: —». This may be correct duplicate prevention, rather than failure on any single task. Reproduce with known never-imported item before classifying bug.
 - QA should test one new, one already imported, mixed selection, repeated import, UI in both themes and all four languages.
 **Owner:** Android UX + import triage, one coherent fixes package; pin commit, CI and emulator smoke. No DB reset/deployment authorized.
+
+## 2026-10-26 — Architecture template UX polish (DEV)
+- Code bf60568 changes description expand affordance from TextButton 'Опис/Менше' to OutlinedButton 'Читати повністю/Згорнути опис' with four locales; edit dialog uses theme surface color and clearer localized heading/field separation; private list TASK/REWARD labels localized.
+- Import preview now displays authoritative alreadyImported/toImport counts rather than raw catalog codes, and explicitly explains duplicate-only selection (no new items) without claiming an API failure; actual import remains disabled when toImport empty. No Backend changes, no auto-activation, no wallet/ledger writes.
+- Follow-up: prove single NEW-item import, duplicate-only import, mixed selection; inspect emulator light/dark themes and Gradle assembleDebug/testDebugUnitTest after bf60568. Current new commit CI NOT VERIFIED. Huawei BETA unchanged.
