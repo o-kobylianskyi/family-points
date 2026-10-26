@@ -107,6 +107,40 @@ public class WorkspaceDataResetPreviewController {
                         "Existing financial balances and ledger"), categories);
     }
 
+    /**
+     * Read-only FK dependency map used to design a safe reset plan.
+     * PostgreSQL catalog introspection only; no table contents are returned.
+     * All constraints are included to expose dependencies outside the currently
+     * counted categories before any destructive operation can be considered.
+     */
+    public record ForeignKeyDependency(String dependentTable, String referencedTable,
+                                       String constraintName, String deleteAction) {}
+
+    @GetMapping("/dependencies")
+    public List<ForeignKeyDependency> dependencies(@PathVariable Long workspaceId) {
+        Integer exists = db.queryForObject(
+                "SELECT count(*) FROM families WHERE id=?", Integer.class, workspaceId);
+        if (exists == null || exists != 1)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Workspace not found");
+        return db.query("""
+                SELECT dependent.relname, referenced.relname, c.conname,
+                       CASE c.confdeltype
+                         WHEN 'c' THEN 'CASCADE'
+                         WHEN 'n' THEN 'SET_NULL'
+                         WHEN 'd' THEN 'SET_DEFAULT'
+                         WHEN 'r' THEN 'RESTRICT'
+                         ELSE 'NO_ACTION' END
+                FROM pg_catalog.pg_constraint c
+                JOIN pg_catalog.pg_class dependent ON dependent.oid=c.conrelid
+                JOIN pg_catalog.pg_class referenced ON referenced.oid=c.confrelid
+                JOIN pg_catalog.pg_namespace dn ON dn.oid=dependent.relnamespace
+                JOIN pg_catalog.pg_namespace rn ON rn.oid=referenced.relnamespace
+                WHERE c.contype='f' AND dn.nspname='public' AND rn.nspname='public'
+                ORDER BY referenced.relname, dependent.relname, c.conname
+                """, (rs,i) -> new ForeignKeyDependency(
+                    rs.getString(1),rs.getString(2),rs.getString(3),rs.getString(4)));
+    }
+
     private long countFamily(String trustedTable, Long workspaceId) {
         // Only hardcoded names from this controller may reach this method.
         Long value = db.queryForObject("SELECT count(*) FROM " + trustedTable +
