@@ -132,12 +132,28 @@ class WorkspaceTemplateControllerTest {
                 any(org.springframework.jdbc.core.RowMapper.class), eq(7L), eq(1L)))
                 .thenReturn(List.<String[]>of(new String[]{"TASK","Walk",
                         "{\"description\":\"Outside\",\"rewardAmount\":20,\"assignedMemberId\":999,\"rewardPointTypeId\":888}"}));
+        when(db.query(contains("SELECT id FROM point_types"), any(org.springframework.jdbc.core.RowMapper.class),
+                eq(1L),eq("POINTS"))).thenReturn(List.of(23L));
         var draft=controller.creationDraft(1L,7L);
         assertEquals("Walk",draft.path("request").path("title").asText());
         assertEquals(20,draft.path("request").path("rewardAmount").asInt());
         assertTrue(draft.path("request").path("assignedMemberId").isNull());
         assertTrue(draft.path("request").path("rewardPointTypeId").isNull());
         assertTrue(draft.path("request").path("startDate").isNull());
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
+
+    @Test void creationDraftResolvesCurrencyOnlyInTargetWorkspace() {
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(5L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Game time",
+                        "{\"currencyCode\":\"POINTS\",\"priceAmount\":50}"}));
+        when(db.query(contains("SELECT id FROM point_types"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(1L),eq("POINTS")))
+                .thenReturn(List.of(42L));
+        var draft=controller.creationDraft(1L,5L);
+        assertEquals(42L,draft.path("request").path("pointTypeId").asLong());
+        assertEquals(50,draft.path("request").path("priceAmount").asInt());
         verify(db,never()).update(anyString(),any(Object[].class));
     }
 }
