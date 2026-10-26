@@ -519,3 +519,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web templates package 4 localization completion
 - Added RU and DE strings for every currently displayed structured TASK/REWARD property in `TemplateFieldsEditor.jsx`; existing UK/EN retained. Source commit `49f8327` on main. This only affects field labels; no template payload transformations or writes to BETA.
 - Current Backend private template contract persists JSON definitions and global catalog remains initially empty; manual DEV editor/reload checks and exact CI confirmation still needed. No claim of passed E2E.
+
+## 2026-10-26 — Web template editor input controls packet 5
+- Updated TemplateFieldsEditor to show dropdowns for Backend enums RewardKind STANDARD/TIME_BASED and RewardAcquisitionMode DIRECT/REQUEST/DIRECT_OR_REQUEST only. Existing unknown values remain plain text rather than being overwritten. Other free-form enums await exact Backend contract.
+- Numeric inputs protect nonnegative duration/price/usage limits/cooldown, integer duration/limit fields, reject nonfinite values. Unknown keys remain unchanged in JSON. Commit `faf9d32d`; BETA untouched. CI and manual DEV smoke pending.
