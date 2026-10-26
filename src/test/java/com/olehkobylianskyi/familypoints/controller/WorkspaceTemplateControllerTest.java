@@ -12,7 +12,9 @@ import static org.mockito.Mockito.*;
 class WorkspaceTemplateControllerTest {
     private final JdbcTemplate db = mock(JdbcTemplate.class);
     private final WorkspaceTemplateController controller =
-            new WorkspaceTemplateController(db, new TemplateCatalogService());
+            new WorkspaceTemplateController(db, new TemplateCatalogService(),
+                    mock(com.olehkobylianskyi.familypoints.repository.TaskDefinitionRepository.class),
+                    mock(com.olehkobylianskyi.familypoints.repository.RewardDefinitionRepository.class));
 
     @Test void rejectsMalformedDefinitionWithoutWriting() {
         var invalid = new WorkspaceTemplateController.TemplateRequest("Test", "{bad", "TASK");
