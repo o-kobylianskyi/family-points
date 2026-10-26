@@ -166,6 +166,7 @@ fun TemplateLibrarySection(
                 }
             }
             items(visibleTemplates, key = { it.code }) { item ->
+                val alreadyImported = library.any { it.catalogCode == item.code }
                 val title = item.title?.get(when(language) {
                     AppLanguage.UK -> "uk"
                     AppLanguage.DE -> "de"
@@ -189,6 +190,7 @@ fun TemplateLibrarySection(
                     Column {
                         Text(title)
                         Text(item.kind, style = MaterialTheme.typography.bodySmall)
+                        if (alreadyImported) Text(tl(language, "Уже в бібліотеці", "Bereits gespeichert", "Already in library", "Уже в библиотеке"), color = MaterialTheme.colorScheme.primary)
                         if (description.isNotBlank()) Text(description, style = MaterialTheme.typography.bodySmall)
                     }
                 }
@@ -361,7 +363,7 @@ fun TemplateLibrarySection(
                     val title = editTitle.trim()
                     val json = editJson
                     perform {
-                        repository.update(workspaceId, id, title, json)
+                        repository.update(workspaceId, id, title, json, current.kind.orEmpty())
                         library = repository.privateTemplates(workspaceId)
                         editing = null
                         notice = tl(language, "Збережено", "Gespeichert", "Saved", "Сохранено")
