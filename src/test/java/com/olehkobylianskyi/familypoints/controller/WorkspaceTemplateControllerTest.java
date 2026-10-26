@@ -156,4 +156,31 @@ class WorkspaceTemplateControllerTest {
         assertEquals(50,draft.path("request").path("priceAmount").asInt());
         verify(db,never()).update(anyString(),any(Object[].class));
     }
+
+    @Test void activationRejectsIncompleteTaskBeforeClaimingIdempotency() {
+        when(db.query(contains("SELECT kind FROM workspace_private_templates"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(10L),eq(1L)))
+                .thenReturn(List.of("TASK"));
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(10L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"TASK","Walk","{}"}));
+        assertThrows(ResponseStatusException.class, () -> controller.activateTask(1L,10L,
+                java.util.UUID.randomUUID(),
+                new com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest()));
+        verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
+    }
+
+    @Test void activationRejectsRewardWithoutCurrencyBeforeClaim() {
+        when(db.query(contains("SELECT kind FROM workspace_private_templates"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(11L),eq(1L)))
+                .thenReturn(List.of("REWARD"));
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(11L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Prize","{}"}));
+        var request=new com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest();
+        request.setTitle("Prize");
+        assertThrows(ResponseStatusException.class, () -> controller.activateReward(1L,11L,
+                java.util.UUID.randomUUID(),request));
+        verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
+    }
 }
