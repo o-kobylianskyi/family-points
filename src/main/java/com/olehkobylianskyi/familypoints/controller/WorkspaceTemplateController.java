@@ -202,8 +202,10 @@ public class WorkspaceTemplateController {
     @Transactional
     public org.springframework.http.ResponseEntity<com.olehkobylianskyi.familypoints.dto.TaskDefinitionResponse>
     activateTask(@PathVariable Long workspaceId, @PathVariable Long templateId,
+                 @RequestHeader("Idempotency-Key") java.util.UUID operationId,
                  @Valid @RequestBody com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest request) {
         requireKind(workspaceId, templateId, "TASK");
+        claimActivation(workspaceId,templateId,"TASK",operationId);
         return taskController.createDefinition(workspaceId, request);
     }
 
@@ -212,9 +214,23 @@ public class WorkspaceTemplateController {
     @Transactional
     public com.olehkobylianskyi.familypoints.dto.RewardDefinitionResponse
     activateReward(@PathVariable Long workspaceId, @PathVariable Long templateId,
+                   @RequestHeader("Idempotency-Key") java.util.UUID operationId,
                    @Valid @RequestBody com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest request) {
         requireKind(workspaceId, templateId, "REWARD");
+        claimActivation(workspaceId,templateId,"REWARD",operationId);
         return rewardController.createReward(workspaceId, request);
+    }
+
+    private void claimActivation(Long workspaceId,Long templateId,String kind,java.util.UUID operationId) {
+        if(operationId == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Idempotency-Key UUID required");
+        int claimed = db.update("""
+                INSERT INTO template_activation_requests(workspace_id,operation_id,template_id,kind)
+                VALUES(?,?,?,?) ON CONFLICT (workspace_id,operation_id) DO NOTHING
+                """,workspaceId,operationId,templateId,kind);
+        if(claimed != 1)
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Activation already submitted; refresh before retrying");
     }
 
     private void requireKind(Long workspaceId, Long templateId, String expected) {
