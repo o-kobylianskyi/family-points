@@ -138,7 +138,7 @@ fun TemplateLibrarySection(
                     onClick = {
                         val codes = selected.sorted()
                         perform {
-                            repository.import(workspaceId, codes)
+                            repository.importSelected(workspaceId, codes)
                             library = repository.privateTemplates(workspaceId)
                             selected = emptySet()
                             preview = null
