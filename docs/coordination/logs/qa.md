@@ -175,3 +175,6 @@
 ## 2026-10-26 — TPL-03A overlapping starter packs source audit
 - Cross-compared all six packs from current catalog-v1.json. early_school vs mixed_age have exactly 32 shared of 32 entries each (identical membership); early_school vs older_children share 31/32 (union 33); preschool vs early_school share 24 (union 40). Six pack-pairs overlap; adult_personal and family_shared have no overlap in inspected combinations.
 - Proposed DEV authenticated API test TPL-03A: selecting both early_school + mixed_age must import only 32 workspace-private catalog codes, repeat import adds 0, and ledger/reward-purchase/task-definition counts remain unchanged. These are expectations, NOT a performed HTTP PASS. Designer to confirm identical packs are intentional rather than catalogue curation oversight. No DB changes.
+
+## Architecture dispatch 2026-10-26 (late)
+Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat priority assignment. **QA owner:** P0: template TPL-01..15 plus TPL-03A overlap/replay/tenant, currencies per-family backfill; targeted evidence and no blanket BETA hold.
