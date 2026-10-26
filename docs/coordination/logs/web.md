@@ -617,3 +617,7 @@ Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat pri
 ## 2026-10-26 — WEB pack-overlap selection regression packet
 - Corrected global catalog pack view counters to use displayed pack items, not all 142 templates. Preview request now uses only selected not-yet-imported template codes, excluding already-imported entries even if a previous selection contained them; same filtered snapshot drives preview confirmation. Commit `80838afd`. Prevents redundant import attempts across overlapping packs (TPL-03A). No activation or BETA changes.
 - Browser DEV API E2E and latest CI still require confirmation; backend owns unique constraint/idempotent imports.
+
+## 2026-10-26 — Web template tenant-switch async isolation
+- Added request generation invalidation on workspace change; stale initial catalog/private-library responses, errors and operation completion no longer update newly selected family's view. Reset busy/action-lock when changing family rather than keeping an old operation blocking new requests. Added editingRef guard so slow creation-draft response for previously selected template cannot overwrite newly selected draft in same family. Commit `1bd6fa3`.
+- No Backend/API writes added; server remains authoritative for tenant permission checks. CI and real browser multi-family race QA pending; BETA unchanged.
