@@ -136,3 +136,11 @@
 - Family 1 has 16 point_type_name_forms: 4 standard currencies x uk/ru/en/de; no duplicate (family_id,code) point types and no duplicate (family_id,code,language) forms across returned DEV rows. Existing uk/ru COPPER/SILVER/GOLD use generic coin forms (moneta equivalents), treat as user-customized forms to preserve, NOT automatically a defect.
 - PENDING/NOT VERIFIED: family 11/12/13 API-triggered idempotent bootstrap; exact 1/2/5/11/21/22/25 runtime formatting; custom CRYSTALS create/edit/deactivate, role/tenant-negative HTTP, ledger immutability and Web/Android rendering. Do not create test rows in non-fixture families.
 - Scope of PASS strictly DEV SQL invariants; overall BKL-007 not QA PASS.
+
+
+## 2026-10-26 — BKL-007 manual Web + DEV MCP QA follow-up
+- Family 1 custom point type CR (id 8, name Test crystal in Ukrainian) created through Web; Ukrainian form row id 17 persisted, then updated in place; deactivation followed by reactivation passed, final active=true. Existing POINTS/COPPER/SILVER/GOLD remain active, and no duplicate currency codes or per-language forms observed.
+- Default POINTS deactivation attempted manually; Web displayed Cannot deactivate the default currency. Backend guard passed; verified default POINTS active for all four families in DEV DB. WEB LOCALIZATION DEFECT P2: raw English error on Ukrainian UI; localize error in uk/ru/en/de, ideally stable backend error code rather than matching English string.
+- Read-only tenant-integrity SQL found zero point transaction links to other family currency, zero invalid family default currency links and zero within-family duplicate currency codes. This is database invariant PASS, NOT an HTTP cross-tenant authorization PASS.
+- Family 11/12/13 still only POINTS without saved forms; API bootstrap remains unverified. Ledger baseline unchanged after custom currency lifecycle: family 1 POINTS 184 transactions signed sum 9662, SILVER 1 signed sum 5; family 12 POINTS 1 signed sum 111; family 13 POINTS 2 signed sum 0. Signed sums are not wallet balances and must not combine currencies.
+- Pending: authenticated cross-tenant/role API negative cases, POINTS default guard in non-manager context, four-language format 1/2/5/11/21/22/25, Web/Android actual runtime, API seed idempotence. Do not mark entire BKL-007 QA PASS.
