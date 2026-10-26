@@ -13,7 +13,7 @@ import FamilyCoverSettings from '../components/FamilyCoverSettings'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
 function SettingsPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
   const [members, setMembers] = useState([])
   const [accounts, setAccounts] = useState([])
@@ -164,8 +164,8 @@ function SettingsPage() {
     <p>{t('settings.description')}</p>
     {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) &&
       <section className="settings-section">
-        <h2>{({uk:'Бібліотека шаблонів',de:'Vorlagenbibliothek',en:'Template library',ru:'Библиотека шаблонов'})[t('language.code', { defaultValue: 'uk' })] || 'Template library'}</h2>
-        <Link to="/templates" className="secondary-button">{({uk:'Відкрити шаблони',de:'Vorlagen öffnen',en:'Open templates',ru:'Открыть шаблоны'})[t('language.code', { defaultValue: 'uk' })] || 'Open templates'}</Link>
+        <h2>{({uk:'Бібліотека шаблонів',de:'Vorlagenbibliothek',en:'Template library',ru:'Библиотека шаблонов'})[i18n.language.split('-')[0]] || 'Template library'}</h2>
+        <Link to="/templates" className="secondary-button">{({uk:'Відкрити шаблони',de:'Vorlagen öffnen',en:'Open templates',ru:'Открыть шаблоны'})[i18n.language.split('-')[0]] || 'Open templates'}</Link>
       </section>}
     {error && <div className="error-message settings-message">{error}</div>}
     {notice && <div className="settings-success settings-message">{notice}</div>}
