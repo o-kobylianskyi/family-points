@@ -21,3 +21,6 @@ export const updatePrivateTemplate = (token, workspaceId, id, body) =>
   read(apiRequest(`/workspaces/${workspaceId}/templates/${id}`, { token, method: 'PUT', body }))
 export const deletePrivateTemplate = (token, workspaceId, id) =>
   read(apiRequest(`/workspaces/${workspaceId}/templates/${id}`, { token, method: 'DELETE' }))
+
+export const getTemplateCreationDraft = (token, workspaceId, templateId) =>
+  read(apiRequest(`/workspaces/${workspaceId}/templates/${templateId}/creation-draft`, { token }))
