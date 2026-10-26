@@ -578,3 +578,7 @@ Show only relevant fields but never silently discard persisted data; apply categ
 - Reviewed CURRENT_PRIORITY_SPRINT.md, checked green full GitHub Actions run 40390915206 (Web/Java/Android/BETA config jobs passed). The latest subsequent CI remains independent.
 - Fixed Web pack/bulk selection to exclude catalog entries already imported to the workspace; existing items are visually checked/disabled rather than actionable. Enforced invalid reward availability on save handler as well as disabled button. Guarded post-update/delete success UI against workspace switch and cleared stale success banner on change. Source commit `c6d8255`.
 - No Backend workaround for TIME 30→0, pending backend validated mapping. User-data browser smoke, actual cross-family API QA and release remain NOT VERIFIED. BETA unchanged.
+
+## 2026-10-26 — Architect P0 Web: TIME reward catalog duration visibility
+- CI run 40390915206 passed all four jobs (Web/Backend/Android/BETA config); later CI checks ongoing. Reviewed seed: catalog `rewardKind: TIME` and `durationMinutes:15/30`; Backend enum uses `TIME_BASED` and creation-draft mapping is Backend-owned. No client coercion or overwrite.
+- Web catalog cards now display source `durationMinutes` in UK/RU/DE/EN when a positive duration exists. Commit `b1e1a04`, for visual verification before import. No one-click activation or ledger modifications. DEV browser QA and new CI pending; BETA untouched.
