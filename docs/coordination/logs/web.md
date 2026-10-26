@@ -539,3 +539,8 @@ Show only relevant fields but never silently discard persisted data; apply categ
 ## 2026-10-26 — Web templates packet 9: timestamp validation repair + i18n
 - Fixed JavaScript RegExp in TemplatesPage availability validator: previous code incorrectly contained double-escaped `\\d` in regex literal, rejecting valid ISO dates. Corrected to digit classes; messages localized in UK/RU/DE/EN, preserving blocked save for bad order/format. Commit `c9e60ea`.
 - Source only; calendar date picker remains pending explicit timezone semantics, no BETA deployment or browser smoke claimed.
+
+## 2026-10-26 — Web templates QA source audit
+- Audited frontend template API adapter against WorkspaceTemplateController paths, confirmed GET catalog/private list, POST preview/import, PUT/DELETE templates route signatures. Current global catalog remains empty; cannot claim catalog import E2E in DEV yet.
+- Fixed lingering double escape of decimal separator in timestamp fractional-seconds regex and stale cross-workspace private library refresh after async GET. Source commit `aa05f9d`. No user test data edits, no BETA changes.
+- CI independent status pending; requires browser smoke (switch families, edit/save/reload, preview/import once seed is populated). Known gap: no automated Web E2E suite for these scenarios.
