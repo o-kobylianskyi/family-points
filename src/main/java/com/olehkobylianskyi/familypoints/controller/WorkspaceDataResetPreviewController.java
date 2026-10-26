@@ -4,6 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,6 +14,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.LinkedHashSet;
 
 /**
  * BKL-002 phase 1: read-only reset inventory. This controller intentionally
@@ -139,6 +143,53 @@ public class WorkspaceDataResetPreviewController {
                 ORDER BY referenced.relname, dependent.relname, c.conname
                 """, (rs,i) -> new ForeignKeyDependency(
                     rs.getString(1),rs.getString(2),rs.getString(3),rs.getString(4)));
+    }
+
+    /**
+     * Selection validator for the future reset wizard. Deliberately NOT a
+     * deletion authorization: even a valid plan is never executable until
+     * full FK, audit, generation fencing and transactional design is approved.
+     */
+    public record ResetPlanRequest(Set<String> categories) {}
+    public record ResetPlan(Long workspaceId, Set<String> selectedCategories,
+                            boolean executable, List<String> blockers,
+                            List<String> preserved) {}
+
+    private static final Set<String> PLANNABLE = Set.of(
+            "PRIVATE_TEMPLATES", "TASK_DEFINITIONS", "TASK_EXECUTIONS",
+            "REWARD_DEFINITIONS", "REWARD_REQUESTS", "REWARD_PURCHASES",
+            "POINT_LEDGER", "REPUTATION_LEDGER", "MEMBER_GROUPS",
+            "WORK_NODES", "TASK_SCHEDULE_SLOTS", "MEDIA_ASSETS", "MEDIA_BINDINGS");
+
+    @PostMapping("/plan")
+    public ResetPlan plan(@PathVariable Long workspaceId, @RequestBody ResetPlanRequest request) {
+        Integer exists = db.queryForObject(
+                "SELECT count(*) FROM families WHERE id=?", Integer.class, workspaceId);
+        if (exists == null || exists != 1)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Workspace not found");
+        if (request == null || request.categories() == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categories required");
+        Set<String> selected = new LinkedHashSet<>(request.categories());
+        if (selected.contains(null) || !PLANNABLE.containsAll(selected))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown reset category");
+
+        List<String> blockers = new java.util.ArrayList<>();
+        if (selected.contains("TASK_DEFINITIONS") &&
+                !selected.containsAll(Set.of("TASK_EXECUTIONS", "TASK_SCHEDULE_SLOTS")))
+            blockers.add("TASK_DEFINITIONS requires TASK_EXECUTIONS and TASK_SCHEDULE_SLOTS");
+        if (selected.contains("REWARD_DEFINITIONS") &&
+                !selected.containsAll(Set.of("REWARD_REQUESTS", "REWARD_PURCHASES")))
+            blockers.add("REWARD_DEFINITIONS requires REWARD_REQUESTS and REWARD_PURCHASES");
+        if (selected.contains("MEDIA_ASSETS") && !selected.contains("MEDIA_BINDINGS"))
+            blockers.add("MEDIA_ASSETS requires MEDIA_BINDINGS");
+        if (selected.contains("MEMBER_GROUPS") && !selected.contains("WORK_NODES"))
+            blockers.add("Group and work hierarchy references must be reviewed before reset");
+        blockers.add("Execution is disabled until dependent FK graph and tenant-safe deletion order are approved");
+        blockers.add("Audit, confirmation and idempotency records are not implemented");
+        blockers.add("Offline operation generation fencing and ledger reconciliation are not implemented");
+        return new ResetPlan(workspaceId, Set.copyOf(selected), false, List.copyOf(blockers),
+                List.of("Account authentication", "Workspace and member identities",
+                        "Other workspaces", "Global catalog"));
     }
 
     private long countFamily(String trustedTable, Long workspaceId) {
