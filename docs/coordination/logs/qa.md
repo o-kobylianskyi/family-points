@@ -193,3 +193,8 @@ Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat pri
 
 ## 2026-10-26 — User reprioritization: reset BEFORE next BETA, economy v0.7 IN DEVELOPMENT
 Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous parked status of BKL-002. **QA:** P0 disposable-family end-to-end reset → setup → selective import → explicit activation; cross-family/auth/ledger/idempotency/4 currency checks. Planning/assignment only: no data deletion authorized.
+
+
+## 2026-10-26 — TPL-03 repeat-import DEV SQL check
+- After user repeated selection/import UI step, live DEV workspace 1 private library remains 3 TASK codes: fp.task.family.010, fp.task.family.020, fp.task.hygiene.001, each count 1. Duplicate catalog-code groups 0. template_activation_requests count 0. Financial/control totals unchanged: point_transactions 188, reward_purchases 47, reward_definitions 3.
+- SQL baseline PASS (no duplicate/no finance changes). UI retry message and precise HTTP import response not independently captured; do not call complete HTTP TPL-03A (32-code overlapping packs) PASS. No QA write operations.
