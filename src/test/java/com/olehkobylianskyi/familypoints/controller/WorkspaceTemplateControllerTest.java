@@ -200,4 +200,20 @@ class WorkspaceTemplateControllerTest {
                 java.util.UUID.randomUUID(),request));
         verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
     }
+
+    @Test void activationRejectsMissingAssigneeBeforeClaim() {
+        when(db.query(contains("SELECT kind FROM workspace_private_templates"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(15L),eq(1L)))
+                .thenReturn(List.of("TASK"));
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(15L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"TASK","Walk","{}"}));
+        var request=new com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest();
+        request.setTitle("Walk");
+        request.setRecurrenceType(com.olehkobylianskyi.familypoints.entity.TaskRecurrenceType.DAILY);
+        request.setStartDate(java.time.LocalDate.of(2026,10,27));
+        assertThrows(ResponseStatusException.class,()->controller.activateTask(1L,15L,
+                java.util.UUID.randomUUID(),request));
+        verify(db,never()).update(contains("template_activation_requests"),any(Object[].class));
+    }
 }
