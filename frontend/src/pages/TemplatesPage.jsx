@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import TemplateFieldsEditor from '../components/TemplateFieldsEditor'
-import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates, updatePrivateTemplate, deletePrivateTemplate } from '../api/templateApi'
+import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates, updatePrivateTemplate, deletePrivateTemplate, getTemplateCreationDraft } from '../api/templateApi'
 
 const texts = {
   uk: ['Бібліотека шаблонів','Глобальні рекомендації','Мої шаблони','Виберіть потрібні шаблони. Імпорт додає їх у бібліотеку, а не створює активні завдання чи нагороди.','Зараз глобальних рекомендацій немає.','Переглянути імпорт','Імпортувати вибране','Очистити вибір','Уже в бібліотеці','Буде додано','Зберегти','Видалити','Немає особистих шаблонів.','Назва','Визначення (JSON)','Збережено','Виберіть шаблон для редагування','Видалити цей шаблон із бібліотеки?','Шаблони імпортовано','Не вибрано жодного шаблону.','Тільки адміністратор сім’ї може змінювати бібліотеку.','Повторно використовувати їх можна буде через окреме створення активного об’єкта.'],
@@ -87,6 +87,7 @@ export default function TemplatesPage() {
   const [preview, setPreview] = useState(null)
   const [previewSelection, setPreviewSelection] = useState(null)
   const [editing, setEditing] = useState(null)
+  const [creationDraft, setCreationDraft] = useState(null)
   const [title, setTitle] = useState('')
   const [definition, setDefinition] = useState('')
   const [busy, setBusy] = useState(false)
@@ -98,7 +99,7 @@ export default function TemplatesPage() {
   const [notice, setNotice] = useState('')
   useEffect(() => {
     let alive = true
-    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setPreview(null); setPreviewSelection(null); setEditing(null); setError(''); setNotice('')
+    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setError(''); setNotice('')
     if (!workspaceId) return () => { alive = false }
     Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
       .then(([a,b]) => { if (alive) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
@@ -129,7 +130,7 @@ export default function TemplatesPage() {
     }
   }
   const refresh = async () => { const id = workspaceId; const items = await getPrivateTemplates(getAccessToken(), id); if (workspaceRef.current === id) setPrivateItems(items) }
-  const chooseEdit = item => { setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
+  const chooseEdit = item => { setCreationDraft(null); setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
   const validDefinition = (() => { try { return definition.length <= 30000 && !Array.isArray(JSON.parse(definition)) && JSON.parse(definition) !== null && typeof JSON.parse(definition) === 'object' } catch { return false } })()
   const availabilityError = (() => {
     if (!validDefinition || editing?.kind !== 'REWARD') return ''
@@ -190,6 +191,19 @@ export default function TemplatesPage() {
           {item.title} · {item.kind}
         </button>)}
       </div>
+      {editing && ['TASK','REWARD'].includes(editing.kind) && <div className="modal-actions">
+        <button type="button" className="secondary-button" disabled={busy} onClick={() => execute(async () => {
+          const origin = workspaceId
+          const itemId = editing.id
+          const draft = await getTemplateCreationDraft(getAccessToken(), origin, itemId)
+          if (workspaceRef.current === origin) setCreationDraft(draft)
+        })}>{({uk:'Переглянути чернетку створення',ru:'Просмотреть черновик создания',de:'Erstellungsentwurf prüfen',en:'Preview creation draft'})[lang] || 'Preview creation draft'}</button>
+      </div>}
+      {creationDraft && editing && creationDraft.templateId === editing.id && <div className="settings-section">
+        <h3>{({uk:'Чернетка (без створення завдання чи нагороди)',ru:'Черновик (без создания задачи или награды)',de:'Entwurf (ohne Aufgabe oder Belohnung anzulegen)',en:'Draft (no task or reward created)'})[lang] || 'Draft preview'}</h3>
+        <p>{({uk:'Перевірте тривалість, валюту та призначення. Цей перегляд нічого не активує.',ru:'Проверьте длительность, валюту и назначение. Просмотр ничего не активирует.',de:'Bitte Dauer, Währung und Zuweisung prüfen. Diese Ansicht aktiviert nichts.',en:'Check duration, currency and assignment. This preview activates nothing.'})[lang] || 'Preview only'}</p>
+        <pre style={{whiteSpace:'pre-wrap', overflowWrap:'anywhere'}}>{JSON.stringify(creationDraft.request, null, 2)}</pre>
+      </div>}
       {editing && <form onSubmit={e=>{e.preventDefault();execute(async()=>{
         if (!validDefinition) throw new Error('INVALID_DEFINITION')
         if (availabilityError) throw new Error('INVALID_DEFINITION')
