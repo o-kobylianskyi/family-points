@@ -161,3 +161,6 @@ Source of truth: `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **RELEASE:*
 
 ## 2026-10-26 — Current BETA architecture dispatch
 Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **RELEASE:** P1 package next BETA only after reset onboarding works and green CI; live manifest smoke, no real data deletion. Economy v0.7 preliminarily accepted for DEV; reset BKL-002 mandatory before next BETA, not an authorization to erase any family.
+
+## 2026-10-27 — Architecture chat handoff assignment
+Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **RELEASE:** P1 pin green SHA with V41 and complete reset+onboarding, minimal authorized reset smoke and signed APK/manifest. No data reset or release on red CI. Report exact SHA, tests and next blocker; no destructive reset authorized by this assignment.
