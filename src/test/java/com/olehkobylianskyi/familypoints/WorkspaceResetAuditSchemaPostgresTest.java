@@ -28,6 +28,11 @@ class WorkspaceResetAuditSchemaPostgresTest {
         // Tests share a static container; verify migration constraints and statuses,
         // not an empty table that depends on test execution order.
         assertEquals(1, db.queryForObject("""
+                SELECT count(*) FROM information_schema.columns
+                WHERE table_schema='public' AND table_name='families'
+                    AND column_name='data_epoch' AND is_nullable='NO'
+                """, Integer.class));
+        assertEquals(1, db.queryForObject("""
                 SELECT count(*) FROM pg_constraint
                 WHERE conrelid='workspace_reset_operations'::regclass
                   AND conname='uq_workspace_reset_operation' AND contype='u'
