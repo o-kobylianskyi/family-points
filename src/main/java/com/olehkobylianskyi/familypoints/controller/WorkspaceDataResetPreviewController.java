@@ -50,7 +50,7 @@ public class WorkspaceDataResetPreviewController {
                 count("workspace_private_templates", workspaceId), false,
                 "Activation request references need coordinated review"));
         categories.put("TASK_DEFINITIONS", new ResetCategory("TASK_DEFINITIONS",
-                count("task_definitions", workspaceId), false,
+                countFamily("task_definitions", workspaceId), false,
                 "Executions, schedules, approvals, history and ledger dependencies not yet resolved"));
         categories.put("REWARD_DEFINITIONS", new ResetCategory("REWARD_DEFINITIONS",
                 countFamily("reward_definitions", workspaceId), false,
