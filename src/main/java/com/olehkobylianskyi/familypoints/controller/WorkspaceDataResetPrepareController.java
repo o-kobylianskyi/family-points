@@ -56,8 +56,8 @@ public class WorkspaceDataResetPrepareController {
         }
         String digest=sha256(fingerprint.toString());
         // Chosen category names are from the server-side enum allowlist.
-        String json="[\\""+String.join("\\",\\"",selected)+"\\"]";
-        if (selected.isEmpty()) json="[]";
+        String json=selected.stream().map(key -> "\\\"" + key + "\\\"")
+                .collect(java.util.stream.Collectors.joining(",", "[", "]"));
         db.update("""
                 INSERT INTO workspace_reset_operations
                 (workspace_id, operation_id, requested_by_member_id, selected_categories_json, snapshot_digest)
