@@ -77,6 +77,47 @@ public class WorkspaceDataResetPrepareController {
                 (String)stored.get("status"),false);
     }
 
+    /**
+     * Records an explicit, scoped acknowledgement. This is NOT reauthentication,
+     * nor permission to execute deletion; executor remains intentionally absent.
+     */
+    public record ConfirmRequest(UUID operationId, String snapshotDigest, String phrase) {}
+    public record ConfirmedReset(UUID operationId, String status, boolean executable) {}
+
+    @PostMapping("/confirm")
+    @Transactional
+    public ConfirmedReset confirm(@PathVariable Long workspaceId, @RequestBody ConfirmRequest request) {
+        if (request == null || request.operationId() == null || request.snapshotDigest() == null
+                || !("RESET " + workspaceId).equals(request.phrase()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Explicit reset phrase and digest required");
+        if (!current.belongsToWorkspace(workspaceId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Wrong workspace");
+        long memberId = current.getCurrentMemberId();
+        // Lock the exact workspace operation; another member cannot confirm it.
+        var records = db.queryForList("""
+                SELECT requested_by_member_id, snapshot_digest, status
+                FROM workspace_reset_operations
+                WHERE workspace_id=? AND operation_id=?::uuid FOR UPDATE
+                """, workspaceId, request.operationId().toString());
+        if (records.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Reset operation not found");
+        var stored = records.get(0);
+        if (((Number)stored.get("requested_by_member_id")).longValue() != memberId)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only initiator can confirm");
+        if (!request.snapshotDigest().equals(stored.get("snapshot_digest")))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Reset preview changed");
+        String status = (String)stored.get("status");
+        if ("CONFIRMED".equals(status))
+            return new ConfirmedReset(request.operationId(), "CONFIRMED", false);
+        if (!"PREPARED".equals(status))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Reset operation cannot be confirmed");
+        db.update("""
+                UPDATE workspace_reset_operations SET status='CONFIRMED', confirmed_at=now()
+                WHERE workspace_id=? AND operation_id=?::uuid AND status='PREPARED'
+                """, workspaceId, request.operationId().toString());
+        return new ConfirmedReset(request.operationId(), "CONFIRMED", false);
+    }
+
     private static String sha256(String text) {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
