@@ -130,6 +130,10 @@ object ApiClient {
         retrofit.create(CalendarApi::class.java)
     }
 
+    val workspaceEpochApi: WorkspaceEpochApi by lazy {
+        retrofit.create(WorkspaceEpochApi::class.java)
+    }
+
     val templateApi: TemplateApi by lazy {
         retrofit.create(TemplateApi::class.java)
     }
