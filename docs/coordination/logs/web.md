@@ -694,3 +694,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-10-27 — Architecture P0 check
 - Architecture handoff reviewed. SettingsPage reset panel JSX missing closing expression brace fixed in c1a3428. Backend V41 tests are Backend-owned. Reset execution API not verified; no destructive controls enabled, no BETA changes. Exact-head CI and browser tests pending.
+
+## 2026-10-27 — P0 reset contract and post-CI triage
+- Checked latest main: Settings JSX syntax fix c1a3428 present; Backend migration V41 count tests changed in eeb6abc/4a9bfee/6e8a000. Current newest HEAD f304b9f belongs Designer catalog work, not reset endpoint implementation.
+- Reset preview/challenge/execute contract remains absent according to current Backend journal; no safe executable Web UI possible yet. Readiness panel stays informational and no family reset performed.
+- GitHub combined commit status has no entries; exact Actions green still unverified, not reported as PASS. Prior CI failure 40414828037 does not establish current CI status.
+- Next Web P0: consume versioned reset DTO and permissions once Backend publishes them, add scoped preview and explicit confirmation, then onboarding templates. QA must use approved disposable DEV workspace. No BETA or production deployment.
