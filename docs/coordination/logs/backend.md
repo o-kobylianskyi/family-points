@@ -278,3 +278,10 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Relevant final source SHA `23a709f6785a7cc929a12da2020bc21b916c75a6`; CI `40484194536` pending when inspected. No claim of green test result or deployment.
 - **NOT IMPLEMENTED:** mandatory epoch validation for all mutations/queued offline writes, atomic epoch increment alongside real reset, execute endpoint, DEV smoke. Clients must not assume this read-only endpoint alone prevents stale writes. No user/workspace reset performed.
 - Next P0: transactional epoch guard for write APIs, reset scoped execution FK graph and security acceptance, only then targeted QA and Release.
+
+## 2026-10-27 — BKL-002 workspace mutation epoch fence
+- Registered `WorkspaceDataEpochFilter` **after JWT and `WorkspaceIsolationFilter`**; on authenticated POST/PUT/PATCH/DELETE under `/workspaces/{workspaceId}/...`, reads `families.data_epoch` and checks `X-Workspace-Data-Epoch` header.
+- At epoch=0, missing header stays accepted for legacy pre-reset clients; at epoch>0 absent, invalid, negative or stale epoch is rejected with HTTP 409. GET is unaffected. CORS permits the new header.
+- Added `WorkspaceDataEpochFilterTest` for legacy compatibility, stale/fresh writes, invalid values and GET, commit `9ce0a2686683c7afa1e7e2f6fc60a653584becd5`; CI `40485826642` pending when checked. Earlier all-green run `40484500815` predates this package.
+- **Critical limitation:** checking in HTTP filter before controllers is not atomic with a concurrent reset: safe reset execution must take a family row lock and increment epoch in the same transaction, while mutating business services also hold compatible lock; until then, full replay/TOCTOU safety is NOT complete.
+- Web/Android must send header for all workspace writes after epoch>0, reconcile cached state and offline queues on epoch change; Android must not discard queued operations silently. No real reset or DEV/BETA DB write performed here.
