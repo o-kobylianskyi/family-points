@@ -200,7 +200,7 @@ function SettingsPage() {
     </section>
     <ThemePreference />
     <FamilyCoverSettings />
-    {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) && <FamilyResetReadiness />
+    {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) && <FamilyResetReadiness />}
 
     <section className="settings-section">
       <h2>{t('settings.password.title')}</h2>
