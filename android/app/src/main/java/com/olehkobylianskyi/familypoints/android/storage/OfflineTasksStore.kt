@@ -23,6 +23,13 @@ class OfflineTasksStore(context: Context) {
     private fun key(workspaceId: Long, viewerMemberId: Long, memberId: Long, date: String): String =
         "w${workspaceId}_viewer${viewerMemberId}_target${memberId}_d${date}"
 
+    fun clearWorkspace(workspaceId: Long) {
+        val prefix = "w${workspaceId}_viewer"
+        val editor = prefs.edit()
+        prefs.all.keys.filter { it.startsWith(prefix) }.forEach { editor.remove(it) }
+        check(editor.commit())
+    }
+
     fun load(workspaceId: Long, viewerMemberId: Long, memberId: Long, date: String): Snapshot? = try {
         prefs.getString(key(workspaceId, viewerMemberId, memberId, date), null)
             ?.let { gson.fromJson(it, Snapshot::class.java) }
