@@ -1,0 +1,1252 @@
+{
+  "schema": "family-points-designer-pack-coverage/1",
+  "baseline": "main 2026-10-27",
+  "source": "src/main/resources/templates/catalog-v1.json",
+  "total": 142,
+  "covered": 99,
+  "outsidePacks": 43,
+  "outsideByKind": {
+    "TASK": 23,
+    "REWARD": 20
+  },
+  "packs": [
+    {
+      "code": "fp.pack.preschool",
+      "size": 32
+    },
+    {
+      "code": "fp.pack.early_school",
+      "size": 32
+    },
+    {
+      "code": "fp.pack.older_children",
+      "size": 36
+    },
+    {
+      "code": "fp.pack.mixed_age",
+      "size": 33
+    },
+    {
+      "code": "fp.pack.adult_personal",
+      "size": 16
+    },
+    {
+      "code": "fp.pack.family_shared",
+      "size": 20
+    }
+  ],
+  "pairs": [
+    {
+      "first": "fp.pack.preschool",
+      "second": "fp.pack.early_school",
+      "shared": 24,
+      "unique": 40
+    },
+    {
+      "first": "fp.pack.preschool",
+      "second": "fp.pack.older_children",
+      "shared": 7,
+      "unique": 61
+    },
+    {
+      "first": "fp.pack.preschool",
+      "second": "fp.pack.mixed_age",
+      "shared": 24,
+      "unique": 41
+    },
+    {
+      "first": "fp.pack.preschool",
+      "second": "fp.pack.adult_personal",
+      "shared": 0,
+      "unique": 48
+    },
+    {
+      "first": "fp.pack.preschool",
+      "second": "fp.pack.family_shared",
+      "shared": 0,
+      "unique": 52
+    },
+    {
+      "first": "fp.pack.early_school",
+      "second": "fp.pack.older_children",
+      "shared": 14,
+      "unique": 54
+    },
+    {
+      "first": "fp.pack.early_school",
+      "second": "fp.pack.mixed_age",
+      "shared": 21,
+      "unique": 44
+    },
+    {
+      "first": "fp.pack.early_school",
+      "second": "fp.pack.adult_personal",
+      "shared": 0,
+      "unique": 48
+    },
+    {
+      "first": "fp.pack.early_school",
+      "second": "fp.pack.family_shared",
+      "shared": 0,
+      "unique": 52
+    },
+    {
+      "first": "fp.pack.older_children",
+      "second": "fp.pack.mixed_age",
+      "shared": 14,
+      "unique": 55
+    },
+    {
+      "first": "fp.pack.older_children",
+      "second": "fp.pack.adult_personal",
+      "shared": 0,
+      "unique": 52
+    },
+    {
+      "first": "fp.pack.older_children",
+      "second": "fp.pack.family_shared",
+      "shared": 0,
+      "unique": 56
+    },
+    {
+      "first": "fp.pack.mixed_age",
+      "second": "fp.pack.adult_personal",
+      "shared": 0,
+      "unique": 49
+    },
+    {
+      "first": "fp.pack.mixed_age",
+      "second": "fp.pack.family_shared",
+      "shared": 0,
+      "unique": 53
+    },
+    {
+      "first": "fp.pack.adult_personal",
+      "second": "fp.pack.family_shared",
+      "shared": 0,
+      "unique": 36
+    }
+  ],
+  "items": [
+    {
+      "code": "fp.task.hygiene.001",
+      "kind": "TASK",
+      "titleUk": "Почистити зуби вранці",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.002",
+      "kind": "TASK",
+      "titleUk": "Почистити зуби ввечері",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.003",
+      "kind": "TASK",
+      "titleUk": "Помити руки перед їжею",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.004",
+      "kind": "TASK",
+      "titleUk": "Прийняти душ",
+      "packs": []
+    },
+    {
+      "code": "fp.task.hygiene.005",
+      "kind": "TASK",
+      "titleUk": "Причесатися",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.006",
+      "kind": "TASK",
+      "titleUk": "Підготувати одяг на завтра",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.routine.007",
+      "kind": "TASK",
+      "titleUk": "Заправити ліжко",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.routine.008",
+      "kind": "TASK",
+      "titleUk": "Вчасно встати",
+      "packs": []
+    },
+    {
+      "code": "fp.task.routine.009",
+      "kind": "TASK",
+      "titleUk": "Зібрати шкільний рюкзак",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.routine.010",
+      "kind": "TASK",
+      "titleUk": "Лягти спати за розкладом",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school"
+      ]
+    },
+    {
+      "code": "fp.task.routine.011",
+      "kind": "TASK",
+      "titleUk": "Підготувати речі до садочка",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.routine.012",
+      "kind": "TASK",
+      "titleUk": "Виконати ранковий чекліст",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.chores.013",
+      "kind": "TASK",
+      "titleUk": "Прибрати іграшки",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.chores.014",
+      "kind": "TASK",
+      "titleUk": "Прибрати письмовий стіл",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.chores.015",
+      "kind": "TASK",
+      "titleUk": "Прибрати кімнату",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.chores.016",
+      "kind": "TASK",
+      "titleUk": "Витерти пил",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.chores.017",
+      "kind": "TASK",
+      "titleUk": "Пропилососити кімнату",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.chores.018",
+      "kind": "TASK",
+      "titleUk": "Скласти чистий одяг",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.chores.019",
+      "kind": "TASK",
+      "titleUk": "Покласти брудний одяг у кошик",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school"
+      ]
+    },
+    {
+      "code": "fp.task.chores.020",
+      "kind": "TASK",
+      "titleUk": "Допомогти накрити стіл",
+      "packs": [
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.chores.021",
+      "kind": "TASK",
+      "titleUk": "Прибрати посуд після їжі",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.chores.022",
+      "kind": "TASK",
+      "titleUk": "Полити кімнатні рослини",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.chores.023",
+      "kind": "TASK",
+      "titleUk": "Посортувати сміття",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.chores.024",
+      "kind": "TASK",
+      "titleUk": "Допомогти скласти покупки",
+      "packs": [
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.school.025",
+      "kind": "TASK",
+      "titleUk": "Зробити домашнє завдання",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.school.026",
+      "kind": "TASK",
+      "titleUk": "Підготуватися до контрольної",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.school.027",
+      "kind": "TASK",
+      "titleUk": "Повторити таблицю множення",
+      "packs": [
+        "fp.pack.early_school"
+      ]
+    },
+    {
+      "code": "fp.task.school.028",
+      "kind": "TASK",
+      "titleUk": "Повторити нові слова",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.school.029",
+      "kind": "TASK",
+      "titleUk": "Написати короткий текст",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.school.030",
+      "kind": "TASK",
+      "titleUk": "Потренувати читання вголос",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.school.031",
+      "kind": "TASK",
+      "titleUk": "Зібрати матеріали для уроків",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.school.032",
+      "kind": "TASK",
+      "titleUk": "Розв'язати логічні задачі",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.reading.033",
+      "kind": "TASK",
+      "titleUk": "Почитати книжку 15 хвилин",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.reading.034",
+      "kind": "TASK",
+      "titleUk": "Переказати прочитане",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.reading.035",
+      "kind": "TASK",
+      "titleUk": "Обрати нову книжку",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.reading.036",
+      "kind": "TASK",
+      "titleUk": "Прочитати розділ книжки",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.activity.037",
+      "kind": "TASK",
+      "titleUk": "Зробити ранкову зарядку",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.activity.038",
+      "kind": "TASK",
+      "titleUk": "Прогулятися надворі",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.activity.039",
+      "kind": "TASK",
+      "titleUk": "Покататися на велосипеді",
+      "packs": [
+        "fp.pack.preschool"
+      ]
+    },
+    {
+      "code": "fp.task.activity.040",
+      "kind": "TASK",
+      "titleUk": "Зробити вправи на розтяжку",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.activity.041",
+      "kind": "TASK",
+      "titleUk": "Пограти в рухливу гру",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.activity.042",
+      "kind": "TASK",
+      "titleUk": "Потренувати спортивну навичку",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.creativity.043",
+      "kind": "TASK",
+      "titleUk": "Намалювати малюнок",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.creativity.044",
+      "kind": "TASK",
+      "titleUk": "Зробити поробку",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.creativity.045",
+      "kind": "TASK",
+      "titleUk": "Пограти на музичному інструменті",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.creativity.046",
+      "kind": "TASK",
+      "titleUk": "Скласти конструкцію з кубиків",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.social.047",
+      "kind": "TASK",
+      "titleUk": "Допомогти молодшому члену сім'ї",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.social.048",
+      "kind": "TASK",
+      "titleUk": "Зробити добру справу",
+      "packs": []
+    },
+    {
+      "code": "fp.task.social.049",
+      "kind": "TASK",
+      "titleUk": "Пограти разом без сварок",
+      "packs": []
+    },
+    {
+      "code": "fp.task.social.050",
+      "kind": "TASK",
+      "titleUk": "Попросити вибачення після конфлікту",
+      "packs": []
+    },
+    {
+      "code": "fp.task.social.051",
+      "kind": "TASK",
+      "titleUk": "Підтримати сімейну розмову",
+      "packs": []
+    },
+    {
+      "code": "fp.task.habits.052",
+      "kind": "TASK",
+      "titleUk": "Провести день без зайвого екрана",
+      "packs": []
+    },
+    {
+      "code": "fp.task.habits.053",
+      "kind": "TASK",
+      "titleUk": "Завершити завдання без нагадувань",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.habits.054",
+      "kind": "TASK",
+      "titleUk": "Підготувати план на завтра",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.habits.055",
+      "kind": "TASK",
+      "titleUk": "Записати три хороші події дня",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.task.family.056",
+      "kind": "TASK",
+      "titleUk": "Допомогти приготувати вечерю",
+      "packs": [
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.family.057",
+      "kind": "TASK",
+      "titleUk": "Підготувати сімейну гру",
+      "packs": [
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.family.058",
+      "kind": "TASK",
+      "titleUk": "Вигуляти собаку з дорослим",
+      "packs": []
+    },
+    {
+      "code": "fp.task.family.059",
+      "kind": "TASK",
+      "titleUk": "Допомогти доглядати домашню тварину",
+      "packs": []
+    },
+    {
+      "code": "fp.task.family.060",
+      "kind": "TASK",
+      "titleUk": "Разом скласти меню на вихідні",
+      "packs": [
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.task.adult.001",
+      "kind": "TASK",
+      "titleUk": "Оплатити комунальні рахунки",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.002",
+      "kind": "TASK",
+      "titleUk": "Перевірити сімейний бюджет",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.003",
+      "kind": "TASK",
+      "titleUk": "Скласти список покупок",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.004",
+      "kind": "TASK",
+      "titleUk": "Купити продукти на тиждень",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.005",
+      "kind": "TASK",
+      "titleUk": "Записатися до лікаря",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.006",
+      "kind": "TASK",
+      "titleUk": "Забрати ліки з аптеки",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.007",
+      "kind": "TASK",
+      "titleUk": "Перевірити пошту й документи",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.008",
+      "kind": "TASK",
+      "titleUk": "Підготувати документи до установи",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.009",
+      "kind": "TASK",
+      "titleUk": "Оплатити страховку",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.010",
+      "kind": "TASK",
+      "titleUk": "Перевірити терміни договорів",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.011",
+      "kind": "TASK",
+      "titleUk": "Записати автомобіль на сервіс",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.012",
+      "kind": "TASK",
+      "titleUk": "Перевірити автомобіль перед поїздкою",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.013",
+      "kind": "TASK",
+      "titleUk": "Заправити автомобіль",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.014",
+      "kind": "TASK",
+      "titleUk": "Прибрати кухню",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.015",
+      "kind": "TASK",
+      "titleUk": "Вимити ванну кімнату",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.016",
+      "kind": "TASK",
+      "titleUk": "Випрати одяг",
+      "packs": [
+        "fp.pack.adult_personal"
+      ]
+    },
+    {
+      "code": "fp.task.adult.017",
+      "kind": "TASK",
+      "titleUk": "Розкласти чисту білизну",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.018",
+      "kind": "TASK",
+      "titleUk": "Замінити постільну білизну",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.019",
+      "kind": "TASK",
+      "titleUk": "Винести сміття",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.020",
+      "kind": "TASK",
+      "titleUk": "Перевірити запаси вдома",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.021",
+      "kind": "TASK",
+      "titleUk": "Полагодити дрібну несправність",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.022",
+      "kind": "TASK",
+      "titleUk": "Замовити необхідні товари",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.023",
+      "kind": "TASK",
+      "titleUk": "Підготувати обід",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.024",
+      "kind": "TASK",
+      "titleUk": "Підготувати вечерю",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.025",
+      "kind": "TASK",
+      "titleUk": "Перевірити особистий календар",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.026",
+      "kind": "TASK",
+      "titleUk": "Спланувати робочий тиждень",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.027",
+      "kind": "TASK",
+      "titleUk": "Завершити важливе робоче завдання",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.028",
+      "kind": "TASK",
+      "titleUk": "Відповісти на важливі повідомлення",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.029",
+      "kind": "TASK",
+      "titleUk": "Розібрати робочий стіл",
+      "packs": []
+    },
+    {
+      "code": "fp.task.adult.030",
+      "kind": "TASK",
+      "titleUk": "Зробити резервну копію важливих файлів",
+      "packs": []
+    },
+    {
+      "code": "fp.task.family.001",
+      "kind": "TASK",
+      "titleUk": "Спланувати сімейний вихідний",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.002",
+      "kind": "TASK",
+      "titleUk": "Узгодити сімейний розклад",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.003",
+      "kind": "TASK",
+      "titleUk": "Зробити спільне прибирання",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.004",
+      "kind": "TASK",
+      "titleUk": "Приготувати вечерю разом",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.005",
+      "kind": "TASK",
+      "titleUk": "Провести сімейну розмову",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.006",
+      "kind": "TASK",
+      "titleUk": "Організувати спільну прогулянку",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.007",
+      "kind": "TASK",
+      "titleUk": "Спланувати сімейну поїздку",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.008",
+      "kind": "TASK",
+      "titleUk": "Підготувати речі для поїздки",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.009",
+      "kind": "TASK",
+      "titleUk": "Перевірити шкільні повідомлення",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.010",
+      "kind": "TASK",
+      "titleUk": "Підготувати речі до школи й садочка",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.011",
+      "kind": "TASK",
+      "titleUk": "Організувати домашні обов'язки",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.012",
+      "kind": "TASK",
+      "titleUk": "Погодити меню на тиждень",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.013",
+      "kind": "TASK",
+      "titleUk": "Провести час із кожною дитиною",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.014",
+      "kind": "TASK",
+      "titleUk": "Зробити сімейне фото",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.015",
+      "kind": "TASK",
+      "titleUk": "Підготувати подарунок близькій людині",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.016",
+      "kind": "TASK",
+      "titleUk": "Перевірити сімейну аптечку",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.017",
+      "kind": "TASK",
+      "titleUk": "Організувати сімейний ігровий вечір",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.018",
+      "kind": "TASK",
+      "titleUk": "Обговорити плани на канікули",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.019",
+      "kind": "TASK",
+      "titleUk": "Розібрати спільні речі",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.task.family.020",
+      "kind": "TASK",
+      "titleUk": "Подякувати одне одному за допомогу",
+      "packs": [
+        "fp.pack.family_shared"
+      ]
+    },
+    {
+      "code": "fp.reward.time.001",
+      "kind": "REWARD",
+      "titleUk": "15 хвилин мультфільмів",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.reward.time.002",
+      "kind": "REWARD",
+      "titleUk": "30 хвилин мультфільмів",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.reward.time.003",
+      "kind": "REWARD",
+      "titleUk": "15 хвилин відеогри",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school"
+      ]
+    },
+    {
+      "code": "fp.reward.time.004",
+      "kind": "REWARD",
+      "titleUk": "30 хвилин відеогри",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.reward.time.005",
+      "kind": "REWARD",
+      "titleUk": "30 хвилин планшета",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.reward.time.006",
+      "kind": "REWARD",
+      "titleUk": "15 хвилин додаткового екранного часу",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school"
+      ]
+    },
+    {
+      "code": "fp.reward.time.007",
+      "kind": "REWARD",
+      "titleUk": "30 хвилин гри з батьками",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.reward.time.008",
+      "kind": "REWARD",
+      "titleUk": "30 хвилин творчості з дорослим",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.privilege.009",
+      "kind": "REWARD",
+      "titleUk": "Обрати сімейний фільм",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.010",
+      "kind": "REWARD",
+      "titleUk": "Обрати гру для вечора",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.011",
+      "kind": "REWARD",
+      "titleUk": "Обрати десерт",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.012",
+      "kind": "REWARD",
+      "titleUk": "Обрати музику в авто",
+      "packs": [
+        "fp.pack.older_children"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.013",
+      "kind": "REWARD",
+      "titleUk": "Обрати маршрут прогулянки",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.014",
+      "kind": "REWARD",
+      "titleUk": "Обрати книжку для читання",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.activity.015",
+      "kind": "REWARD",
+      "titleUk": "Сімейний похід у парк",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.activity.016",
+      "kind": "REWARD",
+      "titleUk": "Спільна настільна гра",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.activity.017",
+      "kind": "REWARD",
+      "titleUk": "Пікнік із сім'єю",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.activity.018",
+      "kind": "REWARD",
+      "titleUk": "Відвідати дитячий майданчик",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.activity.019",
+      "kind": "REWARD",
+      "titleUk": "Спільний велосипедний виїзд",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.activity.020",
+      "kind": "REWARD",
+      "titleUk": "Кулінарний вечір разом",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.items.021",
+      "kind": "REWARD",
+      "titleUk": "Невеликий набір наліпок",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.items.022",
+      "kind": "REWARD",
+      "titleUk": "Новий олівець або ручка",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.items.023",
+      "kind": "REWARD",
+      "titleUk": "Маленька іграшка",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.items.024",
+      "kind": "REWARD",
+      "titleUk": "Нова книжка",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.items.025",
+      "kind": "REWARD",
+      "titleUk": "Набір для творчості",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.items.026",
+      "kind": "REWARD",
+      "titleUk": "Колекційна фігурка",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.family.027",
+      "kind": "REWARD",
+      "titleUk": "Додаткова казка перед сном",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.family.028",
+      "kind": "REWARD",
+      "titleUk": "Похід у бібліотеку",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.family.029",
+      "kind": "REWARD",
+      "titleUk": "Вечір конструктора з дорослим",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.family.030",
+      "kind": "REWARD",
+      "titleUk": "Особливий сімейний сніданок",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.family.031",
+      "kind": "REWARD",
+      "titleUk": "Обрати сімейну активність у вихідні",
+      "packs": []
+    },
+    {
+      "code": "fp.reward.family.032",
+      "kind": "REWARD",
+      "titleUk": "Сімейний творчий проєкт",
+      "packs": []
+    }
+  ]
+}
