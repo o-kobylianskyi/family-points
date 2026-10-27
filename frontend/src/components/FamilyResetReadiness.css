@@ -1,0 +1,6 @@
+.family-reset-category-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px;margin:14px 0}
+.family-reset-category{display:flex;gap:12px;align-items:start;padding:12px;border:1px solid var(--border-color,rgba(140,160,180,.32));border-radius:10px;background:var(--card-background,rgba(120,145,165,.06))}
+.family-reset-category input{flex:0 0 18px;width:18px;height:18px;margin-top:3px}
+.family-reset-category span{min-width:0;display:flex;flex-direction:column;gap:5px}
+.family-reset-category small{opacity:.75}
+.family-reset-readiness ul{overflow-wrap:anywhere}
