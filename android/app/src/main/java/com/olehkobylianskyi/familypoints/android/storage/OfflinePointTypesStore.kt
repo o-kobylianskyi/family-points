@@ -15,6 +15,13 @@ class OfflinePointTypesStore(context: Context) {
     private fun key(workspaceId: Long, viewerId: Long) =
         "w${workspaceId}_viewer${viewerId}"
 
+    fun clearWorkspace(workspaceId: Long) {
+        val prefix = "w${workspaceId}_viewer"
+        val editor = prefs.edit()
+        prefs.all.keys.filter { it.startsWith(prefix) }.forEach { editor.remove(it) }
+        check(editor.commit())
+    }
+
     fun load(workspaceId: Long, viewerId: Long): List<PointTypeResponse> {
         return try {
             val json = prefs.getString(key(workspaceId, viewerId), null)
