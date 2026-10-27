@@ -104,6 +104,7 @@ class OfflinePointsQueueStore(context: Context) :
         amount: Int,
         description: String?
     ): Pending {
+        check(!isHeldForReset(workspaceId)) { "Workspace reset hold blocks new offline point operations" }
         require(accountId > 0) { "Verified accountId is mandatory for new offline operations" }
         require(type == "earn" || type == "penalty") { "Only offline earn/penalty allowed" }
         require(pointTypeId > 0 && pointTypeCode.isNotBlank())
