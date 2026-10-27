@@ -12,7 +12,7 @@ import java.util.UUID
  * removes the pending operation from the queue.
  */
 class OfflinePointsQueueStore(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "fp_pending_points.db", null, 4) {
+    SQLiteOpenHelper(context.applicationContext, "fp_pending_points.db", null, 5) {
 
     data class Pending(
         val operationId: String,
@@ -30,6 +30,7 @@ class OfflinePointsQueueStore(context: Context) :
     )
 
     override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL("CREATE TABLE workspace_epochs (workspace_id INTEGER NOT NULL PRIMARY KEY, data_epoch INTEGER NOT NULL)")
         db.execSQL("CREATE TABLE reset_holds (workspace_id INTEGER NOT NULL PRIMARY KEY, reason TEXT NOT NULL)")
         db.execSQL("""
             CREATE TABLE pending_points (
@@ -64,6 +65,50 @@ class OfflinePointsQueueStore(context: Context) :
         if (oldVersion < 4) {
             db.execSQL("CREATE TABLE reset_holds (workspace_id INTEGER NOT NULL PRIMARY KEY, reason TEXT NOT NULL)")
         }
+        if (oldVersion < 5) {
+            db.execSQL("CREATE TABLE workspace_epochs (workspace_id INTEGER NOT NULL PRIMARY KEY, data_epoch INTEGER NOT NULL)")
+        }
+    }
+
+    /**
+     * Capture a verified server epoch. Never bind pre-existing pending rows to an
+     * unknown generation: an upgrade with pending work requires parental review.
+     * Changed epochs permanently hold the queue until an explicit reconciliation.
+     */
+    @Synchronized
+    fun observeEpoch(workspaceId: Long, serverEpoch: Long): Boolean {
+        require(workspaceId > 0 && serverEpoch >= 0)
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            val previous = db.rawQuery(
+                "SELECT data_epoch FROM workspace_epochs WHERE workspace_id=?",
+                arrayOf(workspaceId.toString())
+            ).use { c -> if (c.moveToFirst()) c.getLong(0) else null }
+            val pendingCount = db.rawQuery(
+                "SELECT count(*) FROM pending_points WHERE workspace_id=?",
+                arrayOf(workspaceId.toString())
+            ).use { c -> c.moveToFirst(); c.getLong(0) }
+            if ((previous != null && previous != serverEpoch) ||
+                (previous == null && pendingCount > 0)) {
+                val hold = ContentValues().apply {
+                    put("workspace_id", workspaceId)
+                    put("reason", "DATA_EPOCH_REVIEW_REQUIRED")
+                }
+                db.insertWithOnConflict("reset_holds", null, hold, SQLiteDatabase.CONFLICT_REPLACE)
+            }
+            if (previous == null) {
+                val observed = ContentValues().apply {
+                    put("workspace_id", workspaceId)
+                    put("data_epoch", serverEpoch)
+                }
+                db.insertOrThrow("workspace_epochs", null, observed)
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+        return !isHeldForReset(workspaceId)
     }
 
     /** Fail-closed workspace reset quarantine. Pending rows are retained for audit/review. */
