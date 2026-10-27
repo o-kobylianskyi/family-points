@@ -82,12 +82,14 @@ class PointsRepository(
                 verified.memberId != viewerId) {
                 throw SecurityException("Offline operation owner does not match authenticated account")
             }
+            if (queue.isHeldForReset(workspaceId)) return 0
             var confirmed = 0
             val affectedMembers = mutableSetOf<Long>()
             // A later 4xx must not prevent balance refresh for earlier
             // operations that the server has already confirmed.
             var replayDenial: HttpException? = null
             for (entry in queue.pending(workspaceId, viewerId, owner)) {
+            if (queue.isHeldForReset(workspaceId)) break
             try {
                 ApiClient.pointsApi.replayOffline(
                     auth, workspaceId, entry.memberId, entry.type,
