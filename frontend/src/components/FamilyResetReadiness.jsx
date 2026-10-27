@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import './FamilyResetReadiness.css'
 import { useAuth } from '../context/AuthContext'
 import { getResetPreview, planReset } from '../api/resetApi'
 
