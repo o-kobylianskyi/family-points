@@ -21,6 +21,16 @@ class OfflineMembersStore(context: Context) {
     private fun key(workspaceId: Long, viewerMemberId: Long) =
         "w${workspaceId}_viewer${viewerMemberId}"
 
+    fun clearWorkspace(workspaceId: Long) {
+        val prefix = "w${workspaceId}_viewer"
+        val editor = prefs.edit()
+        prefs.all.keys.filter { key ->
+            (key.startsWith("members_") || key.startsWith("page_")) &&
+                key.substringAfter("_", "").startsWith(prefix)
+        }.forEach { editor.remove(it) }
+        check(editor.commit())
+    }
+
     fun cachedMembers(workspaceId: Long, viewerMemberId: Long): List<WorkspaceMemberResponse> {
         return try {
             val raw = prefs.getString("members_" + key(workspaceId, viewerMemberId), null)
