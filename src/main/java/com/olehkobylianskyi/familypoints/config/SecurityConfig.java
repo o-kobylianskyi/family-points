@@ -3,6 +3,8 @@ package com.olehkobylianskyi.familypoints.config;
 import com.olehkobylianskyi.familypoints.security.JwtAuthenticationFilter;
 import com.olehkobylianskyi.familypoints.security.CurrentUserService;
 import com.olehkobylianskyi.familypoints.security.WorkspaceIsolationFilter;
+import com.olehkobylianskyi.familypoints.security.WorkspaceDataEpochFilter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import com.olehkobylianskyi.familypoints.security.RestAccessDeniedHandler;
 import com.olehkobylianskyi.familypoints.security.RestAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
@@ -59,6 +61,7 @@ public class SecurityConfig {
             HttpSecurity http,
             JwtAuthenticationFilter jwtAuthenticationFilter,
             CurrentUserService currentUserService,
+            JdbcTemplate jdbcTemplate,
             RestAuthenticationEntryPoint authenticationEntryPoint,
             RestAccessDeniedHandler accessDeniedHandler
     ) throws Exception {
@@ -91,7 +94,8 @@ public class SecurityConfig {
                 .addFilterAfter(
                         new WorkspaceIsolationFilter(currentUserService),
                         JwtAuthenticationFilter.class
-                );
+                )
+                .addFilterAfter(new WorkspaceDataEpochFilter(jdbcTemplate), WorkspaceIsolationFilter.class);
 
         return http.build();
     }
@@ -142,6 +146,7 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(
                 List.of(
                         "Authorization",
+                        "X-Workspace-Data-Epoch",
                         "Content-Type",
                         "Accept"
                 )
