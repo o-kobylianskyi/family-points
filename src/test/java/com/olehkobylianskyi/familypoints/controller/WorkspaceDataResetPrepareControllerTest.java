@@ -69,14 +69,19 @@ class WorkspaceDataResetPrepareControllerTest {
                                         "PRIVATE_TEMPLATES",2,false,"blocked"))));
         var operationId=UUID.randomUUID();
         var canonical="[\"MEDIA_BINDINGS\",\"PRIVATE_TEMPLATES\"]";
+        String fingerprint="reset-v1|7|MEDIA_BINDINGS=3;PRIVATE_TEMPLATES=2;";
+        String digest;
+        try {
+            digest=java.util.HexFormat.of().formatHex(
+                    java.security.MessageDigest.getInstance("SHA-256")
+                            .digest(fingerprint.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new AssertionError(e);
+        }
         when(db.queryForMap(contains("workspace_reset_operations"),eq(7L),eq(operationId.toString())))
-                .thenAnswer(invocation -> {
-                    var digest=org.mockito.Mockito.mockingDetails(db).getInvocations().stream()
-                            .filter(call->call.getMethod().getName().equals("update"))
-                            .map(call->call.getArgument(5, String.class)).findFirst().orElseThrow();
-                    return Map.of("requested_by_member_id",17L,"selected_categories_json",canonical,
-                            "snapshot_digest",digest,"status","PREPARED");
-                });
+                .thenReturn(Map.of("requested_by_member_id",17L,
+                        "selected_categories_json",canonical,
+                        "snapshot_digest",digest,"status","PREPARED"));
         var result=controller.prepare(7L,
                 new WorkspaceDataResetPrepareController.PrepareRequest(operationId,selected));
         assertFalse(result.executable());
