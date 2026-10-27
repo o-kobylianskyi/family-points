@@ -700,3 +700,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Reset preview/challenge/execute contract remains absent according to current Backend journal; no safe executable Web UI possible yet. Readiness panel stays informational and no family reset performed.
 - GitHub combined commit status has no entries; exact Actions green still unverified, not reported as PASS. Prior CI failure 40414828037 does not establish current CI status.
 - Next Web P0: consume versioned reset DTO and permissions once Backend publishes them, add scoped preview and explicit confirmation, then onboarding templates. QA must use approved disposable DEV workspace. No BETA or production deployment.
+
+## 2026-10-27 — WEB-RESET-02 read-only backend preview and plan UI
+- Backend now has GET /workspaces/{id}/data-reset/preview, POST /plan, and POST /prepare. All non-executable; prepare stores an audit proposal only and is not called by Web. No authorized execute endpoint exists.
+- Added frontend/src/api/resetApi.js and four-language FamilyResetReadiness preview UI: workspace-scoped authenticated counts, checkbox selection initially empty, server-side POST plan dependency validation, mobile cards, safe error fallback and A/B workspace request-generation guards. Commits 48e403e, 92d7023, bfa6e69, 13e9515.
+- UI deliberately has NO confirm/delete/execute, even after plan success: Backend returns executable=false. Server blocker details currently verbatim English; localized UX follow-up needed. Browser DEV, authenticated endpoint QA, full CI pending. BETA/production unchanged.
+- Next: confirm exact CI, test preview/plan permissions and A/B switching in DEV; add localized dependency blocker mappings; await Backend challenge/execute contract for final reset wizard.
