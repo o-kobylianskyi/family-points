@@ -706,3 +706,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Added frontend/src/api/resetApi.js and four-language FamilyResetReadiness preview UI: workspace-scoped authenticated counts, checkbox selection initially empty, server-side POST plan dependency validation, mobile cards, safe error fallback and A/B workspace request-generation guards. Commits 48e403e, 92d7023, bfa6e69, 13e9515.
 - UI deliberately has NO confirm/delete/execute, even after plan success: Backend returns executable=false. Server blocker details currently verbatim English; localized UX follow-up needed. Browser DEV, authenticated endpoint QA, full CI pending. BETA/production unchanged.
 - Next: confirm exact CI, test preview/plan permissions and A/B switching in DEV; add localized dependency blocker mappings; await Backend challenge/execute contract for final reset wizard.
+
+## 2026-10-27 — WEB-RESET-03 localized Backend dependency and warning messages
+- Checked reset Backend: preview/plan plus non-executable prepare present, but no challenge or execute contract. Backend changes include canonical JSON repair and regression assertions; no destructive Web actions allowed.
+- Replaced verbatim English server warning/blocker rendering with four-language UK/RU/DE/EN mappings for all currently defined 7 plan blockers and 13 preview warning messages. Unrecognized future server text shows a safe localized generic restriction, not raw Backend diagnostics. Commit 08a1157.
+- Web only; no reset executed, no data changed, no BETA release. Exact-head CI and authenticated DEV visual/tenant QA remain pending. Next: check current CI, verify locale switching and 13-category warning display, then consume final challenge/execute contract when published.
