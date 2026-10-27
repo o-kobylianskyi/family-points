@@ -711,3 +711,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Checked reset Backend: preview/plan plus non-executable prepare present, but no challenge or execute contract. Backend changes include canonical JSON repair and regression assertions; no destructive Web actions allowed.
 - Replaced verbatim English server warning/blocker rendering with four-language UK/RU/DE/EN mappings for all currently defined 7 plan blockers and 13 preview warning messages. Unrecognized future server text shows a safe localized generic restriction, not raw Backend diagnostics. Commit 08a1157.
 - Web only; no reset executed, no data changed, no BETA release. Exact-head CI and authenticated DEV visual/tenant QA remain pending. Next: check current CI, verify locale switching and 13-category warning display, then consume final challenge/execute contract when published.
+
+## 2026-10-27 — WEB-RESET-04 review and async plan race fix
+- Checked main after Backend audit JSON tests: preview/plan/prepare remain non-executable; challenge/execute still absent. Web must not expose delete confirmation.
+- Found and fixed stale plan UX: if categories change while POST /plan is in flight, the response could previously show blockers for a superseded selection. Captured immutable selected codes + selection revision and invalidate the response when a checkbox changes. Reload invalidates selection as well. Source 6d6cf3e.
+- Static source fix only. Authenticated DEV browser A→B→A, rapid selection and locale validation NOT VERIFIED; current exact-head CI not verified; no reset or deployment.
+- Next: run exact-head Web CI and focused DEV manual QA; integrate execute only after Backend publishes safe confirmed contract.
