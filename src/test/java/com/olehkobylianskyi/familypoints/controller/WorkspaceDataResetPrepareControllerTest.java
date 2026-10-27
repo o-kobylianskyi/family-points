@@ -90,4 +90,43 @@ class WorkspaceDataResetPrepareControllerTest {
         verify(db).update(contains("INSERT INTO workspace_reset_operations"),eq(7L),
                 eq(operationId.toString()),eq(17L),eq(canonical),anyString());
     }
+
+    @Test void confirmRequiresWorkspaceOwnerPhraseAndOriginalDigest() {
+        var key=UUID.randomUUID();
+        var request=new WorkspaceDataResetPrepareController.ConfirmRequest(
+                key,"a".repeat(64),"RESET 7");
+        when(current.belongsToWorkspace(7L)).thenReturn(false);
+        assertEquals(org.springframework.http.HttpStatus.FORBIDDEN,
+                assertThrows(ResponseStatusException.class,()->controller.confirm(7L,request)).getStatusCode());
+        when(current.belongsToWorkspace(7L)).thenReturn(true);
+        when(current.getCurrentMemberId()).thenReturn(17L);
+        when(db.queryForList(contains("FOR UPDATE"),eq(7L),eq(key.toString()))).thenReturn(
+                java.util.List.of(Map.of("requested_by_member_id",18L,"snapshot_digest","a".repeat(64),"status","PREPARED")));
+        assertEquals(org.springframework.http.HttpStatus.FORBIDDEN,
+                assertThrows(ResponseStatusException.class,()->controller.confirm(7L,request)).getStatusCode());
+        when(db.queryForList(contains("FOR UPDATE"),eq(7L),eq(key.toString()))).thenReturn(
+                java.util.List.of(Map.of("requested_by_member_id",17L,"snapshot_digest","b".repeat(64),"status","PREPARED")));
+        assertEquals(org.springframework.http.HttpStatus.CONFLICT,
+                assertThrows(ResponseStatusException.class,()->controller.confirm(7L,request)).getStatusCode());
+        verify(db,never()).update(contains("UPDATE workspace_reset_operations"),any(Object[].class));
+    }
+
+    @Test void confirmIsIdempotentAndNeverExecutesReset() {
+        var key=UUID.randomUUID();
+        when(current.belongsToWorkspace(7L)).thenReturn(true);
+        when(current.getCurrentMemberId()).thenReturn(17L);
+        var request=new WorkspaceDataResetPrepareController.ConfirmRequest(
+                key,"a".repeat(64),"RESET 7");
+        when(db.queryForList(contains("FOR UPDATE"),eq(7L),eq(key.toString()))).thenReturn(
+                java.util.List.of(Map.of("requested_by_member_id",17L,"snapshot_digest","a".repeat(64),"status","PREPARED")));
+        var confirmed=controller.confirm(7L,request);
+        assertEquals("CONFIRMED",confirmed.status());
+        assertFalse(confirmed.executable());
+        verify(db).update(contains("UPDATE workspace_reset_operations"),eq(7L),eq(key.toString()));
+        reset(db);
+        when(db.queryForList(contains("FOR UPDATE"),eq(7L),eq(key.toString()))).thenReturn(
+                java.util.List.of(Map.of("requested_by_member_id",17L,"snapshot_digest","a".repeat(64),"status","CONFIRMED")));
+        assertFalse(controller.confirm(7L,request).executable());
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
 }
