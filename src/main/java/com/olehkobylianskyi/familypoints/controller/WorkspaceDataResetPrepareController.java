@@ -56,7 +56,7 @@ public class WorkspaceDataResetPrepareController {
         }
         String digest=sha256(fingerprint.toString());
         // Chosen category names are from the server-side enum allowlist.
-        String json=selected.stream().map(key -> "\\\"" + key + "\\\"")
+        String json=selected.stream().map(key -> "\"" + key + "\"")
                 .collect(java.util.stream.Collectors.joining(",", "[", "]"));
         db.update("""
                 INSERT INTO workspace_reset_operations
