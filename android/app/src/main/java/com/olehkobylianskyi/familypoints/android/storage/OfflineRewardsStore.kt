@@ -19,6 +19,13 @@ class OfflineRewardsStore(context: Context) {
     private fun key(workspaceId: Long, memberId: Long): String =
         "catalog_w${workspaceId}_m${memberId}"
 
+    fun clearWorkspace(workspaceId: Long) {
+        val prefix = "catalog_w${workspaceId}_m"
+        val editor = prefs.edit()
+        prefs.all.keys.filter { it.startsWith(prefix) }.forEach { editor.remove(it) }
+        check(editor.commit())
+    }
+
     fun load(workspaceId: Long, memberId: Long): RewardsPageData? = try {
         prefs.getString(key(workspaceId, memberId), null)
             ?.let { gson.fromJson(it, RewardsPageData::class.java) }
