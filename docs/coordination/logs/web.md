@@ -691,3 +691,6 @@ Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **WEB:** P0 selectiv
 
 ## 2026-10-27 — Architecture chat handoff assignment
 Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **WEB:** P0 fix SettingsPage.jsx:205 adjacent JSX CI error; after Backend contract implement reset preview/confirm + rerun onboarding/142 templates/6 packs, i18n and no auto activation. Report exact SHA, tests and next blocker; no destructive reset authorized by this assignment.
+
+## 2026-10-27 — Architecture P0 check
+- Architecture handoff reviewed. SettingsPage reset panel JSX missing closing expression brace fixed in c1a3428. Backend V41 tests are Backend-owned. Reset execution API not verified; no destructive controls enabled, no BETA changes. Exact-head CI and browser tests pending.
