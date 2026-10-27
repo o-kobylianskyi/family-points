@@ -562,3 +562,9 @@ Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **ANDROID:** P1 veri
 
 ## 2026-10-27 — Architecture chat handoff assignment
 Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **ANDROID:** P0/P1 consume backend reset dataEpoch and quarantine stale offline operations atomically; verify emulator re-login/workspace switch plus existing template UI fix. Current Gradle PASS. Report exact SHA, tests and next blocker; no destructive reset authorized by this assignment.
+
+## 2026-10-27 — BKL-002 workspace-scoped cache invalidation package
+- Added `clearWorkspace(workspaceId)` to OfflineRewardsStore (dcbd670), OfflineMembersStore (d5ef565), OfflinePointTypesStore (cca19b5), OfflineTasksStore (9430032), and OfflineBalanceStore (aa131d0). Scoped SharedPreferences prefix matching uses workspace delimiter; SQLite balance DELETE uses workspace_id=? only. Does not remove other workspace caches.
+- New `WorkspaceResetCacheCoordinator.quarantineAndInvalidate(workspaceId)` (6a1715e) first persists `OfflinePointsQueueStore.holdForReset(workspaceId)`, then clears affected read-only caches. Offline queued point operations remain durable and quarantined, not deleted.
+- IMPORTANT: Coordinator has NO caller yet, pending authenticated server reset-completion epoch and stale replay rejection. Never invoke for reset preview. Backend needs monotonic workspace dataEpoch plus reset-execution response and guards against operations in flight. Clear unreviewed cache categories only after inventory.
+- These commits are source-only: current SHA Gradle build/emulator/CI NOT verified; retry GitHub contents mutations if concurrent writers conflict. Huawei signed BETA unchanged. No server reset/database deletion performed.
