@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -30,6 +32,12 @@ public final class WorkspaceDataEpochFilter extends OncePerRequestFilter {
             chain.doFilter(request,response);
             return;
         }
+        var authentication=SecurityContextHolder.getContext().getAuthentication();
+        if (authentication==null || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            chain.doFilter(request,response);
+            return;
+        }
         Matcher match=ROUTE.matcher(request.getServletPath());
         if (!match.find()) {
             chain.doFilter(request,response);
@@ -50,6 +58,7 @@ public final class WorkspaceDataEpochFilter extends OncePerRequestFilter {
         }
         long provided;
         try {
+            if (header==null) throw new NumberFormatException("missing epoch");
             provided=Long.parseLong(header);
             if (provided<0) throw new NumberFormatException("negative epoch");
         } catch (NumberFormatException exception) {
