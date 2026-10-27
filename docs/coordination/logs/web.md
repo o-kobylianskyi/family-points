@@ -688,3 +688,6 @@ Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **WEB:** P0 selectiv
 - Checked Backend and Architecture logs plus WEB_RESET_CONTRACT_READINESS: no verified Backend reset preview/execute/challenge contract is published. Destructive operations remain blocked.
 - Added four-language informational FamilyResetReadiness panel for workspace managers/admins in Settings. It explains authorization, dry-run, reauthentication, retained identities/other families and disabled reset status. No operation buttons or invented API calls. Commits 01e5c36 and 37be604.
 - Browser UX and exact-head CI NOT VERIFIED. No reset, migration, BETA or production actions. Next: Backend publishes verified DTO/endpoints; then build an interactive preview/category/dependency/confirmation flow and QA on disposable DEV family only.
+
+## 2026-10-27 — Architecture chat handoff assignment
+Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **WEB:** P0 fix SettingsPage.jsx:205 adjacent JSX CI error; after Backend contract implement reset preview/confirm + rerun onboarding/142 templates/6 packs, i18n and no auto activation. Report exact SHA, tests and next blocker; no destructive reset authorized by this assignment.
