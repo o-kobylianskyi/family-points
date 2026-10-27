@@ -270,3 +270,11 @@ Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **BACKEND:** P0 rese
 
 ## 2026-10-27 — Architecture chat handoff assignment
 Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **BACKEND:** P0 fix V41-count CI test failures (3 tests), then implement reset preview/authorized transaction/dataEpoch/stale replay rejection. Postgres/security/idempotency acceptance required. Report exact SHA, tests and next blocker; no destructive reset authorized by this assignment.
+
+## 2026-10-27 — BKL-002 dataEpoch foundation (Backend)
+- Added additive Flyway `V42__family_data_epoch.sql`: `families.data_epoch BIGINT NOT NULL DEFAULT 0`, nonnegative CHECK; no reset or existing-data changes beyond default column.
+- Added authenticated read-only `GET /workspaces/{workspaceId}/data-epoch` (strict current family check); tests `WorkspaceDataEpochControllerTest` deny foreign family and check changing epoch visibility without writes.
+- Updated three historical migration-count tests for V42 and added PostgreSQL V42 column assertion in `WorkspaceResetAuditSchemaPostgresTest`.
+- Relevant final source SHA `23a709f6785a7cc929a12da2020bc21b916c75a6`; CI `40484194536` pending when inspected. No claim of green test result or deployment.
+- **NOT IMPLEMENTED:** mandatory epoch validation for all mutations/queued offline writes, atomic epoch increment alongside real reset, execute endpoint, DEV smoke. Clients must not assume this read-only endpoint alone prevents stale writes. No user/workspace reset performed.
+- Next P0: transactional epoch guard for write APIs, reset scoped execution FK graph and security acceptance, only then targeted QA and Release.
