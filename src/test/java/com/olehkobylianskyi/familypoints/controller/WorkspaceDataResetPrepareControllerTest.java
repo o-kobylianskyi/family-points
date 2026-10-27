@@ -68,7 +68,7 @@ class WorkspaceDataResetPrepareControllerTest {
                                 "PRIVATE_TEMPLATES",new WorkspaceDataResetPreviewController.ResetCategory(
                                         "PRIVATE_TEMPLATES",2,false,"blocked"))));
         var operationId=UUID.randomUUID();
-        var canonical="[\\\"MEDIA_BINDINGS\\\",\\\"PRIVATE_TEMPLATES\\\"]";
+        var canonical="[\"MEDIA_BINDINGS\",\"PRIVATE_TEMPLATES\"]";
         when(db.queryForMap(contains("workspace_reset_operations"),eq(7L),eq(operationId.toString())))
                 .thenAnswer(invocation -> {
                     var digest=org.mockito.Mockito.mockingDetails(db).getInvocations().stream()
