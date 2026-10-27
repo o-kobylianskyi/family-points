@@ -15,6 +15,12 @@ class OfflineBalanceStore(context: Context) : SQLiteOpenHelper(context.applicati
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
 
     @Synchronized
+    fun clearWorkspace(workspaceId: Long) {
+        writableDatabase.delete("balances", "workspace_id=?",
+            arrayOf(workspaceId.toString()))
+    }
+
+    @Synchronized
     fun save(workspaceId: Long, memberId: Long, balance: Long) {
         val values = ContentValues().apply {
             put("workspace_id", workspaceId)
