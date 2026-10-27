@@ -267,3 +267,6 @@ Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous 
 
 ## 2026-10-26 — Current BETA architecture dispatch
 Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **BACKEND:** P0 reset API and DB safety tests, and verify exact-head media ordering CI before changing code. Economy v0.7 preliminarily accepted for DEV; reset BKL-002 mandatory before next BETA, not an authorization to erase any family.
+
+## 2026-10-27 — Architecture chat handoff assignment
+Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **BACKEND:** P0 fix V41-count CI test failures (3 tests), then implement reset preview/authorized transaction/dataEpoch/stale replay rejection. Postgres/security/idempotency acceptance required. Report exact SHA, tests and next blocker; no destructive reset authorized by this assignment.
