@@ -577,3 +577,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - At current Backend head the reset API remains preview/prepare-only, no authenticated reset completion dataEpoch available. Did not wire automatic cache clearing or execute reset.
 - Android 52fb9b1 checks durable workspace reset hold inside OfflinePointsQueueStore.enqueue (in addition to PointsRepository entry check); 97019da rechecks hold after backend authentication and before every pending offline points replay. This narrows replay/hold races but DOES NOT eliminate a currently in-flight API request; Backend must reject stale operation epochs transactionally.
 - User previously reported Gradle PASS for preceding main, **not yet these two commits**. Targeted :app:assembleDebug :app:testDebugUnitTest and DEV emulator workspace A/B, hold, offline replay regression remain required; no BETA/Huawei change.
+
+## 2026-10-27 — User-reported local Android Gradle PASS after replay hold hardening
+- User reports `BUILD SUCCESSFUL in 30s` following the instructed `:app:assembleDebug :app:testDebugUnitTest` after commits 52fb9b1 and 97019da. Treat as user-reported local build/unit-test success, not independently inspected CI or emulator acceptance.
+- Remaining BKL-002 blocker: Backend authenticated dataEpoch, stale offline operation rejection, secure automatic hold/cache reconciliation, in-flight request race and emulator multi-account/workspace regression. No reset executed; Huawei/BETA unchanged.
