@@ -218,3 +218,6 @@ Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **QA:** P0 end-to-en
 - User responded ++ to TPL-05 family switching walkthrough, with no reported visible cross-family leak; browser HTTP denial not independently observed, so security API test stays PENDING.
 - New read-only DEV observation: workspace 1 now holds 3 TASK and 1 REWARD private template. New id 4 code fp.reward.activity.020, ITEM reward 'Кулінарний вечір разом', definition.priceAmount=null, durationMinutes=null. Activation request count 0, reward_definitions=3 and reward_purchases=47 unchanged. Private import did not auto-activate reward. No other workspace private templates.
 - TPL-08 fp.reward.time.002 still not imported; cannot validate TIME 30-minute draft. No QA data mutation.
+
+## 2026-10-27 — Architecture chat handoff assignment
+Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **QA:** P0 test bounded reset on authorized disposable DEV family (not existing user family), epoch replay, protected identities, select/import one/new/duplicate, ledgers/currency, TIME reward; verify CI first. Report exact SHA, tests and next blocker; no destructive reset authorized by this assignment.
