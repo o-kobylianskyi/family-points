@@ -172,7 +172,10 @@ export default function FamilyResetReadiness() {
     setBusy(true);setError(null);setPreview(null);setPlan(null);setSelected([])
     try {
       const result = await getResetPreview(getAccessToken(), id)
-      if (generation.current === requestId && workspaceRef.current === id) setPreview(result)
+      if (generation.current === requestId && workspaceRef.current === id) {
+        if (String(result?.workspaceId) !== String(id) || result?.executionEnabled !== false) throw new Error('RESET_PREVIEW_INVALID')
+        setPreview(result)
+      }
     } catch(e) {
       if (generation.current === requestId && workspaceRef.current === id) setError(e)
     } finally {
@@ -192,9 +195,12 @@ export default function FamilyResetReadiness() {
     setBusy(true);setPlan(null);setError(null)
     try {
       const response = await planReset(getAccessToken(), id, codes)
-      if (generation.current === requestId && workspaceRef.current === id && selectionRevision.current === selectionId) setPlan(response)
+      if (generation.current === requestId && workspaceRef.current === id && selectionRevision.current === selectionId) {
+        if (String(response?.workspaceId) !== String(id) || response?.executable !== false || !Array.isArray(response?.blockers)) throw new Error('RESET_PLAN_INVALID')
+        setPlan(response)
+      }
     } catch (e) {
-      if (generation.current === requestId && workspaceRef.current === id) setError(e)
+      if (generation.current === requestId && workspaceRef.current === id && selectionRevision.current === selectionId) setError(e)
     } finally {
       if (generation.current === requestId && workspaceRef.current === id) setBusy(false)
     }
