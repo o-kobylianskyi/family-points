@@ -163,10 +163,12 @@ export default function FamilyResetReadiness() {
   const [error,setError] = useState(null)
   const [busy,setBusy] = useState(false)
   const generation = useRef(0)
+  const selectionRevision = useRef(0)
   const workspaceRef = useRef(workspaceId)
   if (workspaceRef.current !== workspaceId) { workspaceRef.current = workspaceId; generation.current += 1 }
 
   const load = async (id, requestId) => {
+    selectionRevision.current += 1
     setBusy(true);setError(null);setPreview(null);setPlan(null);setSelected([])
     try {
       const result = await getResetPreview(getAccessToken(), id)
@@ -185,11 +187,12 @@ export default function FamilyResetReadiness() {
   }, [workspaceId, getAccessToken])
 
   const check = async () => {
-    const id = workspaceId, requestId = ++generation.current
+    const id = workspaceId, requestId = ++generation.current, selectionId = selectionRevision.current
+    const codes = [...selected]
     setBusy(true);setPlan(null);setError(null)
     try {
-      const response = await planReset(getAccessToken(), id, selected)
-      if (generation.current === requestId && workspaceRef.current === id) setPlan(response)
+      const response = await planReset(getAccessToken(), id, codes)
+      if (generation.current === requestId && workspaceRef.current === id && selectionRevision.current === selectionId) setPlan(response)
     } catch (e) {
       if (generation.current === requestId && workspaceRef.current === id) setError(e)
     } finally {
@@ -210,6 +213,7 @@ export default function FamilyResetReadiness() {
           const record = preview.categories[code]
           return <label key={code} className="family-reset-category">
             <input type="checkbox" disabled={busy} checked={selected.includes(code)} onChange={e=>{
+              selectionRevision.current += 1
               setPlan(null)
               setSelected(old=>e.target.checked?[...old,code]:old.filter(item=>item!==code))
             }}/>
