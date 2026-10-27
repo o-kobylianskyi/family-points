@@ -25,8 +25,8 @@ class WorkspaceResetAuditSchemaPostgresTest {
         var db=new JdbcTemplate(new DriverManagerDataSource(
                 DB.getJdbcUrl(),DB.getUsername(),DB.getPassword()));
 
-        assertEquals(0, db.queryForObject(
-                "SELECT count(*) FROM workspace_reset_operations", Integer.class));
+        // Tests share a static container; verify migration constraints and statuses,
+        // not an empty table that depends on test execution order.
         assertEquals(1, db.queryForObject("""
                 SELECT count(*) FROM pg_constraint
                 WHERE conrelid='workspace_reset_operations'::regclass
