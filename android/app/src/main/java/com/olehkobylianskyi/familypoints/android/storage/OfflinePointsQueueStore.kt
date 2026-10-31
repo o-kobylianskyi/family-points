@@ -70,6 +70,13 @@ class OfflinePointsQueueStore(context: Context) :
         }
     }
 
+    @Synchronized
+    fun knownEpoch(workspaceId: Long): Long? =
+        readableDatabase.rawQuery(
+            "SELECT data_epoch FROM workspace_epochs WHERE workspace_id=?",
+            arrayOf(workspaceId.toString())
+        ).use { cursor -> if (cursor.moveToFirst()) cursor.getLong(0) else null }
+
     /**
      * Capture a verified server epoch. Never bind pre-existing pending rows to an
      * unknown generation: an upgrade with pending work requires parental review.
