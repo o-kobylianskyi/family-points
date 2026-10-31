@@ -52,13 +52,20 @@ internal fun TemplateCategoryIcon(
     ) {
         value = try {
             val bytes = repository.categoryIcon(workspaceId, key)
+            require(bytes.isNotEmpty() && bytes.size <= 2 * 1024 * 1024) { "Invalid media preview size" }
             val bitmap = if (bytes.take(256).toByteArray()
                     .toString(Charsets.UTF_8).contains("<svg")) {
                 val picture = SVG.getFromInputStream(ByteArrayInputStream(bytes)).renderToPicture()
                 val width = picture.width.coerceAtLeast(1)
                 val height = picture.height.coerceAtLeast(1)
-                val target = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                Canvas(target).drawPicture(picture)
+                val scale = minOf(1f, 512f / maxOf(width, height).toFloat())
+                val boundedWidth = (width * scale).toInt().coerceAtLeast(1)
+                val boundedHeight = (height * scale).toInt().coerceAtLeast(1)
+                val target = Bitmap.createBitmap(boundedWidth, boundedHeight, Bitmap.Config.ARGB_8888)
+                Canvas(target).apply {
+                    scale(scale, scale)
+                    drawPicture(picture)
+                }
                 target
             } else {
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
