@@ -1434,3 +1434,8 @@ Before each substantial implementation batch:
 - [ ] Confirm exact source SHA cloud CI, including the new PostgreSQL service tests.
 - [ ] Integrate task/reward/exchange/reputation/group/template/media and scheduled writer paths; verify common lock order.
 - [ ] Complete reset dependency closure, reauthentication proof, atomic execute/audit/idempotency/epoch/onboarding and disposable DEV QA before Release.
+
+## 2026-10-31 — BKL-002 points fence cloud verification
+- [x] Source `dac13e7f` confirmed through compatible all-green SHA `dce243d40e94bdac5b2a56d521b9bfdd4db866f4`, Actions 41212281999; 259 backend tests PASS.
+- [x] Four PostgreSQL service tests establish transaction sharing, rollback, stale replay fencing and independent-family progress for HTTP point mutations.
+- [ ] Remaining business writer integration and full reset execute/QA/Release gate remain open; no data reset/deploy.

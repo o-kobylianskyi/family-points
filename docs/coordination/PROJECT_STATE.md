@@ -101,3 +101,7 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 ## 2026-10-31 — Backend BKL-002 point mutation fence (source, awaiting CI)
 - PointController mutations now pass original client epoch into a shared family-lock/ledger transaction via PointMutationService. No API body/schema change. Test coverage includes real Spring/JPA/JDBC transaction participation on disposable PostgreSQL.
 - This protects only the five HTTP point mutation routes. Other business writers, complete reset dependency closure and execute acceptance are pending; reset execution remains disabled. No deployment or real data cleanup.
+
+## 2026-10-31 — Backend points epoch fence verified in GitHub CI
+- Source `dac13e7f`, compatible tested SHA `dce243d40e94bdac5b2a56d521b9bfdd4db866f4`, all-green run https://github.com/o-kobylianskyi/family-points/actions/runs/41212281999 . Backend 259 PASS, including four real Spring/JPA/PostgreSQL point-mutation tests.
+- Covers five HTTP point mutation routes; remaining writers and reset execute are still open. No deployment or family reset. Details in Backend journal.
