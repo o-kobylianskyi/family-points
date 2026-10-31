@@ -106,7 +106,23 @@ class PointsRepository(
             } catch (error: HttpException) {
                 // Keep failed operations for parental review; never silently
                 // discard denied/invalid items. 401 ends synchronization.
-                if (error.code() == 409) queue.holdForReset(workspaceId)
+                if (error.code() == 409) {
+                    // 409 also represents legitimate business conflicts. Quarantine
+                    // only when the authenticated workspace generation has changed.
+                    // If the epoch cannot be verified, stop replay without dropping
+                    // any pending operation; the next sync must reauthenticate.
+                    try {
+                        val latest = ApiClient.workspaceEpochApi.getEpoch(auth, workspaceId)
+                        if (latest.workspaceId != workspaceId || latest.dataEpoch < 0L) {
+                            queue.holdForReset(workspaceId)
+                        } else if (latest.dataEpoch != epoch.dataEpoch) {
+                            queue.observeEpoch(workspaceId, latest.dataEpoch)
+                            queue.holdForReset(workspaceId)
+                        }
+                    } catch (_: Exception) {
+                        // Retain the original denial; no optimistic retry.
+                    }
+                }
                 if (error.code() in 400..499) replayDenial = error
                 break
             } catch (error: IOException) {
