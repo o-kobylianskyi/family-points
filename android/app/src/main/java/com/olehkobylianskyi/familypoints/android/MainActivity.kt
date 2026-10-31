@@ -135,7 +135,8 @@ class MainActivity : ComponentActivity() {
         val tokenStore = TokenStore(this)
         val languageStore = LanguageStore(this)
         val lastUsernameStore = LastUsernameStore(this)
-        val dashboardRepository = DashboardRepository(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineDashboardStore(this))
+        val dashboardCache = com.olehkobylianskyi.familypoints.android.storage.OfflineDashboardStore(this)
+        val dashboardRepository = DashboardRepository(tokenStore, dashboardCache)
         val tasksRepository = TasksRepository(tokenStore, com.olehkobylianskyi.familypoints.android.storage.OfflineTasksStore(this))
         val createTaskRepository = CreateTaskRepository(tokenStore)
         val taskDetailsRepository = TaskDetailsRepository(tokenStore)
@@ -301,6 +302,41 @@ class MainActivity : ComponentActivity() {
                     Column(modifier = Modifier.fillMaxSize()) {
                 var currentUser by remember {
                     mutableStateOf<CurrentUserResponse?>(null)
+                }
+
+                var epochGate by remember { mutableStateOf("checking") }
+                var epochRetry by remember { mutableStateOf(0) }
+
+                // Validate the currently selected family's generation before displaying
+                // ANY authenticated online feature screen, not only Dashboard.
+                LaunchedEffect(status, currentUser?.workspaceId, currentUser?.memberId, epochRetry) {
+                    val member = currentUser
+                    if (member == null || status != ServerStatus.ONLINE ||
+                        authSessionManager.isOfflineAuthenticated()) {
+                        epochGate = "ready" // Offline snapshots retain their offline labels.
+                        return@LaunchedEffect
+                    }
+                    epochGate = "checking"
+                    try {
+                        val token = tokenStore.getAccessToken()
+                            ?: throw IllegalStateException("Missing authenticated token")
+                        val response = ApiClient.workspaceEpochApi.getEpoch(
+                            "Bearer $token", member.workspaceId
+                        )
+                        if (response.workspaceId != member.workspaceId || response.dataEpoch < 0L) {
+                            throw SecurityException("Workspace epoch identity mismatch")
+                        }
+                        val queueStore = com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore(this@MainActivity)
+                        val previous = queueStore.use { it.knownEpoch(member.workspaceId) }
+                        dashboardCache.reconcileAuthenticatedEpoch(member.workspaceId, response.dataEpoch)
+                        epochGate = if (previous != null && previous != response.dataEpoch) {
+                            "changed"
+                        } else {
+                            "ready"
+                        }
+                    } catch (_: Exception) {
+                        epochGate = "unverified"
+                    }
                 }
 
                 var needsWorkspaceSelection by remember { mutableStateOf(false) }
@@ -508,6 +544,57 @@ class MainActivity : ComponentActivity() {
                                 destination = AppDestination.DASHBOARD
                             }
                         )
+                    }
+
+                    currentUser != null && status == ServerStatus.ONLINE && epochGate != "ready" -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(24.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                when (language) {
+                                    AppLanguage.UK -> when (epochGate) {
+                                        "changed" -> "Дані сім'ї змінилися. Старі локальні дані приховано. Увійдіть знову."
+                                        "checking" -> "Перевірка актуальності даних сім'ї…"
+                                        else -> "Не вдалося перевірити актуальність даних сім'ї."
+                                    }
+                                    AppLanguage.RU -> when (epochGate) {
+                                        "changed" -> "Данные семьи изменились. Локальные данные скрыты. Войдите снова."
+                                        "checking" -> "Проверка актуальности данных семьи…"
+                                        else -> "Не удалось проверить актуальность данных семьи."
+                                    }
+                                    AppLanguage.DE -> when (epochGate) {
+                                        "changed" -> "Familiendaten wurden geändert. Alte Daten sind ausgeblendet. Bitte erneut anmelden."
+                                        "checking" -> "Familiendaten werden überprüft…"
+                                        else -> "Familiendaten konnten nicht überprüft werden."
+                                    }
+                                    AppLanguage.EN -> when (epochGate) {
+                                        "changed" -> "Family data changed. Old local data is hidden. Please sign in again."
+                                        "checking" -> "Verifying family data…"
+                                        else -> "Could not verify family data."
+                                    }
+                                },
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            if (epochGate != "checking") {
+                                TextButton(onClick = {
+                                    if (epochGate == "changed") {
+                                        authSessionManager.clearSession()
+                                        currentUser = null
+                                        destination = AppDestination.DASHBOARD
+                                    } else {
+                                        epochRetry++
+                                    }
+                                }) {
+                                    Text(when (language) {
+                                        AppLanguage.UK -> if (epochGate == "changed") "Увійти знову" else "Повторити"
+                                        AppLanguage.RU -> if (epochGate == "changed") "Войти снова" else "Повторить"
+                                        AppLanguage.DE -> if (epochGate == "changed") "Erneut anmelden" else "Wiederholen"
+                                        AppLanguage.EN -> if (epochGate == "changed") "Sign in again" else "Retry"
+                                    })
+                                }
+                            }
+                        }
                     }
 
                     destination == AppDestination.DASHBOARD -> {
