@@ -1484,3 +1484,10 @@ Before each substantial implementation batch:
 - [ ] Confirm all cloud CI jobs and real PostgreSQL scenarios; source completion is not test/deployment acceptance.
 - [ ] Consumer review: recreate old v1 preparations with NEW operation IDs; validate conservative full-family snapshot invalidation.
 - [ ] Complete global-account admin policy audit, owner/financial/FK deletion policy, Google fresh reauth, one-use proof, atomic execute/onboarding and disposable DEV/Release gates. Execution remains disabled.
+
+## 2026-10-31 — Invitation/reset edge cloud acceptance
+- [x] Exact tested SHA `4d88716a9cde33a15a7f94867ee02d2a69b613c3`; [Actions 41234461782](https://github.com/o-kobylianskyi/family-points/actions/runs/41234461782) all four jobs SUCCESS. Backend: 313 tests, zero failures/errors/skips; 39 actual Spring/JPA/PostgreSQL transaction scenarios.
+- [x] Verify 13 added real PostgreSQL scenarios plus boundary/controller regressions without relaxed assertions; old application invitation tests use real guards.
+- [x] Document v1 preparation invalidation, current-state public-token exception and REQUIRES_NEW ordering.
+- [ ] Complete retained owner/identity/global-account admin/financial policy, deletion FK closure, fresh Google reauth, consumable one-use proof and atomic execute/epoch/onboarding.
+- [ ] Obtain consumer/disposable DEV/QA/Release acceptance. Full reset unavailable; no data deletion or deployment.

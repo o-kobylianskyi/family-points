@@ -135,3 +135,8 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 - Fenced manager invitation/join/email/account writes and explicit member linking; public token/code paths lock discovered family before row locks and revalidate retained authority.
 - Reset prepare/confirm/challenge share content-v2 snapshots and family-before-operation order; REQUIRES_NEW password-attempt budget executes before family fence, with nested fenced invocation rejected.
 - Stored count-v1 preparations must be recreated with new operation IDs. Source DTO shapes unchanged; consumer/QA/Release acceptance pending. Full owner/FK/financial/one-use proof/atomic execute remain OPEN; execute disabled. No live reset, migration or deployment.
+
+## 2026-10-31 — Invitation/reset edge package cloud acceptance
+- Exact tested SHA `4d88716a9cde33a15a7f94867ee02d2a69b613c3`; [Actions 41234461782](https://github.com/o-kobylianskyi/family-points/actions/runs/41234461782) all four jobs SUCCESS. Backend: 313 tests, zero failures/errors/skips; 39 actual Spring/JPA/PostgreSQL transaction scenarios.
+- Invitation/join/account-link/scoped account writes, reset content-v2 freshness and independent reauth throttle ordering now have source+CI evidence. Public retained-token acceptance and unrelated-family account survival verified.
+- Old count-v1 preparations need NEW operation IDs. Complete owner/global-account/financial/FK policy, fresh Google proof, one-use consumption and atomic execute/onboarding, consumer/disposable DEV/Release remain OPEN. Execute423 unchanged; no migration, reset or deployment.
