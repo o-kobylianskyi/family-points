@@ -303,3 +303,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Added `WorkspaceResetChallengeController`: POST /workspaces/{workspaceId}/data-reset/challenge validates manager path, workspace membership, UUID and digest then always HTTP 423 `RESET_EXECUTION_DISABLED`. POST /execute similarly always HTTP 423 after tenant auth. Neither endpoint deletes anything or issues security proof. Added `WorkspaceResetChallengeControllerTest`.
 - Updated legacy migration count regression tests to V43. Commits: `cff5021`, `07f59a6`, `04efcff`. CI `41192184402` in progress at inspection.
 - **NOT EXECUTABLE:** Server-side fresh reauthentication, unpredictable challenge secret/verifier, rate limiting, snapshot freshness, complete FK closure, row-lock coverage of every writer, transactional data deletion, audit and atomic epoch increments, rollback/concurrency Postgres tests remain P0. Web must NOT expose destructive CTA. No real DB wipe.
+
+## 2026-10-31 — BKL-002 password reauth challenge issuance
+- POST /challenge now requires local password along with operationId and digest. Requires current workspace manager, same account/member initiator, password encoder verification, confirmed V41 operation and matching stored digest, writes 5-minute unique V43 challenge record and returns challengeId/expiresAt with executionEnabled=false.
+- Commits: `d570b9e1a2bdcc2f1398286ab9dcbe6ced4ad548` implementation, `336a1135f307173d0fca1dc2db8b7710302566da` tests, `f7a6387b609a8735ae5685e1604223750e8a5d8d` Web contract amendment.
+- Strict limits: Google-only users without password are NOT supported yet. Secret verifier stored but no secret is issued, no execute proof is accepted; execute stays 423. No rate-limit, current snapshot recomputation, full transaction writer locking or actual deletion; do not present as release-ready.
+- CI `41192482109` queued when inspected; no new green assertion. No real DB deletion or deploy.
