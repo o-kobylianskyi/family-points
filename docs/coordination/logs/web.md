@@ -754,3 +754,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Fixed race in central apiRequest: quarantine may arrive from another tab during asynchronous /data-epoch handshake. It now rechecks workspace quarantine immediately before sending mutation, source commit 59f6f43. This is browser-side defense only; Backend transactional epoch barrier remains mandatory.
 - Designer P1 gaps remain accepted but not closed: 18 icons not fully integrated in active reward surfaces and nullable economy recommendation DTO not signed off; no automatic price writes. Source/CI and authenticated DEV two-tab tests still required; no reset/deploy.
 - Next: obtain exact CI, two-tab DEV QA (delayed handshake, A/B workspace and 409), then safe Backend reset challenge/execute only after security tests and approval.
+
+## 2026-10-31 — WEB-EPOCH-05 baseline check and Backend execution gate
+- Source-verified newly added Backend /challenge and /execute are locked placeholders returning HTTP 423; do NOT activate reset CTA or claim usable execution. Backend still lacks transactional full execute and approved QA.
+- Added read-only observeWorkspaceEpoch in central client and authenticated baseline priming in AuthProvider when workspace activates (1113a61, fc066b2, fb07865). This improves detection of epoch changes during a mounted session, but first-write handshake and race safety still depend on Backend; no data mutation/replay added.
+- Exact-head CI not proven; authenticated DEV A/B and two-tab reload/epoch detection remain PENDING. Backend audit also requires nullable economy DTO and 18-icon active reward consumer QA. No BETA or production deployment.
+- Next: verify exact Web build and manual DEV scenarios; complete blocked-reset QA only after Backend enables tested safe execute.
