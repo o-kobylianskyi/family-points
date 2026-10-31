@@ -90,6 +90,7 @@ import com.olehkobylianskyi.familypoints.android.update.AndroidApkInstaller
 import com.olehkobylianskyi.familypoints.android.update.AndroidUpdateChecker
 import com.olehkobylianskyi.familypoints.android.update.AvailableAndroidUpdate
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 private enum class AppDestination {
@@ -352,6 +353,8 @@ class MainActivity : ComponentActivity() {
                                 return@LaunchedEffect
                             }
                         }
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
                     } catch (_: Exception) {
                         if (epochGate != "changed") epochGate = "unverified"
                     }
