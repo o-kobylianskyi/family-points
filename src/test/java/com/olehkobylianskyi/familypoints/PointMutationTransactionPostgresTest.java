@@ -1193,7 +1193,7 @@ class PointMutationTransactionPostgresTest {
         var prepared=prepareReset(fixture); confirmReset(fixture,prepared);
         var response=challengeReset(fixture,prepared,"test-password");
         String json;
-        try { json=new com.fasterxml.jackson.databind.ObjectMapper().findAndRegisterModules().writeValueAsString(response); }
+        try { json=tools.jackson.databind.json.JsonMapper.builder().build().writeValueAsString(response); }
         catch (Exception exception) { throw new AssertionError(exception); }
         assertFalse(json.contains("secret")); assertFalse(json.contains("verifier")); assertFalse(response.executionEnabled());
         assertEquals(4,response.getClass().getRecordComponents().length);
