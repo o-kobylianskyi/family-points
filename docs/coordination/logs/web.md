@@ -760,3 +760,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Added read-only observeWorkspaceEpoch in central client and authenticated baseline priming in AuthProvider when workspace activates (1113a61, fc066b2, fb07865). This improves detection of epoch changes during a mounted session, but first-write handshake and race safety still depend on Backend; no data mutation/replay added.
 - Exact-head CI not proven; authenticated DEV A/B and two-tab reload/epoch detection remain PENDING. Backend audit also requires nullable economy DTO and 18-icon active reward consumer QA. No BETA or production deployment.
 - Next: verify exact Web build and manual DEV scenarios; complete blocked-reset QA only after Backend enables tested safe execute.
+
+## 2026-10-31 — WEB-EPOCH-06 tab return epoch check and CI triage
+- Audited Backend password challenge work (d570b9e) and tests; /execute remains fail-closed HTTP 423, Google-only fresh reauth not supported, not release ready. No destructive Web CTA.
+- CI 41192184402: Web SUCCESS, Compose SUCCESS, Java/Android CANCELLED; newer 41192482109 all four CANCELLED. Neither is current all-green SHA. Authenticated DEV browser/two-tab testing still not performed.
+- Web epoch state previously primed on workspace activation and guarded writes but had no on-tab-return recheck. AuthContext now revalidates the active family's epoch on window focus and visibility return, with in-flight coalescing and cleanup; source e302962. A changed generation triggers the already localized blocking reload UI. Network failures never permit writes, since each apiRequest mutation separately requires a fresh epoch handshake. No automatic POST replay.
+- Next: run exact-head Web CI and focused Playwright DEV QA with authenticated two tabs, A/B switching, server epoch changes, and 4 locales. Backend execute and Designer economy/media signoff remain blocked; no family reset or deployment.
