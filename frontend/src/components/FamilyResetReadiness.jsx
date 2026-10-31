@@ -173,7 +173,7 @@ export default function FamilyResetReadiness() {
     try {
       const result = await getResetPreview(getAccessToken(), id)
       if (generation.current === requestId && workspaceRef.current === id) {
-        if (String(result?.workspaceId) !== String(id) || result?.executionEnabled !== false) throw new Error('RESET_PREVIEW_INVALID')
+        if (String(result?.workspaceId) !== String(id) || result?.executionEnabled !== false || result?.completeDependencyPlan !== false || !result?.categories || typeof result.categories !== 'object' || Array.isArray(result.categories)) throw new Error('RESET_PREVIEW_INVALID')
         setPreview(result)
       }
     } catch(e) {
