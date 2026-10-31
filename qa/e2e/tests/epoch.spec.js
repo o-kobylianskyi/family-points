@@ -109,4 +109,32 @@ test.describe('authenticated workspace data-epoch browser protection', () => {
     await secondTab.close()
   })
 
+  test('malformed epoch notice does not quarantine active workspace', async ({ page, context }) => {
+    await page.goto('/login')
+    await page.locator('form input[type="text"]').fill(username)
+    await page.locator('form input[type="password"]').fill(password)
+    await page.locator('form button[type="submit"]').click()
+    await expect(page).not.toHaveURL(/\/login(?:\?|$)/, { timeout: 12000 })
+    if (new URL(page.url()).pathname === '/choose-family') {
+      throw new Error('Select the isolated QA family explicitly.')
+    }
+    const observer = await context.newPage()
+    await observer.goto('/settings')
+    const warning = observer.getByRole('alert').filter({
+      has: observer.getByRole('button', { name: /Reload|Перезавантажити|Перезагрузить|Neu laden/ })
+    })
+    await expect(warning).toHaveCount(0)
+    await page.evaluate(() => {
+      localStorage.setItem('fp:workspace-epoch-notice', '{broken-json')
+    })
+    await expect(warning).toHaveCount(0)
+    await page.evaluate(() => {
+      localStorage.setItem('fp:workspace-epoch-notice', JSON.stringify({
+        workspaceId: 'not-a-workspace', previousEpoch: 0, dataEpoch: 1
+      }))
+    })
+    await expect(warning).toHaveCount(0)
+    await observer.close()
+  })
+
 })
