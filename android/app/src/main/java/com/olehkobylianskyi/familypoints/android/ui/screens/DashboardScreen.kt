@@ -75,17 +75,24 @@ fun DashboardScreen(
     val serverStatus by ServerReachability.status.collectAsState()
     var data by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf<DashboardData?>(null) }
     var reputation by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf<Long?>(null) }
-    var showingCached by remember { mutableStateOf(false) }
+    var showingCached by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(false) }
+    var onlineEpochVerified by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(false) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
 
     LaunchedEffect(currentUser.memberId, currentUser.workspaceId, serverStatus, refreshNonce) {
         error = ""
         cachedDashboard()?.let { snapshot ->
-            if (data == null) {
+            if (data == null && serverStatus == ServerStatus.OFFLINE) {
                 data = snapshot
                 showingCached = true
             }
+        }
+        if (serverStatus != ServerStatus.OFFLINE) {
+            // Hide prior snapshots until authenticated epoch validation succeeds.
+            data = null
+            showingCached = false
+            onlineEpochVerified = false
         }
         loading = data == null
         if (serverStatus == ServerStatus.OFFLINE) {
@@ -103,6 +110,7 @@ fun DashboardScreen(
         }
         try {
             data = loadDashboard()
+            onlineEpochVerified = true
             reputation = try { loadReputation() } catch (_: Exception) { null }
             showingCached = false
         } catch (exception: HttpException) {
@@ -122,6 +130,7 @@ fun DashboardScreen(
                 delay(30_000L)
                 try {
                     data = loadDashboard()
+                    onlineEpochVerified = true
                     reputation = try { loadReputation() } catch (_: Exception) { null }
                     showingCached = false
                     error = ""
@@ -182,7 +191,7 @@ fun DashboardScreen(
                 }
             }
 
-            data != null -> {
+            data != null && (serverStatus == ServerStatus.OFFLINE || onlineEpochVerified) -> {
                 val dashboard = data!!
                 val active = dashboard.activeTasks
 
