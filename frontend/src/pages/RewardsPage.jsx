@@ -1,4 +1,5 @@
 import RewardAvailabilityEditor from '../components/RewardAvailabilityEditor'
+import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NumberInput from '../components/NumberInput'
@@ -697,7 +698,7 @@ function RewardsPage() {
             <h2>{t('rewardsUi.customTitle')}</h2>
             <p>{t('rewardsUi.customExample')}</p>
             <form onSubmit={createCustomRequest} className="reward-request-form">
-              <label>{labels[2]} <select value={requestTemplateCategory} onChange={e=>{setRequestTemplateCategory(e.target.value);setSelectedRequestTemplateId('')}}><option value="ALL">{labels[3]}</option>{requestTemplateCategories.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
+              <label>{labels[2]} <select value={requestTemplateCategory} onChange={e=>{setRequestTemplateCategory(e.target.value);setSelectedRequestTemplateId('')}}><option value="ALL">{labels[3]}</option>{requestTemplateCategories.map(c=><option key={c} value={c}>{templateCategoryLabel(c, language)}</option>)}</select></label>
               <label>{labels[0]} <select value={selectedRequestTemplateId} onChange={e=>chooseRequestTemplate(e.target.value)}><option value="">{labels[1]}</option>{requestTemplateOptions.map(item=><option key={item.id ?? item.code} value={item.id ?? item.code}>{typeof item.title === 'string' ? item.title : item.title?.[language] || item.title?.en}</option>)}</select></label>
               <small>{labels[5]}</small>
               <input
@@ -948,7 +949,7 @@ function RewardsPage() {
             <h2>{editingRewardId != null ? t('rewardsUi.editReward') : t('rewardsUi.newReward')}</h2>
             <form onSubmit={createCatalogReward} className="reward-editor">
               {editingRewardId == null && <>
-                <label>{labels[2]} <select value={rewardTemplateCategory} onChange={e=>{rewardDraftGeneration.current += 1;setTemplateBusy(false);setRewardTemplateCategory(e.target.value);setSelectedRewardTemplateId('')}}><option value="ALL">{labels[3]}</option>{templateCategories.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
+                <label>{labels[2]} <select value={rewardTemplateCategory} onChange={e=>{rewardDraftGeneration.current += 1;setTemplateBusy(false);setRewardTemplateCategory(e.target.value);setSelectedRewardTemplateId('')}}><option value="ALL">{labels[3]}</option>{templateCategories.map(c=><option key={c} value={c}>{templateCategoryLabel(c, language)}</option>)}</select></label>
                 <label>{labels[0]} <select value={selectedRewardTemplateId} disabled={templateBusy} onChange={e=>chooseRewardTemplate(e.target.value)}><option value="">{labels[1]}</option>{templateOptions(rewardTemplateCategory).map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
                 <small>{labels[5]}</small>
               </>}
