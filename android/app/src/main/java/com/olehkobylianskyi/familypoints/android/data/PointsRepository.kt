@@ -97,7 +97,7 @@ class PointsRepository(
             if (queue.isHeldForReset(workspaceId)) break
             try {
                 ApiClient.pointsApi.replayOffline(
-                    auth, workspaceId, entry.memberId, entry.type,
+                    auth, epoch.dataEpoch, workspaceId, entry.memberId, entry.type,
                     OfflinePointOperationRequest(entry.operationId, entry.pointTypeId, entry.amount, entry.description)
                 )
                 queue.confirm(entry.operationId, workspaceId, viewerId, owner)
@@ -106,6 +106,7 @@ class PointsRepository(
             } catch (error: HttpException) {
                 // Keep failed operations for parental review; never silently
                 // discard denied/invalid items. 401 ends synchronization.
+                if (error.code() == 409) queue.holdForReset(workspaceId)
                 if (error.code() in 400..499) replayDenial = error
                 break
             } catch (error: IOException) {
