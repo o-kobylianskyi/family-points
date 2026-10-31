@@ -23,13 +23,16 @@ public class TaskScheduleSlotController {
     private final TaskScheduleSlotRepository slots;
     private final TaskAuthorizationService authorization;
     private final TaskAuditService audit;
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
 
     public TaskScheduleSlotController(TaskService tasks, TaskScheduleSlotRepository slots,
-                                      TaskAuthorizationService authorization, TaskAuditService audit) {
+                                      TaskAuthorizationService authorization, TaskAuditService audit,
+                                      com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
         this.tasks = tasks;
         this.slots = slots;
         this.authorization = authorization;
         this.audit = audit;
+        this.epochGuard = epochGuard;
     }
 
     public record SlotRequest(
@@ -55,6 +58,7 @@ public class TaskScheduleSlotController {
     @Transactional
     public SlotResponse create(@PathVariable Long workspaceId, @PathVariable Long definitionId,
                                @Valid @RequestBody SlotRequest input) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         var definition = tasks.getDefinition(workspaceId, definitionId);
         authorization.requireManage(definition);
         if ("default".equals(input.slotKey())) {
@@ -74,6 +78,7 @@ public class TaskScheduleSlotController {
     @Transactional
     public SlotResponse update(@PathVariable Long workspaceId, @PathVariable Long definitionId,
                                @PathVariable Long slotId, @RequestBody SlotUpdateRequest input) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         var definition = tasks.getDefinition(workspaceId, definitionId);
         authorization.requireManage(definition);
         var slot = slots.findByIdAndTaskDefinitionId(slotId, definitionId)
@@ -98,6 +103,7 @@ public class TaskScheduleSlotController {
     @Transactional
     public SlotResponse setEnabled(@PathVariable Long workspaceId, @PathVariable Long definitionId,
                                    @PathVariable Long slotId, @RequestParam boolean enabled) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         var definition = tasks.getDefinition(workspaceId, definitionId);
         authorization.requireManage(definition);
         var slot = slots.findByIdAndTaskDefinitionId(slotId, definitionId)

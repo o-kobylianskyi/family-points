@@ -1451,3 +1451,10 @@ Before each substantial implementation batch:
 - [x] Verify source `701ad3ac` in all-green compatible SHA `03f12893c4cfa3f6d756ca362188ed2abadf0c78`, Actions 41213010771.
 - [x] Backend 269 PASS: exhaustive 38-entry guard boundary audit and nine real Spring/JPA/PostgreSQL service scenarios.
 - [ ] Fence remaining direct writers and upstream outer transactions; finalize reset dependency/ledger/reauth/execute and disposable DEV acceptance. Full reset remains disabled.
+
+## 2026-10-31 — BKL-002 schedule/exchange/ledger package
+- [x] Fence three slot mutations, four exchange operations, ten point posting entries and reputation add.
+- [x] Preserve same-family, same-transaction validated epoch for internal ledger work; add lifetime/suspension/HTTP proof regression coverage.
+- [x] Add actual slot/audit, two-currency exchange, rollback and nonzero-epoch background penalty tests; record remaining writer inventory.
+- [ ] Verify cloud CI for this package.
+- [ ] Complete groups/roles, economy lazy writes, template/media and protected membership/startup outer-transaction audit before reset execute/QA/Release.

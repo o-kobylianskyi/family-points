@@ -141,3 +141,9 @@ Never remove an unresolved item to tidy the register. Close only after affected 
 ## 2026-10-31 — IMP-0009 task/reward fence verification evidence
 - Backend source `701ad3ac` verified at compatible `03f12893c4cfa3f6d756ca362188ed2abadf0c78`; all-green Actions 41213010771, backend 269 PASS. Actual service/JPA transaction, rollback, stale replay, cross-family progress and background reload evidence recorded in Backend journal.
 - This is Backend source/CI acceptance of this bounded package, not closure of IMP-0009: remaining direct/upstream writers, complete execute/financial/reauth contract, client/QA/Release acceptance and deployment remain OPEN.
+
+## 2026-10-31 — IMP-0009 slot/exchange/ledger transaction fence
+- Baseline `65e6726db369190e19ed06e50b5c69dca60466c3`. Add family-first guards for 18 write entries: three schedule-slot routes, four exchange operations, ten point postings and reputation add. Existing API bodies, epoch header/legacy-zero behavior and permissions stay unchanged; no migration.
+- Internal ledger calls at nonzero epoch require proof captured for the same family in their active parent transaction. HTTP always checks original header. Proof follows transaction suspension/resumption and is cleared after commit/rollback; current DB epoch is not a client-proof replacement.
+- Reload detached penalty currency within the scoped workspace before ledger insert. PostgreSQL tests cover automatic exchange atomicity, slot+audit rollback, proof lifetime/suspension/family scope and real background point/reputation penalties.
+- Remaining writers/outer lock order are listed in requests/BKL002_REMAINING_WRITER_AUDIT_20261031.md. Full reset and consumer/QA/Release acceptance remain OPEN. No real-data reset or deploy.

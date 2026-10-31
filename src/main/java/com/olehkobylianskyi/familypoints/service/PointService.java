@@ -16,6 +16,7 @@ import java.util.List;
 
 @Service
 public class PointService {
+    private final WorkspaceEpochTransactionGuard epochGuard;
 
     //public static final String DEFAULT_POINT_TYPE_CODE = "POINTS";
 
@@ -29,8 +30,10 @@ public class PointService {
             PointTransactionRepository pointTransactionRepository,
             WorkspaceMemberRepository workspaceMemberRepository,
             PointTypeRepository pointTypeRepository,
-            EconomySettingsRepository economySettingsRepository
+            EconomySettingsRepository economySettingsRepository,
+            WorkspaceEpochTransactionGuard epochGuard
     ) {
+        this.epochGuard = epochGuard;
         this.pointTransactionRepository = pointTransactionRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
         this.pointTypeRepository = pointTypeRepository;
@@ -44,6 +47,7 @@ public class PointService {
             int amount,
             String description
     ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
         WorkspaceMember member =
                 getMemberOrThrow(workspaceId, memberId);
 
@@ -71,6 +75,7 @@ public class PointService {
             Long sourceId,
             String description
     ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
         WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
         PointType pointType = getPointTypeOrThrow(workspaceId, pointTypeCode);
 
@@ -92,6 +97,7 @@ public class PointService {
             int amount,
             String description
     ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
         WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
         PointType pointType = getDefaultPointTypeOrThrow(workspaceId);
 
@@ -113,6 +119,7 @@ public class PointService {
             int amount,
             String description
     ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
         WorkspaceMember member =
                 getMemberForUpdateOrThrow(workspaceId, memberId);
 
@@ -183,6 +190,7 @@ public class PointService {
             int amount,
             String description
     ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
         if (operationId == null || amount < 1 || amount > 100000
                 || !("earn".equals(operation) || "penalty".equals(operation))) {
             throw new IllegalArgumentException("Invalid offline point operation");
@@ -235,6 +243,7 @@ public class PointService {
             Long workspaceId, Long memberId, Long pointTypeId,
             String operation, int amount, String description
     ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
         if (pointTypeId == null || amount < 1 || amount > 100000) {
             throw new IllegalArgumentException("Invalid manual point operation");
         }
@@ -365,6 +374,7 @@ public class PointService {
             Long sourceId,
             String description
     ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
         WorkspaceMember member =
                 getMemberForUpdateOrThrow(workspaceId, memberId);
 
@@ -405,6 +415,7 @@ public class PointService {
             Long sourceId,
             String description
     ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
         WorkspaceMember member =
                 getMemberOrThrow(workspaceId, memberId);
 
@@ -482,6 +493,7 @@ public class PointService {
             Long sourceId,
             String description
     ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
         WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
         PointType pointType = getPointTypeOrThrow(workspaceId, pointTypeId);
 
@@ -506,6 +518,8 @@ public class PointService {
             Long sourceId,
             String description
     ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        pointType = getPointTypeOrThrow(workspaceId, pointType.getId());
         WorkspaceMember member =
                 getMemberOrThrow(workspaceId, memberId);
 

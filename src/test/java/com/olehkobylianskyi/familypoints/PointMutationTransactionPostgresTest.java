@@ -58,7 +58,8 @@ class PointMutationTransactionPostgresTest {
     @Import({PointMutationService.class, PointService.class, WorkspaceEpochTransactionGuard.class,
             RewardService.class, RewardAvailabilityService.class, ReputationService.class,
             TaskService.class, TaskGenerationService.class, TaskDeadlineService.class,
-            TaskAuditService.class, TaskRewardNegotiationService.class})
+            TaskAuditService.class, TaskRewardNegotiationService.class, PointExchangeService.class,
+            com.olehkobylianskyi.familypoints.controller.TaskScheduleSlotController.class})
     static class Config {
         @Bean java.time.Clock clock() { return java.time.Clock.systemUTC(); }
         @Bean com.olehkobylianskyi.familypoints.security.CurrentUserService currentUser() {
@@ -333,6 +334,202 @@ class PointMutationTransactionPostgresTest {
         assertTrue(context.getBean(TaskDeadlineService.class)
                 .processDeadlines(fixture.workspace(), java.time.LocalDateTime.now()).isEmpty());
         assertEquals(1L, sql.queryForObject("SELECT data_epoch FROM families WHERE id=?", Long.class, fixture.workspace()));
+    }
+
+
+    private long reputationCount(Fixture fixture) {
+        return sql.queryForObject("SELECT count(*) FROM reputation_transactions WHERE member_id=?", Long.class, fixture.member());
+    }
+
+    private long balance(Fixture fixture, long currency) {
+        return sql.queryForObject("SELECT coalesce(sum(amount),0) FROM point_transactions WHERE member_id=? AND point_type_id=?",
+                Long.class, fixture.member(), currency);
+    }
+
+    @Test void scheduleSlotMutationsRejectStaleEpochAndRollbackAuditWithData() {
+        var fixture = fixture();
+        var definition = task(fixture);
+        var member = context.getBean(WorkspaceMemberRepository.class).findById(fixture.member()).orElseThrow();
+        org.mockito.Mockito.when(context.getBean(TaskAuthorizationService.class).currentMember()).thenReturn(member);
+        var slots = context.getBean(com.olehkobylianskyi.familypoints.controller.TaskScheduleSlotController.class);
+        var created = withEpoch(0L, () -> slots.create(fixture.workspace(), definition.getId(),
+                new com.olehkobylianskyi.familypoints.controller.TaskScheduleSlotController.SlotRequest(
+                        "morning", java.time.LocalTime.of(8,0))));
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var update = new com.olehkobylianskyi.familypoints.controller.TaskScheduleSlotController.SlotUpdateRequest(
+                java.time.LocalTime.of(9,0), false);
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> slots.update(fixture.workspace(), definition.getId(), created.id(), update))).getStatusCode().value());
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> slots.setEnabled(fixture.workspace(), definition.getId(), created.id(), false))).getStatusCode().value());
+        assertThrows(IllegalStateException.class, () -> tx.executeWithoutResult(status -> withEpoch(1L, () -> {
+            slots.update(fixture.workspace(), definition.getId(), created.id(), update);
+            throw new IllegalStateException("Injected slot update failure");
+        })));
+        assertEquals(java.time.LocalTime.of(8,0), sql.queryForObject(
+                "SELECT scheduled_time FROM task_schedule_slots WHERE id=?", java.time.LocalTime.class, created.id()));
+        assertEquals(true, sql.queryForObject("SELECT enabled FROM task_schedule_slots WHERE id=?", Boolean.class, created.id()));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM task_audit_events WHERE task_definition_id=?",
+                Long.class, definition.getId()));
+        withEpoch(1L, () -> slots.update(fixture.workspace(), definition.getId(), created.id(), update));
+        assertEquals(false, sql.queryForObject("SELECT enabled FROM task_schedule_slots WHERE id=?", Boolean.class, created.id()));
+    }
+
+    @Test void exchangeEpochFencesTheRequestAndBothCurrencyPostingsAtomically() {
+        var fixture = fixture();
+        long target = sql.queryForObject(
+                "INSERT INTO point_types(family_id,code,name,active,sort_order) VALUES (?,'SILVER','Fixture',true,1) RETURNING id",
+                Long.class, fixture.workspace());
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var points = context.getBean(PointService.class);
+        var exchange = context.getBean(PointExchangeService.class);
+        var rate = withEpoch(1L, () -> exchange.createRate(fixture.workspace(), fixture.currency(), target,
+                10, 1, com.olehkobylianskyi.familypoints.entity.PointExchangeApprovalMode.AUTO));
+        withEpoch(1L, () -> points.earn(fixture.workspace(), fixture.member(), 20, "Disposable funding"));
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> exchange.createExchange(fixture.workspace(), fixture.member(), rate.getId(), 10))).getStatusCode().value());
+        assertEquals(0L, sql.queryForObject("SELECT count(*) FROM point_exchange_requests WHERE member_id=?", Long.class, fixture.member()));
+        var result = withEpoch(1L, () -> exchange.createExchange(fixture.workspace(), fixture.member(), rate.getId(), 10));
+        assertEquals(com.olehkobylianskyi.familypoints.entity.PointExchangeStatus.APPROVED, result.getStatus());
+        assertEquals(10, balance(fixture, fixture.currency()));
+        assertEquals(1, balance(fixture, target));
+        assertThrows(IllegalStateException.class, () -> tx.executeWithoutResult(status -> withEpoch(1L, () -> {
+            exchange.createExchange(fixture.workspace(), fixture.member(), rate.getId(), 10);
+            throw new IllegalStateException("Injected exchange failure after both postings");
+        })));
+        assertEquals(10, balance(fixture, fixture.currency()));
+        assertEquals(1, balance(fixture, target));
+        assertEquals(3, postings(fixture));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM point_exchange_requests WHERE member_id=?", Long.class, fixture.member()));
+    }
+
+    @Test void internalLedgerWritesRequireValidatedParentAndProofExpiresAtTransactionEnd() {
+        var fixture = fixture();
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var guard = context.getBean(WorkspaceEpochTransactionGuard.class);
+        var points = context.getBean(PointService.class);
+        var reputation = context.getBean(ReputationService.class);
+        assertThrows(ResponseStatusException.class, () -> points.earn(fixture.workspace(), fixture.member(), 5, "No proof"));
+        assertThrows(ResponseStatusException.class, () -> reputation.add(fixture.workspace(), fixture.member(), 3,
+                com.olehkobylianskyi.familypoints.entity.ReputationTransactionSourceType.MANUAL_BONUS, null, "No proof"));
+        tx.executeWithoutResult(status -> {
+            guard.lockCurrentEpoch(fixture.workspace());
+            points.earn(fixture.workspace(), fixture.member(), 5, "Server-derived fixture");
+            reputation.add(fixture.workspace(), fixture.member(), 3,
+                    com.olehkobylianskyi.familypoints.entity.ReputationTransactionSourceType.MANUAL_BONUS, null, "Fixture");
+        });
+        assertEquals(1, postings(fixture));
+        assertEquals(1, reputationCount(fixture));
+        assertThrows(ResponseStatusException.class, () -> points.earn(fixture.workspace(), fixture.member(), 5, "Expired proof"));
+        assertThrows(IllegalStateException.class, () -> tx.executeWithoutResult(status -> {
+            guard.lockCurrentEpoch(fixture.workspace());
+            reputation.add(fixture.workspace(), fixture.member(), 3,
+                    com.olehkobylianskyi.familypoints.entity.ReputationTransactionSourceType.MANUAL_BONUS, null, "Rollback");
+            throw new IllegalStateException("Injected reputation failure");
+        }));
+        assertEquals(1, reputationCount(fixture));
+        assertThrows(ResponseStatusException.class, () -> reputation.add(fixture.workspace(), fixture.member(), 3,
+                com.olehkobylianskyi.familypoints.entity.ReputationTransactionSourceType.MANUAL_BONUS, null, "Expired rollback proof"));
+    }
+
+    @Test void validatedEpochIsSuspendedForRequiresNewAndRestoredOnlyForItsParent() {
+        var fixture = fixture();
+        var other = fixture();
+        sql.update("UPDATE families SET data_epoch=1 WHERE id IN (?,?)", fixture.workspace(), other.workspace());
+        var guard = context.getBean(WorkspaceEpochTransactionGuard.class);
+        var inner = new TransactionTemplate(context.getBean(JpaTransactionManager.class));
+        inner.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        var rememberedKey = new java.util.concurrent.atomic.AtomicReference<Object>();
+        tx.executeWithoutResult(status -> {
+            guard.lockCurrentEpoch(fixture.workspace());
+            var entry = org.springframework.transaction.support.TransactionSynchronizationManager.getResourceMap()
+                    .entrySet().stream().filter(e -> e.getValue() instanceof java.util.Map<?,?> map
+                            && map.containsKey(fixture.workspace())).findFirst().orElseThrow();
+            rememberedKey.set(entry.getKey());
+            Object parentProof = entry.getValue();
+            inner.executeWithoutResult(innerStatus -> {
+                assertNull(org.springframework.transaction.support.TransactionSynchronizationManager.getResource(entry.getKey()));
+                guard.lockCurrentEpoch(other.workspace());
+                assertNotSame(parentProof, org.springframework.transaction.support.TransactionSynchronizationManager.getResource(entry.getKey()));
+                context.getBean(PointService.class).earn(other.workspace(), other.member(), 2, "Independent inner");
+            });
+            assertSame(parentProof, org.springframework.transaction.support.TransactionSynchronizationManager.getResource(entry.getKey()));
+            assertThrows(IllegalStateException.class, () -> inner.executeWithoutResult(innerStatus -> {
+                assertNull(org.springframework.transaction.support.TransactionSynchronizationManager.getResource(entry.getKey()));
+                guard.lockCurrentEpoch(other.workspace());
+                context.getBean(PointService.class).earn(other.workspace(), other.member(), 2, "Rolled back inner");
+                throw new IllegalStateException("Injected independent transaction rollback");
+            }));
+            assertSame(parentProof, org.springframework.transaction.support.TransactionSynchronizationManager.getResource(entry.getKey()));
+            context.getBean(PointService.class).earn(fixture.workspace(), fixture.member(), 5, "Restored parent");
+        });
+        assertNull(org.springframework.transaction.support.TransactionSynchronizationManager.getResource(rememberedKey.get()));
+        assertEquals(1, postings(fixture));
+        assertEquals(1, postings(other));
+    }
+
+    @Test void capturedEpochCannotBeReplacedWithFreshDatabaseEpochForInternalPosting() {
+        var fixture = fixture();
+        var guard = context.getBean(WorkspaceEpochTransactionGuard.class);
+        assertThrows(ResponseStatusException.class, () -> tx.executeWithoutResult(status -> {
+            guard.requireCurrentEpoch(fixture.workspace(), 0L);
+            sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+            context.getBean(PointService.class).earn(fixture.workspace(), fixture.member(), 5, "Stale captured epoch");
+        }));
+        assertEquals(0L, sql.queryForObject("SELECT data_epoch FROM families WHERE id=?", Long.class, fixture.workspace()));
+        assertEquals(0, postings(fixture));
+    }
+
+    @Test void validatedParentCannotAuthorizeOtherFamilyOrOverrideHttpHeader() {
+        var fixture = fixture();
+        var other = fixture();
+        sql.update("UPDATE families SET data_epoch=1 WHERE id IN (?,?)", fixture.workspace(), other.workspace());
+        var guard = context.getBean(WorkspaceEpochTransactionGuard.class);
+        assertThrows(ResponseStatusException.class, () -> tx.executeWithoutResult(status -> {
+            guard.lockCurrentEpoch(fixture.workspace());
+            context.getBean(PointService.class).earn(other.workspace(), other.member(), 5, "Wrong family proof");
+        }));
+        assertThrows(ResponseStatusException.class, () -> tx.executeWithoutResult(status -> {
+            guard.lockCurrentEpoch(fixture.workspace());
+            withEpoch(0L, () -> context.getBean(PointService.class).earn(fixture.workspace(), fixture.member(), 5, "Stale HTTP"));
+        }));
+        assertEquals(0, postings(fixture));
+        assertEquals(0, postings(other));
+    }
+
+    @Test void penaltyReloadsPointTypeInTheSameFamilyInsteadOfTrustingDetachedInput() {
+        var fixture = fixture();
+        var other = fixture();
+        var foreign = context.getBean(PointTypeRepository.class).findById(other.currency()).orElseThrow();
+        assertThrows(com.olehkobylianskyi.familypoints.exception.ResourceNotFoundException.class,
+                () -> withEpoch(0L, () -> context.getBean(PointService.class).penalty(
+                        fixture.workspace(), fixture.member(), foreign, 1,
+                        com.olehkobylianskyi.familypoints.entity.PointTransactionSourceType.TASK, null, "Foreign fixture")));
+        assertEquals(0, postings(fixture));
+    }
+
+    @Test void backgroundDeadlinePenaltiesJoinValidatedGenerationAtNonzeroEpochExactlyOnce() {
+        var fixture = fixture();
+        var definition = task(fixture);
+        var yesterday = java.time.LocalDate.now().minusDays(1);
+        tx.executeWithoutResult(status -> {
+            var current = context.getBean(TaskDefinitionRepository.class).findById(definition.getId()).orElseThrow();
+            current.setMandatory(true);
+            current.setStartDate(yesterday);
+            current.setEndDate(yesterday);
+            current.setPenaltyPointType(context.getBean(PointTypeRepository.class).findById(fixture.currency()).orElseThrow());
+            current.setPenaltyAmount(2);
+            current.setPenaltyReputationAmount(3);
+            sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        });
+        var deadlines = context.getBean(TaskDeadlineService.class);
+        var now = java.time.LocalDate.now().atTime(12,0);
+        assertEquals(1, deadlines.processDeadlines(fixture.workspace(), now).size());
+        assertEquals(-2, balance(fixture, fixture.currency()));
+        assertEquals(-3L, sql.queryForObject("SELECT sum(amount) FROM reputation_transactions WHERE member_id=?", Long.class, fixture.member()));
+        assertTrue(deadlines.processDeadlines(fixture.workspace(), now).isEmpty());
+        assertEquals(1, postings(fixture));
+        assertEquals(1, reputationCount(fixture));
     }
 
     private static void await(CountDownLatch latch) {

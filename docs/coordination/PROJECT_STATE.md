@@ -113,3 +113,7 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 ## 2026-10-31 — Backend task/reward fencing verified in cloud CI
 - Source `701ad3ac`, tested compatible SHA `03f12893c4cfa3f6d756ca362188ed2abadf0c78`, all-green Actions https://github.com/o-kobylianskyi/family-points/actions/runs/41213010771 . Backend: 269 PASS, including nine real Spring/JPA/PostgreSQL service tests.
 - Covers TaskService/RewardService/negotiation/availability/generation service boundaries, family-scoped deadline transactions and hidden obligation-list writes. Remaining direct writer/outer lock-order audit and full reset safety are OPEN. No DEV/BETA deployment or family-data reset.
+
+## 2026-10-31 — Backend slot/exchange/ledger fencing (source; CI pending)
+- Eighteen additional write entries fenced; internal point/reputation postings preserve validated family epoch through their parent transaction, including safe suspension/resumption and cleanup. Detached currency input is rechecked within family scope.
+- Remaining direct/upstream writers are inventoried in requests/BKL002_REMAINING_WRITER_AUDIT_20261031.md. Full reset safety/execute and DEV/Release gates remain incomplete. No real reset or deployment.

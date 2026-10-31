@@ -13,6 +13,7 @@ import java.util.List;
 
 @Service
 public class PointExchangeService {
+    private final WorkspaceEpochTransactionGuard epochGuard;
 
     private final PointExchangeRateRepository rateRepository;
     private final PointExchangeRequestRepository requestRepository;
@@ -27,8 +28,10 @@ public class PointExchangeService {
             WorkspaceMemberRepository workspaceMemberRepository,
             WorkspaceRepository workspaceRepository,
             PointTypeRepository pointTypeRepository,
-            PointService pointService
+            PointService pointService,
+            WorkspaceEpochTransactionGuard epochGuard
     ) {
+        this.epochGuard = epochGuard;
         this.rateRepository = rateRepository;
         this.requestRepository = requestRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
@@ -46,6 +49,7 @@ public class PointExchangeService {
             int toAmount,
             PointExchangeApprovalMode approvalMode
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         if (fromPointTypeId.equals(toPointTypeId)) {
             throw new InvalidPointExchangeException(
                     "Source and target point types must be different"
@@ -124,6 +128,7 @@ public class PointExchangeService {
             Long exchangeRateId,
             int requestedFromAmount
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         WorkspaceMember member =
                 getMemberOrThrow(workspaceId, memberId);
 
@@ -202,6 +207,7 @@ public class PointExchangeService {
             Long requestId,
             Long parentMemberId
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         PointExchangeRequest request =
                 getRequestForUpdateOrThrow(
                         workspaceId,
@@ -243,6 +249,7 @@ public class PointExchangeService {
             Long parentMemberId,
             String reason
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         PointExchangeRequest request =
                 getRequestForUpdateOrThrow(
                         workspaceId,

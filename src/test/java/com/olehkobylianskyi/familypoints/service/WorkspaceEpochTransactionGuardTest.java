@@ -89,4 +89,24 @@ class WorkspaceEpochTransactionGuardTest {
         requestEpoch("3");
         assertEquals(3L, guard.requireCurrentRequestOrSystemEpoch(7L));
     }
+
+    @Test void ledgerWithoutRequestNeedsLegacyZeroOrARealValidatedParentTransaction() {
+        epoch(3L);
+        assertThrows(ResponseStatusException.class, () -> guard.requireCurrentRequestOrLockedEpoch(7L));
+        // A bare object call outside Spring's actual transaction creates no reusable proof.
+        assertEquals(3L, guard.requireCurrentEpoch(7L, 3L));
+        assertThrows(ResponseStatusException.class, () -> guard.requireCurrentRequestOrLockedEpoch(7L));
+        epoch(0L);
+        assertEquals(0L, guard.requireCurrentRequestOrLockedEpoch(7L));
+    }
+
+    @Test void ledgerEntryChecksHttpHeaderEvenWhenCalledByAnInternalService() {
+        epoch(3L);
+        requestEpoch(null);
+        assertThrows(ResponseStatusException.class, () -> guard.requireCurrentRequestOrLockedEpoch(7L));
+        requestEpoch("2");
+        assertThrows(ResponseStatusException.class, () -> guard.requireCurrentRequestOrLockedEpoch(7L));
+        requestEpoch("3");
+        assertEquals(3L, guard.requireCurrentRequestOrLockedEpoch(7L));
+    }
 }

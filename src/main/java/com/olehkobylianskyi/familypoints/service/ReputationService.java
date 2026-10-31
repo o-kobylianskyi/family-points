@@ -9,14 +9,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReputationService {
+    private final WorkspaceEpochTransactionGuard epochGuard;
 
     private final ReputationTransactionRepository transactions;
     private final WorkspaceMemberRepository members;
 
     public ReputationService(
             ReputationTransactionRepository transactions,
-            WorkspaceMemberRepository members
+            WorkspaceMemberRepository members,
+            WorkspaceEpochTransactionGuard epochGuard
     ) {
+        this.epochGuard = epochGuard;
         this.transactions = transactions;
         this.members = members;
     }
@@ -30,6 +33,7 @@ public class ReputationService {
             Long sourceId,
             String description
     ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
         WorkspaceMember member = members.findByIdAndWorkspaceId(memberId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace member not found: " + memberId));
 
