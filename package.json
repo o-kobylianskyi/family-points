@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "i18next": "^26.4.2",
-    "react-i18next": "^17.0.15",
-    "react-router-dom": "^7.18.4"
-  }
-}
