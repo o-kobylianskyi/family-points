@@ -36,14 +36,16 @@ test.describe('reset preview/plan (no deletion)', () => {
 
     // The app may mount/retry preview more than once. Assert against the
     // response that actually populates the UI, not the first HTTP 200 headers.
+    const previewCall = page.waitForRequest(request =>
+      request.method() === 'GET' && /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(request.url()).pathname),
+      { timeout: 15000 },
+    )
     await page.goto('/settings', { waitUntil: 'domcontentloaded', timeout: 10000 })
+    const previewUrl = (await previewCall).url()
     const panel = page.locator('.family-reset-readiness')
     await expect(panel).toBeVisible()
     const token = await page.evaluate(() => localStorage.getItem('accessToken'))
     if (!token) throw new Error('Authenticated QA session has no access token')
-    const previewUrl = await page.evaluate(() => performance.getEntriesByType('resource')
-      .map(entry => entry.name).find(url => /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(url).pathname)))
-    if (!previewUrl) throw new Error('No reset preview request observed in browser resources')
     const apiResponse = await page.request.get(previewUrl, {
       headers: { Authorization: `Bearer ${token}` },
       timeout: 12000,
