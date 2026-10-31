@@ -14,11 +14,15 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class WorkspaceDataResetPrepareControllerTest {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceResetSnapshotService snapshots = mock(com.olehkobylianskyi.familypoints.service.WorkspaceResetSnapshotService.class);
+    @org.junit.jupiter.api.BeforeEach void snapshotStub() {
+        when(snapshots.digest(anyLong(), anyCollection())).thenReturn("a".repeat(64));
+    }
     private final JdbcTemplate db=mock(JdbcTemplate.class);
     private final CurrentUserService current=mock(CurrentUserService.class);
     private final WorkspaceDataResetPreviewController inventory=mock(WorkspaceDataResetPreviewController.class);
     private final WorkspaceDataResetPrepareController controller=
-            new WorkspaceDataResetPrepareController(db,current,inventory);
+            new WorkspaceDataResetPrepareController(db,current,inventory, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class), snapshots);
 
     @Test void wrongWorkspaceRejectedBeforeDatabaseOrInventory() {
         when(current.belongsToWorkspace(7L)).thenReturn(false);
@@ -69,15 +73,7 @@ class WorkspaceDataResetPrepareControllerTest {
                                         "PRIVATE_TEMPLATES",2,false,"blocked"))));
         var operationId=UUID.randomUUID();
         var canonical="[\"MEDIA_BINDINGS\",\"PRIVATE_TEMPLATES\"]";
-        String fingerprint="reset-v1|7|MEDIA_BINDINGS=3;PRIVATE_TEMPLATES=2;";
-        String digest;
-        try {
-            digest=java.util.HexFormat.of().formatHex(
-                    java.security.MessageDigest.getInstance("SHA-256")
-                            .digest(fingerprint.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-        } catch (java.security.NoSuchAlgorithmException e) {
-            throw new AssertionError(e);
-        }
+        String digest="a".repeat(64);
         when(db.queryForMap(contains("workspace_reset_operations"),eq(7L),eq(operationId.toString())))
                 .thenReturn(Map.of("requested_by_member_id",17L,
                         "selected_categories_json",canonical,
@@ -127,6 +123,19 @@ class WorkspaceDataResetPrepareControllerTest {
         when(db.queryForList(contains("FOR UPDATE"),eq(7L),eq(key.toString()))).thenReturn(
                 java.util.List.of(Map.of("requested_by_member_id",17L,"snapshot_digest","a".repeat(64),"status","CONFIRMED")));
         assertFalse(controller.confirm(7L,request).executable());
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
+
+    @Test void changedContentRejectsConfirmationBeforeStatusUpdate() {
+        when(current.belongsToWorkspace(7L)).thenReturn(true);
+        when(current.getCurrentMemberId()).thenReturn(17L);
+        var key=UUID.randomUUID(); String digest="a".repeat(64);
+        when(db.queryForList(contains("FOR UPDATE"),eq(7L),eq(key.toString()))).thenReturn(java.util.List.of(Map.of(
+                "requested_by_member_id",17L,"snapshot_digest",digest,"status","PREPARED","selected_categories_json","[]")));
+        doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,"RESET_SNAPSHOT_STALE"))
+                .when(snapshots).requireStoredSnapshot(7L,"[]",digest);
+        assertEquals(org.springframework.http.HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,()->controller.confirm(
+                7L,new WorkspaceDataResetPrepareController.ConfirmRequest(key,digest,"RESET 7"))).getStatusCode());
         verify(db,never()).update(anyString(),any(Object[].class));
     }
 }

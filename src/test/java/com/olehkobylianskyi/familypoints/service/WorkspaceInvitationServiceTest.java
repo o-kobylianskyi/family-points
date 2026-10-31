@@ -17,7 +17,7 @@ import static org.mockito.Mockito.*;
 class WorkspaceInvitationServiceTest {
     private final JdbcTemplate jdbc = mock(JdbcTemplate.class);
     private final CurrentUserService user = mock(CurrentUserService.class);
-    private final WorkspaceInvitationService invitations = new WorkspaceInvitationService(jdbc, user);
+    private final WorkspaceInvitationService invitations = new WorkspaceInvitationService(jdbc, user, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
 
     @Test
     void rejectsInvalidContextHandleBeforeQueryingDatabase() {

@@ -7,10 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AccountMembershipLinkService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private final AccountWorkspaceMembershipRepository memberships;
     private final WorkspaceMemberRepository members;
 
-    public AccountMembershipLinkService(AccountWorkspaceMembershipRepository memberships, WorkspaceMemberRepository members) {
+    public AccountMembershipLinkService(AccountWorkspaceMembershipRepository memberships, WorkspaceMemberRepository members, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.memberships = memberships;
         this.members = members;
     }
@@ -21,6 +23,7 @@ public class AccountMembershipLinkService {
                 || workspaceId == null || memberId == null) {
             throw new IllegalArgumentException("Invalid membership request");
         }
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
         var member = members.findByIdAndWorkspaceIdAndActiveTrue(memberId, workspaceId)
                 .orElseThrow(() -> new IllegalArgumentException("Active member not found"));
         if (member.getDeletedAt() != null

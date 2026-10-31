@@ -27,7 +27,7 @@ class MemberEmailInvitationServiceTest {
     private final GoogleTokenVerifier google = mock(GoogleTokenVerifier.class);
     private final MemberEmailInvitationService service = new MemberEmailInvitationService(
             db, members, accounts, memberships, current, passwords, mail, google,
-            "no-reply@example.org", "http://localhost:5173", true);
+            "no-reply@example.org", "http://localhost:5173", true, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
 
     @Test
     void rejectMalformedLinkBeforeReadingDatabase() {

@@ -1477,3 +1477,10 @@ Before each substantial implementation batch:
 - [x] Publish Designer #17 source DTO/media contract, real nullable examples and supported-versus-proposed target distinction.
 - [ ] Obtain Designer/Web/Android/QA authenticated DEV/runtime acceptance of the published contract.
 - [ ] Close auth/invitation/join/reset-metadata edges and full reset snapshot/FK/financial/owner/reauth/execute, then disposable DEV and Release gates.
+
+## 2026-10-31 — Invitation/reset edge package
+- [x] Integrate family fences into invitation/join/account-link and scoped account manager writes; revalidate public token/code authority after locking.
+- [x] Replace reset count-only freshness with content-v2; order persistent reauth budget before family locking and reject nested same-family fenced invocation.
+- [ ] Confirm all cloud CI jobs and real PostgreSQL scenarios; source completion is not test/deployment acceptance.
+- [ ] Consumer review: recreate old v1 preparations with NEW operation IDs; validate conservative full-family snapshot invalidation.
+- [ ] Complete global-account admin policy audit, owner/financial/FK deletion policy, Google fresh reauth, one-use proof, atomic execute/onboarding and disposable DEV/Release gates. Execution remains disabled.

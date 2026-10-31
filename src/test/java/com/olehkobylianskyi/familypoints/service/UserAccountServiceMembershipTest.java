@@ -28,7 +28,7 @@ class UserAccountServiceMembershipTest {
         when(encoder.encode("test-password")).thenReturn("encoded-password");
         when(accounts.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var service = new UserAccountService(accounts, members, encoder, memberships);
+        var service = new UserAccountService(accounts, members, encoder, memberships, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
         var result = service.createAccount(11L, 22L, "new-account", "test-password");
 
         assertTrue(result.isPresent());
@@ -49,7 +49,7 @@ class UserAccountServiceMembershipTest {
                 .thenReturn(Optional.of(mock(WorkspaceMember.class)));
         when(accounts.existsByUsername("duplicate")).thenReturn(true);
 
-        var service = new UserAccountService(accounts, members, encoder, memberships);
+        var service = new UserAccountService(accounts, members, encoder, memberships, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
         assertThrows(IllegalArgumentException.class,
                 () -> service.createAccount(11L, 22L, "duplicate", "test-password"));
         verifyNoInteractions(memberships);

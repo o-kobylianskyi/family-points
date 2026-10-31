@@ -14,11 +14,13 @@ import java.util.List;
 
 @Service
 public class WorkspaceInvitationService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private static final SecureRandom RANDOM = new SecureRandom();
     private final JdbcTemplate jdbc;
     private final CurrentUserService user;
 
-    public WorkspaceInvitationService(JdbcTemplate jdbc, CurrentUserService user) {
+    public WorkspaceInvitationService(JdbcTemplate jdbc, CurrentUserService user, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.jdbc = jdbc;
         this.user = user;
     }
@@ -43,6 +45,7 @@ public class WorkspaceInvitationService {
 
     @Transactional
     public Invitation issue(Long workspaceId, Long roleId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         requireNonPrivilegedRole(workspaceId, roleId);
         String secret = token();
         OffsetDateTime expires = OffsetDateTime.now().plusDays(7);
@@ -82,6 +85,11 @@ public class WorkspaceInvitationService {
      */
     @Transactional
     public PendingContext begin(String invitationToken) {
+        preview(invitationToken);
+        List<Long> workspaces = jdbc.queryForList(
+                "SELECT workspace_id FROM workspace_invitations WHERE token_hash=?", Long.class, hash(invitationToken));
+        if (workspaces.size()!=1) throw unavailable();
+        epochGuard.lockCurrentEpoch(workspaces.get(0));
         preview(invitationToken);
         String handle = token();
         OffsetDateTime expires = OffsetDateTime.now().plusHours(2);
@@ -139,6 +147,12 @@ public class WorkspaceInvitationService {
                 || memberName == null || memberName.isBlank() || memberName.length() > 100)
             throw unavailable();
 
+        List<Long> workspaces = jdbc.queryForList("""
+                SELECT i.workspace_id FROM pending_invitation_sessions p
+                JOIN workspace_invitations i ON i.id=p.invitation_id WHERE p.handle_hash=?
+                """, Long.class, hash(handle));
+        if (workspaces.size()!=1) throw unavailable();
+        epochGuard.lockCurrentEpoch(workspaces.get(0));
         record Selection(Long sessionId, Long invitationId, Long workspaceId, Long roleId) {}
         List<Selection> selection = jdbc.query("""
                 SELECT p.id, i.id, i.workspace_id, i.member_role_id
@@ -153,6 +167,7 @@ public class WorkspaceInvitationService {
                     rs.getLong(3), rs.getObject(4, Long.class)), hash(handle));
         if (selection.size() != 1) throw unavailable();
         Selection s = selection.get(0);
+        if (!s.workspaceId().equals(workspaces.get(0))) throw unavailable();
         requireNonPrivilegedRole(s.workspaceId(), s.roleId());
         Long accountId = user.getCurrentAccount().getId();
         Integer existing = jdbc.queryForObject("""
@@ -188,6 +203,7 @@ public class WorkspaceInvitationService {
 
     @Transactional
     public void revoke(Long workspaceId, Long invitationId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         int changed = jdbc.update("""
                 UPDATE workspace_invitations SET revoked_at=CURRENT_TIMESTAMP
                 WHERE workspace_id=? AND id=? AND revoked_at IS NULL

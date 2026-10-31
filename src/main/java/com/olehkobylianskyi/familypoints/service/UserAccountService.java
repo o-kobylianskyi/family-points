@@ -15,6 +15,7 @@ import java.util.Optional;
 
 @Service
 public class UserAccountService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
 
     private final UserAccountRepository userAccountRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
@@ -26,7 +27,8 @@ public class UserAccountService {
             WorkspaceMemberRepository workspaceMemberRepository,
             PasswordEncoder passwordEncoder,
             AccountWorkspaceMembershipRepository membershipRepository
-    ) {
+    , com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.userAccountRepository = userAccountRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
         this.passwordEncoder = passwordEncoder;
@@ -45,6 +47,7 @@ public class UserAccountService {
             String username,
             String password
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         Optional<WorkspaceMember> memberOptional =
                 workspaceMemberRepository.findByIdAndWorkspaceId(workspaceMemberId, workspaceId);
 
@@ -73,6 +76,7 @@ public class UserAccountService {
             String username,
             boolean enabled
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         Optional<UserAccount> accountOptional = findAccount(workspaceId, workspaceMemberId);
         if (accountOptional.isEmpty()) return Optional.empty();
 
@@ -88,6 +92,7 @@ public class UserAccountService {
 
     @Transactional
     public boolean resetPassword(Long workspaceId, Long workspaceMemberId, String newPassword) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         Optional<UserAccount> accountOptional = findAccount(workspaceId, workspaceMemberId);
         if (accountOptional.isEmpty()) return false;
         UserAccount account = accountOptional.get();

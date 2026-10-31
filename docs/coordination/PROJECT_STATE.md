@@ -130,3 +130,8 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 - Exact `cda7e8a07a3d20ca6650bea1ed5df31330865973`, all-green Actions 41232509336, Backend 295 PASS (26 actual Spring/JPA/PostgreSQL service scenarios). Seventeen components, 56 transaction-entry fences plus per-family startup processing and selected-membership/global-account integrity repairs.
 - Groups/roles/economy/templates/media/suggestions/member/config paths now have source+CI evidence. Designer #17 existing behavior documented in docs/api/DESIGNER_ECONOMY_MEDIA_V1_CONTRACT.md; consumer/DEV sign-off pending.
 - Remaining auth/join/invitation/reset-finalization and independent QA/Release gates stay OPEN. No migration, reset or deployment.
+
+## 2026-10-31 — Invitation/join and reset freshness package (source; CI pending)
+- Fenced manager invitation/join/email/account writes and explicit member linking; public token/code paths lock discovered family before row locks and revalidate retained authority.
+- Reset prepare/confirm/challenge share content-v2 snapshots and family-before-operation order; REQUIRES_NEW password-attempt budget executes before family fence, with nested fenced invocation rejected.
+- Stored count-v1 preparations must be recreated with new operation IDs. Source DTO shapes unchanged; consumer/QA/Release acceptance pending. Full owner/FK/financial/one-use proof/atomic execute remain OPEN; execute disabled. No live reset, migration or deployment.

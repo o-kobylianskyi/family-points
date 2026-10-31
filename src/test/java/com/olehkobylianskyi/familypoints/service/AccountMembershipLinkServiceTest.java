@@ -10,7 +10,7 @@ import static org.mockito.Mockito.*;
 class AccountMembershipLinkServiceTest {
     private final AccountWorkspaceMembershipRepository links = mock(AccountWorkspaceMembershipRepository.class);
     private final WorkspaceMemberRepository members = mock(WorkspaceMemberRepository.class);
-    private final AccountMembershipLinkService service = new AccountMembershipLinkService(links, members);
+    private final AccountMembershipLinkService service = new AccountMembershipLinkService(links, members, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
 
     private UserAccount account() {
         UserAccount account = mock(UserAccount.class);

@@ -8,28 +8,28 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 /**
  * BKL-002: prepare and persist an auditable reset proposal ONLY.
- * This controller deliberately exposes no confirmation or delete operation.
+ * Confirmation records acknowledgement only; no delete operation is enabled.
  */
 @RestController
 @RequestMapping("/workspaces/{workspaceId}/data-reset")
 @PreAuthorize("@workspaceSecurity.canManageWorkspace(#workspaceId)")
 public class WorkspaceDataResetPrepareController {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceResetSnapshotService snapshots;
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private final JdbcTemplate db;
     private final CurrentUserService current;
     private final WorkspaceDataResetPreviewController preview;
 
     public WorkspaceDataResetPrepareController(JdbcTemplate db, CurrentUserService current,
-                                                WorkspaceDataResetPreviewController preview) {
+                                                WorkspaceDataResetPreviewController preview, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard, com.olehkobylianskyi.familypoints.service.WorkspaceResetSnapshotService snapshots) {
+        this.epochGuard = epochGuard;
+        this.snapshots = snapshots;
         this.db=db; this.current=current; this.preview=preview;
     }
 
@@ -44,17 +44,12 @@ public class WorkspaceDataResetPrepareController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Operation ID and categories required");
         if (!current.belongsToWorkspace(workspaceId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Wrong workspace");
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         long memberId=current.getCurrentMemberId();
         var plan=preview.plan(workspaceId,
                 new WorkspaceDataResetPreviewController.ResetPlanRequest(request.categories()));
         var selected=plan.selectedCategories().stream().sorted().toList();
-        var inventory=preview.preview(workspaceId);
-        StringBuilder fingerprint=new StringBuilder("reset-v1|").append(workspaceId).append('|');
-        for (String key:selected) {
-            var category=inventory.categories().get(key);
-            fingerprint.append(key).append('=').append(category.recordCount()).append(';');
-        }
-        String digest=sha256(fingerprint.toString());
+        String digest=snapshots.digest(workspaceId,selected);
         // Chosen category names are from the server-side enum allowlist.
         String json=selected.stream().map(key -> "\"" + key + "\"")
                 .collect(java.util.stream.Collectors.joining(",", "[", "]"));
@@ -92,10 +87,11 @@ public class WorkspaceDataResetPrepareController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Explicit reset phrase and digest required");
         if (!current.belongsToWorkspace(workspaceId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Wrong workspace");
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         long memberId = current.getCurrentMemberId();
         // Lock the exact workspace operation; another member cannot confirm it.
         var records = db.queryForList("""
-                SELECT requested_by_member_id, snapshot_digest, status
+                SELECT requested_by_member_id, snapshot_digest, status, selected_categories_json
                 FROM workspace_reset_operations
                 WHERE workspace_id=? AND operation_id=?::uuid FOR UPDATE
                 """, workspaceId, request.operationId().toString());
@@ -106,6 +102,7 @@ public class WorkspaceDataResetPrepareController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only initiator can confirm");
         if (!request.snapshotDigest().equals(stored.get("snapshot_digest")))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Reset preview changed");
+        snapshots.requireStoredSnapshot(workspaceId, (String)stored.get("selected_categories_json"), request.snapshotDigest());
         String status = (String)stored.get("status");
         if ("CONFIRMED".equals(status))
             return new ConfirmedReset(request.operationId(), "CONFIRMED", false);
@@ -118,12 +115,4 @@ public class WorkspaceDataResetPrepareController {
         return new ConfirmedReset(request.operationId(), "CONFIRMED", false);
     }
 
-    private static String sha256(String text) {
-        try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
-                    .digest(text.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
-        }
-    }
 }

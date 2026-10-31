@@ -66,6 +66,12 @@ class PointMutationTransactionPostgresTest {
             WorkspaceRoleService.class, RoleCatalogBootstrapService.class, LegacyGroupRoleBridgeService.class,
             DomainFoundationMigrationService.class, FamilyWorkspaceProvisioningService.class,
             TemplateCatalogService.class, TemplateEconomySuggestionsService.class,
+            WorkspaceResetSnapshotService.class, ResetChallengeAttemptLimiter.class,
+            WorkspaceInvitationService.class, WorkspaceJoinService.class, AccountMembershipLinkService.class,
+            UserAccountService.class,
+            com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPreviewController.class,
+            com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPrepareController.class,
+            com.olehkobylianskyi.familypoints.controller.WorkspaceResetChallengeController.class,
             com.olehkobylianskyi.familypoints.controller.TaskSuggestionController.class,
             com.olehkobylianskyi.familypoints.controller.EconomyController.class,
             com.olehkobylianskyi.familypoints.controller.WorkspaceTemplateController.class})
@@ -76,6 +82,9 @@ class PointMutationTransactionPostgresTest {
         }
         @Bean com.olehkobylianskyi.familypoints.controller.RewardController templateRewardController() {
             return org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.controller.RewardController.class);
+        }
+        @Bean org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
+            return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(4);
         }
         @Bean java.time.Clock clock() { return java.time.Clock.systemUTC(); }
         @Bean com.olehkobylianskyi.familypoints.security.CurrentUserService currentUser() {
@@ -757,6 +766,238 @@ class PointMutationTransactionPostgresTest {
         assertEquals(1L, sql.queryForObject("SELECT count(*) FROM account_workspace_memberships WHERE account_id=? AND workspace_id=?",
                 Long.class, ids[1], other.workspace()));
         assertEquals(true, sql.queryForObject("SELECT active FROM family_members WHERE id=?", Boolean.class, first.member()));
+    }
+
+
+    private com.olehkobylianskyi.familypoints.entity.UserAccount resetActor(Fixture fixture) {
+        var account = tx.execute(status -> {
+            var member = context.getBean(WorkspaceMemberRepository.class).findById(fixture.member()).orElseThrow();
+            var saved = context.getBean(UserAccountRepository.class).saveAndFlush(
+                    new com.olehkobylianskyi.familypoints.entity.UserAccount("reset-"+UUID.randomUUID(),
+                            context.getBean(org.springframework.security.crypto.password.PasswordEncoder.class).encode("test-password"), member));
+            context.getBean(AccountWorkspaceMembershipRepository.class).saveAndFlush(
+                    new com.olehkobylianskyi.familypoints.entity.AccountWorkspaceMembership(saved, member));
+            return saved;
+        });
+        var current = context.getBean(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(current.getCurrentAccount()).thenReturn(account);
+        org.mockito.Mockito.when(current.getCurrentMemberId()).thenReturn(fixture.member());
+        org.mockito.Mockito.when(current.belongsToWorkspace(fixture.workspace())).thenReturn(true);
+        return account;
+    }
+
+    private String snapshot(Fixture fixture) {
+        return tx.execute(status -> context.getBean(WorkspaceResetSnapshotService.class)
+                .digest(fixture.workspace(), java.util.List.of("TASK_DEFINITIONS")));
+    }
+
+    private com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPrepareController.PreparedReset prepareReset(Fixture fixture) {
+        return withEpoch(0L, () -> context.getBean(com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPrepareController.class)
+                .prepare(fixture.workspace(), new com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPrepareController.PrepareRequest(
+                        UUID.randomUUID(), java.util.Set.of("TASK_DEFINITIONS"))));
+    }
+
+    private void confirmReset(Fixture fixture, com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPrepareController.PreparedReset prepared) {
+        withEpoch(0L, () -> context.getBean(com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPrepareController.class)
+                .confirm(fixture.workspace(), new com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPrepareController.ConfirmRequest(
+                        prepared.operationId(), prepared.snapshotDigest(), "RESET "+fixture.workspace())));
+    }
+
+    private com.olehkobylianskyi.familypoints.controller.WorkspaceResetChallengeController.ChallengeIssued challengeReset(
+            Fixture fixture, com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPrepareController.PreparedReset prepared, String password) {
+        return withEpoch(0L, () -> context.getBean(com.olehkobylianskyi.familypoints.controller.WorkspaceResetChallengeController.class)
+                .challenge(fixture.workspace(), new com.olehkobylianskyi.familypoints.controller.WorkspaceResetChallengeController.ChallengeRequest(
+                        prepared.operationId(), prepared.snapshotDigest(), password)));
+    }
+
+    @Test void contentSnapshotIsDeterministicAndDetectsSameCountEdit() {
+        var fixture = fixture();
+        var definition = task(fixture);
+        String first = snapshot(fixture);
+        assertEquals(first, snapshot(fixture));
+        sql.update("UPDATE task_definitions SET title='Edited without new rows' WHERE id=?", definition.getId());
+        assertNotEquals(first, snapshot(fixture));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM task_definitions WHERE family_id=?", Long.class, fixture.workspace()));
+    }
+
+    @Test void contentSnapshotDetectsIndirectRolePermissionAndPrivateTemplateEdits() {
+        var fixture = fixture();
+        long role = sql.queryForObject("SELECT family_role_id FROM family_members WHERE id=?", Long.class, fixture.member());
+        String initial = snapshot(fixture);
+        sql.update("INSERT INTO family_role_permissions(role_id,permission) VALUES (?,'VIEW_TASKS')", role);
+        assertNotEquals(initial, snapshot(fixture));
+        long template = sql.queryForObject("""
+                INSERT INTO workspace_private_templates(workspace_id,kind,title,definition_json)
+                VALUES (?,'TASK','Snapshot fixture','{}') RETURNING id
+                """, Long.class, fixture.workspace());
+        String before = snapshot(fixture);
+        sql.update("UPDATE workspace_private_templates SET definition_json='{}',title='Edited template' WHERE id=?", template);
+        assertNotEquals(before, snapshot(fixture));
+    }
+
+    @Test void contentSnapshotIgnoresOtherFamilyChangesAndGlobalPasswordButDetectsEpoch() {
+        var fixture = fixture();
+        var other = fixture();
+        var account = resetActor(fixture);
+        String initial = snapshot(fixture);
+        task(other);
+        sql.update("UPDATE families SET name='Unrelated edit' WHERE id=?", other.workspace());
+        sql.update("UPDATE user_accounts SET password_hash='protected-global-change' WHERE id=?", account.getId());
+        assertEquals(initial, snapshot(fixture));
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        assertNotEquals(initial, snapshot(fixture));
+    }
+
+    @Test void sameCountEditAfterPrepareRejectsConfirmationAndPreservesAuditState() {
+        var fixture = fixture(); resetActor(fixture);
+        var definition = task(fixture);
+        var prepared = prepareReset(fixture);
+        sql.update("UPDATE task_definitions SET title='Changed after prepare' WHERE id=?", definition.getId());
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> confirmReset(fixture,prepared)).getStatusCode().value());
+        assertEquals("PREPARED", sql.queryForObject("SELECT status FROM workspace_reset_operations WHERE workspace_id=?", String.class, fixture.workspace()));
+        assertEquals(0L, sql.queryForObject("SELECT data_epoch FROM families WHERE id=?", Long.class, fixture.workspace()));
+    }
+
+    @Test void unchangedResetProtocolRemainsStableAndChallengeCannotExecute() {
+        var fixture = fixture(); resetActor(fixture); task(fixture);
+        String original = snapshot(fixture);
+        var prepared = prepareReset(fixture);
+        assertEquals(original, prepared.snapshotDigest());
+        confirmReset(fixture, prepared);
+        confirmReset(fixture, prepared);
+        var challenge = challengeReset(fixture, prepared, "test-password");
+        assertFalse(challenge.executionEnabled());
+        assertEquals(original, snapshot(fixture));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM workspace_reset_challenges WHERE workspace_id=?", Long.class, fixture.workspace()));
+        assertEquals(423, assertThrows(ResponseStatusException.class, () -> context.getBean(
+                com.olehkobylianskyi.familypoints.controller.WorkspaceResetChallengeController.class)
+                .execute(fixture.workspace())).getStatusCode().value());
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM task_definitions WHERE family_id=?", Long.class, fixture.workspace()));
+    }
+
+    @Test void editAfterConfirmationRejectsChallengeWithoutIssuingProof() {
+        var fixture = fixture(); resetActor(fixture);
+        var definition = task(fixture);
+        var prepared = prepareReset(fixture); confirmReset(fixture, prepared);
+        sql.update("UPDATE task_definitions SET title='Changed after confirm' WHERE id=?", definition.getId());
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> challengeReset(fixture,prepared,"test-password")).getStatusCode().value());
+        assertEquals(0L, sql.queryForObject("SELECT count(*) FROM workspace_reset_challenges WHERE workspace_id=?", Long.class, fixture.workspace()));
+        assertEquals(1L, sql.queryForObject("SELECT failed_attempts FROM workspace_reset_reauth_limits WHERE workspace_id=?", Long.class, fixture.workspace()));
+    }
+
+    @Test void failedPasswordBudgetCommitsDespiteChallengeRollbackAndLimitsRepeatedTries() {
+        var fixture = fixture(); resetActor(fixture);
+        var prepared = prepareReset(fixture); confirmReset(fixture, prepared);
+        for (int attempt=0;attempt<5;attempt++)
+            assertEquals(403, assertThrows(ResponseStatusException.class, () -> challengeReset(fixture,prepared,"wrong")).getStatusCode().value());
+        assertEquals(429, assertThrows(ResponseStatusException.class, () -> challengeReset(fixture,prepared,"test-password")).getStatusCode().value());
+        assertEquals(6L, sql.queryForObject("SELECT failed_attempts FROM workspace_reset_reauth_limits WHERE workspace_id=?", Long.class, fixture.workspace()));
+        assertEquals(0L, sql.queryForObject("SELECT count(*) FROM workspace_reset_challenges WHERE workspace_id=?", Long.class, fixture.workspace()));
+    }
+
+    @Test void nestedAlreadyFencedChallengeFailsBeforeIndependentLimiterTransaction() {
+        var fixture = fixture(); resetActor(fixture);
+        var prepared = prepareReset(fixture); confirmReset(fixture, prepared);
+        var failure = assertThrows(ResponseStatusException.class, () -> tx.executeWithoutResult(status -> {
+            context.getBean(WorkspaceEpochTransactionGuard.class).lockCurrentEpoch(fixture.workspace());
+            challengeReset(fixture, prepared, "test-password");
+        }));
+        assertEquals(409, failure.getStatusCode().value());
+        assertTrue(failure.getReason().contains("NEW_TRANSACTION_REQUIRED"));
+        assertEquals(0L, sql.queryForObject("SELECT count(*) FROM workspace_reset_reauth_limits WHERE workspace_id=?", Long.class, fixture.workspace()));
+    }
+
+    @Test void staleInvitationAndJoinManagerWritesFailBeforeMutation() {
+        var fixture = fixture(); resetActor(fixture);
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var invitations = context.getBean(WorkspaceInvitationService.class);
+        var joins = context.getBean(WorkspaceJoinService.class);
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L, () -> invitations.issue(fixture.workspace(),1L))).getStatusCode().value());
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L, () -> { invitations.revoke(fixture.workspace(),1L); return null; })).getStatusCode().value());
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L, () -> joins.rotateJoinCode(fixture.workspace()))).getStatusCode().value());
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L, () -> { joins.approveRequest(fixture.workspace(),1L,1L,"Fixture"); return null; })).getStatusCode().value());
+        assertEquals(0L, sql.queryForObject("SELECT count(*) FROM workspace_invitations WHERE workspace_id=?", Long.class, fixture.workspace()));
+        assertEquals(0L, sql.queryForObject("SELECT count(*) FROM workspace_join_codes WHERE workspace_id=?", Long.class, fixture.workspace()));
+    }
+
+    @Test void publicInvitationRevalidatesRevocationAfterWaitingForFamilyFence() throws Exception {
+        var fixture = fixture(); var account=resetActor(fixture);
+        long role=sql.queryForObject("SELECT family_role_id FROM family_members WHERE id=?",Long.class,fixture.member());
+        // Account is only issuer; accepting a revoked token must fail before duplicate-membership logic.
+        var invitations=context.getBean(WorkspaceInvitationService.class);
+        var invitation=withEpoch(0L,()->invitations.issue(fixture.workspace(),role));
+        var pending=invitations.begin(invitation.token());
+        var locked=new CountDownLatch(1); var release=new CountDownLatch(1);
+        var pid=new CompletableFuture<Integer>(); var pool=Executors.newFixedThreadPool(2);
+        try {
+            var holder=pool.submit(()->tx.executeWithoutResult(status->{
+                pid.complete(sql.queryForObject("SELECT pg_backend_pid()",Integer.class));
+                context.getBean(WorkspaceEpochTransactionGuard.class).lockCurrentEpoch(fixture.workspace());
+                locked.countDown(); await(release);
+                sql.update("UPDATE workspace_invitations SET revoked_at=now() WHERE workspace_id=?",fixture.workspace());
+                sql.update("UPDATE families SET data_epoch=1 WHERE id=?",fixture.workspace());
+            }));
+            assertTrue(locked.await(15,TimeUnit.SECONDS));
+            var accepter=pool.submit(()->invitations.accept(pending.handle(),"New fixture"));
+            awaitDatabaseWait(pid.get(5,TimeUnit.SECONDS));
+            // If acceptance held the invitation row first this UPDATE would deadlock.
+            release.countDown(); holder.get(15,TimeUnit.SECONDS);
+            var failed=assertThrows(ExecutionException.class,()->accepter.get(15,TimeUnit.SECONDS));
+            assertEquals(404,assertInstanceOf(ResponseStatusException.class,failed.getCause()).getStatusCode().value());
+            assertEquals(0L,sql.queryForObject("SELECT count(*) FROM workspace_invitation_redemptions WHERE account_id=?",Long.class,account.getId()));
+        } finally { release.countDown(); pool.shutdownNow(); assertTrue(pool.awaitTermination(20,TimeUnit.SECONDS)); }
+    }
+
+    @Test void publicJoinCodeRechecksRotationAfterFamilyFenceWithoutGrantingMembership() throws Exception {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var joins=context.getBean(WorkspaceJoinService.class);
+        String code=withEpoch(0L,()->joins.rotateJoinCode(fixture.workspace()));
+        var locked=new CountDownLatch(1); var release=new CountDownLatch(1);
+        var pid=new CompletableFuture<Integer>(); var pool=Executors.newFixedThreadPool(2);
+        try {
+            var holder=pool.submit(()->tx.executeWithoutResult(status->{
+                pid.complete(sql.queryForObject("SELECT pg_backend_pid()",Integer.class));
+                context.getBean(WorkspaceEpochTransactionGuard.class).lockCurrentEpoch(fixture.workspace());
+                locked.countDown(); await(release);
+                sql.update("UPDATE workspace_join_codes SET code_hash=? WHERE workspace_id=?","f".repeat(64),fixture.workspace());
+                sql.update("UPDATE families SET data_epoch=1 WHERE id=?",fixture.workspace());
+            }));
+            assertTrue(locked.await(15,TimeUnit.SECONDS));
+            var applicant=pool.submit(()->joins.requestJoin(code));
+            awaitDatabaseWait(pid.get(5,TimeUnit.SECONDS));
+            release.countDown(); holder.get(15,TimeUnit.SECONDS);
+            var failed=assertThrows(ExecutionException.class,()->applicant.get(15,TimeUnit.SECONDS));
+            assertEquals(400,assertInstanceOf(ResponseStatusException.class,failed.getCause()).getStatusCode().value());
+            assertEquals(0L,sql.queryForObject("SELECT count(*) FROM workspace_join_requests WHERE workspace_id=?",Long.class,fixture.workspace()));
+            assertEquals(1L,sql.queryForObject("SELECT count(*) FROM account_workspace_memberships WHERE account_id=?",Long.class,account.getId()));
+        } finally { release.countDown(); pool.shutdownNow(); assertTrue(pool.awaitTermination(20,TimeUnit.SECONDS)); }
+    }
+
+
+    @Test void publicInvitationAtNonzeroEpochUsesRetainedTokenAndKeepsOtherFamilyMembership() {
+        var target=fixture(); resetActor(target);
+        long role=sql.queryForObject("SELECT family_role_id FROM family_members WHERE id=?",Long.class,target.member());
+        var invitations=context.getBean(WorkspaceInvitationService.class);
+        var invitation=withEpoch(0L,()->invitations.issue(target.workspace(),role));
+        var other=fixture(); var joiner=resetActor(other);
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?",target.workspace());
+        var pending=withEpoch(99L,()->invitations.begin(invitation.token()));
+        assertEquals(target.workspace(),withEpoch(99L,()->invitations.accept(pending.handle(),"Invited fixture")));
+        assertEquals(2L,sql.queryForObject("SELECT count(*) FROM account_workspace_memberships WHERE account_id=?",Long.class,joiner.getId()));
+        assertEquals(1L,sql.queryForObject("SELECT use_count FROM workspace_invitations WHERE workspace_id=?",Long.class,target.workspace()));
+        assertEquals(true,sql.queryForObject("SELECT enabled FROM user_accounts WHERE id=?",Boolean.class,joiner.getId()));
+        assertEquals(404,assertThrows(ResponseStatusException.class,()->invitations.accept(pending.handle(),"Repeat")).getStatusCode().value());
+    }
+
+    @Test void explicitMemberLinkAtNonzeroEpochRejectsStaleThenLinksOnlyTargetMember() {
+        var target=fixture(); var other=fixture(); var account=resetActor(other);
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?",target.workspace());
+        var links=context.getBean(AccountMembershipLinkService.class);
+        assertEquals(409,assertThrows(ResponseStatusException.class,()->withEpoch(0L,
+                ()->links.linkExistingAccount(account,target.workspace(),target.member()))).getStatusCode().value());
+        withEpoch(1L,()->links.linkExistingAccount(account,target.workspace(),target.member()));
+        assertEquals(2L,sql.queryForObject("SELECT count(*) FROM account_workspace_memberships WHERE account_id=?",Long.class,account.getId()));
+        assertEquals(0L,sql.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,other.workspace()));
     }
 
     private static void await(CountDownLatch latch) {

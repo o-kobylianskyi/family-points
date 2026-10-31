@@ -28,6 +28,8 @@ import java.util.UUID;
 @RequestMapping("/workspaces/{workspaceId}/data-reset")
 @PreAuthorize("@workspaceSecurity.canManageWorkspace(#workspaceId)")
 public class WorkspaceResetChallengeController {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceResetSnapshotService snapshots;
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private final CurrentUserService current;
     private final JdbcTemplate db;
     private final PasswordEncoder passwordEncoder;
@@ -37,7 +39,9 @@ public class WorkspaceResetChallengeController {
 
     public WorkspaceResetChallengeController(CurrentUserService current, JdbcTemplate db,
                                               PasswordEncoder passwordEncoder, ResetChallengeAttemptLimiter limiter,
-                                              WorkspaceDataResetPreviewController preview) {
+                                              WorkspaceDataResetPreviewController preview, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard, com.olehkobylianskyi.familypoints.service.WorkspaceResetSnapshotService snapshots) {
+        this.epochGuard = epochGuard;
+        this.snapshots = snapshots;
         this.current=current;
         this.db=db;
         this.passwordEncoder=passwordEncoder;
@@ -59,9 +63,11 @@ public class WorkspaceResetChallengeController {
                 request.password() == null || request.password().isBlank())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid challenge request");
 
+        epochGuard.requireUnfencedReauthTransaction(workspaceId);
         var account=current.getCurrentAccount();
         if (limiter.checkAndRecord(workspaceId, account.getId())>5)
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,"RESET_REAUTH_RATE_LIMIT");
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         // Google-only accounts without a local password require a separate fresh OAuth reauth.
         if (account.getPasswordHash() == null ||
                 !account.getPasswordHash().startsWith("$2") ||
@@ -82,8 +88,8 @@ public class WorkspaceResetChallengeController {
                 !request.snapshotDigest().equals(operation.get("snapshot_digest")))
             throw new ResponseStatusException(HttpStatus.CONFLICT,"Reset operation is not confirmed/current");
 
-        // Recompute the original preview fingerprint against the current scoped
-        // inventory. Equal row counts are not a full MVCC snapshot; execute stays locked.
+        // Recompute the current scoped content fingerprint under the family lock.
+        // Snapshot freshness alone is not execution authorization; execute stays locked.
         String selectedJson=(String)operation.get("selected_categories_json");
         if (selectedJson==null || !selectedJson.matches("\\[(?:\"[A-Z_]+\"(?:,\"[A-Z_]+\")*)?\\]"))
             throw new ResponseStatusException(HttpStatus.CONFLICT,"Reset category snapshot invalid");
@@ -93,15 +99,11 @@ public class WorkspaceResetChallengeController {
         if (!keys.equals(keys.stream().sorted().distinct().toList()))
             throw new ResponseStatusException(HttpStatus.CONFLICT,"Reset category snapshot invalid");
         var latest=preview.preview(workspaceId);
-        var fingerprint=new StringBuilder("reset-v1|").append(workspaceId).append('|');
         for (var key:keys) {
-            var category=latest.categories().get(key);
-            if (category==null)
+            if (!latest.categories().containsKey(key))
                 throw new ResponseStatusException(HttpStatus.CONFLICT,"Reset category snapshot invalid");
-            fingerprint.append(key).append('=').append(category.recordCount()).append(';');
         }
-        if (!sha256(fingerprint.toString().getBytes(StandardCharsets.UTF_8))
-                .equals(request.snapshotDigest()))
+        if (!snapshots.digest(workspaceId,keys).equals(request.snapshotDigest()))
             throw new ResponseStatusException(HttpStatus.CONFLICT,"RESET_SNAPSHOT_STALE");
 
         // A random verifier is stored only as a digest; no secret is disclosed

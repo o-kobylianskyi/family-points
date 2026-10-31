@@ -30,6 +30,7 @@ import java.util.UUID;
 /** One-use email invitations bind a NEW login to a pre-existing member (never create a member). */
 @Service
 public class MemberEmailInvitationService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private static final SecureRandom RANDOM = new SecureRandom();
     private final JdbcTemplate db;
     private final GoogleTokenVerifier google;
@@ -49,7 +50,8 @@ public class MemberEmailInvitationService {
             GoogleTokenVerifier google,
             @Value("${familypoints.mail.from:}") String from,
             @Value("${familypoints.web-url:http://localhost:5173}") String webUrl,
-            @Value("${familypoints.member-email-invitations.enabled:false}") boolean enabled) {
+            @Value("${familypoints.member-email-invitations.enabled:false}") boolean enabled, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.db = db;
         this.google = google;
         this.members = members;
@@ -102,6 +104,7 @@ public class MemberEmailInvitationService {
 
     @Transactional
     public void issue(Long workspaceId, Long memberId, String email) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         requireEnabled();
         requireMailConfig();
         if (email == null || email.isBlank() || email.length() > 254)
@@ -246,6 +249,9 @@ public class MemberEmailInvitationService {
     private Invite requireInvite(String secret) {
         if (secret == null || !secret.matches("[A-Za-z0-9_-]{43}"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "INVALID_INVITATION_TOKEN");
+        List<Long> workspaces = db.queryForList(
+                "SELECT workspace_id FROM member_email_invitations WHERE token_hash=?", Long.class, hash(secret));
+        if (workspaces.size()==1) epochGuard.lockCurrentEpoch(workspaces.get(0));
         List<Invite> found = db.query("""
             SELECT id, workspace_id, member_id, invited_email FROM member_email_invitations
             WHERE token_hash=? AND consumed_at IS NULL AND revoked_at IS NULL
@@ -262,6 +268,8 @@ public class MemberEmailInvitationService {
             throw new ResponseStatusException(HttpStatus.GONE,
                     states.isEmpty() ? "INVITATION_UNKNOWN" : states.get(0));
         }
+        if (workspaces.size()!=1 || !found.get(0).workspaceId().equals(workspaces.get(0)))
+            throw new ResponseStatusException(HttpStatus.GONE, "INVITATION_UNAVAILABLE");
         return found.get(0);
     }
 

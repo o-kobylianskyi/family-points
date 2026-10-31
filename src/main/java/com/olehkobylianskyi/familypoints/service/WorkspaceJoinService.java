@@ -18,11 +18,13 @@ import java.util.Map;
 /** DEV foundation; endpoints use authenticated identities and opaque workspace join codes. */
 @Service
 public class WorkspaceJoinService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private static final SecureRandom RANDOM = new SecureRandom();
     private final JdbcTemplate jdbc;
     private final CurrentUserService currentUser;
 
-    public WorkspaceJoinService(JdbcTemplate jdbc, CurrentUserService currentUser) {
+    public WorkspaceJoinService(JdbcTemplate jdbc, CurrentUserService currentUser, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.jdbc = jdbc;
         this.currentUser = currentUser;
     }
@@ -45,6 +47,7 @@ public class WorkspaceJoinService {
     /** Code is returned once: only its hash is retained. Rotation invalidates the old code. */
     @Transactional
     public String rotateJoinCode(Long workspaceId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         String code = newCode();
         jdbc.update("""
                 INSERT INTO workspace_join_codes (workspace_id, code_hash, enabled)
@@ -57,6 +60,7 @@ public class WorkspaceJoinService {
 
     @Transactional
     public void disableJoinCode(Long workspaceId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         jdbc.update("UPDATE workspace_join_codes SET enabled = false WHERE workspace_id = ?", workspaceId);
     }
 
@@ -78,6 +82,15 @@ public class WorkspaceJoinService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or disabled join code");
         }
         Long workspaceId = ids.get(0);
+        // A join-code holder has no workspace epoch yet. Fence current state,
+        // then revalidate the retained code before creating a reviewed request.
+        epochGuard.lockCurrentEpoch(workspaceId);
+        List<Long> currentIds = jdbc.queryForList("""
+                SELECT workspace_id FROM workspace_join_codes
+                WHERE code_hash = ? AND enabled = true
+                """, Long.class, digest(code.toLowerCase()));
+        if (!currentIds.equals(ids))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or disabled join code");
         Integer exists = jdbc.queryForObject("""
                 SELECT count(*) FROM account_workspace_memberships
                 WHERE account_id = ? AND workspace_id = ?
@@ -111,6 +124,7 @@ public class WorkspaceJoinService {
      */
     @Transactional
     public void approveRequest(Long workspaceId, Long requestId, Long roleId, String memberName) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         if (workspaceId == null || requestId == null || roleId == null
                 || memberName == null || memberName.isBlank() || memberName.length() > 100) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid membership details");
@@ -168,6 +182,7 @@ public class WorkspaceJoinService {
      */
     @Transactional
     public void rejectRequest(Long workspaceId, Long requestId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         int changed = jdbc.update("""
                 UPDATE workspace_join_requests
                 SET status = 'REJECTED', reviewed_at = CURRENT_TIMESTAMP, reviewed_by_account_id = ?

@@ -19,6 +19,14 @@ public class WorkspaceEpochTransactionGuard {
 
     public WorkspaceEpochTransactionGuard(JdbcTemplate db) { this.db = db; }
 
+    /** Persistent REQUIRES_NEW reauth throttling must run before this family's lock. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void requireUnfencedReauthTransaction(long workspaceId) {
+        var epochs = validatedEpochs();
+        if (epochs != null && epochs.containsKey(workspaceId))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "RESET_REAUTH_NEW_TRANSACTION_REQUIRED");
+    }
+
     /** Missing HTTP context never invents a current client epoch. */
     @Transactional(propagation = Propagation.MANDATORY)
     public long requireCurrentRequestEpoch(long workspaceId) {

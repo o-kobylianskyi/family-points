@@ -19,12 +19,17 @@ import static org.mockito.Mockito.*;
 
 class WorkspaceResetChallengeControllerTest {
     private final CurrentUserService current=mock(CurrentUserService.class);
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceResetSnapshotService snapshots = mock(com.olehkobylianskyi.familypoints.service.WorkspaceResetSnapshotService.class);
+    @org.junit.jupiter.api.BeforeEach void snapshotStub() {
+        when(snapshots.digest(anyLong(), anyCollection())).thenReturn("a".repeat(64));
+    }
     private final JdbcTemplate db=mock(JdbcTemplate.class);
     private final PasswordEncoder encoder=mock(PasswordEncoder.class);
     private final ResetChallengeAttemptLimiter limiter=mock(ResetChallengeAttemptLimiter.class);
     private final WorkspaceDataResetPreviewController preview=mock(WorkspaceDataResetPreviewController.class);
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard guard = mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class);
     private final WorkspaceResetChallengeController controller=
-            new WorkspaceResetChallengeController(current,db,encoder,limiter,preview);
+            new WorkspaceResetChallengeController(current,db,encoder,limiter,preview, guard, snapshots);
 
     @Test void executeRemainsLockedAndForeignWorkspaceForbidden() {
         when(current.belongsToWorkspace(7L)).thenReturn(true);
@@ -88,5 +93,28 @@ class WorkspaceResetChallengeControllerTest {
         verify(db,never()).update(contains("INSERT INTO workspace_reset_challenges"),any(Object[].class));
         assertEquals(HttpStatus.LOCKED,
                 assertThrows(ResponseStatusException.class,()->controller.execute(7L)).getStatusCode());
+    }
+
+    @Test void persistentBudgetPrecedesFamilyFenceAndPasswordVerification() {
+        when(current.belongsToWorkspace(7L)).thenReturn(true);
+        var account=mock(UserAccount.class);
+        when(account.getId()).thenReturn(23L); when(account.getPasswordHash()).thenReturn("$2a$hash");
+        when(current.getCurrentAccount()).thenReturn(account);
+        var request=new WorkspaceResetChallengeController.ChallengeRequest(UUID.randomUUID(),"a".repeat(64),"pw");
+        assertThrows(ResponseStatusException.class,()->controller.challenge(7L,request));
+        var order=inOrder(guard,limiter,encoder);
+        order.verify(guard).requireUnfencedReauthTransaction(7L);
+        order.verify(limiter).checkAndRecord(7L,23L);
+        order.verify(guard).requireCurrentRequestEpoch(7L);
+        order.verify(encoder).matches("pw","$2a$hash");
+        verifyNoInteractions(db);
+    }
+
+    @Test void nestedFenceRejectionDoesNotStartIndependentBudgetTransaction() {
+        when(current.belongsToWorkspace(7L)).thenReturn(true);
+        doThrow(new ResponseStatusException(HttpStatus.CONFLICT,"nested")).when(guard).requireUnfencedReauthTransaction(7L);
+        var request=new WorkspaceResetChallengeController.ChallengeRequest(UUID.randomUUID(),"a".repeat(64),"pw");
+        assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,()->controller.challenge(7L,request)).getStatusCode());
+        verifyNoInteractions(limiter,encoder,db);
     }
 }
