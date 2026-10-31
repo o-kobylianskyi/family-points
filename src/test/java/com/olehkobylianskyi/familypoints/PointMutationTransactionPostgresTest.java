@@ -824,7 +824,7 @@ class PointMutationTransactionPostgresTest {
         var fixture = fixture();
         long role = sql.queryForObject("SELECT family_role_id FROM family_members WHERE id=?", Long.class, fixture.member());
         String initial = snapshot(fixture);
-        sql.update("INSERT INTO family_role_permissions(role_id,permission) VALUES (?,'VIEW_TASKS')", role);
+        sql.update("INSERT INTO family_role_permissions(role_id,permission) VALUES (?,'MANAGE_MEMBERS')", role);
         assertNotEquals(initial, snapshot(fixture));
         long template = sql.queryForObject("""
                 INSERT INTO workspace_private_templates(workspace_id,kind,title,definition_json)
