@@ -1,6 +1,7 @@
 import { apiRequest } from './client'
 
 async function read(response) {
+  response = await response
   if (!response.ok) {
     const error = new Error('RESET_API_ERROR')
     error.status = response.status
