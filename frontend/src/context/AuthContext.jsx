@@ -51,6 +51,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [needsWorkspace, setNeedsWorkspace] = useState(false)
   const [sessionError, setSessionError] = useState('')
+  const [epochChanged, setEpochChanged] = useState(false)
   const refreshInFlight = useRef(false)
   const lastActivityWrite = useRef(0)
 
@@ -61,6 +62,14 @@ export function AuthProvider({ children }) {
     setNeedsWorkspace(false)
     setSessionError('')
   }
+
+  useEffect(() => {
+    const changed = event => {
+      if (String(event.detail?.workspaceId) === String(currentUser?.workspaceId)) setEpochChanged(true)
+    }
+    window.addEventListener('workspace:data-epoch-changed', changed)
+    return () => window.removeEventListener('workspace:data-epoch-changed', changed)
+  }, [currentUser?.workspaceId])
 
   const markActivity = () => {
     if (!localStorage.getItem('accessToken')) return
@@ -364,7 +373,7 @@ export function AuthProvider({ children }) {
         createAdditionalFamily,
       }}
     >
-      {children}
+      {epochChanged ? <div role="alert" style={{padding:24,margin:'12vh auto',maxWidth:600}}><h2>Family data changed / Дані сім’ї змінилися</h2><p>Writes are blocked. Reload to fetch current data. / Зміни заблоковані. Перезавантажте сторінку.</p><button type="button" onClick={() => window.location.reload()}>Reload / Перезавантажити</button></div> : children}
     </AuthContext.Provider>
   )
 }
