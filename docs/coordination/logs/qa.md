@@ -376,3 +376,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — dataEpoch real HTTP tenant tests 2/2 PASS
 - User local `npx playwright test tests/epoch-access.spec.js`: 2 passed (4.7s). Test and Test2 each read own authenticated `dataEpoch` successfully (workspace IDs 14 and 11 respectively), validation of nonnegative safe integer passed; cross-family GET `data-epoch` returned HTTP 401 for both directions.
 - This proves scoped epoch reading for the two QA identities, not stale-write fencing or atomic reset concurrency. Next stage: non-mutating UI synthetic stale-generation checks; any true stale-write mutation test needs disposable fixtures and deliberate approval.
+
+
+## 2026-10-31 — Stale dataEpoch client write-block test staged
+- Added Playwright synthetic cross-tab epoch test to `qa/e2e/tests/epoch.spec.js` (commit a01ed97). After authenticated login and current workspace observation, a second tab receives an epoch notice. The test invokes browser-side `apiRequest` with a POST plan payload but requires rejection `WORKSPACE_DATA_EPOCH_CHANGED` before any HTTP POST is sent.
+- No backend mutation or reset occurs; test **not yet run locally**. This checks Web fencing, not backend transaction race safety.
