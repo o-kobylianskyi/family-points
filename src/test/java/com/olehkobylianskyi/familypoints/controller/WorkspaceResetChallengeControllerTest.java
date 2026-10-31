@@ -2,6 +2,7 @@ package com.olehkobylianskyi.familypoints.controller;
 
 import com.olehkobylianskyi.familypoints.entity.UserAccount;
 import com.olehkobylianskyi.familypoints.security.CurrentUserService;
+import com.olehkobylianskyi.familypoints.service.ResetChallengeAttemptLimiter;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,8 +21,9 @@ class WorkspaceResetChallengeControllerTest {
     private final CurrentUserService current=mock(CurrentUserService.class);
     private final JdbcTemplate db=mock(JdbcTemplate.class);
     private final PasswordEncoder encoder=mock(PasswordEncoder.class);
+    private final ResetChallengeAttemptLimiter limiter=mock(ResetChallengeAttemptLimiter.class);
     private final WorkspaceResetChallengeController controller=
-            new WorkspaceResetChallengeController(current,db,encoder);
+            new WorkspaceResetChallengeController(current,db,encoder,limiter);
 
     @Test void executeRemainsLockedAndForeignWorkspaceForbidden() {
         when(current.belongsToWorkspace(7L)).thenReturn(true);
