@@ -32,14 +32,17 @@ public class WorkspaceResetChallengeController {
     private final JdbcTemplate db;
     private final PasswordEncoder passwordEncoder;
     private final ResetChallengeAttemptLimiter limiter;
+    private final WorkspaceDataResetPreviewController preview;
     private final SecureRandom random = new SecureRandom();
 
     public WorkspaceResetChallengeController(CurrentUserService current, JdbcTemplate db,
-                                              PasswordEncoder passwordEncoder, ResetChallengeAttemptLimiter limiter) {
+                                              PasswordEncoder passwordEncoder, ResetChallengeAttemptLimiter limiter,
+                                              WorkspaceDataResetPreviewController preview) {
         this.current=current;
         this.db=db;
         this.passwordEncoder=passwordEncoder;
         this.limiter=limiter;
+        this.preview=preview;
     }
 
     public record ChallengeRequest(UUID operationId, String snapshotDigest, String password) {}
@@ -66,7 +69,7 @@ public class WorkspaceResetChallengeController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Fresh reauthentication required");
 
         var rows=db.queryForList("""
-                SELECT requested_by_member_id,snapshot_digest,status
+                SELECT requested_by_member_id,snapshot_digest,status,selected_categories_json
                 FROM workspace_reset_operations
                 WHERE workspace_id=? AND operation_id=?::uuid FOR UPDATE
                 """,workspaceId,request.operationId().toString());
@@ -78,6 +81,28 @@ public class WorkspaceResetChallengeController {
         if (!"CONFIRMED".equals(operation.get("status")) ||
                 !request.snapshotDigest().equals(operation.get("snapshot_digest")))
             throw new ResponseStatusException(HttpStatus.CONFLICT,"Reset operation is not confirmed/current");
+
+        // Recompute the original preview fingerprint against the current scoped
+        // inventory. Equal row counts are not a full MVCC snapshot; execute stays locked.
+        String selectedJson=(String)operation.get("selected_categories_json");
+        if (selectedJson==null || !selectedJson.matches("\\[(?:\"[A-Z_]+\"(?:,\"[A-Z_]+\")*)?\\]"))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"Reset category snapshot invalid");
+        var keys=new java.util.ArrayList<String>();
+        var matcher=java.util.regex.Pattern.compile("\"([A-Z_]+)\"").matcher(selectedJson);
+        while(matcher.find()) keys.add(matcher.group(1));
+        if (!keys.equals(keys.stream().sorted().distinct().toList()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"Reset category snapshot invalid");
+        var latest=preview.preview(workspaceId);
+        var fingerprint=new StringBuilder("reset-v1|").append(workspaceId).append('|');
+        for (var key:keys) {
+            var category=latest.categories().get(key);
+            if (category==null)
+                throw new ResponseStatusException(HttpStatus.CONFLICT,"Reset category snapshot invalid");
+            fingerprint.append(key).append('=').append(category.recordCount()).append(';');
+        }
+        if (!sha256(fingerprint.toString().getBytes(StandardCharsets.UTF_8))
+                .equals(request.snapshotDigest()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"RESET_SNAPSHOT_STALE");
 
         // A random verifier is stored only as a digest; no secret is disclosed
         // until a separately reviewed execute proof protocol exists.
