@@ -461,7 +461,9 @@ fun TemplateLibrarySection(
                     }
                     val draftId = draft?.get("templateId")?.takeUnless { it.isJsonNull }?.asLong
                     val mayApply = canManage && draftId != null &&
+                        draftKind in setOf("TASK", "REWARD") &&
                         draft?.get("requiresConfirmation")?.asBoolean == true &&
+                        suggestion?.get("reviewRequired")?.asBoolean == true &&
                         suggestion?.get("pricingState")?.asString == "OPTIONAL_SUGGESTION" &&
                         suggestedAmount != null
                     if (mayApply && draft?.get("suggestionAppliedToDraft")?.asBoolean != true) {
