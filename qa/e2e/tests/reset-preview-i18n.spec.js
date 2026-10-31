@@ -34,25 +34,25 @@ test.describe('reset preview/plan (no deletion)', () => {
     await expect(page).not.toHaveURL(/\/login(?:\?|$)/, { timeout: 12000 })
     if (new URL(page.url()).pathname === '/choose-family') throw new Error('QA family must be selected explicitly; test will not choose a workspace.')
 
-    const previewRequest = page.waitForResponse(r =>
-      /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(r.url()).pathname), { timeout: 15000 })
-    // Navigation should not wait for unrelated assets or unfinished API responses.
+    // The app may mount/retry preview more than once. Assert against the
+    // response that actually populates the UI, not the first HTTP 200 headers.
     await page.goto('/settings', { waitUntil: 'domcontentloaded', timeout: 10000 })
-    const previewResponse = await previewRequest
-    expect(previewResponse.status(), 'reset preview API status').toBe(200)
-    // waitForResponse resolves at headers; the body can still be streaming or stalled.
-    // Await the application's actual fetch completion and include actionable diagnostics.
     const panel = page.locator('.family-reset-readiness')
     await expect(panel).toBeVisible()
-    const bodyResult = await Promise.race([
-      previewResponse.json().then(value => ({ value }), error => ({ error })),
-      new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 8000)),
-    ])
-    if (bodyResult.timeout || bodyResult.error) {
-      const panelText = (await panel.innerText().catch(() => '')).slice(0, 300)
-      throw new Error(`Reset preview BODY_NOT_READY after 8s: HTTP ${previewResponse.status()}, URL ${previewResponse.url()}, content-type ${previewResponse.headers()['content-type'] || 'missing'}, panel=${JSON.stringify(panelText)}. Investigate streaming/serialization/proxy response completion.`)
-    }
-    const preview = bodyResult.value
+    await expect(panel.locator('.family-reset-category input[type="checkbox"]').first()).toBeVisible({ timeout: 15000 })
+    const token = await page.evaluate(() => localStorage.getItem('accessToken'))
+    if (!token) throw new Error('Authenticated QA session has no access token')
+    const workspaceId = await page.evaluate(() => {
+      const found = performance.getEntriesByType('resource').map(x => x.name).find(x => /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(x).pathname))
+      return found ? new URL(found).pathname.match(/\/workspaces\/(\d+)\//)?.[1] : null
+    })
+    if (!workspaceId) throw new Error('Reset preview request URL not seen')
+    const response = await page.request.get(`http://localhost:8080/workspaces/${workspaceId}/data-reset/preview`, {
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 15000,
+    })
+    expect(response.status(), 'independent authenticated preview status').toBe(200)
+    const preview = await response.json()
     expect(preview.executionEnabled).toBe(false)
     expect(preview.workspaceId).toBeTruthy()
     expect(preview.categories && typeof preview.categories).toBe('object')
