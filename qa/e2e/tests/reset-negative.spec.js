@@ -58,4 +58,22 @@ test.describe('BKL-002 negative reset checks (read-only)', () => {
       expect(category.executable).toBe(false)
     }
   })
+  test('reload keeps reset disabled and does not dispatch destructive actions', async ({ page }) => {
+    const unsafe = []
+    page.on('request', request => {
+      const path = new URL(request.url()).pathname
+      if (/\/data-reset\/(prepare|confirm|challenge|execute)$/.test(path)) unsafe.push(path)
+    })
+    await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    const panel = page.locator('.family-reset-readiness')
+    const first = panel.locator('.family-reset-category input[type="checkbox"]').first()
+    await expect(first).toBeVisible({ timeout: 15000 })
+    const originalCount = await panel.locator('.family-reset-category input[type="checkbox"]').count()
+    await panel.getByRole('button', { name: /Reload|Завантажити знову|Обновить|Erneut laden/ }).click()
+    await expect(first).toBeVisible({ timeout: 15000 })
+    expect(await panel.locator('.family-reset-category input[type="checkbox"]').count()).toBe(originalCount)
+    await expect(panel.getByRole('button', { name: /Check dependencies|Перевірити залежності|Проверить зависимости|Abhängigkeiten prüfen/ })).toBeDisabled()
+    expect(unsafe).toEqual([])
+  })
+
 })
