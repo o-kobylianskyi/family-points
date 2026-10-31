@@ -25,11 +25,13 @@ test('reset plan rejects unknown category without destructive API calls', async 
     throw new Error('Select a disposable QA family explicitly before running this test.')
   }
 
-  await page.goto('/settings', { waitUntil: 'domcontentloaded' })
-  const preview = await page.waitForResponse(response =>
-    /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(response.url()).pathname),
-    { timeout: 15000 }
-  )
+  const [preview] = await Promise.all([
+    page.waitForResponse(response =>
+      /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(response.url()).pathname),
+      { timeout: 15000 }
+    ),
+    page.goto('/settings', { waitUntil: 'domcontentloaded' }),
+  ])
   expect(preview.status()).toBe(200)
   const match = new URL(preview.url()).pathname.match(/\/workspaces\/(\d+)\//)
   expect(match).not.toBeNull()
