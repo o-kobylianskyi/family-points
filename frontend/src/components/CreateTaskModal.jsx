@@ -128,6 +128,7 @@ function CreateTaskModal({
   const [taskTemplates, setTaskTemplates] = useState([])
   const [templateLoadError, setTemplateLoadError] = useState(false)
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
+  const [taskTemplateCategory, setTaskTemplateCategory] = useState('ALL')
   const [templateLoading, setTemplateLoading] = useState(false)
   const templateRequestGeneration = useRef(0)
   const templateWorkspaceRef = useRef(currentUser?.workspaceId)
@@ -282,6 +283,10 @@ function CreateTaskModal({
       .catch(() => { if (alive) { setTaskTemplates([]); setTemplateLoadError(true) } })
     return () => { alive = false }
   }, [currentUser.workspaceId, getAccessToken, editing])
+
+  const templateCategory = item => { try { return JSON.parse(item.definitionJson || '{}')?.category || 'other' } catch { return 'other' } }
+  const taskCategories = [...new Set(taskTemplates.map(templateCategory))].sort((a,b)=>a.localeCompare(b))
+  const filteredTaskTemplates = taskTemplates.filter(item => taskTemplateCategory === 'ALL' || templateCategory(item) === taskTemplateCategory)
 
   const applyTaskTemplate = async (templateId) => {
     const generation = ++templateRequestGeneration.current
@@ -616,9 +621,13 @@ function CreateTaskModal({
 
           {!editing && !parentTaskDefinitionId && <label className="form-field">
             <span>{({uk:'На основі шаблону',ru:'На основе шаблона',de:'Aus Vorlage',en:'From template'})[i18n.language.split('-')[0]] || 'From template'}</span>
+            <select value={taskTemplateCategory} disabled={templateLoading || loading} onChange={event => {setTaskTemplateCategory(event.target.value);setSelectedTemplateId('')}} aria-label={({uk:'Категорія шаблону',ru:'Категория шаблона',de:'Vorlagenkategorie',en:'Template category'})[i18n.language.split('-')[0]]}>
+              <option value="ALL">{({uk:'Усі категорії',ru:'Все категории',de:'Alle Kategorien',en:'All categories'})[i18n.language.split('-')[0]]}</option>
+              {taskCategories.map(category => <option key={category} value={category}>{category}</option>)}
+            </select>
             <select value={selectedTemplateId} disabled={templateLoading || loading} onChange={event => applyTaskTemplate(event.target.value)}>
               <option value="">{({uk:'Без шаблону',ru:'Без шаблона',de:'Ohne Vorlage',en:'Without template'})[i18n.language.split('-')[0]] || 'Without template'}</option>
-              {taskTemplates.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
+              {filteredTaskTemplates.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
             </select>
             <small>{({uk:'Параметри шаблону заповнять форму; перевірте їх перед створенням.',ru:'Параметры шаблона заполнят форму; проверьте перед созданием.',de:'Vorlagenfelder werden übernommen; vor dem Erstellen prüfen.',en:'Template fields prefill this form; review before creating.'})[i18n.language.split('-')[0]] || 'Review before creating'}</small>
             {!templateLoading && !templateLoadError && taskTemplates.length === 0 && <small role="status">{({uk:'У сім’ї ще немає імпортованих шаблонів завдань. Відкрийте бібліотеку, виберіть потрібні шаблони й імпортуйте їх; після цього вони з’являться тут.',ru:'В семье пока нет импортированных шаблонов задач. Откройте библиотеку, выберите и импортируйте нужные шаблоны; после этого они появятся здесь.',de:'In dieser Familie sind noch keine Aufgabenvorlagen importiert. In der Bibliothek Vorlagen auswählen und importieren; danach erscheinen sie hier.',en:'No task templates have been imported into this family yet. Select and import templates in the library; they will then appear here.'})[i18n.language.split('-')[0]]}</small>}
