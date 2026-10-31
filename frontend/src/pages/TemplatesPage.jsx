@@ -8,7 +8,7 @@ import { getWorkspaceMembers } from '../api/workspaceApi'
 import { getPointTypes } from '../api/economyApi'
 import { getEconomySuggestions } from '../api/economySuggestionsApi'
 import TemplateDraftFieldsEditor from '../components/TemplateDraftFieldsEditor'
-import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates, updatePrivateTemplate, deletePrivateTemplate, getTemplateCreationDraft } from '../api/templateApi'
+import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates, updatePrivateTemplate, deletePrivateTemplate, getTemplateCreationDraft, applyTemplateEconomySuggestion } from '../api/templateApi'
 
 const texts = {
   uk: ['Бібліотека шаблонів','Глобальні рекомендації','Мої шаблони','Виберіть потрібні шаблони. Імпорт додає їх у бібліотеку, а не створює активні завдання чи нагороди.','Зараз глобальних рекомендацій немає.','Переглянути імпорт','Імпортувати вибране','Очистити вибір','Уже в бібліотеці','Буде додано','Зберегти','Видалити','Немає особистих шаблонів.','Назва','Визначення (JSON)','Збережено','Виберіть шаблон для редагування','Видалити цей шаблон із бібліотеки?','Шаблони імпортовано','Не вибрано жодного шаблону.','Тільки адміністратор сім’ї може змінювати бібліотеку.','Повторно використовувати їх можна буде через окреме створення активного об’єкта.'],
@@ -331,6 +331,18 @@ export default function TemplatesPage() {
       {creationDraft && editing && creationDraft.templateId === editing.id && <div className="settings-section">
         <h3>{({uk:'Чернетка (без створення завдання чи нагороди)',ru:'Черновик (без создания задачи или награды)',de:'Entwurf (ohne Aufgabe oder Belohnung anzulegen)',en:'Draft (no task or reward created)'})[lang] || 'Draft preview'}</h3>
         <p>{({uk:'Перевірте тривалість, валюту та призначення. Цей перегляд нічого не активує.',ru:'Проверьте длительность, валюту и назначение. Просмотр ничего не активирует.',de:'Bitte Dauer, Währung und Zuweisung prüfen. Diese Ansicht aktiviert nichts.',en:'Check duration, currency and assignment. This preview activates nothing.'})[lang] || 'Preview only'}</p>
+        {creationDraft.economySuggestion && <div className="template-economy-review">
+          <p>{({uk:'Рекомендація необов’язкова. Застосування змінить лише чернетку й потребує перевірки батьками.',ru:'Рекомендация необязательна. Применение изменит только черновик и требует проверки родителями.',de:'Die Empfehlung ist optional. Sie ändert nur den Entwurf und muss von Eltern geprüft werden.',en:'Suggestion is optional. Applying changes only the draft and requires parent review.'})[lang] || 'Optional suggestion'}</p>
+          <button type="button" className="secondary-button" disabled={busy || draftText !== JSON.stringify(creationDraft.request, null, 2)} onClick={() => execute(async () => {
+            const origin = workspaceId, itemId = editing.id, generation = requestGeneration.current
+            const applied = await applyTemplateEconomySuggestion(getAccessToken(), origin, itemId)
+            if (workspaceRef.current === origin && requestGeneration.current === generation && editingRef.current === itemId) {
+              if (String(applied?.templateId) !== String(itemId) || applied?.kind !== creationDraft.kind || applied?.suggestionAppliedToDraft !== true || !applied?.request || typeof applied.request !== 'object' || Array.isArray(applied.request)) throw new Error('ECONOMY_DRAFT_INVALID')
+              setCreationDraft(applied)
+              setDraftText(JSON.stringify(applied.request, null, 2))
+            }
+          })}>{({uk:'Застосувати рекомендацію лише до чернетки',ru:'Применить рекомендацию только к черновику',de:'Empfehlung nur auf Entwurf anwenden',en:'Apply suggestion to draft only'})[lang] || 'Apply to draft only'}</button>
+        </div>}
         <TemplateDraftFieldsEditor kind={creationDraft.kind} value={draftText} onChange={setDraftText} language={lang} disabled={busy} members={draftMembers} pointTypes={draftPointTypes}/>
         <details><summary>{({uk:'Розширені параметри JSON',ru:'Расширенные параметры JSON',de:'Erweiterte JSON-Parameter',en:'Advanced JSON parameters'})[lang] || 'Advanced JSON'}</summary>
         <label style={{display:'block'}}>{({uk:'Параметри чернетки (JSON)',ru:'Параметры черновика (JSON)',de:'Entwurfsparameter (JSON)',en:'Draft parameters (JSON)'})[lang] || 'Draft JSON'}
