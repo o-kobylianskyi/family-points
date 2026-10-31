@@ -723,3 +723,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Web reset safety: reject mismatched workspaceId or unexpected executionEnabled/executable flags on preview/plan; require plan.blockers array. Do not accept stale plan errors when selection revision changed. Commit c78c44e.
 - Source inspection only. Exact-head CI / browser DEV permission, locale, A-B-A and fast selection tests pending. No live family reset, BETA, or production changes.
 - Next: verified CI and DEV HTTP/browser smoke, then challenge/execute integration once published and approved.
+
+## 2026-10-31 — WEB-EPOCH-01 central workspace write epoch handshake
+- Verified Backend GET /workspaces/{id}/data-epoch returns workspaceId/dataEpoch and WorkspaceDataEpochFilter demands X-Workspace-Data-Epoch after reset. Backend still explicitly warns about non-atomic concurrent reset/filter TOCTOU; no execute ready.
+- Updated frontend/src/api/client.js: for authenticated workspace POST/PUT/PATCH/DELETE request epoch through no-store GET and send header, validate workspace identity and safe integer. No auto-repeat of writes. Detect epoch changes, emit workspace:data-epoch-changed event, quarantine writes for that token/workspace until page reload; HTTP 409 business conflicts retained. Source commits 85db122, 7ce7b69.
+- Limitations: no global UI stale-state reset or multi-tab propagation yet; exact-head CI and authenticated DEV QA unverified. Backend must finalize transactional epoch barrier before destructive reset. No real reset, DB action, BETA or production changes.
+- QA: epoch 0 legacy and >0 header, missing epoch handshake, invalid/foreign workspace response, changed epoch during same browser session, 409 business conflict vs real epoch change, token/workspace separation, POST idempotency/no replay, four locales and second-tab stale state.
