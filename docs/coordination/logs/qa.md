@@ -381,3 +381,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Stale dataEpoch client write-block test staged
 - Added Playwright synthetic cross-tab epoch test to `qa/e2e/tests/epoch.spec.js` (commit a01ed97). After authenticated login and current workspace observation, a second tab receives an epoch notice. The test invokes browser-side `apiRequest` with a POST plan payload but requires rejection `WORKSPACE_DATA_EPOCH_CHANGED` before any HTTP POST is sent.
 - No backend mutation or reset occurs; test **not yet run locally**. This checks Web fencing, not backend transaction race safety.
+
+
+## 2026-10-31 — Malformed epoch notification regression staged
+- Added a third Playwright case in `qa/e2e/tests/epoch.spec.js` (commit 437880f): malformed JSON and nonnumeric workspace ID in cross-tab epoch notice must not create a stale-workspace alert. Browser-only; no Backend mutation.
+- Previous newly added stale-notice POST-prevention case still awaits local test result; do not claim epoch.spec.js passes before rerun. Run full `npx playwright test tests/epoch.spec.js` with isolated QA account credentials.
