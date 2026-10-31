@@ -7,6 +7,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONObject
+import java.util.concurrent.ConcurrentHashMap
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import okhttp3.logging.HttpLoggingInterceptor
@@ -16,6 +18,73 @@ import retrofit2.converter.gson.GsonConverterFactory
 object ApiClient {
 
     private val BASE_URL = BuildConfig.API_BASE_URL
+
+    private val quarantinedEpochs = ConcurrentHashMap.newKeySet<String>()
+    private val epochHandshakeClient: OkHttpClient by lazy {
+        OkHttpClient.Builder().followRedirects(false)
+            .callTimeout(6, TimeUnit.SECONDS).build()
+    }
+
+    /**
+     * Read authenticated workspace generation immediately before each scoped write.
+     * A failed handshake blocks the write; credentials and generation are never logged.
+     */
+    private val workspaceEpochInterceptor = Interceptor { chain ->
+        val request = chain.request()
+        val match = Regex("^/workspaces/([0-9]+)(?:/|$)").find(request.url.encodedPath)
+        val mutation = request.method in setOf("POST", "PUT", "PATCH", "DELETE")
+        val auth = request.header("Authorization")
+        if (!mutation || match == null || auth.isNullOrBlank()) {
+            chain.proceed(request)
+        } else {
+            val workspaceId = match.groupValues[1]
+            val identity = auth + ":" + workspaceId
+            if (identity in quarantinedEpochs) {
+                throw IOException("Workspace data changed: sign in again before editing")
+            }
+            val endpoint = request.url.newBuilder().encodedPath("/workspaces/$workspaceId/data-epoch")
+                .query(null).build()
+            val handshake = Request.Builder().url(endpoint)
+                .header("Authorization", auth).header("Cache-Control", "no-store").get().build()
+            val epoch = epochHandshakeClient.newCall(handshake).execute().use { response ->
+                if (!response.isSuccessful) throw IOException("Cannot verify workspace data generation")
+                val json = try {
+                    JSONObject(response.body?.string().orEmpty())
+                } catch (_: Exception) {
+                    throw IOException("Invalid workspace generation response")
+                }
+                val serverId = json.optLong("workspaceId", -1L)
+                val value = json.optLong("dataEpoch", -1L)
+                if (serverId.toString() != workspaceId || value < 0L ||
+                    !json.has("dataEpoch")) {
+                    throw IOException("Untrusted workspace generation response")
+                }
+                value
+            }
+            val existing = request.header("X-Workspace-Data-Epoch")
+            if (existing != null && existing != epoch.toString()) {
+                quarantinedEpochs.add(identity)
+                throw IOException("Workspace generation changed during operation")
+            }
+            val result = chain.proceed(request.newBuilder()
+                .header("X-Workspace-Data-Epoch", epoch.toString()).build())
+            if (result.code == 409) {
+                // Only quarantine if an authoritative second handshake confirms drift.
+                // Generic 409 conflicts remain ordinary application errors.
+                try {
+                    val check = epochHandshakeClient.newCall(handshake).execute().use { response ->
+                        if (!response.isSuccessful) null else
+                            JSONObject(response.body?.string().orEmpty()).let { json ->
+                                if (json.optLong("workspaceId", -1L).toString() == workspaceId)
+                                    json.optLong("dataEpoch", -1L) else null
+                            }
+                    }
+                    if (check != null && check != epoch) quarantinedEpochs.add(identity)
+                } catch (_: Exception) { /* Retain original 409 for caller. */ }
+            }
+            result
+        }
+    }
 
     private val httpClient: OkHttpClient by lazy {
         val logging = HttpLoggingInterceptor().apply {
@@ -34,6 +103,7 @@ object ApiClient {
         }
 
         OkHttpClient.Builder()
+            .addInterceptor(workspaceEpochInterceptor)
             .addInterceptor(reachabilityInterceptor)
             .addInterceptor(logging)
             .build()
