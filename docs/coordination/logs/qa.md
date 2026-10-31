@@ -253,3 +253,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-10-31 — Playwright catalog/read-only reset checks
 - Added qa/e2e/tests/catalog-readonly.spec.js at commit 923fded8: TPL-01 response asserts 142 templates / 6 packs / 110 TASK / 32 REWARD and unique codes; settings navigation asserts no reset challenge/confirm/execute POST. All read-only. Local Windows tests PENDING (prior original smoke 3/3 PASS only). No credentials or data mutations.
+
+
+## 2026-10-31 — Windows QA Playwright 6/6 PASS
+- User ran qa/e2e npm test with dedicated QA account and running local Web: 6 Chromium tests passed in 10.6s, zero failures/skips. Catalog TPL-01 API 142/6/110 TASK/32 REWARD; read-only settings no reset execute request; cross-tab epoch UI event guard; public login, private templates navigation, settings navigation. User-provided console output is evidence, not a pinned CI run.
+- Scope limitation: cross-tab UI test is not real Backend epoch>0 reset/replay concurrency verification; read-only settings smoke is not reset preview/plan authorization or execution. BKL-002 full reset E2E remains blocked pending safe Backend and DEV V42 migration. No QA data mutations.
