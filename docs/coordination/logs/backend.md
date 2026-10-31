@@ -309,3 +309,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Commits: `d570b9e1a2bdcc2f1398286ab9dcbe6ced4ad548` implementation, `336a1135f307173d0fca1dc2db8b7710302566da` tests, `f7a6387b609a8735ae5685e1604223750e8a5d8d` Web contract amendment.
 - Strict limits: Google-only users without password are NOT supported yet. Secret verifier stored but no secret is issued, no execute proof is accepted; execute stays 423. No rate-limit, current snapshot recomputation, full transaction writer locking or actual deletion; do not present as release-ready.
 - CI `41192482109` queued when inspected; no new green assertion. No real DB deletion or deploy.
+
+## 2026-10-31 — BKL-002 persistent challenge reauth throttling (P0 security)
+- Added V44 `workspace_reset_reauth_limits` unique `(workspace_id,account_id)` with persistent 15-minute attempt window.
+- `ResetChallengeAttemptLimiter.checkAndRecord` uses an independent `REQUIRES_NEW` transaction to persist each attempt (including bad passwords, even when outer challenge transaction rolls back). Allows five attempts per family/account per window and rejects sixth with 429; capped count prevents overflow. The limiter is called before local BCrypt password validation.
+- Updated `WorkspaceResetChallengeController` and tests, including limiter test. Most recent test SHA `e4689cb85647c3f447b5b57302117cc3911277f2`, CI `41192908988` pending on check.
+- Scope limitation: this is not IP-level/global abuse prevention; Google-only fresh OAuth reauth, snapshot freshness, challenge proof issuance and actual atomic execute still blocked. **No real family reset.**
