@@ -129,15 +129,19 @@ fun DashboardScreen(
             while (true) {
                 delay(30_000L)
                 try {
+                    onlineEpochVerified = false
                     data = loadDashboard()
                     onlineEpochVerified = true
                     reputation = try { loadReputation() } catch (_: Exception) { null }
                     showingCached = false
                     error = ""
                 } catch (exception: HttpException) {
+                    data = null
                     if (exception.code() == 401) onUnauthorized()
+                    else error = text.loadFailed
                 } catch (_: Exception) {
-                    // Keep the cached home screen visible while API is unavailable.
+                    data = null
+                    error = text.loadFailed
                 }
             }
         }
