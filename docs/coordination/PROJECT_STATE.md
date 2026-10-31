@@ -140,3 +140,8 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 - Exact tested SHA `4d88716a9cde33a15a7f94867ee02d2a69b613c3`; [Actions 41234461782](https://github.com/o-kobylianskyi/family-points/actions/runs/41234461782) all four jobs SUCCESS. Backend: 313 tests, zero failures/errors/skips; 39 actual Spring/JPA/PostgreSQL transaction scenarios.
 - Invitation/join/account-link/scoped account writes, reset content-v2 freshness and independent reauth throttle ordering now have source+CI evidence. Public retained-token acceptance and unrelated-family account survival verified.
 - Old count-v1 preparations need NEW operation IDs. Complete owner/global-account/financial/FK policy, fresh Google proof, one-use consumption and atomic execute/onboarding, consumer/disposable DEV/Release remain OPEN. Execute423 unchanged; no migration, reset or deployment.
+
+## 2026-10-31 — Bound reset password-proof package (source; CI pending)
+- Internal issue/consume service binds password proof to family/account/member/operation/content/epoch/current credential with five-minute wall-clock expiry and one-use transactional consumption. Challenge rereads current account/membership/password; HTTP DTO still exposes no secret; execute423 unchanged.
+- V45 additive bindings preserve old audit/challenge records; old unbound proofs cannot be consumed and need fresh operation where one already exists. Fourteen added real transaction tests plus V44->V45 populated proof-upgrade regression require cloud CI.
+- Owner/global-account admin/retention/financial deletion policy, approved proof transport/Google reauth and complete executor/onboarding remain OPEN. No live migration, reset or deployment.

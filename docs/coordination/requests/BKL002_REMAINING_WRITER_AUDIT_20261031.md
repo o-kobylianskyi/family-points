@@ -57,3 +57,6 @@ Remaining: upstream/global account auth policy/races (including family-admin edi
 ## Invitation/reset edge evidence — 2026-10-31
 Exact tested SHA `4d88716a9cde33a15a7f94867ee02d2a69b613c3`; [Actions 41234461782](https://github.com/o-kobylianskyi/family-points/actions/runs/41234461782) all four jobs SUCCESS. Backend: 313 tests, zero failures/errors/skips; 39 actual Spring/JPA/PostgreSQL transaction scenarios.
 The preceding CI-pending invitation/reset edge delta is now source/CI verified. Public token/code authority is revalidated after family lock; exact reset content freshness and limiter ordering verified. This does not close the remaining global-auth/admin policy, deletion/owner/financial/FK/Google-proof/atomic execute and client/disposable DEV/QA/Release gates above. No real reset or deploy.
+
+## 2026-10-31 — Internal proof progress (CI pending)
+Bound password proof now has MANDATORY issue/consume service and additive V45 state. Controller still withholds secret, execute423 unchanged. Current credential/active membership and wall-clock expiry are rechecked; rollbackable consumed flag supports atomic future executor. This does not close owner/role/financial/deletion/FK/Google/transport/client/DEV/QA/Release policy gates. Scope-specific QA coverage matrix and actual disposable schema inventory follow CI; no live data or migrations touched.

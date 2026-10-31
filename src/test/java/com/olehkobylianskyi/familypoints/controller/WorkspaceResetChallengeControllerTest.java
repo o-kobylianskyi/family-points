@@ -29,7 +29,7 @@ class WorkspaceResetChallengeControllerTest {
     private final WorkspaceDataResetPreviewController preview=mock(WorkspaceDataResetPreviewController.class);
     private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard guard = mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class);
     private final WorkspaceResetChallengeController controller=
-            new WorkspaceResetChallengeController(current,db,encoder,limiter,preview, guard, snapshots);
+            new WorkspaceResetChallengeController(current,db,encoder,limiter,preview, guard, snapshots, mock(com.olehkobylianskyi.familypoints.service.WorkspaceResetProofService.class));
 
     @Test void executeRemainsLockedAndForeignWorkspaceForbidden() {
         when(current.belongsToWorkspace(7L)).thenReturn(true);

@@ -1491,3 +1491,10 @@ Before each substantial implementation batch:
 - [x] Document v1 preparation invalidation, current-state public-token exception and REQUIRES_NEW ordering.
 - [ ] Complete retained owner/identity/global-account admin/financial policy, deletion FK closure, fresh Google reauth, consumable one-use proof and atomic execute/epoch/onboarding.
 - [ ] Obtain consumer/disposable DEV/QA/Release acceptance. Full reset unavailable; no data deletion or deployment.
+
+## 2026-10-31 — Bound password-proof source package
+- [x] Implement internal password-proof issue/consume binding to actor/family/operation/member/epoch/content/credential, wall-clock TTL and rollbackable one-use consumption.
+- [x] Keep secret internal and execute disabled; preserve existing HTTP DTO and limiter-before-family order.
+- [x] Add V45 additive binding constraints and populated legacy-proof upgrade regression; add fourteen PostgreSQL transaction scenarios.
+- [ ] Confirm cloud CI and publish actual schema dependency inventory plus scoped transaction coverage matrix for QA.
+- [ ] Finalize owner/global-account admin/financial/retention policy, proof transport/Google reauth, full dependency-safe executor/onboarding and independent consumer/DEV/QA/Release gates. No live reset/migration/deploy.

@@ -10,13 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.HexFormat;
 import java.util.UUID;
 
 /**
@@ -35,11 +29,12 @@ public class WorkspaceResetChallengeController {
     private final PasswordEncoder passwordEncoder;
     private final ResetChallengeAttemptLimiter limiter;
     private final WorkspaceDataResetPreviewController preview;
-    private final SecureRandom random = new SecureRandom();
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceResetProofService proofs;
 
     public WorkspaceResetChallengeController(CurrentUserService current, JdbcTemplate db,
                                               PasswordEncoder passwordEncoder, ResetChallengeAttemptLimiter limiter,
-                                              WorkspaceDataResetPreviewController preview, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard, com.olehkobylianskyi.familypoints.service.WorkspaceResetSnapshotService snapshots) {
+                                              WorkspaceDataResetPreviewController preview, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard, com.olehkobylianskyi.familypoints.service.WorkspaceResetSnapshotService snapshots, com.olehkobylianskyi.familypoints.service.WorkspaceResetProofService proofs) {
+        this.proofs=proofs;
         this.epochGuard = epochGuard;
         this.snapshots = snapshots;
         this.current=current;
@@ -106,22 +101,11 @@ public class WorkspaceResetChallengeController {
         if (!snapshots.digest(workspaceId,keys).equals(request.snapshotDigest()))
             throw new ResponseStatusException(HttpStatus.CONFLICT,"RESET_SNAPSHOT_STALE");
 
-        // A random verifier is stored only as a digest; no secret is disclosed
-        // until a separately reviewed execute proof protocol exists.
-        byte[] secret=new byte[32];
-        random.nextBytes(secret);
-        var challengeId=UUID.randomUUID();
-        var expiresAt=OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(5);
-        int inserted=db.update("""
-                INSERT INTO workspace_reset_challenges
-                  (id,workspace_id,operation_id,account_id,verifier_hash,expires_at)
-                VALUES (?, ?, ?::uuid, ?, ?, ?)
-                ON CONFLICT (workspace_id,operation_id) DO NOTHING
-                """,challengeId,workspaceId,request.operationId().toString(),account.getId(),
-                sha256(secret),expiresAt);
-        if(inserted!=1)
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"Reset challenge already issued");
-        return new ChallengeIssued(request.operationId(),challengeId,expiresAt,false);
+        // Internal service rechecks current credential/account/membership and binds the proof.
+        // Secret remains internal until owner/deletion/proof transport policy is approved.
+        var proof=proofs.issuePasswordChallenge(workspaceId,request.operationId(),account.getId(),
+                current.getCurrentMemberId(),request.snapshotDigest(),request.password());
+        return new ChallengeIssued(request.operationId(),proof.challengeId(),proof.expiresAt(),false);
     }
 
     @PostMapping("/execute")
@@ -131,11 +115,4 @@ public class WorkspaceResetChallengeController {
         throw new ResponseStatusException(HttpStatus.LOCKED,"RESET_EXECUTION_DISABLED");
     }
 
-    private static String sha256(byte[] value) {
-        try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value));
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException(exception);
-        }
-    }
 }

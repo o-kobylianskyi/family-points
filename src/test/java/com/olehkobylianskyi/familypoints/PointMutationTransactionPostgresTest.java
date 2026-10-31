@@ -66,7 +66,7 @@ class PointMutationTransactionPostgresTest {
             WorkspaceRoleService.class, RoleCatalogBootstrapService.class, LegacyGroupRoleBridgeService.class,
             DomainFoundationMigrationService.class, FamilyWorkspaceProvisioningService.class,
             TemplateCatalogService.class, TemplateEconomySuggestionsService.class,
-            WorkspaceResetSnapshotService.class, ResetChallengeAttemptLimiter.class,
+            WorkspaceResetSnapshotService.class, ResetChallengeAttemptLimiter.class, WorkspaceResetProofService.class,
             WorkspaceInvitationService.class, WorkspaceJoinService.class, AccountMembershipLinkService.class,
             UserAccountService.class,
             com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPreviewController.class,
@@ -998,6 +998,205 @@ class PointMutationTransactionPostgresTest {
         withEpoch(1L,()->links.linkExistingAccount(account,target.workspace(),target.member()));
         assertEquals(2L,sql.queryForObject("SELECT count(*) FROM account_workspace_memberships WHERE account_id=?",Long.class,account.getId()));
         assertEquals(0L,sql.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,other.workspace()));
+    }
+
+
+    private WorkspaceResetProofService.IssuedProof issueProof(Fixture fixture,
+            com.olehkobylianskyi.familypoints.entity.UserAccount account,
+            com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPrepareController.PreparedReset prepared) {
+        return tx.execute(status -> withEpoch(0L, () -> context.getBean(WorkspaceResetProofService.class).issuePasswordChallenge(
+                fixture.workspace(),prepared.operationId(),account.getId(),fixture.member(),prepared.snapshotDigest(),"test-password")));
+    }
+
+    private void consumeProof(Fixture fixture, com.olehkobylianskyi.familypoints.entity.UserAccount account,
+            com.olehkobylianskyi.familypoints.controller.WorkspaceDataResetPrepareController.PreparedReset prepared,
+            WorkspaceResetProofService.IssuedProof proof,String secret) {
+        tx.executeWithoutResult(status -> withEpoch(0L, () -> {
+            context.getBean(WorkspaceResetProofService.class).consume(fixture.workspace(),prepared.operationId(),
+                    proof.challengeId(),account.getId(),fixture.member(),prepared.snapshotDigest(),secret);
+            return null;
+        }));
+    }
+
+    private long consumed(Fixture fixture) {
+        return sql.queryForObject("SELECT count(*) FROM workspace_reset_challenges WHERE workspace_id=? AND consumed_at IS NOT NULL",
+                Long.class,fixture.workspace());
+    }
+
+    @Test void boundPasswordProofStoresOnlyVerifierAndCommitsConsumptionOnce() {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared);
+        var proof=issueProof(fixture,account,prepared);
+        assertEquals(43,proof.secret().length());
+        assertFalse(proof.toString().contains(proof.secret()));
+        var row=sql.queryForMap("SELECT * FROM workspace_reset_challenges WHERE id=?",proof.challengeId());
+        assertNotEquals(proof.secret(),row.get("verifier_hash"));
+        assertEquals(64,((String)row.get("verifier_hash")).length());
+        assertFalse(row.containsValue(proof.secret()));
+        assertEquals(0L,((Number)row.get("data_epoch")).longValue());
+        assertEquals(fixture.member(),((Number)row.get("requested_by_member_id")).longValue());
+        assertEquals(prepared.snapshotDigest(),row.get("snapshot_digest"));
+        consumeProof(fixture,account,prepared,proof,proof.secret());
+        assertEquals(1,consumed(fixture));
+        assertEquals(409,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,account,prepared,proof,proof.secret())).getStatusCode().value());
+        assertEquals(0L,sql.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,fixture.workspace()));
+    }
+
+    @Test void passwordProofLifecycleReallyRequiresExistingTransaction() {
+        var service=context.getBean(WorkspaceResetProofService.class);
+        assertThrows(IllegalTransactionStateException.class,()->service.issuePasswordChallenge(
+                1L,UUID.randomUUID(),1L,1L,"a".repeat(64),"password"));
+        assertThrows(IllegalTransactionStateException.class,()->service.consume(
+                1L,UUID.randomUUID(),UUID.randomUUID(),1L,1L,"a".repeat(64),"x".repeat(43)));
+    }
+
+    @Test void wrongProofSecretDoesNotConsumeAndCorrectSecretStillWorks() {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared);
+        var proof=issueProof(fixture,account,prepared);
+        assertEquals(403,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,account,prepared,proof,"wrong")).getStatusCode().value());
+        String wrong=(proof.secret().charAt(0)=='A'?"B":"A")+proof.secret().substring(1);
+        assertEquals(403,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,account,prepared,proof,wrong)).getStatusCode().value());
+        assertEquals(0,consumed(fixture));
+        consumeProof(fixture,account,prepared,proof,proof.secret());
+        assertEquals(1,consumed(fixture));
+    }
+
+    @Test void proofCannotCrossOperationOrFamilyAndDoesNotConsumeOriginal() {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared);
+        var proof=issueProof(fixture,account,prepared);
+        var second=prepareReset(fixture); confirmReset(fixture,second);
+        assertEquals(404,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,account,second,proof,proof.secret())).getStatusCode().value());
+        var other=fixture(); var otherAccount=resetActor(other);
+        var otherPrepared=prepareReset(other); confirmReset(other,otherPrepared);
+        assertEquals(404,assertThrows(ResponseStatusException.class,()->consumeProof(other,otherAccount,otherPrepared,proof,proof.secret())).getStatusCode().value());
+        assertEquals(0,consumed(fixture)); assertEquals(0,consumed(other));
+        consumeProof(fixture,account,prepared,proof,proof.secret());
+    }
+
+    @Test void proofCannotBeConsumedByAnotherAccountOrMember() {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared);
+        var proof=issueProof(fixture,account,prepared);
+        var other=fixture(); var wrongAccount=resetActor(other);
+        assertEquals(403,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,wrongAccount,prepared,proof,proof.secret())).getStatusCode().value());
+        var failure=assertThrows(ResponseStatusException.class,()->tx.executeWithoutResult(status -> withEpoch(0L,()->{
+            context.getBean(WorkspaceResetProofService.class).consume(fixture.workspace(),prepared.operationId(),proof.challengeId(),
+                    account.getId(),other.member(),prepared.snapshotDigest(),proof.secret()); return null;
+        })));
+        assertEquals(403,failure.getStatusCode().value()); assertEquals(0,consumed(fixture));
+    }
+
+    @Test void sameCountDomainEditInvalidatesAlreadyIssuedProof() {
+        var fixture=fixture(); var account=resetActor(fixture); var definition=task(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared); var proof=issueProof(fixture,account,prepared);
+        sql.update("UPDATE task_definitions SET title='Changed after challenge' WHERE id=?",definition.getId());
+        assertEquals(409,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,account,prepared,proof,proof.secret())).getStatusCode().value());
+        assertEquals(0,consumed(fixture));
+    }
+
+    @Test void epochChangeRejectsProofForOldAndFreshHeadersWithoutConsumption() {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared); var proof=issueProof(fixture,account,prepared);
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?",fixture.workspace());
+        assertEquals(409,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,account,prepared,proof,proof.secret())).getStatusCode().value());
+        assertEquals(409,assertThrows(ResponseStatusException.class,()->tx.executeWithoutResult(status->withEpoch(1L,()->{
+            context.getBean(WorkspaceResetProofService.class).consume(fixture.workspace(),prepared.operationId(),proof.challengeId(),
+                    account.getId(),fixture.member(),prepared.snapshotDigest(),proof.secret()); return null;
+        }))).getStatusCode().value());
+        assertEquals(0,consumed(fixture));
+    }
+
+    @Test void changedPasswordInvalidatesIssuedProofAndDisabledAccountCannotConsume() {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared); var proof=issueProof(fixture,account,prepared);
+        String original=account.getPasswordHash();
+        String changed=context.getBean(org.springframework.security.crypto.password.PasswordEncoder.class).encode("changed-password");
+        sql.update("UPDATE user_accounts SET password_hash=? WHERE id=?",changed,account.getId());
+        assertEquals(409,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,account,prepared,proof,proof.secret())).getStatusCode().value());
+        sql.update("UPDATE user_accounts SET password_hash=?,enabled=false WHERE id=?",original,account.getId());
+        assertEquals(403,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,account,prepared,proof,proof.secret())).getStatusCode().value());
+        assertEquals(0,consumed(fixture));
+    }
+
+    @Test void cachedPasswordCannotIssueAfterGlobalCredentialChanges() {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared);
+        String changed=context.getBean(org.springframework.security.crypto.password.PasswordEncoder.class).encode("new-global-password");
+        sql.update("UPDATE user_accounts SET password_hash=? WHERE id=?",changed,account.getId());
+        // CurrentUser mock deliberately retains the OLD account/password snapshot.
+        assertEquals(403,assertThrows(ResponseStatusException.class,()->challengeReset(fixture,prepared,"test-password")).getStatusCode().value());
+        assertEquals(0L,sql.queryForObject("SELECT count(*) FROM workspace_reset_challenges WHERE workspace_id=?",Long.class,fixture.workspace()));
+        assertEquals(1L,sql.queryForObject("SELECT failed_attempts FROM workspace_reset_reauth_limits WHERE workspace_id=?",Long.class,fixture.workspace()));
+    }
+
+    @Test void expiredProofUsesWallClockEvenInsideOlderTransaction() {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared); var proof=issueProof(fixture,account,prepared);
+        // Commit a deadline shortly after the next transaction starts, then pass it.
+        var failure=assertThrows(ResponseStatusException.class,()->tx.executeWithoutResult(status->{
+            sql.update("UPDATE workspace_reset_challenges SET expires_at=CURRENT_TIMESTAMP+interval '100 milliseconds' WHERE id=?",proof.challengeId());
+            sql.execute("SELECT pg_sleep(0.2)");
+            withEpoch(0L,()->{
+                context.getBean(WorkspaceResetProofService.class).consume(fixture.workspace(),prepared.operationId(),proof.challengeId(),
+                        account.getId(),fixture.member(),prepared.snapshotDigest(),proof.secret()); return null;
+            });
+        }));
+        assertEquals(410,failure.getStatusCode().value()); assertEquals(0,consumed(fixture));
+    }
+
+    @Test void proofConsumptionAndDomainWriteRollbackTogetherThenProofCanBeRetried() {
+        var fixture=fixture(); var account=resetActor(fixture); var definition=task(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared); var proof=issueProof(fixture,account,prepared);
+        assertThrows(IllegalStateException.class,()->tx.executeWithoutResult(status->{
+            consumeProof(fixture,account,prepared,proof,proof.secret());
+            sql.update("UPDATE task_definitions SET title='Rolled back proof transaction' WHERE id=?",definition.getId());
+            throw new IllegalStateException("Injected failure after proof consumption and domain write");
+        }));
+        assertEquals(0,consumed(fixture));
+        assertEquals("Disposable task",sql.queryForObject("SELECT title FROM task_definitions WHERE id=?",String.class,definition.getId()));
+        assertEquals(0L,sql.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,fixture.workspace()));
+        consumeProof(fixture,account,prepared,proof,proof.secret()); assertEquals(1,consumed(fixture));
+    }
+
+    @Test void concurrentProofConsumersHaveExactlyOneWinner() throws Exception {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared); var proof=issueProof(fixture,account,prepared);
+        var pool=Executors.newFixedThreadPool(2); var ready=new CountDownLatch(2); var start=new CountDownLatch(1);
+        java.util.concurrent.Callable<Integer> consumer=()->{
+            ready.countDown(); await(start);
+            try { consumeProof(fixture,account,prepared,proof,proof.secret()); return 200; }
+            catch (ResponseStatusException exception) { return exception.getStatusCode().value(); }
+        };
+        try {
+            var first=pool.submit(consumer); var second=pool.submit(consumer);
+            assertTrue(ready.await(10,TimeUnit.SECONDS)); start.countDown();
+            var results=new java.util.ArrayList<>(java.util.List.of(first.get(15,TimeUnit.SECONDS),second.get(15,TimeUnit.SECONDS)));
+            results.sort(Integer::compareTo); assertEquals(java.util.List.of(200,409),results);
+            assertEquals(1,consumed(fixture));
+        } finally { start.countDown(); pool.shutdownNow(); assertTrue(pool.awaitTermination(20,TimeUnit.SECONDS)); }
+    }
+
+    @Test void revokedMemberCannotConsumeProofAndLegacyUnboundRowsFailClosed() {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared); var proof=issueProof(fixture,account,prepared);
+        sql.update("UPDATE workspace_reset_challenges SET data_epoch=NULL,snapshot_digest=NULL,requested_by_member_id=NULL,credential_fingerprint=NULL WHERE id=?",proof.challengeId());
+        assertEquals(409,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,account,prepared,proof,proof.secret())).getStatusCode().value());
+        sql.update("UPDATE family_members SET active=false WHERE id=?",fixture.member());
+        assertEquals(409,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,account,prepared,proof,proof.secret())).getStatusCode().value());
+        assertEquals(0,consumed(fixture));
+    }
+
+    @Test void publicChallengeDtoNeverExposesInternalSecret() {
+        var fixture=fixture(); resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared);
+        var response=challengeReset(fixture,prepared,"test-password");
+        String json;
+        try { json=new com.fasterxml.jackson.databind.ObjectMapper().findAndRegisterModules().writeValueAsString(response); }
+        catch (Exception exception) { throw new AssertionError(exception); }
+        assertFalse(json.contains("secret")); assertFalse(json.contains("verifier")); assertFalse(response.executionEnabled());
+        assertEquals(4,response.getClass().getRecordComponents().length);
     }
 
     private static void await(CountDownLatch latch) {
