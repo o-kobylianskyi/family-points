@@ -56,7 +56,7 @@ class LegacyV35ConstraintRepairTest {
                 """));
         // Flyway beforeMigrate.sql restores missing names; V35 replaces placeholders
         // with strict REWARD_PURCHASE-compatible checks, followed by V36, V37, V38 and private templates V39.
-        assertEquals(9, flyway(null).migrate().migrationsExecuted);
+        assertEquals(10, flyway(null).migrate().migrationsExecuted);
         assertEquals(2, count("""
                 SELECT count(*) FROM pg_constraint
                 WHERE conname IN ('point_transactions_source_type_check',
