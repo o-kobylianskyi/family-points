@@ -50,6 +50,9 @@ interface TemplateApi {
         @Path("templateId") templateId: Long
     ): com.google.gson.JsonObject
 
+    @POST("workspaces/{workspaceId}/templates/{templateId}/creation-draft/apply-economy-suggestion")
+    suspend fun applyEconomySuggestion(@Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long, @Path("templateId") templateId: Long): com.google.gson.JsonObject
+
     @PUT("workspaces/{workspaceId}/templates/{templateId}")
     suspend fun updatePrivateTemplate(@Header("Authorization") auth: String, @Path("workspaceId") workspaceId: Long, @Path("templateId") templateId: Long, @Body body: PrivateTemplateUpdateRequest): retrofit2.Response<okhttp3.ResponseBody>
 
