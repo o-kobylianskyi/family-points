@@ -147,3 +147,7 @@ Never remove an unresolved item to tidy the register. Close only after affected 
 - Internal ledger calls at nonzero epoch require proof captured for the same family in their active parent transaction. HTTP always checks original header. Proof follows transaction suspension/resumption and is cleared after commit/rollback; current DB epoch is not a client-proof replacement.
 - Reload detached penalty currency within the scoped workspace before ledger insert. PostgreSQL tests cover automatic exchange atomicity, slot+audit rollback, proof lifetime/suspension/family scope and real background point/reputation penalties.
 - Remaining writers/outer lock order are listed in requests/BKL002_REMAINING_WRITER_AUDIT_20261031.md. Full reset and consumer/QA/Release acceptance remain OPEN. No real-data reset or deploy.
+
+## 2026-10-31 — IMP-0009 slot/exchange/ledger CI evidence
+- Source `fc4fa54b`, exact all-green Actions 41231246497; Backend 280 PASS. Proof expiry, suspension/resumption, same-family isolation, original HTTP header validation, two-currency rollback, slot/audit atomicity and background point/reputation penalties verified on disposable PostgreSQL.
+- This accepts the bounded Backend source/CI package only. Remaining direct/upstream writers, complete reset authorization/dependency/execute semantics and client/QA/Release/deployment acceptance remain OPEN.

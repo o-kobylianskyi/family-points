@@ -1458,3 +1458,8 @@ Before each substantial implementation batch:
 - [x] Add actual slot/audit, two-currency exchange, rollback and nonzero-epoch background penalty tests; record remaining writer inventory.
 - [ ] Verify cloud CI for this package.
 - [ ] Complete groups/roles, economy lazy writes, template/media and protected membership/startup outer-transaction audit before reset execute/QA/Release.
+
+## 2026-10-31 — BKL-002 schedule/exchange/ledger cloud acceptance
+- [x] Exact source `fc4fa54b06d000f0449e3875ffea11c7ca10a8bb` all-green Actions 41231246497, Backend 280 PASS.
+- [x] Verify 18 fenced entries, transaction proof expiry/suspension/family/HTTP scope, slot+audit and exchange rollback, actual nonzero-epoch point/reputation deadline penalties.
+- [ ] Finish remaining groups/roles/economy, templates/media and protected membership/startup/direct writer review before full reset/QA/Release.

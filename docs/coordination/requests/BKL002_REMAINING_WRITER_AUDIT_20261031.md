@@ -36,3 +36,7 @@ Baseline: main `65e6726db369190e19ed06e50b5c69dca60466c3`. Source audit of 90 co
 ## Designer follow-up (P1, issue #17)
 
 Catalog recommendations are read-only at /template-catalog/economy-suggestions. Publish exact versioned nullable DTO examples and explicit acceptance semantics. Media catalog kind labels REWARD/TASK_CATEGORY do not imply writable binding targets: current binding types are WORKSPACE/MEMBER/MEMBER_GROUP/WORK_NODE/TASK. Certify that distinction before consumer persistence work; no silent price/ledger changes.
+
+## Current package acceptance evidence
+
+Exact source `fc4fa54b06d000f0449e3875ffea11c7ca10a8bb` passed all four jobs in [GitHub Actions 41231246497](https://github.com/o-kobylianskyi/family-points/actions/runs/41231246497). Backend: 280 tests, zero failures/errors/skips; 17 real Spring/JPA/PostgreSQL scenarios. The current 18-entry slot/exchange/ledger package is source/CI verified. Remaining source groups above are still OPEN; nothing was reset or deployed.

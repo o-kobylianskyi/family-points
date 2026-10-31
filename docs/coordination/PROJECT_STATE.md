@@ -117,3 +117,7 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 ## 2026-10-31 — Backend slot/exchange/ledger fencing (source; CI pending)
 - Eighteen additional write entries fenced; internal point/reputation postings preserve validated family epoch through their parent transaction, including safe suspension/resumption and cleanup. Detached currency input is rechecked within family scope.
 - Remaining direct/upstream writers are inventoried in requests/BKL002_REMAINING_WRITER_AUDIT_20261031.md. Full reset safety/execute and DEV/Release gates remain incomplete. No real reset or deployment.
+
+## 2026-10-31 — Backend slot/exchange/ledger fence verified
+- Exact source `fc4fa54b06d000f0449e3875ffea11c7ca10a8bb`, all-green CI https://github.com/o-kobylianskyi/family-points/actions/runs/41231246497 . Backend 280 PASS, including 17 actual Spring/JPA/PostgreSQL service scenarios.
+- Eighteen slot/exchange/point/reputation entry points and transaction-scoped validated-epoch reuse are verified in CI. Remaining writer inventory and full reset/QA/Release gates stay open. No deployment or real data reset.
