@@ -306,3 +306,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Negative access-control tests staged (not yet run)
 - Added qa/e2e/tests/reset-access-control.spec.js (commit 56e34c9): unauthenticated GET /workspaces/14/data-reset/preview must be 401, and logged-out navigation to /settings must deny access to reset panel. No credentials and no mutations.
 - Baseline full smoke: 8/8 PASS as confirmed by user. New tests are **pending execution**; do not count them as passing until user runs them.
+
+
+## 2026-10-31 — Full local Playwright suite 10/10 PASS
+- User reported all ten Chromium tests PASS with QA credentials configured; no skips or failures in listed results.
+- Includes 142-template catalog, reset safety, synthetic epoch notification, anonymous preview 401, logged-out settings guard, four locales, BKL-002 read-only preview/plan, login and authenticated templates/settings.
+- BKL-002 destructive reset, transactional rollback and cross-family isolation remain OUT OF SCOPE and unverified. Proceed only with read-only/validation-negative checks on existing workspace.
