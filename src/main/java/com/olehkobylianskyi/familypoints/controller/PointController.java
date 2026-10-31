@@ -4,6 +4,8 @@ import com.olehkobylianskyi.familypoints.dto.PointBalanceResponse;
 import com.olehkobylianskyi.familypoints.dto.PointOperationRequest;
 import com.olehkobylianskyi.familypoints.dto.PointTransactionResponse;
 import com.olehkobylianskyi.familypoints.service.PointService;
+import com.olehkobylianskyi.familypoints.service.PointMutationService;
+import com.olehkobylianskyi.familypoints.security.WorkspaceDataEpochFilter;
 import jakarta.validation.Valid;
 import com.olehkobylianskyi.familypoints.dto.OfflinePointOperationRequest;
 import com.olehkobylianskyi.familypoints.dto.PointOperationTypedRequest;
@@ -21,9 +23,11 @@ import java.util.List;
 public class PointController {
 
     private final PointService pointService;
+    private final PointMutationService mutations;
 
-    public PointController(PointService pointService) {
+    public PointController(PointService pointService, PointMutationService mutations) {
         this.pointService = pointService;
+        this.mutations = mutations;
     }
 
     @PostMapping("/offline/{operation}")
@@ -32,14 +36,11 @@ public class PointController {
             @PathVariable Long workspaceId,
             @PathVariable Long memberId,
             @PathVariable String operation,
-            @Valid @RequestBody OfflinePointOperationRequest request
+            @Valid @RequestBody OfflinePointOperationRequest request,
+            @RequestHeader(name = WorkspaceDataEpochFilter.HEADER, required = false) Long expectedEpoch
     ) {
         return PointTransactionResponse.from(
-                pointService.applyOfflineOperation(
-                        workspaceId, memberId,
-                        request.getOperationId(), request.getPointTypeId(), operation,
-                        request.getAmount(), request.getDescription()
-                )
+                mutations.applyOfflineOperation(workspaceId, memberId, operation, request, expectedEpoch)
         );
     }
 
@@ -49,11 +50,11 @@ public class PointController {
             @PathVariable Long workspaceId,
             @PathVariable Long memberId,
             @PathVariable String operation,
-            @Valid @RequestBody PointOperationTypedRequest request
+            @Valid @RequestBody PointOperationTypedRequest request,
+            @RequestHeader(name = WorkspaceDataEpochFilter.HEADER, required = false) Long expectedEpoch
     ) {
-        return PointTransactionResponse.from(pointService.applyTypedManualOperation(
-                workspaceId, memberId, request.getPointTypeId(),
-                operation, request.getAmount(), request.getDescription()
+        return PointTransactionResponse.from(mutations.applyTypedManualOperation(
+                workspaceId, memberId, operation, request, expectedEpoch
         ));
     }
 
@@ -62,15 +63,11 @@ public class PointController {
     public PointTransactionResponse earn(
             @PathVariable Long workspaceId,
             @PathVariable Long memberId,
-            @Valid @RequestBody PointOperationRequest request
+            @Valid @RequestBody PointOperationRequest request,
+            @RequestHeader(name = WorkspaceDataEpochFilter.HEADER, required = false) Long expectedEpoch
     ) {
         return PointTransactionResponse.from(
-                pointService.earn(
-                        workspaceId,
-                        memberId,
-                        request.getAmount(),
-                        request.getDescription()
-                )
+                mutations.applyManualOperation(workspaceId, memberId, "earn", request, expectedEpoch)
         );
     }
 
@@ -79,15 +76,11 @@ public class PointController {
     public PointTransactionResponse spend(
             @PathVariable Long workspaceId,
             @PathVariable Long memberId,
-            @Valid @RequestBody PointOperationRequest request
+            @Valid @RequestBody PointOperationRequest request,
+            @RequestHeader(name = WorkspaceDataEpochFilter.HEADER, required = false) Long expectedEpoch
     ) {
         return PointTransactionResponse.from(
-                pointService.spend(
-                        workspaceId,
-                        memberId,
-                        request.getAmount(),
-                        request.getDescription()
-                )
+                mutations.applyManualOperation(workspaceId, memberId, "spend", request, expectedEpoch)
         );
     }
 
@@ -96,15 +89,11 @@ public class PointController {
     public PointTransactionResponse penalty(
             @PathVariable Long workspaceId,
             @PathVariable Long memberId,
-            @Valid @RequestBody PointOperationRequest request
+            @Valid @RequestBody PointOperationRequest request,
+            @RequestHeader(name = WorkspaceDataEpochFilter.HEADER, required = false) Long expectedEpoch
     ) {
         return PointTransactionResponse.from(
-                pointService.penalty(
-                        workspaceId,
-                        memberId,
-                        request.getAmount(),
-                        request.getDescription()
-                )
+                mutations.applyManualOperation(workspaceId, memberId, "penalty", request, expectedEpoch)
         );
     }
 

@@ -97,3 +97,7 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 - Four receiving-track requests `XTR-20261023-P-01` Backend, `-02` Web, `-03` Android and `-04` Release now filed; read them via `docs/coordination/requests/README.md`.
 - At inspection, Backend Media PR #5 `e7e18bc` remains draft with CI success (run 39863949599), unmerged; calendar PR #4 V35 likewise unmerged. Media migration renamed V36; combined V35/V36 integration and old DB upgrade still need proof. Private target ACL, WebP, catalog binaries, DTO and cleanup remain open.
 - The 11 later Web static reference assets were not present in Git's `frontend/public/assets/soft-family/reference/`; static design package independent of Backend DB media. This snapshot is source/CI inspection, NOT running BETA confirmation.
+
+## 2026-10-31 — Backend BKL-002 point mutation fence (source, awaiting CI)
+- PointController mutations now pass original client epoch into a shared family-lock/ledger transaction via PointMutationService. No API body/schema change. Test coverage includes real Spring/JPA/JDBC transaction participation on disposable PostgreSQL.
+- This protects only the five HTTP point mutation routes. Other business writers, complete reset dependency closure and execute acceptance are pending; reset execution remains disabled. No deployment or real data cleanup.

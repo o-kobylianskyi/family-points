@@ -125,3 +125,9 @@
 
 Never remove an unresolved item to tidy the register. Close only after affected consumers acknowledge and required verification is evidenced.
 
+
+## 2026-10-31 — IMP-0009 Backend point mutation transaction fence
+- Baseline: main `fec9cfb927e1b8f1a3446cb55ec005d28908de8f`. Existing epoch header, payloads and epoch-zero compatibility remain unchanged.
+- PointController's five HTTP mutation routes explicitly forward the submitted epoch to a transactional PointMutationService. The family lock and epoch check precede member locks, offline idempotency lookup and point posting; reads remain on PointService.
+- Scope excludes internal task/reward/group ledger writes. Execute remains disabled; full writer integration and consumer/Release acceptance remain blockers under IMP-0009.
+- PostgreSQL coverage uses real Spring proxies, JpaTransactionManager and ledger repositories; cloud CI is required before claiming PASS. No schema change, deployment or real-family reset.

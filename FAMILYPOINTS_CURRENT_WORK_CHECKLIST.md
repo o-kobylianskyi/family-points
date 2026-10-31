@@ -1427,3 +1427,10 @@ Before each substantial implementation batch:
 - [ ] Obtain Architecture, Web, Android and Release impact/contract ACK and close remaining timezone migration compatibility questions.
 - [ ] Complete independent Android CI, real client integration, expanded tenant and production-like migration/rollback checks.
 - [ ] Review/merge PR #4; only Release approves subsequent BETA deployment.
+
+## 2026-10-31 — BKL-002 Backend transactional writer integration
+- [x] Wire all five PointController HTTP mutations through family-lock/epoch/ledger transaction boundary.
+- [x] Add route/guard-order and disposable PostgreSQL Spring/JPA service regression coverage.
+- [ ] Confirm exact source SHA cloud CI, including the new PostgreSQL service tests.
+- [ ] Integrate task/reward/exchange/reputation/group/template/media and scheduled writer paths; verify common lock order.
+- [ ] Complete reset dependency closure, reauthentication proof, atomic execute/audit/idempotency/epoch/onboarding and disposable DEV QA before Release.
