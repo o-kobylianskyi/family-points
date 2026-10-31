@@ -233,3 +233,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Read-only DEV probe still shows NO families.data_epoch column (information_schema), private templates=4, activation requests=0. Flyway version query was safety-blocked; last successful probe had V41 and no V42. No claim of updated DEV schema.
 - Backend journal now includes transaction-mandatory WorkspaceEpochTransactionGuard and SELECT data_epoch FOR UPDATE, but expressly NOT wired into all mutation transactions; BKL-002 reset challenge/execute contract published as proposal only (not implemented). This does not make reset safe or ready for E2E.
 - QA remains BLOCKED for epoch>0 / destructive reset; Backend/Release to pin running DEV SHA and migrate schema, then implement atomic execute and lock write paths. No database mutations or reset by QA.
+
+
+## 2026-10-31 — BKL-002 read-only preview/plan QA intake
+- Current safe API contract is GET /workspaces/{workspaceId}/data-reset/preview, POST /plan; /prepare and /confirm are non-executable, and /confirm is acknowledgment, not reauthentication. /challenge and /execute proposed only. No reset authorization.
+- P0 QA pending: scoped category counts/preserved identities/executable=false, empty plan, plan dependencies/blockers, cross-family and non-admin deny, A-B-A stale response, rapid selection race, four-language blockers. No authenticated browser/API evidence this pass.
+- Live DEV read-only SQL: Flyway V42 absent and families.data_epoch absent; private templates count=4. Activation table query blocked. BKL-002 runtime/epoch E2E blocked until compatible deployment and transactional guard integration. No database mutations.
