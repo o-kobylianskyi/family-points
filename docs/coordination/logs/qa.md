@@ -366,3 +366,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Test2 child own family 11 Preview 403; Test2 accessing Test family 14: Preview 401, Plan 401.
 - No reset execution or deletion. Confirmed endpoint-specific authorization, not comprehensive tenant isolation. Backend should review cross-tenant 401 versus 403/404 response semantics.
 - Next QA: real dataEpoch/current-generation and stale-write fencing tests on disposable fixtures, only with explicit safeguards.
+
+
+## 2026-10-31 — Real dataEpoch read-only tenant tests staged
+- Added `qa/e2e/tests/epoch-access.spec.js` (commit 3dc7402), two Chromium tests: Test family 14 and Test2 family 11 must each get own authenticated `GET /data-epoch` 200, valid workspaceId and safe nonnegative integer dataEpoch, and denial (401/403/404) for other family.
+- No mutations/epoch increments/offline replay. Pending local test run. Last confirmed cross-family Preview/Plan isolation 2/2 PASS. Future stale-write concurrency assertions require disposable fixtures and explicit gate.
