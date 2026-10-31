@@ -324,3 +324,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Added `WorkspaceEpochConcurrencyPostgresTest` using disposable PostgreSQL 18 Testcontainers: lock family row in a reset-shaped transaction, increment epoch, verify concurrent writer using `WorkspaceEpochTransactionGuard` rejects stale epoch and cannot change family name. Second test simulates transaction failure and asserts epoch rolls back.
 - Source `87de4ec1cb06eda11e317911284f219810350223`. No actual reset endpoint enabled or real user data touched. Requires exact-head CI confirmation.
 - **Important**: test proves guard behavior when participating writers use it; business mutation endpoints still require integration and complete FK graph; no claim that the system is fully race-safe.
+
+## 2026-10-31 — BKL-002 multi-family row-lock isolation regression
+- Added disposable PostgreSQL Testcontainers regression `lockingOneWorkspaceDoesNotBlockWritesToAnotherWorkspace` in `WorkspaceEpochConcurrencyPostgresTest`. Locks family A in an open transaction; verifies family B can validate epoch and commit a write independently while A stays locked. Commit `ac1325d2e298a9788f21fe21592cbbfd5aa30ca3`.
+- Inspected `TaskService` and `TaskController`: many transaction-scoped mutation paths, but shared `WorkspaceEpochTransactionGuard` is not currently called by those services. The HTTP epoch filter alone is TOCTOU-prone, so **do not approve reset execute** until all writer paths have the guard inside their own transactions and concurrency QA passes.
+- No production/DEV database writes, deployments or actual reset performed; current CI result still unconfirmed.
