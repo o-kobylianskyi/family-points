@@ -324,3 +324,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - User replied `13+`; no full numbered test output supplied, so exact executed pass count cannot be independently confirmed.
 - Added 2 anonymous negative tests in `qa/e2e/tests/reset-access-control.spec.js` (commit 419dee2): POST reset/plan and GET workspace/data-epoch each require 401 without JWT. These must not make any authorized changes.
 - Repository suite now defines 14 tests (prior 12 + 2), pending full local execution. Reset execute is still disabled.
+
+
+## 2026-10-31 — Reload safety regression staged
+- User reported `15+` in reply to prior QA run but without full console summary; treat as positive progress, exact all-pass count not independently verified.
+- Added a new isolated QA Playwright test (commit 374b479) confirming reset Preview Reload preserves category count, clears selection (Plan remains disabled), and emits no prepare/confirm/challenge/execute requests. Test not yet run by user.
+- Next: run `npm test` with QA credentials set. No destructive operations authorized.
