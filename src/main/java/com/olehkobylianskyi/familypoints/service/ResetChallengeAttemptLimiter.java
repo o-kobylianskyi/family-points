@@ -14,7 +14,7 @@ public class ResetChallengeAttemptLimiter {
     public ResetChallengeAttemptLimiter(JdbcTemplate db) { this.db=db; }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void checkAndRecord(long workspaceId,long accountId) {
+    public int checkAndRecord(long workspaceId,long accountId) {
         Integer attempts=db.queryForObject("""
                 INSERT INTO workspace_reset_reauth_limits
                   (workspace_id,account_id,window_started_at,failed_attempts)
@@ -32,7 +32,6 @@ public class ResetChallengeAttemptLimiter {
                   END
                 RETURNING failed_attempts
                 """,Integer.class,workspaceId,accountId);
-        if(attempts==null || attempts>5)
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,"RESET_REAUTH_RATE_LIMIT");
+        return attempts==null?6:attempts;
     }
 }
