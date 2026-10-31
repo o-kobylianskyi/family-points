@@ -18,6 +18,8 @@ import {
   googleAuth as googleAuthRequest,
 } from '../api/authApi'
 
+import { observeWorkspaceEpoch } from '../api/client'
+
 const AuthContext = createContext(null)
 
 const LAST_ACTIVITY_KEY = 'lastActivityAt'
@@ -73,6 +75,19 @@ export function AuthProvider({ children }) {
     }
     window.addEventListener('workspace:data-epoch-changed', changed)
     return () => window.removeEventListener('workspace:data-epoch-changed', changed)
+  }, [currentUser?.workspaceId])
+
+  // Prime the in-memory generation baseline on family activation. Failure must
+  // never fabricate an epoch or silently submit any offline/queued mutation.
+  useEffect(() => {
+    const workspaceId = currentUser?.workspaceId
+    const token = localStorage.getItem('accessToken')
+    if (!workspaceId || !token) return
+    let active = true
+    observeWorkspaceEpoch(token, workspaceId).catch(error => {
+      if (active && error.message === 'WORKSPACE_DATA_EPOCH_CHANGED') setEpochChanged(true)
+    })
+    return () => { active = false }
   }, [currentUser?.workspaceId])
 
   const markActivity = () => {
