@@ -6,6 +6,7 @@ import com.olehkobylianskyi.familypoints.android.data.DashboardData
 
 /** Read-only dated snapshot for the home screen; never an offline spending permit. */
 class OfflineDashboardStore(context: Context) {
+    private val appContext = context.applicationContext
     private val prefs = context.applicationContext.getSharedPreferences(
         "fp_dashboard_snapshots", Context.MODE_PRIVATE
     )
@@ -13,6 +14,29 @@ class OfflineDashboardStore(context: Context) {
 
     private fun key(workspaceId: Long, memberId: Long, date: String): String =
         "w${workspaceId}_m${memberId}_d${date}"
+
+    fun clearWorkspace(workspaceId: Long) {
+        val prefix = "w${workspaceId}_m"
+        val editor = prefs.edit()
+        prefs.all.keys.filter { it.startsWith(prefix) }.forEach { editor.remove(it) }
+        check(editor.commit())
+    }
+
+    /**
+     * Invoked only after authenticated server GET /data-epoch succeeds.
+     * An actual epoch mismatch quarantines pending operations, and removes
+     * only workspace-scoped read-only snapshots.
+     */
+    fun reconcileAuthenticatedEpoch(workspaceId: Long, serverEpoch: Long) {
+        OfflinePointsQueueStore(appContext).use { queue ->
+            val previous = queue.knownEpoch(workspaceId)
+            if (previous != null && previous != serverEpoch) {
+                WorkspaceResetCacheCoordinator(appContext).quarantineAndInvalidate(workspaceId)
+                clearWorkspace(workspaceId)
+            }
+            queue.observeEpoch(workspaceId, serverEpoch)
+        }
+    }
 
     fun load(workspaceId: Long, memberId: Long, date: String): DashboardData? = try {
         prefs.getString(key(workspaceId, memberId, date), null)
