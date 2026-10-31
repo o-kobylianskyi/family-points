@@ -289,3 +289,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Root cause found: resetApi read() omits await
 - User's latest Playwright: independently authenticated reset preview API parses JSON, but React shows 'Could not load data', browserErrors=[] and no category checkboxes. Source audit identified exact Web bug: frontend/src/api/resetApi.js `read(response)` received Promise<Response> from `apiRequest()` and immediately inspected `response.ok`, causing false RESET_API_ERROR. Fixed with `response = await response` in commit ef8d6446. Affects preview and plan readers.
 - Fix committed but NOT YET runtime-tested. Next user action: pull main, let Vite hot reload, rerun isolated reset preview/plan Playwright. No reset or DB changes.
+
+
+## 2026-10-31 — BKL-002 Preview/Plan Playwright regression PASS after Web fix
+- User reran isolated `npx playwright test tests/reset-preview-i18n.spec.js -g "preview and dependency plan"` after frontend/src/api/resetApi.js missing-await fix ef8d6446: 1/1 Chromium PASS (2.1s test, 3.0s run). Verified runtime read-only preview category rendering, one category dependency plan, `executionEnabled=false`/`executable=false`, no prepare/challenge/confirm/execute.
+- This closes browser regression caused by unresolved Promise<Response>. The full 8-test suite has NOT been rerun after fix, and BKL-002 destructive execute, epoch transaction safety, cross-tenant and onboarding are NOT covered by this PASS.
