@@ -304,7 +304,7 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf<CurrentUserResponse?>(null)
                 }
 
-                var epochGate by remember { mutableStateOf("checking") }
+                var epochGate by remember(currentUser?.workspaceId, currentUser?.memberId, status) { mutableStateOf("checking") }
                 var epochRetry by remember { mutableStateOf(0) }
 
                 // Validate the currently selected family's generation before displaying
