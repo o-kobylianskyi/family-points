@@ -30,6 +30,7 @@ interface PointsApi {
     @POST("workspaces/{workspaceId}/members/{memberId}/points/offline/{operation}")
     suspend fun replayOffline(
         @Header("Authorization") authorization: String,
+        @Header("X-Workspace-Data-Epoch") dataEpoch: Long,
         @Path("workspaceId") workspaceId: Long,
         @Path("memberId") memberId: Long,
         @Path("operation") operation: String,
