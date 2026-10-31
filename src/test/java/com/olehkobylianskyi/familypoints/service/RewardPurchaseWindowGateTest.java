@@ -22,7 +22,7 @@ class RewardPurchaseWindowGateTest {
                 mock(PointTypeRepository.class),mock(RewardCategoryRepository.class),
                 rewards,requests,mock(RewardRequirementRepository.class),purchases,
                 mock(RewardObligationRepository.class),mock(TaskDefinitionRepository.class),
-                mock(TaskInstanceRepository.class),mock(ReputationService.class),points,gate);
+                mock(TaskInstanceRepository.class),mock(ReputationService.class),points,gate, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
     }
 
     @Test void directPurchaseOutsideWindowDoesNotChargeOrPersist() {

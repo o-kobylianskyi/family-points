@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class TaskManagementViewTest {
+    @org.mockito.Mock com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     @Mock WorkspaceRepository workspaces;
     @Mock TaskDefinitionRepository definitions;
     @Mock TaskAuthorizationService authorization;

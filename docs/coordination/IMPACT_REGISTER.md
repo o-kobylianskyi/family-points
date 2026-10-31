@@ -131,3 +131,9 @@ Never remove an unresolved item to tidy the register. Close only after affected 
 - PointController's five HTTP mutation routes explicitly forward the submitted epoch to a transactional PointMutationService. The family lock and epoch check precede member locks, offline idempotency lookup and point posting; reads remain on PointService.
 - Scope excludes internal task/reward/group ledger writes. Execute remains disabled; full writer integration and consumer/Release acceptance remain blockers under IMP-0009.
 - PostgreSQL coverage uses real Spring proxies, JpaTransactionManager and ledger repositories; cloud CI is required before claiming PASS. No schema change, deployment or real-family reset.
+
+## 2026-10-31 — IMP-0009 task/reward service transaction fencing
+- Existing client epoch header and epoch-zero compatibility remain unchanged. TaskService (21 writes), RewardService (10, including obligation refresh), task reward negotiation (5), availability update and generation now take the family fence inside their transaction before domain access.
+- Client-originated service calls use the original request header, never a freshly read epoch as proof. No-request ordinary writes remain compatible only at epoch zero; explicit server-derived generation/deadline paths lock current state and reload entities. HTTP-triggered system paths still validate the submitted header.
+- Deadline scanning uses one transaction per workspace including candidate reads and penalty posting, covering scheduler same-bean invocation. Read-triggered obligation refresh locks current state without requiring a mutation header on GET.
+- API bodies, permissions and database schema unchanged; constructor changes are internal. Full writer coverage (slots, groups, exchanges, templates, media and other direct repository paths), final reset dependency/reauth/execute acceptance and consumer/Release sign-off remain OPEN. No deploy or reset.

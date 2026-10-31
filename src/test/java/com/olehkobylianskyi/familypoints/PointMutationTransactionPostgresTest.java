@@ -55,8 +55,18 @@ class PointMutationTransactionPostgresTest {
     @Configuration
     @EnableTransactionManagement
     @EnableJpaRepositories(basePackageClasses = PointTransactionRepository.class)
-    @Import({PointMutationService.class, PointService.class, WorkspaceEpochTransactionGuard.class})
+    @Import({PointMutationService.class, PointService.class, WorkspaceEpochTransactionGuard.class,
+            RewardService.class, RewardAvailabilityService.class, ReputationService.class,
+            TaskService.class, TaskGenerationService.class, TaskDeadlineService.class,
+            TaskAuditService.class, TaskRewardNegotiationService.class})
     static class Config {
+        @Bean java.time.Clock clock() { return java.time.Clock.systemUTC(); }
+        @Bean com.olehkobylianskyi.familypoints.security.CurrentUserService currentUser() {
+            return org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        }
+        @Bean TaskAuthorizationService taskAuthorization() {
+            return org.mockito.Mockito.mock(TaskAuthorizationService.class);
+        }
         @Bean DataSource dataSource() {
             return new DriverManagerDataSource(DB.getJdbcUrl(), DB.getUsername(), DB.getPassword());
         }
@@ -188,6 +198,141 @@ class PointMutationTransactionPostgresTest {
             executor.shutdownNow();
             assertTrue(executor.awaitTermination(20, TimeUnit.SECONDS));
         }
+    }
+
+
+    @AfterEach void clearRequest() {
+        org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+    }
+
+    private <T> T withEpoch(long epoch, java.util.function.Supplier<T> operation) {
+        var request = new org.springframework.mock.web.MockHttpServletRequest();
+        request.setMethod("POST");
+        request.addHeader("X-Workspace-Data-Epoch", Long.toString(epoch));
+        var previous = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+                new org.springframework.web.context.request.ServletRequestAttributes(request));
+        try { return operation.get(); }
+        finally {
+            if (previous == null) org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+            else org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(previous);
+        }
+    }
+
+    private com.olehkobylianskyi.familypoints.entity.TaskDefinition task(Fixture fixture) {
+        return tx.execute(status -> {
+            var workspace = context.getBean(WorkspaceRepository.class).findById(fixture.workspace()).orElseThrow();
+            var member = context.getBean(WorkspaceMemberRepository.class).findById(fixture.member()).orElseThrow();
+            var definition = new com.olehkobylianskyi.familypoints.entity.TaskDefinition(
+                    workspace, member, "Disposable task", null, false,
+                    com.olehkobylianskyi.familypoints.entity.TaskRecurrenceType.DAILY,
+                    java.time.LocalDate.now(), null, null, null, null, null, null, null, null);
+            return context.getBean(TaskDefinitionRepository.class).saveAndFlush(definition);
+        });
+    }
+
+    private com.olehkobylianskyi.familypoints.dto.RewardCategoryRequest category() {
+        var input = new com.olehkobylianskyi.familypoints.dto.RewardCategoryRequest();
+        input.setName("Disposable category");
+        return input;
+    }
+
+    private long categoryCount(Fixture fixture) {
+        return sql.queryForObject("SELECT count(*) FROM reward_categories WHERE family_id=?",
+                Long.class, fixture.workspace());
+    }
+
+    @Test void taskServiceRejectsStaleRequestAndCurrentRequestPersistsInItsOwnTransaction() {
+        var fixture = fixture();
+        var definition = task(fixture);
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var tasks = context.getBean(TaskService.class);
+        var error = assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> tasks.setDefinitionActive(fixture.workspace(), definition.getId(), false)));
+        assertEquals(409, error.getStatusCode().value());
+        assertEquals(true, sql.queryForObject("SELECT active FROM task_definitions WHERE id=?", Boolean.class, definition.getId()));
+        var member = context.getBean(WorkspaceMemberRepository.class).findById(fixture.member()).orElseThrow();
+        org.mockito.Mockito.when(context.getBean(
+                com.olehkobylianskyi.familypoints.security.CurrentUserService.class).getCurrentMember()).thenReturn(member);
+        withEpoch(1L, () -> tasks.setDefinitionActive(fixture.workspace(), definition.getId(), false));
+        assertEquals(false, sql.queryForObject("SELECT active FROM task_definitions WHERE id=?", Boolean.class, definition.getId()));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM task_audit_events WHERE task_definition_id=?",
+                Long.class, definition.getId()));
+    }
+
+    @Test void rewardServiceRejectsStaleEpochAndRollsBackFlushedCategory() {
+        var fixture = fixture();
+        var rewards = context.getBean(RewardService.class);
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> rewards.createCategory(fixture.workspace(), category()))).getStatusCode().value());
+        assertEquals(0, categoryCount(fixture));
+        assertThrows(IllegalStateException.class, () -> tx.executeWithoutResult(status -> withEpoch(1L, () -> {
+            rewards.createCategory(fixture.workspace(), category());
+            throw new IllegalStateException("Injected failure after category insert");
+        })));
+        assertEquals(0, categoryCount(fixture));
+        withEpoch(1L, () -> rewards.createCategory(fixture.workspace(), category()));
+        assertEquals(1, categoryCount(fixture));
+        // GET-derived obligation refresh can run at nonzero epoch without a mutation header.
+        assertTrue(rewards.listOpenObligations(fixture.workspace(), fixture.member(), true).isEmpty());
+    }
+
+    @Test void resetFencesRealTaskServiceWhileAnotherFamilyCreatesRewardCategory() throws Exception {
+        var fixture = fixture();
+        var other = fixture();
+        var definition = task(fixture);
+        var release = new CountDownLatch(1);
+        var locked = new CountDownLatch(1);
+        var pid = new CompletableFuture<Integer>();
+        var executor = Executors.newFixedThreadPool(3);
+        try {
+            Future<?> reset = executor.submit(() -> tx.executeWithoutResult(status -> {
+                pid.complete(sql.queryForObject("SELECT pg_backend_pid()", Integer.class));
+                sql.queryForObject("SELECT data_epoch FROM families WHERE id=? FOR UPDATE", Long.class, fixture.workspace());
+                locked.countDown();
+                await(release);
+                sql.update("UPDATE families SET data_epoch=data_epoch+1 WHERE id=?", fixture.workspace());
+            }));
+            assertTrue(locked.await(15, TimeUnit.SECONDS));
+            Future<?> writer = executor.submit(() -> withEpoch(0L, () -> context.getBean(TaskService.class)
+                    .setDefinitionActive(fixture.workspace(), definition.getId(), false)));
+            awaitDatabaseWait(pid.get(5, TimeUnit.SECONDS));
+            Future<?> unrelated = executor.submit(() -> withEpoch(0L, () -> context.getBean(RewardService.class)
+                    .createCategory(other.workspace(), category())));
+            unrelated.get(10, TimeUnit.SECONDS);
+            assertEquals(1, categoryCount(other));
+            release.countDown();
+            reset.get(15, TimeUnit.SECONDS);
+            var failure = assertThrows(ExecutionException.class, () -> writer.get(15, TimeUnit.SECONDS));
+            assertEquals(409, assertInstanceOf(ResponseStatusException.class, failure.getCause()).getStatusCode().value());
+            assertEquals(true, sql.queryForObject("SELECT active FROM task_definitions WHERE id=?", Boolean.class, definition.getId()));
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+            assertTrue(executor.awaitTermination(20, TimeUnit.SECONDS));
+        }
+    }
+
+    @Test void systemGenerationReloadsAndDoesNotResurrectTaskDeletedByReset() {
+        var fixture = fixture();
+        var detached = task(fixture);
+        tx.executeWithoutResult(status -> {
+            context.getBean(TaskDefinitionRepository.class).deleteById(detached.getId());
+            sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        });
+        assertTrue(context.getBean(TaskGenerationService.class)
+                .generateForDefinition(detached, java.time.LocalDate.now()).isEmpty());
+        assertEquals(0L, sql.queryForObject("SELECT count(*) FROM task_instances WHERE task_definition_id=?",
+                Long.class, detached.getId()));
+    }
+
+    @Test void automaticDeadlineScanUsesCurrentGenerationAfterNonzeroEpoch() {
+        var fixture = fixture();
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        assertTrue(context.getBean(TaskDeadlineService.class)
+                .processDeadlines(fixture.workspace(), java.time.LocalDateTime.now()).isEmpty());
+        assertEquals(1L, sql.queryForObject("SELECT data_epoch FROM families WHERE id=?", Long.class, fixture.workspace()));
     }
 
     private static void await(CountDownLatch latch) {

@@ -14,6 +14,7 @@ import java.util.Set;
 
 @Service
 public class RewardService {
+    private final WorkspaceEpochTransactionGuard epochGuard;
 
     private final WorkspaceRepository workspaces;
     private final WorkspaceMemberRepository members;
@@ -44,8 +45,10 @@ public class RewardService {
             TaskInstanceRepository taskInstances,
             ReputationService reputationService,
             PointService pointService,
-            RewardAvailabilityService availabilityService
+            RewardAvailabilityService availabilityService,
+            WorkspaceEpochTransactionGuard epochGuard
     ) {
+        this.epochGuard = epochGuard;
         this.workspaces = workspaces;
         this.members = members;
         this.pointTypes = pointTypes;
@@ -72,6 +75,7 @@ public class RewardService {
 
     @Transactional
     public RewardCategoryResponse createCategory(Long workspaceId, RewardCategoryRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         Workspace workspace = getWorkspace(workspaceId);
         RewardCategory saved = categories.save(
                 new RewardCategory(workspace, request.getName().trim(), request.getSortOrder())
@@ -98,6 +102,7 @@ public class RewardService {
 
     @Transactional
     public RewardDefinitionResponse createReward(Long workspaceId, RewardDefinitionRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         Workspace workspace = getWorkspace(workspaceId);
         PointType pointType = getPointType(workspaceId, request.getPointTypeId());
 
@@ -143,6 +148,7 @@ public class RewardService {
 
     @Transactional
     public RewardDefinitionResponse updateReward(Long workspaceId, Long rewardId, RewardDefinitionRequest input) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         RewardDefinition reward = rewards.findByIdAndWorkspaceId(rewardId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reward not found: " + rewardId));
         if (input.getRewardKind() == RewardKind.STANDARD && input.getDefaultDurationMinutes() != null) {
@@ -184,6 +190,7 @@ public class RewardService {
             Long memberId,
             RewardRequestCreateRequest request
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         Workspace workspace = getWorkspace(workspaceId);
         WorkspaceMember member = getMember(workspaceId, memberId);
 
@@ -228,6 +235,7 @@ public class RewardService {
             Long requestId,
             RewardRequestReviewRequest review
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         RewardRequest rewardRequest = getRequest(workspaceId, requestId);
 
         Long pointTypeId = review.getPointTypeId();
@@ -283,6 +291,7 @@ public class RewardService {
 
     @Transactional
     public RewardRequestResponse rejectRequest(Long workspaceId, Long requestId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         RewardRequest request = getRequest(workspaceId, requestId);
         request.reject();
         return toRequestResponse(request);
@@ -294,6 +303,7 @@ public class RewardService {
             Long memberId,
             Long rewardDefinitionId
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         WorkspaceMember member = lockMemberForPurchase(workspaceId, memberId);
         RewardDefinition reward = rewards.findForPurchase(rewardDefinitionId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reward not found: " + rewardDefinitionId));
@@ -360,6 +370,7 @@ public class RewardService {
             Long memberId,
             Long requestId
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         WorkspaceMember member = lockMemberForPurchase(workspaceId, memberId);
         RewardRequest request = getRequest(workspaceId, requestId);
 
@@ -490,6 +501,7 @@ public class RewardService {
             Long currentMemberId,
             boolean canManage
     ) {
+        epochGuard.lockCurrentEpoch(workspaceId);
         if (canManage) {
             List<RewardObligation> open = obligations
                     .findByMemberWorkspaceIdAndStatusOrderByCreatedAtDesc(
@@ -513,6 +525,7 @@ public class RewardService {
 
     @Transactional
     public RewardRequestResponse refreshRequest(Long workspaceId, Long requestId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         RewardRequest request = getRequest(workspaceId, requestId);
         refreshRequestReadiness(request);
         return toRequestResponse(request);

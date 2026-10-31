@@ -31,7 +31,7 @@ class RewardRedemptionLimitTest {
                 mock(RewardRequestRepository.class), mock(RewardRequirementRepository.class),
                 purchases, mock(RewardObligationRepository.class),
                 mock(TaskDefinitionRepository.class), mock(TaskInstanceRepository.class),
-                mock(ReputationService.class), points, mock(RewardAvailabilityService.class));
+                mock(ReputationService.class), points, mock(RewardAvailabilityService.class), org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
 
         ResponseStatusException failure = assertThrows(ResponseStatusException.class,
                 () -> service.purchaseReward(8L, 3L, 11L));
@@ -65,7 +65,7 @@ class RewardRedemptionLimitTest {
                 mock(RewardRequestRepository.class), mock(RewardRequirementRepository.class),
                 purchases, mock(RewardObligationRepository.class),
                 mock(TaskDefinitionRepository.class), mock(TaskInstanceRepository.class),
-                mock(ReputationService.class), points, mock(RewardAvailabilityService.class));
+                mock(ReputationService.class), points, mock(RewardAvailabilityService.class), org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
 
         assertEquals(409, assertThrows(ResponseStatusException.class,
                 () -> service.purchaseReward(8L, 3L, 11L)).getStatusCode().value());

@@ -17,6 +17,7 @@ import java.util.Set;
 
 @Service
 public class TaskService {
+    private final WorkspaceEpochTransactionGuard epochGuard;
 
     private final TaskDefinitionRepository taskDefinitionRepository;
     private final TaskInstanceRepository taskInstanceRepository;
@@ -63,8 +64,10 @@ public class TaskService {
             TaskParticipantRepository taskParticipantRepository,
             TaskAuthorizationService taskAuthorizationService,
             TaskAuditService taskAuditService,
-            TaskRewardNegotiationService taskRewardNegotiationService
+            TaskRewardNegotiationService taskRewardNegotiationService,
+            WorkspaceEpochTransactionGuard epochGuard
     ) {
+        this.epochGuard = epochGuard;
         this.taskDefinitionRepository = taskDefinitionRepository;
         this.taskInstanceRepository = taskInstanceRepository;
         this.taskScheduleSlots = taskScheduleSlots;
@@ -121,6 +124,7 @@ public class TaskService {
             LocalTime dueTime,
             java.util.List<LocalTime> initialSlotTimes
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         taskAuthorizationService.requireCreate(workspaceId);
         Workspace workspace = getWorkspaceOrThrow(workspaceId);
         AssignmentPolicy policy = assignmentPolicy == null ? AssignmentPolicy.SINGLE_MEMBER : assignmentPolicy;
@@ -223,6 +227,7 @@ public class TaskService {
 
     @Transactional
     public TaskDefinition updateDefinition(Long workspaceId, Long definitionId, TaskDefinitionCreateRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
         requireDefinitionManagement(definition);
 
@@ -309,6 +314,7 @@ public class TaskService {
 
     @Transactional
     public TaskDefinition setDefinitionActive(Long workspaceId, Long definitionId, boolean active) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
         requireDefinitionManagement(definition);
         boolean changed = definition.isActive() != active;
@@ -528,6 +534,7 @@ public class TaskService {
             Long definitionId,
             LocalDate scheduledDate
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskDefinition definition =
                 getDefinitionOrThrow(
                         workspaceId,
@@ -570,6 +577,7 @@ public class TaskService {
     /** System-only materialization of an overdue slot; the deadline worker applies penalties separately. */
     @Transactional
     public TaskInstance materializeOverdueSlot(Long workspaceId, Long definitionId, LocalDate date, String slotKey) {
+        epochGuard.requireCurrentRequestOrSystemEpoch(workspaceId);
         TaskDefinition definition = taskDefinitionRepository.findForOccurrenceUpdate(definitionId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task definition not found"));
         if (!definition.isActive() || !definition.isMandatory()
@@ -591,11 +599,13 @@ public class TaskService {
 
     @Transactional
     public TaskInstance startScheduledOccurrence(Long workspaceId, Long definitionId, LocalDate date) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         return startScheduledOccurrence(workspaceId, definitionId, date, "default");
     }
 
     @Transactional
     public TaskInstance startScheduledOccurrence(Long workspaceId, Long definitionId, LocalDate date, String slotKey) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         taskAuthorizationService.requireWorkspace(workspaceId);
         TaskDefinition definition = taskDefinitionRepository.findForOccurrenceUpdate(definitionId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task definition not found: " + definitionId));
@@ -733,6 +743,7 @@ public class TaskService {
 
     @Transactional
     public TaskInstance claim(Long workspaceId, Long definitionId, LocalDate date, Long memberId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskDefinition definition = getDefinitionOrThrow(workspaceId, definitionId);
         WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
         taskAuthorizationService.requireClaimForSelf(definition, member);
@@ -764,6 +775,7 @@ public class TaskService {
 
     @Transactional
     public TaskInstance delegate(Long workspaceId, Long instanceId, Long toMemberId, String reason) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
         TaskDefinition definition = instance.getTaskDefinition();
         taskAuthorizationService.requireDelegate(instance);
@@ -855,6 +867,7 @@ public class TaskService {
             Long workspaceId,
             Long instanceId
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskInstance instance =
                 getInstanceForUpdateOrThrow(
                         workspaceId,
@@ -891,11 +904,13 @@ public class TaskService {
      */
     @Transactional
     public TaskInstance completeScheduledByManager(Long workspaceId, Long definitionId, LocalDate date) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         return completeScheduledByManager(workspaceId, definitionId, date, "default");
     }
 
     @Transactional
     public TaskInstance completeScheduledByManager(Long workspaceId, Long definitionId, LocalDate date, String slotKey) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskDefinition definition = taskDefinitionRepository.findForOccurrenceUpdate(definitionId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task definition not found"));
         taskAuthorizationService.requireManage(definition);
@@ -936,6 +951,7 @@ public class TaskService {
 
     @Transactional
     public TaskInstance pause(Long workspaceId, Long instanceId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
         taskAuthorizationService.requireExecute(instance);
 
@@ -955,6 +971,7 @@ public class TaskService {
 
     @Transactional
     public TaskInstance resume(Long workspaceId, Long instanceId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
         taskAuthorizationService.requireExecute(instance);
 
@@ -977,6 +994,7 @@ public class TaskService {
 
     @Transactional
     public TaskInstance cancel(Long workspaceId, Long instanceId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
         if (taskAuthorizationService.canManage(instance.getTaskDefinition())) {
             taskAuthorizationService.requireAdministrativeAction(instance);
@@ -1003,6 +1021,7 @@ public class TaskService {
 
     @Transactional
     public TaskInstance release(Long workspaceId, Long instanceId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
         taskAuthorizationService.requireExecute(instance);
         TaskDefinition definition = instance.getTaskDefinition();
@@ -1032,6 +1051,7 @@ public class TaskService {
             Long workspaceId,
             Long instanceId
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskInstance instance =
                 getInstanceForUpdateOrThrow(
                         workspaceId,
@@ -1082,6 +1102,7 @@ public class TaskService {
     /** Independent adult approval releases points and reputation only after the child requests completion. */
     @Transactional
     public TaskInstance approveChildCompletion(Long workspaceId, Long instanceId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
         WorkspaceMember approver = currentUserService.getCurrentMember();
         if (approver.getMemberType() == WorkspaceMemberType.CHILD
@@ -1271,6 +1292,7 @@ public class TaskService {
             Long workspaceId,
             Long instanceId
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskInstance instance =
                 getInstanceForUpdateOrThrow(
                         workspaceId,
@@ -1331,6 +1353,7 @@ public class TaskService {
     /** System-only deadline transition; no user or principal is available in a scheduled job. */
     @Transactional
     public TaskInstance missBySystem(Long workspaceId, Long instanceId) {
+        epochGuard.requireCurrentRequestOrSystemEpoch(workspaceId);
         TaskInstance instance = getInstanceForUpdateOrThrow(workspaceId, instanceId);
         if (instance.getStatus() != TaskInstanceStatus.PENDING
                 && instance.getStatus() != TaskInstanceStatus.IN_PROGRESS) return instance;
@@ -1410,6 +1433,7 @@ public class TaskService {
             TaskExcuseReason reason,
             String comment
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskInstance instance =
                 getInstanceForUpdateOrThrow(
                         workspaceId,

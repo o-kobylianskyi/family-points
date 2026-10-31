@@ -14,10 +14,14 @@ import java.util.*;
 
 @Service
 public class RewardAvailabilityService {
+    private final WorkspaceEpochTransactionGuard epochGuard;
     private final RewardDefinitionRepository rewards;
     private final Clock clock;
 
-    public RewardAvailabilityService(RewardDefinitionRepository rewards, Clock clock) {
+    public RewardAvailabilityService(RewardDefinitionRepository rewards, Clock clock,
+            WorkspaceEpochTransactionGuard epochGuard
+    ) {
+        this.epochGuard = epochGuard;
         this.rewards = rewards;
         this.clock = clock;
     }
@@ -107,6 +111,7 @@ public class RewardAvailabilityService {
 
     @Transactional
     public RewardAvailabilityResponse update(Long workspaceId, Long rewardId, RewardAvailabilityRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         RewardDefinition reward = rewards.findForPurchase(rewardId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reward not found"));
         validate(request);

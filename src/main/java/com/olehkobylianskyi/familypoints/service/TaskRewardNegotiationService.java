@@ -12,6 +12,7 @@ import java.util.List;
 
 @Service
 public class TaskRewardNegotiationService {
+    private final WorkspaceEpochTransactionGuard epochGuard;
 
     private final TaskRewardRequestRepository requests;
     private final TaskInstanceRepository taskInstances;
@@ -32,8 +33,10 @@ public class TaskRewardNegotiationService {
             WorkspaceRepository workspaces,
             CurrentUserService currentUser,
             PointService pointService,
-            ReputationService reputationService
+            ReputationService reputationService,
+            WorkspaceEpochTransactionGuard epochGuard
     ) {
+        this.epochGuard = epochGuard;
         this.requests = requests;
         this.taskInstances = taskInstances;
         this.pointTypes = pointTypes;
@@ -51,6 +54,7 @@ public class TaskRewardNegotiationService {
             Long instanceId,
             TaskRewardRequestCreateRequest input
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskInstance instance = getInstance(workspaceId, instanceId);
         WorkspaceMember requester = currentUser.getCurrentMember();
 
@@ -140,6 +144,7 @@ public class TaskRewardNegotiationService {
             Long requestId,
             TaskRewardRequestReviewRequest input
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         WorkspaceMember reviewer = currentUser.getCurrentMember();
         if (!canReview(reviewer)) {
             throw new IllegalArgumentException("Task reward request review access denied");
@@ -179,6 +184,7 @@ public class TaskRewardNegotiationService {
             Long requestId,
             String comment
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         WorkspaceMember reviewer = currentUser.getCurrentMember();
         if (!canReview(reviewer)) {
             throw new IllegalArgumentException("Task reward request review access denied");
@@ -198,6 +204,7 @@ public class TaskRewardNegotiationService {
             Long workspaceId,
             Long requestId
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         TaskRewardRequest request = getRequest(workspaceId, requestId);
         Long memberId = currentUser.getCurrentMemberId();
 
@@ -217,6 +224,9 @@ public class TaskRewardNegotiationService {
      */
     @Transactional
     public boolean processApprovedOverride(Long workspaceId, TaskInstance instance) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
+        instance = taskInstances.findByIdAndWorkspaceIdForUpdate(instance.getId(), workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task instance not found"));
         TaskRewardRequest request = requests
                 .findFirstByTaskInstanceIdAndStatusOrderByCreatedAtDesc(
                         instance.getId(),

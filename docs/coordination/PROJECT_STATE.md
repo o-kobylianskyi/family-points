@@ -105,3 +105,7 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 ## 2026-10-31 — Backend points epoch fence verified in GitHub CI
 - Source `dac13e7f`, compatible tested SHA `dce243d40e94bdac5b2a56d521b9bfdd4db866f4`, all-green run https://github.com/o-kobylianskyi/family-points/actions/runs/41212281999 . Backend 259 PASS, including four real Spring/JPA/PostgreSQL point-mutation tests.
 - Covers five HTTP point mutation routes; remaining writers and reset execute are still open. No deployment or family reset. Details in Backend journal.
+
+## 2026-10-31 — Backend task/reward service epoch fence (source; CI pending)
+- Task/reward/negotiation/availability transaction entries now validate the original request epoch before domain reads/locks. System generation reloads current entities after locking; deadline batches fence one family transaction before scanning. Hidden obligation-list writes lock current state.
+- No schema/API-body change, no reset execution or deployment. Full direct-writer coverage and destructive-operation acceptance are still incomplete; see Backend journal and IMP-0009.

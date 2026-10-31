@@ -24,6 +24,8 @@ public class TaskDeadlineService {
     private final WorkspaceRepository workspaces;
     private final TaskGenerationService generation;
     private final TaskScheduleSlotRepository slots;
+    private final WorkspaceEpochTransactionGuard epochGuard;
+    private final org.springframework.transaction.support.TransactionTemplate transactions;
 
     public TaskDeadlineService(
             TaskInstanceRepository taskInstanceRepository,
@@ -31,7 +33,9 @@ public class TaskDeadlineService {
             TaskDefinitionRepository definitions,
             WorkspaceRepository workspaces,
             TaskGenerationService generation,
-            TaskScheduleSlotRepository slots
+            TaskScheduleSlotRepository slots,
+            WorkspaceEpochTransactionGuard epochGuard,
+            org.springframework.transaction.PlatformTransactionManager transactionManager
     ) {
         this.taskInstanceRepository = taskInstanceRepository;
         this.taskService = taskService;
@@ -39,6 +43,8 @@ public class TaskDeadlineService {
         this.workspaces = workspaces;
         this.generation = generation;
         this.slots = slots;
+        this.epochGuard = epochGuard;
+        this.transactions = new org.springframework.transaction.support.TransactionTemplate(transactionManager);
     }
 
     /**
@@ -63,6 +69,15 @@ public class TaskDeadlineService {
             Long workspaceId,
             LocalDateTime now
     ) {
+        // TransactionTemplate also covers the scheduler's same-bean call.
+        // Discovery, materialization and penalty posting use one locked generation.
+        return transactions.execute(status -> {
+            epochGuard.requireCurrentRequestOrSystemEpoch(workspaceId);
+            return processDeadlinesLocked(workspaceId, now);
+        });
+    }
+
+    private List<TaskInstance> processDeadlinesLocked(Long workspaceId, LocalDateTime now) {
         for (TaskDefinition definition : definitions.findByWorkspaceIdAndActiveTrue(workspaceId)) {
             if (!definition.isMandatory() || definition.getAssignedMember() == null) continue;
             for (int daysAgo = 1; daysAgo >= 0; daysAgo--) {

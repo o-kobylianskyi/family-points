@@ -12,7 +12,7 @@ import static org.mockito.Mockito.*;
 class RewardAvailabilityServiceTest {
     private final RewardDefinitionRepository repository = mock(RewardDefinitionRepository.class);
     private final RewardAvailabilityService service = new RewardAvailabilityService(
-            repository, Clock.fixed(Instant.parse("2026-10-26T15:00:00Z"), ZoneOffset.UTC));
+            repository, Clock.fixed(Instant.parse("2026-10-26T15:00:00Z"), ZoneOffset.UTC), org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
 
     private RewardDefinition weeklyReward() {
         Workspace family = new Workspace("Example family");

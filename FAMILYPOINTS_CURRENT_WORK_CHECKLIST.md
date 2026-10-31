@@ -1439,3 +1439,10 @@ Before each substantial implementation batch:
 - [x] Source `dac13e7f` confirmed through compatible all-green SHA `dce243d40e94bdac5b2a56d521b9bfdd4db866f4`, Actions 41212281999; 259 backend tests PASS.
 - [x] Four PostgreSQL service tests establish transaction sharing, rollback, stale replay fencing and independent-family progress for HTTP point mutations.
 - [ ] Remaining business writer integration and full reset execute/QA/Release gate remain open; no data reset/deploy.
+
+## 2026-10-31 — BKL-002 task/reward writer integration
+- [x] Add family-first fences to task/reward/negotiation/availability transaction entries and scoped generation.
+- [x] Fence deadline discovery/materialization/penalties per family; reload detached generation inputs after locking.
+- [x] Cover hidden obligation-list writes without changing GET header requirements; add request-vs-system and actual service PostgreSQL tests.
+- [ ] Confirm cloud CI for this package; source integration alone is not test acceptance.
+- [ ] Audit remaining direct writers (including schedule slots, exchange, groups, templates and media), then finish reset dependency/reauth/atomic execute and disposable DEV QA.

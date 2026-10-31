@@ -14,6 +14,7 @@ import java.util.Optional;
 
 @Service
 public class TaskGenerationService {
+    private final WorkspaceEpochTransactionGuard epochGuard;
 
     private final TaskDefinitionRepository taskDefinitionRepository;
     private final TaskInstanceRepository taskInstanceRepository;
@@ -24,8 +25,10 @@ public class TaskGenerationService {
             TaskDefinitionRepository taskDefinitionRepository,
             TaskInstanceRepository taskInstanceRepository,
             TaskAuditService taskAuditService,
-            TaskScheduleSlotRepository scheduleSlots
+            TaskScheduleSlotRepository scheduleSlots,
+            WorkspaceEpochTransactionGuard epochGuard
     ) {
+        this.epochGuard = epochGuard;
         this.taskDefinitionRepository = taskDefinitionRepository;
         this.taskInstanceRepository = taskInstanceRepository;
         this.taskAuditService = taskAuditService;
@@ -37,6 +40,7 @@ public class TaskGenerationService {
             Long workspaceId,
             LocalDate date
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         List<TaskDefinition> definitions =
                 taskDefinitionRepository
                         .findByWorkspaceIdAndActiveTrue(workspaceId);
@@ -55,9 +59,17 @@ public class TaskGenerationService {
             TaskDefinition definition,
             LocalDate date
     ) {
-        if (definition == null || date == null || !definition.isActive()) {
+        if (definition == null || date == null) {
             return Optional.empty();
         }
+
+        Long workspaceId = definition.getWorkspace().getId();
+        Long definitionId = definition.getId();
+        epochGuard.requireCurrentRequestOrSystemEpoch(workspaceId);
+        // The supplied definition may have been discovered before a concurrent reset.
+        // Reload under the family lock; never recreate an instance from detached stale state.
+        definition = taskDefinitionRepository.findForOccurrenceUpdate(definitionId, workspaceId).orElse(null);
+        if (definition == null || !definition.isActive()) return Optional.empty();
 
         if (!shouldGenerate(definition, date)
                 || !scheduleSlots.findByTaskDefinitionIdOrderByScheduledTimeAscSlotKeyAsc(definition.getId()).isEmpty()) {

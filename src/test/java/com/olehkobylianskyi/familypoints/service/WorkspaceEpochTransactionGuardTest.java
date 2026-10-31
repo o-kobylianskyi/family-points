@@ -52,4 +52,41 @@ class WorkspaceEpochTransactionGuardTest {
         assertEquals(HttpStatus.NOT_FOUND,assertThrows(ResponseStatusException.class,
                 ()->guard.requireCurrentEpoch(7L,0L)).getStatusCode());
     }
+
+    @org.junit.jupiter.api.AfterEach void clearRequestContext() {
+        org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+    }
+
+    private void requestEpoch(String header) {
+        var request = new org.springframework.mock.web.MockHttpServletRequest();
+        if (header != null) request.addHeader("X-Workspace-Data-Epoch", header);
+        org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+                new org.springframework.web.context.request.ServletRequestAttributes(request));
+    }
+
+    @Test void requestEpochIsOriginalClientValueNotFreshDatabaseValue() {
+        epoch(3L);
+        requestEpoch("2");
+        assertEquals(HttpStatus.CONFLICT, assertThrows(ResponseStatusException.class,
+                () -> guard.requireCurrentRequestEpoch(7L)).getStatusCode());
+        requestEpoch("3");
+        assertEquals(3L, guard.requireCurrentRequestEpoch(7L));
+        for (String value : new String[]{"-1", "invalid", "9223372036854775808"}) {
+            requestEpoch(value);
+            assertEquals(HttpStatus.CONFLICT, assertThrows(ResponseStatusException.class,
+                    () -> guard.requireCurrentRequestEpoch(7L)).getStatusCode());
+        }
+    }
+
+    @Test void systemEntryCannotBypassMissingOrStaleEpochForHttpCaller() {
+        epoch(3L);
+        assertEquals(3L, guard.requireCurrentRequestOrSystemEpoch(7L));
+        assertThrows(ResponseStatusException.class, () -> guard.requireCurrentRequestEpoch(7L));
+        requestEpoch(null);
+        assertThrows(ResponseStatusException.class, () -> guard.requireCurrentRequestOrSystemEpoch(7L));
+        requestEpoch("2");
+        assertThrows(ResponseStatusException.class, () -> guard.requireCurrentRequestOrSystemEpoch(7L));
+        requestEpoch("3");
+        assertEquals(3L, guard.requireCurrentRequestOrSystemEpoch(7L));
+    }
 }

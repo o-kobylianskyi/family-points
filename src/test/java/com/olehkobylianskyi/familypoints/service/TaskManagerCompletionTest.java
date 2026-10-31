@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class TaskManagerCompletionTest {
+    @org.mockito.Mock com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     @Mock TaskDefinitionRepository definitions;
     @Mock TaskScheduleSlotRepository taskScheduleSlots;
     @Mock TaskInstanceRepository instances;
