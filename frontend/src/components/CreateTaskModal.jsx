@@ -126,6 +126,7 @@ function CreateTaskModal({
   }
   const [memberGroups, setMemberGroups] = useState([])
   const [taskTemplates, setTaskTemplates] = useState([])
+  const [templateLoadError, setTemplateLoadError] = useState(false)
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [templateLoading, setTemplateLoading] = useState(false)
   const templateRequestGeneration = useRef(0)
@@ -275,9 +276,10 @@ function CreateTaskModal({
   useEffect(() => {
     if (editing) return
     let alive = true
+    setTemplateLoadError(false)
     getPrivateTemplates(getAccessToken(), currentUser.workspaceId)
       .then(items => { if (alive) setTaskTemplates((Array.isArray(items) ? items : []).filter(item => item.kind === 'TASK')) })
-      .catch(() => { if (alive) setTaskTemplates([]) })
+      .catch(() => { if (alive) { setTaskTemplates([]); setTemplateLoadError(true) } })
     return () => { alive = false }
   }, [currentUser.workspaceId, getAccessToken, editing])
 
@@ -619,6 +621,9 @@ function CreateTaskModal({
               {taskTemplates.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
             </select>
             <small>{({uk:'Параметри шаблону заповнять форму; перевірте їх перед створенням.',ru:'Параметры шаблона заполнят форму; проверьте перед созданием.',de:'Vorlagenfelder werden übernommen; vor dem Erstellen prüfen.',en:'Template fields prefill this form; review before creating.'})[i18n.language.split('-')[0]] || 'Review before creating'}</small>
+            {!templateLoading && !templateLoadError && taskTemplates.length === 0 && <small role="status">{({uk:'У сім’ї ще немає імпортованих шаблонів завдань. Відкрийте бібліотеку, виберіть потрібні шаблони й імпортуйте їх; після цього вони з’являться тут.',ru:'В семье пока нет импортированных шаблонов задач. Откройте библиотеку, выберите и импортируйте нужные шаблоны; после этого они появятся здесь.',de:'In dieser Familie sind noch keine Aufgabenvorlagen importiert. In der Bibliothek Vorlagen auswählen und importieren; danach erscheinen sie hier.',en:'No task templates have been imported into this family yet. Select and import templates in the library; they will then appear here.'})[i18n.language.split('-')[0]]}</small>}
+            {templateLoadError && <small role="alert">{({uk:'Не вдалося завантажити шаблони сім’ї. Перевірте з’єднання та відкрийте форму повторно.',ru:'Не удалось загрузить шаблоны семьи. Проверьте подключение и откройте форму снова.',de:'Familienvorlagen konnten nicht geladen werden. Verbindung prüfen und Formular erneut öffnen.',en:'Could not load family templates. Check your connection and reopen the form.'})[i18n.language.split('-')[0]]}</small>}
+            <a href="/templates" onClick={event => event.stopPropagation()}>{({uk:'Відкрити бібліотеку шаблонів',ru:'Открыть библиотеку шаблонов',de:'Vorlagenbibliothek öffnen',en:'Open template library'})[i18n.language.split('-')[0]]}</a>
           </label>}
 
           <label className="form-field">
