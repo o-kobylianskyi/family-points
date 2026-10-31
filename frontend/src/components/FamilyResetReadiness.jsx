@@ -187,7 +187,8 @@ export default function FamilyResetReadiness() {
     const requestId = ++generation.current
     load(workspaceId, requestId)
     return () => { generation.current += 1 }
-  }, [workspaceId, getAccessToken])
+  // AuthProvider recreates getAccessToken on render; do not refetch on its identity.
+  }, [workspaceId])
 
   const check = async () => {
     const id = workspaceId, requestId = ++generation.current, selectionId = selectionRevision.current
