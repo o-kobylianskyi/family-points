@@ -244,3 +244,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — QA Automation Playwright bootstrap
 - Added isolated qa/e2e/package.json, playwright.config.js, tests/smoke.spec.js and README.md on main. Public login test plus credential-gated templates/settings read-only smoke. Missing QA credentials skip protected tests; `/choose-family` intentionally fails closed so an existing family is never selected automatically.
 - No credentials stored, no reset/import/delete/activate write flows, no live browser execution or CI run claimed. Next: create dedicated disposable QA account/family, install browser on Windows and run tests with environment-only secrets; then add source-verified selectors and read-only reset preview/plan. Protect browser traces/cookies from public artifacts.
+
+
+## 2026-10-31 — User Windows Playwright authenticated smoke PASS
+- User ran qa/e2e npm test locally against localhost:5173 with dedicated QA credentials: Chromium 3/3 PASS (public login 727ms; authenticated templates 1.8s; authenticated settings 1.6s; total 5.0s). Verified from pasted command output only, not CI or full feature acceptance.
+- Next QA automation: introduce read-only reset preview and catalog data assertions with bounded selectors, then four-locale and tenant isolation; no destructive reset, no credentials in Git.
