@@ -23,8 +23,9 @@ test('template catalog localizes category options in four locales', async ({ pag
   await expect(selects.first()).toBeVisible()
   await expect(selects.nth(1).locator('option[value="chores"]')).toHaveCount(1)
   for (const [locale, label] of expected) {
-    await page.evaluate(lang => window.localStorage.setItem('i18nextLng', lang), locale)
-    await page.reload()
+    const switcher = page.locator('select.language-switcher')
+    await expect(switcher).toBeVisible()
+    await switcher.selectOption(locale)
     await expect(page.locator('.template-toolbar select').nth(1).locator('option[value="chores"]')).toHaveText(label)
   }
 })
