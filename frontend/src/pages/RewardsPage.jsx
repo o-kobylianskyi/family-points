@@ -142,6 +142,8 @@ function RewardsPage() {
   const [customRequestTitle, setCustomRequestTitle] = useState('')
   const [customRequestDescription, setCustomRequestDescription] = useState('')
   const [requestTemplateCategory, setRequestTemplateCategory] = useState('ALL')
+  const [selectedRequestTemplateId, setSelectedRequestTemplateId] = useState('')
+  const rewardDraftGeneration = useRef(0)
 
   const [reviewingRequestId, setReviewingRequestId] = useState(null)
   const [reviewForm, setReviewForm] = useState(emptyReviewForm)
@@ -170,25 +172,28 @@ function RewardsPage() {
     en: ['From template', 'Without template', 'Template category', 'All categories', 'Could not load reward template', 'Review values before creating or requesting'],
   }[language] || ['From template', 'Without template', 'Template category', 'All categories', 'Could not load reward template', 'Review values']
   const chooseRewardTemplate = async id => {
+    const generation = ++rewardDraftGeneration.current
     setSelectedRewardTemplateId(id)
-    if (!id) return
+    if (!id) { setTemplateBusy(false); return }
     const origin = currentUser.workspaceId
     setTemplateBusy(true)
     try {
       const draft = await getTemplateCreationDraft(getAccessToken(), origin, id)
-      if (String(workspaceRef.current) !== String(origin)) return
+      if (String(workspaceRef.current) !== String(origin) || rewardDraftGeneration.current !== generation) return
       if (draft?.kind !== 'REWARD' || String(draft?.templateId) !== String(id) || !draft.request) throw new Error('INVALID_REWARD_DRAFT')
       const d = draft.request
       setRewardForm(current => ({ ...current, title: d.title ?? current.title, description: d.description ?? '', rewardKind: d.rewardKind ?? current.rewardKind,
         defaultDurationMinutes: d.defaultDurationMinutes ?? '', cooldownSeconds: d.cooldownSeconds ?? current.cooldownSeconds,
         priceAmount: d.priceAmount ?? '', pointTypeId: d.pointTypeId ?? current.pointTypeId,
         acquisitionMode: d.acquisitionMode ?? current.acquisitionMode, requiresApproval: d.requiresApproval ?? current.requiresApproval }))
-    } catch { setError(labels[4]) } finally { if (String(workspaceRef.current) === String(origin)) setTemplateBusy(false) }
+    } catch { if (String(workspaceRef.current) === String(origin) && rewardDraftGeneration.current === generation) setError(labels[4]) } finally { if (String(workspaceRef.current) === String(origin) && rewardDraftGeneration.current === generation) setTemplateBusy(false) }
   }
   const chooseRequestTemplate = id => {
     const item = requestTemplates.find(x => String(x.id ?? x.code) === id)
+    setSelectedRequestTemplateId(id)
     if (!item) return
-    let d = {}; try { d = JSON.parse(item.definitionJson || '{}') } catch { /* Ignore malformed optional fields. */ }
+    let d = item.definition && typeof item.definition === 'object' ? item.definition : {};
+    if (item.definitionJson) { try { d = JSON.parse(item.definitionJson) } catch { /* Ignore malformed optional fields. */ } }
     setCustomRequestTitle(typeof item.title === 'string' ? item.title : item.title?.[language] || item.title?.en || '')
     setCustomRequestDescription(typeof d.description === 'string' ? d.description : typeof d.description?.[language] === 'string' ? d.description[language] : '')
   }
@@ -261,7 +266,8 @@ function RewardsPage() {
   useEffect(() => {
     setTasks([])
     setRewardForm(emptyRewardForm)
-    setRewardTemplates([]); setGlobalRewardTemplates([]); setSelectedRewardTemplateId(''); setRewardTemplateCategory('ALL'); setRequestTemplateCategory('ALL')
+    rewardDraftGeneration.current += 1
+    setRewardTemplates([]); setGlobalRewardTemplates([]); setSelectedRewardTemplateId(''); setSelectedRequestTemplateId(''); setRewardTemplateCategory('ALL'); setRequestTemplateCategory('ALL')
     setReviewForm(emptyReviewForm)
     loadAll()
   }, [currentUser.workspaceId])
@@ -356,6 +362,8 @@ function RewardsPage() {
   }
 
   const cancelEditReward = () => {
+    rewardDraftGeneration.current += 1
+    setSelectedRewardTemplateId('')
     setEditingRewardId(null)
     setRewardForm({ ...emptyRewardForm, pointTypeId: pointTypes[0]?.id ?? '' })
   }
@@ -689,8 +697,8 @@ function RewardsPage() {
             <h2>{t('rewardsUi.customTitle')}</h2>
             <p>{t('rewardsUi.customExample')}</p>
             <form onSubmit={createCustomRequest} className="reward-request-form">
-              <label>{labels[2]} <select value={requestTemplateCategory} onChange={e=>setRequestTemplateCategory(e.target.value)}><option value="ALL">{labels[3]}</option>{requestTemplateCategories.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
-              <label>{labels[0]} <select defaultValue="" onChange={e=>chooseRequestTemplate(e.target.value)}><option value="">{labels[1]}</option>{requestTemplateOptions.map(item=><option key={item.id ?? item.code} value={item.id ?? item.code}>{typeof item.title === 'string' ? item.title : item.title?.[language] || item.title?.en}</option>)}</select></label>
+              <label>{labels[2]} <select value={requestTemplateCategory} onChange={e=>{setRequestTemplateCategory(e.target.value);setSelectedRequestTemplateId('')}}><option value="ALL">{labels[3]}</option>{requestTemplateCategories.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
+              <label>{labels[0]} <select value={selectedRequestTemplateId} onChange={e=>chooseRequestTemplate(e.target.value)}><option value="">{labels[1]}</option>{requestTemplateOptions.map(item=><option key={item.id ?? item.code} value={item.id ?? item.code}>{typeof item.title === 'string' ? item.title : item.title?.[language] || item.title?.en}</option>)}</select></label>
               <small>{labels[5]}</small>
               <input
                 value={customRequestTitle}
@@ -940,7 +948,7 @@ function RewardsPage() {
             <h2>{editingRewardId != null ? t('rewardsUi.editReward') : t('rewardsUi.newReward')}</h2>
             <form onSubmit={createCatalogReward} className="reward-editor">
               {editingRewardId == null && <>
-                <label>{labels[2]} <select value={rewardTemplateCategory} onChange={e=>{setRewardTemplateCategory(e.target.value);setSelectedRewardTemplateId('')}}><option value="ALL">{labels[3]}</option>{templateCategories.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
+                <label>{labels[2]} <select value={rewardTemplateCategory} onChange={e=>{rewardDraftGeneration.current += 1;setTemplateBusy(false);setRewardTemplateCategory(e.target.value);setSelectedRewardTemplateId('')}}><option value="ALL">{labels[3]}</option>{templateCategories.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
                 <label>{labels[0]} <select value={selectedRewardTemplateId} disabled={templateBusy} onChange={e=>chooseRewardTemplate(e.target.value)}><option value="">{labels[1]}</option>{templateOptions(rewardTemplateCategory).map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
                 <small>{labels[5]}</small>
               </>}
