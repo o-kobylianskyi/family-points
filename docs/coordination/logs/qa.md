@@ -279,3 +279,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - User reran headed Playwright after navigation wait fix: GET http://localhost:8080/workspaces/14/data-reset/preview yields HTTP 200 application/json headers but response body remains unreadable >8 seconds (BODY_NOT_READY). Web reset panel shows 'Could not load data.' rather than category counts. Test failed in 10.3 seconds; /plan not exercised, no destructive requests.
 - Repro is independent of full page load; previous headed run hung until browser context closed. Backend/runtime owner should check response stream completion/JSON serialization of reset preview, dev running SHA and Flyway level, server logs; Web must remain fail-closed. Not yet proof that root cause is solely Backend until raw HTTP body inspected.
 - QA keeps BKL-002 preview/plan FAIL/BLOCKED. No data mutations.
+
+
+## 2026-10-31 — Manual Chrome Reset Preview succeeds; Playwright diagnosis corrected
+- User supplied Chrome DevTools screenshot on localhost:5173/settings: GET /workspaces/14/data-reset/preview displays a parsed JSON object with workspaceId=14, executionEnabled=false, completeDependencyPlan=false, alwaysPreserved and categories. This disproves prior categorical claim that Backend cannot serialize the preview JSON. Repeated preview requests may occur.
+- Revised qa/e2e/tests/reset-preview-i18n.spec.js at 2349698 to assert rendered category checkboxes first, then separately fetch/parse the authenticated preview using Playwright API request, avoiding first response-header capture. Pending rerun. Actual /plan and reset remain untested; no data deletion.
