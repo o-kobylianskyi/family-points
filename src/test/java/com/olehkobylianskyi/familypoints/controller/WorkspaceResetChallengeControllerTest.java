@@ -22,8 +22,9 @@ class WorkspaceResetChallengeControllerTest {
     private final JdbcTemplate db=mock(JdbcTemplate.class);
     private final PasswordEncoder encoder=mock(PasswordEncoder.class);
     private final ResetChallengeAttemptLimiter limiter=mock(ResetChallengeAttemptLimiter.class);
+    private final WorkspaceDataResetPreviewController preview=mock(WorkspaceDataResetPreviewController.class);
     private final WorkspaceResetChallengeController controller=
-            new WorkspaceResetChallengeController(current,db,encoder,limiter);
+            new WorkspaceResetChallengeController(current,db,encoder,limiter,preview);
 
     @Test void executeRemainsLockedAndForeignWorkspaceForbidden() {
         when(current.belongsToWorkspace(7L)).thenReturn(true);
@@ -75,15 +76,16 @@ class WorkspaceResetChallengeControllerTest {
                 UUID.randomUUID(),"b".repeat(64),"pw");
         when(db.queryForList(contains("FOR UPDATE"),eq(7L),eq(request.operationId().toString())))
                 .thenReturn(List.of(Map.of("requested_by_member_id",17L,
-                        "snapshot_digest","b".repeat(64),"status","CONFIRMED")));
+                        "snapshot_digest","b".repeat(64),"status","CONFIRMED",
+                        "selected_categories_json","[]")));
+        // Original digest in this test is intentionally arbitrary; challenge must reject stale counts.
+        when(preview.preview(7L)).thenReturn(new WorkspaceDataResetPreviewController.ResetPreview(
+                7L,false,false,List.of(),Map.of()));
         when(db.update(contains("INSERT INTO workspace_reset_challenges"),any(Object[].class)))
                 .thenReturn(1,0);
-        var issued=controller.challenge(7L,request);
-        assertFalse(issued.executionEnabled());
-        assertNotNull(issued.challengeId());
-        verify(db).update(contains("INSERT INTO workspace_reset_challenges"),any(Object[].class));
         assertEquals(HttpStatus.CONFLICT,
                 assertThrows(ResponseStatusException.class,()->controller.challenge(7L,request)).getStatusCode());
+        verify(db,never()).update(contains("INSERT INTO workspace_reset_challenges"),any(Object[].class));
         assertEquals(HttpStatus.LOCKED,
                 assertThrows(ResponseStatusException.class,()->controller.execute(7L)).getStatusCode());
     }
