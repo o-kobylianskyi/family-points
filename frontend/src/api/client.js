@@ -92,6 +92,13 @@ export async function apiRequest(
     // The epoch header must not be overridden by consumers.
     scopedHeaders = { ...headers, 'X-Workspace-Data-Epoch': String(epoch) }
   }
+  // Recheck after the asynchronous handshake: another tab may have invalidated
+  // the workspace before this write is dispatched.
+  if (workspaceId && scopedMutation.test(requestMethod) && quarantinedWorkspaces.has(workspaceId)) {
+    const error = new Error('WORKSPACE_DATA_EPOCH_CHANGED')
+    error.status = 409
+    throw error
+  }
   const response = await fetch(
     `${API_URL}${path}`,
     {
