@@ -1036,6 +1036,8 @@ class PointMutationTransactionPostgresTest {
         assertEquals(0L,((Number)row.get("data_epoch")).longValue());
         assertEquals(fixture.member(),((Number)row.get("requested_by_member_id")).longValue());
         assertEquals(prepared.snapshotDigest(),row.get("snapshot_digest"));
+        assertEquals(409,assertThrows(ResponseStatusException.class,()->issueProof(fixture,account,prepared)).getStatusCode().value());
+        assertEquals(1L,sql.queryForObject("SELECT count(*) FROM workspace_reset_challenges WHERE workspace_id=?",Long.class,fixture.workspace()));
         consumeProof(fixture,account,prepared,proof,proof.secret());
         assertEquals(1,consumed(fixture));
         assertEquals(409,assertThrows(ResponseStatusException.class,()->consumeProof(fixture,account,prepared,proof,proof.secret())).getStatusCode().value());
@@ -1197,6 +1199,37 @@ class PointMutationTransactionPostgresTest {
         catch (Exception exception) { throw new AssertionError(exception); }
         assertFalse(json.contains("secret")); assertFalse(json.contains("verifier")); assertFalse(response.executionEnabled());
         assertEquals(4,response.getClass().getRecordComponents().length);
+    }
+
+
+    @Test void proofInOneFamilyDoesNotBlockAnotherFamilyOfSameGlobalAccount() throws Exception {
+        var fixture=fixture(); var account=resetActor(fixture);
+        var prepared=prepareReset(fixture); confirmReset(fixture,prepared); var proof=issueProof(fixture,account,prepared);
+        var other=fixture();
+        tx.executeWithoutResult(status->{
+            var member=context.getBean(WorkspaceMemberRepository.class).findById(other.member()).orElseThrow();
+            context.getBean(AccountWorkspaceMembershipRepository.class).saveAndFlush(
+                    new com.olehkobylianskyi.familypoints.entity.AccountWorkspaceMembership(account,member));
+        });
+        var current=context.getBean(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(current.getCurrentMemberId()).thenReturn(other.member());
+        org.mockito.Mockito.when(current.belongsToWorkspace(other.workspace())).thenReturn(true);
+        var otherPrepared=prepareReset(other); confirmReset(other,otherPrepared); var otherProof=issueProof(other,account,otherPrepared);
+        var locked=new CountDownLatch(1); var release=new CountDownLatch(1); var pool=Executors.newFixedThreadPool(2);
+        try {
+            var holder=pool.submit(()->tx.executeWithoutResult(status->{
+                consumeProof(fixture,account,prepared,proof,proof.secret());
+                locked.countDown(); await(release);
+            }));
+            assertTrue(locked.await(15,TimeUnit.SECONDS));
+            // Family A holds its fence, operation and challenge locks, plus the shared GLOBAL account row.
+            var independent=pool.submit(()->consumeProof(other,account,otherPrepared,otherProof,otherProof.secret()));
+            independent.get(10,TimeUnit.SECONDS);
+            assertEquals(1,consumed(other)); assertEquals(0,consumed(fixture));
+            release.countDown(); holder.get(15,TimeUnit.SECONDS); assertEquals(1,consumed(fixture));
+            assertEquals(2L,sql.queryForObject("SELECT count(*) FROM account_workspace_memberships WHERE account_id=?",Long.class,account.getId()));
+            assertEquals(true,sql.queryForObject("SELECT enabled FROM user_accounts WHERE id=?",Boolean.class,account.getId()));
+        } finally { release.countDown(); pool.shutdownNow(); assertTrue(pool.awaitTermination(20,TimeUnit.SECONDS)); }
     }
 
     private static void await(CountDownLatch latch) {
