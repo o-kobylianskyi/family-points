@@ -358,3 +358,11 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Tenant-isolation 401 status discovered
 - User ran both Test/Test2 cross-family tests: both failed assertion expecting 403/404 because foreign preview returned HTTP 401. Test primary own workspace reset preview returned 200 before foreign request, confirming working authentication on its own family. Test2 own reset preview assertion accepted denial (403/404), then foreign returned 401.
 - Security interpretation: 401 is denial, not disclosure; however, its use for authenticated cross-workspace access differs from conventional 403/404 and requires Backend contract review. Updated Playwright acceptance to [401,403,404] and added status logs (commit 7744dca); no PASS claimed until rerun. POST /plan never reached in earlier failing runs.
+
+
+## 2026-10-31 — Bidirectional Test/Test2 tenant isolation PASS
+- User ran `npx playwright test tests/reset-tenant-isolation.spec.js` with both QA accounts configured: **2 passed (3.9s)**.
+- Test own family 14 Preview 200; Test accessing Test2 family 11: Preview 401, Plan 401.
+- Test2 child own family 11 Preview 403; Test2 accessing Test family 14: Preview 401, Plan 401.
+- No reset execution or deletion. Confirmed endpoint-specific authorization, not comprehensive tenant isolation. Backend should review cross-tenant 401 versus 403/404 response semantics.
+- Next QA: real dataEpoch/current-generation and stale-write fencing tests on disposable fixtures, only with explicit safeguards.
