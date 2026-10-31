@@ -371,3 +371,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Real dataEpoch read-only tenant tests staged
 - Added `qa/e2e/tests/epoch-access.spec.js` (commit 3dc7402), two Chromium tests: Test family 14 and Test2 family 11 must each get own authenticated `GET /data-epoch` 200, valid workspaceId and safe nonnegative integer dataEpoch, and denial (401/403/404) for other family.
 - No mutations/epoch increments/offline replay. Pending local test run. Last confirmed cross-family Preview/Plan isolation 2/2 PASS. Future stale-write concurrency assertions require disposable fixtures and explicit gate.
+
+
+## 2026-10-31 — dataEpoch real HTTP tenant tests 2/2 PASS
+- User local `npx playwright test tests/epoch-access.spec.js`: 2 passed (4.7s). Test and Test2 each read own authenticated `dataEpoch` successfully (workspace IDs 14 and 11 respectively), validation of nonnegative safe integer passed; cross-family GET `data-epoch` returned HTTP 401 for both directions.
+- This proves scoped epoch reading for the two QA identities, not stale-write fencing or atomic reset concurrency. Next stage: non-mutating UI synthetic stale-generation checks; any true stale-write mutation test needs disposable fixtures and deliberate approval.
