@@ -20,6 +20,11 @@ class DashboardRepository(
                 ?: throw IllegalStateException("Missing access token")
 
             val authorization = "Bearer $token"
+            val epoch = ApiClient.workspaceEpochApi.getEpoch(authorization, currentUser.workspaceId)
+            if (epoch.workspaceId != currentUser.workspaceId || epoch.dataEpoch < 0L) {
+                throw SecurityException("Workspace generation response mismatch")
+            }
+            offlineStore.reconcileAuthenticatedEpoch(currentUser.workspaceId, epoch.dataEpoch)
             val date = LocalDate.now().toString()
 
             val balance = async {
