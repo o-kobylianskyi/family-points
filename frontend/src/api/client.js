@@ -77,7 +77,7 @@ async function readWorkspaceEpoch(token, workspaceId) {
 // Observe the workspace generation as soon as an authenticated family becomes
 // active, not only at the first write. Never submit writes on behalf of callers.
 export async function observeWorkspaceEpoch(token, workspaceId) {
-  if (!token || !/^\\d+$/.test(String(workspaceId))) throw new Error('WORKSPACE_DATA_EPOCH_INVALID')
+  if (!token || !/^\d+$/.test(String(workspaceId))) throw new Error('WORKSPACE_DATA_EPOCH_INVALID')
   return readWorkspaceEpoch(token, String(workspaceId))
 }
 
