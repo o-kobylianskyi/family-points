@@ -347,3 +347,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Full Playwright baseline 18/18 PASS per screenshot (27.1 seconds).
 - Added `qa/e2e/tests/reset-tenant-isolation.spec.js` (commit abcf1c1), which checks GET /preview and POST /plan on a distinct, real **QA-only** workspace inaccessible to the QA user; expected 403 or 404. This test is skipped unless `FP_QA_FOREIGN_WORKSPACE_ID` explicitly supplies a second workspace ID. Never invent or probe other real families.
 - No destructive endpoint is called. Passing would prove these two authorization checks only, not full tenant safety or reset execution.
+
+
+## 2026-10-31 — Bidirectional Test/Test2 tenant security spec staged
+- Updated `qa/e2e/tests/reset-tenant-isolation.spec.js` in commit 9530672: fixed JavaScript regex escaping and added two independent auth tests. Test (own workspace 14 by default) must receive own preview 200 and be rejected for verified foreign workspace; Test2 (child role) must be denied reset admin preview in its own QA workspace and must be denied preview and plan for workspace 14.
+- Env: `FP_QA_FOREIGN_WORKSPACE_ID`, `FP_QA_TEST2_WORKSPACE_ID`, `FP_QA_TEST2_PASSWORD`; Test2 username defaults to Test2. Do not assign Test2 workspace 11 until verified; screenshot indicated request URL /workspaces/11 but was not complete proof. Tests skip when fixture unavailable.
+- New tests NOT YET EXECUTED; last confirmed full Playwright run 18/18 PASS. Only GET preview and POST plan; no destructive operations.
