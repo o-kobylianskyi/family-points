@@ -268,3 +268,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Windows Playwright 8-test reset preview failure
 - User reported 7/8 PASS, with BKL-002 read-only preview/plan test timing out at 30 seconds while awaiting Playwright previewResponse.json() after receiving HTTP 200 headers. Other catalog, locale, epoch UI, login and settings tests PASS. This may mean slow/uncompleted response body, not necessarily invalid JSON; plan endpoint not reached.
 - Updated qa/e2e/tests/reset-preview-i18n.spec.js commit 97f12e2 with a 60s budget and clearer HTTP URL/status/content-type body-read diagnostics. No claim this fixes backend latency; pending targeted rerun and trace. No reset executed or data modified.
+
+
+## 2026-10-31 — Repeat BKL-002 preview response body failure workspace 14
+- User reran headed isolated Playwright test: GET http://localhost:8080/workspaces/14/data-reset/preview response headers HTTP 200 application/json, but Playwright response.json did not resolve; after 34.2 s page/context/browser closed and response.json raised Target page/context/browser has been closed. Distinguish incomplete response/body from premature browser closure; no proven Backend defect yet. Reset /plan not reached; no delete action.
+- Updated Playwright test at c52f40b to bound body wait to 8s, include visible reset panel text/response URL/status/content-type diagnostic, while preserving non-destructive safety. Next rerun isolated test; inspect Network response and Backend runtime if body remains pending. No DB mutations.
