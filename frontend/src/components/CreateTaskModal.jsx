@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 
 import { useAuth } from '../context/AuthContext'
 import { getPointTypes } from '../api/economyApi'
@@ -623,7 +624,7 @@ function CreateTaskModal({
             <span>{({uk:'На основі шаблону',ru:'На основе шаблона',de:'Aus Vorlage',en:'From template'})[i18n.language.split('-')[0]] || 'From template'}</span>
             <select value={taskTemplateCategory} disabled={templateLoading || loading} onChange={event => {setTaskTemplateCategory(event.target.value);setSelectedTemplateId('')}} aria-label={({uk:'Категорія шаблону',ru:'Категория шаблона',de:'Vorlagenkategorie',en:'Template category'})[i18n.language.split('-')[0]]}>
               <option value="ALL">{({uk:'Усі категорії',ru:'Все категории',de:'Alle Kategorien',en:'All categories'})[i18n.language.split('-')[0]]}</option>
-              {taskCategories.map(category => <option key={category} value={category}>{category}</option>)}
+              {taskCategories.map(category => <option key={category} value={category}>{templateCategoryLabel(category, i18n.language)}</option>)}
             </select>
             <select value={selectedTemplateId} disabled={templateLoading || loading} onChange={event => applyTaskTemplate(event.target.value)}>
               <option value="">{({uk:'Без шаблону',ru:'Без шаблона',de:'Ohne Vorlage',en:'Without template'})[i18n.language.split('-')[0]] || 'Without template'}</option>
