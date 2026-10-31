@@ -1,6 +1,7 @@
 package com.olehkobylianskyi.familypoints.controller;
 
 import com.olehkobylianskyi.familypoints.security.CurrentUserService;
+import com.olehkobylianskyi.familypoints.service.ResetChallengeAttemptLimiter;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,13 +31,15 @@ public class WorkspaceResetChallengeController {
     private final CurrentUserService current;
     private final JdbcTemplate db;
     private final PasswordEncoder passwordEncoder;
+    private final ResetChallengeAttemptLimiter limiter;
     private final SecureRandom random = new SecureRandom();
 
     public WorkspaceResetChallengeController(CurrentUserService current, JdbcTemplate db,
-                                              PasswordEncoder passwordEncoder) {
+                                              PasswordEncoder passwordEncoder, ResetChallengeAttemptLimiter limiter) {
         this.current=current;
         this.db=db;
         this.passwordEncoder=passwordEncoder;
+        this.limiter=limiter;
     }
 
     public record ChallengeRequest(UUID operationId, String snapshotDigest, String password) {}
@@ -54,26 +57,7 @@ public class WorkspaceResetChallengeController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid challenge request");
 
         var account=current.getCurrentAccount();
-        // Persist the attempt before password verification: multi-instance safe,
-        // including invalid passwords. Five attempts per rolling 15-minute window.
-        Integer attempts=db.queryForObject("""
-                INSERT INTO workspace_reset_reauth_limits
-                  (workspace_id,account_id,window_started_at,failed_attempts)
-                VALUES (?,?,now(),1)
-                ON CONFLICT (workspace_id,account_id) DO UPDATE SET
-                  failed_attempts=CASE
-                    WHEN workspace_reset_reauth_limits.window_started_at <= now() - interval '15 minutes'
-                      THEN 1
-                    ELSE workspace_reset_reauth_limits.failed_attempts + 1
-                  END,
-                  window_started_at=CASE
-                    WHEN workspace_reset_reauth_limits.window_started_at <= now() - interval '15 minutes'
-                      THEN now()
-                    ELSE workspace_reset_reauth_limits.window_started_at
-                  END
-                RETURNING failed_attempts
-                """,Integer.class,workspaceId,account.getId());
-        if(attempts==null || attempts>5)
+        if (limiter.checkAndRecord(workspaceId, account.getId())>5)
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,"RESET_REAUTH_RATE_LIMIT");
         // Google-only accounts without a local password require a separate fresh OAuth reauth.
         if (account.getPasswordHash() == null ||
