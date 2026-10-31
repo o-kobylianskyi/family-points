@@ -39,6 +39,35 @@ class TemplateEconomyDraftPolicyTest {
         assertNull(applicableEconomyDraftAmount(draft("TASK", "5", "\"suggestionAppliedToDraft\":true"), true))
     }
 
+    @Test fun malformedTemplateIdentityAndPolicyFailClosed() {
+        val missingId = draft("TASK", "5")
+        missingId.remove("templateId")
+        assertNull(applicableEconomyDraftAmount(missingId, true))
+        val invalidId = draft("TASK", "5")
+        invalidId.addProperty("templateId", -4)
+        assertNull(applicableEconomyDraftAmount(invalidId, true))
+        val unknownState = draft("REWARD", "25")
+        unknownState.getAsJsonObject("economySuggestion")
+            .addProperty("pricingState", "UNSET")
+        assertNull(applicableEconomyDraftAmount(unknownState, true))
+        val alreadyApplied = draft("REWARD", "25")
+        alreadyApplied.addProperty("suggestionAppliedToDraft", true)
+        assertNull(applicableEconomyDraftAmount(alreadyApplied, true))
+    }
+
+    @Test fun missingSuggestionAndBooleanReviewSemanticsFailClosed() {
+        val missing = draft("TASK", "5")
+        missing.remove("economySuggestion")
+        assertNull(applicableEconomyDraftAmount(missing, true))
+        val reviewAsString = draft("TASK", "5")
+        reviewAsString.getAsJsonObject("economySuggestion")
+            .addProperty("reviewRequired", "true")
+        assertNull(applicableEconomyDraftAmount(reviewAsString, true))
+        val confirmationAsString = draft("TASK", "5")
+        confirmationAsString.addProperty("requiresConfirmation", "true")
+        assertNull(applicableEconomyDraftAmount(confirmationAsString, true))
+    }
+
     @Test fun unknownKindAndForeignAmountFieldsFailClosed() {
         assertNull(applicableEconomyDraftAmount(draft("UNKNOWN", "5"), true))
         val task = draft("TASK", "null")
