@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   getCurrentUser,
@@ -52,6 +53,8 @@ export function AuthProvider({ children }) {
   const [needsWorkspace, setNeedsWorkspace] = useState(false)
   const [sessionError, setSessionError] = useState('')
   const [epochChanged, setEpochChanged] = useState(false)
+  const { i18n } = useTranslation()
+  const epochLanguage = i18n.resolvedLanguage?.split('-')[0] || i18n.language?.split('-')[0] || 'en'
   const refreshInFlight = useRef(false)
   const lastActivityWrite = useRef(0)
 
@@ -61,6 +64,7 @@ export function AuthProvider({ children }) {
     setCurrentUser(null)
     setNeedsWorkspace(false)
     setSessionError('')
+    setEpochChanged(false)
   }
 
   useEffect(() => {
@@ -373,7 +377,7 @@ export function AuthProvider({ children }) {
         createAdditionalFamily,
       }}
     >
-      {epochChanged ? <div role="alert" style={{padding:24,margin:'12vh auto',maxWidth:600}}><h2>{({uk:"Дані сім’ї змінилися",ru:"Данные семьи изменились",de:"Familiendaten wurden geändert",en:"Family data changed"})[document.documentElement.lang?.split("-")[0]] || "Family data changed"}</h2><p>{({uk:"Зміни заблоковано. Перезавантажте сторінку для отримання актуальних даних.",ru:"Изменения заблокированы. Перезагрузите страницу для получения актуальных данных.",de:"Änderungen sind gesperrt. Laden Sie die Seite neu, um aktuelle Daten zu erhalten.",en:"Changes are blocked. Reload to fetch current data."})[document.documentElement.lang?.split("-")[0]] || "Changes are blocked. Reload to fetch current data."}</p><button type="button" onClick={() => window.location.reload()}>{({uk:"Перезавантажити",ru:"Перезагрузить",de:"Neu laden",en:"Reload"})[document.documentElement.lang?.split("-")[0]] || "Reload"}</button></div> : children}
+      {epochChanged ? <div role="alert" style={{padding:24,margin:'12vh auto',maxWidth:600}}><h2>{({uk:"Дані сім’ї змінилися",ru:"Данные семьи изменились",de:"Familiendaten wurden geändert",en:"Family data changed"})[epochLanguage] || "Family data changed"}</h2><p>{({uk:"Зміни заблоковано. Перезавантажте сторінку для отримання актуальних даних.",ru:"Изменения заблокированы. Перезагрузите страницу для получения актуальных данных.",de:"Änderungen sind gesperrt. Laden Sie die Seite neu, um aktuelle Daten zu erhalten.",en:"Changes are blocked. Reload to fetch current data."})[epochLanguage] || "Changes are blocked. Reload to fetch current data."}</p><button type="button" onClick={() => window.location.reload()}>{({uk:"Перезавантажити",ru:"Перезагрузить",de:"Neu laden",en:"Reload"})[epochLanguage] || "Reload"}</button></div> : children}
     </AuthContext.Provider>
   )
 }
