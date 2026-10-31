@@ -333,11 +333,26 @@ fun TemplateLibrarySection(
             }
             items(if (libraryExpanded) library else library.take(3), key = { it.id }) { item ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column(Modifier.weight(1f)) {
-                        Text(item.title.orEmpty().ifBlank { "#${item.id}" })
-                        Text(if (item.kind == "TASK") tl(language, "Завдання", "Aufgabe", "Task", "Задание")
-                            else tl(language, "Нагорода", "Belohnung", "Reward", "Награда"),
-                            style = MaterialTheme.typography.bodySmall)
+                    Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        val definition = remember(item.id, item.definitionJson) {
+                            try {
+                                com.google.gson.JsonParser.parseString(item.definitionJson.orEmpty())
+                                    .takeIf { it.isJsonObject }?.asJsonObject
+                            } catch (_: Exception) {
+                                null
+                            }
+                        }
+                        TemplateCategoryIcon(
+                            workspaceId = workspaceId,
+                            key = templateCategoryMediaKey(item.kind.orEmpty(), definition),
+                            repository = repository
+                        )
+                        Column {
+                            Text(item.title.orEmpty().ifBlank { "#${item.id}" })
+                            Text(if (item.kind == "TASK") tl(language, "Завдання", "Aufgabe", "Task", "Задание")
+                                else tl(language, "Нагорода", "Belohnung", "Reward", "Награда"),
+                                style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                     if (canManage && item.kind in listOf("TASK", "REWARD")) {
                         TextButton(enabled = !busy && !loading, onClick = {
