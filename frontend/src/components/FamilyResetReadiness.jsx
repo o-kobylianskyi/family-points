@@ -197,7 +197,7 @@ export default function FamilyResetReadiness() {
     try {
       const response = await planReset(getAccessToken(), id, codes)
       if (generation.current === requestId && workspaceRef.current === id && selectionRevision.current === selectionId) {
-        if (String(response?.workspaceId) !== String(id) || response?.executable !== false || !Array.isArray(response?.blockers)) throw new Error('RESET_PLAN_INVALID')
+        if (String(response?.workspaceId) !== String(id) || response?.executable !== false || !Array.isArray(response?.blockers) || !Array.isArray(response?.selectedCategories) || response.selectedCategories.length !== codes.length || !codes.every(code => response.selectedCategories.includes(code))) throw new Error('RESET_PLAN_INVALID')
         setPlan(response)
       }
     } catch (e) {
