@@ -40,3 +40,11 @@ Catalog recommendations are read-only at /template-catalog/economy-suggestions. 
 ## Current package acceptance evidence
 
 Exact source `fc4fa54b06d000f0449e3875ffea11c7ca10a8bb` passed all four jobs in [GitHub Actions 41231246497](https://github.com/o-kobylianskyi/family-points/actions/runs/41231246497). Backend: 280 tests, zero failures/errors/skips; 17 real Spring/JPA/PostgreSQL scenarios. The current 18-entry slot/exchange/ledger package is source/CI verified. Remaining source groups above are still OPEN; nothing was reset or deployed.
+
+## Broad package update — supersedes earlier remaining status for business/config paths
+
+Exact source `cda7e8a07a3d20ca6650bea1ed5df31330865973`, all-green [Actions 41232509336](https://github.com/o-kobylianskyi/family-points/actions/runs/41232509336), Backend 295 PASS. Groups/group ledger/roles/legacy bridge, economy lazy reads/forms, template CRUD/import/activation, media, task suggestions, member/config/timezone edits and per-family startup/default processing now have family fences and source/CI evidence. Startup/bridge inputs reload under locking. Fresh provisioning remains compatible. Selected-family role checks and global-account survival on scoped member removal are repaired and tested.
+
+Still OPEN: independent authentication/invitation/join/account-link lifecycle interactions; reset prepare/challenge/REQUIRES_NEW limiter lock order; exact retained owner/identity/ledger policy and per-table FK closure; strong snapshot freshness; one-use reauthentication and idempotent atomic execute/epoch/onboarding; authenticated disposable DEV/client QA and Release. No current package enables reset or clears data.
+
+Designer #17 source sign-off is now [the implemented economy/media contract](../../api/DESIGNER_ECONOMY_MEDIA_V1_CONTRACT.md). Consumer/runtime acceptance remains pending; a REWARD catalog category is not a writable media target.
