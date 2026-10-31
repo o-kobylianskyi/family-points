@@ -294,3 +294,10 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — BKL-002 Preview/Plan Playwright regression PASS after Web fix
 - User reran isolated `npx playwright test tests/reset-preview-i18n.spec.js -g "preview and dependency plan"` after frontend/src/api/resetApi.js missing-await fix ef8d6446: 1/1 Chromium PASS (2.1s test, 3.0s run). Verified runtime read-only preview category rendering, one category dependency plan, `executionEnabled=false`/`executable=false`, no prepare/challenge/confirm/execute.
 - This closes browser regression caused by unresolved Promise<Response>. The full 8-test suite has NOT been rerun after fix, and BKL-002 destructive execute, epoch transaction safety, cross-tenant and onboarding are NOT covered by this PASS.
+
+
+## 2026-10-31 — Complete Playwright smoke suite PASS
+- User confirmed complete local Playwright suite: **8/8 PASS**, following Web reset API Promise awaiting fix.
+- Coverage includes login/settings, catalog readonly constraints, synthetic epoch UI, four public-login locales, and non-destructive reset preview/dependency plan.
+- Status: smoke green; BKL-002 destructive operations and real data epoch transaction tests remain unverified, and are not authorized on persistent QA families.
+- Next QA plan: add negative, read-only tests for access control, invalid reset selections, stale response UI and cross-workspace isolation, and rerun full suite after adding each group.
