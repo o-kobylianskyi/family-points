@@ -330,3 +330,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - User reported `15+` in reply to prior QA run but without full console summary; treat as positive progress, exact all-pass count not independently verified.
 - Added a new isolated QA Playwright test (commit 374b479) confirming reset Preview Reload preserves category count, clears selection (Plan remains disabled), and emits no prepare/confirm/challenge/execute requests. Test not yet run by user.
 - Next: run `npm test` with QA credentials set. No destructive operations authorized.
+
+
+## 2026-10-31 — Cross-workspace reset response rejection (synthetic, pending run)
+- User reported `16+` without full test output; latest exact run summary not independently available.
+- New Playwright negative test `mismatched workspace preview is rejected without rendering categories` (commit 502414c): intercepts GET preview, returns synthetically valid 200 JSON but workspaceId different from requested; asserts error panel, no category checkboxes, and no reset POST. No persistent database changes.
+- This verifies UI fail-closed on mismatched response workspace only; it does NOT constitute server-side cross-tenant authorization proof. Pending local test.
