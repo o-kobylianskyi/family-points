@@ -85,6 +85,7 @@ test.describe('reset preview/plan (no deletion)', () => {
     expect(String(plan.workspaceId)).toBe(String(preview.workspaceId))
     expect(plan.executable).toBe(false)
     expect(Array.isArray(plan.blockers)).toBe(true)
+    expect(plan.selectedCategories, 'Backend must echo exactly the checked category').toEqual([Object.keys(preview.categories)[0]])
     expect(unsafe, 'No reset prepare/challenge/confirm/execute requests').toEqual([])
   })
 })
