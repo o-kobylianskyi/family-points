@@ -221,3 +221,9 @@ Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **QA:** P0 end-to-en
 
 ## 2026-10-27 — Architecture chat handoff assignment
 Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **QA:** P0 test bounded reset on authorized disposable DEV family (not existing user family), epoch replay, protected identities, select/import one/new/duplicate, ledgers/currency, TIME reward; verify CI first. Report exact SHA, tests and next blocker; no destructive reset authorized by this assignment.
+
+
+## 2026-10-31 — Architecture QA checkpoint: reset/dataEpoch deployment gap
+- Reviewed docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md, REVISED_BETA_SCOPE_20261026.md and Backend/Web logs. P0 BKL-002 reset preview/execute + epoch atomicity, stale offline replay protection, and authorized disposable-family reset/onboarding smoke are next pre-BETA gates. Source logs report V42 migration and epoch GET/filter, but no safe execute yet.
+- Live connected DEV read-only SQL: information_schema.columns shows no families.data_epoch column; flyway_schema_history includes successful V41, no V42 row. Therefore the connected DEV DB is not migrated to source V42; do not attempt epoch >0 tests or reset here until compatible deployment/migration verified by Backend/Release. DEV private templates=4, activation requests=0, point_transactions=198 (previous observed 188; +10 transactions occurred outside QA, cause unverified). Do not attribute ledger change to imports or declare a defect without attribution.
+- QA status PENDING/BLOCKED for BKL-002 end-to-end and epoch regression; no DB writes, resets or deployment performed. Next owner Backend/Release: verify DEV target and exact SHA, execute approved migration safely, provide explicit disposable fixture and safe reset contract; QA then tests auth, tenant, replay, counters, currencies, catalog/TIME.
