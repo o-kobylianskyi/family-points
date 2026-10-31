@@ -1,0 +1,536 @@
+package com.olehkobylianskyi.familypoints.service;
+
+import com.olehkobylianskyi.familypoints.entity.*;
+import com.olehkobylianskyi.familypoints.exception.InsufficientPointsException;
+import com.olehkobylianskyi.familypoints.exception.ResourceNotFoundException;
+import com.olehkobylianskyi.familypoints.repository.WorkspaceMemberRepository;
+import com.olehkobylianskyi.familypoints.repository.PointTransactionRepository;
+import com.olehkobylianskyi.familypoints.repository.PointTypeRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.olehkobylianskyi.familypoints.repository.EconomySettingsRepository;
+import com.olehkobylianskyi.familypoints.dto.PointBalancesResponse;
+import com.olehkobylianskyi.familypoints.dto.PointTypeBalanceResponse;
+
+import java.util.List;
+
+@Service
+public class PointService {
+    private final WorkspaceEpochTransactionGuard epochGuard;
+
+    //public static final String DEFAULT_POINT_TYPE_CODE = "POINTS";
+
+    private final EconomySettingsRepository economySettingsRepository;
+
+    private final PointTransactionRepository pointTransactionRepository;
+    private final WorkspaceMemberRepository workspaceMemberRepository;
+    private final PointTypeRepository pointTypeRepository;
+
+    public PointService(
+            PointTransactionRepository pointTransactionRepository,
+            WorkspaceMemberRepository workspaceMemberRepository,
+            PointTypeRepository pointTypeRepository,
+            EconomySettingsRepository economySettingsRepository,
+            WorkspaceEpochTransactionGuard epochGuard
+    ) {
+        this.epochGuard = epochGuard;
+        this.pointTransactionRepository = pointTransactionRepository;
+        this.workspaceMemberRepository = workspaceMemberRepository;
+        this.pointTypeRepository = pointTypeRepository;
+        this.economySettingsRepository = economySettingsRepository;
+    }
+
+    @Transactional
+    public PointTransaction earn(
+            Long workspaceId,
+            Long memberId,
+            int amount,
+            String description
+    ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        WorkspaceMember member =
+                getMemberOrThrow(workspaceId, memberId);
+
+        PointType pointType =
+                getDefaultPointTypeOrThrow(workspaceId);
+
+        return saveTransaction(
+                member,
+                pointType,
+                amount,
+                PointTransactionType.EARN,
+                PointTransactionSourceType.MANUAL,
+                null,
+                description
+        );
+    }
+
+    @Transactional
+    public PointTransaction earn(
+            Long workspaceId,
+            Long memberId,
+            String pointTypeCode,
+            int amount,
+            PointTransactionSourceType sourceType,
+            Long sourceId,
+            String description
+    ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
+        PointType pointType = getPointTypeOrThrow(workspaceId, pointTypeCode);
+
+        return saveTransaction(
+                member,
+                pointType,
+                amount,
+                PointTransactionType.EARN,
+                sourceType,
+                sourceId,
+                description
+        );
+    }
+
+    @Transactional
+    public PointTransaction penalty(
+            Long workspaceId,
+            Long memberId,
+            int amount,
+            String description
+    ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
+        PointType pointType = getDefaultPointTypeOrThrow(workspaceId);
+
+        return saveTransaction(
+                member,
+                pointType,
+                -amount,
+                PointTransactionType.PENALTY,
+                PointTransactionSourceType.MANUAL,
+                null,
+                description
+        );
+    }
+
+    @Transactional
+    public PointTransaction spend(
+            Long workspaceId,
+            Long memberId,
+            int amount,
+            String description
+    ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        WorkspaceMember member =
+                getMemberForUpdateOrThrow(workspaceId, memberId);
+
+        PointType pointType =
+                getDefaultPointTypeOrThrow(workspaceId);
+
+        long balance =
+                getBalanceInternal(memberId, pointType.getId());
+
+        if (balance < amount) {
+            throw new InsufficientPointsException(
+                    amount,
+                    balance
+            );
+        }
+
+        return saveTransaction(
+                member,
+                pointType,
+                -amount,
+                PointTransactionType.SPEND,
+                PointTransactionSourceType.MANUAL,
+                null,
+                description
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public long getBalance(
+            Long workspaceId,
+            Long memberId
+    ) {
+        getMemberOrThrow(workspaceId, memberId);
+
+        PointType pointType =
+                getDefaultPointTypeOrThrow(workspaceId);
+
+        return getBalanceInternal(
+                memberId,
+                pointType.getId()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<PointTransaction> getHistory(
+            Long workspaceId,
+            Long memberId
+    ) {
+        getMemberOrThrow(workspaceId, memberId);
+
+        return pointTransactionRepository
+                .findByMemberIdOrderByCreatedAtDesc(memberId);
+    }
+
+
+    /**
+     * Idempotent replay of parent-created offline entries. The target member
+     * lock serializes concurrent replays for the same account and a unique
+     * database index handles global UUID collisions.
+     */
+    @Transactional
+    public PointTransaction applyOfflineOperation(
+            Long workspaceId,
+            Long memberId,
+            java.util.UUID operationId,
+            Long pointTypeId,
+            String operation,
+            int amount,
+            String description
+    ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        if (operationId == null || amount < 1 || amount > 100000
+                || !("earn".equals(operation) || "penalty".equals(operation))) {
+            throw new IllegalArgumentException("Invalid offline point operation");
+        }
+
+        WorkspaceMember member = getMemberForUpdateOrThrow(workspaceId, memberId);
+        int signedAmount = "earn".equals(operation) ? amount : -amount;
+        PointTransactionType type = "earn".equals(operation)
+                ? PointTransactionType.EARN : PointTransactionType.PENALTY;
+
+        var prior = pointTransactionRepository.findByClientOperationId(operationId);
+        if (prior.isPresent()) {
+            PointTransaction existing = prior.get();
+            if (!existing.getMember().getId().equals(memberId)
+                    || !existing.getMember().getWorkspace().getId().equals(workspaceId)
+                    || existing.getAmount() != signedAmount
+                    || existing.getType() != type
+                    || (pointTypeId != null && !existing.getPointType().getId().equals(pointTypeId))
+                    || !java.util.Objects.equals(existing.getDescription(), description)) {
+                throw new IllegalArgumentException("Client operation ID reused with different data");
+            }
+            return existing;
+        }
+
+        PointType selectedType = pointTypeId == null
+                ? getDefaultPointTypeOrThrow(workspaceId)
+                : getPointTypeOrThrow(workspaceId, pointTypeId);
+        if (!selectedType.isActive()) {
+            throw new IllegalArgumentException("Selected point type is inactive");
+        }
+        PointTransaction transaction = new PointTransaction(
+                member,
+                selectedType,
+                signedAmount,
+                type,
+                PointTransactionSourceType.MANUAL,
+                null,
+                description
+        );
+        transaction.setClientOperationId(operationId);
+        return pointTransactionRepository.saveAndFlush(transaction);
+    }
+
+    /**
+     * Currency-specific manual operation. Currency must belong to the same
+     * workspace; spending is still server-only and balance-checked.
+     */
+    @Transactional
+    public PointTransaction applyTypedManualOperation(
+            Long workspaceId, Long memberId, Long pointTypeId,
+            String operation, int amount, String description
+    ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        if (pointTypeId == null || amount < 1 || amount > 100000) {
+            throw new IllegalArgumentException("Invalid manual point operation");
+        }
+        PointType pointType = getPointTypeOrThrow(workspaceId, pointTypeId);
+        if (!pointType.isActive()) {
+            throw new IllegalArgumentException("Selected point type is inactive");
+        }
+        return switch (operation) {
+            case "earn" -> earn(workspaceId, memberId, pointTypeId,
+                    amount, PointTransactionSourceType.MANUAL, null, description);
+            case "penalty" -> penalty(workspaceId, memberId, pointType,
+                    amount, PointTransactionSourceType.MANUAL, null, description);
+            case "spend" -> spend(workspaceId, memberId, pointTypeId,
+                    amount, PointTransactionSourceType.MANUAL, null, description);
+            default -> throw new IllegalArgumentException("Invalid manual operation");
+        };
+    }
+
+    private PointTransaction saveTransaction(
+            WorkspaceMember member,
+            PointType pointType,
+            int amount,
+            PointTransactionType transactionType,
+            PointTransactionSourceType sourceType,
+            Long sourceId,
+            String description
+    ) {
+        PointTransaction transaction =
+                new PointTransaction(
+                        member,
+                        pointType,
+                        amount,
+                        transactionType,
+                        sourceType,
+                        sourceId,
+                        description
+                );
+
+        return pointTransactionRepository.save(transaction);
+    }
+
+    private WorkspaceMember getMemberOrThrow(
+            Long workspaceId,
+            Long memberId
+    ) {
+        return workspaceMemberRepository
+                .findByIdAndWorkspaceId(memberId, workspaceId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Workspace member "
+                                        + memberId
+                                        + " not found in workspace "
+                                        + workspaceId
+                        )
+                );
+    }
+
+    private WorkspaceMember getMemberForUpdateOrThrow(
+            Long workspaceId,
+            Long memberId
+    ) {
+        return workspaceMemberRepository
+                .findByIdAndWorkspaceIdForUpdate(
+                        memberId,
+                        workspaceId
+                )
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Workspace member "
+                                        + memberId
+                                        + " not found in workspace "
+                                        + workspaceId
+                        )
+                );
+    }
+
+    private PointType getDefaultPointTypeOrThrow(
+            Long workspaceId
+    ) {
+        return economySettingsRepository
+                .findByWorkspaceId(workspaceId)
+                .map(EconomySettings::getDefaultPointType)
+                .orElseGet(() ->
+                        getPointTypeOrThrow(
+                                workspaceId,
+                                "POINTS"
+                        )
+                );
+    }
+
+    private PointType getPointTypeOrThrow(
+            Long workspaceId,
+            String code
+    ) {
+        return pointTypeRepository
+                .findByWorkspaceIdAndCode(workspaceId, code)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Point type "
+                                        + code
+                                        + " not found in workspace "
+                                        + workspaceId
+                        )
+                );
+    }
+
+    private long getBalanceInternal(
+            Long memberId,
+            Long pointTypeId
+    ) {
+        Long balance =
+                pointTransactionRepository
+                        .getBalance(
+                                memberId,
+                                pointTypeId
+                        );
+
+        return balance == null ? 0 : balance;
+    }
+
+    @Transactional
+    public PointTransaction spend(
+            Long workspaceId,
+            Long memberId,
+            Long pointTypeId,
+            int amount,
+            PointTransactionSourceType sourceType,
+            Long sourceId,
+            String description
+    ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        WorkspaceMember member =
+                getMemberForUpdateOrThrow(workspaceId, memberId);
+
+        PointType pointType =
+                getPointTypeOrThrow(workspaceId, pointTypeId);
+
+        long balance =
+                getBalanceInternal(
+                        memberId,
+                        pointType.getId()
+                );
+
+        if (balance < amount) {
+            throw new InsufficientPointsException(
+                    amount,
+                    balance
+            );
+        }
+
+        return saveTransaction(
+                member,
+                pointType,
+                -amount,
+                PointTransactionType.SPEND,
+                sourceType,
+                sourceId,
+                description
+        );
+    }
+
+    @Transactional
+    public PointTransaction earn(
+            Long workspaceId,
+            Long memberId,
+            Long pointTypeId,
+            int amount,
+            PointTransactionSourceType sourceType,
+            Long sourceId,
+            String description
+    ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        WorkspaceMember member =
+                getMemberOrThrow(workspaceId, memberId);
+
+        PointType pointType =
+                getPointTypeOrThrow(workspaceId, pointTypeId);
+
+        return saveTransaction(
+                member,
+                pointType,
+                amount,
+                PointTransactionType.EARN,
+                sourceType,
+                sourceId,
+                description
+        );
+    }
+
+    private PointType getPointTypeOrThrow(
+            Long workspaceId,
+            Long pointTypeId
+    ) {
+        return pointTypeRepository
+                .findByIdAndWorkspaceId(pointTypeId, workspaceId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Point type "
+                                        + pointTypeId
+                                        + " not found in workspace "
+                                        + workspaceId
+                        )
+                );
+    }
+
+    @Transactional(readOnly = true)
+    public PointBalancesResponse getBalances(
+            Long workspaceId,
+            Long memberId
+    ) {
+        getMemberOrThrow(workspaceId, memberId);
+
+        List<PointType> pointTypes =
+                pointTypeRepository
+                        .findByWorkspaceIdAndActiveTrueOrderBySortOrderAsc(
+                                workspaceId
+                        );
+
+        List<PointTypeBalanceResponse> balances =
+                pointTypes.stream()
+                        .map(pointType ->
+                                new PointTypeBalanceResponse(
+                                        pointType.getId(),
+                                        pointType.getCode(),
+                                        pointType.getName(),
+                                        getBalanceInternal(
+                                                memberId,
+                                                pointType.getId()
+                                        )
+                                )
+                        )
+                        .toList();
+
+        return new PointBalancesResponse(
+                memberId,
+                balances
+        );
+    }
+
+    @Transactional
+    public PointTransaction refund(
+            Long workspaceId,
+            Long memberId,
+            Long pointTypeId,
+            int amount,
+            PointTransactionSourceType sourceType,
+            Long sourceId,
+            String description
+    ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        WorkspaceMember member = getMemberOrThrow(workspaceId, memberId);
+        PointType pointType = getPointTypeOrThrow(workspaceId, pointTypeId);
+
+        return saveTransaction(
+                member,
+                pointType,
+                amount,
+                PointTransactionType.REFUND,
+                sourceType,
+                sourceId,
+                description
+        );
+    }
+
+    @Transactional
+    public PointTransaction penalty(
+            Long workspaceId,
+            Long memberId,
+            PointType pointType,
+            int amount,
+            PointTransactionSourceType sourceType,
+            Long sourceId,
+            String description
+    ) {
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        pointType = getPointTypeOrThrow(workspaceId, pointType.getId());
+        WorkspaceMember member =
+                getMemberOrThrow(workspaceId, memberId);
+
+        return saveTransaction(
+                member,
+                pointType,
+                -amount,
+                PointTransactionType.PENALTY,
+                sourceType,
+                sourceId,
+                description
+        );
+    }
+}

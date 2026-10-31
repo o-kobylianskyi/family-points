@@ -1,0 +1,2398 @@
+{
+  "schema": "designer-architecture-dispatch-audit/0.8",
+  "status": "REVIEW_ONLY_UNAPPROVED",
+  "source": "docs/coordination/DISPATCH_20261026_LATE.md",
+  "counts": {
+    "tasks": 110,
+    "rewards": 32,
+    "unassignedPackItems": 65,
+    "packs": 6
+  },
+  "tasks": [
+    {
+      "code": "fp.task.hygiene.001",
+      "titleUk": "Почистити зуби вранці",
+      "category": "hygiene",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 3,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Базовий догляд за собою: не вимагати оплати чи системної винагороди. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.002",
+      "titleUk": "Почистити зуби ввечері",
+      "category": "hygiene",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 3,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Базовий догляд за собою: не вимагати оплати чи системної винагороди. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.003",
+      "titleUk": "Помити руки перед їжею",
+      "category": "hygiene",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 2,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Базовий догляд за собою: не вимагати оплати чи системної винагороди. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.004",
+      "titleUk": "Прийняти душ",
+      "category": "hygiene",
+      "packs": [],
+      "estimatedMinutes": 10,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Базовий догляд за собою: не вимагати оплати чи системної винагороди. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.005",
+      "titleUk": "Причесатися",
+      "category": "hygiene",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 2,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Базовий догляд за собою: не вимагати оплати чи системної винагороди. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.006",
+      "titleUk": "Підготувати одяг на завтра",
+      "category": "hygiene",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 5,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Базовий догляд за собою: не вимагати оплати чи системної винагороди. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.routine.007",
+      "titleUk": "Заправити ліжко",
+      "category": "routine",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 5,
+      "difficulty": "EASY",
+      "suggestedPoints": 5,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Повторювана повсякденна справа: перевірити ризик дублювання у складених чеклістах. Попередній бонус 5 POINTS лише для необов'язкового сценарію, дорослий підтверджує реальну складність окремо від часу.",
+      "flags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.routine.008",
+      "titleUk": "Вчасно встати",
+      "category": "routine",
+      "packs": [],
+      "estimatedMinutes": 5,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Повторювана повсякденна справа: перевірити ризик дублювання у складених чеклістах. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.routine.009",
+      "titleUk": "Зібрати шкільний рюкзак",
+      "category": "routine",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 7,
+      "difficulty": "MODERATE",
+      "suggestedPoints": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Повторювана повсякденна справа: перевірити ризик дублювання у складених чеклістах. Попередній бонус 10 POINTS лише для необов'язкового сценарію, дорослий підтверджує реальну складність окремо від часу.",
+      "flags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.routine.010",
+      "titleUk": "Лягти спати за розкладом",
+      "category": "routine",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 10,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Повторювана повсякденна справа: перевірити ризик дублювання у складених чеклістах. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.routine.011",
+      "titleUk": "Підготувати речі до садочка",
+      "category": "routine",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 5,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Повторювана повсякденна справа: перевірити ризик дублювання у складених чеклістах. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.routine.012",
+      "titleUk": "Виконати ранковий чекліст",
+      "category": "routine",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Повторювана повсякденна справа: перевірити ризик дублювання у складених чеклістах. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.013",
+      "titleUk": "Прибрати іграшки",
+      "category": "chores",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 10,
+      "difficulty": "EASY",
+      "suggestedPoints": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Попередній бонус 10 POINTS лише для необов'язкового сценарію, дорослий підтверджує реальну складність окремо від часу.",
+      "flags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.014",
+      "titleUk": "Прибрати письмовий стіл",
+      "category": "chores",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 10,
+      "difficulty": "EASY",
+      "suggestedPoints": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Попередній бонус 10 POINTS лише для необов'язкового сценарію, дорослий підтверджує реальну складність окремо від часу.",
+      "flags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.015",
+      "titleUk": "Прибрати кімнату",
+      "category": "chores",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 20,
+      "difficulty": "HARD",
+      "suggestedPoints": 25,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Попередній бонус 25 POINTS лише для необов'язкового сценарію, дорослий підтверджує реальну складність окремо від часу.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.016",
+      "titleUk": "Витерти пил",
+      "category": "chores",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": 15,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Попередній бонус 15 POINTS лише для необов'язкового сценарію, дорослий підтверджує реальну складність окремо від часу.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.017",
+      "titleUk": "Пропилососити кімнату",
+      "category": "chores",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": 15,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Попередній бонус 15 POINTS лише для необов'язкового сценарію, дорослий підтверджує реальну складність окремо від часу.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.018",
+      "titleUk": "Скласти чистий одяг",
+      "category": "chores",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Попередній бонус 10 POINTS лише для необов'язкового сценарію, дорослий підтверджує реальну складність окремо від часу.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.019",
+      "titleUk": "Покласти брудний одяг у кошик",
+      "category": "chores",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 3,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.020",
+      "titleUk": "Допомогти накрити стіл",
+      "category": "chores",
+      "packs": [],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Попередній бонус 10 POINTS лише для необов'язкового сценарію, дорослий підтверджує реальну складність окремо від часу.",
+      "flags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.021",
+      "titleUk": "Прибрати посуд після їжі",
+      "category": "chores",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 5,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.022",
+      "titleUk": "Полити кімнатні рослини",
+      "category": "chores",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 8,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.023",
+      "titleUk": "Посортувати сміття",
+      "category": "chores",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Попередній бонус 10 POINTS лише для необов'язкового сценарію, дорослий підтверджує реальну складність окремо від часу.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.024",
+      "titleUk": "Допомогти скласти покупки",
+      "category": "chores",
+      "packs": [],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Конкретна побутова робота: бонус залежить від обсягу, навички, відповідальності й самостійності. Попередній бонус 10 POINTS лише для необов'язкового сценарію, дорослий підтверджує реальну складність окремо від часу.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.school.025",
+      "titleUk": "Зробити домашнє завдання",
+      "category": "school",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 30,
+      "difficulty": "HARD",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Освіта є базовою потребою: складність не створює автоматичну платну винагороду. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.school.026",
+      "titleUk": "Підготуватися до контрольної",
+      "category": "school",
+      "packs": [],
+      "estimatedMinutes": 30,
+      "difficulty": "ADVANCED",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Освіта є базовою потребою: складність не створює автоматичну платну винагороду. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.school.027",
+      "titleUk": "Повторити таблицю множення",
+      "category": "school",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "HARD",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Освіта є базовою потребою: складність не створює автоматичну платну винагороду. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.028",
+      "titleUk": "Повторити нові слова",
+      "category": "school",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "HARD",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Освіта є базовою потребою: складність не створює автоматичну платну винагороду. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.029",
+      "titleUk": "Написати короткий текст",
+      "category": "school",
+      "packs": [
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 20,
+      "difficulty": "HARD",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Освіта є базовою потребою: складність не створює автоматичну платну винагороду. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.030",
+      "titleUk": "Потренувати читання вголос",
+      "category": "school",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "HARD",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Освіта є базовою потребою: складність не створює автоматичну платну винагороду. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.031",
+      "titleUk": "Зібрати матеріали для уроків",
+      "category": "school",
+      "packs": [
+        "fp.pack.older_children"
+      ],
+      "estimatedMinutes": 5,
+      "difficulty": "HARD",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Освіта є базовою потребою: складність не створює автоматичну платну винагороду. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.032",
+      "titleUk": "Розв'язати логічні задачі",
+      "category": "school",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "HARD",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Освіта є базовою потребою: складність не створює автоматичну платну винагороду. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.reading.033",
+      "titleUk": "Почитати книжку 15 хвилин",
+      "category": "reading",
+      "packs": [
+        "fp.pack.preschool"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Читання і розвиток: не ставити доступ чи мотивацію виключно в залежність від балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.reading.034",
+      "titleUk": "Переказати прочитане",
+      "category": "reading",
+      "packs": [],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Читання і розвиток: не ставити доступ чи мотивацію виключно в залежність від балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.reading.035",
+      "titleUk": "Обрати нову книжку",
+      "category": "reading",
+      "packs": [
+        "fp.pack.preschool"
+      ],
+      "estimatedMinutes": 10,
+      "difficulty": "EASY",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Читання і розвиток: не ставити доступ чи мотивацію виключно в залежність від балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.reading.036",
+      "titleUk": "Прочитати розділ книжки",
+      "category": "reading",
+      "packs": [],
+      "estimatedMinutes": 20,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Читання і розвиток: не ставити доступ чи мотивацію виключно в залежність від балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.037",
+      "titleUk": "Зробити ранкову зарядку",
+      "category": "activity",
+      "packs": [
+        "fp.pack.preschool"
+      ],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Рух та здоров'я — не платна привілея; заохочення можливе індивідуально. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.038",
+      "titleUk": "Прогулятися надворі",
+      "category": "activity",
+      "packs": [
+        "fp.pack.preschool"
+      ],
+      "estimatedMinutes": 20,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Рух та здоров'я — не платна привілея; заохочення можливе індивідуально. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.039",
+      "titleUk": "Покататися на велосипеді",
+      "category": "activity",
+      "packs": [
+        "fp.pack.preschool"
+      ],
+      "estimatedMinutes": 30,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Рух та здоров'я — не платна привілея; заохочення можливе індивідуально. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.040",
+      "titleUk": "Зробити вправи на розтяжку",
+      "category": "activity",
+      "packs": [],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Рух та здоров'я — не платна привілея; заохочення можливе індивідуально. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.041",
+      "titleUk": "Пограти в рухливу гру",
+      "category": "activity",
+      "packs": [
+        "fp.pack.preschool"
+      ],
+      "estimatedMinutes": 20,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Рух та здоров'я — не платна привілея; заохочення можливе індивідуально. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.042",
+      "titleUk": "Потренувати спортивну навичку",
+      "category": "activity",
+      "packs": [],
+      "estimatedMinutes": 20,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Рух та здоров'я — не платна привілея; заохочення можливе індивідуально. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.creativity.043",
+      "titleUk": "Намалювати малюнок",
+      "category": "creativity",
+      "packs": [
+        "fp.pack.preschool"
+      ],
+      "estimatedMinutes": 20,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Творчість є самостійною цінністю, не обов'язковою платною роботою. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.creativity.044",
+      "titleUk": "Зробити поробку",
+      "category": "creativity",
+      "packs": [],
+      "estimatedMinutes": 30,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Творчість є самостійною цінністю, не обов'язковою платною роботою. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.creativity.045",
+      "titleUk": "Пограти на музичному інструменті",
+      "category": "creativity",
+      "packs": [],
+      "estimatedMinutes": 20,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Творчість є самостійною цінністю, не обов'язковою платною роботою. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.creativity.046",
+      "titleUk": "Скласти конструкцію з кубиків",
+      "category": "creativity",
+      "packs": [
+        "fp.pack.preschool"
+      ],
+      "estimatedMinutes": 20,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Творчість є самостійною цінністю, не обов'язковою платною роботою. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.social.047",
+      "titleUk": "Допомогти молодшому члену сім'ї",
+      "category": "social",
+      "packs": [],
+      "estimatedMinutes": 10,
+      "difficulty": "HARD",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Доброзичливість, вибачення й турбота не продаються за бали. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.social.048",
+      "titleUk": "Зробити добру справу",
+      "category": "social",
+      "packs": [],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Доброзичливість, вибачення й турбота не продаються за бали. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.social.049",
+      "titleUk": "Пограти разом без сварок",
+      "category": "social",
+      "packs": [],
+      "estimatedMinutes": 20,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Доброзичливість, вибачення й турбота не продаються за бали. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.social.050",
+      "titleUk": "Попросити вибачення після конфлікту",
+      "category": "social",
+      "packs": [],
+      "estimatedMinutes": 5,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Доброзичливість, вибачення й турбота не продаються за бали. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.social.051",
+      "titleUk": "Підтримати сімейну розмову",
+      "category": "social",
+      "packs": [],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Доброзичливість, вибачення й турбота не продаються за бали. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.052",
+      "titleUk": "Провести день без зайвого екрана",
+      "category": "habits",
+      "packs": [],
+      "estimatedMinutes": 5,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Звички і саморегуляція: уникати формальної гонитви за балами. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.habits.053",
+      "titleUk": "Завершити завдання без нагадувань",
+      "category": "habits",
+      "packs": [],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Звички і саморегуляція: уникати формальної гонитви за балами. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.054",
+      "titleUk": "Підготувати план на завтра",
+      "category": "habits",
+      "packs": [],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Звички і саморегуляція: уникати формальної гонитви за балами. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.055",
+      "titleUk": "Записати три хороші події дня",
+      "category": "habits",
+      "packs": [],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Звички і саморегуляція: уникати формальної гонитви за балами. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.family.056",
+      "titleUk": "Допомогти приготувати вечерю",
+      "category": "family",
+      "packs": [],
+      "estimatedMinutes": 20,
+      "difficulty": "HARD",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.057",
+      "titleUk": "Підготувати сімейну гру",
+      "category": "family",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.058",
+      "titleUk": "Вигуляти собаку з дорослим",
+      "category": "family",
+      "packs": [],
+      "estimatedMinutes": 20,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.059",
+      "titleUk": "Допомогти доглядати домашню тварину",
+      "category": "family",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "HARD",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.060",
+      "titleUk": "Разом скласти меню на вихідні",
+      "category": "family",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.001",
+      "titleUk": "Оплатити комунальні рахунки",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.002",
+      "titleUk": "Перевірити сімейний бюджет",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 30,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.003",
+      "titleUk": "Скласти список покупок",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 10,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.004",
+      "titleUk": "Купити продукти на тиждень",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 75,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.005",
+      "titleUk": "Записатися до лікаря",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.006",
+      "titleUk": "Забрати ліки з аптеки",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.007",
+      "titleUk": "Перевірити пошту й документи",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.008",
+      "titleUk": "Підготувати документи до установи",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.009",
+      "titleUk": "Оплатити страховку",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.010",
+      "titleUk": "Перевірити терміни договорів",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.011",
+      "titleUk": "Записати автомобіль на сервіс",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.012",
+      "titleUk": "Перевірити автомобіль перед поїздкою",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 45,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.013",
+      "titleUk": "Заправити автомобіль",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.014",
+      "titleUk": "Прибрати кухню",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 20,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.015",
+      "titleUk": "Вимити ванну кімнату",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 45,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.016",
+      "titleUk": "Випрати одяг",
+      "category": "adult",
+      "packs": [
+        "fp.pack.adult_personal"
+      ],
+      "estimatedMinutes": 45,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.017",
+      "titleUk": "Розкласти чисту білизну",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 25,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.018",
+      "titleUk": "Замінити постільну білизну",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.019",
+      "titleUk": "Винести сміття",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.020",
+      "titleUk": "Перевірити запаси вдома",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.021",
+      "titleUk": "Полагодити дрібну несправність",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 30,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.022",
+      "titleUk": "Замовити необхідні товари",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.023",
+      "titleUk": "Підготувати обід",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 45,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.024",
+      "titleUk": "Підготувати вечерю",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 45,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.025",
+      "titleUk": "Перевірити особистий календар",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.026",
+      "titleUk": "Спланувати робочий тиждень",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 45,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.027",
+      "titleUk": "Завершити важливе робоче завдання",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.028",
+      "titleUk": "Відповісти на важливі повідомлення",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.029",
+      "titleUk": "Розібрати робочий стіл",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.030",
+      "titleUk": "Зробити резервну копію важливих файлів",
+      "category": "adult",
+      "packs": [],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Дорослі особисті задачі: за замовчуванням без балів. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.001",
+      "titleUk": "Спланувати сімейний вихідний",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.002",
+      "titleUk": "Узгодити сімейний розклад",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.003",
+      "titleUk": "Зробити спільне прибирання",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.004",
+      "titleUk": "Приготувати вечерю разом",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.005",
+      "titleUk": "Провести сімейну розмову",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.006",
+      "titleUk": "Організувати спільну прогулянку",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.007",
+      "titleUk": "Спланувати сімейну поїздку",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.008",
+      "titleUk": "Підготувати речі для поїздки",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 45,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.009",
+      "titleUk": "Перевірити шкільні повідомлення",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.010",
+      "titleUk": "Підготувати речі до школи й садочка",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.011",
+      "titleUk": "Організувати домашні обов'язки",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.012",
+      "titleUk": "Погодити меню на тиждень",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.013",
+      "titleUk": "Провести час із кожною дитиною",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.014",
+      "titleUk": "Зробити сімейне фото",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.015",
+      "titleUk": "Підготувати подарунок близькій людині",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.016",
+      "titleUk": "Перевірити сімейну аптечку",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.017",
+      "titleUk": "Організувати сімейний ігровий вечір",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.018",
+      "titleUk": "Обговорити плани на канікули",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.019",
+      "titleUk": "Розібрати спільні речі",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.020",
+      "titleUk": "Подякувати одне одному за допомогу",
+      "category": "family",
+      "packs": [
+        "fp.pack.family_shared"
+      ],
+      "estimatedMinutes": 15,
+      "difficulty": "MODERATE",
+      "suggestedPoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Сімейні взаємини і планування: балів за замовчуванням немає. Сума не встановлена; null не є нулем і не означає заборону на ручне налаштування.",
+      "flags": []
+    }
+  ],
+  "rewards": [
+    {
+      "code": "fp.reward.time.001",
+      "titleUk": "15 хвилин мультфільмів",
+      "category": "time",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "kind": "TIME",
+      "minutes": 15,
+      "suggestedPricePoints": 25,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 25 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. Час починається лише з використання, а не покупки.",
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.002",
+      "titleUk": "30 хвилин мультфільмів",
+      "category": "time",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "kind": "TIME",
+      "minutes": 30,
+      "suggestedPricePoints": 45,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 45 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. Час починається лише з використання, а не покупки.",
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.003",
+      "titleUk": "15 хвилин відеогри",
+      "category": "time",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "kind": "TIME",
+      "minutes": 15,
+      "suggestedPricePoints": 35,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 35 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. Час починається лише з використання, а не покупки.",
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.004",
+      "titleUk": "30 хвилин відеогри",
+      "category": "time",
+      "packs": [],
+      "kind": "TIME",
+      "minutes": 30,
+      "suggestedPricePoints": 60,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 60 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. Час починається лише з використання, а не покупки.",
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.005",
+      "titleUk": "30 хвилин планшета",
+      "category": "time",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "kind": "TIME",
+      "minutes": 30,
+      "suggestedPricePoints": 55,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 55 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. Час починається лише з використання, а не покупки.",
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.006",
+      "titleUk": "15 хвилин додаткового екранного часу",
+      "category": "time",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "kind": "TIME",
+      "minutes": 15,
+      "suggestedPricePoints": 30,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 30 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. Час починається лише з використання, а не покупки.",
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.007",
+      "titleUk": "30 хвилин гри з батьками",
+      "category": "time",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "kind": "TIME",
+      "minutes": 30,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.time.008",
+      "titleUk": "30 хвилин творчості з дорослим",
+      "category": "time",
+      "packs": [],
+      "kind": "TIME",
+      "minutes": 30,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.009",
+      "titleUk": "Обрати сімейний фільм",
+      "category": "privilege",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.010",
+      "titleUk": "Обрати гру для вечора",
+      "category": "privilege",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.011",
+      "titleUk": "Обрати десерт",
+      "category": "privilege",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.012",
+      "titleUk": "Обрати музику в авто",
+      "category": "privilege",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.013",
+      "titleUk": "Обрати маршрут прогулянки",
+      "category": "privilege",
+      "packs": [
+        "fp.pack.preschool",
+        "fp.pack.early_school",
+        "fp.pack.older_children",
+        "fp.pack.mixed_age"
+      ],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.014",
+      "titleUk": "Обрати книжку для читання",
+      "category": "privilege",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.015",
+      "titleUk": "Сімейний похід у парк",
+      "category": "activity",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.016",
+      "titleUk": "Спільна настільна гра",
+      "category": "activity",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.017",
+      "titleUk": "Пікнік із сім'єю",
+      "category": "activity",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.018",
+      "titleUk": "Відвідати дитячий майданчик",
+      "category": "activity",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.019",
+      "titleUk": "Спільний велосипедний виїзд",
+      "category": "activity",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.020",
+      "titleUk": "Кулінарний вечір разом",
+      "category": "activity",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.items.021",
+      "titleUk": "Невеликий набір наліпок",
+      "category": "items",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": 50,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 50 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. ",
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.022",
+      "titleUk": "Новий олівець або ручка",
+      "category": "items",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": 60,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 60 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. ",
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.023",
+      "titleUk": "Маленька іграшка",
+      "category": "items",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": 250,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 250 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. ",
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.024",
+      "titleUk": "Нова книжка",
+      "category": "items",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": 300,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 300 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. ",
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.025",
+      "titleUk": "Набір для творчості",
+      "category": "items",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": 200,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 200 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. ",
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.026",
+      "titleUk": "Колекційна фігурка",
+      "category": "items",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": 350,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Попередня ціна 350 POINTS для опційної нагороди, потребує сімейної перевірки доступності, лімітів і фактичної собівартості. ",
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.family.027",
+      "titleUk": "Додаткова казка перед сном",
+      "category": "family",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.028",
+      "titleUk": "Похід у бібліотеку",
+      "category": "family",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.029",
+      "titleUk": "Вечір конструктора з дорослим",
+      "category": "family",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.030",
+      "titleUk": "Особливий сімейний сніданок",
+      "category": "family",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.031",
+      "titleUk": "Обрати сімейну активність у вихідні",
+      "category": "family",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.032",
+      "titleUk": "Сімейний творчий проєкт",
+      "category": "family",
+      "packs": [],
+      "kind": "ITEM",
+      "minutes": null,
+      "suggestedPricePoints": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY_UNAPPROVED",
+      "justification": "Для сімейного зв'язку, спільної активності або привілею без узгодженої вартості ціна не встановлена. Null не означає безкоштовну покупку.",
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    }
+  ],
+  "packs": [
+    {
+      "code": "fp.pack.preschool",
+      "titleUk": "Дошкільнята 3–5",
+      "templateCount": 32,
+      "taskCount": 22,
+      "rewardCount": 10,
+      "containsNullPrices": true
+    },
+    {
+      "code": "fp.pack.early_school",
+      "titleUk": "Молодші школярі 6–9",
+      "templateCount": 32,
+      "taskCount": 22,
+      "rewardCount": 10,
+      "containsNullPrices": true
+    },
+    {
+      "code": "fp.pack.older_children",
+      "titleUk": "Старші діти 10–15",
+      "templateCount": 32,
+      "taskCount": 22,
+      "rewardCount": 10,
+      "containsNullPrices": true
+    },
+    {
+      "code": "fp.pack.mixed_age",
+      "titleUk": "Сім’я з дітьми різного віку",
+      "templateCount": 32,
+      "taskCount": 22,
+      "rewardCount": 10,
+      "containsNullPrices": true
+    },
+    {
+      "code": "fp.pack.adult_personal",
+      "titleUk": "Особисте планування дорослого",
+      "templateCount": 16,
+      "taskCount": 16,
+      "rewardCount": 0,
+      "containsNullPrices": false
+    },
+    {
+      "code": "fp.pack.family_shared",
+      "titleUk": "Спільні сімейні справи",
+      "templateCount": 20,
+      "taskCount": 20,
+      "rewardCount": 0,
+      "containsNullPrices": false
+    }
+  ],
+  "unlistedCodeNames": [
+    {
+      "code": "fp.task.hygiene.004",
+      "titleUk": "Прийняти душ"
+    },
+    {
+      "code": "fp.task.routine.008",
+      "titleUk": "Вчасно встати"
+    },
+    {
+      "code": "fp.task.routine.012",
+      "titleUk": "Виконати ранковий чекліст"
+    },
+    {
+      "code": "fp.task.chores.016",
+      "titleUk": "Витерти пил"
+    },
+    {
+      "code": "fp.task.chores.020",
+      "titleUk": "Допомогти накрити стіл"
+    },
+    {
+      "code": "fp.task.chores.024",
+      "titleUk": "Допомогти скласти покупки"
+    },
+    {
+      "code": "fp.task.school.026",
+      "titleUk": "Підготуватися до контрольної"
+    },
+    {
+      "code": "fp.task.school.028",
+      "titleUk": "Повторити нові слова"
+    },
+    {
+      "code": "fp.task.school.032",
+      "titleUk": "Розв'язати логічні задачі"
+    },
+    {
+      "code": "fp.task.reading.034",
+      "titleUk": "Переказати прочитане"
+    },
+    {
+      "code": "fp.task.reading.036",
+      "titleUk": "Прочитати розділ книжки"
+    },
+    {
+      "code": "fp.task.activity.040",
+      "titleUk": "Зробити вправи на розтяжку"
+    },
+    {
+      "code": "fp.task.activity.042",
+      "titleUk": "Потренувати спортивну навичку"
+    },
+    {
+      "code": "fp.task.creativity.044",
+      "titleUk": "Зробити поробку"
+    },
+    {
+      "code": "fp.task.creativity.045",
+      "titleUk": "Пограти на музичному інструменті"
+    },
+    {
+      "code": "fp.task.social.047",
+      "titleUk": "Допомогти молодшому члену сім'ї"
+    },
+    {
+      "code": "fp.task.social.048",
+      "titleUk": "Зробити добру справу"
+    },
+    {
+      "code": "fp.task.social.049",
+      "titleUk": "Пограти разом без сварок"
+    },
+    {
+      "code": "fp.task.social.050",
+      "titleUk": "Попросити вибачення після конфлікту"
+    },
+    {
+      "code": "fp.task.social.051",
+      "titleUk": "Підтримати сімейну розмову"
+    },
+    {
+      "code": "fp.task.habits.052",
+      "titleUk": "Провести день без зайвого екрана"
+    },
+    {
+      "code": "fp.task.habits.053",
+      "titleUk": "Завершити завдання без нагадувань"
+    },
+    {
+      "code": "fp.task.habits.054",
+      "titleUk": "Підготувати план на завтра"
+    },
+    {
+      "code": "fp.task.habits.055",
+      "titleUk": "Записати три хороші події дня"
+    },
+    {
+      "code": "fp.task.family.056",
+      "titleUk": "Допомогти приготувати вечерю"
+    },
+    {
+      "code": "fp.task.family.057",
+      "titleUk": "Підготувати сімейну гру"
+    },
+    {
+      "code": "fp.task.family.058",
+      "titleUk": "Вигуляти собаку з дорослим"
+    },
+    {
+      "code": "fp.task.family.059",
+      "titleUk": "Допомогти доглядати домашню тварину"
+    },
+    {
+      "code": "fp.task.family.060",
+      "titleUk": "Разом скласти меню на вихідні"
+    },
+    {
+      "code": "fp.task.adult.017",
+      "titleUk": "Розкласти чисту білизну"
+    },
+    {
+      "code": "fp.task.adult.018",
+      "titleUk": "Замінити постільну білизну"
+    },
+    {
+      "code": "fp.task.adult.019",
+      "titleUk": "Винести сміття"
+    },
+    {
+      "code": "fp.task.adult.020",
+      "titleUk": "Перевірити запаси вдома"
+    },
+    {
+      "code": "fp.task.adult.021",
+      "titleUk": "Полагодити дрібну несправність"
+    },
+    {
+      "code": "fp.task.adult.022",
+      "titleUk": "Замовити необхідні товари"
+    },
+    {
+      "code": "fp.task.adult.023",
+      "titleUk": "Підготувати обід"
+    },
+    {
+      "code": "fp.task.adult.024",
+      "titleUk": "Підготувати вечерю"
+    },
+    {
+      "code": "fp.task.adult.025",
+      "titleUk": "Перевірити особистий календар"
+    },
+    {
+      "code": "fp.task.adult.026",
+      "titleUk": "Спланувати робочий тиждень"
+    },
+    {
+      "code": "fp.task.adult.027",
+      "titleUk": "Завершити важливе робоче завдання"
+    },
+    {
+      "code": "fp.task.adult.028",
+      "titleUk": "Відповісти на важливі повідомлення"
+    },
+    {
+      "code": "fp.task.adult.029",
+      "titleUk": "Розібрати робочий стіл"
+    },
+    {
+      "code": "fp.task.adult.030",
+      "titleUk": "Зробити резервну копію важливих файлів"
+    },
+    {
+      "code": "fp.reward.time.004",
+      "titleUk": "30 хвилин відеогри"
+    },
+    {
+      "code": "fp.reward.time.008",
+      "titleUk": "30 хвилин творчості з дорослим"
+    },
+    {
+      "code": "fp.reward.privilege.012",
+      "titleUk": "Обрати музику в авто"
+    },
+    {
+      "code": "fp.reward.privilege.014",
+      "titleUk": "Обрати книжку для читання"
+    },
+    {
+      "code": "fp.reward.activity.015",
+      "titleUk": "Сімейний похід у парк"
+    },
+    {
+      "code": "fp.reward.activity.016",
+      "titleUk": "Спільна настільна гра"
+    },
+    {
+      "code": "fp.reward.activity.017",
+      "titleUk": "Пікнік із сім'єю"
+    },
+    {
+      "code": "fp.reward.activity.018",
+      "titleUk": "Відвідати дитячий майданчик"
+    },
+    {
+      "code": "fp.reward.activity.019",
+      "titleUk": "Спільний велосипедний виїзд"
+    },
+    {
+      "code": "fp.reward.activity.020",
+      "titleUk": "Кулінарний вечір разом"
+    },
+    {
+      "code": "fp.reward.items.021",
+      "titleUk": "Невеликий набір наліпок"
+    },
+    {
+      "code": "fp.reward.items.022",
+      "titleUk": "Новий олівець або ручка"
+    },
+    {
+      "code": "fp.reward.items.023",
+      "titleUk": "Маленька іграшка"
+    },
+    {
+      "code": "fp.reward.items.024",
+      "titleUk": "Нова книжка"
+    },
+    {
+      "code": "fp.reward.items.025",
+      "titleUk": "Набір для творчості"
+    },
+    {
+      "code": "fp.reward.items.026",
+      "titleUk": "Колекційна фігурка"
+    },
+    {
+      "code": "fp.reward.family.027",
+      "titleUk": "Додаткова казка перед сном"
+    },
+    {
+      "code": "fp.reward.family.028",
+      "titleUk": "Похід у бібліотеку"
+    },
+    {
+      "code": "fp.reward.family.029",
+      "titleUk": "Вечір конструктора з дорослим"
+    },
+    {
+      "code": "fp.reward.family.030",
+      "titleUk": "Особливий сімейний сніданок"
+    },
+    {
+      "code": "fp.reward.family.031",
+      "titleUk": "Обрати сімейну активність у вихідні"
+    },
+    {
+      "code": "fp.reward.family.032",
+      "titleUk": "Сімейний творчий проєкт"
+    }
+  ],
+  "note": "Justifications are editorial/category-based, not independently empirically validated difficulty ratings. Numeric values remain unapproved."
+}

@@ -1,0 +1,179 @@
+{
+  "schema": "family-points-designer-icon-plan/1",
+  "status": "DESIGN_SPEC_NO_RENDERED_ASSETS",
+  "style": {
+    "shape": "single centered pictogram",
+    "grid": "64x64",
+    "safeAreaPx": 6,
+    "formats": [
+      "SVG original",
+      "PNG 256px",
+      "PNG 512px"
+    ],
+    "background": "transparent",
+    "avoid": "trademarks, existing avatar style, logos, text, age/gender stereotypes",
+    "contrast": "light and dark themes",
+    "accessibility": "meaning distinct at 24px"
+  },
+  "icons": [
+    {
+      "key": "hygiene",
+      "concept": "Toothbrush and water drop",
+      "kind": "TASK",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "routine",
+      "concept": "Checklist with checkmark",
+      "kind": "TASK",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "chores",
+      "concept": "Broom and tidy shelf",
+      "kind": "TASK",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "school",
+      "concept": "Book and pencil",
+      "kind": "TASK",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "reading",
+      "concept": "Open book",
+      "kind": "TASK",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "activity",
+      "concept": "Shoe and movement arc",
+      "kind": "TASK",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "creativity",
+      "concept": "Paint palette",
+      "kind": "TASK",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "social",
+      "concept": "Two hands supporting",
+      "kind": "TASK",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "habits",
+      "concept": "Calendar with check",
+      "kind": "TASK",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "family",
+      "concept": "House with connected hearts",
+      "kind": "TASK",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "adult",
+      "concept": "Planner and clock",
+      "kind": "TASK",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "reward-time",
+      "concept": "Stopwatch with play",
+      "kind": "REWARD",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "reward-privilege",
+      "concept": "Ticket with star",
+      "kind": "REWARD",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "reward-activity",
+      "concept": "Board-game pieces",
+      "kind": "REWARD",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "reward-items",
+      "concept": "Wrapped gift",
+      "kind": "REWARD",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "reward-family",
+      "concept": "Two hands around heart",
+      "kind": "REWARD",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "reward-app",
+      "concept": "Phone with app grid (future contract)",
+      "kind": "FUTURE",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    },
+    {
+      "key": "reward-achievement",
+      "concept": "Medal/check (provisional)",
+      "kind": "FUTURE",
+      "approved": true,
+      "mediaCatalogKey": null,
+      "assetStatus": "APPROVED_DESIGN_PENDING_REPOSITORY_ASSET_UPLOAD"
+    }
+  ],
+  "reviewBatch": {
+    "version": "v3 SVG vector",
+    "status": "USER_VISUAL_APPROVED_TECHNICAL_ALPHA_PASS",
+    "total": 18,
+    "svgCount": 18,
+    "pngCount": 54,
+    "lightDarkPreview": true,
+    "mediaCatalogIntegrated": false
+  },
+  "userApproval": {
+    "status": "APPROVED",
+    "date": "2026-10-26",
+    "scope": "v3 vector icon visual design, 18 icons",
+    "releaseAuthorization": false
+  }
+}

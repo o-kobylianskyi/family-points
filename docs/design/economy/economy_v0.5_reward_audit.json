@@ -1,0 +1,692 @@
+{
+  "schema": "family-points-economy-proposal/0.5",
+  "status": "REVIEW_ONLY",
+  "basis": "docs/design/economy/economy_v0.4_catalog_review.json",
+  "sourceCatalogVersion": 1,
+  "currencyCode": "POINTS",
+  "profiles": [
+    {
+      "code": "LOW",
+      "weeklyEarned": 50
+    },
+    {
+      "code": "TYPICAL",
+      "weeklyEarned": 110
+    },
+    {
+      "code": "ACTIVE",
+      "weeklyEarned": 200
+    }
+  ],
+  "taskCount": 110,
+  "rewardCount": 32,
+  "pricedCount": 12,
+  "unpricedCount": 20,
+  "rewardPriceAudit": [
+    {
+      "code": "fp.reward.time.001",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "suggestedPricePoints": 25,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "15 хвилин мультфільмів",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 0.5,
+        "TYPICAL": 0.3,
+        "ACTIVE": 0.2
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": true,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.time.002",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": 45,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "30 хвилин мультфільмів",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 0.9,
+        "TYPICAL": 0.5,
+        "ACTIVE": 0.3
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": true,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.time.003",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "suggestedPricePoints": 35,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "15 хвилин відеогри",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 0.7,
+        "TYPICAL": 0.4,
+        "ACTIVE": 0.2
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": true,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.time.004",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": 60,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "30 хвилин відеогри",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 1.2,
+        "TYPICAL": 0.6,
+        "ACTIVE": 0.3
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": true,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.time.005",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": 55,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "30 хвилин планшета",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 1.1,
+        "TYPICAL": 0.5,
+        "ACTIVE": 0.3
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": true,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.time.006",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "suggestedPricePoints": 30,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "15 хвилин додаткового екранного часу",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 0.6,
+        "TYPICAL": 0.3,
+        "ACTIVE": 0.2
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": true,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.time.007",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "30 хвилин гри з батьками",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.time.008",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "30 хвилин творчості з дорослим",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.privilege.009",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати сімейний фільм",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.privilege.010",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати гру для вечора",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.privilege.011",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати десерт",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.privilege.012",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати музику в авто",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.privilege.013",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати маршрут прогулянки",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.privilege.014",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати книжку для читання",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.activity.015",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Сімейний похід у парк",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.activity.016",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Спільна настільна гра",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.activity.017",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Пікнік із сім'єю",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.activity.018",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Відвідати дитячий майданчик",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.activity.019",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Спільний велосипедний виїзд",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.activity.020",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Кулінарний вечір разом",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.items.021",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 50,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Невеликий набір наліпок",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 1,
+        "TYPICAL": 0.5,
+        "ACTIVE": 0.3
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": true
+    },
+    {
+      "code": "fp.reward.items.022",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 60,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Новий олівець або ручка",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 1.2,
+        "TYPICAL": 0.6,
+        "ACTIVE": 0.3
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": true
+    },
+    {
+      "code": "fp.reward.items.023",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 250,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Маленька іграшка",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 5,
+        "TYPICAL": 2.3,
+        "ACTIVE": 1.3
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": true
+    },
+    {
+      "code": "fp.reward.items.024",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 300,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Нова книжка",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 6,
+        "TYPICAL": 2.8,
+        "ACTIVE": 1.5
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": true
+    },
+    {
+      "code": "fp.reward.items.025",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 200,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Набір для творчості",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 4,
+        "TYPICAL": 1.9,
+        "ACTIVE": 1
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": true
+    },
+    {
+      "code": "fp.reward.items.026",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 350,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true,
+      "titleUk": "Колекційна фігурка",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ],
+      "priceReview": "PROVISIONAL_REVIEW",
+      "weeksToAfford": {
+        "LOW": 7,
+        "TYPICAL": 3.2,
+        "ACTIVE": 1.8
+      },
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": true
+    },
+    {
+      "code": "fp.reward.family.027",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Додаткова казка перед сном",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.family.028",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Похід у бібліотеку",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.family.029",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Вечір конструктора з дорослим",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.family.030",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Особливий сімейний сніданок",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.family.031",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Обрати сімейну активність у вихідні",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    },
+    {
+      "code": "fp.reward.family.032",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true,
+      "titleUk": "Сімейний творчий проєкт",
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ],
+      "priceReview": "NO_AUTOMATIC_PRICE",
+      "weeksToAfford": null,
+      "noPurchasableWithoutParentConfirmation": true,
+      "screenTimeRestrictionsApply": false,
+      "costIsFamilySpecific": false
+    }
+  ],
+  "antiDuplicateRequirements": [
+    "unique earning occurrence per workspace/task occurrence/beneficiary/event type",
+    "same event cannot be credited twice from two devices or offline sync",
+    "compensating ledger entries for corrections",
+    "parent and child components must not double-pay unless explicitly configured",
+    "purchases use atomic idempotency keys and balance checks"
+  ],
+  "notForAutomaticImport": true,
+  "notActive": true
+}

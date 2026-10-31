@@ -1,0 +1,1515 @@
+# FamilyPoints — Current Development Checklist
+
+> Working branch: `feature/task-soft-delete`
+>
+> Purpose: current implementation checkpoint and immediate development order.
+>
+> This file is not the full product backlog. Product/domain decisions belong in `FAMILYPOINTS_CONCEPT_DISCUSSION_LOG.md`.
+
+Last reviewed against GitHub: **2026-10-04**
+
+---
+
+# 1. Current checkpoint: Roles / Role Sets / Context model
+
+## 1.1 New role catalog foundation
+
+- [x] Flyway `V7__hierarchical_role_catalog.sql`
+- [x] `RoleDefinition` entity
+- [x] `RoleAssignment` entity
+- [x] `RoleSetBinding` entity
+- [x] `RoleVisibility`
+- [x] `RoleContextType`
+- [x] Role repositories exist
+- [x] `RoleSet` extended with:
+  - [x] `systemCode`
+  - [x] `visibility`
+  - [x] owner context
+  - [x] `systemDefault`
+- [x] Default reusable role sets:
+  - [x] MANAGEMENT
+  - [x] EXECUTION
+  - [x] CONTROL
+- [x] Default role definitions:
+  - [x] LEADER
+  - [x] DEPUTY
+  - [x] SENIOR
+  - [x] EXECUTOR
+  - [x] ASSISTANT
+  - [x] REVIEWER
+  - [x] OBSERVER
+- [x] `RoleCatalogBootstrapService` exists
+- [x] Default role catalog initialization for new workspaces is present in current code
+
+## 1.2 Important coexistence / legacy state
+
+- [x] Legacy/intermediate `GroupRole` still exists
+- [x] Existing `GroupPermissionGrant` flow still works through group roles
+- [x] Existing GroupEditor still edits `GroupRole`
+- [x] Existing member-role assignment in GroupEditor still uses legacy group role IDs
+- [x] Existing role-set UI still lives inside GroupEditor
+- [x] Separate `WorkspaceRole` security-role model also exists and must not be confused with functional `RoleDefinition`
+
+**INVARIANT**
+
+Do not merge these concepts:
+
+- Workspace security role / workspace permission
+- functional RoleDefinition
+- contextual RoleAssignment
+- legacy GroupRole
+
+The new model must replace legacy functional-role usage incrementally, without breaking workspace authorization.
+
+---
+
+# 2. Role refactor — immediate remaining work
+
+## 2.1 Verify database/migration state first
+
+- [ ] Run/verify V7 on the current existing DB
+- [ ] Verify fresh DB bootstrap through all Flyway migrations
+- [ ] Verify default RoleSets/RoleDefinitions are created exactly once
+- [ ] Verify creation of a new Workspace initializes defaults
+- [ ] Verify existing workspaces receive/may receive default catalog safely
+- [ ] Check duplicate-name/system-code behavior
+- [ ] Check delete/deactivate behavior for RoleSet/RoleDefinition
+
+Do not call this compile-/migration-tested until it is actually run.
+
+## 2.2 Legacy data migration
+
+- [x] Define mapping from existing `GroupRole` to new `RoleDefinition` via `legacy_group_role_id`
+- [x] Preserve existing role names/descriptions in V8 bridge migration
+- [x] Preserve existing role-set membership in V8 bridge migration
+- [x] Preserve existing member-role assignments in V8 bridge migration
+- [x] Preserve existing permission grants via V9 bridge migration
+- [ ] Decide which migrated roles become:
+  - [ ] PRIVATE
+  - [ ] SHARED
+- [x] Define owner context for migrated group-local roles as PRIVATE + MEMBER_GROUP
+- [x] Create V8 migration bridge without deleting legacy tables
+- [x] Add temporary dual-write bridge for legacy GroupRole/member-role edits
+- [ ] Smoke-test V8 + dual-write against current real DB
+- [ ] Remove legacy only in a later separate migration
+
+## 2.3 Role catalog service/API
+
+- [x] Add/finish `RoleDefinitionService`
+- [x] Add RoleDefinition list API
+- [x] Add create API
+- [x] Add update API
+- [x] Add deactivate/delete semantics
+- [x] Support role set association
+- [x] Support `PRIVATE / SHARED` in backend model
+- [x] Support owner context
+- [x] Protect system-default RoleDefinitions/RoleSets from edit/delete
+- [x] Add localization/fallback-name handling for predefined roles in frontend
+- [ ] Smoke-test RoleDefinition/RoleSet catalog API locally
+
+## 2.4 RoleSetBinding
+
+- [ ] Add service for `RoleSetBinding`
+- [ ] Bind reusable RoleSet to Workspace/Group/Task context
+- [ ] Unbind safely
+- [ ] Prevent duplicate bindings
+- [ ] Define visibility rules for bound sets
+- [ ] Binding must NOT auto-assign roles to actors
+
+## 2.5 RoleAssignment
+
+- [ ] Add RoleAssignment service
+- [ ] MEMBER actor assignment
+- [ ] GROUP actor assignment where valid
+- [ ] Context-aware assignment
+- [ ] Active/inactive or validity semantics
+- [ ] Prevent duplicate active assignment
+- [ ] Validate role is visible/available in target context
+- [ ] Assignment in child context must not grant parent access
+
+## 2.6 Scope evaluator / context hierarchy
+
+- [ ] Implement/commonize `ScopeEvaluator` / `ContextHierarchyService`
+- [ ] CURRENT scope
+- [ ] SUBTREE scope
+- [ ] descendant allow
+- [ ] parent deny
+- [ ] sibling deny
+- [ ] multiple-parent group graph support
+- [ ] visited-set/cycle-safe traversal
+- [ ] hidden parent metadata protection
+
+---
+
+# 3. Permissions integration
+
+## 3.1 Functional role vs security permission
+
+- [x] Add `RolePermissionGrant` targeting new RoleDefinition
+- [x] Add `RolePermissionScope = CURRENT | SUBTREE`
+- [x] Add temporary dual-write for legacy GroupPermissionGrant create/delete
+- [ ] Smoke-test V9 + permission dual-write against current real DB
+- [ ] Do not automatically grant permissions just because a custom functional role exists
+- [ ] Keep explicit grants/presets
+- [ ] Preserve workspace-global permissions separately
+- [ ] Preserve group/task scoped permissions
+
+## 3.2 Authorization acceptance tests
+
+- [ ] Child-context role → parent: DENY
+- [ ] SUBTREE grant → descendant: ALLOW
+- [ ] SUBTREE grant → sibling: DENY
+- [ ] PRIVATE role → global catalog: HIDDEN
+- [ ] SHARED role → owner context + descendants: VISIBLE
+- [ ] SHARED role → ancestors/siblings: HIDDEN
+- [ ] readable child with hidden parent does not leak parent metadata
+- [ ] seeing parent alone does not imply access to child
+- [ ] local custom role cannot cause privilege escalation
+
+---
+
+# 4. Role UI refactor
+
+## 4.1 Workspace-level catalog
+
+- [x] Add Workspace settings section **“Ролі та набори”**
+- [x] List predefined/shared RoleSets
+- [x] List RoleDefinitions grouped by RoleSet
+- [x] Create/edit custom SHARED RoleSet where authorized
+- [x] Create/edit custom SHARED RoleDefinition where authorized
+- [x] Show predefined roles translated to current interface language via stable systemCode
+- [x] Manage role descriptions
+- [ ] Manage localization metadata for custom shared roles
+- [ ] Manage permission presets/grants where allowed
+- [x] Clear distinction between system/default and shared custom roles in Workspace settings
+- [ ] Local PRIVATE role UI stays for contextual Group/Task editor
+- [ ] Prepare catalog to be seeded by Workspace/activity templates (Family/Office/Business/etc.)
+
+## 4.2 Simplify GroupEditor
+
+Current state: GroupEditor still contains role-set manager, role editor and permission editor.
+
+Target:
+
+- [x] Remove RoleSet administration from normal GroupEditor flow
+- [x] Keep contextual/local role assignment in GroupEditor
+- [x] Allow local role creation without requiring a RoleSet
+- [x] Add simple permission profiles for local roles
+- [x] Hide raw permission matrix behind “Advanced permissions”
+- [x] Add local role delete flow with cleanup
+- [ ] Assign shared/system RoleDefinitions directly in GroupEditor later if real usage requires it
+- [ ] Enforce creator delegation ceiling for local advanced permissions when new authorization model is switched on
+- [ ] Avoid redundant `onChanged()+reloadAux` requests
+
+## 4.3 Task role UI
+
+- [ ] Reuse contextual role assignment model on Task Card where appropriate
+- [ ] ADMIN/OBSERVER/EXECUTOR participant semantics remain separate from functional roles
+- [ ] Role assignment must not silently change current executor
+
+---
+
+# 5. Group lifecycle follow-up
+
+After role refactor is stable:
+
+- [ ] Expose `MemberGroupType = ORGANIZATIONAL | TEAM` fully in API
+- [ ] Expose type in UI
+- [ ] Expose `validFrom`
+- [ ] Expose `validUntil`
+- [ ] Define effective-date behavior
+- [ ] Expired temporary team → archive/deactivate, not physical delete
+- [ ] Verify multiple-parent composition
+- [ ] Verify team-local leadership does not leak into source departments
+
+---
+
+# 6. Then return to Task domain
+
+## 6.1 Assignment / eligibility
+
+- [ ] Finish Actor model use for MEMBER/GROUP
+- [ ] `assignedActor`
+- [ ] `preferredActor`
+- [ ] `claimedByActor`
+- [ ] `currentExecutor`
+- [ ] role-based eligibility ANY/ALL
+- [ ] SINGLE_MEMBER
+- [ ] GROUP_SHARED
+- [ ] OPEN_GROUP
+- [ ] OPEN_WORKSPACE
+- [ ] PREFERRED_MEMBER
+- [ ] fix RELEASED instance/member/list semantics
+- [ ] verify `TaskInstanceResponse` exposes required assignment fields
+
+## 6.2 Requirements
+
+- [ ] `ALL_SATISFIED`
+- [ ] `MINIMUM_SATISFIED`
+- [ ] `requiredCount`
+- [ ] `alwaysRequired`
+- [ ] same-occurrence recurring dependency
+- [ ] generic requirement foundation
+
+## 6.3 Calendar / future tasks
+
+- [ ] day/week/month/period
+- [ ] future task visibility
+- [ ] visibility != availability != eligibility
+- [ ] reminder != deadline
+- [ ] defer/decline
+- [ ] extension/review
+- [ ] overdue later
+
+---
+
+# 7. Rich reward/task mechanics after core task model
+
+- [ ] Quality rating
+- [ ] FIXED
+- [ ] QUALITY_PERCENTAGE
+- [ ] BASE_PLUS_QUALITY_BONUS
+- [ ] MILESTONE
+- [ ] TaskStep/TaskMilestone
+- [ ] PAY_IMMEDIATELY
+- [ ] PAY_ON_TASK_COMPLETION
+- [ ] configurable stars
+- [ ] RewardGroup
+- [ ] random/manual selection semantics
+- [ ] task reputation reward/penalty
+- [ ] claimable task bank
+- [ ] TaskRequest / child task requests
+
+---
+
+# 8. Reputation domain
+
+Concept recovered and logged; implementation is later.
+
+- [ ] Reputation transaction/history model
+- [ ] task reputation delta
+- [ ] behavior reputation delta
+- [ ] manual award/penalty
+- [ ] scoped permission to award reputation
+- [ ] group/admin allocation limits
+- [ ] decay/reset policy
+- [ ] excused-day interaction
+- [ ] reward/catalog minimum reputation condition
+- [ ] reputation is checked, NOT spent on purchase
+
+---
+
+# 9. Purchase / Reward eligibility
+
+- [ ] Generic condition engine reusable beyond tasks
+- [ ] minimum reputation
+- [ ] required task/task-set completion
+- [ ] M-of-N conditions
+- [ ] no serious BehaviorEvent within period
+- [ ] streak requirement
+- [ ] learning/achievement requirement
+- [ ] point price remains separate from qualification conditions
+- [ ] locked-item progress explanation in UI
+- [ ] optional Goal/target feature later
+
+---
+
+# 10. Later domains
+
+## Behavior
+- [ ] BehaviorRule
+- [ ] BehaviorEvent
+- [ ] BehaviorDailyReview
+- [ ] rewards/penalties
+- [ ] reputation integration
+- [ ] self-report approval
+- [ ] severity model
+
+## Streaks / achievements
+- [ ] streak calculation
+- [ ] reset/freeze
+- [ ] excused days
+- [ ] rewards
+- [ ] achievements
+
+## Learning Bank
+- [ ] LearningActivity/Question/Attempt
+- [ ] Practice/Challenge
+- [ ] generators
+- [ ] automatic checking
+- [ ] difficulty/adaptive difficulty
+- [ ] anti-farming
+- [ ] reading/book/chapter milestones
+- [ ] learning plans
+
+## Device/App control
+- [ ] app price/time packages
+- [ ] schedules/limits
+- [ ] partial-use policy
+- [ ] Android enforcement
+- [ ] Windows agent
+- [ ] iOS later
+
+## Templates
+- [ ] WorkspaceTemplate foundation
+- [ ] built-in activity templates such as Family / Office-Small Team / Business / Software Development / Household
+- [ ] declarative seed of RoleSets/RoleDefinitions/bindings
+- [ ] declarative seed of groups/work hierarchy/permissions/economy
+- [ ] predefined role localization through systemCode
+- [ ] full wizard later
+
+---
+
+# 11. Immediate next action
+
+**Continue role/context refactor before starting a new major domain.**
+
+Recommended next sequence:
+
+1. smoke-test simplified local-role editor and local role deletion;
+2. stop role UX work unless real usage exposes a concrete problem;
+3. finish RoleAssignment/RoleSetBinding services and APIs;
+4. implement ScopeEvaluator + authorization tests;
+5. switch authorization off legacy GroupRole;
+6. then proceed to group lifecycle and Task assignment/requirements.
+
+---
+
+# 12. Safety rule
+
+Before each substantial implementation batch:
+
+- inspect current Git source;
+- check `FAMILYPOINTS_CONCEPT_DISCUSSION_LOG.md`;
+- check `FAMILYPOINTS_CONCEPT_CHECKLIST.md`;
+- do not implement a `RECOVER` item by guessing;
+- update this checklist as items become verified/implemented.
+
+
+## Automatic naming / duplicate UX
+- [x] Auto-name new local roles from permission profile
+- [x] Append numeric suffix for generated role-name collisions
+- [x] Use “modified” suffix when advanced permissions diverge from the base profile
+- [x] Stop auto-renaming after manual role-name edit
+- [x] Reject duplicate local role names within the group
+- [x] Warn when another local role has identical permission+scope set
+- [x] Auto-name new tasks with localized “Task/Завдання + first free number”
+- [x] Reject duplicate task titles in the current task catalog
+
+
+## Global-role assignment correction
+- [x] Stop creating/using legacy GroupRole copies for new predefined-role usage
+- [x] Expose shared Workspace RoleDefinitions as automatically available in every group
+- [x] Use RoleAssignment for member ↔ global role ↔ group context
+- [x] Keep RoleSetBinding/reference semantics; do not clone RoleDefinitions into groups
+- [x] Create PRIVATE RoleDefinition only for genuinely custom group roles
+- [x] Update GroupEditor role picker to show global predefined roles by default
+- [x] Rename normal UX to “Create custom role”
+- [x] Reuse V8-migrated legacy assignments and switch current group response to RoleAssignment
+- [x] Switch task required-role eligibility to RoleDefinition
+- [x] Switch scoped task authorization to RoleAssignment + RolePermissionGrant
+- [x] Add V11 migration for task-role bridge + system role permission presets
+- [ ] Smoke-test V11 migration and group/task flows locally
+
+
+## Task participant UI simplification
+- [x] Remove duplicate assignment controls from CreateTaskModal
+- [x] Keep Participants as the visible actor source
+- [x] Restrict ADMIN and OBSERVER to MEMBER actors
+- [x] Allow combined MEMBER + GROUP executors
+- [x] Require at least one executor before save
+- [x] Add PARTICIPANTS assignment policy for explicit executor sets
+- [x] Eligibility for PARTICIPANTS uses EXECUTOR TaskParticipants
+- [ ] Smoke-test combined executor task creation and claim visibility
+- [ ] Design true joint/multi-actor TaskInstance execution only if required by real usage
+
+
+## Reputation — task slice
+- [x] Add dedicated reputation ledger
+- [x] Add task reward reputation
+- [x] Add task penalty reputation
+- [x] Snapshot reputation values on TaskInstance
+- [x] Award reputation on task completion
+- [x] Deduct reputation on missed mandatory task
+- [x] Add reputation fields to Create/Edit Task UI
+- [x] Expose reputation values in task DTOs
+- [ ] Add reputation balance/history UI
+- [ ] Add manual reputation bonus/penalty with permission budgets
+- [ ] Add behavior reputation sources
+- [ ] Add reputation decay/reset policy
+- [ ] Add reward eligibility minimum-reputation conditions
+
+
+## Quick task economy presets
+- [x] Default new task to SIMPLE economy
+- [x] Add SIMPLE / NORMAL / HARD / CUSTOM presets
+- [x] Add common-value dropdowns for points
+- [x] Add common-value dropdowns for reputation
+- [x] Add “Other…” manual amount entry
+- [x] Use step 10 for custom point values
+- [x] Use step 1 for custom reputation values
+- [x] Switch preset to CUSTOM after manual value change
+- [ ] Smoke-test create/edit task economy presets locally
+
+
+## Rewards v1
+- [x] Add reward catalog persistence
+- [x] Add reward purchases and REWARD_PURCHASE ledger source
+- [x] Allow zero-price conditional rewards
+- [x] Add many-to-many reward categories
+- [x] Add DIRECT / REQUEST / DIRECT_OR_REQUEST acquisition modes
+- [x] Add free-form and catalog-based RewardRequest
+- [x] Allow parent approval to override price / point type / minimum reputation
+- [x] Add BEFORE_REWARD / AFTER_REWARD requirements
+- [x] Implement TASK_COMPLETED + TODAY for preconditions
+- [x] Implement SINCE_REWARD for advance task obligations
+- [x] Create RewardObligation after advance reward grant
+- [x] Auto-complete task-backed obligations after required task completion
+- [x] Add NONE / WARN_ONLY / ALL_REWARDS / CATEGORIES / SPECIFIC_REWARDS blocking
+- [x] Add category blocking selection
+- [x] Add manually selected reward blocking
+- [x] Add initial /rewards catalog + requests + management UI
+- [x] Show open advance obligations
+- [ ] Implement Behavior module and NO_NEGATIVE_BEHAVIOR evaluation
+- [ ] Add availability schedule for recurring reward access
+- [ ] Add daily / weekly purchase limits
+- [ ] Add generalized RewardGroup and RequirementGroup semantics
+- [ ] Add full redeem / cancel / refund / approval lifecycle
+- [ ] Add Goal conversion for large reward requests
+- [ ] Integrate time rewards with app/screen-time control
+- [ ] Complete rewards UI i18n
+- [ ] Run backend/frontend smoke test locally
+
+
+## Task reward negotiation
+- [x] Add TaskRewardRequest persistence and lifecycle
+- [x] Scope reward negotiation to TaskInstance
+- [x] Allow executor to request point/reputation changes
+- [x] Allow executor to request a catalog reward
+- [x] Allow executor to request a free-form reward
+- [x] Allow parent/manager to edit requested terms before approval
+- [x] Make approved negotiation replace normal TaskInstance reward
+- [x] Create zero-price RewardRequest for approved non-point reward after task completion
+- [x] Add executor “Запросити іншу винагороду” UI
+- [x] Add parent management queue for pending reward negotiations
+- [ ] Add request-status badge to task cards
+- [ ] Add counter-offer / negotiation conversation history
+- [ ] Add notifications
+- [ ] Add WAIT_FOR_DECISION task-start policy
+- [ ] Add negotiation audit events
+- [ ] Smoke-test Task Reward Negotiation locally
+
+
+## Time-based rewards
+- [x] Add STANDARD / TIME_BASED RewardKind
+- [x] Add optional catalog defaultDurationMinutes
+- [x] Snapshot duration on RewardRequest and RewardPurchase
+- [x] Add requested / approved duration to TaskRewardRequest
+- [x] Add duration selector to task reward negotiation
+- [x] Default negotiated duration to “Будь-який”
+- [x] Prefill negotiation point/reputation fields from current TaskInstance snapshot
+- [x] Add reward kind and typical duration to reward creation UI
+- [ ] Add duration editing to all free-form reward request flows
+- [ ] Integrate purchased time rewards with app/screen-time timers
+- [ ] Smoke-test V17 and time-based reward flow locally
+
+
+## Android app
+- [x] Add native Android project under /android
+- [x] Add INTERNET permission
+- [x] Add Retrofit / OkHttp networking foundation
+- [x] Add native Compose Login screen
+- [x] Authenticate against /auth/login
+- [x] Persist JWT access token locally
+- [x] Add minimal authenticated Home screen and logout
+- [x] Add native Dashboard screen matching web data flow
+- [ ] Load /api/me after login and restore
+- [x] Add native navigation shell
+- [x] Add native Tasks list screen (my/open/management)
+- [x] Add native Task Details screen (execution/actions/delegation/subtasks/participants/history)
+- [x] Add native Create Task screen (participants/recurrence/economy/subtasks)
+- [x] Add native Task Reward Negotiation screen (points/reputation/catalog/time/custom request)
+- [x] Add native Rewards screen (catalog/requests/manage/conditions/obligations/purchases)
+- [ ] Add balances/dashboard
+- [ ] Add Android app-control/time-control layer
+
+- [x] Add native Points screen (members/balance/history/manual operations)
+
+## Android Members — 2026-10-10 initial native port
+
+- [x] Add Members API/repository and native navigation destination
+- [x] Members/Groups mobile tabs and shared AppHeader
+- [x] Load members, workspace roles and member groups
+- [x] Permission-gated add/edit/delete member dialog and confirmation
+- [x] Create group and render nested group tree with cycle guard
+- [ ] Port full GroupEditor: group edit, composition, role assignments, balances, permissions, lifecycle
+- [ ] Validate Members API DTO shape and permission edge cases against running backend
+- [ ] Verify Kotlin compile and Android runtime locally (not run by assistant)
+
+## Android Members / GroupEditor follow-up — 2026-10-10
+
+- [x] Add group rename/description/showInNavigation editing UI
+- [x] Add/remove group members and child groups
+- [x] Assign existing available group roles to members
+- [ ] Implement creating/editing/deleting PRIVATE group roles and permission profiles/grants
+- [ ] Implement group points operations and full i18n of system role names
+- [ ] Check cycle validation and group assignment permissions against backend
+- [ ] Compile and runtime smoke-test new GroupEditor on emulator
+
+## Android GroupEditor — local roles follow-up
+
+- [x] Implement create/edit/delete dialog for PRIVATE local roles, with duplicate title check
+- [x] Preserve shared/system role read-only behavior
+- [ ] Port role permission presets NONE/EXECUTOR/SENIOR/LEADER/CONTROL and advanced grants
+- [ ] Port automatic role naming and equivalent-permission warnings
+- [ ] Port group balance operations
+- [ ] Compile and smoke-test Android Members/GroupEditor locally
+
+## Android GroupEditor permission profiles — 2026-10-10
+
+- [x] Add role permission grant fetch/create/delete API
+- [x] Expose NONE/EXECUTOR/SENIOR/LEADER/CONTROL profiles
+- [x] Add advanced permission checklist and GROUP/GROUP_SUBTREE scope choice
+- [ ] Finish creation workflow applying selected profile immediately to new role
+- [ ] Auto-name local roles and show duplicate-permissions warning
+- [ ] Complete group balances UI
+- [ ] Compile and smoke-test role permissions on emulator
+
+## Android local role follow-up — 2026-10-10
+
+- [x] Propose first unused localized role name and stop renaming after manual edit
+- [x] Warn on duplicate predefined permission profiles and reject duplicate names
+- [x] Apply selected permission preset on role save with explicit role ID resolution
+- [ ] Support modified-name suffix for manual advanced permission divergence
+- [ ] Test multi-request role save failures, role IDs and permission sync
+- [ ] Port group balance controls
+- [ ] Run Android compile/runtime validation
+
+## Android group balances — 2026-10-10
+
+- [x] Show all server-provided group balances in GroupEditor by point type
+- [ ] Confirm backend DTO for POST /member-groups/{groupId}/points and group delegation rights
+- [ ] Add secure group point adjustment form after DTO verification
+- [ ] Verify Android compile and group UI on emulator
+
+## Android Group Points transactions — 2026-10-10
+
+- [x] Verify backend GroupPointOperationRequest and PointTransactionType
+- [x] Enforce MANAGE_POINTS/ADMIN_OVERRIDE and workspace scope on group points controller endpoint
+- [x] Add Android credit/debit form for existing group point types
+- [x] Reject zero/invalid amount in Android and display insufficient balance warning
+- [ ] Consider backend overdraft policy and atomic balance validation
+- [ ] Compile backend with Maven and Android with Gradle, deploy secured backend
+- [ ] Runtime-test role permissions and credit/debit API; verify ledger and balance refresh
+
+## 2026-10-11 — Android Groups UI polish
+- [x] Compact group cards with localized member and subgroup counters
+- [x] Expand/collapse tree and indent nested groups
+- [x] Suppress zero balances in group overview; retain full balance list in editor
+- [x] Translate permission groups, role profiles, scope selection and member types
+- [ ] Compile Kotlin and verify layout on actual device/emulator, especially deep group nesting
+
+## 2026-10-11 — Android Settings
+- [x] Replace Settings placeholder with native screen
+- [x] Allow own password change with basic validation
+- [x] Load accounts (for managers), create account, update login status and username, reset password
+- [x] Localized new controls in UK/DE/EN/RU
+- [ ] Port role catalog/role sets editor from React
+- [ ] Compile Kotlin and smoke-test Settings API and 204 password responses
+- [ ] Improve account form failure handling and permission visibility
+
+## 2026-10-11 — Android Settings role catalog
+- [x] Read workspace role sets and definitions
+- [x] Create/edit/delete custom sets and non-system shared roles
+- [x] Support role-to-set assignment and localized action labels
+- [x] Mount role catalog within native Settings
+- [ ] Translate predefined system role names from systemCode
+- [ ] Confirm role CRUD API response compatibility and permissions
+- [ ] Verify Android Kotlin compile and runtime on emulator
+
+## 2026-10-11 — Localized custom currency declensions
+- [x] Store per-point-type forms one/few/many for UK/RU/EN/DE (Flyway V18)
+- [x] Secure read/update API for name forms
+- [x] Native Android Settings editor with quantity preview
+- [x] Shared Android quantity formatter for custom forms and POINTS fallback
+- [x] Apply configured forms to Android reward catalog and request prices
+- [ ] Populate recommended defaults for built-in COPPER/SILVER/GOLD, and expose forms in React Settings
+- [ ] Use formatter consistently in balances, transactions, tasks, groups and other currency displays
+- [ ] Build/test Flyway migration, backend API, Android Settings + reward prices
+
+## 2026-10-11 — Currency UI audit, Android + React
+- [x] Inventory screens/components showing currency counts in both clients
+- [x] Shared UI currency formatting helper for React; Android counterpart exists
+- [x] Web Settings currency form editor + API; Rewards/Tasks/TaskDetails/Group/Dashboard/Points displays
+- [x] Android Dashboard/Points basic POINTS summary + TaskDetails; Rewards custom forms
+- [ ] Android custom-form loading in all screens (not just Rewards); groups/history/negotiation/task-list/editor
+- [ ] Web point history and remaining forms; full localization and currency defaults
+- [ ] Backend V18 migration tests; Kotlin compile, JS build and live regression checks
+
+## Web Settings currency editor layout
+- [x] Separate currency editor layout from password settings grid
+- [x] Localize system currency selector labels
+- [x] Show persisted forms and distinguish them from unsaved built-in examples
+- [x] Responsive field arrangement and quantity preview
+- [ ] npm build and browser smoke test; verify GET and PUT of persisted forms
+
+## 2026-10-11 — Stabilization and Android app-control
+- [x] Review build configuration, migration version uniqueness and selected high-risk backend/Kotlin paths
+- [ ] Obtain verified backend Maven test/compile output, frontend npm build output, Android Gradle compile output
+- [ ] Finish custom currency forms propagation on Android (Tasks, Groups, Points history, negotiation)
+- [ ] Inspect other UI translations / layout defects and report remaining cases by screen
+- [x] Add permission-gated, read-only Android UsageStats data access foundation
+- [ ] Android Usage Access settings handoff and app-usage inventory UI
+- [ ] Design server device-to-member binding and app-time purchase policy
+- [ ] Determine permissible kiosk/device-owner/accessibility approaches before claiming app lock or force-close ability
+
+## Device management implementation (phase 1+)
+- [x] V19 schema for managed devices, app inventory, per-app policies, temporary child sessions and parent override audit
+- [ ] Maven/Flyway migration test on PostgreSQL
+- [ ] Device registration API with ownership, workspace validation and server-side permissions
+- [ ] Android device ID enrollment and installed-app inventory upload
+- [ ] Web device/app catalog with category, visibility, access mode and pricing
+- [ ] Temporary child session start/end endpoints with parent authorization, idempotency and cross-workspace validation
+- [ ] Protected local parent PIN, timeout, rate limiting and override recovery
+- [ ] Standard/Device Owner capability negotiation and local policy enforcement
+- [ ] Incoming call screening, allowlist and approval requests; outbound restrictions need separate feasibility test
+- [ ] YouTube/browser content rules (depending on achievable enforcement level)
+
+## Offline-first child device (2026-10-11)
+- [x] Isolate balance loading from history timeout in Android PointsRepository (commit 87bfa95)
+- [ ] Room local database: device/user scoped snapshots for balances, point types + inflections, reward catalog + prices + requirements, app policies, allowed contacts, active time entitlements, synchronization state
+- [ ] Encrypted-at-rest local sensitive data using Android Keystore-backed keys, device binding and careful logout/account-switch behavior
+- [ ] Server-issued offline spending allowance/reservations (budget + expiry + signed device binding); **do not** treat last-seen server balance as automatically spendable across devices
+- [ ] Durable idempotent offline action queue with UUID client operation id, append-only local ledger, retry/reconciliation and transaction uniqueness server-side
+- [ ] Freshness/stale indicators, last successful sync and conservative enforcement when policy/allowance expires
+- [ ] Test airplane mode, concurrent phone/tablet usage, revoked rewards, clock changes, reboot during active time and reconnect after long offline intervals
+- [ ] Cache read-path for balance/reward catalog with UI showing explicitly offline/stale values
+
+- [x] Wire persisted display-only balance cache into Android repository and UI with offline status, user fallback, and disabled offline operations
+- [ ] Verify Kotlin compilation and emulator online/airplane-mode navigation after first successful balance sync
+- [ ] Implement offline session hydration and offline reward catalog/policy cache
+
+## Android shared server reachability
+- [x] Replace connectivity-only Settings logic with shared API backend status
+- [x] Add central OkHttp status propagation, bounded backend probe, retries and global banner
+- [x] Preserve active session on transient gateway/unreachable refresh failures
+- [x] Repair Settings syntax introduced in offline mode changes
+- [ ] Verify :app:compileDebugKotlin and emulator offline->online recovery
+- [ ] Test server unavailable while Wi-Fi remains connected; verify Settings controls hide and return
+- [ ] Separate per-screen transient operation errors from global backend outages in remaining screens
+
+## 2026-10-11 — Offline cache coverage audit
+- [x] Rewards: split essential catalog GET from seven-request aggregate; save server catalog immediately
+- [x] Rewards: show cached catalog before/during refresh, prevent offline purchases/requests
+- [x] Dashboard: date-scoped offline read-only snapshot
+- [x] Tasks (My tab): date and account-scoped read-only offline snapshot; disable mutations
+- [ ] Run Android Kotlin compile and online-then-airplane-mode smoke tests on emulator
+- [ ] Encrypt local rewards/tasks/dashboard snapshots and enforce per-account cache retention/logout policy
+- [ ] Offline local PIN authorization so snapshots can be opened after process restart/token expiry
+- [ ] Cache point type declensions, members/groups, role catalog and policy rules
+- [ ] Cache reward detail forms where applicable; task management/details still online-only
+- [ ] Verify all requests are refreshed after server reconnect and stale data never allows mutations
+
+## Offline password login (2026-10-11)
+- [x] Add encrypted per-username profile and salted password verifier
+- [x] Allow normal login button to work offline for enrolled accounts
+- [x] Preserve enrollment across manual logout; require password every session
+- [x] Add 7-day offline credential validity and rate limiting after wrong passwords
+- [x] Differentiate offline access errors from online incorrect credentials
+- [x] Prevent offline authenticated identity from reusing old JWT; require online sign-in after reconnect
+- [x] Guard PointsScreen network requests when offline identity has no JWT
+- [ ] Verify Android compilation and 6-step emulator test (online enrollment -> logout -> server down -> offline login -> cached screens -> server reconnect)
+- [ ] Add offline account chooser, manage/remove saved accounts and locally settable parent PIN
+- [ ] Encrypt remaining reward/task/dashboard/points caches and define device-removal policy
+
+## 2026-10-11 — Backend reconnect regression
+- [x] Make health check identify actual FamilyPoints backend (new /api/client-health)
+- [x] Prevent false ONLINE state from generic HTTP 200/401/403
+- [x] Preserve offline banner during unsuccessful manual Retry
+- [x] Add manual refresh on Rewards, Tasks, Dashboard
+- [x] Auto refresh opened screens every 30 seconds while backend confirmed online
+- [x] Differentiate failed catalog refresh from true offline catalog in Rewards
+- [ ] Run backend Maven tests / Android :app:compileDebugKotlin
+- [ ] Verify /api/client-health accessible without credentials via actual Android BASE_URL host
+- [ ] Emulator: backend down -> stale cache -> backend up -> indicator clears -> new Web task appears on Android within 30 s
+- [ ] Verify expired JWT displays login instead of silently showing stale data as synced
+- [ ] Protect background refresh from rapid status toggles and duplicate API calls if needed
+
+- [x] Explain why an offline-only authenticated session needs fresh online login before synchronizing
+
+## Offline participants/points (2026-10-11)
+- [x] Cache participants and last confirmed balances by workspace/viewer
+- [x] Show cached member names, roles, balances offline on Members and Points screens
+- [x] Durable UUID-based pending offline earnings and penalties, visibly separate from confirmed balance
+- [x] Flyway V20 unique operation IDs and secure idempotent backend replay endpoint
+- [x] Require MANAGE_POINTS for ordinary manual point operations as well as replay
+- [x] Reconcile pending operations only after real online auth; refresh confirmed balances
+- [ ] Run backend migration + Maven tests and Android :app:compileDebugKotlin
+- [ ] Test online cache -> offline 2 members -> queue earn and penalty -> online reauth -> repeated retry -> exactly-once server ledger
+- [ ] Test server denies expired/revoked MANAGE_POINTS; pending entries must remain visible
+- [ ] Encrypt local member/balance/operation stores before production and define removal/retention policy
+- [ ] Improve rejected-operation management UI (edit/cancel, last failure, retry)
+
+- [x] Provide manual retry button for offline earning/penalty queue with clear rejection status
+- [ ] Verify security on actual device (parent online, child offline, invalidated permissions) and compile client/backend
+
+## Currency-specific offline point adjustments
+- [x] Offer actual cached/backend point type selector for manual earn/penalty/spend
+- [x] Store currency ID/code/name in offline pending operation and display pending deltas per currency
+- [x] Migrate Android SQLite queue v1 -> v2 without dropping existing pending operations
+- [x] Backend idempotent replay validates selected currency and keeps old nullable payload support
+- [x] Server typed manual point operation for online Earn/Penalty/Spend
+- [ ] Build Java backend and Android Kotlin app; run Flyway/JPA startup and functional tests
+- [ ] Test online selected currency and offline selected currency replay (other than POINTS)
+- [ ] Test legacy pending items from v1 SQLite (NULL pointTypeId) sync safely
+- [ ] Cache/display balances for each currency, not just default points
+
+## Points quick edit and reward spending
+- [x] Default amount 20, +/-10 buttons and saved last successful amount per currency/operation
+- [x] Android spend dialog: optional reward selector; reward price/currency are fixed and shown
+- [x] Parent can create true reward purchase for child from Points without duplicate manual deduction
+- [x] Backend checks reward eligibility and permission to manage rewards
+- [x] Online-only reward purchasing; manual spend is separate and unchanged
+- [ ] Maven compile/test RewardController, Android :app:compileDebugKotlin
+- [ ] Verify parent with points permission but without reward permission sees manual spend only
+- [ ] Verify direct reward purchases create linked purchase and REWARD_PURCHASE point transaction exactly once
+- [ ] Implement idempotent retries for parent-on-behalf reward purchase operations
+
+## 2026-10-12 — Contabo Beta deployment
+- [x] Reserve Contabo VPS for independent always-on family Beta; local laptop stays development environment
+- [x] Prepare React production same-origin HTTPS API routing and explicit VITE_API_URL override
+- [x] Prepare Android distinct debug/release API addresses and optional release endpoint override
+- [x] Disable Android cloud backup of app-private data
+- [x] Add step-by-step initial deployment and read-only audit notes in deploy/beta/README.md
+- [ ] Inspect real Contabo RAM/disk/listening ports/Nginx and Apache over SSH without changing them
+- [ ] Confirm Beta DNS, TLS certificate and ingress routing without breaking WireGuard/DEV
+- [ ] Provision PostgreSQL Beta role/database, backups and isolated Java 21 systemd backend
+- [ ] Deploy locally built React dist via Nginx and backend jar; verify HTTPS APIs
+- [ ] Secure and sign Android release APK for stable future updates; test on parent phone
+- [ ] Compile Maven/Gradle/npm and run migration/offline/synchronization smoke tests
+
+## 2026-10-12 — Actual Contabo pre-deployment audit
+- [x] Verified 8 GiB VPS with >7 GiB available RAM and ~94 GiB free disk
+- [x] Verified active nginx port 80/8443 and active WireGuard UDP 51820
+- [x] Verified public port 443 is available for Beta, but blocked by UFW until explicitly opened
+- [x] Verified Docker and PostgreSQL not yet installed on VPS
+- [x] Verified UFW contains routed allowlist for 1C external 8080 -> laptop Apache; preserve UFW/DNAT
+- [x] Add docker compose Beta assets, environment template and Nginx HTTPS 443 config
+- [x] Discover release-critical missing Flyway V1; require restored DEV DB with migration history or compatible baseline snapshot
+- [ ] Back up UFW, Nginx and iptables NAT files to root-only path before Docker installation
+- [ ] Check actual NAT rules and apt Docker/Compose package candidates
+- [ ] Install Docker and verify the existing 1C forwarding and DEV still work
+- [ ] Obtain sanitized/current DEV PostgreSQL dump and restore to Beta isolated DB
+- [ ] Build/release Java JAR and React dist; obtain Beta TLS cert and bring Nginx 443 online
+
+## 2026-10-12 — Clean Beta + multi-family onboarding decision
+- [x] Decision: NO development data/account/transaction copy into Beta
+- [x] Document tenant separation, registration, member wizard and optional task/reward templates in docs/MULTI_FAMILY_ONBOARDING_PLAN.md
+- [x] Update deployment guidance to require empty-data schema and explicit workspace security fixes
+- [ ] Fix critical cross-tenant access paths (WorkspaceController, EconomyController, other controllers and nested IDs)
+- [ ] Create and verify clean database bootstrap (V1 pre-V2 schema through V20, or controlled schema-only V20 baseline)
+- [ ] Invite-only first-family registration: initial admin + default roles, point type, settings (atomic)
+- [ ] First-run wizard with participants and permissions; resumable
+- [ ] Shared versioned template catalog for optional tasks/rewards, editable per-workspace copies, idempotent import
+- [ ] Tests with two unrelated families and cross-workspace API security
+- [ ] Only after security and bootstrap validated: Contabo Beta release and parent phone
+
+## 2026-10-12 — Tenant isolation milestone 1, source committed (tests pending)
+- [x] Root GET /workspaces exposes own family only; foreign GET/PUT denied, POST and DELETE temporarily disabled
+- [x] Shared cross-family guard in Spring Security chain after JWT authentication
+- [x] MANAGE_WORKSPACE, MANAGE_MEMBERS and MANAGE_ROLES workspace-scoped predicates
+- [x] Economy and workspace role configuration protected from unprivileged family members
+- [x] Group mutations/permissions protected; scoped role delegation needs explicit future support
+- [x] Review paths for role sets/definitions, points, exception periods, exchanges
+- [x] Unit tests for filter and workspace root behavior written
+- [ ] Run Maven `-Dtest=WorkspaceIsolationFilterTest,WorkspaceControllerTest test` and verify context boot
+- [ ] Integration test two distinct tenants across nested resource IDs and request payload references
+- [ ] Implement clean PostgreSQL baseline from empty DB
+- [ ] Implement transactional, invite-only family registration and parent setup wizard
+
+## 2026-10-12 — Reproducible clean Flyway V1 baseline
+- [x] Confirm Git annotated tag v0.3-workspace predates introduction of Flyway V2 and contains the legacy mapped schema
+- [x] Add scripts/db/generate-v1-baseline.ps1: isolated Docker PostgreSQL 17, temporary historic Git worktree, Hibernate DDL create, pg_dump schema-only, second isolated V1-V20 Flyway + Hibernate validation
+- [x] Update db/migration/README and deploy/beta/README to forbid copying current DEV data and require generated/validated V1
+- [x] Remove hardcoded username "oleh" from clean Beta login page
+- [ ] **User-run script** on laptop with Java 21 and Docker Desktop; capture PASS or validation error
+- [ ] Review generated V1 SQL; commit to feature branch only after V1..V20 and JPA validation pass
+- [ ] Implement invite-only family administrator registration and setup UI
+
+
+## 2026-10-13 — Joining another family/workspace (AGREED; TODO)
+- [ ] Public non-enumerable family/workgroup join identifier -> authenticated pending request -> authorized manager approval/decline
+- [ ] Secure expiring/revocable workspace invitation links with configurable recipient, role and uses
+- [ ] Preserve invite context across registration, Google OIDC redirect, email verification and login
+- [ ] Authenticated invitation review, accept/decline and transactional idempotent membership creation
+- [ ] Negative tests: expired/revoked/replayed invites, wrong user, races, workspace isolation
+- [ ] DEV acceptance before Contabo BETA deployment
+
+## 2026-10-13 — Join-code API incremental implementation
+- [x] Commit V27 tables for invitations, join codes, join requests, redemptions and pending invite sessions
+- [x] Commit join-code generator/request/rejection service and permission-scoped controller (fe23c79)
+- [ ] Compile and migrate V27 on isolated local test PostgreSQL before running against existing DEV DB
+- [ ] Add rate limits, expiration/approval handling, and a safe manager workflow
+- [ ] Implement invitation token exchange and continuity through password/Google registration
+- [ ] Integration tests (workspace A/B, user with multiple memberships, invite replay)
+- [ ] DEV acceptance, then separately promote pinned commit to Contabo BETA
+
+## 2026-10-13 — Join request manager approval increment
+- [x] Transactional approval: row lock, workspace-scoped role validation, account duplicate check, member/membership insert, request review audit (2c822d7)
+- [x] Manager permission guarded approval API (0f5b051)
+- [ ] Test V27 migration, Java compile, approve/reject races, cross-workspace refusal, multi-workspace JWT switching on DEV
+- [ ] Invitation links and context persistence through password + Google signup
+- [ ] Guard public endpoint against automated join-code guessing and request flooding
+
+## 2026-10-13 — Invite context increment
+- [x] Server-side pending invitation handle storage and resumed preview (852a0bd)
+- [x] Authenticated DEV API context begin/resume (30da43d)
+- [ ] Browser-bound, anti-CSRF invitation preservation for unauthenticated signup and Google OIDC
+- [ ] Invitation acceptance and atomic membership / use-limit / role controls
+- [ ] Compile/test V27 migration and API against DEV test database
+- [ ] Full multitenant negative tests, abuse throttling and BETA promotion after DEV acceptance
+
+## 2026-10-13 — DEV multi-family milestone
+- [x] List current account's active workspace memberships (`GET /auth/workspaces`)
+- [x] Issue selected workspace JWT after membership authorization (`POST /auth/workspaces/{workspaceId}/select`)
+- [x] Add second-family creation service and role-checked opt-in route, default disabled
+- [ ] Compile/backend unit tests, PostgreSQL Flyway V27 and two-tenant HTTP isolation tests
+- [ ] Review all role-scoped routes for use of selected workspace context, not legacy primary member
+- [ ] Web/Android family switch UI; fully global identity and Google OIDC; invitation continuation
+
+## 2026-10-13 — Web onboarding and consolidated validation
+- [x] React signup page and API client with error/validation state
+- [x] Route and login entry point, disabled by default through Vite env flag
+- [x] Confirm existing React family selector/backend routes; do not duplicate
+- [x] Consolidated Java + React build script; optional Maven tests
+- [ ] Run build locally and verify Flyway V27 on isolated PostgreSQL
+- [ ] Complete abuse protection and account signup race handling before enabling registration
+- [ ] Add browser-safe invitation continuation and Google OIDC, then full end-to-end tests
+
+## 2026-10-13 — Consolidated test gate
+- [x] Review invitation and workspace session test coverage; adjust invite JdbcTemplate mock (b25b87c)
+- [x] Single `-BackendOnly -WithTests` DEV checkpoint with V29 Flyway inventory requirement (066e7a8)
+- [ ] ACTUALLY RUN Maven compilation/tests on local checkout
+- [ ] Validate V27, V28, V29 against isolated PostgreSQL with Flyway
+- [ ] Verify two-family signed JWT and malicious cross-tenant access
+- [ ] Only after the above: onboarding registration and Google identity integration
+
+## 2026-10-13 — Isolated PostgreSQL test gate
+- [x] Add Testcontainers migration V27–V29 verification
+- [x] Add cross-workspace DB role integrity checks (member + invitation)
+- [x] Add family-less global identity persistence and provider-subject uniqueness tests
+- [ ] Rerun full Maven test suite with Docker Desktop available; inspect surefire-reports for failures
+- [ ] Confirm clean PASS before enabling new registration or Google auth
+- [ ] Run invite/join HTTP API multi-family functional tests in disposable DB
+
+## 2026-10-13 — Join/invitation integration follow-through
+- [x] Detect/reject duplicate pending join request (HTTP 409)
+- [x] Add disposable database tests of join application and manager approval
+- [x] Add disposable database tests of invite context and one-use redemption
+- [ ] Run full Maven Testcontainers suite on laptop; resolve actual failures
+- [ ] Add HTTP security/manager-authorization checks to join/invite controller suite
+- [ ] Preserve BETA isolation until complete test gate
+
+## 2026-10-13 — Join/invite safety gate
+- [x] Fix invalid MockMvc JSON test content
+- [x] Add disposable PostgreSQL invitation revoke-after-context test
+- [x] Add disposable PostgreSQL join rejection and deny-later-approval test
+- [ ] Run `scripts/dev/check-onboarding.ps1 -BackendOnly -WithTests` locally
+- [ ] Investigate any test failure before changing Flyway/production code
+- [ ] Add concurrency/idempotency tests only after complete suite passes
+
+## 2026-10-13 — Invitation/join development phase closed for now
+- [x] Join codes, manager review/approve/reject, expiring/revocable invitations, pending invitation context, workspace-local membership and permission isolation implemented in DEV branch.
+- [x] Unit and Testcontainers integration scenarios added for happy path, repeat use, revoke/reject, role isolation, manager HTTP access.
+- [ ] Full suite after latest commits NOT CONFIRMED. Keep as final release gate, not an ongoing feature development thread.
+- [ ] Concurrency edge cases (simultaneous approve/invite acceptance, revoke vs accept) need explicit test and robust conflict handling before public rollout.
+- [ ] Email-bound invitations and rate limiting remain out of public-release scope until identity/login work completes.
+- [ ] User has local uncommitted FamilyPointsApplicationTests.java edits. Preserve them in stash before git pull; compare after update, do not blindly pop.
+- [ ] No Contabo deployment, registration/public invite enablement until integration tests and security review pass.
+**Next main development:** account identity lifecycle, password registration, account without family, Google OAuth subject binding, workspace selection; UI updates only to verify completed workflows.
+
+## 2026-10-13 — Global registration next gate
+- [x] Account-only registration service and disabled-by-default endpoint
+- [x] Initial service tests for account without family
+- [ ] Permit account-only endpoint anonymously in SecurityConfig while preserving feature gate (write temporarily blocked)
+- [ ] Enable authenticated family-less account to create its first family without preexisting workspace authority
+- [ ] Add Spring MVC/JWT lifecycle tests and check duplicate username races
+- [ ] Do not enable public registration, Google/OIDC or BETA deployment until safety gates pass
+
+## 2026-10-13 — First family implementation gate
+- [x] Feature-gated POST /api/onboarding/first-family for authenticated global accounts
+- [x] Reject accounts with existing family and serialize parallel first-family requests
+- [x] Initial unit tests for successful first family / existing family conflict
+- [ ] Run Maven unit and PostgreSQL integration tests; verify full identity lifecycle
+- [ ] Add real API-level onboarding tests and address any failures
+- [ ] Leave public signup and first-family flags disabled until release review
+
+## 2026-10-13 — Global account switcher fixes
+- [x] Audit existing /auth/workspaces selection and scoped JWT; avoid parallel implementation
+- [x] Fix /api/me/workspaces on account with no families
+- [x] Adapt selected-workspace unit test and add empty-list regression
+- [ ] Run local Maven tests and full Testcontainers gate after safe git pull
+- [ ] Complete signup -> first-family -> workspace-selection HTTP integration coverage
+- [ ] Implement provider-subject-verified Google identity binding, not email-only linking
+
+## 2026-10-13 — Google identity milestone
+- [x] Add Google ID-token signature, issuer, expiry, audience and azp validation.
+- [x] Resolve existing linked account exclusively using provider+subject, never email.
+- [x] Feature-gate POST /auth/google disabled by default; avoid assigning a workspace automatically.
+- [x] Add initial controller tests.
+- [ ] Execute Maven build/tests and resolve any compilation/integration errors.
+- [ ] Implement authenticated, ownership-confirmed Google account linking with uniqueness-conflict behavior and tests.
+- [ ] Implement optional Google account creation with secure registration/onboarding integration only when ready.
+- [ ] Never enable Google or deploy BETA until full verification.
+
+## 2026-10-13 — Google account link integration
+- [x] Signed-in and current-password-confirmed Google linking controller
+- [x] Shared token verifier for Google login and linking
+- [x] Subject-based account resolution; no email matching
+- [x] Unit tests for linking and resolution failure paths
+- [ ] Run full backend Maven tests on DEV and fix any failures
+- [ ] Add provider verifier tests and duplicate/conflict integration tests before enabling
+- [ ] Google front-end consent/onboarding flow and public activation deferred
+
+## 2026-10-14 — Web/Android onboarding
+- [x] Web: global account registration screen, explicit workspace chooser and first-family screen
+- [x] Web: avoid /api/me on global login before selecting a workspace
+- [x] Web: verify scoped JWT before replacing active workspace session
+- [x] Android: typed registration and first-family API endpoints
+- [ ] Build React and smoke-test older family member sessions
+- [ ] Build Android and implement Compose account registration / initial family chooser flow
+- [ ] Add end-to-end browser tests for both zero and multiple workspaces
+- [ ] Public flags stay disabled, no Contabo changes
+
+## 2026-10-14 — Android account and workspace onboarding
+- [x] Global login returns workspace choice state instead of treating missing /api/me as failed credentials
+- [x] Restore global JWT to chooser, without allowing unselected family feature access
+- [x] Compose chooser for existing families and first-family form
+- [x] Android online account registration mode and API callback
+- [ ] Run ./gradlew :app:assembleDebug and fix Kotlin compile errors
+- [ ] Test single family, zero families, two families, revoked workspace, offline login, and first-family flags disabled on emulator/phone
+- [ ] No Google credential UI and no BETA deployment until backend feature tests and credentials configured
+
+## 2026-10-14 — Onboarding stabilization
+- [x] Prevent Android workspace-selection network failure from silent offline fallback
+- [x] Suppress expected Android workspace-navigation exception error message
+- [x] Apply Web session idle/refresh checks for workspace-less account
+- [ ] Run Android Gradle assembleDebug and Web npm run build locally
+- [ ] Test /auth/login -> workspace choice -> /api/me with real DEV backend
+- [ ] Only then enable DEV registration and first-family flags; never enable in BETA by default
+
+## 2026-10-14 — Additional family creation
+- [x] Web header button accessible with one family
+- [x] Form validates nonblank family and owner, sends authenticated API request
+- [x] Permission gate in UI; backend authorization unchanged
+- [x] Select and verify newly created family after creation
+- [ ] Confirm npm run build on local DEV
+- [ ] Explicitly enable familypoints.additional-family.enabled only in DEV if testing creation
+- [ ] Manually verify creating and switching families without sharing task/points data
+
+## 2026-10-14 — Additional-family DEV smoke
+- [x] Diagnosed 503 feature flag on local DEV screenshot
+- [x] Added explicit local-only Spring Boot launcher; default flag remains false
+- [ ] Restart DEV backend with appropriate DEV credentials, not BETA credentials
+- [ ] Create test family, verify auto-switch and member/task/points isolation
+
+## 2026-10-14 — Web header
+- [x] Family selector + create button aligned left
+- [x] Language, member name, logout aligned right
+- [x] Family selection style matches language selection
+- [ ] Verify npm run build and mobile header visually
+
+## 2026-10-14 — Web buttons / chooser
+- [x] Logout separate at bottom-right of chooser
+- [x] Compact neutral shared button styling for ordinary actions
+- [ ] Run frontend npm run build and visually check forms, destructive actions, mobile layout
+
+## 2026-10-14 — Registration closure (large package; still pending verification)
+- [x] Additive email/verification-token schema V30 preserving pre-existing users
+- [x] New email/password signup blocked until email confirmation
+- [x] One-time verification, resend throttle, email-based password recovery and Web routes
+- [x] Google Web button plus backend verified Google email/subject registration (no email auto-link)
+- [x] Android signup email field and API payload
+- [x] README for SMTP and Google Cloud OAuth configuration
+- [ ] Maven clean test / Vite build / Android assembleDebug on local DEV
+- [ ] Complete Google native Android Credential Manager (not implemented yet)
+- [ ] Configure verified SMTP sender and Google OAuth client IDs; manually test real emails and Google login
+- [ ] Add abuse/IP throttling, transaction/outbox behavior, duplicate-race and end-to-end HTTP integration tests
+- [ ] Keep flags OFF in Contabo BETA, preserve DEV database and legacy accounts
+
+## 2026-10-14 — Shared email account model
+- [x] Nonunique email via additive V31 (V30 preserved)
+- [x] Username remains unique, tokens belong to account ID
+- [x] Password and Google signup allow email reuse without identity auto-link
+- [x] Recovery/resend require username plus email; Web and unit tests adapted
+- [ ] Run Maven clean test, confirm V30→V31 Flyway migration on disposable PostgreSQL, then Web build
+- [ ] Decide parent-managed child account ownership and safeguards before public registration
+
+## 2026-10-14 — Password minimum 8
+- [x] Align registration, reset, legacy family signup controllers and services to 8–128 characters
+- [x] Align Web registration and reset forms and public configuration docs
+- [x] Add 7-vs-8 character boundary tests
+- [ ] Run local Maven test and Web production build; Android smoke test
+- [ ] SMTP sender and Google OAuth client IDs still require external provisioning; native Android Google credential flow outstanding
+
+## 2026-10-14 — Auth external provider gate
+- [x] Verify local Maven, Vite, Android baseline builds (user confirmed before new hardening changes)
+- [x] Reject insecure non-local mail verification link base URL
+- [x] Add initial mail token tests and read-only local SMTP/Google config preflight
+- [ ] Re-run Maven tests after new mail token tests
+- [ ] Choose/configure SMTP provider, verify sender domain SPF DKIM DMARC and test mail delivery
+- [ ] Create Google Cloud Web client and configure authorized JavaScript origins / ID token audience
+- [ ] Native Google credential manager Android flow and release security checks pending
+
+## 2026-10-14 — Consolidated service configuration
+- [x] Central Git-tracked DEV service settings template
+- [x] Gitignored local override for secrets; optional Spring import
+- [x] README including IntelliJ working directory and environment precedence
+- [ ] User copies template, populates local values, restarts DEV and verifies first family creation
+- [ ] Never upload SMTP/JWT/database secrets to GitHub
+
+## 2026-10-14 — Google link Web UI
+- [x] Authenticated Google linking form requiring current password
+- [x] No implicit merge based on email; clear link failure messages
+- [x] Google UI conditional on configured Web OAuth Client ID
+- [ ] Browser smoke: existing account, Google consent, link, logout/login, family chooser
+- [ ] Test second user sharing email cannot hijack linked Google identity
+- [ ] Configure OAuth client in Google Cloud and authorize local/DEV JS origins
+- [ ] Complete Android native Google sign-in and linked account handling
+
+## CRITICAL — first-family login regression (2026-10-14)
+- [x] Removed unconditional client-wide 401 logout event
+- [x] Keep global session on workspace-loading failure and show retry/error
+- [x] Display real login HTTP error and distinguish failed list from zero families
+- [ ] Rebuild Web locally; inspect DEV Backend logs for actual create-first-family response/status
+- [ ] Confirm if account was created and if family membership exists before retrying POST
+- [ ] Test expired-token/session-revocation policy separately; avoid indefinite invalid token loops
+- [ ] Test 401/403/409/500/network-error scenarios and no erroneous logout
+
+## 2026-10-14 Task authorization fix
+- [x] Replace TaskAuthorizationService.currentMember legacy nullable account.workspaceMember with context-aware getCurrentMember (9eebacb)
+- [ ] User runs Maven tests and restarts DEV backend, tests newly created family task GETs
+- [ ] Investigate duplicate scheduled task instance DB unique index vs slot_key migration, no DB modifications without approval
+- [ ] Add regression integration test for new global account with scoped member and no primary member
+
+## 2026-10-14 — V32 migration
+- [x] Confirmed old and new task_instances unique constraints via user pgAdmin output
+- [x] V32 committed: safe removal of named old definition/date uniqueness with shape check
+- [ ] Maven tests on laptop
+- [ ] DEV database backup, operator approval before migration on restart
+- [ ] Verify Flyway V32 applied, new constraint retained, multiple slots work
+- [ ] Regression test for two slots same task/date and deadline worker idempotence
+
+## 2026-10-14 — Child member access
+- [x] Member editor profile-only or parent-managed separate login
+- [x] Existing member-account API used, no new backend privilege surfaces
+- [x] Addressed invitation mode explicitly blocked to prevent duplicate child profiles
+- [ ] Build frontend and test creating profile/child account, login as child, access isolation
+- [ ] Implement email-verified parent contact (currently not stored or verified)
+- [ ] Implement email invitation bound to pre-existing member, no duplication, TTL/revoke
+- [ ] Ensure atomic retry/idempotence for member+account provisioning
+
+## MemberEditor regression (2026-10-14)
+- [x] Fix label/radio alignment with scoped flex row and fixed-size inputs
+- [x] Disable unimplemented email invitation choice (no fake selectable action)
+- [ ] Run frontend npm build and visually test member modal on desktop/mobile
+- [ ] Implement targeted existing-member invitation backend + mail delivery + account acceptance
+- [ ] Add security and idempotency tests before enabling invitation radio
+
+## 2026-10-14 — Targeted email invitations
+- [x] V33 targeted member invitation schema
+- [x] Hash-only 24h single-use invitation creation, rate limit, revoke prior outstanding invite, workspace rights check
+- [x] Brevo mail send, public accept form and existing-member-only account provisioning
+- [x] MemberEditor invitation mode for new AND existing profile, with aligned radios
+- [x] Feature flag default false, no Contabo or DB operations
+- [ ] Review/build Spring Maven tests and frontend Vite build
+- [ ] Verify local DEV backup and Flyway V33 before enabling
+- [ ] Validate link reuse, expired link, duplicate username, cross-family roles, failed SMTP and concurrent submissions
+- [ ] Existing account invitation binding is NOT implemented; only new logins
+- [ ] Improve provisioning atomicity and parent-managed address/consent flow
+
+## Android member onboarding parity (2026-10-14)
+- [x] Android member dialog adds radio modes (profile / child login / email invite)
+- [x] Scrollable compact-screen dialog with username/password/email fields
+- [x] Retrofit API calls and preserve existing profile on partial failure
+- [ ] Verify Android compile with :app:assembleDebug and small-screen emulator UI
+- [ ] Test new/existing profile access, duplicate login, failed email, no duplicate member
+- [ ] DEV database backup + V33 tests before enabling email invite; Contabo untouched
+
+## 2026-10-14 UI regression updates
+- [x] Web compact member editor scroll region and fixed bottom action bar
+- [x] Android members feature API errors no longer always trigger logout
+- [ ] Verify Web compact browser (height 450px), phone responsive, footer accessible
+- [ ] Verify Android assembly and account/email invite UI behavior
+
+## 2026-10-15 — Member invite API errors
+- [x] Display invitation/account API errors inside open Web member form (not behind modal)
+- [x] Reset previous editor errors on new/edit action
+- [ ] Local npm run build; simulate disabled invite (503) and username conflict (409) with clear visible feedback
+- [ ] Full invitation E2E tests pending; V33 and feature flag not approved/applied to DEV
+
+## Task management workspace-member context — 2026-10-15
+- [x] Replace 14 TaskService legacy member lookups with workspace-scoped current member
+- [ ] Run Maven tests and restart local Backend
+- [ ] Verify Tasks → Management tabs: created/administered/observed/executed; create/edit task audit
+- [ ] Check server logs and exact 401 path if any error persists
+
+## 2026-10-15 — TaskManagementViewTest recovery
+- [x] Fix test to mock CurrentUserService.getCurrentMember instead of legacy global member
+- [x] Confirm Flyway V1–V33 apply cleanly to disposable Testcontainers PostgreSQL 17
+- [ ] User git pull, rerun .\\mvnw.cmd clean test and report result
+- [ ] Run frontend npm build / Android assembleDebug separately
+- [ ] Do not assume DEV DB V32–V33 applied
+
+## 2026-10-15 — Build verification confirmed by operator
+- [x] Backend clean test: 117/117, BUILD SUCCESS (including corrected TaskManagementViewTest)
+- [x] Web Vite production build: BUILD SUCCESS; chunk-size warning nonblocking
+- [x] Android :app:assembleDebug: BUILD SUCCESS
+- [ ] Run Web/Android runtime smoke, including Tasks → Management and child-account access
+- [ ] Add/verify targeted email invitation security/integration tests (reuse, expiry, username duplicates, concurrency, failed SMTP)
+- [ ] Backup and explicitly approve DEV V32–V33 migration BEFORE restarting DEV Spring Boot with Flyway
+- [ ] Keep Contabo BETA unchanged and invitation feature gate off until acceptance
+
+## 2026-10-15 — DEV Flyway verification
+- [x] Operator pgAdmin SELECT confirms flyway_schema_history V32 and V33 both success=true in DEV.
+- [ ] Verify effective member invitation feature flag and test invite security paths before enabling; preserve existing Test2 member.
+
+## 2026-10-15 — Member invitation presentation
+- [x] Implement Ukrainian HTML email with plain fallback and FamilyPoints display name (4b63edb)
+- [ ] Verify compilation and send a fresh local DEV test email, inspect Gmail rendering and spam/authentication headers
+- [ ] Check token acceptance and membership count; do not paste tokens into chat
+
+## 2026-10-21 — Participant card contact email
+- [x] Extend manager-only members API with optional linked `accountEmail` (not pending invitation)
+- [x] Show email in Web member card without extra API requests; wrap long addresses safely
+- [x] Add unit tests covering MANAGE_MEMBERS / VIEW_WORKSPACE visibility and legacy account mapping
+- [ ] User runs Maven test + Web build, restarts local backend and checks email appears for Test2 after invitation accepted
+- [ ] Confirm no accountEmail in member GET when signed in as ordinary child/member
+- [ ] Consider Android parity with offline-cache privacy handling in separate batch
+- [ ] Do not deploy to Contabo BETA without approval
+
+## 2026-10-21 — Cross-platform participant account status packet
+- [x] Backend: manager-only optional accountEmail, invitationEmail, accessStatus; pending checks live V33 invitations, no DB write/migration
+- [x] Web: member cards show account/invitation email and correct access state; pending resend reuses existing API with two-minute cooldown
+- [x] Web: prevent choosing duplicate account/invite for already linked member
+- [x] Android: model/UI show account/pending status and invite address only online for MANAGE_MEMBERS; repeat invite UI in existing editor
+- [x] Android: redact private contact/status fields from both SharedPreferences offline snapshot locations
+- [x] Controller unit tests: manager membership & legacy, viewer privacy, pending invite, no account
+- [ ] After starting Docker Desktop Engine: .\\mvnw.cmd clean test (previous full suite blocked by unavailable Docker, 108 tests, 0 failures/1 environment error)
+- [ ] Web: frontend/npm run build; browser verify active Test2, member-only, pending invite and role privacy
+- [ ] Android: android/gradlew.bat :app:assembleDebug; emulator verify online cards, offline redaction, repeat invite cooldown behavior
+- [ ] E2E verify no duplicate family_members and no contact email when logged in as child
+- [ ] No Contabo deployment without explicit separate approval
+
+## 2026-10-21 — Google Sign-In button UX fix
+- [x] Fix GIS fixed 250px width: responsive centered button with 400px Google maximum and ResizeObserver
+- [x] Set Google GIS script ?hl= locale as well as renderButton locale; rerender when UK/DE/EN/RU language changes
+- [ ] Verify all four translations and Google-login flow at http://localhost:5173 after pulling changes
+- [ ] Re-run Vite build and verify no regressions
+
+## 2026-10-21 Google HTTP diagnostics
+- [x] Show persistent status/reason code alongside Google login/registration failure; localize explanation UK/DE/EN/RU
+- [x] Do not expose Google ID tokens or raw server response body
+- [ ] User pull, build, retry and report HTTP status/reason shown in UI
+
+## 2026-10-21 — Google + password concurrent sign-in
+- [x] Linked Google account persists independently from local password hash (provider subject unchanged)
+- [x] Add POST /api/account/google/set-password requiring authenticated session, fresh verified Google ID token, exact pre-linked Google subject, password length 8–128
+- [x] Add Web account settings form to establish conventional password and show exact login username
+- [x] Localize user-owned password setup and MemberEditor in UK/DE/EN/RU
+- [ ] Full CI / Maven and Web build verification after commits; no runtime success claimed
+- [ ] User acceptance: Google registration -> create workspace -> Settings verify linked Google -> set password -> sign out -> login with displayed username/password -> Google login still works
+- [ ] Verify response for token from different Google identity is 403; no DEV DB or Contabo deployments without approval
+
+## 2026-10-21 — Member invitation lifetime + passwordless Google acceptance
+- [x] Invite acceptance flow adds verified Google sign-up for an existing invited member, without local password, requiring exact email match and unused Google provider subject
+- [x] Existing password flow remains available; both flows consume the same one-time token transactionally
+- [x] Added read-only /auth/member-invitations/check giving VALID/USED/REPLACED/EXPIRED/UNKNOWN/INVALID without exposing email/contact data
+- [x] Frontend checks the token before submission and displays local-language status; HTTP 410 directs user to newer invite
+- [x] Google flow preserves invited family member, does not create extra member or merge by email
+- [ ] CI: Maven compile/tests, Vite build, Android unaffected
+- [ ] Test the latest invitation (not an earlier revoked link), 24h expiry, duplicate Google-subject conflicts, wrong Google email and both successful acceptance paths
+- [ ] No direct DEV DB writes or Contabo deployment
+
+- [x] Invitation form rejects username with spaces before submission and shows translated credentials error instead of generic expired-link notice (screenshot had `Denys K`)
+- [ ] Confirm real rejected-link status with refreshed server, no assumptions that link expires in 5 minutes
+
+## 2026-10-21 — Security: children cannot mint task rewards
+- [x] Backend deny CHILD direct task creation even if role has CREATE_TASKS (self-funding escrow not yet supported)
+- [x] Backend child complete() goes WAITING_APPROVAL with no points/reputation awarded
+- [x] Backend parent/authorized adult approve-completion endpoint awards once; child cannot approve or manage existing tasks
+- [x] Block child scheduled manager-complete bypass for historical definitions
+- [x] V34 task_suggestions migration; child simplified "I want a task" form, adult review (PENDING/APPROVED/REJECTED), no reward transfer or task creation
+- [x] Localize CreateTaskModal multi-execution checkbox + labels and WAITING_APPROVAL status in UK/DE/EN/RU
+- [x] Add unit tests for child authorization; update mock current member setup in existing tests
+- [ ] Confirm latest CI success and local runtime after pulling; V34 applies on first local DEV start (do not modify DB manually)
+- [ ] Later: implement child-funded task escrow and debit, adult setup from approved suggestion, robust approval UX/history
+- [ ] Review any points self-awarded prior to patch manually; no automatic transaction reversals
+
+## 2026-10-21 — Account card password / Tasks auth regression
+- [x] Current account member editor now exposes Google-verified personal password setup (only if member.id == authenticated memberId); other account passwords cannot be modified from this form
+- [x] Task reward negotiation uses scoped current workspace member instead of legacy `account.workspaceMember` (5 locations)
+- [x] Task API failure messages now include HTTP status and endpoint for precise diagnosis of `Authentication is required`
+- [ ] User pull + backend restart + inspect precise task endpoint error; successful password setup/login check
+- [ ] CI recheck after latest commits
+
+- [x] TaskSuggestionPanel UI: replace unstyled `.modal-overlay/.modal-content` layout with existing modal-backdrop/modal-card shell, stacked full-width fields, spaced submit, scrollable content, responsive mobile sizing and separated footer
+- [ ] Confirm browser rendering after pull + Vite build; no backend/DB changes needed
+
+## 2026-10-21 — Rewards cross-family task picker
+- [x] Replace list of task checkboxes with repeatable single-select dropdown + Add and remove chosen tasks
+- [x] Add Create New Task link opening the task editor from Rewards
+- [x] Reset tasks/reward form on workspace switch, reject stale asynchronous load results and check workspaceId if returned
+- [x] Localize all picker states in UK/DE/EN/RU; CSS responsive
+- [ ] Confirm why task #42 appeared in a supposedly task-free family (server repository scopes workspaceId; user needs to verify selected family and current request)
+- [ ] CI after latest commits and browser verification
+
+## 2026-10-21 — Family-local default task names
+- [x] Confirm source of #42: child-created task in the current family, so not a cross-family leak
+- [x] Separate technical global task primary key (#42) from family-local default title number
+- [x] New authenticated GET /workspaces/{workspaceId}/tasks/definitions/next-default-number uses countByWorkspaceId + 1, including inactive tasks, requiring task-creation permission
+- [x] CreateTaskModal pre-fills localized `<task title> №N` from backend; user-edited titles never overwritten by async reply
+- [ ] Verify CI + first task in new empty family gets №1, second №2 even if global PK differs; old task #42 and historical reward transaction untouched
+- [ ] Follow-up UX: decide whether task list should also show a separate family-local number instead of global #42; this is a distinct display requirement
+
+## 2026-10-21 — Human-readable login after Google registration
+- [x] Let the owner choose a normal unique username along with setting a password after fresh linked Google proof
+- [x] Reject invalid usernames and duplicates (case-insensitive pre-check); keep Google provider-subject link intact
+- [x] Correct stacked fields in narrow member editor, translate errors and instructions in four locales
+- [ ] Verify Backend/Web CI and manual sign out/sign in after username change; existing JWT with old username is invalid until new login
+
+## 2026-10-21 — Username availability everywhere
+- [x] Read-only public `/auth/username-availability?username=...` with 3–64 char validation and case-insensitive lookup
+- [x] Reusable localized Check Username button in global registration, member invitation acceptance, child login creation and Google-linked username/password setup
+- [x] Clear prior check result when input changes; final creation/rename validations remain server-side
+- [x] Normalize signup username validation to 3–64 characters
+- [ ] Verify CI + browser; no DEV DB or Contabo changes
+
+## 2026-10-21 — TOP PRIORITY: Contabo public BETA + installable Android
+- [x] Plan update: public BETA family-point.com first; installable Android connected to Contabo second; parallel bug fixes continue
+- [x] Add guarded SHA-pinned server deployment script with pre-backup and health checks
+- [x] Add Android release versioning, environment-only signing config, reproducible APK PowerShell build
+- [ ] Live VPS preflight: running containers, backend Flyway version, HTTPS, free disk, working tree and backup/restore plan; preserve wg0/wg1, NAT 8080, client IP:9443, DEV :8443
+- [ ] Operator approves and runs exact tested SHA on Contabo; inspect Flyway V27–V34 and public registration before promotion
+- [ ] Validate phone login, family creation, role isolation, TLS from cellular with local DEV offline
+- [ ] Create and securely back up signing keystore (outside repo), build first APK versionCode=1, store signed artifact and checksum
+- [ ] Future: repeat deploy with approved Git SHA, Android update using same signing key and incremented versionCode; do not claim automatic background push/update system
+
+## 2026-10-21 — BETA compose feature flags before first tagged release
+- [x] Compose now passes opt-in registration, targeted invitations, SMTP, Google backend settings and public Google Web Client ID to Vite
+- [x] Public test default domain remains https://family-point.com; beta flags default false until explicitly validated
+- [ ] Confirm Google Cloud authorized JavaScript origin https://family-point.com, SMTP sender/domain verification, public signup policy and rate limiting
+- [ ] Review CI, tag approved SHA, update Contabo private .env and smoke; do not show credentials in console
+- [ ] Confirm isolated restored database and migrated V27–V34 before production BETA update
+
+## 2026-10-21 — First BETA tag gate diagnosis
+- [x] Annotated v0.1.0-beta.1 exists at code SHA c514cc09c26f8245fdf75ec9f38a7c714e6cc9cc
+- [x] Release gate: tag validation, Web, Compose passed; Android failed in SDK setup with obsolete missing `tools` package (not source compile)
+- [x] Fixed release workflow Android SDK setup to install explicit platform-tools and build-tools 36.0.0, aligning with main CI
+- [ ] Wait for new branch CI then create v0.1.0-beta.2 at its approved SHA; NEVER move/reuse beta.1
+- [ ] Do not deploy Contabo until tag-scoped release gate succeeds
+
+## 2026-10-21 — Public BETA CORS regression
+- [x] Confirm browser POST /auth/google/register returns 403 body `Invalid CORS request` although no-Origin curl returns expected invalid-token 401
+- [x] Add exact allowlisted HTTPS origins family-point.com, beta.family-point.com to Spring Security CORS; no wildcard
+- [x] Add regression tests for allowed/denied origins
+- [ ] Confirm CI and ship as new immutable v0.1.0-beta.3 tag, then controlled Contabo rollout
+
+## 2026-10-21 — First-family BETA hotfix
+- [x] Mirror FAMILYPOINTS_FIRST_FAMILY_ENABLED mapping in compose.beta.yml on feature branch, default false
+- [x] Document .env flag; operator controls actual BETA value (true)
+- [ ] Confirm container recreation picks up flag and onboarding works on public site
+- [ ] Before next release reconcile host uncommitted Compose with Git; never overwrite secrets or blindly switch with dirty working tree
+
+## 2026-10-21 — Invitation via Google rejected before controller
+- [x] Root cause: SecurityConfig permitted /auth/member-invitations/accept but omitted sibling /auth/member-invitations/accept-google and /auth/member-invitations/check, both used anonymously by invitation page
+- [x] Explicitly permitted check and accept-google; backend still validates invitation, verified Google email and uniqueness
+- [ ] Confirm CI and release via new immutable BETA tag; no direct server edits
+- [ ] Retest invitation Google flow without logging any tokens; verify 403/401 gone and acceptance links correct account
+
+## 2026-10-22 — Android first direct distribution without Google Play
+- [x] Create localized public /download landing (UA/DE/EN/RU) linked from login and Sidebar
+- [x] Stage APK endpoint /downloads/familypoints-beta.apk served as proper APK MIME, 404 when absent
+- [x] Bind separate ./downloads:/usr/share/nginx/html/downloads:ro in BETA Compose; ignore APKs and signing keys in Git
+- [x] Document Android signed release, versionCode, repeatable manual publish and SHA-256
+- [ ] CI check and tag next approved beta release
+- [ ] Operator generate and securely back up permanent signing key, build signed release APK, verify device compatibility
+- [ ] Publish APK to VPS only after full web release, confirm link/status/checksum and test actual phone install/update
+
+
+## 2026-10-22 — Android standalone APK milestone
+
+- [x] Android release build script with private keystore env inputs, signature verification and version/hash manifest **implemented in Git**
+- [x] Independent BETA APK publishing script with checksum/metadata validation **implemented in Git**
+- [x] Web /download release metadata presentation **implemented in Git**
+- [x] Operator documentation for APK release and server-safe publishing
+- [ ] Run release Gradle build on trusted machine with permanent private keystore
+- [ ] Confirm SHA-256, signature and full Android certificate identity
+- [ ] Confirm release Google login and production API on real phone
+- [ ] Verify update over existing signed install without loss of local data
+- [ ] Run frontend build, Kotlin and BETA gate checks
+- [ ] Create fresh annotated BETA release tag (do not move published tags)
+- [ ] Deploy web route changes via controlled tagged BETA release
+- [ ] Transfer signed APK + JSON + hash to Contabo and publish after verification
+- [ ] Confirm public download and content type from https://family-point.com/download
+
+
+### Android public download entry points (2026-10-22)
+- [x] Prominent Android download CTA on public `/login` page (source)
+- [x] Prominent Android download CTA on public `/register` start/demo page (source)
+- [ ] Verify frontend build and localization in UA/DE/EN
+- [ ] Deploy via new immutable annotated BETA tag after CI
+- [ ] Validate button navigation and actual APK MIME/checksum on public domain
+
+
+### Android startup crash fix (2026-10-22)
+- [x] Capture real Huawei P20 Pro AndroidRuntime stack trace (`IllegalAccessError`, Compose startup)
+- [x] Remove scoped R8 optimization in Android release Gradle source
+- [ ] Build signed APK versionCode 2 using original keystore
+- [ ] Install via ADB `install -r`, check login and crash-free startup
+- [ ] Publish verified APK to Contabo using checked checksum/manifest
+
+## 2026-10-22 — Current sprint: Soft Family + OAuth (unreleased)
+- [x] Confirm selected Soft Family light/dark references and page hierarchy for Web + Android
+- [x] Initial shared web semantic palette + Android provisional header/theme
+- [x] Web settings theme radio (system/light/dark), local persistence and system theme observer
+- [ ] Validate dark appearance across every page; the first pass only covers shell, form controls and common cards
+- [ ] Add localized theme labels across UK/RU/DE/EN and tests; check Vite lint/build
+- [ ] Finish Android theme persistence and selected dark/light palette parity
+- [ ] Avatar image/illustration controls and per-workspace family cover (private upload/security)
+- [ ] Confirm Google Web Client ID in signed Android build and test native Google login
+- [ ] CI, manual browser and Huawei real-device acceptance before any BETA deploy
+- [ ] No release or database/server changes until approved
+
+### 2026-10-22 — Web dashboard Soft Family implementation batch
+- [x] Rebuild dashboard composition: family welcome/cover placeholder, four icon metrics, tasks + reputation columns, quick actions
+- [x] Match semantic foreground/surfaces for light and dark, spacing and mobile responsive layout
+- [x] Preserve real API-driven values and task/history lists; do not fabricate example records from design mocks
+- [ ] Validate frontend lint/build (not executed via GitHub file editing connector)
+- [ ] Replace temporary emoji artwork with approved/licensed illustration assets, with user-uploaded family photo fallback/permission handling
+- [ ] Visual browser screenshots in both themes, desktop and Huawei-sized mobile
+- [ ] Apply same component language to Tasks, Members, Points, Rewards and Settings
+- [ ] No public deployment until explicit release gate
+
+### 2026-10-22 — Approved Web dashboard visual-parity pass (in-progress)
+- [x] Replace dashboard emoji with reusable vector illustrated icons and a bundled family artwork fallback
+- [x] Align Sidebar, hero, statistics, panels and quick-action layout/gradient with selected desktop mockup
+- [x] Keep real API data and styled zero-data empty states (no fake task entries)
+- [x] Stage exact mockup-derived WebP hero/promo in a local assets ZIP for acceptance
+- [ ] Extract real WebP assets into local repo, review, commit binary images, then push
+- [ ] Frontend lint and Vite build / CI at current head
+- [ ] Compare actual screenshot at desktop/light/dark/mobile against selected mockup and fix differences
+- [ ] Implement consistent Tasks, Members, Points, Rewards, Settings after dashboard acceptance
+- [ ] No Contabo, PostgreSQL, beta tag, or release during this pass
+
+
+## 2026-10-22 — Five-track Git coordination
+- [x] Establish five tracks/chats: Architecture/Planning, Backend, Web, Android, Release/DevOps.
+- [x] Add independent Git-based logs for each track, preserving original journals and checklists.
+- [x] Add mandatory startup instructions, shared status, architecture decisions, cross-track impact register, change protocol and handoff template under `docs/coordination/`.
+- [ ] Each work track actively reviews and acknowledges its applicable IMP-0001..0005 entries with an actual source SHA.
+- [ ] Architecture reconciles outstanding shared contracts (media, auth/workspaces, offline ledger) with Backend, Web, Android and Release.
+- [ ] Confirm inter-track compatibility and real tests before merge/deployment; no automatic release from source commit.
+
+## 2026-10-22 — Backend inbound: task/reward calendar (XTR-20261022-P-01)
+- [x] Read and acknowledge Architecture request XTR-20261022-P-01 and IMP-0006; inspect current reward/task/timezone source.
+- [ ] Finalize Backend contract + timezone migration policy and obtain Web/Android Architecture coordination ACKs.
+- [ ] Implement additive Flyway availability schema; ALWAYS legacy default; ONE_TIME and recurring weekly local windows.
+- [ ] Enforce Clock-based time acquisition gate in direct and approved-request purchases, preserving all existing checks and rollback.
+- [ ] Implement authorized bounded read-only unified calendar projection with stable task occurrence identity.
+- [ ] Run migration/compatibility, DST, tenant-isolation, purchase edge/race/replay and calendar no-write tests; record results and source SHAs.
+- [ ] Release/DevOps verifies tagged server and both clients before BETA publication.
+
+## 2026-10-22 — Calendar Backend implementation PR #4
+- [x] Implement reward ALWAYS/ONE_TIME/RECURRING_WEEKLY schema and time gate with V35 in draft Backend PR.
+- [x] Implement bounded combined calendar and explicit family timezone API in draft Backend PR.
+- [x] Confirm Java 21/Maven + disposable PostgreSQL/Flyway V35 CI and calendar unit/security checks at 3199c03 (run 39854939259).
+- [ ] Obtain Architecture, Web, Android and Release impact/contract ACK and close remaining timezone migration compatibility questions.
+- [ ] Complete independent Android CI, real client integration, expanded tenant and production-like migration/rollback checks.
+- [ ] Review/merge PR #4; only Release approves subsequent BETA deployment.
+
+## 2026-10-31 — BKL-002 Backend transactional writer integration
+- [x] Wire all five PointController HTTP mutations through family-lock/epoch/ledger transaction boundary.
+- [x] Add route/guard-order and disposable PostgreSQL Spring/JPA service regression coverage.
+- [ ] Confirm exact source SHA cloud CI, including the new PostgreSQL service tests.
+- [ ] Integrate task/reward/exchange/reputation/group/template/media and scheduled writer paths; verify common lock order.
+- [ ] Complete reset dependency closure, reauthentication proof, atomic execute/audit/idempotency/epoch/onboarding and disposable DEV QA before Release.
+
+## 2026-10-31 — BKL-002 points fence cloud verification
+- [x] Source `dac13e7f` confirmed through compatible all-green SHA `dce243d40e94bdac5b2a56d521b9bfdd4db866f4`, Actions 41212281999; 259 backend tests PASS.
+- [x] Four PostgreSQL service tests establish transaction sharing, rollback, stale replay fencing and independent-family progress for HTTP point mutations.
+- [ ] Remaining business writer integration and full reset execute/QA/Release gate remain open; no data reset/deploy.
+
+## 2026-10-31 — BKL-002 task/reward writer integration
+- [x] Add family-first fences to task/reward/negotiation/availability transaction entries and scoped generation.
+- [x] Fence deadline discovery/materialization/penalties per family; reload detached generation inputs after locking.
+- [x] Cover hidden obligation-list writes without changing GET header requirements; add request-vs-system and actual service PostgreSQL tests.
+- [ ] Confirm cloud CI for this package; source integration alone is not test acceptance.
+- [ ] Audit remaining direct writers (including schedule slots, exchange, groups, templates and media), then finish reset dependency/reauth/atomic execute and disposable DEV QA.
+
+## 2026-10-31 — BKL-002 task/reward cloud acceptance
+- [x] Verify source `701ad3ac` in all-green compatible SHA `03f12893c4cfa3f6d756ca362188ed2abadf0c78`, Actions 41213010771.
+- [x] Backend 269 PASS: exhaustive 38-entry guard boundary audit and nine real Spring/JPA/PostgreSQL service scenarios.
+- [ ] Fence remaining direct writers and upstream outer transactions; finalize reset dependency/ledger/reauth/execute and disposable DEV acceptance. Full reset remains disabled.
+
+## 2026-10-31 — BKL-002 schedule/exchange/ledger package
+- [x] Fence three slot mutations, four exchange operations, ten point posting entries and reputation add.
+- [x] Preserve same-family, same-transaction validated epoch for internal ledger work; add lifetime/suspension/HTTP proof regression coverage.
+- [x] Add actual slot/audit, two-currency exchange, rollback and nonzero-epoch background penalty tests; record remaining writer inventory.
+- [ ] Verify cloud CI for this package.
+- [ ] Complete groups/roles, economy lazy writes, template/media and protected membership/startup outer-transaction audit before reset execute/QA/Release.
+
+## 2026-10-31 — BKL-002 schedule/exchange/ledger cloud acceptance
+- [x] Exact source `fc4fa54b06d000f0449e3875ffea11c7ca10a8bb` all-green Actions 41231246497, Backend 280 PASS.
+- [x] Verify 18 fenced entries, transaction proof expiry/suspension/family/HTTP scope, slot+audit and exchange rollback, actual nonzero-epoch point/reputation deadline penalties.
+- [ ] Finish remaining groups/roles/economy, templates/media and protected membership/startup/direct writer review before full reset/QA/Release.
+
+## 2026-10-31 — Broad Backend BKL-002 package
+- [x] Fence 56 additional entries spanning groups, roles, economy, templates, media, suggestions, members and workspace/timezone configuration.
+- [x] Cover missing outer transactions, activation-before-claim order, lazy currency GET writes, fresh provisioning, detached bridge inputs and one-family startup transactions.
+- [x] Repair selected-membership role checks and preserve global account/other family on scoped member removal; add regression evidence.
+- [ ] Confirm cloud CI and security/consumer acceptance; source changes alone are not deployment approval.
+- [ ] Finish auth/join/invitation/reset metadata edge audit, full reset policy/reauth/execute and disposable DEV/Release gates.
+
+## 2026-10-31 — Broad Backend package cloud acceptance
+- [x] Exact source `cda7e8a07a3d20ca6650bea1ed5df31330865973` all-green Actions 41232509336; Backend 295 PASS.
+- [x] Verify 56 additional fences, actual group/economy/template/media/member/config/startup/provisioning transactions and global-account survival across families.
+- [x] Publish Designer #17 source DTO/media contract, real nullable examples and supported-versus-proposed target distinction.
+- [ ] Obtain Designer/Web/Android/QA authenticated DEV/runtime acceptance of the published contract.
+- [ ] Close auth/invitation/join/reset-metadata edges and full reset snapshot/FK/financial/owner/reauth/execute, then disposable DEV and Release gates.
+
+## 2026-10-31 — Invitation/reset edge package
+- [x] Integrate family fences into invitation/join/account-link and scoped account manager writes; revalidate public token/code authority after locking.
+- [x] Replace reset count-only freshness with content-v2; order persistent reauth budget before family locking and reject nested same-family fenced invocation.
+- [ ] Confirm all cloud CI jobs and real PostgreSQL scenarios; source completion is not test/deployment acceptance.
+- [ ] Consumer review: recreate old v1 preparations with NEW operation IDs; validate conservative full-family snapshot invalidation.
+- [ ] Complete global-account admin policy audit, owner/financial/FK deletion policy, Google fresh reauth, one-use proof, atomic execute/onboarding and disposable DEV/Release gates. Execution remains disabled.
+
+## 2026-10-31 — Invitation/reset edge cloud acceptance
+- [x] Exact tested SHA `4d88716a9cde33a15a7f94867ee02d2a69b613c3`; [Actions 41234461782](https://github.com/o-kobylianskyi/family-points/actions/runs/41234461782) all four jobs SUCCESS. Backend: 313 tests, zero failures/errors/skips; 39 actual Spring/JPA/PostgreSQL transaction scenarios.
+- [x] Verify 13 added real PostgreSQL scenarios plus boundary/controller regressions without relaxed assertions; old application invitation tests use real guards.
+- [x] Document v1 preparation invalidation, current-state public-token exception and REQUIRES_NEW ordering.
+- [ ] Complete retained owner/identity/global-account admin/financial policy, deletion FK closure, fresh Google reauth, consumable one-use proof and atomic execute/epoch/onboarding.
+- [ ] Obtain consumer/disposable DEV/QA/Release acceptance. Full reset unavailable; no data deletion or deployment.
+
+## 2026-10-31 — Bound password-proof source package
+- [x] Implement internal password-proof issue/consume binding to actor/family/operation/member/epoch/content/credential, wall-clock TTL and rollbackable one-use consumption.
+- [x] Keep secret internal and execute disabled; preserve existing HTTP DTO and limiter-before-family order.
+- [x] Add V45 additive binding constraints and populated legacy-proof upgrade regression; add fourteen PostgreSQL transaction scenarios.
+- [ ] Confirm cloud CI and publish actual schema dependency inventory plus scoped transaction coverage matrix for QA.
+- [ ] Finalize owner/global-account admin/financial/retention policy, proof transport/Google reauth, full dependency-safe executor/onboarding and independent consumer/DEV/QA/Release gates. No live reset/migration/deploy.
+
+## 2026-10-31 — Bound password-proof cloud acceptance and policy handoff
+- [x] Exact tested SHA `b4f62fc9bd13b9c9aec223619f016bac2f7ebcc7`; [GitHub Actions 41249950772](https://github.com/o-kobylianskyi/family-points/actions/runs/41249950772) all four jobs SUCCESS. Backend: 329 tests, zero failures/errors/skips; PointMutationTransactionPostgresTest: 54 PASS. WorkspaceResetProofUpgradePostgresTest: 1 PASS, V44->V45 preservation/constraints/repeat-migrate no-op.
+- [x] Verify 15 added real proof scenarios, same-global-account family isolation, populated V44->45 preservation, constraints and no-op repeat migration.
+- [x] Publish 136-route source/QA matrix with test/coverage limits,70-table/156-FK schema/semantic dependency and proposed retention inventory.
+- [x] Prepare XTR-20261031-B-01 with concrete owner/retention/shared-account/financial/proof transport decisions; receiver review still pending.
+- [ ] Final owner/delegation/global account-admin/financial/category retention approval, proof delivery/Google fresh reauth, complete atomic idempotent execute/epoch/audit/onboarding.
+- [ ] Independent security/consumer/disposable DEV/QA/Release gates. No live reset/migration/deployment; execute remains423.
+
+## 2026-11-01 — Issue18 Backend contract-first package
+- [x] Audit family creation/token/people/group/catalog/import/draft/activation source and identify missing durable setupState, receipts and WorkNode GROUP API.
+- [x] Fix activation CORS Idempotency-Key and TIME/ITEM portable draft mapping; add preflight/all32/domain and real import->activation regression tests.
+- [ ] Confirm cloud CI and publish exact endpoint/DTO/permission/recovery inventory.
+- [ ] Publish proposed durable setup/skip/resume and per-operation receipt contract; separate current APIs from unimplemented proposals; route typed group mapping/consumer review.
+- [ ] Implement accepted durable state/receipts/folder mapping and complete fresh-family wizard QA. No speculative schema or destructive reset.

@@ -1,0 +1,1213 @@
+{
+  "schema": "family-points-economy-designer-handoff/0.6",
+  "status": "AWAITING_ARCHITECT_REVIEW",
+  "economyActive": false,
+  "source": {
+    "task": "docs/design/economy/economy_v0.4_catalog_review.json",
+    "reward": "docs/design/economy/economy_v0.5_reward_audit.json",
+    "templateCatalog": "src/main/resources/templates/catalog-v1.json"
+  },
+  "counts": {
+    "tasks": 110,
+    "tasksWithSuggestedPoints": 11,
+    "rewards": 32,
+    "rewardsWithSuggestedPrice": 12
+  },
+  "decisions": [
+    {
+      "id": "ECO-001",
+      "question": "Складність незалежно від часу",
+      "proposal": "4 рівні EASY/MODERATE/HARD/ADVANCED; час лише додатковий критерій",
+      "owner": "Architecture",
+      "priority": "P0",
+      "status": "AWAITING_DECISION"
+    },
+    {
+      "id": "ECO-002",
+      "question": "Рекомендація vs автоматична формула",
+      "proposal": "За замовчуванням лише editable suggestion; зарахування за підтвердженим виконанням",
+      "owner": "Architecture / Product",
+      "priority": "P0",
+      "status": "AWAITING_DECISION"
+    },
+    {
+      "id": "ECO-003",
+      "question": "Безкоштовність базових потреб",
+      "proposal": "NULL не означає 0, покупку чи заборону; базові потреби та сімейне спілкування не монетизувати",
+      "owner": "Architecture / UX",
+      "priority": "P0",
+      "status": "AWAITING_DECISION"
+    },
+    {
+      "id": "ECO-004",
+      "question": "Пенальті",
+      "proposal": "0 за замовчуванням; ручна явна дія дорослого; окрема репутація",
+      "owner": "Architecture",
+      "priority": "P0",
+      "status": "AWAITING_DECISION"
+    },
+    {
+      "id": "ECO-005",
+      "question": "Повторні нарахування",
+      "proposal": "Idempotent occurrence+beneficiary+event; atomic ledger; offline replay",
+      "owner": "Backend",
+      "priority": "P0",
+      "status": "AWAITING_DECISION"
+    },
+    {
+      "id": "ECO-006",
+      "question": "Багаторівневі завдання",
+      "proposal": "Не дублювати бонуси parent+children за замовчуванням",
+      "owner": "Backend / Product",
+      "priority": "P0",
+      "status": "AWAITING_DECISION"
+    },
+    {
+      "id": "ECO-007",
+      "question": "Валюти",
+      "proposal": "POINTS як базова рекомендація, COPPER/SILVER/GOLD без несанкціонованих курсів",
+      "owner": "Architecture",
+      "priority": "P1",
+      "status": "AWAITING_DECISION"
+    },
+    {
+      "id": "ECO-008",
+      "question": "Часові нагороди",
+      "proposal": "Покупка не запускає таймер, діють батьківські/OS ліміти",
+      "owner": "Backend / Android",
+      "priority": "P0",
+      "status": "AWAITING_DECISION"
+    },
+    {
+      "id": "ECO-009",
+      "question": "Предметні нагороди",
+      "proposal": "Ціна тільки для окремої сім'ї й після підтвердження батьками",
+      "owner": "Product / Web",
+      "priority": "P1",
+      "status": "AWAITING_DECISION"
+    },
+    {
+      "id": "ECO-010",
+      "question": "Вікова справедливість",
+      "proposal": "Вік — рекомендація, без гендерних та вікових автоматичних множників",
+      "owner": "Product / QA",
+      "priority": "P1",
+      "status": "AWAITING_DECISION"
+    },
+    {
+      "id": "ECO-011",
+      "question": "Ліміти повторних робіт",
+      "proposal": "Окремий occurrence, cooldown і ліміти з можливістю налаштування",
+      "owner": "Backend",
+      "priority": "P1",
+      "status": "AWAITING_DECISION"
+    },
+    {
+      "id": "ECO-012",
+      "question": "Імпорт та версія",
+      "proposal": "Глобальний каталог не мутує приватні шаблони, баланс і ledger; explicit preview+apply",
+      "owner": "Backend / Web",
+      "priority": "P0",
+      "status": "AWAITING_DECISION"
+    }
+  ],
+  "taskCodes": [
+    {
+      "code": "fp.task.hygiene.001",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.002",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.003",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.004",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.005",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.006",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.routine.007",
+      "difficulty": "EASY",
+      "points": 5,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.routine.008",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.routine.009",
+      "difficulty": "MODERATE",
+      "points": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.routine.010",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.routine.011",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.routine.012",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.013",
+      "difficulty": "EASY",
+      "points": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.014",
+      "difficulty": "EASY",
+      "points": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.015",
+      "difficulty": "HARD",
+      "points": 25,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.016",
+      "difficulty": "MODERATE",
+      "points": 15,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.017",
+      "difficulty": "MODERATE",
+      "points": 15,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.018",
+      "difficulty": "MODERATE",
+      "points": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.019",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.020",
+      "difficulty": "MODERATE",
+      "points": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.021",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.022",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.023",
+      "difficulty": "MODERATE",
+      "points": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.chores.024",
+      "difficulty": "MODERATE",
+      "points": 10,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.school.025",
+      "difficulty": "HARD",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.school.026",
+      "difficulty": "ADVANCED",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.school.027",
+      "difficulty": "HARD",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.028",
+      "difficulty": "HARD",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.029",
+      "difficulty": "HARD",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.030",
+      "difficulty": "HARD",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.031",
+      "difficulty": "HARD",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.032",
+      "difficulty": "HARD",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.reading.033",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.reading.034",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.reading.035",
+      "difficulty": "EASY",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.reading.036",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.037",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.038",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.039",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.040",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.041",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.activity.042",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.creativity.043",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.creativity.044",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.creativity.045",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.creativity.046",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.social.047",
+      "difficulty": "HARD",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.social.048",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.social.049",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.social.050",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.social.051",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.052",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.habits.053",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.054",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.055",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.family.056",
+      "difficulty": "HARD",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.057",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.058",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.059",
+      "difficulty": "HARD",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.060",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.001",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.002",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.003",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.004",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.005",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.006",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.007",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.008",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.009",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.010",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.011",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.012",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.013",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.014",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.015",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.016",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.017",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.018",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.019",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.020",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.021",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.022",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.023",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.024",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.025",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.026",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.027",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.028",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.029",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.adult.030",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.001",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.002",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.003",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.004",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.005",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.006",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.007",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.008",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.009",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.010",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.011",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.012",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.013",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.014",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.015",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.016",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.017",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.018",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.019",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    },
+    {
+      "code": "fp.task.family.020",
+      "difficulty": "MODERATE",
+      "points": null,
+      "reviewStatus": "EDITORIAL_PRELIMINARY",
+      "riskFlags": []
+    }
+  ],
+  "rewardCodes": [
+    {
+      "code": "fp.reward.time.001",
+      "price": 25,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.002",
+      "price": 45,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.003",
+      "price": 35,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.004",
+      "price": 60,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.005",
+      "price": 55,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.006",
+      "price": 30,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.007",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.time.008",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.009",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.010",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.011",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.012",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.013",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.014",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.015",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.016",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.017",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.018",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.019",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.020",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.items.021",
+      "price": 50,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.022",
+      "price": 60,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.023",
+      "price": 250,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.024",
+      "price": 300,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.025",
+      "price": 200,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.026",
+      "price": 350,
+      "reviewStatus": "PROVISIONAL_REVIEW",
+      "riskFlags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.family.027",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.028",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.029",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.030",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.031",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.032",
+      "price": null,
+      "reviewStatus": "NO_AUTOMATIC_PRICE",
+      "riskFlags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    }
+  ],
+  "prohibitedImplicitActions": [
+    "wallet mutation",
+    "ledger event",
+    "overwrite private template",
+    "change existing catalog",
+    "purchase from null price",
+    "release"
+  ]
+}

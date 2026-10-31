@@ -1,0 +1,73 @@
+package com.olehkobylianskyi.familypoints.controller;
+
+import com.olehkobylianskyi.familypoints.dto.LoginRequest;
+import com.olehkobylianskyi.familypoints.dto.LoginResponse;
+import com.olehkobylianskyi.familypoints.security.JwtService;
+import com.olehkobylianskyi.familypoints.security.WorkspaceAuthenticationDetails;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/auth")
+public class AuthController {
+
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+
+    public AuthController(
+            AuthenticationManager authenticationManager,
+            JwtService jwtService
+    ) {
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String accessToken = authentication.getDetails() instanceof WorkspaceAuthenticationDetails details
+                ? jwtService.generateWorkspaceAccessToken(userDetails, details.workspaceId())
+                : jwtService.generateAccessToken(userDetails);
+
+        return ResponseEntity.ok(
+                new LoginResponse(
+                        accessToken,
+                        "Bearer",
+                        jwtService.getAccessTokenExpirationSeconds()
+                )
+        );
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
+
+        Authentication authentication =
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                request.getUsername(),
+                                request.getPassword()
+                        )
+                );
+
+        UserDetails userDetails =
+                (UserDetails) authentication.getPrincipal();
+
+        String accessToken =
+                jwtService.generateAccessToken(userDetails);
+
+        return ResponseEntity.ok(
+                new LoginResponse(
+                        accessToken,
+                        "Bearer",
+                        jwtService.getAccessTokenExpirationSeconds()
+                )
+        );
+    }
+}

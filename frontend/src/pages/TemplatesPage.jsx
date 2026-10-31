@@ -1,0 +1,390 @@
+import { useEffect, useRef, useState } from 'react'
+import './TemplatesPage.css'
+import { templateCategoryLabel } from '../utils/templateCategoryLabels'
+import { useTranslation } from 'react-i18next'
+import { useAuth } from '../context/AuthContext'
+import TemplateFieldsEditor from '../components/TemplateFieldsEditor'
+import { getMediaCatalog, fetchAuthorizedMediaObjectUrl } from '../api/mediaApi'
+import { getWorkspaceMembers } from '../api/workspaceApi'
+import { getPointTypes } from '../api/economyApi'
+import { getEconomySuggestions } from '../api/economySuggestionsApi'
+import TemplateDraftFieldsEditor from '../components/TemplateDraftFieldsEditor'
+import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates, updatePrivateTemplate, deletePrivateTemplate, getTemplateCreationDraft, applyTemplateEconomySuggestion } from '../api/templateApi'
+
+const texts = {
+  uk: ['Бібліотека шаблонів','Глобальні рекомендації','Мої шаблони','Виберіть потрібні шаблони. Імпорт додає їх у бібліотеку, а не створює активні завдання чи нагороди.','Зараз глобальних рекомендацій немає.','Переглянути імпорт','Імпортувати вибране','Очистити вибір','Уже в бібліотеці','Буде додано','Зберегти','Видалити','Немає особистих шаблонів.','Назва','Визначення (JSON)','Збережено','Виберіть шаблон для редагування','Видалити цей шаблон із бібліотеки?','Шаблони імпортовано','Не вибрано жодного шаблону.','Тільки адміністратор сім’ї може змінювати бібліотеку.','Повторно використовувати їх можна буде через окреме створення активного об’єкта.'],
+  de: ['Vorlagenbibliothek','Globale Vorschläge','Meine Vorlagen','Vorlagen einzeln auswählen. Der Import speichert sie nur in der Bibliothek und erstellt keine aktiven Aufgaben oder Belohnungen.','Noch keine globalen Vorschläge.','Import prüfen','Auswahl importieren','Auswahl löschen','Bereits vorhanden','Wird hinzugefügt','Speichern','Löschen','Noch keine privaten Vorlagen.','Titel','Definition (JSON)','Gespeichert','Vorlage zum Bearbeiten auswählen','Diese Vorlage aus der Bibliothek löschen?','Vorlagen importiert','Keine Vorlagen ausgewählt.','Nur Familienadministratoren dürfen Vorlagen verwalten.','Aktive Aufgaben und Belohnungen werden später separat erstellt.'],
+  en: ['Template library','Global suggestions','My templates','Select templates individually. Import saves them to your private library, not as active tasks or rewards.','No global suggestions yet.','Preview import','Import selected','Clear selection','Already imported','To be imported','Save','Delete','No private templates yet.','Title','Definition (JSON)','Saved','Select a template to edit','Delete this template from the library?','Templates imported','No templates selected.','Only workspace administrators can manage templates.','Create active tasks and rewards separately later.'],
+  ru: ['Библиотека шаблонов','Глобальные рекомендации','Мои шаблоны','Выбирайте шаблоны отдельно. Импорт добавляет их в библиотеку без создания активных задач и наград.','Пока нет глобальных рекомендаций.','Предпросмотр импорта','Импортировать выбранные','Очистить выбор','Уже импортированы','Будут добавлены','Сохранить','Удалить','Пока нет личных шаблонов.','Название','Определение (JSON)','Сохранено','Выберите шаблон для редактирования','Удалить шаблон из библиотеки?','Шаблоны импортированы','Шаблоны не выбраны.','Только администратор семьи может менять библиотеку.','Активные задачи и награды создаются отдельно.']
+}
+const requestErrors = {
+  uk: {
+    INVALID_DEFINITION: 'Визначення шаблону має бути коректним JSON-об’єктом (не більше 30 000 символів).',
+    NETWORK: 'Немає зв’язку із сервером. Перевірте підключення та повторіть спробу.',
+    400: 'Некоректні дані шаблону або вибору. Перевірте введені значення.',
+    401: 'Сеанс завершився. Увійдіть знову.',
+    403: 'Недостатньо прав для керування шаблонами цієї сім’ї.',
+    404: 'Шаблон або сім’ю не знайдено. Оновіть сторінку.',
+    409: 'Дані змінилися або шаблон уже імпортовано. Оновіть список і повторіть спробу.',
+    413: 'Розмір шаблону перевищує допустимий.',
+    422: 'Шаблон містить непідтримувані параметри або залежності.',
+    DEFAULT: 'Не вдалося виконати операцію із шаблонами. Повторіть спробу.'
+  },
+  ru: {
+    INVALID_DEFINITION: 'Определение шаблона должно быть корректным JSON-объектом (не более 30 000 символов).',
+    NETWORK: 'Нет связи с сервером. Проверьте подключение и повторите попытку.',
+    400: 'Некорректные данные шаблона или выбора. Проверьте значения.',
+    401: 'Сеанс завершён. Войдите снова.',
+    403: 'Недостаточно прав для управления шаблонами этой семьи.',
+    404: 'Шаблон или семья не найдены. Обновите страницу.',
+    409: 'Данные изменились или шаблон уже импортирован. Обновите список.',
+    413: 'Размер шаблона превышает допустимый.',
+    422: 'Шаблон содержит неподдерживаемые параметры или зависимости.',
+    DEFAULT: 'Не удалось выполнить операцию с шаблонами. Повторите попытку.'
+  },
+  de: {
+    INVALID_DEFINITION: 'Die Vorlage muss ein gültiges JSON-Objekt sein (maximal 30.000 Zeichen).',
+    NETWORK: 'Keine Verbindung zum Server. Bitte Verbindung prüfen und erneut versuchen.',
+    400: 'Ungültige Vorlagen- oder Auswahldaten. Bitte Eingaben prüfen.',
+    401: 'Die Sitzung ist abgelaufen. Bitte erneut anmelden.',
+    403: 'Keine Berechtigung, Vorlagen dieser Familie zu verwalten.',
+    404: 'Vorlage oder Familie nicht gefunden. Bitte Seite aktualisieren.',
+    409: 'Daten wurden geändert oder die Vorlage wurde bereits importiert. Bitte Liste aktualisieren.',
+    413: 'Die Vorlage ist zu groß.',
+    422: 'Die Vorlage enthält nicht unterstützte Einstellungen oder Abhängigkeiten.',
+    DEFAULT: 'Die Vorlagenaktion konnte nicht ausgeführt werden. Bitte erneut versuchen.'
+  },
+  en: {
+    INVALID_DEFINITION: 'Template definition must be a valid JSON object (maximum 30,000 characters).',
+    NETWORK: 'Cannot connect to the server. Check your connection and try again.',
+    400: 'Invalid template or selection data. Check the entered values.',
+    401: 'Session expired. Please sign in again.',
+    403: 'You do not have permission to manage templates in this family.',
+    404: 'Template or family not found. Refresh the page.',
+    409: 'Data changed or template was already imported. Refresh the list and retry.',
+    413: 'Template size exceeds the limit.',
+    422: 'Template contains unsupported settings or dependencies.',
+    DEFAULT: 'Template operation failed. Please try again.'
+  }
+}
+function localizedTemplateError(error, language) {
+  const messages = requestErrors[language] || requestErrors.en
+  if (error?.message === 'INVALID_DEFINITION') return messages.INVALID_DEFINITION
+  if (typeof error?.status === 'number') return messages[error.status] || messages.DEFAULT
+  if (error instanceof TypeError || error?.name === 'NetworkError') return messages.NETWORK
+  return messages.DEFAULT
+}
+const timeErrors = {
+  uk: ['Вкажіть дату й час у форматі ISO-8601.', 'Час завершення має бути пізнішим за час початку.'],
+  ru: ['Укажите дату и время в формате ISO-8601.', 'Время окончания должно быть позже начала.'],
+  de: ['Datum und Uhrzeit müssen dem ISO-8601-Format entsprechen.', 'Die Endzeit muss nach der Startzeit liegen.'],
+  en: ['Date and time must use ISO-8601 format.', 'End time must be later than start time.'],
+}
+
+// Designer-approved catalog mapping; display-only, never writes private media bindings.
+const templateIconKeys = {
+  hygiene:'category-self-care', routine:'category-planning', chores:'category-chores',
+  school:'category-learning', reading:'category-learning', activity:'category-activity',
+  creativity:'category-creativity', social:'category-family-communication',
+  habits:'category-initiative', family:'category-home', adult:'category-adult-tasks',
+  time:'category-screen-time', privilege:'category-privilege', items:'category-material-reward'
+}
+const iconKeyForTemplate = item => {
+  let definition = item?.definition
+  if (!definition && typeof item?.definitionJson === 'string') {
+    try { definition = JSON.parse(item.definitionJson) } catch { definition = null }
+  }
+  const category = item?.suggested?.category || definition?.category
+  return templateIconKeys[category] || (item?.kind === 'REWARD' ? 'reward-star' : 'task-default')
+}
+
+export default function TemplatesPage() {
+  const { i18n } = useTranslation()
+  const lang = i18n.language.split('-')[0]
+  const l = texts[lang] || texts.uk
+  const timeErrorTexts = timeErrors[lang] || timeErrors.en
+  const { currentUser, getAccessToken } = useAuth()
+  const workspaceId = currentUser?.workspaceId
+  const [catalog, setCatalog] = useState({ templates: [], packs: [] })
+  const [economySuggestions, setEconomySuggestions] = useState(null)
+  const [privateItems, setPrivateItems] = useState([])
+  const [iconUrls, setIconUrls] = useState({})
+  const [selected, setSelected] = useState([])
+  const [packFilter, setPackFilter] = useState('ALL')
+  const [kindFilter, setKindFilter] = useState('TASK')
+  const [categoryFilter, setCategoryFilter] = useState('ALL')
+  const [templateSearch, setTemplateSearch] = useState('')
+  const [showAllTemplates, setShowAllTemplates] = useState(false)
+  const [preview, setPreview] = useState(null)
+  const [previewSelection, setPreviewSelection] = useState(null)
+  const [editing, setEditing] = useState(null)
+  const [creationDraft, setCreationDraft] = useState(null)
+  const [draftText, setDraftText] = useState('')
+  const [draftMembers, setDraftMembers] = useState([])
+  const [draftPointTypes, setDraftPointTypes] = useState([])
+  const [title, setTitle] = useState('')
+  const [definition, setDefinition] = useState('')
+  const [busy, setBusy] = useState(false)
+  const actionLock = useRef(false)
+  const selectionRevision = useRef(0)
+  const requestGeneration = useRef(0)
+  const editingRef = useRef(null)
+  const workspaceRef = useRef(workspaceId)
+  if (workspaceRef.current !== workspaceId) { requestGeneration.current += 1; actionLock.current = false }
+  workspaceRef.current = workspaceId
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  useEffect(() => {
+    let alive = true
+    const generation = requestGeneration.current
+    setBusy(false)
+    editingRef.current = null
+    setEconomySuggestions(null); setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setKindFilter('TASK'); setCategoryFilter('ALL'); setTemplateSearch(''); setShowAllTemplates(false); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setError(''); setNotice('')
+    if (!workspaceId) return () => { alive = false }
+    getEconomySuggestions(getAccessToken()).then(data => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) setEconomySuggestions(data) }).catch(() => { /* Suggestions optional; never block catalog browsing. */ })
+    Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
+      .then(([a,b]) => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
+      .catch(e => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) setError(e) })
+    return () => { alive = false }
+  }, [workspaceId, getAccessToken])
+
+  useEffect(() => {
+    let active = true
+    const urls = []
+    setIconUrls({})
+    if (!workspaceId) return () => { active = false }
+    const token = getAccessToken()
+    getMediaCatalog(token, workspaceId).then(async entries => {
+      if (!active || !Array.isArray(entries)) return
+      const wanted = new Set([...Object.values(templateIconKeys), 'reward-star', 'task-default'])
+      await Promise.all(entries.filter(item => wanted.has(item.key) && item.previewPath)
+        .map(async item => {
+          const path = item.previewPath.replaceAll('{workspaceId}', String(workspaceId))
+          try {
+            const url = await fetchAuthorizedMediaObjectUrl(token, path, workspaceId)
+            urls.push(url)
+            if (active) setIconUrls(old => ({...old, [item.key]:url}))
+            else URL.revokeObjectURL(url)
+          } catch { /* Fallback remains visible; never use unprotected SVG URLs. */ }
+        }))
+    }).catch(() => {})
+    return () => { active = false; urls.forEach(url => URL.revokeObjectURL(url)) }
+  }, [workspaceId, getAccessToken])
+
+  const suggestedByCode = new Map([...(economySuggestions?.tasks || []), ...(economySuggestions?.rewards || [])].map(entry => [entry.code, entry]))
+  const importedCodes = new Set(privateItems.map(item => item.catalogCode).filter(Boolean))
+  const packItems = packFilter === 'ALL'
+    ? (catalog.templates || [])
+    : (catalog.templates || []).filter(item => (catalog.packs || []).find(pack => pack.code === packFilter)?.templateCodes?.includes(item.code))
+  const categoryOf = item => item?.suggested?.category || item?.definition?.category || (() => { try { return JSON.parse(item?.definitionJson || '{}').category } catch { return null } })() || 'other'
+  const categoriesAvailable = [...new Set(packItems.filter(item => item.kind === kindFilter).map(categoryOf))].sort((a,b) => a.localeCompare(b))
+  const matchingItems = packItems.filter(item => {
+    if (item.kind !== kindFilter || (categoryFilter !== 'ALL' && categoryOf(item) !== categoryFilter)) return false
+    const haystack = [item.title?.[lang], item.title?.en, item.code, item.description?.[lang]].filter(Boolean).join(' ').toLocaleLowerCase()
+    return haystack.includes(templateSearch.trim().toLocaleLowerCase())
+  })
+  const displayedItems = showAllTemplates ? matchingItems : matchingItems.slice(0, 8)
+  const kindLabel = kind => ({TASK:{uk:'Завдання',ru:'Задача',de:'Aufgabe',en:'Task'},REWARD:{uk:'Нагорода',ru:'Награда',de:'Belohnung',en:'Reward'}}[kind]?.[lang] || kind)
+  const visibleNewCount = packItems.filter(item => !importedCodes.has(item.code)).length
+  const selectedNewCodes = selected.filter(code => !importedCodes.has(code))
+  const visibleSelectedCount = packItems.filter(item => selected.includes(item.code) && !importedCodes.has(item.code)).length
+  const selectVisible = checked => {
+    selectionRevision.current += 1
+    const codes = packItems.filter(item => !importedCodes.has(item.code)).map(item => item.code)
+    setSelected(current => checked ? [...new Set([...current, ...codes])] : current.filter(code => !codes.includes(code)))
+    setPreview(null)
+    setPreviewSelection(null)
+  }
+  const toggle = code => { if (importedCodes.has(code)) return; selectionRevision.current += 1; setSelected(v => v.includes(code) ? v.filter(x=>x!==code) : [...v,code]); setPreview(null); setPreviewSelection(null) }
+  const execute = async action => {
+    if (actionLock.current) return
+    actionLock.current = true
+    const originWorkspace = workspaceId
+    const generation = requestGeneration.current
+    setBusy(true); setError(''); setNotice('')
+    try { await action() } catch(e) { if (workspaceRef.current === originWorkspace && requestGeneration.current === generation) setError(e) } finally {
+      if (workspaceRef.current === originWorkspace && requestGeneration.current === generation) { actionLock.current = false; setBusy(false) }
+    }
+  }
+  const refresh = async () => { const id = workspaceId; const generation = requestGeneration.current; const items = await getPrivateTemplates(getAccessToken(), id); if (workspaceRef.current === id && requestGeneration.current === generation) setPrivateItems(items) }
+  const chooseEdit = item => { editingRef.current = item.id; setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
+  const validDefinition = (() => { try { return definition.length <= 30000 && !Array.isArray(JSON.parse(definition)) && JSON.parse(definition) !== null && typeof JSON.parse(definition) === 'object' } catch { return false } })()
+  const validDraft = (() => { try { const value = JSON.parse(draftText); return value !== null && typeof value === 'object' && !Array.isArray(value) && draftText.length <= 30000 } catch { return false } })()
+  const draftWarnings = (() => {
+    if (!creationDraft || !validDraft) return []
+    const data = JSON.parse(draftText)
+    const warnings = []
+    const local = {
+      uk: {title:'Вкажіть назву.', member:'Оберіть учасника цієї сім’ї.',currency:'Оберіть активну валюту цієї сім’ї.',duration:'Тривалість часової нагороди має бути більшою за нуль.',start:'Укажіть дату початку завдання.'},
+      ru: {title:'Укажите название.',member:'Выберите участника этой семьи.',currency:'Выберите активную валюту этой семьи.',duration:'Длительность временной награды должна быть больше нуля.',start:'Укажите дату начала задачи.'},
+      de: {title:'Bitte einen Titel eingeben.',member:'Bitte ein Mitglied dieser Familie auswählen.',currency:'Bitte eine aktive Währung dieser Familie auswählen.',duration:'Die Dauer einer zeitbasierten Belohnung muss positiv sein.',start:'Bitte ein Startdatum angeben.'},
+      en: {title:'Enter a title.',member:'Select a member of this family.',currency:'Select an active currency of this family.',duration:'Timed reward duration must be greater than zero.',start:'Enter a task start date.'}
+    }[lang] || {title:'Enter a title.',member:'Select a member of this family.',currency:'Select an active currency of this family.',duration:'Duration must be positive.',start:'Enter a start date.'}
+    if (!String(data.title ?? '').trim()) warnings.push(local.title)
+    if (creationDraft.kind === 'TASK') {
+      if ((!data.assignmentPolicy || data.assignmentPolicy === 'SINGLE_MEMBER') && !draftMembers.some(member => String(member.id) === String(data.assignedMemberId))) warnings.push(local.member)
+      if (!data.startDate) warnings.push(local.start)
+    }
+    if (creationDraft.kind === 'REWARD') {
+      if (data.rewardKind === 'TIME_BASED' && (!Number.isInteger(data.defaultDurationMinutes) || data.defaultDurationMinutes <= 0)) warnings.push(local.duration)
+      if (data.pointTypeId == null) warnings.push(local.currency)
+    }
+    const ids = creationDraft.kind === 'TASK' ? ['rewardPointTypeId','penaltyPointTypeId'] : ['pointTypeId']
+    for (const key of ids) {
+      if (data[key] != null && !draftPointTypes.some(type => String(type.id) === String(data[key]))) warnings.push(local.currency)
+    }
+    // A recommendation with no price is incomplete, not a free reward.
+    if (creationDraft.kind === 'REWARD' && (data.priceAmount == null || !Number.isInteger(data.priceAmount) || data.priceAmount < 0)) {
+      warnings.push(({uk:'Вкажіть ціну цілим невід’ємним числом. Порожня ціна не означає безкоштовно.',ru:'Укажите цену целым неотрицательным числом. Пустая цена не означает бесплатно.',de:'Preis als nichtnegative ganze Zahl angeben. Ein leerer Preis bedeutet nicht kostenlos.',en:'Enter a nonnegative whole-number price. An empty price does not mean free.'})[lang] || 'Enter a valid price.')
+    }
+    if (creationDraft.kind === 'TASK' && !data.recurrenceType) {
+      warnings.push(({uk:'Оберіть тип повторення.',ru:'Выберите тип повторения.',de:'Bitte Wiederholungsart auswählen.',en:'Select a recurrence type.'})[lang] || 'Select recurrence.')
+    }
+    if (creationDraft.kind === 'TASK' && data.startDate && !/^\\d{4}-\\d{2}-\\d{2}$/.test(String(data.startDate))) {
+      warnings.push(({uk:'Дата початку повинна мати формат РРРР-ММ-ДД.',ru:'Дата начала должна быть в формате ГГГГ-ММ-ДД.',de:'Startdatum im Format JJJJ-MM-TT angeben.',en:'Start date must use YYYY-MM-DD format.'})[lang] || 'Invalid date.')
+    }
+    return [...new Set(warnings)]
+  })()
+  const availabilityError = (() => {
+    if (!validDefinition || editing?.kind !== 'REWARD') return ''
+    const value = JSON.parse(definition)
+    const start = value.availabilityStartsAt
+    const end = value.availabilityEndsAt
+    const isIso = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/.test(s) && !Number.isNaN(Date.parse(s))
+    const invalid = [start, end].some(s => s != null && s !== '' && !isIso(s))
+    if (invalid) return timeErrorTexts[0]
+    if (start && end && Date.parse(end) <= Date.parse(start)) return timeErrorTexts[1]
+    return ''
+  })()
+  if (!workspaceId) return <div className="page-loading">...</div>
+  return <div className="templates-page">
+    <h1>{l[0]}</h1>
+    <p>{l[3]}</p>
+    {error && <div className="error-message" role="alert">{localizedTemplateError(error, lang)}</div>}
+    {notice && <p role="status">{notice}</p>}
+    <section className="settings-section">
+      <h2>{l[1]}</h2>
+      {!(catalog.templates || []).length && <p>{l[4]}</p>}
+      <div className="template-toolbar">
+        <label><span>{({uk:'Тип',ru:'Тип',de:'Typ',en:'Type'})[lang]}</span><select value={kindFilter} onChange={e=>{setKindFilter(e.target.value);setCategoryFilter('ALL');setShowAllTemplates(false)}}><option value="TASK">{kindLabel('TASK')}</option><option value="REWARD">{kindLabel('REWARD')}</option></select></label>
+        <label><span>{({uk:'Категорія',ru:'Категория',de:'Kategorie',en:'Category'})[lang]}</span><select value={categoriesAvailable.includes(categoryFilter) ? categoryFilter : 'ALL'} onChange={e=>{setCategoryFilter(e.target.value);setShowAllTemplates(false)}}><option value="ALL">{({uk:'Усі категорії',ru:'Все категории',de:'Alle Kategorien',en:'All categories'})[lang]}</option>{categoriesAvailable.map(category=><option key={category} value={category}>{templateCategoryLabel(category, lang)}</option>)}</select></label>
+        <label>
+          <span>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}</span>
+          <select value={packFilter} onChange={e => {setPackFilter(e.target.value);setShowAllTemplates(false)}} disabled={busy}>
+            <option value="ALL">{({uk:'Усі шаблони',ru:'Все шаблоны',de:'Alle Vorlagen',en:'All templates'})[lang] || 'All templates'}</option>
+            {(catalog.packs || []).map(pack => <option key={pack.code} value={pack.code}>{pack.title?.[lang] || pack.title?.en || pack.code}</option>)}
+          </select>
+        </label>
+        <label>
+          <span>{({uk:'Пошук',ru:'Поиск',de:'Suche',en:'Search'})[lang] || 'Search'}</span>
+          <input type="search" value={templateSearch} onChange={e=>{setTemplateSearch(e.target.value);setShowAllTemplates(false)}} placeholder={({uk:'Назва шаблону…',ru:'Название шаблона…',de:'Vorlagenname…',en:'Template name…'})[lang] || 'Template name…'}/>
+        </label>
+      </div>
+      <div className="template-selection-toolbar">
+        <span>{({uk:'Знайдено',ru:'Найдено',de:'Gefunden',en:'Found'})[lang] || 'Found'}: {matchingItems.length}</span>
+        <button type="button" className="secondary-button" disabled={busy || !matchingItems.length} onClick={() => {selectionRevision.current += 1; const codes=matchingItems.filter(item=>!importedCodes.has(item.code)).map(item=>item.code);setSelected(prev=>[...new Set([...prev,...codes])]);setPreview(null);setPreviewSelection(null)}}>{({uk:'Вибрати знайдені',ru:'Выбрать найденные',de:'Gefundene auswählen',en:'Select matching'})[lang] || 'Select matching'}</button>
+        <button type="button" className="secondary-button" disabled={busy || !matchingItems.length} onClick={() => {selectionRevision.current += 1;const codes=new Set(matchingItems.map(item=>item.code));setSelected(prev=>prev.filter(code=>!codes.has(code)));setPreview(null);setPreviewSelection(null)}}>{({uk:'Зняти вибір',ru:'Снять выбор',de:'Auswahl aufheben',en:'Deselect matching'})[lang] || 'Deselect matching'}</button>
+      </div>
+      <div className="template-grid">
+        {displayedItems.map(item => <label key={item.code} className="template-card">
+          <input type="checkbox" checked={selected.includes(item.code) || importedCodes.has(item.code)} onChange={()=>toggle(item.code)} disabled={busy || importedCodes.has(item.code)}/>
+          <span className="template-card-icon" aria-hidden="true">{iconUrls[iconKeyForTemplate(item)] ? <img src={iconUrls[iconKeyForTemplate(item)]} alt="" loading="lazy"/> : item.kind === "REWARD" ? "★" : "✓"}</span>
+          <span className="template-card-body"><strong>{item.title?.[lang] || item.title?.en || item.code}</strong>
+            <small>{kindLabel(item.kind)}{item.kind === 'REWARD' && Number(item.definition?.durationMinutes)>0 ? ` · ${item.definition.durationMinutes} ${({uk:'хв',ru:'мин',de:'Min.',en:'min'})[lang] || 'min'}` : ''}</small>
+            {(() => { const suggestion = suggestedByCode.get(item.code); if (!suggestion) return null; const amount = item.kind === 'REWARD' ? suggestion.suggestedPricePoints : suggestion.suggestedRewardPoints; const validAmount = Number.isSafeInteger(amount) && amount >= 0 && suggestion.pricingState === 'OPTIONAL_SUGGESTION'; return <small>{validAmount ? `${({uk:'Рекомендовано',ru:'Рекомендовано',de:'Empfehlung',en:'Suggested'})[lang] || 'Suggested'}: ${amount} ${({uk:'балів',ru:'баллов',de:'Punkte',en:'points'})[lang] || 'points'} · ` : ''}{({uk:'Потрібне рішення батьків; не застосовується автоматично',ru:'Нужно решение родителей; автоматически не применяется',de:'Elternfreigabe nötig; nicht automatisch angewendet',en:'Parent review required; not applied automatically'})[lang] || 'Parent review required'}</small> })()}
+            {importedCodes.has(item.code) && <small>{({uk:'Уже в бібліотеці',ru:'Уже в библиотеке',de:'Bereits in der Bibliothek',en:'Already in library'})[lang] || 'Already in library'}</small>}
+          </span>
+        </label>)}
+      </div>
+      {matchingItems.length > 8 && <button type="button" className="secondary-button template-more" onClick={()=>setShowAllTemplates(v=>!v)}>{showAllTemplates ? ({uk:'Згорнути список',ru:'Свернуть список',de:'Liste einklappen',en:'Collapse list'})[lang] : `${({uk:'Показати всі',ru:'Показать все',de:'Alle anzeigen',en:'Show all'})[lang]} (${matchingItems.length})`}</button>}
+      {!matchingItems.length && <p>{({uk:'За цим пошуком нічого не знайдено.',ru:'По этому запросу ничего не найдено.',de:'Keine passenden Vorlagen gefunden.',en:'No matching templates found.'})[lang] || 'No matches.'}</p>}
+      <p>{visibleSelectedCount} / {packItems.length} · {({uk:'Нових доступно',ru:'Новых доступно',de:'Neue verfügbar',en:'New available'})[lang] || 'New available'}: {visibleNewCount}</p>
+      <div className="modal-actions">
+        <button type="button" className="secondary-button" disabled={busy || !selected.length} onClick={()=>{selectionRevision.current += 1;setSelected([]);setPreview(null);setPreviewSelection(null)}}>{l[7]}</button>
+        <button type="button" className="secondary-button" disabled={busy || !selectedNewCodes.length} onClick={()=>execute(async()=>{const revision=selectionRevision.current;const origin=workspaceId;const generation=requestGeneration.current;const requestedCodes = [...selectedNewCodes];const result=await previewTemplateImport(getAccessToken(),workspaceId,requestedCodes);if(workspaceRef.current===origin && requestGeneration.current===generation && selectionRevision.current===revision){setPreview(result);setPreviewSelection(requestedCodes)}})}>{l[5]}</button>
+      </div>
+      {preview && <div className="settings-section">
+        <p>{l[8]}: {(preview.alreadyImported || []).join(', ') || '—'}</p>
+        <p>{l[9]}: {(preview.toImport || []).join(', ') || '—'}</p>
+        <button className="primary-button" type="button" disabled={busy || !(preview.toImport || []).length || !previewSelection || previewSelection.join('|') !== selectedNewCodes.join('|')} onClick={()=>execute(async()=>{
+          const generation=requestGeneration.current
+          await importTemplates(getAccessToken(),workspaceId,previewSelection)
+          await refresh(); if (workspaceRef.current === workspaceId && requestGeneration.current === generation) { setPreview(null); setPreviewSelection(null); setSelected([]); setNotice(l[18]) }
+        })}>{l[6]}</button>
+      </div>}
+    </section>
+    <section className="settings-section">
+      <h2>{l[2]}</h2><p>{l[21]}</p>
+      {!privateItems.length && <p>{l[12]}</p>}
+      <div className="template-grid">
+        {privateItems.map(item => <button key={item.id} type="button" className="template-card template-private-card" onClick={()=>chooseEdit(item)} aria-pressed={editing?.id === item.id}>
+          <span className="template-card-icon" aria-hidden="true">{iconUrls[iconKeyForTemplate(item)] ? <img src={iconUrls[iconKeyForTemplate(item)]} alt="" loading="lazy"/> : item.kind === 'REWARD' ? '★' : '✓'}</span>
+          <span className="template-card-body"><strong>{item.title}</strong><small>{kindLabel(item.kind)}</small></span>
+        </button>)}
+      </div>
+      {editing && ['TASK','REWARD'].includes(editing.kind) && <div className="modal-actions">
+        <button type="button" className="secondary-button" disabled={busy} onClick={() => execute(async () => {
+          const origin = workspaceId
+          const itemId = editing.id
+          const generation = requestGeneration.current
+          const token = getAccessToken()
+          const [draft, members, types] = await Promise.all([
+            getTemplateCreationDraft(token, origin, itemId),
+            getWorkspaceMembers(token, origin),
+            getPointTypes(token, origin)
+          ])
+          if (workspaceRef.current === origin && requestGeneration.current === generation && editingRef.current === itemId) { setCreationDraft(draft); setDraftText(JSON.stringify(draft.request, null, 2)); setDraftMembers(Array.isArray(members) ? members : []); setDraftPointTypes(Array.isArray(types) ? types.filter(type => type.active !== false) : []) }
+        })}>{({uk:'Переглянути чернетку створення',ru:'Просмотреть черновик создания',de:'Erstellungsentwurf prüfen',en:'Preview creation draft'})[lang] || 'Preview creation draft'}</button>
+      </div>}
+      {creationDraft && editing && creationDraft.templateId === editing.id && <div className="settings-section">
+        <h3>{({uk:'Чернетка (без створення завдання чи нагороди)',ru:'Черновик (без создания задачи или награды)',de:'Entwurf (ohne Aufgabe oder Belohnung anzulegen)',en:'Draft (no task or reward created)'})[lang] || 'Draft preview'}</h3>
+        <p>{({uk:'Перевірте тривалість, валюту та призначення. Цей перегляд нічого не активує.',ru:'Проверьте длительность, валюту и назначение. Просмотр ничего не активирует.',de:'Bitte Dauer, Währung und Zuweisung prüfen. Diese Ansicht aktiviert nichts.',en:'Check duration, currency and assignment. This preview activates nothing.'})[lang] || 'Preview only'}</p>
+        {creationDraft.economySuggestion && <div className="template-economy-review">
+          <p>{({uk:'Рекомендація необов’язкова. Застосування змінить лише чернетку й потребує перевірки батьками.',ru:'Рекомендация необязательна. Применение изменит только черновик и требует проверки родителями.',de:'Die Empfehlung ist optional. Sie ändert nur den Entwurf und muss von Eltern geprüft werden.',en:'Suggestion is optional. Applying changes only the draft and requires parent review.'})[lang] || 'Optional suggestion'}</p>
+          <button type="button" className="secondary-button" disabled={busy || draftText !== JSON.stringify(creationDraft.request, null, 2)} onClick={() => execute(async () => {
+            const origin = workspaceId, itemId = editing.id, generation = requestGeneration.current
+            const applied = await applyTemplateEconomySuggestion(getAccessToken(), origin, itemId)
+            if (workspaceRef.current === origin && requestGeneration.current === generation && editingRef.current === itemId) {
+              if (String(applied?.templateId) !== String(itemId) || applied?.kind !== creationDraft.kind || applied?.suggestionAppliedToDraft !== true || !applied?.request || typeof applied.request !== 'object' || Array.isArray(applied.request)) throw new Error('ECONOMY_DRAFT_INVALID')
+              setCreationDraft(applied)
+              setDraftText(JSON.stringify(applied.request, null, 2))
+            }
+          })}>{({uk:'Застосувати рекомендацію лише до чернетки',ru:'Применить рекомендацию только к черновику',de:'Empfehlung nur auf Entwurf anwenden',en:'Apply suggestion to draft only'})[lang] || 'Apply to draft only'}</button>
+        </div>}
+        <TemplateDraftFieldsEditor kind={creationDraft.kind} value={draftText} onChange={setDraftText} language={lang} disabled={busy} members={draftMembers} pointTypes={draftPointTypes}/>
+        <details><summary>{({uk:'Розширені параметри JSON',ru:'Расширенные параметры JSON',de:'Erweiterte JSON-Parameter',en:'Advanced JSON parameters'})[lang] || 'Advanced JSON'}</summary>
+        <label style={{display:'block'}}>{({uk:'Параметри чернетки (JSON)',ru:'Параметры черновика (JSON)',de:'Entwurfsparameter (JSON)',en:'Draft parameters (JSON)'})[lang] || 'Draft JSON'}
+          <textarea rows={10} value={draftText} onChange={e => setDraftText(e.target.value)} disabled={busy} spellCheck={false} style={{width:'100%'}}/>
+        </label>
+        </details>
+        {!validDraft && <p className="error-message" role="alert">{({uk:'Потрібен коректний JSON-об’єкт (до 30 000 символів).',ru:'Нужен корректный JSON-объект (до 30 000 символов).',de:'Gültiges JSON-Objekt erforderlich (bis 30.000 Zeichen).',en:'A valid JSON object is required (up to 30,000 characters).'})[lang] || 'Invalid JSON'}</p>}
+        {validDraft && draftWarnings.length > 0 && <div className="error-message" role="alert"><ul>{draftWarnings.map(message => <li key={message}>{message}</li>)}</ul></div>}
+        {validDraft && draftWarnings.length === 0 && <p role="status">{({uk:'Попередні перевірки пройдені. Це не підтвердження Backend і не створення.',ru:'Предварительные проверки пройдены. Это не подтверждение Backend и не создание.',de:'Vorprüfungen bestanden. Keine Backend-Bestätigung und keine Erstellung.',en:'Preliminary checks passed. This is not Backend approval or creation.'})[lang] || 'Preliminary checks passed.'}</p>}
+        <p role="status">{({uk:'Зміни лише у браузері. Для створення потрібне окреме підтвердження; активація тут недоступна.',ru:'Изменения только в браузере. Создание требует отдельного подтверждения; активация здесь недоступна.',de:'Änderungen nur im Browser. Erstellung erfordert separate Bestätigung; hier keine Aktivierung.',en:'Changes stay in your browser. Creation requires separate confirmation; activation is unavailable here.'})[lang] || 'Not activated'}</p>
+      </div>}
+      {editing && <form className="template-editor-form" onSubmit={e=>{e.preventDefault();execute(async()=>{
+        const generation=requestGeneration.current
+        if (!validDefinition) throw new Error('INVALID_DEFINITION')
+        if (availabilityError) throw new Error('INVALID_DEFINITION')
+        await updatePrivateTemplate(getAccessToken(),workspaceId,editing.id,{title,definitionJson:definition,kind:editing.kind})
+        await refresh();if (workspaceRef.current === workspaceId && requestGeneration.current === generation) setNotice(l[15])
+      })}}>
+        <h3>{l[16]}</h3>
+        <label className="template-edit-field"><span>{l[13]}</span><input required maxLength={150} value={title} onChange={e=>setTitle(e.target.value)}/></label>
+        {availabilityError && <p className="error-message" role="alert">{availabilityError}</p>}
+        <TemplateFieldsEditor kind={editing.kind} definition={definition} onChange={setDefinition} language={i18n.language.split('-')[0]} disabled={busy}/>
+        <details className="template-advanced-json">
+          <summary>{({uk:'Додаткові параметри (JSON)',ru:'Дополнительные параметры (JSON)',de:'Erweiterte Einstellungen (JSON)',en:'Advanced settings (JSON)'})[lang]}</summary>
+          <label><span>{l[14]}</span><textarea required rows={8} value={definition} onChange={e=>setDefinition(e.target.value)} disabled={busy}/></label>
+        </details>
+        <div className="modal-actions">
+          <button className="primary-button" disabled={busy || !validDefinition || Boolean(availabilityError) || !title.trim()} type="submit">{l[10]}</button>
+          <button className="secondary-button" disabled={busy} type="button" onClick={()=>{if(window.confirm(l[17]))execute(async()=>{
+            const generation=requestGeneration.current
+            await deletePrivateTemplate(getAccessToken(),workspaceId,editing.id);await refresh();if (workspaceRef.current === workspaceId && requestGeneration.current === generation) { editingRef.current = null; setEditing(null) }
+          })}}>{l[11]}</button>
+        </div>
+      </form>}
+    </section>
+  </div>
+}

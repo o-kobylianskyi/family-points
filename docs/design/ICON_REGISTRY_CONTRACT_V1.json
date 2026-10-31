@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "status": "DESIGNER_APPROVED_BACKEND_REGISTRY_PENDING",
+  "assets": [
+    {
+      "catalogKey": "category-achievements",
+      "source": "media/catalog/categories/achievements.svg",
+      "category": "REWARD",
+      "labelKey": "media.catalog.category.achievements",
+      "sortOrder": 3000
+    },
+    {
+      "catalogKey": "category-activity",
+      "source": "media/catalog/categories/activity.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.activity",
+      "sortOrder": 3010
+    },
+    {
+      "catalogKey": "category-adult-tasks",
+      "source": "media/catalog/categories/adult_tasks.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.adult_tasks",
+      "sortOrder": 3020
+    },
+    {
+      "catalogKey": "category-chores",
+      "source": "media/catalog/categories/chores.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.chores",
+      "sortOrder": 3030
+    },
+    {
+      "catalogKey": "category-creativity",
+      "source": "media/catalog/categories/creativity.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.creativity",
+      "sortOrder": 3040
+    },
+    {
+      "catalogKey": "category-family-communication",
+      "source": "media/catalog/categories/family_communication.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.family_communication",
+      "sortOrder": 3050
+    },
+    {
+      "catalogKey": "category-family-events",
+      "source": "media/catalog/categories/family_events.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.family_events",
+      "sortOrder": 3060
+    },
+    {
+      "catalogKey": "category-help-others",
+      "source": "media/catalog/categories/help_others.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.help_others",
+      "sortOrder": 3070
+    },
+    {
+      "catalogKey": "category-home",
+      "source": "media/catalog/categories/home.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.home",
+      "sortOrder": 3080
+    },
+    {
+      "catalogKey": "category-initiative",
+      "source": "media/catalog/categories/initiative.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.initiative",
+      "sortOrder": 3090
+    },
+    {
+      "catalogKey": "category-learning",
+      "source": "media/catalog/categories/learning.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.learning",
+      "sortOrder": 3100
+    },
+    {
+      "catalogKey": "category-material-reward",
+      "source": "media/catalog/categories/material_reward.svg",
+      "category": "REWARD",
+      "labelKey": "media.catalog.category.material_reward",
+      "sortOrder": 3110
+    },
+    {
+      "catalogKey": "category-nature",
+      "source": "media/catalog/categories/nature.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.nature",
+      "sortOrder": 3120
+    },
+    {
+      "catalogKey": "category-planning",
+      "source": "media/catalog/categories/planning.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.planning",
+      "sortOrder": 3130
+    },
+    {
+      "catalogKey": "category-practical-skills",
+      "source": "media/catalog/categories/practical_skills.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.practical_skills",
+      "sortOrder": 3140
+    },
+    {
+      "catalogKey": "category-privilege",
+      "source": "media/catalog/categories/privilege.svg",
+      "category": "REWARD",
+      "labelKey": "media.catalog.category.privilege",
+      "sortOrder": 3150
+    },
+    {
+      "catalogKey": "category-screen-time",
+      "source": "media/catalog/categories/screen_time.svg",
+      "category": "REWARD",
+      "labelKey": "media.catalog.category.screen_time",
+      "sortOrder": 3160
+    },
+    {
+      "catalogKey": "category-self-care",
+      "source": "media/catalog/categories/self_care.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.self_care",
+      "sortOrder": 3170
+    }
+  ],
+  "templateCategoryMapping": {
+    "hygiene": "category-self-care",
+    "routine": "category-planning",
+    "chores": "category-chores",
+    "school": "category-learning",
+    "reading": "category-learning",
+    "activity": "category-activity",
+    "creativity": "category-creativity",
+    "social": "category-family-communication",
+    "habits": "category-initiative",
+    "family": "category-home",
+    "adult": "category-adult-tasks",
+    "time": "category-screen-time",
+    "privilege": "category-privilege",
+    "items": "category-material-reward"
+  },
+  "qa": [
+    "All 18 catalog keys unique",
+    "MediaService.CATALOG allowlist includes keys",
+    "MediaService.catalog() contains 18 catalog records with unique sort order",
+    "catalogPreview resolves exactly one SVG classpath resource per key",
+    "Workspace access controls preserved",
+    "Runtime media MIME image/svg+xml and CSP validated",
+    "UI uses fallback if unregistered",
+    "No existing private binding overwritten"
+  ]
+}

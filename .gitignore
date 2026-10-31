@@ -1,0 +1,58 @@
+# Build output
+target/
+**/target/
+build/
+dist/
+
+# Frontend dependencies / local env
+frontend/node_modules/
+node_modules/
+.env
+.env.*
+!.env.example
+!.env.beta.example
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+.apt_generated/
+.springBeans
+.sts4-cache/
+
+# OS / logs
+.DS_Store
+Thumbs.db
+*.log
+
+# Local secrets / generated archives
+*.local.properties
+*.zip
+
+# Server-side BETA database dumps (sensitive)
+backups/
+*.dump
+
+# Local service configuration with database/JWT/SMTP secrets
+/config/familypoints.dev.local.properties
+
+# Publicly served signed APKs (published on server only)
+/downloads/
+*.jks
+*.keystore
+
+# Signed Android outputs; private signing materials must never be committed
+/android-release-output/
+**/app-release.apk
+
+# Local TSD project - never commit
+/TSD/
+
+# Local Android release settings (contains public OAuth ID, device and SSH paths; never commit)
+/scripts/android/release-config.local.json

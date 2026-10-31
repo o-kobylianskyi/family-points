@@ -1,0 +1,195 @@
+package com.olehkobylianskyi.familypoints.android.network
+
+import com.olehkobylianskyi.familypoints.android.data.MemberGroupCreateRequest
+import com.olehkobylianskyi.familypoints.android.data.MemberSaveRequest
+import com.olehkobylianskyi.familypoints.android.data.GroupUpdateRequest
+import com.olehkobylianskyi.familypoints.android.data.GroupRoleSaveRequest
+import com.olehkobylianskyi.familypoints.android.data.GroupPointOperationRequest
+import com.olehkobylianskyi.familypoints.android.data.GroupPermissionGrantResponse
+import com.olehkobylianskyi.familypoints.android.data.GroupPermissionGrantRequest
+import com.olehkobylianskyi.familypoints.android.data.AddGroupMemberRequest
+import com.olehkobylianskyi.familypoints.android.data.ChildGroupRequest
+import com.olehkobylianskyi.familypoints.android.data.MembersGroupResponse
+import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
+import com.olehkobylianskyi.familypoints.android.data.WorkspaceRoleResponse
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
+
+data class AndroidMemberAccountRequest(val username: String, val password: String)
+data class AndroidMemberInvitationRequest(val email: String)
+
+interface MembersApi {
+    @POST("workspaces/{workspaceId}/members/{memberId}/account")
+    suspend fun createMemberAccount(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("memberId") memberId: Long,
+        @Body request: AndroidMemberAccountRequest
+    ): retrofit2.Response<Unit>
+
+    @POST("workspaces/{workspaceId}/members/{memberId}/email-invitation")
+    suspend fun inviteMemberEmail(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("memberId") memberId: Long,
+        @Body request: AndroidMemberInvitationRequest
+    ): retrofit2.Response<Unit>
+
+    @GET("workspaces/{workspaceId}/members")
+    suspend fun getMembers(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long
+    ): List<WorkspaceMemberResponse>
+
+    @GET("workspaces/{workspaceId}/roles")
+    suspend fun getRoles(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long
+    ): List<WorkspaceRoleResponse>
+
+    @GET("workspaces/{workspaceId}/member-groups")
+    suspend fun getGroups(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long
+    ): List<MembersGroupResponse>
+
+    @POST("workspaces/{workspaceId}/members")
+    suspend fun createMember(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Body request: MemberSaveRequest
+    ): WorkspaceMemberResponse
+
+    @PUT("workspaces/{workspaceId}/members/{memberId}")
+    suspend fun updateMember(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("memberId") memberId: Long,
+        @Body request: MemberSaveRequest
+    ): WorkspaceMemberResponse
+
+    @DELETE("workspaces/{workspaceId}/members/{memberId}")
+    suspend fun deleteMember(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("memberId") memberId: Long
+    ): retrofit2.Response<Unit>
+
+    @PUT("workspaces/{workspaceId}/member-groups/{groupId}")
+    suspend fun updateGroup(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Body request: GroupUpdateRequest
+    ): MembersGroupResponse
+
+    @PUT("workspaces/{workspaceId}/member-groups/{groupId}/members")
+    suspend fun addGroupMember(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Body request: AddGroupMemberRequest
+    ): MembersGroupResponse
+
+    @DELETE("workspaces/{workspaceId}/member-groups/{groupId}/members/{memberId}")
+    suspend fun removeGroupMember(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Path("memberId") memberId: Long
+    ): retrofit2.Response<Unit>
+
+    @PUT("workspaces/{workspaceId}/member-groups/{groupId}/children")
+    suspend fun addChildGroup(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Body request: ChildGroupRequest
+    ): MembersGroupResponse
+
+    @DELETE("workspaces/{workspaceId}/member-groups/{groupId}/children/{childId}")
+    suspend fun removeChildGroup(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Path("childId") childId: Long
+    ): retrofit2.Response<Unit>
+
+    @PUT("workspaces/{workspaceId}/member-groups/{groupId}/members/{memberId}/roles")
+    suspend fun setGroupMemberRoles(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Path("memberId") memberId: Long,
+        @Body roleIds: List<Long>
+    ): MembersGroupResponse
+
+    @POST("workspaces/{workspaceId}/member-groups/{groupId}/roles")
+    suspend fun createGroupRole(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Body request: GroupRoleSaveRequest
+    ): MembersGroupResponse
+
+    @PUT("workspaces/{workspaceId}/member-groups/{groupId}/roles/{roleId}")
+    suspend fun updateGroupRole(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Path("roleId") roleId: Long,
+        @Body request: GroupRoleSaveRequest
+    ): MembersGroupResponse
+
+    @DELETE("workspaces/{workspaceId}/member-groups/{groupId}/roles/{roleId}")
+    suspend fun deleteGroupRole(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Path("roleId") roleId: Long
+    ): retrofit2.Response<Unit>
+
+    @GET("workspaces/{workspaceId}/member-groups/{groupId}/permissions")
+    suspend fun getGroupPermissions(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long
+    ): List<GroupPermissionGrantResponse>
+
+    @POST("workspaces/{workspaceId}/member-groups/{groupId}/roles/{roleId}/permissions")
+    suspend fun addGroupPermission(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Path("roleId") roleId: Long,
+        @Body request: GroupPermissionGrantRequest
+    ): GroupPermissionGrantResponse
+
+    @DELETE("workspaces/{workspaceId}/member-groups/{groupId}/permissions/{grantId}")
+    suspend fun removeGroupPermission(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Path("grantId") grantId: Long
+    ): retrofit2.Response<Unit>
+
+    @POST("workspaces/{workspaceId}/member-groups/{groupId}/points")
+    suspend fun postGroupPoints(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("groupId") groupId: Long,
+        @Body request: GroupPointOperationRequest
+    ): MembersGroupResponse
+
+    @POST("workspaces/{workspaceId}/member-groups")
+    suspend fun createGroup(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Body request: MemberGroupCreateRequest
+    ): MembersGroupResponse
+}

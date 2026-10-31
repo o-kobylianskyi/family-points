@@ -1,0 +1,1853 @@
+# FamilyPoints — Concept & Mechanics Discussion Log
+
+> **Purpose:** persistent project memory for product mechanics, domain concepts, alternatives, rejected ideas, and decisions discussed outside code.
+>
+> This file is intentionally broader than a roadmap or technical specification. It exists so that important product reasoning does not disappear when a chat/session ends.
+>
+> **Rule:** do not silently rewrite old decisions. Prefer appending a dated entry that marks an earlier idea as `SUPERSEDED`, `REJECTED`, or `REFINED`.
+
+Last reconstructed/updated: **2026-10-04**
+
+---
+
+## 1. Status vocabulary
+
+Use these labels consistently:
+
+- **IMPLEMENTED** — confirmed in the current Git branch/source.
+- **PARTIAL** — implementation exists but semantics/API/UI are incomplete.
+- **AGREED** — concept/mechanics were explicitly agreed but not yet implemented.
+- **DISCUSSED** — explored, but no final decision is reliably known.
+- **RECOVER** — we know the topic was discussed earlier, but exact details were lost and must not be invented.
+- **SUPERSEDED** — earlier model replaced by a later model.
+- **REJECTED** — consciously not chosen.
+- **QUESTION** — unresolved design decision.
+
+Source of truth hierarchy:
+1. Current GitHub source for what is actually implemented.
+2. This log for historical product/domain reasoning.
+3. Current technical specification / concept documents for consolidated design.
+4. Chat memory only as a recovery source — never as the sole durable record.
+
+---
+
+## 2. Core product direction
+
+### 2026-10-04 — reconstructed baseline
+
+**AGREED**
+
+FamilyPoints is a family-focused system that combines:
+
+- tasks and recurring responsibilities;
+- points/economy;
+- rewards and penalties;
+- behavior tracking;
+- learning/practice;
+- application/device access control;
+- groups, roles and scoped authorization.
+
+The architecture should also remain capable of evolving into a broader Team/Office Manager without rewriting the core domains.
+
+**AGREED**
+
+Keep these conceptual planes separate:
+
+1. **Workspace / organizational graph** — members, groups, teams.
+2. **Work hierarchy** — `WorkNode` with `GROUP/TASK`.
+3. **Authorization context** — permissions and roles with explicit scope.
+
+Do not derive authorization merely from hierarchy membership.
+
+---
+
+## 3. Tasks: definition, occurrence, execution
+
+### 2026-10-04 — reconstructed
+
+**AGREED**
+
+- `TaskDefinition` describes the reusable/recurring definition.
+- `TaskInstance` represents a concrete occurrence/execution.
+- Assignment, eligibility, preferred executor, claim, current executor, participation, and delegation are separate concepts.
+- `claim != delegation`.
+- Parent/child work hierarchy does not itself grant access.
+
+**AGREED**
+
+Assignment policy family:
+
+- `SINGLE_MEMBER`
+- `GROUP_SHARED`
+- `OPEN_GROUP`
+- `OPEN_WORKSPACE`
+- `PREFERRED_MEMBER`
+
+**AGREED**
+
+Distinguish:
+
+- `assignedActor`
+- `preferredActor`
+- `claimedByActor`
+- `currentExecutor`
+- responsible/coordinator actor where required
+
+**DISCUSSED / NEEDS RECONCILIATION**
+
+Older lifecycle concepts included:
+
+- `AVAILABLE`
+- `IN_PROGRESS`
+- `WAITING_APPROVAL`
+- `APPROVED`
+- `REJECTED`
+- `EXPIRED`
+- `CANCELLED`
+
+The current implementation later introduced/uses states such as `PAUSED` and `RELEASED`. Do not restore old states blindly; reconcile with current code before changes.
+
+**AGREED**
+
+Task visibility, availability, eligibility and execution permission are distinct:
+
+- a future task may be visible in calendar;
+- it may not yet be available;
+- an actor may see it but not be eligible;
+- an eligible actor may still lack management rights.
+
+---
+
+## 4. Recurrence, calendar, future tasks
+
+**AGREED**
+
+Recurrence:
+
+- `ONCE`
+- `DAILY`
+- `WEEKLY`
+- `MONTHLY`
+- `CUSTOM` reserved for future extension.
+
+Rules:
+
+- no silent historical backfill;
+- monthly day 31 means literal day 31;
+- historical `ONCE` should not silently create a pending occurrence;
+- recurring tasks starting in the past should not generate the entire missing history unless an explicit policy says so.
+
+**AGREED**
+
+Calendar/product views should support:
+
+- day;
+- week;
+- month;
+- arbitrary period;
+- visible future tasks.
+
+**AGREED**
+
+Reminder is separate from deadline.
+
+**DISCUSSED**
+
+Future mechanisms:
+
+- defer;
+- decline;
+- extension request;
+- review/approval;
+- overdue handling.
+
+---
+
+## 5. Requirements / dependencies / conditions
+
+**AGREED**
+
+Requirements are broader than a simple task-dependency table.
+
+`RequirementGroup` supports:
+
+- `ALL_SATISFIED`
+- `MINIMUM_SATISFIED`
+
+and may use:
+
+- `requiredCount`
+- per-item `alwaysRequired=true`
+
+Examples:
+
+- 1 of 3 alternatives;
+- 2 of 5 alternatives;
+- mandatory conditions plus selectable alternatives.
+
+**AGREED**
+
+Recurring dependency must match the relevant occurrence/date, not merely any historical completion.
+
+**DISCUSSED / AGREED DIRECTION**
+
+Generic requirement types may eventually include:
+
+- another task completed;
+- learning activity completed;
+- balance/savings condition;
+- behavior condition;
+- achievement;
+- other domain-specific conditions.
+
+**INVARIANT**
+
+Do not mix:
+
+- mandatory task;
+- eligibility;
+- prerequisite/requirement.
+
+---
+
+## 6. Quality, approval and reward calculation
+
+### Recovered mechanics
+
+**AGREED**
+
+Reward policies:
+
+- `FIXED`
+- `QUALITY_PERCENTAGE`
+- `BASE_PLUS_QUALITY_BONUS`
+- `MILESTONE`
+
+A task may have a quality rating that **does not affect payment at all**.
+
+**AGREED**
+
+Configurable quality / star scale. Recovered example:
+
+- 5★ → 100%
+- 4★ → 70%
+- 3★ → 50%
+- 2★ → 20%
+- 1★ → 0%
+
+This mapping is an example/configuration, not a universal hard-coded law.
+
+**AGREED**
+
+Approval policy may support:
+
+- `AUTO`
+- `PARENT_REQUIRED`
+
+**INVARIANT**
+
+Do not conflate:
+
+- quality rating;
+- deadline;
+- reputation;
+- behavior rating.
+
+These are different signals.
+
+---
+
+## 7. Milestones / savepoints / partial rewards
+
+**AGREED**
+
+Tasks may contain `TaskStep` / `TaskMilestone`.
+
+Milestones/savepoints can support partial reward settlement.
+
+Reward timing modes discussed:
+
+- `PAY_IMMEDIATELY`
+- `PAY_ON_TASK_COMPLETION`
+
+**QUESTION**
+
+Before implementation, define precisely:
+
+- whether failed final completion can claw back already-paid milestone rewards;
+- whether milestone quality is independent from final task quality;
+- whether milestone completion can be reverted;
+- idempotency rules for partial settlement.
+
+---
+
+## 8. Reward groups and reward selection
+
+**AGREED**
+
+`RewardGroup` modes:
+
+- `ALL`
+- `CHOOSE_ONE`
+- `CHOOSE_MULTIPLE`
+
+Reward types should be extensible, including:
+
+- `POINTS`
+- `GOLD`
+- `MONEY`
+- `DEVICE_TIME`
+- future custom/resource types.
+
+**AGREED**
+
+Once a random/selected reward result has been resolved, the result must be persisted and reused. It must not re-randomize during subsequent reads or settlement retries.
+
+**RECOVER / DISCUSSED**
+
+Selection actor concepts recovered from earlier discussion:
+
+- `CHILD`
+- `PARENT`
+- `SYSTEM`
+
+Selection method concepts:
+
+- `MANUAL`
+- `RANDOM`
+- `RANDOM_FILL`
+
+Additional recovered concepts:
+
+- `randomEligible`
+- weighted selection / `weight`
+
+Exact final schema was not reliably preserved. Do not treat the enum names above as final database/API contracts until revalidated.
+
+---
+
+## 9. Reputation
+
+### 2026-10-04 — mechanics recovered with user
+
+**AGREED**
+
+Reputation is a separate long-term balance/metric. It is **not**:
+
+- task quality stars;
+- `BehaviorDailyReview`;
+- the spendable points balance.
+
+### Earning and losing reputation
+
+**AGREED**
+
+A task may define not only point reward/penalty but also a separate reputation delta:
+
+- reputation earned for successful completion;
+- reputation lost for failure/poor outcome where configured.
+
+Task points and task reputation are therefore two independent settlement dimensions.
+
+**AGREED**
+
+Behavior can also affect reputation:
+
+- good behavior may grant reputation;
+- bad behavior may deduct reputation.
+
+The exact mapping remains configurable and must not collapse Behavior into the Reputation domain.
+
+### Manual reputation awards
+
+**AGREED**
+
+An authorized administrator/group administrator may manually award reputation as a bonus, analogous to manual point awards, but only when the actor has the explicit permission to do so.
+
+**DESIGN / QUESTION**
+
+Manual reputation distribution should support configurable limits so a delegated group administrator cannot mint unlimited reputation.
+
+Possible configuration level discussed:
+
+- per actor/role;
+- per group/context;
+- per period (daily/weekly/monthly);
+- maximum amount per operation;
+- total reputation allocation/budget available to a group.
+
+Exact limit model is not yet fixed.
+
+### Reputation as an access threshold
+
+**AGREED**
+
+Rewards, purchases, bonuses, games, privileges or other catalog items may require a minimum reputation threshold in addition to their point price.
+
+Example:
+
+- bicycle price: 1000 points;
+- bicycle reputation requirement: 1000 reputation;
+- member must satisfy both conditions before the reward is available.
+
+The reputation threshold is a **qualification/access requirement**, not necessarily a spend. Unless a specific reward says otherwise, buying an item should spend points while reputation remains as the member's standing.
+
+This allows expensive/important rewards to require sustained good participation over time rather than only accumulated points.
+
+### Decay / reset
+
+**DISCUSSED — IMPORTANT**
+
+Reputation should potentially be non-permanent so that old good history cannot indefinitely unlock every high-trust reward.
+
+Mechanics considered:
+
+- reputation decay over time;
+- reputation loss when the member remains inactive / does not participate;
+- periodic reset;
+- configurable decay windows/rates;
+- exceptions/excused periods so sickness/vacation/etc. do not unfairly reduce reputation.
+
+Example product intent: a child who wants a high-value reward such as a bicycle may need roughly a month of consistently good behavior and task effort to maintain/build the required reputation.
+
+**QUESTION**
+
+Before implementation decide:
+
+- continuous decay vs scheduled decay;
+- inactivity-only decay vs universal decay;
+- whether reputation can reach zero but never negative, or negative reputation is allowed;
+- workspace/group-specific decay policy;
+- grace period;
+- interaction with excused days;
+- whether some reputation types/categories are non-decaying;
+- whether a seasonal/manual reset is supported.
+
+### Reputation ledger/history
+
+**AGREED DIRECTION**
+
+Reputation changes should be auditable, similarly to points, with source/reason and actor:
+
+- TASK;
+- BEHAVIOR;
+- MANUAL_BONUS;
+- MANUAL_PENALTY;
+- DECAY;
+- ADJUSTMENT;
+- other future source types.
+
+A dedicated reputation transaction/history model is preferable to storing only the current scalar balance.
+
+### Invariant
+
+Do not conflate:
+
+- spendable points;
+- reputation standing;
+- task quality;
+- behavior daily score.
+
+A reward may require both points and reputation, but they represent different things.
+
+---
+
+## 10. Behavior module
+
+**AGREED**
+
+Behavior is a separate domain, not a special type of Task.
+
+Core concepts:
+
+- `BehaviorRule`
+- `BehaviorEvent`
+- `BehaviorDailyReview`
+
+`BehaviorRule` may be:
+
+- `POSITIVE`
+- `NEGATIVE`
+
+with configurable default amount.
+
+Examples previously discussed:
+
+- +10 for helping;
+- −30 for fighting.
+
+A concrete behavior event may create a reward/penalty ledger transaction.
+
+**AGREED**
+
+Daily behavior score is separate from task quality and reputation.
+
+Recovered example bonus mapping:
+
+- 90–100% → +30
+- 80–89% → +20
+- 70–79% → +10
+- <70% → 0
+
+This is an example/configuration, not a mandatory fixed rule.
+
+**AGREED DIRECTION**
+
+Negative concrete events may penalize. Automatically penalizing solely because the aggregate daily score is low was not recommended.
+
+**RECOVER / DISCUSSED**
+
+A child-created/self-reported `BehaviorEvent` may require approval, e.g. a `PENDING_APPROVAL` stage.
+
+Exact final workflow needs confirmation before implementation.
+
+---
+
+## 11. Streaks and achievements
+
+**AGREED / DISCUSSED**
+
+Streaks were explicitly part of the concept.
+
+Potential sources include:
+
+- repeated task completion;
+- learning practice;
+- positive behavior;
+- daily/weekly consistency.
+
+**AGREED DIRECTION**
+
+Streaks/achievements should not be implemented as fake tasks merely to reuse the Task module.
+
+**QUESTION**
+
+Need final rules for:
+
+- streak reset;
+- excused days;
+- freeze/protection;
+- reward thresholds;
+- whether streaks are per-rule, per-domain or generic.
+
+---
+
+## 12. Exceptions / excused days
+
+**PARTIAL / RECOVER**
+
+The system already has the idea of exception periods/snapshots in task mechanics, but the full business semantics of **excused days** were discussed more broadly and are not fully recovered.
+
+Potential use cases that must be decided before implementation:
+
+- sickness;
+- vacation;
+- family event;
+- technical impossibility;
+- parent-granted exception.
+
+**QUESTION**
+
+An excused day may need to affect separately:
+
+- recurrence expectation;
+- streak continuity;
+- penalties;
+- quality/reputation calculations;
+- learning daily limits.
+
+Do not assume one global behavior for all domains.
+
+---
+
+## 13. Learning Bank
+
+**AGREED**
+
+Learning is a separate domain using the shared economy/ledger.
+
+Core concepts:
+
+- `LearningActivity`
+- `Question`
+- `Attempt`
+
+Categories discussed:
+
+- mathematics;
+- reading;
+- languages;
+- logic.
+
+Question types:
+
+- `NUMBER_INPUT`
+- `SINGLE_CHOICE`
+- `MULTIPLE_CHOICE`
+- `TRUE_FALSE`
+
+Difficulty:
+
+- `EASY`
+- `NORMAL`
+- `HARD`
+- future adaptive difficulty.
+
+Modes:
+
+- `PRACTICE`
+- `CHALLENGE`
+
+**AGREED**
+
+Anti-farming controls may include:
+
+- `maxAttemptsPerDay`
+- `maxRewardPerDay`
+- `cooldown`
+- `repeatRewardPolicy`
+
+**AGREED**
+
+Other discussed concepts:
+
+- generators;
+- automatic answer checking where possible;
+- reading comprehension;
+- book/chapter milestones;
+- learning plans.
+
+---
+
+## 14. Claimable task bank and Task Requests
+
+**AGREED**
+
+Support both:
+
+- assigned work;
+- claimable/open task bank.
+
+Open task policies still respect eligibility and authorization.
+
+`OPEN_GROUP` / `OPEN_WORKSPACE` do **not** imply that every eligible executor may manage/edit the task.
+
+**AGREED / DISCUSSED**
+
+`TaskRequest` is a separate scenario for proposing/requesting a task.
+
+A child may request:
+
+- a new task;
+- work from a bank;
+- approval for an activity.
+
+Exact request workflow/statuses still require consolidation before implementation.
+
+---
+
+## 15. Group execution and coordination
+
+**AGREED**
+
+Groups are actors, not merely lists of members.
+
+A task assigned to a group may still be claimed/executed by a concrete member.
+
+**AGREED**
+
+Role-based eligibility can filter a target group using match semantics:
+
+- `ANY`
+- `ALL`
+
+**DISCUSSED**
+
+Separate from executor:
+
+- responsible coordinator;
+- preferred assignee;
+- participants;
+- delegated actor.
+
+**RECOVER / DISCUSSED**
+
+Earlier discussion included concepts such as:
+
+- responsibility transfer;
+- delegated bonus/penalty;
+- completion bonus when all requirements are satisfied.
+
+Do not implement these until exact semantics are reconstructed.
+
+---
+
+## 16. Delegation vs subtask / subcontract
+
+**INVARIANT**
+
+Delegation is not the same as:
+
+- claim;
+- assignment;
+- responsibility transfer;
+- subcontract;
+- child/subtask.
+
+Delegation must preserve original assignment/history.
+
+Funding/subcontract mechanics belong to later task change/funding domains.
+
+---
+
+## 17. Economy / ledger
+
+**IMPLEMENTED BASE**
+
+Point ledger/economy exists and task settlement is designed to be idempotent.
+
+**AGREED**
+
+Sources may include:
+
+- task reward;
+- milestone reward;
+- behavior;
+- learning;
+- manual award;
+- manual penalty;
+- future funding/subcontract mechanics.
+
+**AGREED**
+
+Manual penalty is a first-class family scenario, not merely a negative task reward.
+
+**LATER**
+
+Funding ledger after a generic Task Change Request mechanism.
+
+---
+
+## 18. Device and application control
+
+**AGREED**
+
+Core concepts:
+
+- program/app price in points;
+- duration packages;
+- daily/weekly limits;
+- schedules;
+- per-app/per-device/per-category rules;
+- always-allowed/free apps;
+- automatic stop/block when paid or allowed time ends.
+
+Partial use policy discussed:
+
+- auto;
+- manual;
+- ignore;
+- unused remainder policy including “do not count/save remainder”.
+
+Platform direction:
+
+1. Android first;
+2. Windows agent next;
+3. iOS later.
+
+Server remains source of truth; clients enforce locally according to `DeviceCapabilities` and sync.
+
+---
+
+## 19. Roles / permissions / actor model
+
+**AGREED**
+
+Avoid hard-coded business authorization such as:
+
+`if PARENT ... else CHILD ...`
+
+Use generic actor/role/permission mechanisms.
+
+Functional role is not the same as security permission.
+
+Current target direction includes:
+
+- `RoleDefinition`
+- `RoleAssignment`
+- `RoleSet`
+- `RoleSetBinding`
+- `RolePermissionGrant`
+
+Visibility:
+
+- `PRIVATE`
+- `SHARED`
+
+Scope:
+
+- `CURRENT`
+- `SUBTREE`
+
+Scope flows downward only.
+
+No role/permission escalation upward merely because an actor has access in a child context.
+
+---
+
+## 20. Concepts that must never be silently merged
+
+Keep these separate unless a future explicit decision says otherwise:
+
+- Task quality vs BehaviorDailyReview vs Reputation.
+- Assignment vs eligibility vs claim vs current execution vs delegation.
+- Organizational graph vs WorkNode hierarchy.
+- Functional role vs security permission.
+- Deadline vs reminder.
+- Task dependency vs eligibility.
+- Task vs Behavior event.
+- Task vs Learning activity.
+- Delegation vs subcontract/subtask.
+- Visibility vs availability vs eligibility vs manage permission.
+
+---
+
+## 21. Recovery queue
+
+These topics are known to have incomplete historical recovery:
+
+- exact Reputation decay/reset algorithm and manual-allocation limit model;
+- exact Reward selection actor/method schema;
+- weighted/random-fill reward semantics;
+- excused-day rules and their effect on streaks/reputation/penalties;
+- streak reset/freeze/reward rules;
+- child-created BehaviorEvent approval workflow;
+- responsibility transfer semantics;
+- delegated bonus/penalty semantics;
+- completion bonus semantics;
+- old `HABIT` concept and whether it was superseded by Recurrence + Behavior;
+- exact TaskRequest workflow/statuses.
+
+Do not close these items by assumption.
+
+---
+
+## 22. Append-only discussion entry template
+
+When a meaningful product/domain discussion happens, append an entry here before the session ends.
+
+```md
+### YYYY-MM-DD — <topic>
+
+**Status:** AGREED | DISCUSSED | RECOVER | SUPERSEDED | REJECTED | QUESTION
+
+**Context**
+Why the topic came up.
+
+**Decision / current understanding**
+- ...
+
+**Alternatives considered**
+- ...
+
+**Invariants / things not to mix**
+- ...
+
+**Open questions**
+- ...
+
+**Implementation impact**
+- backend:
+- frontend:
+- DB/migration:
+- tests:
+
+**Supersedes / superseded by**
+- ...
+```
+
+---
+
+## 23. Maintenance rule
+
+Any time a discussion changes mechanics, product behavior, domain boundaries, statuses, reward formulas, permission semantics, or lifecycle:
+
+1. update this log;
+2. update the project checklist;
+3. only then consider the topic safely preserved.
+
+A chat summary/handoff is **not** a substitute for this file.
+
+
+---
+
+## 24. Purchase / reward eligibility requirements
+
+### 2026-10-04 — conditions for buying rewards with points
+
+**AGREED**
+
+Buying a reward/item is not determined by point balance alone.
+
+A catalog item/reward may have:
+
+1. a **price** — spendable resources that are consumed on purchase, e.g. points;
+2. **eligibility requirements** — conditions that must be satisfied but are not necessarily consumed.
+
+Example:
+
+- bicycle price: 1000 points;
+- minimum reputation: 1000;
+- complete a defined set of tasks;
+- no serious behavior incidents during the required period.
+
+If all requirements are satisfied, the item becomes purchasable.
+
+### Reputation is not spent
+
+**INVARIANT**
+
+Reputation used as a purchase requirement is a threshold/qualification, not a currency spend.
+
+For example:
+
+- before purchase: 1200 points, 1100 reputation;
+- bicycle costs 1000 points and requires 1000 reputation;
+- after purchase: 200 points, 1100 reputation.
+
+Reputation changes only through its own reputation mechanics (task/behavior/manual/decay/etc.), not merely because a purchase was made.
+
+### Generic requirement engine
+
+**AGREED DIRECTION**
+
+Purchase eligibility should reuse a generic requirement/condition engine rather than adding bicycle-specific or reward-specific fields.
+
+Useful requirement types may include:
+
+- `MIN_REPUTATION` — reputation >= configured value;
+- `TASK_COMPLETED` — a specific task completed;
+- `TASK_COUNT` — N qualifying tasks completed;
+- `TASK_GROUP_COMPLETED` — all / minimum number from a defined task set;
+- `NO_SERIOUS_BEHAVIOR_EVENT` — no event above configured severity within a period;
+- `BEHAVIOR_SCORE_AT_LEAST` — daily/period behavior score above threshold;
+- `STREAK_AT_LEAST` — maintain a configured streak;
+- `LEARNING_ACTIVITY_COMPLETED`;
+- `ACHIEVEMENT_UNLOCKED`;
+- `MIN_POINT_BALANCE` where useful;
+- future generic conditions.
+
+The exact enum/schema names are not fixed yet.
+
+### Requirement composition
+
+**AGREED**
+
+Requirements should support the same compositional ideas already discussed for Tasks:
+
+- `ALL_SATISFIED`;
+- `MINIMUM_SATISFIED`;
+- `requiredCount`;
+- `alwaysRequired`.
+
+This allows reward rules such as:
+
+> To buy the bicycle:
+> - always: reputation >= 1000;
+> - always: no serious misconduct in the last 30 days;
+> - complete at least 3 of these 5 target tasks;
+> - have at least 1000 spendable points at checkout.
+
+### Time windows
+
+**AGREED DIRECTION**
+
+Behavior/task requirements may be evaluated over an explicit time window, for example:
+
+- last 7 days;
+- last 30 days;
+- current month;
+- since a configured start date.
+
+This prevents a one-time historical achievement from satisfying a requirement that is intended to measure recent effort.
+
+### Serious behavior incidents
+
+**DESIGN / QUESTION**
+
+A requirement such as “no serious misconduct” should be based on explicit Behavior severity/category rather than arbitrary point/reputation loss.
+
+Possible semantics:
+
+- block if a `BehaviorEvent` with severity `SERIOUS` or `CRITICAL` exists in the evaluation window;
+- optionally restart a clean-period timer after such an event;
+- excused/cancelled/reversed events should not count.
+
+Exact severity model and clean-period semantics remain to be defined.
+
+### Purchase evaluation and audit
+
+**AGREED DIRECTION**
+
+At checkout the server should evaluate all requirements atomically enough to avoid stale eligibility:
+
+1. evaluate current requirements;
+2. verify sufficient spendable points/resources;
+3. create purchase/redemption record;
+4. deduct points/resources;
+5. preserve the evaluated requirement result/snapshot for audit where useful.
+
+A failed requirement must block the purchase without spending points.
+
+### UX implication
+
+**AGREED DIRECTION**
+
+The UI should explain *why* a reward is locked.
+
+Example:
+
+- ✅ 1000/1000 reputation;
+- ✅ no serious incidents for 30 days;
+- ❌ completed 2/3 required target tasks;
+- ✅ 1350/1000 points.
+
+This turns the reward into a visible long-term goal rather than a mysterious locked item.
+
+
+---
+
+## 25. Role catalog administration, activity templates and local contextual roles
+
+### 2026-10-04 — recovered role administration mechanics
+
+**AGREED**
+
+The system must support a reusable catalog of predefined role sets and roles tailored to the type of Workspace/activity.
+
+Examples of activity/template families discussed:
+
+- Family;
+- Office / Small Team;
+- Business;
+- Software Development / project work;
+- Household;
+- future custom templates.
+
+A template may seed an initial role catalog appropriate to the activity instead of forcing every Workspace to build roles from scratch.
+
+### Predefined role localization
+
+**AGREED**
+
+Predefined roles/role sets use stable `systemCode` values as business keys and must be displayed in the current UI language.
+
+The localized visible name is not the business identifier.
+
+Examples:
+
+- LEADER
+- DEPUTY
+- SENIOR
+- EXECUTOR
+- ASSISTANT
+- REVIEWER
+- OBSERVER
+
+The same predefined role should therefore appear translated according to interface language while remaining the same domain role.
+
+### Workspace-level role administration
+
+**AGREED**
+
+Workspace settings must contain a dedicated role administration area, conceptually **“Ролі та набори”**, where an authorized user can:
+
+- view predefined/shared RoleSets;
+- view RoleDefinitions grouped by RoleSet;
+- create custom SHARED RoleSets;
+- create/edit custom SHARED RoleDefinitions;
+- configure descriptions/localization metadata where applicable;
+- configure permission presets/grants where authorized;
+- bind reusable RoleSets to contexts.
+
+Global/shared catalog administration should not be hidden inside a particular GroupEditor.
+
+### Reusable RoleSets
+
+**AGREED**
+
+A RoleSet/RoleDefinition can be reusable and available in multiple contexts.
+
+`RoleSetBinding` makes a reusable set available in a Workspace/Group/Task context but does **not** assign roles to actors automatically.
+
+Examples:
+
+- a common Management set can be available in several groups;
+- the same EXECUTOR/REVIEWER definitions can be reused in different project groups;
+- binding is catalog/context configuration, assignment is a separate action.
+
+### Local/private contextual roles
+
+**AGREED**
+
+A user who is allowed to create/manage a specific context may create a local functional role directly inside that context.
+
+Examples:
+
+- user creates group **“Група для прибирання”**;
+- adds the members available to that group;
+- assigns a standard role such as LEADER/SENIOR/EXECUTOR;
+- creates an additional custom role specific to cleaning work;
+- the custom role is visible only in that group/context (and, if explicitly configured with subtree semantics, in allowed descendants), not in the general Workspace catalog.
+
+Such a role is `PRIVATE` by default.
+
+It must not appear as a general reusable role for unrelated groups/tasks.
+
+### Local role creation and privilege safety
+
+**INVARIANT**
+
+Being allowed to create a local functional role does not grant the creator permission to invent new security privileges.
+
+A local role may:
+
+- organize responsibilities;
+- be assigned to actors in the current context;
+- participate in eligibility/assignment logic;
+- receive only permission grants the creator is authorized to delegate.
+
+It may not:
+
+- become Workspace-global automatically;
+- expose itself in unrelated/sibling contexts;
+- escalate rights above the creator's delegation scope.
+
+### Contextual administration pattern
+
+**AGREED**
+
+Use this separation:
+
+**Workspace settings / role catalog**
+- administer shared/predefined role sets and roles;
+- translations/system codes;
+- shared presets;
+- catalog-wide availability.
+
+**Group/Task context**
+- choose/bind available shared role sets;
+- assign available roles to members/actors;
+- create context-local PRIVATE roles where permitted;
+- configure only rights that may legally be delegated in that context.
+
+This is the target UI/authorization model for the role refactor.
+
+### Templates and role catalog
+
+**AGREED DIRECTION**
+
+WorkspaceTemplate should be able to seed, at minimum:
+
+- default RoleSets;
+- predefined RoleDefinitions;
+- initial bindings;
+- group structure;
+- WorkNode structure;
+- permission presets;
+- economy/default settings.
+
+The large template wizard remains later work, but the role model must remain compatible with this foundation now.
+
+
+---
+
+## 26. Simplified role administration UX
+
+### 2026-10-04 — stop exposing RBAC complexity in ordinary group editing
+
+**AGREED**
+
+The technical role/permission backend remains flexible, but ordinary users should not have to administer raw RBAC details for routine work.
+
+The normal GroupEditor experience is simplified to:
+
+- local roles for the current group;
+- simple permission profiles;
+- optional advanced permission editing only when needed.
+
+**AGREED**
+
+RoleSet administration is removed from the normal GroupEditor flow.
+
+Shared/system RoleSets and shared RoleDefinitions belong in:
+
+- Workspace settings;
+- role/template administration;
+- later WorkspaceTemplate/activity presets.
+
+**AGREED**
+
+Local roles:
+
+- belong only to the current group/context;
+- do not require a RoleSet;
+- can be created, edited, assigned and deleted directly in the group;
+- may use a simple predefined permission profile.
+
+Initial permission profiles:
+
+- NONE — no additional permissions;
+- EXECUTOR;
+- SENIOR;
+- LEADER / group leader;
+- CONTROL / controller;
+- CUSTOM — explicit advanced configuration.
+
+The profile is a UI convenience, not a new security primitive. It resolves to ordinary permission grants/scopes underneath.
+
+**AGREED**
+
+Advanced raw permissions remain available behind an explicit “Advanced permissions” control.
+
+**INVARIANT**
+
+Do not force users through:
+
+RoleSet → Role → individual permission checkboxes → scope → assignment
+
+for simple scenarios.
+
+The common scenario should remain:
+
+create group → add members → create/choose role → assign role.
+
+**STATUS**
+
+This is considered sufficient for the current development stage. Further role refinements should be driven by real usage rather than additional speculative complexity.
+
+
+---
+
+## 27. Automatic naming and duplicate detection
+
+### 2026-10-04 — UX naming convention
+
+**AGREED**
+
+For newly created local roles, the UI should propose a meaningful name automatically from the selected permission profile.
+
+Examples:
+
+- SENIOR → localized “Старший” / equivalent current UI language;
+- LEADER → localized “Керівник групи”;
+- if the same generated name already exists, append the first free numeric suffix: `Старший 2`, `Старший 3`, etc.;
+- when advanced permissions diverge from the selected profile and the user has not manually renamed the role, propose `<profile> (модифіковано)` with numeric suffix if needed;
+- once the user manually edits the name, automatic naming must stop overwriting it.
+
+**AGREED**
+
+Duplicate role names in the same group are rejected case-insensitively when entered manually.
+
+**AGREED**
+
+If another local role already has an identical effective permission + scope set, show a warning naming that role. This warning does not block save, because two semantically different roles may intentionally share the same permissions.
+
+**AGREED**
+
+New task definitions receive an automatic localized name using the first free number:
+
+- `Завдання 1`
+- `Завдання 2`
+- etc.
+
+Manual task titles remain allowed. A manually entered title identical to another existing TaskDefinition title is rejected.
+
+
+---
+
+## 28. Global predefined roles are referenced, not copied into groups
+
+### 2026-10-04 — correction to group role mechanics
+
+**AGREED / ARCHITECTURAL CORRECTION**
+
+Predefined/shared roles must exist only once per Workspace as reusable `RoleDefinition` records.
+
+Creating a MemberGroup must **not** create duplicate role rows such as LEADER, SENIOR, EXECUTOR, REVIEWER, etc.
+
+Instead:
+
+- the group automatically has access to the Workspace's default/shared role catalog;
+- standard RoleSets/RoleDefinitions are referenced from the group context;
+- assigning a standard role to a member in a group creates only a `RoleAssignment`;
+- the assignment context is `MEMBER_GROUP + groupId`;
+- no duplicate `GroupRole` or duplicate `RoleDefinition` is created.
+
+Example:
+
+`SENIOR` exists once in the Workspace.
+Assigning SENIOR to Oleh in Group A and Group B creates two RoleAssignments pointing to the same RoleDefinition.
+
+**AGREED**
+
+A new PRIVATE RoleDefinition is created only for genuinely group-specific/custom semantics, e.g. “Відповідальний за інвентар”.
+
+Custom/local role creation is therefore an exception path, not the normal path.
+
+**AGREED**
+
+Normal group UX should be:
+
+1. create group;
+2. predefined roles are immediately available;
+3. add members;
+4. assign existing global roles;
+5. only use “Create custom role” if no existing role fits.
+
+**INVARIANT**
+
+RoleSet availability/binding does not clone RoleDefinitions.
+
+RoleDefinition = reusable catalog entity.
+RoleAssignment = contextual use of that role by an actor.
+RoleSetBinding = contextual availability of a set.
+
+
+---
+
+## 29. Task actor model simplified to participant lists
+
+### 2026-10-05 — remove duplicate assignment controls
+
+**AGREED**
+
+The ordinary task editor should not expose both assignment-policy fields and participant lists.
+
+Remove from the normal UI:
+
+- assignment type;
+- assigned member;
+- responsible member;
+- preferred member / target group selection as primary assignment controls.
+
+Use the Participants section as the visible source of task actors.
+
+**AGREED**
+
+Task participant constraints:
+
+- ADMIN: MEMBER only;
+- OBSERVER: MEMBER only;
+- EXECUTOR: MEMBER and/or GROUP;
+- executor selection may be combined: multiple members, multiple groups, or groups + individual members.
+
+The task author remains an ADMIN automatically.
+
+**AGREED**
+
+Before save, validate the minimum viable task:
+
+- non-empty title;
+- valid schedule/start date;
+- valid recurrence-specific values;
+- at least one executor;
+- reward/penalty values consistent with point types;
+- ADMIN/OBSERVER actor types restricted to MEMBER.
+
+**IMPLEMENTED**
+
+A compatibility AssignmentPolicy.PARTICIPANTS represents explicit executor lists without widening eligibility to the whole Workspace.
+
+If there is exactly one MEMBER executor, SINGLE_MEMBER may still be used internally so the existing concrete TaskInstance generation lifecycle continues to work.
+
+For combined executor sets, eligibility comes from EXECUTOR TaskParticipants.
+
+**OPEN**
+
+The current TaskInstance lifecycle still represents one concrete executor after claim. If FamilyPoints later needs true simultaneous/shared completion by multiple executor actors, instance-level joint participation semantics must be implemented separately rather than inferred from the definition-level participant list.
+
+
+---
+
+## 30. Sliding authenticated session / idle timeout
+
+### 2026-10-05
+
+**AGREED**
+
+FamilyPoints uses a one-hour idle timeout rather than a long fixed access-token lifetime.
+
+- JWT access token lifetime: 1 hour.
+- User interaction records activity locally.
+- When the token is approaching expiration and the user was recently active, the client refreshes the access token through an authenticated refresh endpoint.
+- Token refresh is controlled and periodic; it is not performed on every mouse movement or API request.
+- If there is no user activity for 1 hour, the session is cleared and protected navigation returns to login.
+- An expired/invalid token still produces the normal global 401 logout behavior.
+
+This is a sliding session: active users remain signed in; inactive users are required to authenticate again after the idle period.
+
+
+---
+
+## 31. Task reputation reward and penalty
+
+### 2026-10-05
+
+**IMPLEMENTED — first reputation slice**
+
+Reputation is introduced as a separate non-spendable ledger, independent from PointType balances.
+
+TaskDefinition/TaskInstance now support:
+
+- rewardReputationAmount — reputation granted on successful completion;
+- penaltyReputationAmount — reputation deducted when a mandatory task is missed.
+
+TaskInstance snapshots these values so later edits to the TaskDefinition do not retroactively change an already generated instance.
+
+Reputation transactions are stored in a dedicated reputation_transactions ledger with source type, source id, description and timestamp.
+
+For task processing:
+
+- completion may award points, reputation, both, or neither;
+- missed mandatory task may deduct points, reputation, both, or neither;
+- EXCUSED remains protected from penalty processing.
+
+This does not yet implement reputation decay, manual reputation administration, behavior reputation or reward eligibility thresholds. Those remain later stages of the broader reputation model.
+
+
+---
+
+## 32. Quick task economy presets
+
+### 2026-10-05
+
+**IMPLEMENTED**
+
+New tasks start with a fast default economy preset instead of empty numeric fields.
+
+Presets:
+
+- SIMPLE: reward 10 points, penalty 5 points, +1 reputation, -1 reputation;
+- NORMAL: reward 20 points, penalty 10 points, +2 reputation, -1 reputation;
+- HARD: reward 40 points, penalty 20 points, +4 reputation, -2 reputation;
+- CUSTOM: user-defined values.
+
+The task editor exposes quick-select dropdowns for common point and reputation values.
+
+Common point values:
+0, 5, 10, 20, 40, 60, 80, 100.
+
+Common reputation values:
+0, 1, 2, 3, 4, 5, 10.
+
+Selecting “Other…” reveals a numeric input:
+- points use step 10;
+- reputation uses step 1.
+
+Any manual value change switches the economy preset to CUSTOM.
+
+This is intended to make ordinary task creation require only title/executor/date changes while still allowing full manual economy control.
+
+
+---
+
+## 33. Rewards v1: catalog, requests, conditions and advance obligations
+
+### 2026-10-05
+
+**INITIAL IMPLEMENTATION**
+
+Rewards are modeled as a workflow rather than only a point-priced store item.
+
+### RewardDefinition
+
+A catalog reward has:
+
+- title and description;
+- point type and standard price (price may be zero);
+- optional minimum reputation threshold;
+- 0..N reward categories;
+- acquisition mode:
+  - DIRECT;
+  - REQUEST;
+  - DIRECT_OR_REQUEST;
+- optional approval requirement;
+- BEFORE_REWARD and AFTER_REWARD requirements.
+
+Categories are many-to-many so the same reward may belong to multiple filters, for example Games + Screen time.
+
+### RewardRequest
+
+A workspace member can request:
+
+- an existing catalog reward;
+- or a free-form reward that does not exist in the catalog, e.g. “I want a bicycle” or “I want 30 more minutes of game time”.
+
+A manager with MANAGE_REWARDS may approve a request and override:
+
+- point type;
+- price;
+- minimum reputation;
+- requirements.
+
+Request lifecycle v1:
+REQUESTED -> WAITING_REQUIREMENTS / READY_TO_PURCHASE -> PURCHASED,
+with REJECTED and CANCELLED reserved.
+
+### Requirements
+
+Initial requirement model is generic and stores:
+
+- phase: BEFORE_REWARD / AFTER_REWARD;
+- type: TASK_COMPLETED / NO_NEGATIVE_BEHAVIOR / CUSTOM;
+- task definition reference when applicable;
+- time scope;
+- optional rolling window;
+- blocking scope for AFTER_REWARD.
+
+Task requirement evaluation implemented in v1:
+
+- BEFORE_REWARD + TODAY:
+  the concrete TaskInstance for the requesting member must be COMPLETED today;
+- AFTER_REWARD + SINCE_REWARD:
+  completion must happen after the reward was actually granted, so an earlier completion today cannot satisfy an advance obligation.
+
+NO_NEGATIVE_BEHAVIOR is present in the domain model but automatic evaluation is intentionally pending until the Behavior module exists.
+
+### Advance rewards / obligations
+
+AFTER_REWARD requirements represent an advance agreement, e.g.:
+
+“Play for another 30 minutes now, then wash the dishes.”
+
+Granting the reward creates RewardObligation records.
+
+Open task-backed obligations automatically complete once the required task is completed after the reward grant.
+
+Blocking modes:
+
+- NONE;
+- WARN_ONLY;
+- ALL_REWARDS;
+- CATEGORIES;
+- SPECIFIC_REWARDS.
+
+CATEGORIES and SPECIFIC_REWARDS keep explicit selected lists. This allows an unfinished advance obligation to block, for example, only Games / Screen time, or only individually selected rewards.
+
+### Purchase checks
+
+Before direct purchase or approved request purchase, the service checks:
+
+- active reward;
+- acquisition/approval policy;
+- open blocking obligations;
+- minimum reputation;
+- BEFORE_REWARD requirements;
+- sufficient point balance.
+
+Point spending uses the normal point ledger with source REWARD_PURCHASE.
+
+### Rewards page v1
+
+/rewards now contains:
+
+- catalog;
+- free-form reward request;
+- request queue;
+- parent review with price/reputation override;
+- selection of multiple BEFORE task conditions;
+- selection of multiple AFTER task conditions;
+- blocking mode and category/specific-reward scope;
+- reward category management;
+- reward creation;
+- recent purchase history;
+- visible open advance obligations.
+
+### Explicitly deferred
+
+- Behavior engine evaluation for NO_NEGATIVE_BEHAVIOR;
+- reward availability schedules and per-day/week purchase limits;
+- RewardGroup ALL / CHOOSE_ONE / CHOOSE_MULTIPLE;
+- generalized RequirementGroup ALL_SATISFIED / MINIMUM_SATISFIED;
+- approval/redeem/cancel/refund lifecycle polish;
+- Goal conversion for large requests such as a bicycle;
+- automatic application/screen-time activation from a purchased reward;
+- full rewards UI i18n and UX polish.
+
+
+---
+
+## 34. Task reward negotiation
+
+### 2026-10-05
+
+**INITIAL IMPLEMENTATION**
+
+A concrete task executor may negotiate the reward for a specific TaskInstance.
+
+Examples:
+
+- “I want 40 points instead of 20.”
+- “I will do it for +2 reputation.”
+- “I will do it if I may play Minecraft for another 30 minutes.”
+- combinations of points, reputation and a reward.
+
+### Scope
+
+Negotiation belongs to TaskInstance, not TaskDefinition.
+
+This means approving a different reward for today's execution does not modify the recurring task's normal reward for future days.
+
+### TaskRewardRequest
+
+A request stores:
+
+- taskInstance;
+- requesting executor;
+- requested point type / amount;
+- requested reputation;
+- requested catalog RewardDefinition or custom reward title;
+- requester comment;
+- separately stored approved terms;
+- reviewer comment;
+- REQUESTED / APPROVED / REJECTED / CANCELLED / FULFILLED lifecycle.
+
+Only the current concrete executor may create the request.
+
+Only one active REQUESTED/APPROVED negotiation per executor + TaskInstance is allowed.
+
+### Review
+
+A member with MANAGE_TASKS, MANAGE_REWARDS or ADMIN_OVERRIDE may review the request.
+
+The reviewer receives the requested terms as defaults but may change:
+
+- point amount/type;
+- reputation amount;
+- catalog reward;
+- custom reward title;
+- comment.
+
+### Reward replacement rule
+
+An APPROVED negotiation replaces the standard reward snapshot of that TaskInstance.
+
+Example:
+
+- normal task reward = 20 points;
+- child requests 40;
+- parent approves 30;
+- task completion pays exactly 30, not 20 + 30.
+
+If there is no approved negotiation, the normal TaskInstance reward is processed unchanged.
+
+### Reward-module integration
+
+If the approved negotiation contains a catalog reward or custom reward title, completing the task creates a zero-price RewardRequest in READY_TO_PURCHASE state.
+
+Therefore privileges such as “30 more minutes of game time” use the same Rewards workflow rather than a second independent benefit system.
+
+### UI v1
+
+Executor task cards expose “Запросити іншу винагороду”.
+
+The request modal supports:
+
+- points;
+- reputation;
+- reward from catalog;
+- custom reward text;
+- comment.
+
+Task Management shows a “Запити на зміну винагороди” queue where a parent/manager may review, edit and approve or reject requests.
+
+### Deferred
+
+- visible request-status badge directly on each task card;
+- counter-offer conversation/history instead of one request + one review;
+- notification delivery;
+- configurable policy to pause task start while waiting for negotiation;
+- negotiation audit events.
+
+
+---
+
+## 35. Time-based rewards
+
+### 2026-10-05
+
+Rewards now distinguish:
+
+- STANDARD — an item, privilege or fact of receiving a reward;
+- TIME_BASED — access for a duration, e.g. watch cartoons, play a game, use a device.
+
+RewardDefinition stores:
+
+- rewardKind;
+- optional defaultDurationMinutes.
+
+For TIME_BASED rewards, null defaultDurationMinutes means duration is normally decided per concrete request/agreement.
+
+Concrete RewardRequest / RewardPurchase may store their own duration snapshot, independent from the catalog default.
+
+Task reward negotiation also stores requestedDurationMinutes and approvedDurationMinutes separately.
+
+In the negotiation UI, selecting a TIME_BASED catalog reward reveals a duration selector. The default is “Будь-який”, which is persisted as null. The executor or reviewer may choose 15/30/45/60/90/120 minutes or enter a custom duration.
+
+“Будь-який” in negotiation remains intentionally unspecified; it is not silently replaced by the catalog default. This allows the parent/reviewer to approve the privilege without fixing duration yet.
+
+The negotiation form is initialized from the current TaskInstance reward snapshot: current point type, point amount and reputation amount, rather than starting blank.
+
+
+---
+
+## 36. 2026-10-12 — Product direction reaffirmed: Family first, public multi-workspace platform, personnel management later
+
+**AGREED / REFINED — user clarification**
+
+- The original goal is a real family-focused FamilyPoints product, not an immediate generic enterprise/personnel manager.
+- The longer-term direction explicitly includes adapting the same reusable task, work hierarchy, roles, groups, permissions, evaluation, and economy mechanisms for managing staff, teams, offices and businesses. Keep Family and Team/Office/Business templates or feature sets distinct without cloning the underlying platform.
+- The system may be distributed among multiple unrelated families, and potentially released publicly via application stores. Independent tenant/workspace registration, onboarding, security boundaries, scalability and safe defaults therefore matter now, not only in a remote enterprise phase.
+- The sign-in experience should include an entry point for account registration and creation of a new family (initial BETA may gate actual creation by invitation/registration policy).
+- A person/account may participate in multiple families or other workspaces with different context-local permissions. Avoid equating global account identity with one permanent workspace.
+- Long-term direction includes moving members between groups/workspaces and potentially merging or splitting groups/families. These operations require explicit authorization, privacy controls, audit trail and safe handling of historical financial transactions; detailed rules are **DISCUSSED / QUESTION**, not approved implementation contracts.
+
+**Architecture reconciliation required before public signup (CURRENTLY NOT IMPLEMENTED)**
+
+- Current `UserAccount` is uniquely bound to one `WorkspaceMember`; `CurrentUserService` infers one workspace from that relation.
+- Introduce a multi-membership identity architecture as a staged migration, preserving existing DEV data and authorization, rather than breaking existing services at once. Separate global identity, membership in each workspace, member/actor and scoped roles.
+- Maintain three independent planes previously agreed: organizational/member/group graph, `WorkNode` hierarchy, and scoped authorization. Membership in a workspace must not automatically grant management privileges or cross-workspace access.
+- Decide explicit active-workspace selection/session token semantics and secure cross-workspace authorization. Include positive and negative tests for one account belonging to multiple workspaces and for unrelated accounts.
+- Reconcile the earlier onboarding-plan statement that one-workspace-per-account was acceptable for initial BETA: **SUPERSEDED as target architecture** by the user's 2026-10-12 requirement for multi-workspace accounts; staged implementation remains open.
+- Do not defer basic multi-tenant safety, but do defer complicated merge/split execution until requirements and safeguards are specified. Do not let future personnel-management ambitions delay a useful family BETA.
+
+**Preservation workflow reaffirmed**
+
+- Before product/domain architectural changes, review `FAMILYPOINTS_CONCEPT_DISCUSSION_LOG.md`, `FAMILYPOINTS_CONCEPT_CHECKLIST.md`, current code, and work/development logs.
+- Append dated product decisions to this log; append implementation results (commits, verified tests, remaining risks) to `FAMILYPOINTS_DEVELOPMENT_LOG.md`; keep implementation checklists current. Never treat proposals as already implemented or silently overwrite past decisions.
+
+## 2026-10-12 — Reward usage quotas and optional extra requests
+- Each reward can independently define member-specific and whole-family/shared quotas.
+- Quotas may constrain number of redemptions and, for duration-based rewards, summed minutes; windows can be lifetime, daily, weekly, monthly, or configurable. Cooldown is independent.
+- One-time is expressed as total count limit = 1. Daily/weekly windows should ultimately respect the workspace timezone and clear period boundaries.
+- Extra redemption requests are an optional per-reward policy, not a universal right. Parent/admin may grant a one-use, auditable exception with specific allowed quantity/duration, price/extra tasks/conditions, expiry and approval. Unauthorized or duplicate use must be impossible. Family-shared quota overrides require authorized family-level approval.
+- Ordinary quotas must remain unchanged by extra permits; per-permit consumption must be atomic. Admin may issue an unsolicited gift exception with equivalent audit.
+- Implementation is staged: initial member/family count limits first, then duration limits, then separate extra-request/approval/permit workflow and Android UX. Do not confuse the concept with deployed features.
+
+## 2026-10-12 — Task schedules: virtual occurrences rather than bulk generation
+- One TaskDefinition with recurrence schedule and optional multiple stable slots per date.
+- Calendar projection should list future PLANNED occurrences without TaskInstance insertion; materialize an individual occurrence transactionally on start, completion or deadline processing.
+- Stable occurrence key must include (definitionId, scheduledDate, slotKey) to support multiple daily occurrences; unique DB key and event/ledger idempotency must follow.
+- Preserve historical instances and audit, protect actor/workspace visibility, and never create 100 days of rows in advance. Read-only phase initially supports one default slot/day; multiple slots and write/miss handling require staged schema and service changes.
+
+## 2026-10-12 — Task recurrence and deadline semantics confirmed for current beta
+- The morning/evening example is not a fixed domain constraint: ScheduleSlot is an extensible rule identified by slotKey, allowing more than two executions per day in future. Frequency/cooldown/time windows are postponed until user testing.
+- Distinguish mandatory task expiry from optional tasks. Current V26 rule: explicit dueTime expires at that time on scheduledDate; mandatory task with no dueTime expires at 00:00 the following calendar day. Optional tasks are never automatically penalized.
+- Keep no more than yesterday/today catch-up after downtime, preserve existing balance/ledger history, and require one reward or penalty per persisted occurrence. Exact-once concurrency tests are still a beta gate.
+- Timezone per workspace, late grace periods and flexible rolling intervals remain future design choices; do not silently interpret a slot as an hourly cooldown.
+
+## 2026-10-12 — Web schedule editor behavior
+- Explicit TaskScheduleSlot keys are persistent occurrence identities; do not reuse reserved 'default'.
+- Manage schedule by adding, changing time, disabling, re-enabling; physical deletion is intentionally unavailable because dated historical TaskInstances may refer to the same slot key.
+- Explicit slots replace future implicit default projections; disabling every explicit slot suspends the generated schedule rather than returning to an implicit daily default.
+- Changing a template time does not rewrite the dueTime snapshot of an already materialized historical occurrence.
+- Future dynamic N-times-per-day, cooldown and rolling windows remain deferred until usability testing.
+
+## 2026-10-13 — Atomic scheduled task creation
+- A newly created task with explicitly configured execution times must persist definition, participants, work hierarchy and slots as a single transaction. A failing slot rejects the entire create, preventing partially configured family tasks.
+- Explicit slots suppress eager default TaskInstance generation on creation; actual instances remain on-demand or deadline-materialized. No pre-generation of future dated instances.
+- Existing tasks with no explicit slots retain their implicit default execution behavior. Slot identity remains stable across edits.
+
+## 2026-10-13 — Android tasks schedule parity
+- Mobile scheduled occurrences are read-only projections, matching Web and reusing existing Spring REST API. A saved TaskInstance is materialized only on Start or system deadline.
+- All active past/current own occurrences can be started, not future dates or other members' occurrences. Scoped task manage buttons must follow server canManage, not user type alone. Existing Android offline task snapshot remains read-only; virtual schedule offline persistence is deferred.
+- Slot identity (definitionId + date + slotKey) survives navigation to details. Persisted instance API now exposes slotKey for correct historical detail lookup.
+
+### Android offline recurring schedule
+- Virtual dated task occurrences may be cached in a workspace/viewer/target/date-scoped snapshot for offline display only.
+- Starting or completing a planned occurrence requires an online API call and server authorization; no speculative local ledger writes.
+
+## 2026-10-13 — Android schedule parity
+- Both Web and Android must use server-generated occurrence identities and the same definition/date/slotKey contract. Creation of multiple daily times uses a single atomic task creation request rather than post-create API loops.
+- Children execute only their own TaskInstance; scoped task managers may confirm one dated slot as completed. Disabled/removed schedule definitions do not erase historical ledger or audits.
+- Offline schedule cache remains read-only; starting or confirming an occurrence requires connectivity.
+
+## 2026-10-13 — Explicit recurrence slot isolation
+- When explicit slots exist, the legacy implicit "default" occurrence is no longer a valid entry point for start or manager completion, regardless of whether individual templates are disabled. This closes duplicate completion and reward paths; historic default instances are retained in history.
+- Mobile schedule projections are sorted by scheduled time; only PLANNED own occurrences offer Start.
+
+## 2026-10-13 — Multi-occurrence economy isolation
+- Every execution of a task on a date with a distinct slotKey has independent rewardProcessed and penaltyProcessed flags and ledger source ID.
+- Manager confirmation is idempotent for already COMPLETED execution. A MISSED mandatory execution debits points/reputation once; another slot remains independent.
+- New tests cover distinct persisted instance IDs and repeat calls. Database-level concurrency and transaction rollback verification remain a later beta-readiness gate.
+
+
+## 2026-10-13 — Economic atomicity test boundary clarification
+- A processing flag must not be set until both point and reputation operations (and any approved override path) finish successfully.
+- Mock-level failure-injection tests can detect premature flags or swallowed errors, but **cannot** establish database rollback or concurrency safety. Those require transactional PostgreSQL integration tests with concurrent connections.
+- Keep manual and distinct source-event ledger operations legal; any future uniqueness constraint needs an explicit operation kind and a pre-migration duplicate audit, not a blanket unique(sourceType, sourceId).
+
+
+## 2026-10-13 — BETA delivery priority and isolation
+- Prioritize a working family BETA (Web + Android + Spring + PostgreSQL) over isolated micro-packages of minor economy tests. Safety-critical ledger invariants remain release gates, not abandoned.
+- Deploy BETA to a new isolated database/volume, never reuse or silently migrate/delete existing real family balances or history.
+- HTTPS origin and authorized onboarding are mandatory before external testers; limit public exposure until cross-workspace permissions, privacy and backup have been verified.
+- Current Docker Compose is a deployment scaffold, not proof of a running tested public beta. Android Beta API host must be configured deliberately.
+
+
+## 2026-10-13 — BETA APK and deployment safeguards
+- Android debug APK can target a specific HTTPS BETA API via Gradle property, preserving the existing DEV default for ordinary local builds. This is not a public-release signing mechanism.
+- Deployment scripts and Compose setup must never overwrite the existing server's 1C/BAS, IIS, Apache, WireGuard, or PostgreSQL environments; keep BETA isolated.
+- User-confirmed successful local Android compilation is distinct from CI, HTTP end-to-end connectivity, sign-in and release readiness. Real account and workspace authorization tests remain necessary.
+
+
+## 2026-10-13 — Registration/onboarding strategy confirmed after first Contabo BETA start
+**AGREED:** User clarifies first BETA-run should present registration and creation of a **new isolated family**; FamilyPoints is intended as a public multi-tenant service. One global user/account may participate in multiple independent families, later also workgroups/business spaces, with different memberships, profiles and rights. Initialization templates are optional recommendations informed by family composition, members' ages and optional gender/preferences, producing editable tasks and economy defaults. Avoid compulsory attributes, intrusive collection or automatic gender stereotyping.
+**SUPERSEDED:** proposed manual SQL `betaadmin` bootstrap and architecture limited to one workspace per account. A temporary gated rollout may exist but cannot replace genuine signup.
+**STATUS:** design affirmed; no registration endpoint or wizard implementation was executed. Detailed plan updated in `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` (941cb3e).
+
+## 2026-10-13 — Optional Google sign-in for FamilyPoints
+**PROPOSED / PLANNED — user suggested adding Google registration**
+- Support traditional username/password login plus optional Google OpenID Connect for a platform-global identity, reusable across separate family workspaces.
+- First Google login does NOT create an arbitrary shared family or grant roles. Offer create or join family as a separate explicit action. Linking existing accounts requires authenticated confirmation; Google `sub` is the external immutable key, not email alone.
+- Keep alternative login and recovery. Web/Android use platform-appropriate flows and receive FamilyPoints JWT only after backend verification.
+- Preserve DEV-first test then pinned Contabo BETA deploy. Full approach recorded in `docs/MULTI_FAMILY_ONBOARDING_PLAN.md` (36960ea). **Not implemented**.
+
+
+## 2026-10-13 — Join workspace request vs invitation and registration continuity
+**AGREED — user refinement**
+- **Join family/workgroup** supports (a) a pending request using a shareable group identifier, requiring authorized administrator approval, or (b) an invitation link issued by an authorized member under a defined invite policy.
+- The invitation context **must persist through full account creation**, including username/password registration or Google login, redirects, verification and first authorization, so the newcomer can review and accept the invitation after signup.
+- One global account may join multiple family/workgroup workspaces with distinct member profiles/roles; the invitation never silently shares tenant resources.
+- Expiry, revocation, recipient restrictions, single-use/replay protection and atomic membership handling are necessary. Detailed implementation plan recorded in `docs/MULTI_FAMILY_ONBOARDING_PLAN.md`.
+**STATUS:** documented only; no API/UI or BETA deployment yet.
+
+
+## 2026-10-22 — Five independent work tracks, shared Git governance (AGREED)
+
+- Five permanent chats: **Architecture/Planning**, **Backend**, **Web**, **Android**, **Release/DevOps**.
+- GitHub is the durable shared truth; it does NOT automatically broadcast context between separate ChatGPT chats. Every track must re-read shared status, current changes from the other tracks and `docs/coordination/IMPACT_REGISTER.md`.
+- Before modifying another track's contract, the producing track registers its impact; affected consumers review/acknowledge or block it. Architecture arbitrates cross-domain decisions; Release controls independent go/no-go publication.
+- Existing project history remains intact. See ADR-COORD-001..003 in `docs/coordination/ARCHITECTURE_DECISIONS.md`, and `AGENTS.md` for mandatory startup/end-of-work steps. **Organizational decision, not runtime feature.**
+
+## 2026-10-22 — Unified calendar of tasks and rewards; time-based reward acquisition (AGREED PRODUCT GOAL, PROPOSED IMPLEMENTATION CONTRACT)
+- User requires a calendar for tasks and reward opportunities, and date/time of **ability to receive** a reward in addition to existing task-completion conditions. Web/Android are currently focused on light/dark visual styles; this Architecture batch is planning, not an interrupting UI change.
+- Keep prior definitions: virtual TaskScheduleSlot-based task occurrences, no bulk future TaskInstances, stable occurrenceKey, persisted instance status overriding projected status, current task scheduledTime being a dueTime/deadline. Calendar visibility differs from start permission.
+- Reward time schedule is an independent conjunctive gate alongside prerequisites, reputation, balance, quota, cooldown, request approval and blocking. Legacy rewards default unrestricted; proposed modes ALWAYS / ONE_TIME / RECURRING_WEEKLY multiple slots. Pre-approved request remains eligible but final purchase is blocked outside window. Distinguish acquisition window from actual usage window of a time reward.
+- Workspace IANA timezone/legacy LocalDateTime boundaries must be resolved before implementation, not silently guessed. Android offline calendar read-only; Backend authoritative on acquisition.
+- Cross-track architecture/acceptance: `docs/architecture/ADR-CAL-001.md`, IMP-0006, XTR-20261022-P-01/02/03. Detailed field shapes and timezone transition are PROPOSED for consumer ACK, not implemented.
+
+## 2026-10-22 — Calendar information architecture confirmed (AGREED)
+- User explicitly approved Architecture's adaptation of the user-provided iPhone-style agenda reference.
+- Daily **Today/Home** experience and distinct **Calendar** (day/week/month/date-range); three contextual tiles; chronological time rail; task deadlines and reward acquisition windows visually distinct; assigned family avatars; separate untimed task list; role-scoped filters and actions; accessible fixed bottom navigation.
+- Navigation baseline: Home / Calendar / Tasks / Rewards / Family; settings in profile. Preserve all existing features on migration, and match previously approved Soft Family light/dark palette (not screenshot's exact iOS palette).
+- This is a product/UI decision, not an implementation/test/release. Canonical design in `docs/FAMILYPOINTS_CALENDAR_UI_REFERENCE.md`, ADR-UX-CAL-001; calendar domain/API proposed in ADR-CAL-001, IMP-0006, XTR-20261022-P-01/02/03.
+
+## 2026-10-24 — FamilyPoints initial-family presets and templates (USER REQUEST; PLAN RECORDED)
+- Product request: optional selection from starter family variants, initial people groups, task categories and task definitions, reward categories and reward definitions; avoid creating all manually from zero. Support ready packs and individual selection, edit/assignee/point/recurrence preview, import later into an existing family, and reuse existing task/reward as private template.
+- Product direction AGREED; pack quantities/exact currency values and detailed API remain PROPOSED. No fake persisted children/account/point ledger, no cross-family mutable references. See ADR-TEMPLATES-001, IMP-0008, XTR-20261024-P-01..04.
+
+## 2026-10-24 — Admin-selectable family reset and re-run setup (REQUESTED)
+- User requested settings-only administrator action to reset all or selected family data with password identity confirmation and checkboxes of what to clear/keep, followed by optional repeated initial family setup/templates. Preserve login/identity and other families; verify dependencies between tasks, rewards, balances, histories, people, devices and private media.
+- Planned three modes: reset progress, selective cleanup, restart setup; preview actual category counts before irreversible confirmation. Global template/image bank remains. Current implementation not present. Architecture ADR-FAMILY-RESET-001, IMP-0009, XTR-20261024-P-05..08.

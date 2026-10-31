@@ -1,0 +1,1335 @@
+{
+  "schema": "familypoints-designer-economy-review/0.3",
+  "sourceCatalogVersion": 1,
+  "status": "DRAFT_ARCHITECTURE_REVIEW_NOT_ACTIVE",
+  "notForAutomaticSeeding": true,
+  "valuesCurrencyCode": "POINTS",
+  "notes": [
+    "Time is secondary; difficulty is separately rated.",
+    "NULL means no automatic points/price, not free purchase or reward.",
+    "No backfill; no workspace or ledger mutation.",
+    "No price gate on basic needs, learning, emotional support, or ordinary family relationships.",
+    "Child tasks are suggestions requiring adult review, not assignments."
+  ],
+  "taskSuggestions": [
+    {
+      "code": "fp.task.hygiene.001",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 3,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.hygiene.002",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 3,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.hygiene.003",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 2,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.hygiene.004",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.hygiene.005",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 2,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.hygiene.006",
+      "category": "hygiene",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.routine.007",
+      "category": "routine",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 5,
+      "suggestedPoints": 5,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.routine.008",
+      "category": "routine",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.routine.009",
+      "category": "routine",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 7,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.routine.010",
+      "category": "routine",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.routine.011",
+      "category": "routine",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 5,
+      "suggestedPoints": 5,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.routine.012",
+      "category": "routine",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 15,
+      "suggestedPoints": 5,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.013",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.014",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.015",
+      "category": "chores",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 20,
+      "suggestedPoints": 25,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.016",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": 15,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.017",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": 15,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.018",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.019",
+      "category": "chores",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 3,
+      "suggestedPoints": 5,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.020",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.021",
+      "category": "chores",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 5,
+      "suggestedPoints": 5,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.022",
+      "category": "chores",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 8,
+      "suggestedPoints": 5,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.023",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.chores.024",
+      "category": "chores",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": 10,
+      "policy": "OPTIONAL_BONUS_ONLY",
+      "notes": "For adult review; avoid automatic awards"
+    },
+    {
+      "code": "fp.task.school.025",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.school.026",
+      "category": "school",
+      "difficultySuggestion": "ADVANCED",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.school.027",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.school.028",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.school.029",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.school.030",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.school.031",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.school.032",
+      "category": "school",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.reading.033",
+      "category": "reading",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.reading.034",
+      "category": "reading",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.reading.035",
+      "category": "reading",
+      "difficultySuggestion": "EASY",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.reading.036",
+      "category": "reading",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.activity.037",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.activity.038",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.activity.039",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.activity.040",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.activity.041",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.activity.042",
+      "category": "activity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.creativity.043",
+      "category": "creativity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.creativity.044",
+      "category": "creativity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.creativity.045",
+      "category": "creativity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.creativity.046",
+      "category": "creativity",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.social.047",
+      "category": "social",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.social.048",
+      "category": "social",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.social.049",
+      "category": "social",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.social.050",
+      "category": "social",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.social.051",
+      "category": "social",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.habits.052",
+      "category": "habits",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 5,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.habits.053",
+      "category": "habits",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.habits.054",
+      "category": "habits",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.habits.055",
+      "category": "habits",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Basic care/learning/wellbeing: no points default"
+    },
+    {
+      "code": "fp.task.family.056",
+      "category": "family",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Family participation: no points default"
+    },
+    {
+      "code": "fp.task.family.057",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Family participation: no points default"
+    },
+    {
+      "code": "fp.task.family.058",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Family participation: no points default"
+    },
+    {
+      "code": "fp.task.family.059",
+      "category": "family",
+      "difficultySuggestion": "HARD",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Family participation: no points default"
+    },
+    {
+      "code": "fp.task.family.060",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Family participation: no points default"
+    },
+    {
+      "code": "fp.task.adult.001",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.002",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.003",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 10,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.004",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 75,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.005",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.006",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.007",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.008",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.009",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.010",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.011",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.012",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.013",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.014",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 20,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.015",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.016",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.017",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 25,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.018",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.019",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.020",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.021",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 30,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.022",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.023",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.024",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.025",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.026",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.027",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.028",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.029",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.adult.030",
+      "category": "adult",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.001",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.002",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.003",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.004",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.005",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.006",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.007",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.008",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 45,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.009",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.010",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.011",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.012",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.013",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.014",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.015",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.016",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.017",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.018",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.019",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    },
+    {
+      "code": "fp.task.family.020",
+      "category": "family",
+      "difficultySuggestion": "MODERATE",
+      "durationMinutes": 15,
+      "suggestedPoints": null,
+      "policy": "NO_DEFAULT_POINTS",
+      "notes": "Adult/family planning: no points default"
+    }
+  ],
+  "rewardSuggestions": [
+    {
+      "code": "fp.reward.time.001",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "suggestedPricePoints": 25,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.time.002",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": 45,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.time.003",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "suggestedPricePoints": 35,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.time.004",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": 60,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.time.005",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": 55,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.time.006",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "suggestedPricePoints": 30,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.time.007",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.time.008",
+      "category": "time",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.privilege.009",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.privilege.010",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.privilege.011",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.privilege.012",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.privilege.013",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.privilege.014",
+      "category": "privilege",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.activity.015",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.activity.016",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.activity.017",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.activity.018",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.activity.019",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.activity.020",
+      "category": "activity",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.items.021",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 50,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.items.022",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 60,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.items.023",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 250,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.items.024",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 300,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.items.025",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 200,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.items.026",
+      "category": "items",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": 350,
+      "policy": "OPTIONAL_PRIVILEGE_OR_ITEM",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.family.027",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.family.028",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.family.029",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.family.030",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.family.031",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    },
+    {
+      "code": "fp.reward.family.032",
+      "category": "family",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "suggestedPricePoints": null,
+      "policy": "NO_DEFAULT_PRICE_BASIC_RELATIONSHIP_OR_FAMILY_ACTIVITY",
+      "requiresAdultReview": true
+    }
+  ],
+  "simulations": [
+    {
+      "scenario": "1 optional task(s) daily at 10 pts",
+      "weeklyEarned": 70,
+      "cartoons30Price": 45,
+      "game30Price": 60,
+      "possibleCartoons30": 1,
+      "possibleGame30": 1,
+      "comment": "Illustration only: real mix and frequency are editable"
+    },
+    {
+      "scenario": "2 optional task(s) daily at 10 pts",
+      "weeklyEarned": 140,
+      "cartoons30Price": 45,
+      "game30Price": 60,
+      "possibleCartoons30": 3,
+      "possibleGame30": 2,
+      "comment": "Illustration only: real mix and frequency are editable"
+    },
+    {
+      "scenario": "3 optional task(s) daily at 10 pts",
+      "weeklyEarned": 210,
+      "cartoons30Price": 45,
+      "game30Price": 60,
+      "possibleCartoons30": 4,
+      "possibleGame30": 3,
+      "comment": "Illustration only: real mix and frequency are editable"
+    }
+  ],
+  "summary": {
+    "tasks": 110,
+    "rewards": 32,
+    "packs": 6,
+    "bonusTasks": 16,
+    "noDefaultPoints": 94,
+    "pricedRewards": 12,
+    "noDefaultPrice": 20,
+    "unresolved": null
+  }
+}

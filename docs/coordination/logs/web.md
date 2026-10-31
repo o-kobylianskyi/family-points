@@ -1,0 +1,861 @@
+# FamilyPoints — Web journal
+
+New batches: React/Vite UI, Soft Family parity, accessibility, i18n and REST consumption. Retain existing Web entries in root development log.
+
+## 2026-10-22 — Track initialized (DOCUMENTATION ONLY)
+- Web's Soft Family dashboard/theme redesign is in current development history; this setup does not assert tested parity or deployment.
+- Incoming: IMP-0001 visual/native parity and images; IMP-0002 auth/registration; IMP-0004 workspace switch; IMP-0005 authoritative synced state.
+- Next: test light/dark/mobile layouts against agreed design, record screenshots, declare any Backend media contract needs before coding.
+
+
+## 2026-10-22 — Web track ownership accepted; coordination onboarding
+
+- **Assigned scope:** React/Vite frontend, layout, Soft Family light/dark design parity, responsiveness, accessibility, localization, Web API client consumption and web-only UX tests. Android UI/Compose, Java/DB/REST ownership, shared architectural contracts and all production releases remain with their respective tracks.
+- **Reviewed integration HEAD:** `43e990ead5ab06b287066336292c17a2bd29b7b7` (observed 2026-10-22, before this journal update) on `feature/task-soft-delete`; checked all new coordination files, AGENTS, existing dev/checklists, concept/operations history and relevant Web/backend source. `main` still points to older `c6847c6389`. Future batches must refresh HEAD.
+- **IMP-0001 (Web producer, ACK of scope):** visual Soft Family approved; Web hero/sidebar visual match remains unverified. Web-specific parts include dashboard, themes, illustrated icons, responsive cards; Backend/Architecture must decide tenant-scoped avatar and family-cover media contract before upload functionality; Android adapts natively.
+- **IMP-0002 (Web consumer: ACK / NOT VERIFIED):** reviewed `frontend/src/api/authApi.js`, `accountApi.js`, `AuthContext.jsx`, Backend `UsernameAvailabilityController.java`, `GoogleAccountLinkController.java` and `SecurityConfig.java` at reviewed HEAD. Public username matcher is committed; actual BETA exposure/Google feature flags, errors and auth regression tests remain unverified.
+- **IMP-0003 (Web consumer: ACK / BLOCKED pending Android+Release):** reviewed `DownloadAppPage.jsx` manifest, APK HEAD and SHA paths; Web owns UI and metadata presentation, NOT the signed APK or publishing. Signed package/device verification and Release gate remain external.
+- **IMP-0004 (Web consumer: ACK / NOT VERIFIED):** reviewed `AuthContext.jsx`, `ChooseFamilyPage.jsx`, `authApi.js` workspace list/activate/onboarding and `taskApi.js` scoped URLs. Cross-family isolation and invitation E2E negative tests pending Backend/Release validation.
+- **IMP-0005 (Web consumer: ACK of proposal, BLOCKED):** read backend-authoritative ledger requirement and `taskApi.js` existing workspace-scoped endpoints. Offline idempotent replay/conflict contract is not yet agreed/implemented; Web must not display speculative synchronized balances.
+- **Current Web blockers:** uncommitted `family-hero.webp` and `family-promo.webp` images exist only in separately provided local ZIP (repo currently has SVG fallback only); Web screenshot parity, Vite lint/build, cross-page light/dark contrast, and four-language theme UI checks remain pending. No runtime, server, CI, VPS or DB verification was performed in this onboarding batch.
+- **Next Web work:** confirm source-controlled artwork and visual acceptance of dashboard at desktop/mobile/light/dark, then standardize Members/Tasks/Points/Rewards/Settings. Register cross-track impact BEFORE changing any REST/media/auth contract. Commit only Web changes on an isolated `feature/web-*` branch as concurrency increases, integrate via reviewed PR.
+- **Release hold:** only Release/DevOps decides deploy/tag/APK publication. No changes to Contabo, Flyway, Java, Android or signing in this batch.
+
+## 2026-10-22 — Consolidated Web into single local Vite environment
+- User confirmed one frontend environment: `family-points/frontend` on `localhost:5173`. No separate Web server/port required.
+- Integrated Web-owned avatar component/CSS and member/tasks/points adoption, plus the verified two hero/promo WebP binaries **directly** into integration branch `feature/task-soft-delete` as commit `7077035b1371026414ad3887c8aa0af84c160fe9`, preserving all current Backend/Android/integration files. Seven exact paths transferred; no wholesale branch merge.
+- Old Web branch `feature/web-soft-family` retained as archive for inspection; PR #2 to close as superseded, not to merge; `scripts/web/install-soft-family-assets.ps1` remains only in old Web branch, because binary assets are now tracked in integration and no longer need manual install.
+- To view: start Vite from `family-points/frontend` on 5173 after `git pull --ff-only origin feature/task-soft-delete`. Do not delete a Windows worktree until checked for uncommitted files and removed through `git worktree remove`.
+- Source integrated; CI/browser verification still pending. No server deployment.
+
+## 2026-10-22 — Dashboard defects reported again; confirmed missing implementation
+- User verified local 5173 after pull. Previous integration transferred illustrations/avatar infrastructure, **not** the requested reference exact-match fixes. Acknowledged misleading earlier completion language.
+- Committed CSS correction `95159c47` to integration: sidebar promo image constrained within its panel; hero artwork uses contain and matches hero bounds instead of negative bottom/oversized height. Responsive overrides added; requires screenshot check.
+- Outstanding: extract exact logo and graphic icons from provided reference only where original asset provenance and clean transparent extraction can be verified; do not call redrawn SVGs exact matches. Hero composition, responsive and both theme visual verification still open.
+- No Vite/browser test run by assistant; no Backend/Android/DB/release changes.
+
+
+## 2026-10-22 — Dashboard reference crop integration (PARTIAL — binary package local only)
+- Inspected Backend integration branch and journal at `5d9fcbf4`: Backend has acknowledged media XTR-W-01 / IMP-0007 but API, schema, binary store and release backup are BLOCKED by Architecture ADR. **NO media database/API upload performed or claimed**. Separate calendar PR #4 is not a media implementation.
+- Modified dashboard JSX, Sidebar and App.css to consume explicit `/assets/soft-family/reference/*` asset names with legacy SVG/image fallback. Removed duplicated main hero description. Adjusted hero and bottom-left promo panel; preserve real API data.
+- Extracted an 11-asset WebP archive directly from user-approved reference image in this chat, including brand mark, 4 large stats, 4 quick-action icons, hero crop and full sidebar promo. Package not yet committed to GitHub binary storage; user must extract at repository root. **Source code without this package falls back to old graphics** — do not report full visual parity.
+- Still requires actual browser side-by-side verification, exact alpha edges and responsiveness; extracted icons are reference crops and may contain partial background. No DB, VPS, Android, Maven or runtime smoke test.
+
+## 2026-10-22 — User screenshot: reference assets visible, crop seams remain
+- User screenshots confirm screenshot-cropped art is finally loading: bottom-left family promo, family hero and quick-action icons. Visible defects: rectangular hero raster background seam; duplicate/offset promo edge; hard square cropping around quick action icons. These are raster extraction limitations, not Git pulling failures.
+- CSS commit `8fb40a51`: mask hero left/right seams, normalize promo frame (remove outer border), apply radial fade on quick action/empty-state icon crops, preserve theme and dynamic values. This is a workaround, not verified pixel parity or original transparent assets.
+- Screenshot check after pull remains required; backend media DB upload API is still unimplemented, so images remain static assets. No deployment or build claimed.
+
+## 2026-10-22 — Approved header plan vs browser fact
+- User supplied crop pair: approved header stretches across available dashboard area and uses 3 distinct lines (welcome, white subtitle, teal unique motto) plus family art centered right and a right-side handwritten decoration; browser actual capped dashboard at `page-content max-width:1400px`, omitted subtitle and positioned artwork flush right without decoration.
+- Updated 4 locale JSON files with `dashboardLive.familyMotto`, restored `dashboardLive.description` as subtitle (previous removal was incorrect), updated hero decoration, and added dashboard-scoped full-width CSS with responsive hero image and copy layout. Relevant commits `a67d522`, `f9f04b4`.
+- Static asset photo is a screenshot crop, so perfect transparency/handwriting remains unavailable; handwritten text is typography approximation, not copied image. No browser run or full visual acceptance claimed. Deployment/Backend unaffected.
+
+## 2026-10-23 — Dashboard header: image is full-section background
+- User specifically requested hero art to be the background of the **whole header block**, not a separate image on its right. Preserved manually updated visual asset bytes: no files under `frontend/public/assets` created, replaced or deleted.
+- Removed standalone `<img className="fp-hero-art">` from DashboardPage and set CSS `background-image` on `.fp-dashboard .fp-hero` using the same `/assets/soft-family/reference/hero-family.webp` URL with `background-size: cover`, position and gradient overlay for text contrast. Adjusted responsive styles and dark/light backgrounds. Original calligraphy/text remain HTML.
+- Integration directly on `main`, no server deploy or database change. Build and actual browser screenshot validation pending; `cover` can crop edges at aspect ratios and may need separate user-approved positioning adjustment.
+
+## 2026-10-23 — Approved Home visual baseline and branch workflow (documentation only)
+- User confirmed the Home/dashboard visual design is finished: hero, cards, icons, sidebar and light-theme hover. Preserve all approved styles and manually edited image assets. Do not change Home appearance without explicit approval. Next Web scope: bug fixing on other pages.
+- User requires `main` as default active development branch for all tracks; temporary branches only when an exceptional, documented safety need exists. Shared AGENTS.md, coordination protocol and README have been updated.
+- The local Windows checkout was last reported on `feature/android-soft-family-structure` with 40 unpushed commits; this GitHub-only policy change does not switch it, transfer local commits or alter any images. Previous Web light-theme hover fix `a4f1672` was confirmed locally by user. No source, tests or deploy in this documentation update.
+
+
+## 2026-10-24 — Web consumer contract review for Backend PR #4/#5 and templates (ACK WITH BLOCKERS)
+- Reviewed Backend draft sources `docs/api/REWARD_CALENDAR_V1.md` on `feature/backend-calendar-rewards-v1`, `docs/api/MEDIA_V1.md` on `feature/backend-media-assets-v1`, draft PR #4/#5 descriptions, Backend coordination log, ADR-TEMPLATES-001 / XTR-20261024-P-01/-02 and IMP-0006/0007/0008. This is **contract review**, not compiled integration, CI approval, API deployment or feature delivery.
+- **Calendar PR #4 — Web semantic contract ACK / integration BLOCKED until merged, tested and released.** Web accepts read-only `GET /workspaces/{workspaceId}/calendar` as bounded (62 inclusive days, 2500 events) TASK deadlines and REWARD_WINDOW acquisition events; TASK virtual rows (`instanceId=null`) are never stored/created by GET. `scheduleOpenNow` is only a time gate, not purchase eligibility. Accept separate manager-only availability PUT, 409 `REWARD_OUTSIDE_AVAILABILITY_WINDOW` handled without optimistic debit, and IANA workspace timezone with legacy UTC default. **Backend action:** freeze exact Java DTO JSON (including event keys, dates, enum statuses, response/errors and sorting/pagination/truncation behavior); verify visibility for other members and workspace switching; test boundary, DST and full quota rollback; explain behavior when event cap is reached; publish two-workspace API tests and migration V35 plus calendar/media V36 combined upgrade evidence. Web UI integration waits for an accepted exact contract and endpoint availability; do not render fabricated calendar totals.
+- **Media PR #5 — Web product architecture ACK / production integration NOT APPROVED.** Accept separation of global reusable `CATALOG` (versioned, localized, no workspace-private quota) from family-private `UPLOAD` (JWT-scoped normalized JPEG/PNG variants), stable catalog keys, inherited task icons, explicit override/remove and optimistic expectedVersion/409. Bundled 15 SVG catalog previews are Backend draft only and must not replace user-approved `frontend/public/assets/soft-family/reference/` dashboard art. For private image `GET .../variants/{variant}`, browser `<img src>` cannot send Bearer token: Web will fetch authorized bytes and make/revoke Blob URLs per workspace/session, or use an explicitly reviewed safe delivery alternative.
+- **Media Backend blockers requiring answer/fix before Web implementation/ACK:** finalize effectiveImage reference + slot, source type, inherited/default indication, version/tombstone fields in existing member, group, workspace and task DTOs; stable targetType/slot enums and per-target view/bind permission matrix incl. child and delegated group roles; upload type/MIME/errors/file-size and WebP handling (current draft only JPEG/PNG, while Web static assets are WebP); catalog `previewPath` format and authentication/cache lifecycle for SVG; 404/403/409 behavior, conditional/version updates, cross-family byte isolation, owner cleanup and image invalidation, quotas/GC, tests and Release backups. Current PR #5 remains DRAFT, no client integration or BETA deploy.
+- **Template library IMP-0008 — Web task accepted for planning; Backend implementation not present.** Web will implement an optional four-locale Soft Family wizard, versioned catalog selection, preview/edit/skip/resume, explicit confirm and meaningful 403/409/retry UI when Backend XTR-20261024-P-01 offers real catalog/preview/idempotent confirm APIs. Must never fabricate family members, permissions, starter task instances or ledger transactions; existing family content remains untouched until confirmed install. Web does not interpret TaskSuggestionController or SIMPLE/NORMAL/HARD economic presets as template catalog.
+- **Handoff to Backend/Architecture/Release:** treat this as **Web consumer review recorded, conditional semantic ACK only**. Calendar and media feature-readiness gates remain OPEN. Backend can continue PR #4/#5 and template B request; send final contract+CI+combined Flyway results for client integration. Release remains independently gated; do not merge draft PRs or deploy by this review alone.
+
+
+## 2026-10-24 — User-directed intermediate release scope freeze
+- User explicitly directed all tracks to **finish/pull through only already-listed tasks before the next intermediate release**. Do **not** accept or implement newly proposed features prior to that release. Prior planning suggestion to start the calendar as a new Web package is superseded by this decision.
+- Web priority: finish outstanding defects/regressions of current functionality and approved Soft Family styling; audit existing task flows (members/groups, tasks, balances, rewards, login/onboarding/settings), light/dark mode, access controls, four locales, responsive layouts, build/CI. Keep approved Home/dashboard visuals and user-supplied reference assets unchanged.
+- Existing Architecture tasks (calendar PR #4, media PR #5, template/reset XTR packets) retain their recorded ownership/status. **Do not silently promote blocked work to release-ready**: integrate only if API is already safely merged, client-compatible, verified and explicitly inside the agreed release scope. Otherwise retain documented blockers and defer functionality rather than fabricate data or expand scope.
+- Release readiness requires objective smoke/regression evidence and handoff to Release/DevOps; no Web-triggered BETA or PROD publication. This is a **scope freeze and reprioritization**, not task completion, blanket approval of draft PRs, or a claim tests passed.
+
+
+## 2026-10-24 — Intermediate release Web stabilization: point operation modal Escape
+- Audited current frontend against existing modal dismissal behavior: `PointOperationModal.jsx` already closes on overlay/cancel but lacked Escape handling; the user previously requested Escape for modal dismissal. Fixed in `main` commit `86e2185`: while open and not submitting, Escape invokes existing `onClose` (listener cleaned up on rerender/unmount). Submission in progress is not interrupted by Escape; no API, currency ledger, approved Home dashboard or images changed.
+- Remaining release validation: browser verify award/deduct flows, modal Escape before submission, error states, locale text, numeric stepper, light/dark themes. Latest GitHub Actions results are not a browser acceptance test. This is a targeted bug fix, not new functionality or release authorization.
+
+
+## 2026-10-24 — Intermediate release stabilization: task reward negotiation Escape
+- Audited existing modal controls in the current `main`: MemberEditor and GroupEditor already contain Escape listeners; `TaskRewardNegotiationModal` lacked one, although it has cancel/close actions. Commit `ec19794` adds a cleaned-up Escape listener invoking existing `onClose` only when not `saving`. No request data, reward approval, points ledger or Backend behavior changed.
+- Existing release checklist still OPEN: Web build/lint/i18n, browser verification for dialog keyboard behavior (including nested dialogs and save-in-flight), dark/light visual regression, task/reward/points authorization and transaction smoke, account login and onboarding. Do not mark the entire current task stack complete from source-only review.
+- Freeze remains in force: no new calendar/media/template/reset features before intermediate release; approved Home design/assets untouched.
+
+
+## 2026-10-24 — Release stack: task editor dismissal safety
+- Audited CreateTaskModal, PointOperationModal, and TaskRewardNegotiationModal against Escape semantics. Found an existing regression in CreateTaskModal: window key listener unconditionally invoked onClose even while asynchronous task create/edit save was in progress. Commit `2474a1e` relocates the listener after the save-state declaration and registers it only when `loading=false`; the listener is cleaned up on loading changes/unmount. No task mutation or API semantics changed.
+- PointOperationModal and TaskRewardNegotiationModal already avoid Escape dismissal during an active save. This is a **source-level fix only**: no claim of tested browser interactions, passing latest CI, or release readiness.
+- Intermediate release stack **OPEN**: confirm Web build/lint/i18n, dark/light modes, modal keyboard/save-in-flight interaction, existing task/reward/points flows, cross-role access, responsive layout, and final Release handoff. Approved Home images/layout remain frozen. No new modules before the intermediate release.
+
+
+## 2026-10-24 — Pre-release Web: point-operation in-flight modal safety
+- Audited current `NumberInput` integration and `PointOperationModal`. Found that, although Escape was blocked during submission, backdrop click and header × still closed the modal during pending point mutation; form submit lacked an immediate repeat-submit guard. Fixed in `main` commit `809a07f`: prevent backdrop/× dismissal while submitting and reject duplicate submit attempts in the active submitting state. Existing cancel button and Escape protections preserved; no backend transaction logic or dashboard assets modified.
+- Source inspection only. **Still open:** verify browser double-click and delayed-request paths, point ledger results, reward approval flows, CI/Web build/lint/i18n, responsive and role-based smoke. Do not claim release readiness before those tests.
+
+
+## 2026-10-24 — Release stack: task-reward negotiation duplicate submission guard
+- Source audit confirmed TaskRewardNegotiationModal disabled submit visually during `saving` but had no immediate submit guard, and the header × remained clickable in-flight. Commit `10188d8` adds `if (saving) return` before payload/remote submission and disables header close during save, aligning with the existing Escape/cancel protection. No reward request APIs, ledger operations or approved dashboard files changed.
+- Pending validation: browser double-click/delayed-response, review/create paths, backend idempotency and role permissions; build/lint/i18n and release smoke remain open. Source-level fix alone does not constitute verified readiness.
+
+
+## 2026-10-24 — Pre-release Web task editor submission guard
+- Reviewed existing CreateTaskModal create/edit form. Found that active `loading` already blocked Escape, but header × stayed enabled and submit handler did not immediately reject a second submit during save. Commit `2e36a0a` adds a save-state guard to submit and disables close button while loading. No change to task payload, backend contract, accepted dashboard styling or images.
+- Still to verify: browser double-click and slow API, successful task creation/edit, server-side idempotency, all four locales, responsive layout, Web lint/build/i18n, and cross-role regression before release. Source-level patch only; release stack remains OPEN under freeze.
+
+
+## 2026-10-24 — One-pack Soft Family stabilization pass (existing screens only)
+- User requested finish the **entire existing interface stabilization workstream in one coherent package**, with no new features before intermediate release. Scope audit located hardcoded light borders / underspecified hover/focus/mobile styling in `Navigation.css` and `group-v2.css`, plus possible viewport overflow and dark modal consistency issues in `App.css`.
+- Changed on `main`: `42f5ff5` navigation tabs use semantic Soft Family tokens, contrast/keyboard focus and mobile horizontal scroll; `026b22a` group editor list items, responsive row wrapping and themed surfaces; `8b09a22` shared modal dark fields, screen-safe scroll heights, mobile spacing and focus-visible affordances. No changed Home/dashboard hero/asset selectors, no image edits, no API/DB modification.
+- This package covers source-level theme/responsive fixes, **NOT fully verified browser visual acceptance**. Still require side-by-side screenshots of each non-Home route in light/dark at desktop and narrow mobile widths, keyboard focus/Escape, long DE strings, group editor and modal scrolling; confirm Web build/lint/i18n for exact final SHA. Previously observed failed overall CI run `40107993643` had Web production build SUCCESS but Android compile FAILED: not evidence of a Web compile regression. Do not mark the interface workstream completely accepted without its browser validation.
+- Intermediate-release scope freeze remains; current blocked calendar/media/template/reset functionality not incorporated. Send Web source SHA and validation requirements to QA/Release after CI verification.
+
+
+## 2026-10-24 — Soft Family package CI and CSS specificity regression follow-up
+- Exact GitHub Actions run `40108419150` on `60a0a0a`: **Web / Node / Vite production build SUCCESS**; Java/Maven and Compose configuration SUCCESS; overall workflow FAILURE caused by **Android / Gradle debug build**. This is not a Web production build failure. Full Web lint/i18n/browser screenshots are not covered by that verified job.
+- Source inspection uncovered collision between the newly added dark-modal `input` surface selector and nested shared `NumberInput`: its internal field could be painted separately rather than inheriting one seamless shared shell. Fix `15b2ebf` restores a transparent, borderless child number field inside dark modals, leaving the 44px shared shell and arrows unchanged.
+- **Soft Family interface stabilization source changes are packaged**; acceptance remains **pending browser/QA visual checks** on non-approved-Home routes at light/dark desktop/mobile sizes, including modal scroll, German overflow, navigation, groups, rewards and shared numeric fields. No deployment approval. Freeze on new features and approved Home images remains in effect.
+
+
+## 2026-10-24 — User correction: atomic large-package Web→QA→Web cycles REQUIRED
+- User rejected incremental 2–3 CSS edits and unsupported rising readiness percentages. From now: select one existing critical workstream, audit it end-to-end, implement a **single coherent substantial fix package** with tests, build/lint/i18n, journal and exact SHA; then explicitly hand the whole package to QA. **Next response/cycle** starts by reading QA results and fixing all reported failures together, followed by full regression re-test. Move to the next workstream only when the previous one is accepted or blockers explicitly documented. No new feature scope before intermediate release.
+- Existing Soft Family code stabilization was committed in several earlier micro-fixes; rather than falsely claiming completed visual QA, Web now submitted consolidated suite **WEB-SF-01** in `docs/coordination/QA_TEST_CASES.md` and registered it in `docs/coordination/QA_TEST_BOARD.md`. QA to cover all existing pages, both themes, mobile/tablet/desktop, four locales, accessibility and stable approved Home. Actual browser test outcomes still NOT_VERIFIED; Release must identify deployed SHA.
+- **Handoff sent through GitHub**; QA reads the board and performs explicit testing. Code source is not equivalent to deployed BETA; no silent green statuses, no release authorization.
+
+
+## 2026-10-24 — Consolidated QA remediation WEB-SF-01-F01/F02 (resubmit)
+- Read independent QA source audit from `docs/coordination/logs/qa.md`: F01 hardcoded Ukrainian reputation amount label in task reward negotiation, F02 fixed English numeric stepper screen-reader labels. Both reproduced through source inspection, no completed browser matrix. Fixed **both findings in one logical batch**: TaskRewardNegotiationModal now uses existing `rewardNegUi.amount`; shared NumberInput now obtains `increase`, `decrease` and group `controls` labels from i18next with four locale catalog entries uk/de/en/ru. Code + translations committed in `main`, final localization SHA `d3e5078`.
+- QA risk R01 (near-simultaneous POST requests) is **not runtime reproduced** and remains a test case, not a closed fix. UI state guards already exist; Backend idempotency independently required.
+- Handoff: QA retest F01/F02 with language switching and accessibility tree; re-run all WEB-SF-01 matrix items after Release confirms deployed SHA. No assertion of browser, lint, i18n or exact-SHA CI pass here. Approved Home and image assets untouched; no BETA publish.
+
+
+## 2026-10-24 — WEB-SF-01 R01 preventative consolidated mutation guard package
+- Rechecked current QA journal/report: F01/F02 already source-fixed and remain NEEDS_RETEST; browser matrix 0 verified passes and BETA deployed Web SHA unknown. Prior main CI run 40117445277 at 94e3f43 passed Web, Backend, Compose, Android, but is NOT CI evidence for the new Web changes.
+- Audited three critical forms and found React state checks alone cannot synchronously exclude near-simultaneous submit handlers before the next render. Added a synchronous useRef submit lock (taken immediately before async mutation, released in finally) to PointOperationModal, CreateTaskModal and TaskRewardNegotiationModal, retaining existing validation, disabled controls, Escape guards, request semantics and error handling. Commits: 27eec1a, b52d721, 3d70240. Dashboard and approved assets untouched.
+- R01 is now source-mitigated, NOT reproduced nor E2E verified; do NOT claim API idempotency or exactly-once ledger guarantees. QA must test rapid double click/Enter with throttled API and confirm exactly one POST plus one ledger operation for point award/deduct, task create/edit and task reward request/review. Also retest F01/F02, four locales, both themes, mobile/desktop matrix and focus/disabled state. Record target CI run and exact tested deployed SHA before PASSED. WEB-SF-01 remains NO-GO pending browser acceptance.
+
+
+## 2026-10-24 — Backend consumer integration packet (Web Calendar V36 / Media V37 / reward windows)
+- User explicitly requested connecting the newly caught-up Backend. Re-read current Backend integration log, Calendar/Media contracts, latest main. Backend V35/V36/V37 source integration is present in main, but exact deployed BETA SHA and real Web E2E approval remain unconfirmed.
+- Implemented dedicated `calendarApi.js`: bounded workspace-scoped calendar GET, workspace timezone GET/PUT; `CalendarPage.jsx` authenticated read-only list with date/type filter and privileged timezone editing; /calendar route and four-locale sidebar navigation. Calendar events are server-provided (no fake instances, no optimistic purchase eligibility); 62-day range enforced.
+- Implemented `mediaApi.js`: catalog, manifest, effective binding, CAS binding PUT/DELETE, authenticated Blob URL fetching and multipart upload. `FamilyCoverSettings.jsx` provides actual cover selection, JPEG/PNG upload and restore-default in existing Settings; respects MANAGE_WORKSPACE or ADMIN_OVERRIDE; revokes Blob URLs when workspace changes/unmount; approved default dashboard hero asset is NOT modified and default remains static.
+- Added reward availability GET/PUT consumers in `rewardApi.js`. Schedule form editing is not exposed yet: existing reward purchase UX must not claim that scheduleOpenNow means purchasable. No new Backend endpoints invented, no ledger contract changed.
+- Commits: 2909dc8 calendar API; af157a7 media API; 57e0cb0 calendar view; 583df13 route; 8d26c4c/2231943 navigation; 57379ce availability API; 047a46d cover settings; 995cbea settings integration.
+- QA release blockers: exact integrated SHA, Web build/lint/i18n on final SHA, actual BETA deploy, authenticated browser tests: 62/63-day boundaries, selected workspace timezone and permissions, calendar event privacy/virtual occurrence, media catalog binding, multi-tenant authorization, authenticated Blob byte access and revoked URL on workspace switch, 5MiB upload validation, 409 stale-version conflict, default cover fallback and approved Home no-change. No claim of acceptance from source integration.
+
+
+### Web Backend V36 reward editor follow-up, 2026-10-24
+- Added `RewardAvailabilityEditor.jsx` for MANAGE_REWARDS context on existing Rewards management edit screen; AJAX loads actual reward availability, updates ALWAYS/ONE_TIME/RECURRING_WEEKLY independently from ordinary reward PUT. Preserves remaining weekly windows when editing first weekly slot. Requires explicit ISO 8601 UTC offset for ONE_TIME to avoid silently guessing DST interpretation. Commit sequence 93d138e, 1df9154, 21e6176, ce7c92d. No client-side guarantee of purchase eligibility; Backend 409 is authoritative.
+- QA follow-up: verify weekly existing multiple windows survive editing; one-time input offset, 409 violations, and role authorization; test unchanged reward create/edit and other currencies. Browser acceptance and deployed SHA are NOT verified. New integration package run currently pending; no PASS recorded until completed.
+
+
+## 2026-10-24 — Backend Web integration QA follow-up, critical validation correction
+- Latest exact integration CI run 40118508340 on dbb41488 PASSED all four workflows; it does not constitute browser acceptance.
+- Post-integration source regression audit identified a confirmed defect in RewardAvailabilityEditor: the ISO 8601 regular expression was doubly escaped and rejected valid times, while initialization removed an existing offset, making round-trip save unsafe. Fixed date validation, retained original UTC offsets and added finite instant comparisons in commit c3cff160.
+- FamilyCoverSettings media fetch now discards stale async result URL safely on workspace effect cleanup and clears previous error state when workspace changes; commit 1a71e45. Blob URL revocation remains mandatory.
+- All WEB-SF-01 and Backend V36/V37 authenticated BETA browser checks remain NOT_VERIFIED, exact deploy SHA unknown. QA test ONE_TIME existing +01/+02 read/edit/save round trip, conflicting window 409, family switching during delayed media response, and object URL revocation. No production deployment authorization from this entry.
+
+
+## 2026-10-24 — Web reward schedule editor full weekly-window packet
+- Starting baseline main 69ecf313, all four CI jobs PASS run 40119056029, but no manual BETA browser acceptance or deployed SHA evidence.
+- Completed existing Backend V36 consumer flow in `frontend/src/components/RewardAvailabilityEditor.jsx` commit d4507ad. Replaced first-weekly-window-only editor with all 0..56 weekly windows: distinct IDs, day and local times, effective date bounds, enabled toggle, add/remove, round-trip full array, preservation of server-issued windowId and values; blocking client validation for malformed hours/days/date ranges and overlapping enabled windows. One-time windows preserve explicit ISO 8601 UTC offsets; four locales covered. Synchronous submission lock; Backend remains authoritative on 403/409/quotas/DST.
+- Required manual browser QA: edit existing multiple weekly windows without losing others; add/delete/disable; overlapping and effective-date boundary; 56-window limit; timezone DST spring/autumn one-time offset; stale save 409; workspaces A/B; child permissions; long German labels/360px dark-light; reward purchase outside availability -> 409 with no point debit. Do not count build as browser pass.
+- No Home/dashboard/image/style changes, no BETA deploy. Source fix submitted for CI and QA. Do not mark WEB-SF-01 or V36 accepted until pinned deployed runtime evidence.
+
+
+## 2026-10-24 — Media V37 explicit cover end-to-end consumer packet
+- Confirmed main SHA 9b180a9 had all four CI jobs green in GitHub Actions run 40119559180 before this patch. No deployed BETA exact Web SHA/browser screenshots available.
+- Hardening in `frontend/src/api/mediaApi.js` commit 67f4859: authorized image requests must match selected workspace prefix, reject traversal/absolute/query URL, and require image MIME before creating Blob URL. `FamilyCoverSettings.jsx` now passes active workspace ID, commit b6ac40e.
+- Dashboard integration commit ccbc2ea: GET workspace media manifest and only if cover.source !== DEFAULT plus authorized path, request authenticated image bytes as revocable Blob URL. Render an explicit custom family cover with existing hero text/geometry; on DEFAULT/error keep **precisely existing CSS artwork/hero** with no style override. On workspace switch/unmount discard late results and revoke object URL. No changes to reference assets or Dashboard CSS.
+- QA manual acceptance: standard default hero screenshot comparison unchanged on both themes and 360/1440px; custom catalog/upload cover visible after settings-save and reload, switch family A→B never shows A's cover, logout/return never reuses URL; restore default, expired token/403/404/error show original default. Check GET image authorization is same workspace and correct COVER variant; inspect network requests and objectURL lifecycle.
+- This package is source-level integration only; full visual/E2E QA NOT_VERIFIED and no deployment authorized by Web.
+
+
+## 2026-10-24 — Media V37 member/group/task client integration packet
+- User explicitly deferred manual QA until later. Continue coherent current-stack source/automated integration without claiming browser QA PASS.
+- Baseline current main at start 5029c48f (Media cover packet CI 40119992292 in progress); no confirmed deployed BETA SHA.
+- Created reusable `frontend/src/components/EntityMedia.jsx` for scoped Media binding GET, catalog metadata GET, authorized binary via Blob URL, privileged catalog choice, JPEG/PNG <=5MiB upload, expectedVersion CAS, clear override, and cleanup of late responses/blob URLs on workspace/entity changes; four-locale control text. Commit bca8d5b.
+- Wired MEMBER AVATAR and MEMBER_GROUP ICON in `MembersPage.jsx` (08c5b99), group ICON in `GroupPage.jsx` (3949c6e), TASK ICON in `TaskDetailsPage.jsx` (87d25c4). Existing approved Dashboard art/layout/assets unchanged; no new server APIs or schema mutations. Edit actions are shown only for respective manager permissions; Backend remains authoritative for delegated role exceptions and ACL.
+- Automated GitHub Actions on final main required; manually test uploaded and catalog member/group/task imagery, revocation after switch A/B, changing permissions after rendering, stale 409, not-found 404, role-restricted GET and oversized/wrong MIME upload. Current QA tests intentionally pending; no Release PASS from source/build alone.
+
+
+## 2026-10-24 — Media V37 stabilization: workspace switch and stale CAS package
+- Source reviewed on live main, previous concurrent CI run 40120298412 still executing at audit time; no manual QA performed by user direction.
+- EntityMedia now tracks its target workspace/type/id/slot across async writes, preventing successful/caught mutation from updating the wrong family/entity screen after switching; HTTP 409 stale expectedVersion prompts a fresh binding GET via revision trigger, while retaining error. Code commit 3c8d429.
+- FamilyCoverSettings now uses synchronous mutation lock and selected-workspace identity to prevent stale cross-family state transitions; on HTTP 409 fetches the new manifest without implicitly retrying a write. Code commit 043e33b.
+- No Backend APIs, Home reference assets, task/reward ledger semantics or dashboard styles changed. Automated CI and manual browser screenshots still separate release gates. QA later: delayed upload A→B, rapidly repeated upload/bind, stale version 409, failed authorization and default cover fallback.
+
+
+## 2026-10-24 — User reported Calendar Web UI unusable: replaced technical list with real visual calendar
+- User screenshot: Calendar was a raw list of hundreds of repeated PLANNED tasks with no visual dates/timeline, inline timezone input dominating page, default HTML-ish controls. This is confirmed visual UX defect in previous `CalendarPage.jsx`, not API failure.
+- Replaced raw event dump with three calendar views: day (00–23 timeline by actual event deadline or reward-window start, untimed section), week (seven dated columns/cards), month (dated grid with compact event chips and drill down). Interactive previous/next/today controls, type filtering, event navigation to task/reward routes, compact settings panel for workspace timezone, four locale labels. Source: `CalendarPage.jsx` e6713a0; Soft Family scoped responsive stylesheet `CalendarPage.css` ea2b48b.
+- Day task scheduledTime/dueAt is explicitly DEADLINE, not start. Do not draw arbitrary start-to-end occupancy. Reward event startsAt identifies availability window start only. No synthetic task instances.
+- On day/week/month switch do not temporarily show 'no events' while API loads: preserve last content and dim pending grid with subtle indicator. Remaining limitation: current view will temporarily show previous selection's grid until new data arrives; QA pending. Test dense recurrent tasks; 24h boundaries, month edges, nav, four locales and mobile horizontal scroll; auth and permissions inherited from Backend.
+- User asked for actual calendar and normal day progression. Manual QA deferred globally by previous instruction, but UI screenshot shows previous design cannot be accepted. Current source package not yet browser-approved and no BETA deploy.
+
+
+## 2026-10-24 — User screenshot regression: member card destroyed by inline Media controls
+- Screenshot from user shows native file inputs, selectors, 'no image' text overlaid across narrow member cards; member name displaced and upload widgets visually leaking into neighbors. Confirmed root cause: previous Web change mounted a permanently expanded EntityMedia after the default FamilyAvatar for each member.
+- Restored one clean member avatar position and moved image selection/upload/reset to compact pencil-triggered modal in `EntityMedia` (d2c2565) and `MembersPage` (819d975). Scoped Soft Family CSS `EntityMedia.css` (7804b47) imported at f72194c. Existing avatar fallback persists; no duplicate 'no image' on card and file controls never render inline in member grid. Modal width bounded and file buttons styled for themes.
+- Keep original member card click for editing member details; pencil stops bubbling, so media action opens separately. Standard Dashboard CSS/art untouched.
+- Manual browser QA deferred by user, but screenshot regression is a clear rejection of previous layout. Verify member cards with 3+ members, avatar upload modal, role edit click, responsive widths and light/dark, eventual rendering after refresh. CI exact integrated SHA must pass independently.
+
+
+## 2026-10-24 — Screenshot fixes: task header and family cover editor
+- The user provided two screenshots showing remaining raw Media forms in Task Details and Family Cover Settings. Earlier image mockups were NOT code changes; confirmed this explicitly and shipped actual source corrections.
+- Task details now uses compact EntityMedia thumbnail/placeholder and pencil-triggered modal, removing inline select/native file upload from task header (5565f31); scoped task header styles (e79faf6).
+- Family cover settings now displays wide existing preview, human-readable catalog labels, responsive cover option controls and visually hidden native file input behind styled upload action (215b83d/8e48eee); scoped CSS (4c02046). No invented remote image preview for incomplete catalog choices; only selectable entries with verified previewPath are presented.
+- Backend Media API, selected-workspace scope and approved Home artwork stay untouched. CI and user/browser QA remain independently required; no release claim.
+
+
+## 2026-10-24 — Screenshot defect: media modal jumps when mouse moves
+- User supplied two screenshots showing modal attached beside member card and then centered depending on mouse hover. Root cause: .member-card[role=button]:hover uses transform and creates containing block for nested position:fixed overlay.
+- Fix: render EntityMedia modal via React createPortal(..., document.body), outside transformed member card; viewport-fixed, centered, independent of hover transform. Commits 3b70db2 and following EntityMedia.css fix. No backend or approved dashboard assets touched. Recheck modal center across mouse movement, all member cards, Escape/focus/scroll, themes and mobile in later manual QA.
+
+
+## 2026-10-24 — User screenshot: internal Media catalog labels and unrelated media choices
+- Screenshot: open member avatar select shows raw i18n IDs `media.catalog.avatarSunflower` etc and unrelated family cover, group, task assets. This is confirmed consumer UX/validation defect, independent of Media Backend catalog.
+- EntityMedia filter now restricts catalog choices to the target kind (MEMBER→AVATAR; MEMBER_GROUP→GROUP; TASK→TASK/TASK_CATEGORY), while excluding unselectable entries and entries with no previewPath. English/Ukrainian/German/Russian friendly labels for current catalog IDs replace raw `media.catalog.*` identifiers. Source commit f510593.
+- Backend still validates catalog eligibility; no claim user-visible browser PASS. QA later: check avatar select shows only 9 avatar choices, all labels localized, selection persists, other Media entity types still have valid catalog entries, 403/409 enforced. New CI exact commit required.
+
+
+## 2026-10-24 — Screenshot defect: changed member avatar does not propagate to Points or header
+- User screenshot confirms own avatar displays in Members, but Points selector, Points balance hero and global account header continue showing initials; root cause disconnected legacy views plus FamilyAvatar rejecting authenticated `blob:` URLs.
+- Added `MemberAvatar.jsx` (951599e) as secure effective MEMBER/AVATAR lookup with authorized fetch, workspace/account scoping and Blob URL revocation. Adopted it in Points selector + selected member summary (c968c9c), global account header (8fe54b4).
+- Updated FamilyAvatar to render trusted private Blob URLs (e673338). MemberAvatar listens for same-workspace/member image updates (57b9a0a); EntityMedia broadcasts after successful MEMBER binding changes (c83f1ce), triggering refresh in still-mounted header and any mounted selectors. On logout/workspace switch, effect cleanup revokes old image URLs; stale async loads discarded.
+- Verify after actual deploy: avatar shown in Members, Points selector + large summary, global top-right account; change photo and remain on same screen, switch family, logout/login, missing image fallback, revoked privileges. Backend remains Media authorization authority; no server APIs changed.
+- CI exact SHA and manual browser verification separate gates; no Release claim.
+
+
+## 2026-10-24 — Member avatar UX approved Variant E
+- User selected Variant E and explicitly required changing avatar inside the existing Edit Member modal rather than any separate dialog. Implemented an inline EntityMedia editor mode with visible current avatar and 'Змінити' action, expanding the catalog/upload/reset controls only inside MemberEditor. Removed pencil in member list via read-only compact EntityMedia; member card click still opens existing edit dialog.
+- Source commits c91f4c9 EntityMedia mode, ed6fa83 MembersPage, 69d5561 MemberEditor, CSS follow-up. Backend Media write happens on avatar choice/upload and updates shared avatar views through existing event. Member profile's Save remains independent, so a selected avatar is saved immediately; later profile Cancel does not roll back avatar. QA must explicitly validate this behavior before acceptance.
+- Manual QA deferred; test modal 360px, role permissions, avatar update without closing edit, member profile save/delete, cross-workspace privacy, member add modal with no entity ID, and after cancel. No separate modal added.
+
+
+## 2026-10-24 — MemberEditor staged avatar save (user-required)
+- User rejected immediate Media API writes from Variant E and explicitly required change ONLY on 'Зберегти' for existing member.
+- Implemented draft-only inline EntityMedia selection (catalog/clear/file), stored in parent MemberEditor; no upload/PUT/DELETE on selection, Cancel, close or Escape. Uploaded JPEG/PNG preview is temporary local object URL, revoked on change/unmount. Changes applied by MembersPage saveMember only after member form Save, and cross-screen member-avatar-changed fired only after successful Media binding. Commits 2c8be5e, e3b712b, 9bc0804.
+- Limitation: Backend endpoints for member profile and Media binding are separate; the Save handler sequentially updates member profile then avatar. If profile update succeeds but Media upload/binding fails, the modal stays open and shows the error, but earlier profile changes may already be persisted. True atomic save requires Backend transaction API and is not claimed.
+- Browser QA deferred: select catalog/file/clear then Cancel (no HTTP mutation); submit successful saves both; upload failure and 409 remains in editor; change family mid-dialog; image preview URL cleanup; save with no avatar draft does no Media write.
+
+
+## 2026-10-24 — CROSS-TEAM HANDOFF: Global avatar catalog and visual picker (Architecture / Backend / Web / Android / QA)
+
+**Status: PRODUCT REQUIREMENT CONFIRMED; implementation pending cross-team coordination.** User will notify other direction chats to read this log. This is a global FamilyPoints media concern, NOT Web-only. Do not interpret the current technical catalog as the final avatar bank.
+
+### User-confirmed problems and acceptance
+- Existing member-avatar editor offers a raw text select with technical labels / unhelpful names; user must see **rendered thumbnail images in a gallery**, not guess from labels.
+- Current curated avatar bank appears heavily adult/female-biased; it lacks a sufficiently varied selection for **adult men, adult women, boys, girls, and gender-neutral / universal options**. Extend actual curated image assets, not just names/metadata.
+- All users may select any suitable avatar; grouping and recommendations are **discovery/order only**, never a gender/age restriction. PARENT should prioritize adult imagery and CHILD should prioritize younger imagery, but all groups remain accessible.
+- Avatar editing belongs **inside the existing "Редагувати учасника" (Edit Member) modal**, Variant E (avatar next to "Змінити" button). No separate avatar modal or intrusive edit pencil on member cards.
+- Choosing a catalog image, selecting a file, or clearing the avatar is **draft-only**. No Media API mutation until the user presses the **main member form "Зберегти"**. Cancel/close/Escape discards all avatar changes; local file previews are temporary and revoked.
+- Selected image must display consistently in Web Member cards, Points selectors/detail, account header, and corresponding Android screens after save; no fallback to initials where a valid effective image exists.
+
+### Architecture / Planning — owner of the common decision
+- Define platform-wide avatar-bank taxonomy: adult male/female, boy/girl, universal/neutral (prefer descriptive *optional* tags and free selection, avoid mandatory user gender fields).
+- Define versioned global catalog asset keys, categories/tags, stable sorting, display/localization metadata, and asset provenance/licensing. Catalog is shared across workspaces; uploaded photos remain private to their own family.
+- Define Save semantics and conflict/error model between member profile and media binding. Current Web uses separate Backend transactions; if the member update succeeds and image binding fails, partially committed profile is possible. Decide whether a consolidated atomic backend endpoint is necessary.
+
+### Backend / Media API — implementation owner
+- Grow curated **actual usable imagery** across the above categories (varied ages/appearances, neutral choices), ensuring vetted image provenance and previews.
+- Expose metadata usable by *both* Web and Android, e.g. stable `key`, `category=AVATAR`, localized `labelKey`/display names, tags/age recommendation, `sortOrder`, `selectable`, authenticated `previewPath`, version. Extend the existing Media catalog schema without breaking V37 clients if practical. Do NOT pretend a null preview renders.
+- Keep JWT authorization, strict family isolation for uploads, CAS `expectedVersion`, file type/size validations. Clarify category eligibility and per-family upload retention; assess atomic member + avatar Save or compensating design.
+- Coordinate the API contract first; do not impose a Web-specific classification server-wide.
+
+### Web — implementation owner
+- Replace the current <select> with a responsive visual gallery of **image thumbnails** (selection outline/check, grouping/filtering, usable fallback when catalog empty), using JWT-authenticated preview reads and bounded/revoked Blob URLs; display no technical `media.catalog.*` keys.
+- Keep the gallery *inside MemberEditor*, Variant E, with staged selections/uploads/clear only committed by the existing main Save action. Preserve permissions and ensure the currently saved avatar, draft preview and error states are understandable.
+- Keep existing accepted Soft Family Dashboard art untouched. Avoid reintroducing inline file inputs on member cards.
+
+### Android — implementation owner
+- Implement the same server catalog and visual avatar gallery, grouping/recommendations, effective-image rendering across profile/member/points views and offline-safe cache isolation between accounts/workspaces.
+- Stage edits until the relevant screen's Save; no immediate mutation on thumbnail tap. Follow shared backend contract rather than duplicating Web-only label maps.
+
+### QA — verification owner (manual tests may arrive later)
+- Catalog coverage by adult man/woman, boy/girl, universal; image previews visible, selectable and properly localized (UK/DE/EN/RU); all categories accessible to all users.
+- Selecting an image/file/clear then Cancel must yield **zero media writes** and preserve old image on reopen/other clients; Save succeeds, propagates to Header, Members, Points and Android.
+- Check mismatched permissions, stale-version HTTP 409, upload failures, image fallback, large catalog scrolling, desktop/mobile themes, switches family A↔B, logout, private photo isolation and revocation.
+- Test partial member-profile success + failed avatar Save; do not mark atomicity PASS until Backend contract supports it.
+
+### Existing groundwork / important caveat
+- Existing Web Variant E, draft-only selection and Save sequence were implemented in prior commits in `MemberEditor.jsx`, `EntityMedia.jsx`, `MembersPage.jsx`; **the current text-select and limited curated assets remain unsatisfactory** and this new task explicitly supersedes that UI.
+- Initial avatar catalog includes named color/avatar styles; a more balanced **real image bank** needs coordination and actual asset generation/curation.
+- No release acceptance or automated/manual test PASS is claimed by this handoff.
+
+
+## 2026-10-24 — Screenshot defect: profile dropdown persists after outside click
+- User screenshot confirms top-right user profile dropdown remains open when clicking elsewhere. AppLayout used uncontrolled native `<details>` without outside-dismiss behavior.
+- Fix in AppLayout.jsx commit 8425009: controlled profileOpen, document pointerdown listener closes only when clicked outside ref, Escape closes, route and workspace changes reset; profile toggle remains clickable, Settings link closes menu. Event listeners added only while open and cleaned on close/unmount. No profile layout or avatar changes.
+- QA later: click account opens, click outside closes, click inside does not prematurely close, Escape, Settings navigation, workspace switch, mobile layout, no immediate reopening.
+
+
+## 2026-10-24 — Screenshot QA fix: member avatars on Tasks page
+- User screenshot: current account header correctly displays updated photo while member selector on Tasks still shows initials. Source audit found TasksPage imported the legacy presentation-only FamilyAvatar rather than authenticated MemberAvatar.
+- Replaced avatar rendering for every member in Tasks member-selector with shared `MemberAvatar memberId={member.id}`. Uses existing authenticated Media V37 effective bindings, account/workspace isolation, revocable Blob URLs and `fp:member-avatar-changed` event. No Backend or layout changes. Code commit `ce70ce504584a8ac0c33f00d5fd7ff11fa638011`.
+- QA deferred: Tasks tab selector displays uploaded and catalog avatars for multiple members; after member edit Save photo updates; cross-workspace swap clears old photos; missing photo renders initial; both mobile and desktop. Build/CI on exact SHA to check separately.
+
+
+## 2026-10-24 — Dashboard stat-card arrow optical centering
+- User screenshot shows right chevron visually off-center inside the circular indicator on home dashboard stat card.
+- Kept existing 27x27 badge and its approved placement; wrapped glyph in an inner span (DashboardPage.jsx commit 00d5363) and applied scoped optical x/y translation with flex centering (App.css commit c8fbfde). No other Dashboard layout/assets modified.
+- QA later: compare stat arrow centering in light/dark at desktop/mobile; confirm no regressions to stat card click targets or 480px hide behavior. CI exact SHA remains required.
+
+
+## 2026-10-24 — Sidebar order: Members moved above Settings
+- Per user screenshot/request, removed Members navigation item from the main/top links and inserted it into sidebar-bottom immediately before Settings. Download link remains as before; dynamic groups, Tasks, Calendar, Points, Rewards and routing unchanged. Code commit `f0d7599e33a521ee4913271108f9b156b46bebf3`.
+- QA after deploy: bottom navigation order Download → Members → Settings, active state and mobile sidebar, long localized labels; build CI separately.
+
+
+## 2026-10-25 — Calendar settings timezone selector
+- User screenshot flagged raw editable `UTC` textbox with cramped controls. Replaced with a readable curated IANA timezone dropdown (Europe/Berlin, Europe/Kyiv, other common zones, UTC) showing city/country labels and exact zone IDs; the server-provided timezone remains selectable even if outside the curated list. Only privileged roles can change it; writes still use existing Calendar V36 timezone API on Save, no auto-setting from browser locale.
+- Commits 441f969 and following CalendarPage.css scoped style. Does not modify event scheduling or Backend. QA deferred: existing UTC and Europe/Berlin, other server-returned zone retained, disabled for non-admin, long German options, both themes and mobile, DST correctness.
+
+
+## 2026-10-25 — Reward catalog button lower-right alignment
+- User screenshot requested 'Отримати нагороду' button at bottom-right of catalog reward card.
+- Scoped catalog action container with reward-card-actions (RewardsPage.jsx commit 6ecd4c9), flex column card and bottom-pushed, right-justified action row in App.css (0f87e35). Applies to catalog reward cards only; keeps actual purchase/request/edit handlers, enabled states, and other reward panels unchanged. Test narrow responsive cards and rewards with variable description lengths.
+
+
+## 2026-10-25 — Cross-team: Task categories as configurable templates, not Reward categories
+- User proposes Categories subtab and category-driven task defaults including time, repetition/one-time schedule, delegation and other parameters. Screenshot is Rewards > Settings > Reward Categories; task settings must NOT be attached to reward-category DTO. Architecture handoff and source-of-truth: `docs/coordination/logs/architecture.md`, commit `0e7cd08c3cd5785fcf2e26eb570fcbc0b1ceb57c`.
+- Backend prerequisite: separate workspace-scoped TaskCategory / defaults model, CRUD, policy for primary category vs multiple, precedence/snapshot semantics, compatible migration, task schedule-slot mapping and ACL. Current CreateTaskModal already handles recurrenceType, delegationAllowed and daily slot times independently, so Web should apply backend defaults as *prefill*, not force values or mutate previously created instances.
+- Web follow-up when contract available: dedicated Tasks > Management > Categories subtab with template editor, task-category selection in create/edit, visible defaults and explicit user overrides. Existing Rewards > Settings > Categories may be separated into a reward-category subtab independently, but must not be conflated with task templates.
+- Status BACKLOG/BLOCKED_ON_BACKEND_CONTRACT under interim BETA feature freeze. No user-visible feature implemented in this commit; do not report done or claim browser QA.
+
+
+## 2026-10-25 — USER CORRECTION: Rewards category presets are the actual request
+
+**Supersedes the interpretation in the preceding 2026-10-25 task-category handoff.** User initially mixed up tasks and rewards; intended to improve **REWARDS** category management and reward form properties. Task grouping is a possible later independent enhancement, not a current request for task template inheritance.
+
+**Primary Web/Backend direction**: Rewards > Settings > Categories dedicated subtab; each RewardCategory can define property presets and applicable fields for reward types. Examples:
+- One-time bonus: no forced schedule, redemption once via limits, perhaps no duration.
+- Game/play-time reward: TIME_BASED, duration editable, optional specific availability periods; quota/cooldown if chosen.
+- Repeatable standard rewards: optional cooldown, approval, access restrictions and purchase limits.
+Show only relevant fields but never silently discard persisted data; apply category-provided defaults on explicit selection, preserve overrides. Reward kind, acquisition mode, availability and purchase count are separate dimensions. Existing RewardsPage uses rewardKind, defaultDurationMinutes, acquisitionMode, cooldownSeconds, quota fields, requirements and RewardAvailabilityEditor; category template metadata/validation needs Backend contract before code implementation.
+
+**Secondary**: optional grouping of TASKS for discovery/organization; no obligation to implement inherited schedule/delegation defaults or a TaskCategory API. Architecture journal has the authoritative corrected product handoff. Manual QA and implementation remain pending.
+
+
+## 2026-10-25 — Screenshot defect: member avatar Save returns "Authentication is required", native modal scrollbar
+- Screenshot: user attempts member/avatar save; both Members page and Edit Member modal display the same backend error "Authentication is required", and the form has a bright native scrollbar in dark theme.
+- Root HTTP 401 origin **not conclusively established** from screenshot alone: it may be member PUT or Media upload/binding. Client uses the same access token for both. Added explicit saveToken preflight and distinct errors for member-profile PUT vs Media stage so next repro identifies failing phase; Media error mentions that profile may have committed (no atomic Backend endpoint) and modal stays open. Code commit 3c2a401. Do not claim the 401 is fixed until endpoint/network response checked.
+- The modal form scrollbar now has scoped theme-aware scrollbar-color and WebKit track/thumb rules instead of light native scrollbar. QA check all themes and mobile; note browser scrollbar support variations.
+- QA repro: ensure logged-in session is active, open edit, select catalog image/file, Save, capture DevTools Network method/path/status (without sharing Bearer/JWT), distinguish PUT /members/{id} vs POST /media/uploads vs PUT /media/bindings. Check whether refresh resolves stale session; investigate backend auth mapping if error persists. Pending QA, no release PASS.
+
+
+## 2026-10-25 — Avatar Save HTTP 401 reproduced by screenshot; remove redundant profile update
+- Screenshot after diagnostic patch proves member profile PUT succeeded and avatar Media action returned "Authentication is required". Backend `RestAuthenticationEntryPoint` generates this exact text for HTTP 401; `JwtAuthenticationFilter` rejects missing/invalid/scoped JWT. No evidence of Media 403 or asset validation failure.
+- Web was **always** calling PUT /members/{id} even for avatar-only edit before Media upload/binding. Changed `MembersPage.saveMember` to compare name, memberType and workspaceRoleId against the original and skip profile PUT when unchanged (commit bd9739c). This eliminates an unnecessary mutation/token-side effect for avatar-only Save. Media operations still occur only on primary Save.
+- This is a plausible cause elimination, **not proof that HTTP 401 is resolved**. Need retest and, if still failing, inspect Network method+URL+status of 401 (without token) and Backend warning `JWT rejected for <METHOD> <URI>` using sanitized reason. If any member profile edit mutates account's selected workspace/session/JWT identity, Backend must define token refresh or consolidated atomic member+avatar mutation endpoint. Changing profile plus avatar remains non-atomic; no automatic fake PASS.
+- QA: avatar-only catalog Save should skip PUT /members; upload-only should skip profile PUT; profile-only should PUT; changed role+avatar tests stale token case; Cancel no mutation. No production release authorization.
+
+
+## 2026-10-25 — Second scrollbar screenshot / unresolved Media JWT 401
+- User screenshot after prior changes still shows a pale/unstyled scrollbar along the right side of the Edit Member form. Earlier scoped scrollbar used CSS vars that were visually too similar/default on Chromium. Updated explicit thumb/track styling on **actual scrolling form** plus fallback modal/backdrop, with theme-aware `scrollbar-color` and WebKit scrollbar pseudo-elements and color-scheme for dark/light (commit f9916258). No form geometry or profile behaviors changed.
+- **Media 401 remains unresolved** on user's localhost:5173; screenshot alone does not reveal failing endpoint. Previous source analysis confirms Media API PUT/upload includes bearer token, while Backend authentication entry point emits this specific HTTP 401 when request is unauthenticated. Do not claim authorization fixed or bypass JWT. Needed next: DevTools Network failing Media method/path/status, backend `JWT rejected for ...` warning without sharing credentials, check scoped JWT expiry and browser origin/proxy. All manual QA pending.
+
+
+## 2026-10-25 — Avatar media upload size-sensitive failure reproduced and mitigated
+- User reports original 1254×1254 transparent PNG (~2.08 MB) failed with "Authentication is required", but optimized 768×768 transparent PNG (~701 KB) uploaded and saved successfully. Small 256×256 PNG (~84 KB) also succeeded. Thus **file size/encoding sensitivity is confirmed in user observations, but specific reverse-proxy failure code is NOT yet captured**; do not assert JWT is definitively broken or definitively healthy.
+- Added browser-side `optimizeMediaUpload` for multipart JPEG/PNG larger than 850 KiB: resize longest side down through 768/640/512/384/320 until encoded PNG (alpha preserved) or JPEG fits below conservative 850 KiB target; transparent controls and user file untouched, small files pass through. Connected centrally to `frontend/src/api/mediaApi.js` so both member/cover/media upload flows use it. Commits f5a32f0, 3acef75, 61f1906.
+- Backend/Release follow-up: check Nginx `client_max_body_size` at each Web/API ingress; HTTP 413 or routed authentication responses must be investigated against sanctioned 5 MiB backend upload max, keeping authentication intact. Do not recommend bypassing auth. Note optimizing for avatars is pragmatic, but full-resolution family covers may need separate upload policy so 2048px COVER remains sharp.
+- QA later: original failing PNG now saves and alpha remains; file below threshold byte-for-byte unchanged; invalid image and >5MiB rejected; test crop/appearance and mobile performance. CI build and deployed SHA still pending.
+
+
+## 2026-10-25 — Actionable image-upload errors instead of misleading generic responses
+- User confirmed optimized PNG uploaded while original larger PNG failed. Requested an appropriate user-visible error for oversized / unprocessable uploads.
+- Media upload client maps verified HTTP **413** to a dedicated "Зображення завелике для сервера" message and network transport failures to a connection message (commit 09105fda). Image preprocessing now emits user-readable errors for unsupported file, over 5 MiB, failed PNG/JPEG decode, missing canvas and optimization unable to meet size target (commit 7f62c25).
+- 401 remains an authentication error unless server provides reliable body-size diagnostics; **do not misrepresent every 401 as oversized upload**. Backend/Release should align proxy request-body limit with supported image upload size and return HTTP 413 instead of a misleading auth error for rejected oversized payloads. Web-only fix cannot guarantee intermediary status mapping. QA try original oversized PNG, optimized PNG, >5 MiB and wrong MIME, simulated HTTP 413, network failure, invalid session.
+
+
+## 2026-10-25 — Reward receive CTA wrong card family corrected
+- User screenshot confirmed 'Отримати нагороду' remained at bottom-LEFT. Earlier change (catalog reward-card-actions) targeted the wrong card family. Screenshot is Rewards > Requests: `reward-request-card` with status 'Можна отримати', member name and 'Ціна' field.
+- Fixed the actual `READY_TO_PURCHASE` request receive action: added `reward-request-claim` in RewardsPage.jsx (b135a91); set request-card flex column and that button `align-self:flex-end; margin-top:auto; margin-left:auto` scoped to request list in App.css (6cba946). Existing request authorization/purchase handlers and other buttons unchanged. Previous catalog rule remains.
+- Manual QA later: Requests/READY_TO_PURCHASE with one claim, long description, variable heights and mobile width; compare Catalog separately. Build CI and deployed SHA not yet verified. 
+
+
+## 2026-10-25 — User screenshot fix: real visual avatar picker in MemberEditor
+- User screenshot reconfirms member edit dialog still has a native textual avatar select. Replaced specifically **MEMBER + inlineEditor** select with a responsive, accessible thumbnail grid backed by authenticated per-item `previewPath` (no unauthed direct `img` requests). Tile URLs are Blob-based and revoked on unmount/workspace changes; selection outlined with check and aria-pressed. Source: AvatarCatalogTile.jsx 22c5766, EntityMedia.jsx 2628d5a, EntityMedia.css 1c69c7d.
+- This works with currently renderable catalog images. A wider male/female/child/neutral bank and category filters still depend on global Backend+Designer catalog completion; do not claim that bank already exists.
+- Crucial existing Save-only draft behavior retained: clicking tiles changes only `avatarDraft`, no binding mutation; pressing MemberEditor main Save commits; Cancel discards. Upload/clear controls still available inside same modal. Non-member Media controls retain existing select.
+- Manual QA deferred: previews for all catalog keys actually display in browser, selected tile borders, dark/light, desktop/mobile, locale, keyboard, family isolation, network auth, Save/Cancel; no visual E2E PASS claimed.
+
+
+## 2026-10-25 — V38 avatar subfolders do not automatically appear in Media API; Web category tabs
+- User screenshot from another track reports PNG folders such as `animals/`, `monsters/`, `players/` committed but missing in Web avatar selector. Independently inspected current main: `src/main/resources/media/catalog/` has many PNGs in nested folders, whereas `MediaService.java` registers a hardcoded `V38_AVATARS` set of 30 and explicitly constructs those 30 `CatalogItem` entries. Only registered keys are bindable/renderable via `catalogPreview`. Do not assume new assets appear in the API because they exist in resources.
+- Web implemented *actual* category filter chips above authenticated avatar image grid, driven by server catalog `tags` and only shows groups present in the response (ALL, HUMAN, ANIMAL, PLAYER, MONSTER, ROBOT, VEHICLE); four-language labels and aria-pressed. Source commits `55142e2`, `8c6eaa9`. No new ad hoc image URLs, undocumented keys, or direct unauthenticated resources.
+- **Backend follow-up P1**: safely discover approved PNG files under catalog resource tree or maintain generated reviewed registry, including nested folders; ensure stable case-sensitive keys, no collisions/unsafe paths, category tags (HUMAN/ANIMAL/PLAYER/MONSTER etc.), IANA-independent sortOrder, label keys, previews as image/png, binding allowlist matches discovery; honor existing key compatibility and security authorization. `MediaController.catalogPreview` declares produces image/svg+xml even for PNG V38 — validate and correct returned content type. Add exhaustive manifest vs resource integrity tests (no silent omissions, duplicates, or missing binaries); user requested new categories automatically follow folder organization rather than manual registration.
+- Web category tabs are ready for new catalog data, but the full bank is still **BLOCKED_ON_BACKEND**; Android same contract. Manual QA and final CI/deployed SHA pending; no claims of screenshot match.
+
+
+## 2026-10-25 — Nested catalog avatars now registered in Backend source
+- User confirmed images under `src/main/resources/media/catalog/animals`, `friendly_mobs`, `monsters`, `players` are missing from Web gallery. Source tree shows 101 PNGs total (41 root, 17 animals, 4 friendly_mobs, 27 monsters, 12 players). Existing V38 registry covered only 30.
+- Updated Backend MediaService to discover additional PNG resources under nested classpath media/catalog, assign stable basename keys, tags matching folder, preview paths, and list in same catalog endpoint; existing 30 keys retained. Catalog bind allowlist now includes discovered keys, and controller sets PNG content type for PNG responses. Web added FRIENDLY_MOB category chip to existing tag-based visual picker. Commits e843e63, a588034, 9853a20, f284239.
+- CAUTION: compile/test and end-to-end deployment of latest SHA still not verified; runtime classpath resolver's duplicate/packaging behavior and filename collisions must be tested, along with workspace isolation, preview 200 image/png, binding 200, and no missing files. This update is source-only and needs Backend/QA review before Release.
+
+
+## 2026-10-25 — UPDATED Voxel artwork not visible on test website (Web + Backend + Release)
+- User reports corrected 60 voxel PNGs committed/pushed to main, original same file paths/keys; actual commit `880869c711da763eb89ee5d575783f8765810ee4` verified via GitHub. DO NOT regenerate assets or rename catalog keys.
+- Confirmed Web fetches authenticated Media API catalog preview via `AvatarCatalogTile -> fetchAuthorizedMediaObjectUrl -> apiRequest` and Blob URLs, not direct static GitHub assets. Backend `MediaController.catalogPreview` sent `Cache-Control: private, max-age=86400`, permitting same URL to remain stale for 24 hours.
+- Implemented optional `cache` fetch option in `frontend/src/api/client.js` (85dafa7) and enforced `cache: 'no-store'` for authenticated media image reads in mediaApi.js (2217355). Backend MediaController PNG/SVG catalog responses changed to `private, no-store` (37c8631). Existing JWT/workspace boundaries unaffected.
+- **Release/DevOps explicit task:** verify running test Backend image/container SHA includes original PNG replacement `880869c` and the no-store fix; rebuild/redeploy Backend as authorized (new files reside in Java resources and are served by running JVM, Web deploy alone cannot update old bytes). Restart relevant Backend containers/process according to deployment process; avoid unrelated environments. Then test a representative PNG against new artifact under authenticated catalog preview, compare SHA-256 bytes with checked-in file (e.g. animals/voxel_28_fox.png), verify Content-Type image/png and Cache-Control private,no-store. Test Web after page reload and browser Network Disable cache. Compare if old bytes still served: deployment/image drift or intermediary cache/CDN; if bytes new but UI stale: SPA stale loaded Blob/page state. Do not assert deployment performed.
+- QA acceptance: all 60 corrected avatar images map to same keys, no old crop fragments; both new tab and existing session after reload; Firefox/Chrome; workspace isolation, offline handling, old bindings work. CI current SHA and manual visual check not yet passed.
+
+
+## 2026-10-25 — Media member-avatar catalog selection preview / CI latest
+- Verified GitHub Actions run 40149287002 at SHA 213892eb: Java/Postgres, Web Vite, Android Gradle and BETA Compose all SUCCESS. This is CI on that SHA, not runtime QA/deployed proof.
+- Fixed MemberEditor/EntityMedia UX issue: selecting a server-catalog avatar previously only highlighted the tile while existing large member avatar preview stayed unchanged before Save. On staged catalog selection, fetch selected authorized preview, show it immediately in existing edit form and revoke temporary Blob URL on change, close and workspace switch. Upload draft preview and clear behavior remain; server binding only mutated by main Save (commit 5e44946). No new artwork/keys.
+- QA manual acceptance: choose 2 catalog tiles and see large preview change immediately; Cancel leaves saved avatar untouched; Save persists; rapid switches/workspace swap cannot leak old image; dark/light/mobile; expired session graceful fallback. Latest patch needs fresh CI on exact SHA.
+
+
+## 2026-10-25 — Rewards purchase stabilization: mutually exclusive claim paths
+- Source review `RewardsPage.jsx` shows `purchaseOnce` already uses synchronous per-reward `purchaseLocks.current` Set; no need to implement duplicate guard again.
+- Found actionable overlap in Rewards Catalog rendering: for a reward with a currently pending/approved linked request, both `READY_TO_PURCHASE` request-claim button and generic direct-purchase button could render when reward definition is DIRECT/no-approval. Two distinct user pathways for the same reward make UX ambiguous; parallel operation keys coincide but do not resolve wrong purchase type. Source fix `90aa3a6`: direct purchase CTA shown only when `myRequestForReward(reward.id)` is absent. Existing request-claim/action handlers, backend ledger and permissions untouched.
+- QA scenarios: direct reward without request shows one Obtain button; READY_TO_PURCHASE request shows exactly one Obtain action that purchases *the approved request*; REQUESTED/PENDING request does not offer direct bypass; double click hits one endpoint; ledger debits once; re-render after refresh has no duplicate. Test adult/child accounts and insufficient funds. No manual E2E PASS/deployment claimed. Latest previous full CI success run 40149287002 on 213892eb; new fix requires exact SHA build verification.
+
+## 2026-10-25 — Cross-track directive: EARLY BETA publication priority
+**User decision (Architecture):** BETA is the place for testing. Prioritize rapid publication of the existing working feature set. Software implementation readiness includes Backend/Web/Android only; QA and Release are tracked as separate gates, not deducted from implementation percentage. Full manual E2E/regression, minor UX and catalog completeness, synthetic-data preservation rehearsal are NOT publication blockers. Keep minimum safety: green pinned CI, app/server starts, authenticated login/core route smoke, no known cross-workspace privacy leak, repeat points debit or cross-account offline replay, valid signed APK and basic install/launch, minimal DB snapshot before risky migrations. Existing test data may be reset eventually, but **no immediate deletion is authorized**. Templates/reset UI/history correction remain after this interim BETA. Decision record: `docs/coordination/logs/release.md` (2026-10-25); prior green SHA `77b183c98a6`, run `40177131970`.
+
+**WEB action:** Freeze new UX/features for this early BETA. Fix only broken login/navigation, critical purchase paths, severe Media data/privacy issues or deploy blockers. Minor UI, gallery completeness, polish and broad visual QA can be tested after publication.
+
+
+## 2026-10-25 — WEB FREEZE / HANDOFF TO RELEASE FOR EARLY BETA (USER DIRECTIVE)
+**User decision:** Freeze Web implementation now; Release/DevOps owns BETA publication. **No further Web development, enhancements, styling, or refactoring until the interim BETA has actually been released**, unless the user explicitly changes this decision or a critical security/release-blocking defect is discovered. Previous ongoing Web task queue remains deferred until after BETA. Do not ask Web to continue work as the next step.
+
+**Verified GitHub baseline at handoff:** `main` commit `0ad597f67db5f161b28817c84bfc405626e021ce` ("docs(release): review early BETA architecture gate and pinned CI readiness"). GitHub Actions run `40178353879` for that exact SHA reports **SUCCESS**; earlier run `40178161866` also SUCCESS. This is source/CI readiness, **not** proof of VPS deployment, server health, signed APK availability, or manual smoke results. Release must independently pin SHA/tag and check deployed state.
+
+**Included Web baseline:** existing Soft Family flows, reward catalog/request/claim UI with same-reward synchronous purchase guard and mutually exclusive claim paths, member editor Save-only staged avatar selection, visual catalog thumbnails/categories + 60 corrected voxel PNGs in Backend resources, authenticated Media previews using `fetch cache:no-store` and Backend catalog response `Cache-Control: private,no-store`, calendar/reward availability editor. Backend Media/PNG resources must be built into deployed JVM/container; merely updating Web is insufficient.
+
+**Release owner: next actions only:** read-only inspect current VPS/container/environment/deployed SHA + DB schema and current media artifact; select a fully green exact CI candidate; reconcile BETA-only deployment drift, retain secrets; minimal DB snapshot before risky migrations; deploy synchronized Backend+Web and independently signed/installable Android APK as applicable; test HTTPS, `/healthz`, `/api/client-health`, login, core routes and relevant authorized reward operation; confirm no known severe tenant privacy leak, duplicate point debit or cross-account offline replay; check PNG preview bytes/hash or representative visible catalog item; record deployed SHA/tag, release/ APK version, outcome and remaining known issues. No synthetic-data reset authorized without fresh scoped consent.
+
+**Deliberately deferred until after BETA publication:** broad QA matrix, UI polish, categories/templates, reset flows, retrospective history editing, catalog aesthetics, noncritical avatar UX, new screens. This handoff does NOT instruct Release to wait for those items and does NOT grant Release or other tracks permission to change unrelated VPS services/1C/DB data.
+
+**Acceptance owner:** Release/DevOps. Web is frozen and available for post-BETA fixes only.
+
+## 2026-10-25 — Architecture task allocation: templates, currencies, rewards and timers
+**Shared checklist:** `docs/coordination/PRODUCT_BACKLOG_EXECUTION_CHECKLIST.md`. BKL-007: investigate absent GOLD/SILVER/COPPER and default word forms; existing suggestions are not persisted and formatter defaults only POINTS. Post-BETA: task/reward/family template UI, selective-reset confirmations, adult corrections, timed reward display/alerts and Android app reward label/icon (Web cannot directly launch apps). Wait for Backend contracts, preserve 4 locales and current BETA freeze until post-release work is approved. Status PLANNED.
+
+
+## 2026-10-25 — Web accepts Architecture product backlog assignment (ACKNOWLEDGED / FROZEN)
+- Read current Architecture-owned `docs/coordination/PRODUCT_BACKLOG_EXECUTION_CHECKLIST.md` and `POST_INTERIM_BETA_BACKLOG.md`. Web formally ACKNOWLEDGES its responsibilities, **without starting source implementation**: BKL-007 currency visibility/forms investigation (possible preexisting BETA regression); BKL-001/004 task starter/personal template UX; BKL-006 reward template editor; BKL-002 safe reset checklist/confirmation; BKL-003/005 adult fulfillment and historical corrections; BKL-008 countdown/foreground alerts (browser background best-effort); BKL-009 app name/icon display, never direct Android app launch from Web.
+- Execution dependencies: Backend/Architecture approved schema, APIs, permissions and consistency/idempotency before Web forms; retain UK/DE/EN/RU, mobile and both themes, user-preserved overrides, no silent currency/ledger alterations. BKL-007 requires **diagnosis** of DB/API/visibility vs missing persisted forms, not an assumed frontend fault.
+- **User freeze is still binding:** Release/DevOps owns immediate early BETA publication, no additional Web code/features until BETA deployed or explicit new user direction. BKL-007 may be triaged as critical existing-feature regression if shown on BETA; no automatic authorization to modify now. No database reset permitted.
+- Acceptance status of all backlog Web deliverables = ACKNOWLEDGED, PLANNED/AFTER_INTERIM_BETA; not IN_PROGRESS or DONE. Earlier Web handoff release details stand.
+
+
+## 2026-10-25 — BETA released per user; Web DEVELOPMENT RESUMES ON DEV
+- User confirms first BETA has been released and explicitly lifts prior Web freeze. Work proceeds against **DEV** while awaiting any new environment mapping; **do not deploy, overwrite or reset BETA/production** without a separate instruction. This is user-reported release status, not independent verification of deployed SHA.
+- Start Architecture BKL-007 existing-functionality currency regression investigation. Source inspection: `CurrencyFormsSettings.jsx` obtains selectable types exclusively from `getPointTypes` API; if COPPER/SILVER/GOLD not in response, no Web option can display them. Existing preset names in settings were suggestions only, not persisted. `formatCurrencyAmount.js` previously had automatic fallback only for POINTS. Added safe Web-only fallback for all four built-in currency codes and UK/RU/EN/DE, respecting saved configured forms ahead of defaults (commit `1f6efb1`). This fixes rendering when the type exists but no forms are saved; it does **not** create missing currency types or write to DB.
+- Backend follow-up: inspect DEV getPointTypes response and database for existing workspace versus newly created; identify absent/disabled/filtered COPPER/SILVER/GOLD and ensure idempotent restoration only where appropriate, with existing balances/custom forms preserved. Android should share display fallback and default form behavior. No BETA modification or manual API test yet.
+- Further backlog after currency diagnosis: BKL-001/004, BKL-006, BKL-002, BKL-003/005, BKL-008, BKL-009 per Architecture/Backend dependencies. Source change requires CI and actual DEV verification.
+
+
+## 2026-10-25 — BKL-007 further DEV source audit: missing standard currencies root-cause boundary
+- Web `CurrencyFormsSettings` now supports custom currencies through `createPointType`, plus locale form editor; latest main differs from earlier snapshot. It lists strictly `GET /workspaces/{workspaceId}/economy/point-types`; does not filter standard codes itself. API returns only `getActivePointTypes` -> repository `findByWorkspaceIdAndActiveTrueOrderBySortOrderAsc` (EconomyController/EconomyService).
+- Backend `getOrCreateSettings` only calls `createDefaultSettings` when NO settings row exists; that initializer creates POINTS and ensures COPPER/SILVER/GOLD. For pre-existing EconomySettings there is no repair path. Therefore old families with old settings and missing types will not be populated by merely calling GET; inactive types are also hidden from response. The source establishes a plausible/strong root-cause mechanism, NOT proof of any particular user's DEV DB contents.
+- **BACKEND ACTION P0/BKL-007:** inspect DEV rows for requested workspace, distinguish (1) missing standard type (2) inactive standard type (3) SIMPLE vs MULTI mode. Design idempotent existing-workspace restore/ensure for missing standard codes without reactivating intentionally inactive rows, overwriting customized names/forms or touching ledger/balances; ensure no duplicate or unsafe live mutation; add source regressions for existing settings. Return active types as currently contracted, or explicitly agree an admin list endpoint to manage inactive ones.
+- Web built-in point name fallback now covers four currency codes and four languages, but cannot reveal inactive/absent types via active-only endpoint. No DB writes, environment deploy or live API calls in this audit; ongoing work restricted to DEV per user's instruction. Coordinate with Android to avoid diverging behaviors.
+
+
+## 2026-10-25 — BKL-007 currency display hook hardening (DEV source only)
+- Audited `useCurrencyQuantity` integration used by Points and reward-facing pages; persisted name forms are requested per active type and display fallback now supports all four standard codes in 4 languages.
+- Fixed workspace/account boundary: previous hook kept old `types` and `forms` until new workspace request returned, temporarily risking old workspace currency names/forms in a new workspace. Hook now clears both maps whenever workspace/token changes, and ignores late requests via its existing effect active guard. Also compares type IDs as strings and codes case-insensitively to support API numeric/string identifiers (commit `f47f2fe`).
+- Backend currently only includes *active* point types in GET /economy/point-types; existing settings skip currency initialization. Web cannot safely restore absent/disabled built-ins by inventing them. Backend remains owner of idempotent old-family restore / management endpoint.
+- Acceptance on DEV: switch between two families with customized 4-language names; no old names visible while switching, correct new forms after fetch; same code with distinct numeric/string type IDs; old late response must not win. No live DEV/browser E2E or deployment performed; current CI requires exact SHA confirmation.
+
+
+## 2026-10-25 — DEV /settings blank screen reported (screenshot localhost:5173/settings)
+- User screenshot shows full dark background with no page chrome. Exact browser console exception not provided, so root cause NOT independently established.
+- Reviewed SettingsPage: dereferenced `currentUser.workspaceId` and `currentUser.permissions` unguarded in JSX before auth context guaranteed initialized; this can throw TypeError during session transition. Added safe early loading return when workspace/user missing, while preserving hook invocation order. Commit `8834dfa`.
+- Latest pre-patch Actions `40240665891` on `f8f3746` SUCCESS but is build-only, not browser DEV proof. Must confirm DEV local checkout pulled latest and check Chrome DevTools Console stack + Network if page remains blank; other runtime faults remain possible. No BETA deployment.
+
+## 2026-10-25 — DEV /settings white/blank screen — ROOT CAUSE CONFIRMED
+- User provided Chrome Console screenshot showing `Uncaught TypeError: setSelectedId(...) is not a function` at `CurrencyFormsSettings.jsx:71:22` in `/settings`. This is JavaScript automatic-semicolon-insertion hazard: `setSelectedId('')` followed immediately by line beginning `(canManage ? getAllPointTypes(...) : getPointTypes(...))`, parsed as invoking the return of `setSelectedId`.
+- Fixed by terminating `setSelectedId('');` explicitly. Source commit `a9f6ed652d6c07e55681baac109a4f6f97c0d732`. Earlier auth guard `8834dfa` was not the screenshot's confirmed cause.
+- User should pull `main` and hard reload DEV localhost; browser confirmation and CI on patch pending. No BETA/production deployment performed.
+
+
+## 2026-10-26 — BKL-007 custom currency Web acceptance source review and fix (DEV only)
+- Backend reports ~95% BKL-007 and DEV family 1 POINTS/COPPER/SILVER/GOLD with 16/16 language forms persisted; custom currency browser acceptance still open. Web source has create/edit/active toggle and per-language one/few/many persistence through existing REST contract.
+- Concrete Web inconsistency fixed: after admin loaded GET /point-types/all (including inactive), `addCurrency()` refreshed via GET /point-types (active-only), dropping inactive entries until full reload. It now refreshes from the same admin all-types endpoint, checks duplicate code client-side (Backend still authoritative), uses bounded finite sort orders and localized creation/duplicate notices. Commit `0786d1e`.
+- **DEV manual acceptance remaining (not verified):** authenticated MANAGE_ECONOMY adult opens Settings; create unique `CRYSTALS` custom currency; it appears once and remains selected; write Ukrainian 1/2/5 forms and save; repeat in de/en/ru, reload and inspect persisted forms; rename/disable/enable; disabled visible to admin but absent from active operations; verify custom name is not overridden by standard defaults; another family must not see it. Ensure unrelated balances unchanged. Clean up only the test currency if explicit action approved; no user data reset. Check Chrome console and exact CI SHA before marking BKL-007 DONE.
+- No browser automation, real DEV UI run, or BETA/production deployment performed by this Web chat. Tests must not be marked passed based on code audit.
+
+
+## 2026-10-26 — Architecture templates logic revision ACK (Web planning, no source UI changes)
+- Re-read updated ADR-TEMPLATES-001 2026-10-26 amendments and Backend template-foundation progress. Crucial revised behavior: individual checkbox selection imports *definitions* into the family-private template library only; import does not create executable TaskDefinition/RewardDefinition or ledger changes. Activation/instantiation is an independent, explicit user action. Packs only assist select-all/clear-all; zero selected allowed; dependency resolution transparent and consent-based.
+- Catalog covers adults/children/family, target scopes SELF/MEMBER/GROUP/FAMILY; TASK vs EVENT (real dated calendar occasion without completion/ledger) vs ROUTINE (recurring pattern, contract not finalized) vs REWARD. No invented calendar event API: current calendar aggregate does not persist appointments. Private sensitive appointment metadata requires scoped visibility.
+- Android app/game reward linkage is OPTIONAL: manual game rewards remain valid; Web shows vetted synced app display/icon but does not launch device apps. Reward entitlement, session start, optional launch, countdown and future managed device block are separate concerns; never promise app force-stop in standard Android.
+- Backend started TemplateCatalogService and GET /template-catalog with intentionally EMPTY catalog JSON; no private library/preview/install API yet. UI priority after Backend contract: (1) catalog/packs filters + individual selection + selection preview, (2) idempotent copy to private library, (3) library browsing and explicit instantiate forms, (4) adult scheduling EVENT after dedicated Backend model. Do not implement fake frontend-only persistence or incorrectly auto-create active records. Await Backend DTO/API for any data-writing Web features.
+- Web assessment: PLANNED/ACKNOWLEDGED; no new source code, API calls, DEV runtime tests or BETA deployment in this note.
+
+
+## 2026-10-26 — BKL-001/004/006 Web DEV first functional library packet
+- Backend main now contains TemplateCatalogController GET /template-catalog, WorkspaceTemplateController GET/PUT/DELETE private templates and POST /templates/imports/preview + /imports, PostgreSQL V39. Global seed catalog-v1.json currently EMPTY; no invented sample content added.
+- Web new frontend/src/api/templateApi.js and frontend/src/pages/TemplatesPage.jsx: authorized catalog/private library loading, individual checkbox selection, preview alreadyImported/toImport before explicit import, private library listing, editable title/JSON definition, explicit delete confirm; import does NOT instantiate active tasks or rewards. Route /templates and a Settings link for managers. Source commits 51ee447,0366af3,ec45ae4,a756e8b,bb01f40,2362c42,605e5f9.
+- This is **DEV source delivery only**; direct edits of definition JSON are advanced temporary UI pending product editor forms, and the backend global catalog is empty so user sees empty suggestions until Designer seed. No event/routine functionality, no active object creation or browser testing claimed. Backend canManageWorkspace is authoritative; workspace isolation delegated to backend. Automatic build on newest SHA needs checking.
+- Next package: improve template editor forms/UX and expand catalog selection once Backend/Designer supply stable schema and curated entries. BETA/PROD left unchanged.
+
+
+## 2026-10-26 — DEV templates library stabilization packet 2
+- Source review revealed concurrent import preview/save operations were guarded only by React state; rapid clicks can race before disabled state renders. Added synchronous `useRef` lock, rejecting a second operation while first pending.
+- Asynchronously received import previews now checked against original workspace and selection revision. Changing selected template invalidates previous preview; a late response no longer reinstates it.
+- Definition editor validates that JSON parses as a nonnull object and is <=30k characters before enabling Save (aligned with WorkspaceTemplateController). No active task/reward instantiation or catalog seed additions.
+- Source commit `7aab029c`; manual DEV QA pending. Source still has limitations: global catalog seed empty, raw JSON advanced editor until stable DTO/schema, list/page not independently smoke-tested. BETA remains unchanged.
+
+
+## 2026-10-26 — BKL-001/004/006 DEV template structured editor package 3
+- Added TemplateFieldsEditor.jsx: structured controls for existing TASK/REWARD definition properties (description, recurrence/due time, monetary/reputation amounts, reward kind/limits/approval/duration); only edits keys already present in server-provided JSON, leaving unknown fields untouched. Absent values are NOT invented or converted to new backend schema.
+- Integrated in TemplatesPage private library form; advanced raw JSON retained as expandable fallback. Editing does not create active tasks/rewards. Source commits `83daa7e`, `3234f96`. No EVENT editor until real model, no pack seed. QA should verify edits to existing saved task/reward, reload preservation, invalid payload, unknown fields and cross-workspace isolation.
+- Structured labels currently supplied for uk/en; ru/de fall back to English pending localization completion. CI and browser DEV verification required before claiming pass. BETA untouched.
+
+## 2026-10-26 — Web templates package 4 localization completion
+- Added RU and DE strings for every currently displayed structured TASK/REWARD property in `TemplateFieldsEditor.jsx`; existing UK/EN retained. Source commit `49f8327` on main. This only affects field labels; no template payload transformations or writes to BETA.
+- Current Backend private template contract persists JSON definitions and global catalog remains initially empty; manual DEV editor/reload checks and exact CI confirmation still needed. No claim of passed E2E.
+
+## 2026-10-26 — Web template editor input controls packet 5
+- Updated TemplateFieldsEditor to show dropdowns for Backend enums RewardKind STANDARD/TIME_BASED and RewardAcquisitionMode DIRECT/REQUEST/DIRECT_OR_REQUEST only. Existing unknown values remain plain text rather than being overwritten. Other free-form enums await exact Backend contract.
+- Numeric inputs protect nonnegative duration/price/usage limits/cooldown, integer duration/limit fields, reject nonfinite values. Unknown keys remain unchanged in JSON. Commit `faf9d32d`; BETA untouched. CI and manual DEV smoke pending.
+
+## 2026-10-26 — BKL templates Web packet 6: recurrence/availability enum controls
+- Added backend-aligned TaskRecurrenceType dropdown ONCE/DAILY/WEEKLY/MONTHLY/CUSTOM and RewardAvailabilityMode dropdown ALWAYS/ONE_TIME/RECURRING_WEEKLY to TemplateFieldsEditor, preserving unknown stored values in free-text fallback. Commit a6327c1.
+- A broader patch for recurrence day/time fields initially hit concurrent GitHub 409; it was deliberately NOT overwritten. Those fields, constraints, complex schedule editor, CI and actual DEV browser tests remain outstanding. BETA unchanged.
+
+## 2026-10-26 — Web templates packet 7: recurrence day and availability window editing
+- Added structured editing of existing recurrenceDayOfWeek (1..7) and recurrenceDayOfMonth (1..31) integer properties in TASK definitions and availabilityStartsAt/availabilityEndsAt text fields in REWARD definitions, with UK/RU/DE/EN labels. Only fields already present in definition JSON are shown, preserving absent/unknown keys. Commit `356859b`.
+- Availability timestamps remain exact ISO text from Backend snapshots: no implicit local-time conversion, timezone rewrite or unsupported weekly-window creation. Full validity/cross-field consistency is a Backend follow-up; DEV browser validation pending. BETA/production unchanged.
+
+## 2026-10-26 — Web template packet 8: reward availability boundary validation
+- TemplatesPage now validates existing REWARD availabilityStartsAt/availabilityEndsAt fields before editing can be saved: ISO date-time parsing (including optional offset), rejects malformed timestamps and end <= start, and renders a visible error. Existing values and unrelated fields remain untouched; no conversion of timezones or update of current reward data. Commit `7da374b`.
+- Browser DEV E2E and CI for this SHA are pending. Next: localized error text, guided date/time inputs with explicit timezone contract, further Backend checks. BETA untouched.
+
+## 2026-10-26 — Web templates packet 9: timestamp validation repair + i18n
+- Fixed JavaScript RegExp in TemplatesPage availability validator: previous code incorrectly contained double-escaped `\\d` in regex literal, rejecting valid ISO dates. Corrected to digit classes; messages localized in UK/RU/DE/EN, preserving blocked save for bad order/format. Commit `c9e60ea`.
+- Source only; calendar date picker remains pending explicit timezone semantics, no BETA deployment or browser smoke claimed.
+
+## 2026-10-26 — Web templates QA source audit
+- Audited frontend template API adapter against WorkspaceTemplateController paths, confirmed GET catalog/private list, POST preview/import, PUT/DELETE templates route signatures. Current global catalog remains empty; cannot claim catalog import E2E in DEV yet.
+- Fixed lingering double escape of decimal separator in timestamp fractional-seconds regex and stale cross-workspace private library refresh after async GET. Source commit `aa05f9d`. No user test data edits, no BETA changes.
+- CI independent status pending; requires browser smoke (switch families, edit/save/reload, preview/import once seed is populated). Known gap: no automated Web E2E suite for these scenarios.
+
+## 2026-10-26 — Web UI screenshot: templates link overlaps Settings heading
+- User screenshot shows `Settings > Бібліотека шаблонів` title overlapped by `Відкрити шаблони` link in dark theme. Fixed dedicated flex-column section and block-like inline-flex link with 16px separation and normal position. Source commits `edc98a8`, `aa4f24e`; no Backend/BETA data changes.
+- Browser confirmation requested after pulling main/reloading. CI not yet independently confirmed.
+
+## 2026-10-26 — Web template catalog pack selection
+- Implemented optional filter for catalog packs by `pack.code`/`templateCodes`, plus select/deselect visible entries. Individual item checkboxes remain independent; changing selections invalidates prior preview. Source commit `0b3201a`.
+- Global catalog remains empty until Designer seed; Web manual smoke and latest CI remain unverified. No automatic active tasks/rewards or BETA deployment.
+
+## 2026-10-26 — Web templates CI regression triage / selective import guard
+- Observed main Actions run 40381339684 FAILURE after pack filter implementation. Inspected TemplatesPage.jsx and found a stray standalone `}` after pack selection controls, causing invalid JSX compilation. Removed it in commit `d708625`.
+- Import preview now snapshots selected template codes; Import button is disabled if the current selection diverges and confirmation submits the snapshot instead of a mutable live selection. Family switch + prior selection preview guards remain intact.
+- Actual global catalog still EMPTY. End-to-end seed/import cannot be asserted; latest CI of fix pending. No BETA writes.
+
+## 2026-10-26 — Web template stabilization after JSX CI failure
+- GitHub Actions run 40386183381 Web/Vite job PASSED after fix commit 9d84265; Java/Android were still in progress at observation. Previous failure was missing JSX `}` in TemplatesPage.jsx.
+- Template catalog now shows an Already in library marker for entries with matching workspace-private catalogCode; displays remaining non-imported suggestion count; preview action disabled when selected codes contain no new entries. Import completion clears preview selection only for the original workspace. Source commit dad89cb. Backend unique workspace/catalog_code remains authoritative against duplicates. Current seed catalog empty, so full import E2E awaits content. BETA untouched.
+
+## 2026-10-26 — Web templates: localized errors and warnings
+- User reported nonlocalized error/warning text. Updated TemplatesPage to render localized UK/RU/DE/EN messages for invalid JSON, failed network request, HTTP 400/401/403/404/409/413/422, unexpected server errors. UI does not surface arbitrary backend English diagnostic details to family users. Validation errors are stored as errors and translated at render time; language switch updates displayed message. Source commit `f177934`.
+- Existing delete confirmation and reward availability messages already localized in all four languages. No changes to backend or BETA. New Vite CI and DEV browser smoke remain required; broader Web sections should be audited separately.
+
+## 2026-10-26 — Web API errors localization follow-up
+- CI 40386872661 passed after template errors i18n. Audit exposed regression: TemplatesPage catch used `setError(e.message)`, discarding HTTP status needed by localizedTemplateError. Fixed to store original error object (`6bb9bf1`).
+- SettingsPage workspace/account management and own password errors used raw server messages. Added four-language UI error mapping (UK/RU/DE/EN) for 400/401/403/404/409/422, network failures, generic fallback, retaining already-localized client-side validation. Source `d6c84bd`.
+- No Backend/BETA changes; browser DEV language switching + new CI still require confirmation. Further pages/components require separate audit.
+
+## 2026-10-26 — Coordinated sprint assignment (WEB)
+**Source of truth:** `docs/coordination/CURRENT_PRIORITY_SPRINT.md`. **P0:** stay green, regression-check designer TIME duration into editable reward creation form on DEV after Backend fix; cover selected import, no duplicate, tenant switch, API errors localized four languages. **P1:** batch real browser QA across task/reward template library, packs, draft edit/activate and settings error locale. Fix confirmed defects as one coherent package. Don't start BKL-008/009 now.
+
+## 2026-10-26 — Architect P0 Web stabilization: template import and tenant switch
+- Reviewed CURRENT_PRIORITY_SPRINT.md, checked green full GitHub Actions run 40390915206 (Web/Java/Android/BETA config jobs passed). The latest subsequent CI remains independent.
+- Fixed Web pack/bulk selection to exclude catalog entries already imported to the workspace; existing items are visually checked/disabled rather than actionable. Enforced invalid reward availability on save handler as well as disabled button. Guarded post-update/delete success UI against workspace switch and cleared stale success banner on change. Source commit `c6d8255`.
+- No Backend workaround for TIME 30→0, pending backend validated mapping. User-data browser smoke, actual cross-family API QA and release remain NOT VERIFIED. BETA unchanged.
+
+## 2026-10-26 — Architect P0 Web: TIME reward catalog duration visibility
+- CI run 40390915206 passed all four jobs (Web/Backend/Android/BETA config); later CI checks ongoing. Reviewed seed: catalog `rewardKind: TIME` and `durationMinutes:15/30`; Backend enum uses `TIME_BASED` and creation-draft mapping is Backend-owned. No client coercion or overwrite.
+- Web catalog cards now display source `durationMinutes` in UK/RU/DE/EN when a positive duration exists. Commit `b1e1a04`, for visual verification before import. No one-click activation or ledger modifications. DEV browser QA and new CI pending; BETA untouched.
+
+## 2026-10-26 — Web creation-draft integration read-only checkpoint
+- Wired GET workspace-private template `/{templateId}/creation-draft` into frontend template API (`df9450d`) and added explicit preview-only view to selected TASK/REWARD private template (`216cbdc`). Shows Backend `request` untouched, including defaultDurationMinutes, pointTypeId and task assignment placeholders. Copy is localized UK/RU/DE/EN and explicitly states no activation. No POST activate or auto-creation added; no ledger or live data mutations.
+- Remaining: replace JSON-only draft with domain-valid editable form, field validation, user confirmation and exact-once semantics only after consumer/security QA. DEV browser E2E and latest CI pending. BETA unchanged.
+
+## 2026-10-26 — Web draft editing checkpoint (non-activating)
+- Added editable JSON request buffer for GET `/creation-draft` TASK/REWARD templates, with localized UK/RU/DE/EN labels, parse/size validation, and explicit local-only/non-activating notice. It is intentionally not persisted, does not call activate-task/reward and does not create ledger or task/reward rows. Source `3238ffc`.
+- Previous GitHub Actions full run 40393430466 succeeded. Latest feature CI pending. Follow-up: replace raw draft JSON with safe structured creation form, resolve workspace member/currency IDs, run DEV browser QA and activation security checks before introducing any POST action. BETA unchanged.
+
+## 2026-10-26 — Web structured creation-draft editor checkpoint
+- Added `TemplateDraftFieldsEditor.jsx` with structured controls for existing TASK/REWARD creation draft keys, preserving unknown JSON keys, and retaining advanced JSON editing in expandable details (`b82ea1c`, `4747450`). Draft edits remain strictly local-only; **no activation endpoint** called or live task/reward/ledger records created.
+- Labels UK/RU/DE/EN; Backend remains authority for TIME->TIME_BASED normalization and durationMinutes->defaultDurationMinutes. CI run 40394449361 SUCCESS before this change; new CI and DEV browser QA pending. Follow-up: proper workspace member/currency pickers, domain validation and separate explicit activation after contract/QA signoff.
+
+## 2026-10-26 — Web creation draft workspace-scoped selectors
+- Added scoped dropdowns for assignedMemberId and point type IDs (rewardPointTypeId, penaltyPointTypeId, pointTypeId) in non-activating draft editor; selected IDs come from GET workspace members / active workspace point types, not globally mixed UI state. Source commits `cf3df61`, `df8b9bc`.
+- Fresh reads made per explicitly requested draft; on workspace/template switch stale draft responses remain guarded. Unknown current IDs shown as disabled legacy options instead of silent remapping. No activation or live data changes. CI and browser checks pending. Future enhancement: empty-data explanations, proper API response validation, improved accessibility and normalization of active flags.
+
+## 2026-10-26 — Web draft readiness validation
+- Added localized non-activating readiness warnings for title, TASK family member/start date, positive TIME_BASED reward duration, and family-scoped currency references. Commit `24e55ba`; no activation or BETA changes.
+- CI run 40397086671 Web/Java/BETA PASS, Android FAIL. New CI and manual DEV smoke pending.
+
+## Architecture dispatch 2026-10-26 (late)
+Read `docs/coordination/DISPATCH_20261026_LATE.md` as the current cross-chat priority assignment. **WEB owner:** P1: structured local-only draft and family-scoped selectors/nullable price, browser DEV smoke; do not prematurely activate.
+
+## 2026-10-26 — Web activation-readiness contract audit
+- Checked TaskDefinitionCreateRequest/RewardDefinitionRequest DTOs. Reward creation requires non-null pointTypeId, TIME_BASED duration must be a positive integer. Tightened local-only creation-draft warnings accordingly; TASK member requirement applies only to SINGLE_MEMBER assignment policy. Commit `255a8dd`. No activation API call, no ledger modifications, no BETA deployment.
+- Broader validations/confirmation and browser tenant tests remain open; CI on this commit pending. Concurrent main edits required SHA refetch after initial 409.
+
+## 2026-10-26 — Late Architecture dispatch / Web preflight (P1)
+- Read `docs/coordination/DISPATCH_20261026_LATE.md`. Implemented local-only preflight in template creation drafts: null reward price is explicitly unresolved, not automatically free/zero; require nonnegative whole-number price, TASK recurrence, basic ISO start-date shape, display four-language preliminary readiness status when no warnings. Commit `f44ee91`.
+- No activate-task/activate-reward POST wired; no ledger writes. Architecture explicitly directs Web not to activate pending Backend/QA acceptance. Need real browser DEV QA (family scoped selectors, null price, TIME duration, overlapping-pack import), current commit CI confirmation. New BETA release is Release-owned.
+
+## 2026-10-26 — WEB pack-overlap selection regression packet
+- Corrected global catalog pack view counters to use displayed pack items, not all 142 templates. Preview request now uses only selected not-yet-imported template codes, excluding already-imported entries even if a previous selection contained them; same filtered snapshot drives preview confirmation. Commit `80838afd`. Prevents redundant import attempts across overlapping packs (TPL-03A). No activation or BETA changes.
+- Browser DEV API E2E and latest CI still require confirmation; backend owns unique constraint/idempotent imports.
+
+## 2026-10-26 — Web template tenant-switch async isolation
+- Added request generation invalidation on workspace change; stale initial catalog/private-library responses, errors and operation completion no longer update newly selected family's view. Reset busy/action-lock when changing family rather than keeping an old operation blocking new requests. Added editingRef guard so slow creation-draft response for previously selected template cannot overwrite newly selected draft in same family. Commit `1bd6fa3`.
+- No Backend/API writes added; server remains authoritative for tenant permission checks. CI and real browser multi-family race QA pending; BETA unchanged.
+
+## 2026-10-26 — User reprioritization: reset BEFORE next BETA, economy v0.7 IN DEVELOPMENT
+Read `docs/coordination/REVISED_BETA_SCOPE_20261026.md`; it supersedes previous parked status of BKL-002. **WEB:** P0 selective reset preview/checklist/confirmation and first-run 142/6 template import; economy v0.7 configurable suggestion display, null != 0. Planning/assignment only: no data deletion authorized.
+
+## 2026-10-26 — Web TPL QA static audit, A→B→A race mitigation
+- Reviewed TPL-01..15 handoff and latest full green CI 40401118395. Static code audit found rare A→B→A workspace-switch race: old async private-library refresh and creation-draft response previously checked only workspace id, allowing stale A data if user switches A→B→A during same request. Added request-generation guards on refresh, draft fetch and import preview (`6dd26a4`).
+- Browser DEV execution of TPL test cases is NOT VERIFIED; tests for actual Backend request/response, activation, ledger and cross-tenant access belong QA/Backend. No BETA deployment or active data writes.
+
+## 2026-10-26 — Web async audit: preview ReferenceError and stale mutation completions
+- Static audit found `generation` referenced in import-preview callback without definition, causing runtime ReferenceError after successful API response (the preview could never appear). Captured requestGeneration before await; also guarded import, update, delete completion UI against A→B→A workspace switches. Source `c53bdb5`.
+- Source fix only; new CI and browser DEV smoke required. No activation API wired, no BETA changes.
+
+## 2026-10-26 — TPL Web static regression audit and QA handoff
+- Rechecked template import selection/preview, stale request generation and workspace switching. Fixed visible pack counter: previously showed selected total across *all* packs while denominator represented only visible pack; now counts selected visible non-imported entries (`c57ce2f`). Selected codes for import continue to span packs as explicitly selected, deduplicated and filtered against private library.
+- Latest tracked workflow 40403429433 was superseded/cancelled before Web job completion; no unverified CI pass claim. Manual DEV browser scenarios still NOT VERIFIED: TPL-01 global 142/6 catalog; TPL-02 subset preview; TPL-03/TPL-03A overlapping packs and repeat imports; TPL-04 empty selection; TPL-05 family isolation and A→B→A; TPL-07/08 TASK/TIME draft; TPL-09 family active currencies; four-language UX. TPL-10..14 activation and claim/ledger validation Backend/QA-owned and not wired into Web. No BETA changes.
+
+## 2026-10-26 — P0 reset priority intake and safe Web contract readiness
+- Latest `REVISED_BETA_SCOPE_20261026.md` overrides historical deferral: selective family reset and first-run import required before next BETA. Audited current main source tree: no Backend family reset controller/API exposed yet. Created `docs/coordination/requests/WEB_RESET_CONTRACT_READINESS_20261026.md` (`06e01b0`) defining minimum API, dry-run, fresh authorization, dependency confirmation, generation/tenant safety, idempotency, localized UX, and QA/release acceptance. No fake enabled reset button and no data deletion.
+- CI 40403747655 in progress at observation; recent prior Web CI runs cancelled by concurrent main pushes. Existing TPL browser DEV smoke still pending. Next owner Backend/Architecture: publish actual reset contract, then Web UI integration.
+
+## 2026-10-26 — Web Settings build identification for QA
+- Added compile-time Web build metadata in vite.config.js: frontend package version, Git SHA (CI GITHUB_SHA/env override or local git), UTC build timestamp, channel (explicit VITE_APP_CHANNEL or default BUILD/DEV). Commit `d3f724b`.
+- Added Settings readout + copy-build-information button with UK/RU/DE/EN labels; source `465c292`. These identify *frontend assets served to this browser*, not Backend version or Android APK. Package currently version 0.0.0, so SHA/build timestamp are primary QA identifiers. CI/build and DEV browser inspection pending; BETA not deployed.
+
+## 2026-10-26 — Localized family chooser errors
+- Fixed `ChooseFamilyPage.jsx` raw `Failed to fetch` and arbitrary exception display: typed network errors and 401/403/404/409/5xx translate through UK/RU/DE/EN familyChoice localization keys. Load, switch and create paths use shared mapper. Commits `97174c1`, `b66b130`, `913fb52`, `7636702`, `a09fae6`.
+- Original screenshot network request failure remains a connection/API availability issue; localization does not fix a down Backend. DEV/browser verification and latest CI pending.
+
+## 2026-10-26 — Template catalog UX screenshot correction
+- User screenshots showed all 142 template checkbox labels concatenating in an unstyled wall, raw TASK/REWARD labels and unbounded page. Added `TemplatesPage.css` with scoped responsive card grid/toolbar layout, search, first 8 cards default with explicit Show all/Collapse, localized type labels and filter actions. Commits `21e0b73`, `f39a3db`.
+- Selection across starter packs remains supported; search/filter only changes visible cards, not previously selected codes. Imports remain explicitly previewed. CI and browser DEV visual smoke pending. No BETA deployment.
+
+## 2026-10-26 — User screenshot Web UI fixes: template editor and task creation
+- User demonstrated poor template card styles and `[object Object]` description plus absent template selection in CreateTaskModal. Added `getPrivateTemplates` TASK-only picker to CreateTaskModal; upon selection fetches backend creation-draft and prefills title, description, mandatory, recurrence, due time and reward/penalty values, while user still explicitly saves and chooses family assignment/date. Commits `bd9bc5d`, `16961e0`.
+- Made template editing structured, raw JSON under optional advanced details, responsive grid form CSS; localized-description object preserved while editing and rendered as a readable locale string. Commits `c8e1849`, `a60c94a`, `d20aa40`, `b24a793`.
+- Checked TaskDetailsPage: existing CreateTaskModal editOpen already supplies editable full task definition; need QA verify edit workflow and follow-up UX if missing fields. New Web Vite CI/browser QA pending. No automatic template activation or BETA deployment.
+
+## 2026-10-26 — Web CreateTaskModal async template isolation (SOURCE FIX)
+- Reviewed current QA TPL handoff, revised BETA scope, and TemplatesPage/CreateTaskModal implementations. Current catalog grid/search/collapse, structured template editor and task picker are in main, but real browser/viewport acceptance remains NOT VERIFIED.
+- Confirmed source race in CreateTaskModal: late GET creation-draft responses could overwrite task fields after changing template selection or family. Added request-generation and workspace guards; empty selection invalidates pending request; stale success/errors/loading do not affect current choice. Commit `acae190`.
+- No template activation, ledger writes, actual family reset, or BETA/production deployment. Browser QA: select A then B rapidly; select A then 'without template'; switch family while A is loading; verify no old field injection; test UK/RU/DE/EN. CI verification must use exact post-commit SHA.
+- Next: verify exact-head Web CI; finish full locale/error audit and structured template editor visual responsive acceptance; integrate selective reset only after Backend contract.
+
+## 2026-10-26 — Current BETA architecture dispatch
+Read `docs/coordination/CURRENT_BETA_DISPATCH_20261026.md`. **WEB:** P0 selective reset UI and guided first-run/template import after Backend contract; preserve family-scoped async state. Economy v0.7 preliminarily accepted for DEV; reset BKL-002 mandatory before next BETA, not an authorization to erase any family.
+
+## 2026-10-26 — Designer 18 category SVG consumer integration checkpoint
+- Read `docs/coordination/requests/DESIGNER_MEDIA_CONSUMER_HANDOFF_20261026.md`, `docs/design/ICON_REGISTRY_CONTRACT_V1.json` and current `EntityMedia.jsx`. Designer has approved 18 category vectors; Backend registration was reported, but DEV/browser Media API results not independently verified.
+- Fixed current Web catalog picker: all 18 new `media.catalog.category.*` label keys now resolve local UK/DE/EN/RU names rather than opaque `category-*` strings; `REWARD` media target now filters reward catalog items rather than incorrectly falling through to FAMILY only. Commit `6140a0b`.
+- Existing TASK target filters TASK/TASK_CATEGORY. Category auto-selection via designer templateCategoryMapping is NOT wired: needs an explicit bound domain target/default precedence rather than rewriting private bindings. Browser 24/48px, dark/light, missing preview, 401/403 and family A/B tests NOT VERIFIED. No deployments, media mutations or automatic economy prices.
+- Next: run exact-head CI and authenticated DEV visual QA; then integrate non-destructive category default icon mapping at a verified component/API boundary.
+
+
+## 2026-10-26 — WEB-DESIGN-02 category thumbnails in starter catalog
+- Integrated Designer's approved templateCategoryMapping as a display-only frontend lookup in TemplatesPage: catalog item suggested/definition category resolves to category-* key, with task-default / reward-star fallback.
+- Fetches Media catalog per active workspace, preloads only mapped keys via authenticated workspace-scoped blob URLs (no public media token URLs), revokes object URLs on workspace change/unmount. Cards show responsive 40px preview with local glyph fallback when catalog/preview is unavailable. Source commits `5ebd00e`, `9a59f33`.
+- No persistent media binding changes, no migration, no reset, no economy price writes, no deployment. Private-template card / live TASK and REWARD category auto-presets remain distinct future integration points; explicit user-selected binding must win.
+- Source review only. QA MUST verify 142 cards/6 packs after authenticated DEV catalog, media 401/403 fallback, family A/B switch, four languages, light/dark + mobile at 360/390/1366/1440, ensure no console errors or broken images. Exact-head CI not yet certified.
+
+## 2026-10-26 — WEB-DESIGN-04 partial consumer integration
+- Added read-only EntityMedia for managed TASK card binding, respecting stored user-selected image, workspace-scoped authorized media fetch and fallback. Source e524f3c. Did NOT attach speculative REWARD media target: Backend target/slot contract needs verification. Private template cards were updated earlier at c406321/fe2510a.
+- No writes to bindings/family data/BETA/production. Exact CI and real DEV browser smoke still pending. QA: A/B workspace isolation, existing custom task image, no-image fallback, 401/403 preview, responsive lists.
+
+## 2026-10-26 — WEB-RESET-01 safe readiness shell
+- Checked Backend and Architecture logs plus WEB_RESET_CONTRACT_READINESS: no verified Backend reset preview/execute/challenge contract is published. Destructive operations remain blocked.
+- Added four-language informational FamilyResetReadiness panel for workspace managers/admins in Settings. It explains authorization, dry-run, reauthentication, retained identities/other families and disabled reset status. No operation buttons or invented API calls. Commits 01e5c36 and 37be604.
+- Browser UX and exact-head CI NOT VERIFIED. No reset, migration, BETA or production actions. Next: Backend publishes verified DTO/endpoints; then build an interactive preview/category/dependency/confirmation flow and QA on disposable DEV family only.
+
+## 2026-10-27 — Architecture chat handoff assignment
+Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordination/REVISED_BETA_SCOPE_20261026.md`. **WEB:** P0 fix SettingsPage.jsx:205 adjacent JSX CI error; after Backend contract implement reset preview/confirm + rerun onboarding/142 templates/6 packs, i18n and no auto activation. Report exact SHA, tests and next blocker; no destructive reset authorized by this assignment.
+
+## 2026-10-27 — Architecture P0 check
+- Architecture handoff reviewed. SettingsPage reset panel JSX missing closing expression brace fixed in c1a3428. Backend V41 tests are Backend-owned. Reset execution API not verified; no destructive controls enabled, no BETA changes. Exact-head CI and browser tests pending.
+
+## 2026-10-27 — P0 reset contract and post-CI triage
+- Checked latest main: Settings JSX syntax fix c1a3428 present; Backend migration V41 count tests changed in eeb6abc/4a9bfee/6e8a000. Current newest HEAD f304b9f belongs Designer catalog work, not reset endpoint implementation.
+- Reset preview/challenge/execute contract remains absent according to current Backend journal; no safe executable Web UI possible yet. Readiness panel stays informational and no family reset performed.
+- GitHub combined commit status has no entries; exact Actions green still unverified, not reported as PASS. Prior CI failure 40414828037 does not establish current CI status.
+- Next Web P0: consume versioned reset DTO and permissions once Backend publishes them, add scoped preview and explicit confirmation, then onboarding templates. QA must use approved disposable DEV workspace. No BETA or production deployment.
+
+## 2026-10-27 — WEB-RESET-02 read-only backend preview and plan UI
+- Backend now has GET /workspaces/{id}/data-reset/preview, POST /plan, and POST /prepare. All non-executable; prepare stores an audit proposal only and is not called by Web. No authorized execute endpoint exists.
+- Added frontend/src/api/resetApi.js and four-language FamilyResetReadiness preview UI: workspace-scoped authenticated counts, checkbox selection initially empty, server-side POST plan dependency validation, mobile cards, safe error fallback and A/B workspace request-generation guards. Commits 48e403e, 92d7023, bfa6e69, 13e9515.
+- UI deliberately has NO confirm/delete/execute, even after plan success: Backend returns executable=false. Server blocker details currently verbatim English; localized UX follow-up needed. Browser DEV, authenticated endpoint QA, full CI pending. BETA/production unchanged.
+- Next: confirm exact CI, test preview/plan permissions and A/B switching in DEV; add localized dependency blocker mappings; await Backend challenge/execute contract for final reset wizard.
+
+## 2026-10-27 — WEB-RESET-03 localized Backend dependency and warning messages
+- Checked reset Backend: preview/plan plus non-executable prepare present, but no challenge or execute contract. Backend changes include canonical JSON repair and regression assertions; no destructive Web actions allowed.
+- Replaced verbatim English server warning/blocker rendering with four-language UK/RU/DE/EN mappings for all currently defined 7 plan blockers and 13 preview warning messages. Unrecognized future server text shows a safe localized generic restriction, not raw Backend diagnostics. Commit 08a1157.
+- Web only; no reset executed, no data changed, no BETA release. Exact-head CI and authenticated DEV visual/tenant QA remain pending. Next: check current CI, verify locale switching and 13-category warning display, then consume final challenge/execute contract when published.
+
+## 2026-10-27 — WEB-RESET-04 review and async plan race fix
+- Checked main after Backend audit JSON tests: preview/plan/prepare remain non-executable; challenge/execute still absent. Web must not expose delete confirmation.
+- Found and fixed stale plan UX: if categories change while POST /plan is in flight, the response could previously show blockers for a superseded selection. Captured immutable selected codes + selection revision and invalidate the response when a checkbox changes. Reload invalidates selection as well. Source 6d6cf3e.
+- Static source fix only. Authenticated DEV browser A→B→A, rapid selection and locale validation NOT VERIFIED; current exact-head CI not verified; no reset or deployment.
+- Next: run exact-head Web CI and focused DEV manual QA; integrate execute only after Backend publishes safe confirmed contract.
+
+## 2026-10-27 — WEB-RESET-05 fail-closed preview/plan integrity
+- Current Backend adds V42 family data_epoch and authenticated epoch read, plus new mutation fencing, but reset challenge/execute remain unverified. Read-only preview/plan continue; no destructive UI.
+- Web reset safety: reject mismatched workspaceId or unexpected executionEnabled/executable flags on preview/plan; require plan.blockers array. Do not accept stale plan errors when selection revision changed. Commit c78c44e.
+- Source inspection only. Exact-head CI / browser DEV permission, locale, A-B-A and fast selection tests pending. No live family reset, BETA, or production changes.
+- Next: verified CI and DEV HTTP/browser smoke, then challenge/execute integration once published and approved.
+
+## 2026-10-31 — WEB-EPOCH-01 central workspace write epoch handshake
+- Verified Backend GET /workspaces/{id}/data-epoch returns workspaceId/dataEpoch and WorkspaceDataEpochFilter demands X-Workspace-Data-Epoch after reset. Backend still explicitly warns about non-atomic concurrent reset/filter TOCTOU; no execute ready.
+- Updated frontend/src/api/client.js: for authenticated workspace POST/PUT/PATCH/DELETE request epoch through no-store GET and send header, validate workspace identity and safe integer. No auto-repeat of writes. Detect epoch changes, emit workspace:data-epoch-changed event, quarantine writes for that token/workspace until page reload; HTTP 409 business conflicts retained. Source commits 85db122, 7ce7b69.
+- Limitations: no global UI stale-state reset or multi-tab propagation yet; exact-head CI and authenticated DEV QA unverified. Backend must finalize transactional epoch barrier before destructive reset. No real reset, DB action, BETA or production changes.
+- QA: epoch 0 legacy and >0 header, missing epoch handshake, invalid/foreign workspace response, changed epoch during same browser session, 409 business conflict vs real epoch change, token/workspace separation, POST idempotency/no replay, four locales and second-tab stale state.
+
+## 2026-10-31 — WEB-EPOCH-02 cross-tab quarantine and stale UI shield
+- Central client broadcasts workspace epoch changes via same-origin localStorage storage event (no token stored in notice) and quarantines known workspace epoch keys across tabs. Source 38d1c3b.
+- AuthProvider listens for epoch change of current workspace and replaces feature tree with a blocking stale-data reload notice (UK/EN text); commit b04dfa0. This prevents continued edits in affected mounted views, while central API itself blocks mutations.
+- Limitations: cross-tab notification for unknown/no initialized epoch key, locale RU/DE, tab-to-tab replay on old page, and browser QA require follow-up. Backend reset execute still unverified; do not treat this as end-to-end reset protection. No BETA/prod changes.
+
+## 2026-10-31 — WEB-EPOCH-02 follow-ups
+- Closed cross-tab write gap for workspace not previously cached (db3271d). Added four-language text in AuthContext reload shield (a24a5b6). CI/build, cross-tab browser tests and automated replay QA still pending. No production deploy/reset.
+
+## 2026-10-31 — WEB-EPOCH-03 active language and logout handling
+- Audited current main, Backend epoch row-lock guard work (db6f4f2, 9e328b5), and Web epoch shield. Corrected the shield to use actual i18next active language rather than document.documentElement.lang, and clear obsolete epochChanged state on logout/clearSession. Commit aadfda6.
+- Cross-tab localStorage notification behavior still requires two-tab authenticated DEV QA; full CI for latest SHA not independently confirmed. Backend protected transaction/execute contract and disposable DEV reset E2E remain pending. No production deployment or actual reset.
+
+## 2026-10-31 — Web response to Designer consumer audit and Backend agreement
+- Reviewed DESIGNER_INTEGRATION_SOURCE_AUDIT_20261031.md (4fa6003) and Android's acceptance (012e719). Web acknowledges P1 incomplete: category SVG thumbnails in global TemplatesPage and existing EntityMedia/managed TASK bindings are partial; active REWARD/private media coverage and full 18-key visual QA are not proven.
+- Economy v0.7 suggestions from economy-suggestions-v1.json (110 TASK + 32 REWARD, 11 optional TASK rewards / 12 optional REWARD prices) have no verified Web preview/draft/explicit-parent-acceptance implementation. Await Backend/Architecture DTO media target and nullable suggestion agreement before applying values; `null` is unset, never zero/free, no retroactive account/ledger/workspace mutation. No speculative frontend-only pricing contract.
+- Catalog audit corrections accepted: 142 curated entries, six packs, 99 pack memberships and 43 outside packs; DEV/runtime verification needed. Web owns read-only display, existing custom media binding precedence, four locales and responsive smoke. Android audit acceptance exists but implementation/Gradle/emulator closure not evidenced.
+- Backend reset contract proposal BKL002_RESET_CHALLENGE_EXECUTE_CONTRACT_20261031.md reviewed: /confirm does NOT authenticate; /challenge and /execute NOT implemented, Web execute remains disabled. Backend transaction guard not yet wired into all writers. P0 BKL-002/epoch and CI/QA precede P1 Designer consumption.
+- Verification: source/journal audit only, no DEV browser, Android emulator, live DB/reset or BETA/production work. Next: Web complete documented media consumer/economy source-gap acceptance after Backend DTO signoff, QA 18 previews/142/6/nullable/TIME, with P0 epoch/reset safety first.
+
+## 2026-10-31 — WEB-EPOCH-04 cross-tab write dispatch guard
+- Rechecked main after Designer audit acknowledgement (a370b40), Android audit acceptance (012e719), Backend proposal f2ab93b and challenge storage work cff5021. Backend /execute is not available or approved; readiness UI remains non-destructive.
+- Fixed race in central apiRequest: quarantine may arrive from another tab during asynchronous /data-epoch handshake. It now rechecks workspace quarantine immediately before sending mutation, source commit 59f6f43. This is browser-side defense only; Backend transactional epoch barrier remains mandatory.
+- Designer P1 gaps remain accepted but not closed: 18 icons not fully integrated in active reward surfaces and nullable economy recommendation DTO not signed off; no automatic price writes. Source/CI and authenticated DEV two-tab tests still required; no reset/deploy.
+- Next: obtain exact CI, two-tab DEV QA (delayed handshake, A/B workspace and 409), then safe Backend reset challenge/execute only after security tests and approval.
+
+## 2026-10-31 — WEB-EPOCH-05 baseline check and Backend execution gate
+- Source-verified newly added Backend /challenge and /execute are locked placeholders returning HTTP 423; do NOT activate reset CTA or claim usable execution. Backend still lacks transactional full execute and approved QA.
+- Added read-only observeWorkspaceEpoch in central client and authenticated baseline priming in AuthProvider when workspace activates (1113a61, fc066b2, fb07865). This improves detection of epoch changes during a mounted session, but first-write handshake and race safety still depend on Backend; no data mutation/replay added.
+- Exact-head CI not proven; authenticated DEV A/B and two-tab reload/epoch detection remain PENDING. Backend audit also requires nullable economy DTO and 18-icon active reward consumer QA. No BETA or production deployment.
+- Next: verify exact Web build and manual DEV scenarios; complete blocked-reset QA only after Backend enables tested safe execute.
+
+## 2026-10-31 — WEB-EPOCH-06 tab return epoch check and CI triage
+- Audited Backend password challenge work (d570b9e) and tests; /execute remains fail-closed HTTP 423, Google-only fresh reauth not supported, not release ready. No destructive Web CTA.
+- CI 41192184402: Web SUCCESS, Compose SUCCESS, Java/Android CANCELLED; newer 41192482109 all four CANCELLED. Neither is current all-green SHA. Authenticated DEV browser/two-tab testing still not performed.
+- Web epoch state previously primed on workspace activation and guarded writes but had no on-tab-return recheck. AuthContext now revalidates the active family's epoch on window focus and visibility return, with in-flight coalescing and cleanup; source e302962. A changed generation triggers the already localized blocking reload UI. Network failures never permit writes, since each apiRequest mutation separately requires a fresh epoch handshake. No automatic POST replay.
+- Next: run exact-head Web CI and focused Playwright DEV QA with authenticated two tabs, A/B switching, server epoch changes, and 4 locales. Backend execute and Designer economy/media signoff remain blocked; no family reset or deployment.
+
+## 2026-10-31 — WEB-EPOCH-07 non-destructive Playwright cross-tab regression
+- QA reported isolated Chromium authenticated smoke 3/3 PASS (user-run local), not epoch E2E. Added qa/e2e/tests/epoch.spec.js, source commit 40ca9de: requires FP_QA_USERNAME/FP_QA_PASSWORD and preselected disposable family, captures authenticated workspace epoch URL, opens second tab, verifies unrelated workspace notice does not block UI, then injects same-family localStorage notification and checks localized reload shield. No mutation of server epoch, DB, family data, rewards or reset; browser event simulation is explicitly NOT proof of actual server data-epoch switch.
+- Test execution here NOT performed; requires local running frontend/browser and isolated credentials, command cd qa/e2e && npm test. Full CI exact HEAD remains unverified. Backend /challenge password reauth implementation progressing, /execute still fail-closed; do not activate CTA.
+- Next: run Playwright with QA credentials and verify two-tab case on DEV; fix any result before marking PASS, then add controlled server epoch test only on authorized disposable DB fixture.
+
+## 2026-10-31 — WEB-EPOCH-08 reset preview request-loop triage
+- QA latest evidence: authenticated Playwright 6/6 PASS earlier; expanded 8-test run 7/8 PASS, with reset preview HTTP 200 headers but body-read timeout; QA improved diagnostics in 97f12e2, targeted rerun pending.
+- Source inspection found FamilyResetReadiness effect dependent on getAccessToken function identity (recreated each AuthProvider render), causing unintended preview reloads and state resets during auth context updates. Changed effect to track only workspaceId; getAccessToken is evaluated at request time. Fix b14698a. This is a plausible UI race contributor, NOT verified root cause of HTTP body timeout.
+- Backend challenge is password reauth only, /execute remains disabled. Never run reset. Need user Windows Playwright rerun and inspect response-body/proxy diagnostics if still blocked. All-green exact-head CI not verified.
+
+## 2026-10-31 — WEB-RESET-09 QA confirmed preview BODY_NOT_READY; Backend handoff
+- Latest QA 4f054a2: isolated workspace 14 GET http://localhost:8080/workspaces/14/data-reset/preview returned HTTP 200 application/json response headers, but Playwright body remained unreadable >8s; Web panel displayed 'Could not load data', /plan never requested. Reproduced after Web effect dependency fix b14698a, so that frontend fix is NOT sufficient.
+- Classify as P0 integration blocker (response completion/serialization/proxy/runtime), not confidently a Backend code defect until raw curl response body/status/length checked. Web must not call /prepare, /confirm, /challenge or /execute. Backend owns live endpoint response inspection; Release owns matching served SHA and Flyway; QA owns targeted safe retest and trace.
+- Suggested reproducible DEV commands against explicitly authorized QA workspace: curl.exe -i --max-time 15 -H "Authorization: Bearer <QA_JWT>" -H "Accept: application/json" http://localhost:8080/workspaces/14/data-reset/preview (NEVER put JWT into repository/log), and compare app DevTools Response/Timing; redact credentials. Check Backend JSON serialization, request handler blocking, nginx/proxy, Content-Length/Transfer-Encoding, server log and exact running SHA. Expected full JSON body with workspaceId 14, executionEnabled false, categories.
+- Web UI remains fail-closed. Do not mark preview/plan PASS or start destructive wizard; no reset/deploy or DB writes. Next after Backend/runtime fix: isolated Playwright reset-preview-i18n.spec.js and verify /plan 200 + non-executable fields.
+
+## 2026-10-31 — WEB-RESET-11 QA green and plan integrity
+- QA journal confirms user-run isolated Playwright reset preview/plan 2/2 PASS and full suite 8/8 PASS after missing await fix ef8d644. These are user-reported local browser results, not pinned all-green CI or destructive reset acceptance.
+- Fail-closed plan integrity: FamilyResetReadiness now verifies response.selectedCategories exactly matches the requested category set (cardinality and membership), in addition to workspaceId, executable=false and blocker shape. Rejects mismatched/stale server plan before presentation. Source cde338f.
+- Backend /challenge password-only partial; /execute still disabled. Web does NOT expose execute/confirm/delete. Backend contract still needs authenticated Google reauth, complete FK/transaction lock graph, atomic epoch/audit and security/QA gates. Designer media/economy P1 still pending. No BETA/production or DB actions.
+- Next QA: run exact current SHA Playwright after stricter plan validation and check two-tab/epoch; Backend owns safe execute and exact-head CI.
+
+## 2026-10-31 — WEB-RESET-12 current Architecture/Backend check and QA plan echo regression
+- Current main includes Web plan response exact selectedCategories validation cde338f. QA 8/8 PASS covers earlier code, not this additional validation. Added non-destructive Playwright assertion to reset-preview-i18n.spec.js verifying Backend echoes exactly the selected first category in plan, commit 15cee99. No /prepare, /confirm, /challenge or /execute requested.
+- Architecture still prioritizes transactional BKL-002 before next BETA; Backend /execute remains disabled and writer guard not integrated across all services. User-run exact current SHA QA rerun pending; don't infer PASS from previous 8/8.
+- Designer P1 still pending Backend nullable economy DTO / media consumer contract and cross-platform icon coverage. No server reset, release or production action.
+
+## 2026-10-31 — WEB-RESET-13 Backend/QA safety gate
+- User reported isolated Playwright 2/2 PASS following strict selected-category response validation; prior full suite 8/8 PASS (before later negative QA additions). No claim exact-head CI PASS.
+- Latest QA staged unauthenticated reset negative tests 56e34c9; not yet run. Web plan contract correctly remains non-executable, no challenge/execute CTA. Backend transaction epoch guard not yet wired into all business mutations, execute HTTP 423 and only partial password reauth challenge. P0 Reset execution remains BLOCKED; no preview-only flow is to be described as successful reset.
+- Designer P1 media/economy audit remains partial: Web global templates category previews exist, private active rewards and nullable price recommendation acceptance not verified; don't overwrite user values or treat null as zero. Android category SVG preview has recent partial commits but cross-client QA remains open.
+- Next: QA full Playwright with negative access controls, verify current Web/Vite CI; await certified Backend execution DTO and transaction guards before building an enabled wizard. No data deletion or release.
+
+## 2026-10-31 — WEB-RESET-14 validation-negative QA handoff
+- QA journal ddbda351 confirms user-run local Playwright 10/10 PASS including anonymous reset preview 401 and logged-out settings guard. This is local evidence, not exact-head Actions green or destructive reset proof.
+- Added validation-negative Playwright qa/e2e/tests/reset-invalid-plan.spec.js: isolated authenticated QA user, capture workspace ID from scoped preview, submit unknown category to POST /plan, require HTTP 400 and assert zero /prepare,/confirm,/challenge,/execute requests. Commits 8cf552d, d1e88cc. No reset, no deletion, no user data writes. New test NOT YET RUN; total expected 11 tests, do not claim PASS.
+- Backend execute still HTTP 423, transactional all-writer epoch guards and safe FK delete remain blockers. Android Designer private template SVG consumption improving (7e6b824), active Reward/media and economy semantics remain open.
+- Next: QA run all Playwright on exact pulled main, report 11/11 or trace; Backend/Architecture approval required before executable Web wizard.
+
+## 2026-10-31 — WEB-RESET-15 QA negative and stale-plan selection regression
+- Reviewed latest QA journal: 10/10 is last numerically verified user-run suite; subsequent '13+' and '15+' acknowledgements lack full enumerated console output. New QA anonymous plan/epoch tests and reset reload test staged without independently verified run. Backend PointMutationService adds transaction-bound epoch guard to 5 points mutation routes (dac13e7), but other mutation families are pending; /execute remains disabled HTTP 423.
+- Added read-only Playwright regression to qa/e2e/tests/reset-negative.spec.js: authenticate with QA account, select a category, fetch plan, uncheck category, assert previously displayed plan disappears, Plan button disables and zero prepare/confirm/challenge/execute network calls. Commit 587d672. Not run in this environment, no PASS claimed. No reset or deployment.
+- Next QA: run latest complete Playwright suite on user's authorized local QA family; if green, proceed with active Web reward media P1 only when Backend DTO is ratified; keep Reset execute hidden until guards+transaction graph+audit/security fully approved.
+
+## 2026-10-31 — WEB-RESET-16 QA 18/18 and strict preview schema
+- QA journal d525a6c confirms screenshot evidence of local Chromium 18/18 PASS (27.1s): unknown categories rejected, selection-change stale plan cleared, synthetic workspace mismatch rejected, non-destructive tests. This predates current Web change; don't claim post-change PASS.
+- Backend journal 4d86ac6 confirms GitHub Actions run 41212281999 all Backend/Web/Android/Compose SUCCESS, Backend 259 tests PASS. Scope only PointController 5 mutation routes, other writers not yet transaction-fenced; reset execute still disabled.
+- Web hardening commit 338adc9: Reset Preview rejects responses unless executionEnabled=false, completeDependencyPlan=false, and categories is a non-array object for correct workspace. Prevents displaying a preview with an unexpectedly enabled or malformed server contract; no reset API mutation or CTA.
+- Next QA: rerun 18+ Playwright tests on pulled latest main and capture exact result. BKL-002 reset execution remains P0 blocker, Designer nullable economy/media P1 pending backend certification. No BETA/deployment/delete.
+
+## 2026-10-31 — WEB-ECONOMY-01 approved read-only suggestion presentation
+- Backend contract docs/api/DESIGNER_ECONOMY_MEDIA_V1_CONTRACT.md published, all-green cloud CI 41232509336 Backend 295 PASS plus Web/Android/Compose SUCCESS at tested baseline cda7e8a. No assurance for subsequent source commits without new CI.
+- Added frontend/src/api/economySuggestionsApi.js (3d00dd3): validated authenticated GET /template-catalog/economy-suggestions, schema/v1/POINTS/no-autoApply and task/reward array guards.
+- Web TemplatesPage now optionally fetches read-only suggestions alongside global/private catalog, matches by template code, presents available integral suggested task reward points or reward price points with explicit parent-review notice in four locales. Null remains unset, not zero; no auto-apply, no private edits, no activation, no ledger writes. If suggestions endpoint fails, catalog still loads. Commit d0c0c5d.
+- QA/browser on current source and exact-head CI PENDING. Designer P1 full closure (draft explicit apply, active rewards media) NOT claimed. Backend reset execute remains disabled pending auth/reauth/transactional atomic implementation. No release, reset or deployment.
+
+## 2026-10-31 — WEB-ECONOMY-02 explicit parent-reviewed draft apply
+- Contract docs/api/DESIGNER_ECONOMY_MEDIA_V1_CONTRACT.md confirms POST /workspaces/{workspaceId}/templates/{templateId}/creation-draft/apply-economy-suggestion is draft-only, no persistent change; existing overrides remain until explicit apply. Added API wrapper 07ab02e.
+- TemplatesPage now exposes localized (uk/ru/de/en) Apply suggestion to draft only CTA only when creationDraft.economySuggestion exists and draft JSON has not been edited; prevents overwriting unsaved user edits. Response validates same template ID/kind, suggestionAppliedToDraft=true and request object before replacing local draft JSON. Commit ba747f1. No activation, private template save or ledger operation from button; Backend validates workspace/permissions and currency.
+- Exact-head Web CI and authenticated DEV Playwright for new UI NOT YET VERIFIED. QA should check 142 catalog/nullable null not zero, no automatic repricing, edited draft cannot be overwritten, optional TIME duration 30 retained, four languages and both themes. Backend /data-reset/execute still disabled; no BETA release or reset.
+
+## 2026-10-31 — WEB-ECONOMY-03 contract QA and media audit
+- Inspected latest QA: dataEpoch Test/Test2 own-tenant read and cross-tenant 401 checks 2/2 PASS. New WEB-ECONOMY-02 draft-only apply UI still requires actual browser/CI acceptance; no automatic mutation or approval claimed.
+- Source review found private template cards already consume authorized category preview object URLs via iconKeyForTemplate, so no duplicate rendering path added. Backend contract prohibits REWARD writable media binding; must NOT invent reward binding PUT. Further live reward artwork needs display-only contract and QA.
+- Added read-only qa/e2e/tests/economy-suggestions.spec.js (bfadbc8) for authenticated /template-catalog/economy-suggestions wire format, 110 TASK/32 REWARD, nullable amounts, optional pricing, and 30m TIME reward with null price. Runs against local QA API only, no drafts applied, templates activated or persistent data modified. Test execution/CI for this commit PENDING.
+- Backend execute still HTTP 423 and BKL-002 remains blocked. Next: user local Playwright full suite, then verify parent-confirmed preview draft action against disposable QA template and ensure no private mutations.
+
+## 2026-10-31 — WEB-ECONOMY-04 read-only Web smoke staged
+- QA latest verified dataEpoch Test/Test2 2/2 PASS; Web economy recommendation and explicit draft apply E2E remain unverified. QA also staged synthetic stale epoch and malformed cross-tab notification cases, not yet run.
+- Added qa/e2e/tests/economy-web-readonly.spec.js commit b9180c5. Authenticated disposable QA account opens templates; asserts economy-suggestions GET=200, catalog cards and localized parent-review hint visible, and no template/reward write requests on browsing. No draft POST, import, activation, ledger or reset calls.
+- This is presentation-only validation; explicit apply remains pending separate controlled QA acceptance with correct current epoch. Exact-head CI and new Playwright result not verified. Media private template card rendering already exists; Backend prohibits writable REWARD media bindings, no invented endpoints. Reset execute remains blocked.
+
+## 2026-10-31 — WEB-TASK-TEMPLATE-01 empty selector user screenshot
+- User screenshot: Create Task > From template dropdown lists only 'Without template'. Source CreateTaskModal loads GET /workspaces/{id}/templates filtered kind=TASK; global catalog is not loaded there, so an unimported family has zero options. Screenshot alone cannot prove API loading success vs empty list. Existing load error was swallowed and presented as empty; fixed in 98ad8e7 by separate templateLoadError display (4 locales), explanation for zero private task templates and link to /templates for explicit catalog selection/import. Existing scoped private-template draft prefill unchanged; no silent import or task creation, no schema/Backend calls added.
+- This resolves misleading empty/failed list UX but does NOT yet implement selecting global catalog templates directly from CreateTaskModal. Product requirement remains OPEN: design explicit global catalog choice -> import/preview -> scoped draft without silent writes, plus QA regression, as Architecture prioritizes. Requires user testing and current CI. No BETA deployment.
+
+## 2026-10-31 — WEB-TEMPLATE-NAV-01 task/reward and category selectors
+- User screenshot shows single mixed global catalog (tasks/rewards), requests separated browsing and category filters also in task/reward creation. Implemented TemplatesPage explicit TASK/REWARD type dropdown (default TASK), category filter scoped by type and pack, retaining search and import flow (d6cc342). Implemented category dropdown in CreateTaskModal scoped to imported private TASK templates, without automatic creation/import (abc9d60). Categories use existing definition.category/suggested.category raw identifiers; localization of category names, actual grouping headings, reward creation flow and direct global catalog selection still PENDING.
+- No runtime QA/CI verified on this head. Request QA check mixed catalog, filtering, pack scope, private create-task selection and 4 locales, with no accidental import/activation. Backend /reset execute remains blocked; no deployment or data modifications.
+
+## 2026-10-31 — WEB-REWARD-TEMPLATE-01 parent/child reward template creation gap
+- User screenshot shows imported private reward templates in Library but RewardsPage had no template selector in parent reward creation or child custom request. Added parent editor reward private-template category+template selection and scoped GET /creation-draft prefill (c288c83), no auto-create/activation, and require nonempty price to avoid converting nullable unset into zero.
+- Child custom request now offers category+template selection with read-only global reward catalog fallback; fills title/description only and keeps normal explicit child request submission (6a45d96). No child access to manager-only private template endpoint. Private templates may therefore be unavailable to children where permissions forbid it; global suggestions are the permitted fallback. No automatic reward purchase or approval; no invented writable reward media bindings.
+- Current source NOT built or Playwright-tested. Need Web CI and QA on parent account and child account, both themes/four locales; verify category filtering, template draft details and permission-scoped API, request never purchases. Backend Reset Execute still disabled. No BETA deploy or real family mutation performed by agent.
+
+## 2026-10-31 — WEB-REWARD-TEMPLATE-02 UI race and picker consistency
+- Reviewed reward template parent/child code after WEB-REWARD-TEMPLATE-01. Fixed async race where an earlier /creation-draft response could overwrite a later template choice or a reset editor; rewardDraftGeneration now invalidates pending responses on new selection, category change and cancel. Child template selector is controlled; category changes clear selection. Global child reward catalog definition is now read from object-valued definition (not only definitionJson) so description prefill works where catalog data is an object. Source e33539d.
+- No creation, request, purchase, ledger, reset or BETA deployment performed. Full runtime parent+child Playwright and exact-head CI NOT VERIFIED. Test parent choose template A then B rapidly, change category in flight, cancel editing; verify latest only. Test child global template title/description and no auto-submit, local/private permissions, all four locales. Backend reset execute remains disabled.
+
+## 2026-10-31 — WEB-TEMPLATE-I18N-01 user screenshot raw category identifiers
+- User screenshot: Ukrainian global catalog filter shows raw English category codes activity/adult/chores/etc. Introduced shared presentation-only frontend/src/utils/templateCategoryLabels.js with UA/RU/DE/EN mappings (ac18d83); wired catalog (b42ae51), CreateTaskModal (679fbd8), and both parent/child RewardsPage category selectors (a49d5d4). API values remain canonical codes. Unknown categories fall back to raw code instead of hiding data.
+- Source changes committed, no current-head Web CI/Playwright or browser rerun verified. QA: check category labels across four locales and filtering preserves code-based semantics; check unknown category fallback; no data writes, import, BETA or reset.

@@ -1,0 +1,1428 @@
+{
+  "schema": "familypoints.economy.suggestions.v1",
+  "version": 1,
+  "status": "PRELIMINARY_APPROVAL_INTEGRATION_CANDIDATE",
+  "sourceCatalogVersion": 1,
+  "sourceCatalogPath": "src/main/resources/templates/catalog-v1.json",
+  "currencyCode": "POINTS",
+  "autoApply": false,
+  "workspaceMutation": false,
+  "undefinedAmountSemantics": "null = not suggested; never auto-coerce to 0 or a free purchase",
+  "difficultyPolicy": "separate field; not derived solely from estimated minutes; adults may edit",
+  "approvalRequiredBeforeActivation": true,
+  "tasks": [
+    {
+      "code": "fp.task.hygiene.001",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 3,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.002",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 3,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.003",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 2,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.004",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.005",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 2,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.hygiene.006",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 5,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.routine.007",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 5,
+      "suggestedRewardPoints": 5,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "reviewRequired": true,
+      "flags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.routine.008",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 5,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.routine.009",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 7,
+      "suggestedRewardPoints": 10,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "reviewRequired": true,
+      "flags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.routine.010",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.routine.011",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 5,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.routine.012",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.013",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": 10,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "reviewRequired": true,
+      "flags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.014",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": 10,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "reviewRequired": true,
+      "flags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.015",
+      "difficultySuggestion": "HARD",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": 25,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.016",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": 15,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.017",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": 15,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.018",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": 10,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.019",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 3,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.020",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": 10,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "reviewRequired": true,
+      "flags": [
+        "REPEATED_AWARD_LIMIT_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.task.chores.021",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 5,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.022",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 8,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.023",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": 10,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.chores.024",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": 10,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.school.025",
+      "difficultySuggestion": "HARD",
+      "estimatedMinutes": 30,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.school.026",
+      "difficultySuggestion": "ADVANCED",
+      "estimatedMinutes": 30,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.school.027",
+      "difficultySuggestion": "HARD",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.028",
+      "difficultySuggestion": "HARD",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.029",
+      "difficultySuggestion": "HARD",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.030",
+      "difficultySuggestion": "HARD",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.031",
+      "difficultySuggestion": "HARD",
+      "estimatedMinutes": 5,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.school.032",
+      "difficultySuggestion": "HARD",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.reading.033",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.reading.034",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.reading.035",
+      "difficultySuggestion": "EASY",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.reading.036",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.037",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.038",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.039",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 30,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.040",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.041",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.activity.042",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.creativity.043",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.creativity.044",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 30,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.creativity.045",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.creativity.046",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.social.047",
+      "difficultySuggestion": "HARD",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.social.048",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.social.049",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.social.050",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 5,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.social.051",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.052",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 5,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING",
+        "INDIVIDUAL_CONTEXT_REQUIRED"
+      ]
+    },
+    {
+      "code": "fp.task.habits.053",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.054",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.habits.055",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": [
+        "BASIC_RIGHTS_OR_WELLBEING"
+      ]
+    },
+    {
+      "code": "fp.task.family.056",
+      "difficultySuggestion": "HARD",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.057",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.058",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.059",
+      "difficultySuggestion": "HARD",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.060",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.001",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.002",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 30,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.003",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 10,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.004",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 75,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.005",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.006",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.007",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.008",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.009",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.010",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.011",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.012",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 45,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.013",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.014",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 20,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.015",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 45,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.016",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 45,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.017",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 25,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.018",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.019",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.020",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.021",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 30,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.022",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.023",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 45,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.024",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 45,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.025",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.026",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 45,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.027",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.028",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.029",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.adult.030",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.001",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.002",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.003",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.004",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.005",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.006",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.007",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.008",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 45,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.009",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.010",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.011",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.012",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.013",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.014",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.015",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.016",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.017",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.018",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.019",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    },
+    {
+      "code": "fp.task.family.020",
+      "difficultySuggestion": "MODERATE",
+      "estimatedMinutes": 15,
+      "suggestedRewardPoints": null,
+      "pricingState": "UNSET",
+      "reviewRequired": true,
+      "flags": []
+    }
+  ],
+  "rewards": [
+    {
+      "code": "fp.reward.time.001",
+      "suggestedPricePoints": 25,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "reviewRequired": true,
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.002",
+      "suggestedPricePoints": 45,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "reviewRequired": true,
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.003",
+      "suggestedPricePoints": 35,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "reviewRequired": true,
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.004",
+      "suggestedPricePoints": 60,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "reviewRequired": true,
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.005",
+      "suggestedPricePoints": 55,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "reviewRequired": true,
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.006",
+      "suggestedPricePoints": 30,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "TIME",
+      "durationMinutes": 15,
+      "reviewRequired": true,
+      "flags": [
+        "SCREEN_TIME_PARENTAL_CONTROLS_REVIEW"
+      ]
+    },
+    {
+      "code": "fp.reward.time.007",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.time.008",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "TIME",
+      "durationMinutes": 30,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.009",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.010",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.011",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.012",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.013",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.privilege.014",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.015",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.016",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.017",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.018",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.019",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.activity.020",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.items.021",
+      "suggestedPricePoints": 50,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.022",
+      "suggestedPricePoints": 60,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.023",
+      "suggestedPricePoints": 250,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.024",
+      "suggestedPricePoints": 300,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.025",
+      "suggestedPricePoints": 200,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.items.026",
+      "suggestedPricePoints": 350,
+      "pricingState": "OPTIONAL_SUGGESTION",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "PHYSICAL_COST_FAMILY_SPECIFIC"
+      ]
+    },
+    {
+      "code": "fp.reward.family.027",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.028",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.029",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.030",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.031",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    },
+    {
+      "code": "fp.reward.family.032",
+      "suggestedPricePoints": null,
+      "pricingState": "UNSET",
+      "kind": "ITEM",
+      "durationMinutes": null,
+      "reviewRequired": true,
+      "flags": [
+        "NO_PRICE_DOES_NOT_MEAN_FREE_OR_PAYWALLED"
+      ]
+    }
+  ],
+  "invariants": [
+    "Never create transactions from importing suggestions",
+    "Existing workspaces and private templates unchanged",
+    "No automatic reward/charges for family contact, care, education or basic needs",
+    "Cash-equivalent/physical reward needs adult cost and availability review",
+    "TIME reward respects parent limits; spending does not start usage timer",
+    "Backend must enforce idempotency and tenant isolation"
+  ]
+}

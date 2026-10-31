@@ -1,0 +1,49 @@
+{
+  "schema": "designer-economy-proposal/0.2",
+  "status": "PROPOSED_ARCHITECT_REVIEW",
+  "effectiveInApplication": false,
+  "dimensions": {
+    "difficulty": {
+      "EASY": 5,
+      "MODERATE": 12,
+      "HARD": 22,
+      "ADVANCED": 35
+    },
+    "durationBonus": {
+      "UP_TO_10_MIN": 0,
+      "MIN_11_25": 2,
+      "MIN_26_45": 5,
+      "OVER_45_MIN": 8
+    },
+    "responsibilityBonus": {
+      "LOW": 0,
+      "NORMAL": 3,
+      "HIGH": 8
+    },
+    "independenceBonus": {
+      "WITH_HELP": 0,
+      "INDEPENDENT": 3
+    }
+  },
+  "proposalFormula": "sum dimensions, round nearest five half-up, cap 50",
+  "formulaIsBinding": false,
+  "currencyCode": "POINTS",
+  "defaultPenaltyPoints": 0,
+  "adultTaskPointsDefault": null,
+  "guardrails": {
+    "ageGenderMultipliers": false,
+    "retroactiveBalanceChanges": false,
+    "ledgerOperations": false,
+    "adminCanEdit": true,
+    "requiresApproval": true
+  },
+  "pending": [
+    "difficulty scale",
+    "effort distinction",
+    "responsibility ratings",
+    "rounding/caps",
+    "anti-farming",
+    "reward prices and simulation",
+    "template DTO mapping"
+  ]
+}
