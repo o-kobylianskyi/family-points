@@ -16,7 +16,7 @@ import static org.mockito.Mockito.*;
 class MediaServiceSafetyTest {
     private final JdbcTemplate db=mock(JdbcTemplate.class);
     private final CurrentUserService current=mock(CurrentUserService.class);
-    private final MediaService media=new MediaService(db,current);
+    private final MediaService media=new MediaService(db,current, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
 
     @Test void wrongWorkspaceRejectedBeforeReadingInput() {
         when(current.belongsToWorkspace(123L)).thenReturn(false);

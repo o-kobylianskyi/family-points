@@ -1463,3 +1463,10 @@ Before each substantial implementation batch:
 - [x] Exact source `fc4fa54b06d000f0449e3875ffea11c7ca10a8bb` all-green Actions 41231246497, Backend 280 PASS.
 - [x] Verify 18 fenced entries, transaction proof expiry/suspension/family/HTTP scope, slot+audit and exchange rollback, actual nonzero-epoch point/reputation deadline penalties.
 - [ ] Finish remaining groups/roles/economy, templates/media and protected membership/startup/direct writer review before full reset/QA/Release.
+
+## 2026-10-31 — Broad Backend BKL-002 package
+- [x] Fence 56 additional entries spanning groups, roles, economy, templates, media, suggestions, members and workspace/timezone configuration.
+- [x] Cover missing outer transactions, activation-before-claim order, lazy currency GET writes, fresh provisioning, detached bridge inputs and one-family startup transactions.
+- [x] Repair selected-membership role checks and preserve global account/other family on scoped member removal; add regression evidence.
+- [ ] Confirm cloud CI and security/consumer acceptance; source changes alone are not deployment approval.
+- [ ] Finish auth/join/invitation/reset metadata edge audit, full reset policy/reauth/execute and disposable DEV/Release gates.

@@ -19,10 +19,12 @@ import java.util.List;
 @RequestMapping("/workspaces/{workspaceId}/task-suggestions")
 @PreAuthorize("@workspaceSecurity.canAccessWorkspace(#workspaceId)")
 public class TaskSuggestionController {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private final JdbcTemplate db;
     private final CurrentUserService current;
 
-    public TaskSuggestionController(JdbcTemplate db, CurrentUserService current) {
+    public TaskSuggestionController(JdbcTemplate db, CurrentUserService current, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.db = db;
         this.current = current;
     }
@@ -34,7 +36,9 @@ public class TaskSuggestionController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @org.springframework.transaction.annotation.Transactional
     public void suggest(@PathVariable Long workspaceId, @Valid @RequestBody SuggestionRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         var member = current.getCurrentMember();
         if (!member.getWorkspace().getId().equals(workspaceId))
             throw new AccessDeniedException("Wrong workspace");
@@ -63,8 +67,10 @@ public class TaskSuggestionController {
     }
 
     @PostMapping("/{suggestionId}/decision")
+    @org.springframework.transaction.annotation.Transactional
     public void decide(@PathVariable Long workspaceId, @PathVariable Long suggestionId,
                        @RequestParam String decision) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         var member = current.getCurrentMember();
         if (member.getMemberType() == WorkspaceMemberType.CHILD
                 || (!member.hasPermission(WorkspacePermission.MANAGE_TASKS)

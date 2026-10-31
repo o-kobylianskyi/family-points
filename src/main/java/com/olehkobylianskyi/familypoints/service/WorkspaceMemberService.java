@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @Service
 public class WorkspaceMemberService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private final WorkspaceMemberRepository workspaceMemberRepository;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceRoleRepository workspaceRoleRepository;
@@ -22,7 +23,8 @@ public class WorkspaceMemberService {
                                   WorkspaceRoleRepository workspaceRoleRepository,
                                   UserAccountRepository userAccountRepository,
                                   GroupMembershipRepository groupMembershipRepository,
-                                  TaskDefinitionRepository taskDefinitionRepository) {
+                                  TaskDefinitionRepository taskDefinitionRepository, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.workspaceMemberRepository = workspaceMemberRepository;
         this.workspaceRepository = workspaceRepository;
         this.workspaceRoleRepository = workspaceRoleRepository;
@@ -31,7 +33,9 @@ public class WorkspaceMemberService {
         this.taskDefinitionRepository = taskDefinitionRepository;
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public Optional<WorkspaceMember> createMember(Long workspaceId, String name, WorkspaceMemberType memberType, Long workspaceRoleId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         var workspace = workspaceRepository.findById(workspaceId);
         if (workspace.isEmpty()) return Optional.empty();
         var role = workspaceRoleRepository.findByIdAndWorkspaceId(workspaceRoleId, workspaceId);
@@ -47,7 +51,9 @@ public class WorkspaceMemberService {
         return workspaceMemberRepository.findByIdAndWorkspaceIdAndActiveTrue(memberId, workspaceId);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public Optional<WorkspaceMember> updateMember(Long workspaceId, Long memberId, String name, WorkspaceMemberType memberType, Long workspaceRoleId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         var memberOptional = workspaceMemberRepository.findByIdAndWorkspaceIdAndActiveTrue(memberId, workspaceId);
         if (memberOptional.isEmpty()) return Optional.empty();
         var member = memberOptional.get();
@@ -63,16 +69,16 @@ public class WorkspaceMemberService {
 
     @Transactional
     public boolean deleteMember(Long workspaceId, Long memberId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         var memberOptional = workspaceMemberRepository.findByIdAndWorkspaceIdAndActiveTrue(memberId, workspaceId);
         if (memberOptional.isEmpty()) return false;
         var member = memberOptional.get();
 
         // Keep the member row so historical tasks, point transactions and purchases retain a valid FK.
         // The displayed identity is anonymized and the member disappears from active lists.
-        userAccountRepository.findByWorkspaceMemberId(memberId).ifPresent(account -> {
-            account.setEnabled(false);
-            userAccountRepository.save(account);
-        });
+        // A workspace member is not the global account. Revoking this member
+        // must not disable authentication or active memberships in other families.
+        // CurrentUserService/WorkspaceMembershipResolver reject this member once inactive.
         for (var membership : groupMembershipRepository.findByMemberIdAndActiveTrue(memberId)) {
             membership.setActive(false);
         }

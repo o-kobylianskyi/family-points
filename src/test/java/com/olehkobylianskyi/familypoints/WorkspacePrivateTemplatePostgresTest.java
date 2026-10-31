@@ -34,7 +34,7 @@ class WorkspacePrivateTemplatePostgresTest {
                 org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.repository.TaskDefinitionRepository.class),
                 org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.repository.RewardDefinitionRepository.class),
                 org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.controller.TaskController.class),
-                org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.controller.RewardController.class));
+                org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.controller.RewardController.class), org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
         controller.create(a, new WorkspaceTemplateController.TemplateRequest("Adult walk", "{\"schedule\":\"WEEKLY\"}", "TASK"));
         assertEquals(1, controller.list(a).size());
         assertTrue(controller.list(b).isEmpty());

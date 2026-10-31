@@ -14,20 +14,23 @@ import java.util.Set;
 
 @Service
 public class WorkspaceRoleService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
 
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceRoleRepository workspaceRoleRepository;
 
     public WorkspaceRoleService(
             WorkspaceRepository workspaceRepository,
-            WorkspaceRoleRepository workspaceRoleRepository
-    ) {
+            WorkspaceRoleRepository workspaceRoleRepository,
+            com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.workspaceRepository = workspaceRepository;
         this.workspaceRoleRepository = workspaceRoleRepository;
     }
 
     @Transactional
     public void createDefaultRoles(Long workspaceId) {
+        epochGuard.lockCurrentEpoch(workspaceId);
 
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() ->

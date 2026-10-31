@@ -14,6 +14,7 @@ import java.util.*;
 
 @Service
 public class CalendarService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private final CurrentUserService currentUser;
     private final WorkspaceRepository workspaces;
     private final WorkspaceMemberRepository members;
@@ -24,7 +25,8 @@ public class CalendarService {
 
     public CalendarService(CurrentUserService currentUser, WorkspaceRepository workspaces,
                            WorkspaceMemberRepository members, TaskService tasks,
-                           RewardDefinitionRepository rewards, RewardAvailabilityService availability, Clock clock) {
+                           RewardDefinitionRepository rewards, RewardAvailabilityService availability, Clock clock, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.currentUser = currentUser;
         this.workspaces = workspaces;
         this.members = members;
@@ -99,6 +101,7 @@ public class CalendarService {
 
     @Transactional
     public String updateZone(Long workspaceId, String timeZone) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         requireWorkspace(workspaceId);
         if (!currentUser.getCurrentMember().hasPermission(WorkspacePermission.MANAGE_WORKSPACE)
                 && !currentUser.getCurrentMember().hasPermission(WorkspacePermission.ADMIN_OVERRIDE))

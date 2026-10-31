@@ -23,7 +23,7 @@ public class RoleCatalogAuthorizationService {
 
     public void requireManage(Long workspaceId) {
         requireWorkspace(workspaceId);
-        WorkspaceMember member = currentUserService.getCurrentAccount().getWorkspaceMember();
+        WorkspaceMember member = currentUserService.getCurrentMember();
         if (!member.hasPermission(WorkspacePermission.MANAGE_ROLES)
                 && !member.hasPermission(WorkspacePermission.ADMIN_OVERRIDE)) {
             throw new AccessDeniedException("Current user cannot manage the shared role catalog");

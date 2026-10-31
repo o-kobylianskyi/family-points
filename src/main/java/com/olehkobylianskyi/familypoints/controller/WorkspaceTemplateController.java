@@ -26,6 +26,7 @@ import java.util.List;
 @RequestMapping("/workspaces/{workspaceId}/templates")
 @PreAuthorize("@workspaceSecurity.canManageWorkspace(#workspaceId)")
 public class WorkspaceTemplateController {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private final JdbcTemplate db;
     private final TemplateCatalogService catalog;
     private final TaskDefinitionRepository taskDefinitions;
@@ -38,7 +39,8 @@ public class WorkspaceTemplateController {
     public WorkspaceTemplateController(JdbcTemplate db, TemplateCatalogService catalog,
                                        TaskDefinitionRepository taskDefinitions,
                                        RewardDefinitionRepository rewardDefinitions,
-                                       TaskController taskController, RewardController rewardController) {
+                                       TaskController taskController, RewardController rewardController, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.db = db;
         this.catalog = catalog;
         this.taskDefinitions = taskDefinitions;
@@ -53,7 +55,8 @@ public class WorkspaceTemplateController {
                                        TaskDefinitionRepository taskDefinitions,
                                        RewardDefinitionRepository rewardDefinitions,
                                        TaskController taskController, RewardController rewardController,
-                                       com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService economySuggestions) {
+                                       com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService economySuggestions, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.db = db;
         this.catalog = catalog;
         this.taskDefinitions = taskDefinitions;
@@ -82,6 +85,7 @@ public class WorkspaceTemplateController {
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
     public void saveFromTask(@PathVariable Long workspaceId, @PathVariable Long taskId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         var task = taskDefinitions.findByIdAndWorkspaceId(taskId, workspaceId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
         ObjectNode data = json.createObjectNode();
@@ -106,6 +110,7 @@ public class WorkspaceTemplateController {
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
     public void saveFromReward(@PathVariable Long workspaceId, @PathVariable Long rewardId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         var reward = rewardDefinitions.findByIdAndWorkspaceId(rewardId, workspaceId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reward not found"));
         ObjectNode data = json.createObjectNode();
@@ -148,7 +153,9 @@ public class WorkspaceTemplateController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @org.springframework.transaction.annotation.Transactional
     public void create(@PathVariable Long workspaceId,@Valid @RequestBody TemplateRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         checkKind(request.kind());
         validateDefinition(request.definitionJson());
         db.update("""
@@ -158,8 +165,10 @@ public class WorkspaceTemplateController {
     }
 
     @PutMapping("/{templateId}")
+    @org.springframework.transaction.annotation.Transactional
     public void update(@PathVariable Long workspaceId,@PathVariable Long templateId,
                        @Valid @RequestBody TemplateRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         checkKind(request.kind());
         validateDefinition(request.definitionJson());
         int count=db.update("""
@@ -170,7 +179,9 @@ public class WorkspaceTemplateController {
     }
 
     @DeleteMapping("/{templateId}")
+    @org.springframework.transaction.annotation.Transactional
     public void delete(@PathVariable Long workspaceId,@PathVariable Long templateId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         int count=db.update("DELETE FROM workspace_private_templates WHERE id=? AND workspace_id=?",
                 templateId,workspaceId);
         if(count!=1)throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Template not found");
@@ -354,6 +365,7 @@ public class WorkspaceTemplateController {
     activateTask(@PathVariable Long workspaceId, @PathVariable Long templateId,
                  @RequestHeader("Idempotency-Key") java.util.UUID operationId,
                  @Valid @RequestBody com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         requireKind(workspaceId, templateId, "TASK");
         validateTaskAgainstTemplate(workspaceId,templateId,request);
         claimActivation(workspaceId,templateId,"TASK",operationId);
@@ -367,6 +379,7 @@ public class WorkspaceTemplateController {
     activateReward(@PathVariable Long workspaceId, @PathVariable Long templateId,
                    @RequestHeader("Idempotency-Key") java.util.UUID operationId,
                    @Valid @RequestBody com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         requireKind(workspaceId, templateId, "REWARD");
         validateRewardAgainstTemplate(workspaceId,templateId,request);
         claimActivation(workspaceId,templateId,"REWARD",operationId);
@@ -479,6 +492,7 @@ public class WorkspaceTemplateController {
     @Transactional
     public ImportPreview importSelected(@PathVariable Long workspaceId,
                                         @Valid @RequestBody ImportRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         List<JsonNode> templates=resolveSelection(request.selectedCodes());
         ImportPreview result=preview(workspaceId,request);
         int version=catalog.getCatalog().path("version").asInt();

@@ -13,7 +13,7 @@ class EconomyDefaultCurrenciesTest {
     private final WorkspaceRepository workspaces = mock(WorkspaceRepository.class);
     private final PointTypeRepository types = mock(PointTypeRepository.class);
     private final StandardCurrencyForms forms = mock(StandardCurrencyForms.class);
-    private final EconomyService economy = new EconomyService(settings, workspaces, types, forms);
+    private final EconomyService economy = new EconomyService(settings, workspaces, types, forms, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
 
     @Test void initializesMissingDefaultCurrenciesWithoutDuplicatingExistingTypes() {
         var workspace = mock(Workspace.class);

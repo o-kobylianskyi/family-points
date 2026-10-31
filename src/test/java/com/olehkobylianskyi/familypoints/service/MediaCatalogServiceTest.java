@@ -12,7 +12,7 @@ import static org.mockito.Mockito.*;
 
 class MediaCatalogServiceTest {
     private final CurrentUserService current = mock(CurrentUserService.class);
-    private final MediaService service = new MediaService(mock(JdbcTemplate.class), current);
+    private final MediaService service = new MediaService(mock(JdbcTemplate.class), current, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
 
     @Test void everyGlobalCatalogChoiceHasItsOwnRenderableBundledImage() {
         when(current.belongsToWorkspace(7L)).thenReturn(true);

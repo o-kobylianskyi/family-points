@@ -23,6 +23,7 @@ import java.util.List;
 
 @Service
 public class MediaService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private static final int MAX_BYTES = 5 * 1024 * 1024;
     private static final long MAX_PIXELS = 16_000_000L;
     private static final Set<String> TYPES = Set.of("WORKSPACE","MEMBER","MEMBER_GROUP","WORK_NODE","TASK");
@@ -86,7 +87,8 @@ public class MediaService {
     private final JdbcTemplate db;
     private final CurrentUserService current;
 
-    public MediaService(JdbcTemplate db, CurrentUserService current) {
+    public MediaService(JdbcTemplate db, CurrentUserService current, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.db = db;
         this.current = current;
     }
@@ -132,6 +134,7 @@ public class MediaService {
 
     @Transactional
     public Uploaded upload(long ws, MultipartFile file) {
+        epochGuard.requireCurrentRequestEpoch(ws);
         requireWorkspace(ws);
         var actor = current.getCurrentMember();
         // Keep the first version manager-only. An unrestricted unbound upload endpoint
@@ -211,6 +214,7 @@ public class MediaService {
 
     @Transactional
     public Ref bind(long ws,String type,long target,String slot,String assetId,String catalogKey,Integer expectedVersion) {
+        epochGuard.requireCurrentRequestEpoch(ws);
         requireManager(ws,type,target);
         checkTarget(ws,type,target,slot);
         if ((assetId==null)==(catalogKey==null)) throw new IllegalArgumentException("Provide exactly one assetId or catalogKey");
@@ -245,6 +249,7 @@ public class MediaService {
 
     @Transactional
     public Ref clear(long ws,String type,long target,String slot,Integer expectedVersion) {
+        epochGuard.requireCurrentRequestEpoch(ws);
         requireManager(ws,type,target);
         checkTarget(ws,type,target,slot);
         // Preserve tombstone version after clearing to prevent the ABA anomaly.
@@ -335,6 +340,7 @@ public class MediaService {
     // PostgreSQL prohibits SELECT FOR SHARE in read-only transactions.
     @Transactional
     public ImageData getBoundVariant(long ws,String id,String variant) {
+        epochGuard.lockCurrentEpoch(ws);
         requireWorkspace(ws);
         if(!Set.of("COVER","CARD","THUMB").contains(variant))throw new IllegalArgumentException("Invalid variant");
         UUID uuid=parseAssetId(id);

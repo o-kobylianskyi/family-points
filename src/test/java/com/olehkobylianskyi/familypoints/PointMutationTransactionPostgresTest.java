@@ -59,8 +59,24 @@ class PointMutationTransactionPostgresTest {
             RewardService.class, RewardAvailabilityService.class, ReputationService.class,
             TaskService.class, TaskGenerationService.class, TaskDeadlineService.class,
             TaskAuditService.class, TaskRewardNegotiationService.class, PointExchangeService.class,
-            com.olehkobylianskyi.familypoints.controller.TaskScheduleSlotController.class})
+            com.olehkobylianskyi.familypoints.controller.TaskScheduleSlotController.class,
+            MemberGroupService.class, RoleDefinitionService.class, RoleSetService.class,
+            MemberExceptionPeriodService.class, EconomyService.class, StandardCurrencyForms.class,
+            MediaService.class, WorkspaceMemberService.class, WorkspaceService.class, CalendarService.class,
+            WorkspaceRoleService.class, RoleCatalogBootstrapService.class, LegacyGroupRoleBridgeService.class,
+            DomainFoundationMigrationService.class, FamilyWorkspaceProvisioningService.class,
+            TemplateCatalogService.class, TemplateEconomySuggestionsService.class,
+            com.olehkobylianskyi.familypoints.controller.TaskSuggestionController.class,
+            com.olehkobylianskyi.familypoints.controller.EconomyController.class,
+            com.olehkobylianskyi.familypoints.controller.WorkspaceTemplateController.class})
     static class Config {
+        @Bean RoleCatalogAuthorizationService roleAuthorization() { return org.mockito.Mockito.mock(RoleCatalogAuthorizationService.class); }
+        @Bean com.olehkobylianskyi.familypoints.controller.TaskController templateTaskController() {
+            return org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.controller.TaskController.class);
+        }
+        @Bean com.olehkobylianskyi.familypoints.controller.RewardController templateRewardController() {
+            return org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.controller.RewardController.class);
+        }
         @Bean java.time.Clock clock() { return java.time.Clock.systemUTC(); }
         @Bean com.olehkobylianskyi.familypoints.security.CurrentUserService currentUser() {
             return org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
@@ -530,6 +546,217 @@ class PointMutationTransactionPostgresTest {
         assertTrue(deadlines.processDeadlines(fixture.workspace(), now).isEmpty());
         assertEquals(1, postings(fixture));
         assertEquals(1, reputationCount(fixture));
+    }
+
+
+    private void authorizeFixture(Fixture fixture) {
+        var current = context.getBean(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        var actor = org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.entity.WorkspaceMember.class);
+        org.mockito.Mockito.when(actor.getId()).thenReturn(fixture.member());
+        org.mockito.Mockito.when(actor.getWorkspace()).thenReturn(context.getBean(WorkspaceRepository.class)
+                .findById(fixture.workspace()).orElseThrow());
+        org.mockito.Mockito.when(actor.getMemberType()).thenReturn(com.olehkobylianskyi.familypoints.entity.WorkspaceMemberType.PARENT);
+        org.mockito.Mockito.when(actor.hasPermission(org.mockito.ArgumentMatchers.any(
+                com.olehkobylianskyi.familypoints.entity.WorkspacePermission.class))).thenReturn(true);
+        org.mockito.Mockito.when(current.belongsToWorkspace(fixture.workspace())).thenReturn(true);
+        org.mockito.Mockito.when(current.getCurrentMember()).thenReturn(actor);
+        org.mockito.Mockito.when(current.getCurrentMemberId()).thenReturn(fixture.member());
+    }
+
+    @Test void groupsRolesAndGroupLedgerShareEpochFenceAndRollback() {
+        var fixture = fixture();
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var groups = context.getBean(MemberGroupService.class);
+        var sets = context.getBean(RoleSetService.class);
+        var roles = context.getBean(RoleDefinitionService.class);
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> groups.createGroup(fixture.workspace(), "Stale", null))).getStatusCode().value());
+        withEpoch(1L, () -> groups.createGroup(fixture.workspace(), "Fixture group", null));
+        long group = sql.queryForObject("SELECT id FROM member_groups WHERE family_id=?", Long.class, fixture.workspace());
+        withEpoch(1L, () -> groups.addPoints(fixture.workspace(), group, fixture.currency(), 5,
+                com.olehkobylianskyi.familypoints.entity.PointTransactionType.EARN, "Fixture"));
+        assertThrows(IllegalStateException.class, () -> tx.executeWithoutResult(status -> withEpoch(1L, () -> {
+            groups.addPoints(fixture.workspace(), group, fixture.currency(), 2,
+                    com.olehkobylianskyi.familypoints.entity.PointTransactionType.SPEND, "Rollback");
+            sets.create(fixture.workspace(), "Rollback set", null);
+            throw new IllegalStateException("Injected group/role failure");
+        })));
+        assertEquals(5L, context.getBean(GroupPointTransactionRepository.class).getBalance(group, fixture.currency()));
+        assertEquals(0L, sql.queryForObject("SELECT count(*) FROM role_sets WHERE family_id=?", Long.class, fixture.workspace()));
+        withEpoch(1L, () -> sets.create(fixture.workspace(), "Fixture set", null));
+        var request = new com.olehkobylianskyi.familypoints.dto.RoleDefinitionRequest();
+        request.setName("Fixture role");
+        withEpoch(1L, () -> roles.create(fixture.workspace(), request));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM role_definitions WHERE family_id=?", Long.class, fixture.workspace()));
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> sets.create(fixture.workspace(), "Stale set", null))).getStatusCode().value());
+    }
+
+    @Test void lazyEconomyReadsWorkAfterResetAndPreserveExplicitCurrencyForms() {
+        var fixture = fixture();
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var economy = context.getBean(EconomyService.class);
+        economy.getOrCreateSettings(fixture.workspace());
+        assertEquals(4L, sql.queryForObject("SELECT count(*) FROM point_types WHERE family_id=?", Long.class, fixture.workspace()));
+        var controller = context.getBean(com.olehkobylianskyi.familypoints.controller.EconomyController.class);
+        withEpoch(1L, () -> controller.saveNameForms(fixture.workspace(), fixture.currency(), "en",
+                new com.olehkobylianskyi.familypoints.dto.PointTypeNameFormRequest("custom-one","custom-few","custom-many")));
+        economy.getActivePointTypes(fixture.workspace());
+        economy.getAllPointTypes(fixture.workspace());
+        assertEquals("custom-one", sql.queryForObject(
+                "SELECT one FROM point_type_name_forms WHERE point_type_id=? AND language='en'", String.class, fixture.currency()));
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> economy.createPointType(fixture.workspace(), "EXTRA", "Stale", 1))).getStatusCode().value());
+        assertEquals(4L, sql.queryForObject("SELECT count(*) FROM point_types WHERE family_id=?", Long.class, fixture.workspace()));
+        assertEquals(0, postings(fixture));
+    }
+
+    @Test void templateCrudAndActivationClaimAreFencedBeforeDownstreamCreation() {
+        var fixture = fixture();
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var templates = context.getBean(com.olehkobylianskyi.familypoints.controller.WorkspaceTemplateController.class);
+        var input = new com.olehkobylianskyi.familypoints.controller.WorkspaceTemplateController.TemplateRequest(
+                "Fixture reward", "{\"currencyCode\":\"POINTS\",\"priceAmount\":1}", "REWARD");
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> { templates.create(fixture.workspace(), input); return null; })).getStatusCode().value());
+        withEpoch(1L, () -> { templates.create(fixture.workspace(), input); return null; });
+        long template = sql.queryForObject("SELECT id FROM workspace_private_templates WHERE workspace_id=?", Long.class, fixture.workspace());
+        var request = new com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest();
+        request.setTitle("Fixture reward");
+        request.setPointTypeId(fixture.currency());
+        request.setPriceAmount(1);
+        var downstream = context.getBean(com.olehkobylianskyi.familypoints.controller.RewardController.class);
+        org.mockito.Mockito.when(downstream.createReward(org.mockito.ArgumentMatchers.eq(fixture.workspace()),
+                org.mockito.ArgumentMatchers.same(request))).thenThrow(new IllegalStateException("Injected creation failure"));
+        assertThrows(IllegalStateException.class, () -> withEpoch(1L,
+                () -> templates.activateReward(fixture.workspace(), template, UUID.randomUUID(), request)));
+        assertEquals(0L, sql.queryForObject("SELECT count(*) FROM template_activation_requests WHERE workspace_id=?", Long.class, fixture.workspace()));
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> templates.activateReward(fixture.workspace(), template, UUID.randomUUID(), request))).getStatusCode().value());
+        assertThrows(IllegalStateException.class, () -> tx.executeWithoutResult(status -> withEpoch(1L, () -> {
+            templates.update(fixture.workspace(), template,
+                    new com.olehkobylianskyi.familypoints.controller.WorkspaceTemplateController.TemplateRequest("Rollback", "{}", "REWARD"));
+            throw new IllegalStateException("Injected template edit failure");
+        })));
+        assertEquals("Fixture reward", sql.queryForObject("SELECT title FROM workspace_private_templates WHERE id=?", String.class, template));
+        assertEquals(0, postings(fixture));
+    }
+
+    @Test void mediaUploadBindingAndClearRollbackUseOneFamilyGeneration() throws Exception {
+        var fixture = fixture();
+        authorizeFixture(fixture);
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var output = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(new java.awt.image.BufferedImage(2,2,java.awt.image.BufferedImage.TYPE_INT_RGB), "png", output);
+        var file = new org.springframework.mock.web.MockMultipartFile("file","fixture.png","image/png",output.toByteArray());
+        var media = context.getBean(MediaService.class);
+        var uploaded = withEpoch(1L, () -> media.upload(fixture.workspace(), file));
+        withEpoch(1L, () -> media.bind(fixture.workspace(), "WORKSPACE", fixture.workspace(), "COVER", uploaded.assetId(), null, 0));
+        assertTrue(media.getBoundVariant(fixture.workspace(), uploaded.assetId(), "THUMB").bytes().length > 0);
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> media.clear(fixture.workspace(), "WORKSPACE", fixture.workspace(), "COVER", 1))).getStatusCode().value());
+        assertThrows(IllegalStateException.class, () -> tx.executeWithoutResult(status -> withEpoch(1L, () -> {
+            media.clear(fixture.workspace(), "WORKSPACE", fixture.workspace(), "COVER", 1);
+            throw new IllegalStateException("Injected media clear failure");
+        })));
+        assertEquals(uploaded.assetId(), sql.queryForObject(
+                "SELECT asset_id FROM media_bindings WHERE workspace_id=? AND target_type='WORKSPACE' AND slot='COVER'",
+                String.class, fixture.workspace()));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM media_assets WHERE workspace_id=?", Long.class, fixture.workspace()));
+    }
+
+    @Test void suggestionWritesHaveOuterTransactionAndCannotInventTasksOrPoints() {
+        var fixture = fixture();
+        authorizeFixture(fixture);
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var suggestions = context.getBean(com.olehkobylianskyi.familypoints.controller.TaskSuggestionController.class);
+        var request = new com.olehkobylianskyi.familypoints.controller.TaskSuggestionController.SuggestionRequest("Fixture suggestion", null);
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> { suggestions.suggest(fixture.workspace(), request); return null; })).getStatusCode().value());
+        withEpoch(1L, () -> { suggestions.suggest(fixture.workspace(), request); return null; });
+        long id = sql.queryForObject("SELECT id FROM task_suggestions WHERE workspace_id=?", Long.class, fixture.workspace());
+        withEpoch(1L, () -> { suggestions.decide(fixture.workspace(), id, "APPROVED"); return null; });
+        assertThrows(IllegalStateException.class, () -> tx.executeWithoutResult(status -> withEpoch(1L, () -> {
+            suggestions.suggest(fixture.workspace(), request);
+            throw new IllegalStateException("Injected suggestion failure");
+        })));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM task_suggestions WHERE workspace_id=?", Long.class, fixture.workspace()));
+        assertEquals(0L, sql.queryForObject("SELECT count(*) FROM task_definitions WHERE family_id=?", Long.class, fixture.workspace()));
+        assertEquals(0, postings(fixture));
+    }
+
+    @Test void workspaceMemberAndTimezoneEditsShareFenceAndRollback() {
+        var fixture = fixture();
+        authorizeFixture(fixture);
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var members = context.getBean(WorkspaceMemberService.class);
+        var workspaces = context.getBean(WorkspaceService.class);
+        var calendar = context.getBean(CalendarService.class);
+        assertEquals(409, assertThrows(ResponseStatusException.class, () -> withEpoch(0L,
+                () -> members.updateMember(fixture.workspace(), fixture.member(), "Stale", null, null))).getStatusCode().value());
+        withEpoch(1L, () -> members.updateMember(fixture.workspace(), fixture.member(), "Renamed fixture", null, null));
+        withEpoch(1L, () -> workspaces.updateWorkspace(fixture.workspace(), "Renamed family"));
+        withEpoch(1L, () -> calendar.updateZone(fixture.workspace(), "Europe/Berlin"));
+        assertThrows(IllegalStateException.class, () -> tx.executeWithoutResult(status -> withEpoch(1L, () -> {
+            members.updateMember(fixture.workspace(), fixture.member(), "Rollback", null, null);
+            workspaces.updateWorkspace(fixture.workspace(), "Rollback");
+            calendar.updateZone(fixture.workspace(), "Europe/London");
+            throw new IllegalStateException("Injected settings failure");
+        })));
+        assertEquals("Renamed fixture", sql.queryForObject("SELECT name FROM family_members WHERE id=?", String.class, fixture.member()));
+        assertEquals("Renamed family", sql.queryForObject("SELECT name FROM families WHERE id=?", String.class, fixture.workspace()));
+        assertEquals("Europe/Berlin", calendar.getZone(fixture.workspace()));
+    }
+
+    @Test void startupBackfillReloadsPerFamilyAfterLockAndRemainsIdempotent() {
+        var fixture = fixture();
+        var definition = task(fixture);
+        sql.update("UPDATE families SET data_epoch=1 WHERE id=?", fixture.workspace());
+        var migration = context.getBean(DomainFoundationMigrationService.class);
+        migration.migrateExistingTaskDefinitions();
+        migration.migrateExistingTaskDefinitions();
+        assertNotNull(sql.queryForObject("SELECT work_node_id FROM task_definitions WHERE id=?", Long.class, definition.getId()));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM task_participants WHERE task_definition_id=?", Long.class, definition.getId()));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM work_nodes WHERE family_id=?", Long.class, fixture.workspace()));
+        assertEquals(0, postings(fixture));
+    }
+
+    @Test void freshFamilyProvisioningDoesNotTreatOldWorkspaceHeaderAsNewFamilyEpoch() {
+        var provisioner = context.getBean(FamilyWorkspaceProvisioningService.class);
+        var family = withEpoch(99L, () -> provisioner.provision("Disposable fresh family", "Owner fixture"));
+        assertEquals(0L, sql.queryForObject("SELECT data_epoch FROM families WHERE id=?", Long.class, family.workspaceId()));
+        assertEquals(3L, sql.queryForObject("SELECT count(*) FROM family_roles WHERE family_id=?", Long.class, family.workspaceId()));
+        assertEquals(4L, sql.queryForObject("SELECT count(*) FROM point_types WHERE family_id=?", Long.class, family.workspaceId()));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM family_members WHERE family_id=? AND active=true", Long.class, family.workspaceId()));
+    }
+
+
+    @Test void revokingOneFamilyMemberPreservesGlobalAccountAndOtherFamilyMembership() {
+        var first = fixture();
+        var other = fixture();
+        long[] ids = tx.execute(status -> {
+            var workspace = context.getBean(WorkspaceRepository.class).findById(first.workspace()).orElseThrow();
+            var role = context.getBean(WorkspaceMemberRepository.class).findById(first.member()).orElseThrow().getWorkspaceRole();
+            var removed = context.getBean(WorkspaceMemberRepository.class).saveAndFlush(
+                    new com.olehkobylianskyi.familypoints.entity.WorkspaceMember("Secondary fixture",
+                            com.olehkobylianskyi.familypoints.entity.WorkspaceMemberType.PARENT, role, workspace));
+            var account = context.getBean(UserAccountRepository.class).saveAndFlush(
+                    new com.olehkobylianskyi.familypoints.entity.UserAccount("fixture-"+UUID.randomUUID(), "fixture-hash", removed));
+            context.getBean(AccountWorkspaceMembershipRepository.class).save(
+                    new com.olehkobylianskyi.familypoints.entity.AccountWorkspaceMembership(account, removed));
+            var otherMember = context.getBean(WorkspaceMemberRepository.class).findById(other.member()).orElseThrow();
+            context.getBean(AccountWorkspaceMembershipRepository.class).save(
+                    new com.olehkobylianskyi.familypoints.entity.AccountWorkspaceMembership(account, otherMember));
+            sql.update("UPDATE families SET data_epoch=1 WHERE id=?", first.workspace());
+            return new long[]{removed.getId(), account.getId()};
+        });
+        assertTrue(withEpoch(1L, () -> context.getBean(WorkspaceMemberService.class).deleteMember(first.workspace(), ids[0])));
+        assertEquals(false, sql.queryForObject("SELECT active FROM family_members WHERE id=?", Boolean.class, ids[0]));
+        assertEquals(true, sql.queryForObject("SELECT enabled FROM user_accounts WHERE id=?", Boolean.class, ids[1]));
+        assertEquals(true, sql.queryForObject("SELECT active FROM family_members WHERE id=?", Boolean.class, other.member()));
+        assertEquals(1L, sql.queryForObject("SELECT count(*) FROM account_workspace_memberships WHERE account_id=? AND workspace_id=?",
+                Long.class, ids[1], other.workspace()));
+        assertEquals(true, sql.queryForObject("SELECT active FROM family_members WHERE id=?", Boolean.class, first.member()));
     }
 
     private static void await(CountDownLatch latch) {

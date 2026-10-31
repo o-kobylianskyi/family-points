@@ -21,6 +21,7 @@ import java.util.List;
 @RequestMapping("/workspaces/{workspaceId}/economy")
 @PreAuthorize("@workspaceSecurity.canAccessWorkspace(#workspaceId)")
 public class EconomyController {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
 
     private final EconomyService economyService;
     private final PointTypeNameFormRepository nameForms;
@@ -29,8 +30,9 @@ public class EconomyController {
     public EconomyController(
             EconomyService economyService,
             PointTypeNameFormRepository nameForms,
-            PointTypeRepository pointTypes
-    ) {
+            PointTypeRepository pointTypes,
+            com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.economyService = economyService;
         this.nameForms = nameForms;
         this.pointTypes = pointTypes;
@@ -127,9 +129,11 @@ public class EconomyController {
 
     @PutMapping("/point-types/{pointTypeId}/name-forms/{language}")
     @PreAuthorize("@workspaceSecurity.canManageEconomy(#workspaceId)")
+    @org.springframework.transaction.annotation.Transactional
     public PointTypeNameFormResponse saveNameForms(
             @PathVariable Long workspaceId, @PathVariable Long pointTypeId,
             @PathVariable String language, @Valid @RequestBody PointTypeNameFormRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         String lang = language.toLowerCase(Locale.ROOT);
         if (!List.of("uk", "ru", "en", "de").contains(lang)) {
             throw new IllegalArgumentException("Unsupported language: " + language);

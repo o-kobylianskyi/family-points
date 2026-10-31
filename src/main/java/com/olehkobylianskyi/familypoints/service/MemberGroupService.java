@@ -13,6 +13,7 @@ import java.util.*;
 
 @Service
 public class MemberGroupService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
 
     private final WorkspaceRepository workspaces;
     private final WorkspaceMemberRepository members;
@@ -37,8 +38,9 @@ public class MemberGroupService {
             RoleSetRepository roleSets,
             RoleDefinitionRepository roleDefinitions,
             RoleAssignmentRepository roleAssignments,
-            RolePermissionGrantRepository rolePermissionGrants
-    ) {
+            RolePermissionGrantRepository rolePermissionGrants,
+            com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.workspaces = workspaces;
         this.members = members;
         this.groups = groups;
@@ -54,6 +56,7 @@ public class MemberGroupService {
 
     @Transactional
     public MemberGroupResponse createGroup(Long workspaceId, String name, String description) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         Workspace workspace = workspace(workspaceId);
         return response(groups.save(new MemberGroup(workspace, name.trim(), blank(description))));
     }
@@ -75,6 +78,7 @@ public class MemberGroupService {
             String description,
             boolean showInNavigation
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         MemberGroup group = group(workspaceId, groupId);
         group.setName(name.trim());
         group.setDescription(blank(description));
@@ -84,6 +88,7 @@ public class MemberGroupService {
 
     @Transactional
     public void deactivateGroup(Long workspaceId, Long groupId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         MemberGroup group = group(workspaceId, groupId);
         group.setActive(false);
         groups.save(group);
@@ -106,6 +111,7 @@ public class MemberGroupService {
             String description,
             Long roleSetId
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         MemberGroup group = group(workspaceId, groupId);
         String normalizedName = name.trim();
 
@@ -143,6 +149,7 @@ public class MemberGroupService {
             String description,
             Long roleSetId
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         MemberGroup group = group(workspaceId, groupId);
         RoleDefinition role = localRole(workspaceId, groupId, roleId);
 
@@ -167,6 +174,7 @@ public class MemberGroupService {
 
     @Transactional
     public MemberGroupResponse deleteRole(Long workspaceId, Long groupId, Long roleId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         MemberGroup group = group(workspaceId, groupId);
         RoleDefinition role = localRole(workspaceId, groupId, roleId);
 
@@ -185,6 +193,7 @@ public class MemberGroupService {
             Long memberId,
             Set<Long> roleIds
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         return addMember(workspaceId, groupId, memberId, roleIds);
     }
 
@@ -195,6 +204,7 @@ public class MemberGroupService {
             Long memberId,
             Set<Long> roleIds
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         MemberGroup group = group(workspaceId, groupId);
         WorkspaceMember member = members.findByIdAndWorkspaceId(memberId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace member not found: " + memberId));
@@ -214,6 +224,7 @@ public class MemberGroupService {
 
     @Transactional
     public MemberGroupResponse removeMember(Long workspaceId, Long groupId, Long memberId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         MemberGroup group = group(workspaceId, groupId);
         GroupMembership membership = memberships
                 .findByMemberGroupIdAndMemberId(groupId, memberId)
@@ -237,6 +248,7 @@ public class MemberGroupService {
 
     @Transactional
     public MemberGroupResponse addChildGroup(Long workspaceId, Long parentId, Long childId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         if (parentId.equals(childId)) {
             throw new IllegalArgumentException("A group cannot contain itself");
         }
@@ -259,6 +271,7 @@ public class MemberGroupService {
 
     @Transactional
     public MemberGroupResponse removeChildGroup(Long workspaceId, Long parentId, Long childId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         MemberGroup parent = group(workspaceId, parentId);
         GroupComposition composition = compositions
                 .findByParentGroupIdAndChildGroupId(parentId, childId)
@@ -307,6 +320,7 @@ public class MemberGroupService {
             GroupPermission permission,
             GroupPermissionScope scope
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         group(workspaceId, groupId);
         RoleDefinition role = localRole(workspaceId, groupId, roleId);
 
@@ -332,6 +346,7 @@ public class MemberGroupService {
 
     @Transactional
     public void removePermissionGrant(Long workspaceId, Long groupId, Long grantId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         group(workspaceId, groupId);
 
         RolePermissionGrant grant = rolePermissionGrants.findById(grantId)
@@ -351,6 +366,7 @@ public class MemberGroupService {
             PointTransactionType type,
             String description
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         // Serialize balance changes for this group before reading the ledger.
         MemberGroup group = groups.findWithLockByIdAndWorkspaceId(groupId, workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + groupId));

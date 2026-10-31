@@ -9,11 +9,13 @@ import java.util.Optional;
 
 @Service
 public class WorkspaceService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
 
     private final WorkspaceRepository workspaceRepository;
     private final RoleCatalogBootstrapService roleCatalogBootstrapService;
 
-    public WorkspaceService(WorkspaceRepository workspaceRepository, RoleCatalogBootstrapService roleCatalogBootstrapService) {
+    public WorkspaceService(WorkspaceRepository workspaceRepository, RoleCatalogBootstrapService roleCatalogBootstrapService, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.workspaceRepository = workspaceRepository;
         this.roleCatalogBootstrapService = roleCatalogBootstrapService;
     }
@@ -32,7 +34,9 @@ public class WorkspaceService {
         return workspaceRepository.findById(id);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public Optional<Workspace> updateWorkspace(Long id, String name) {
+        epochGuard.requireCurrentRequestEpoch(id);
         return workspaceRepository.findById(id)
                 .map(workspace -> {
                     workspace.setName(name);
@@ -40,7 +44,9 @@ public class WorkspaceService {
                 });
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public boolean deleteWorkspace(Long id) {
+        epochGuard.requireCurrentRequestEpoch(id);
         if (!workspaceRepository.existsById(id)) {
             return false;
         }

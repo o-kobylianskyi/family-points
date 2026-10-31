@@ -21,7 +21,7 @@ class WorkspaceTemplateControllerTest {
     private final WorkspaceTemplateController controller =
             new WorkspaceTemplateController(db, new TemplateCatalogService(),
                     tasks, rewards,
-                    mock(TaskController.class), mock(RewardController.class));
+                    mock(TaskController.class), mock(RewardController.class), org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
 
     @Test void rejectsMalformedDefinitionWithoutWriting() {
         var invalid = new WorkspaceTemplateController.TemplateRequest("Test", "{bad", "TASK");
@@ -327,7 +327,7 @@ class WorkspaceTemplateControllerTest {
         var catalog = new TemplateCatalogService();
         var economy = new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
         var scopedController = new WorkspaceTemplateController(db, catalog, tasks, rewards,
-                mock(TaskController.class), mock(RewardController.class), economy);
+                mock(TaskController.class), mock(RewardController.class), economy, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
         when(db.query(contains("SELECT kind,title,definition_json"),
                 any(org.springframework.jdbc.core.RowMapper.class),eq(71L),eq(1L)))
                 .thenReturn(List.<String[]>of(new String[]{"REWARD","Cartoons",
@@ -349,7 +349,7 @@ class WorkspaceTemplateControllerTest {
         var catalog=new TemplateCatalogService();
         var economy=new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
         var scopedController=new WorkspaceTemplateController(db,catalog,tasks,rewards,
-                mock(TaskController.class),mock(RewardController.class),economy);
+                mock(TaskController.class),mock(RewardController.class),economy, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
         when(db.query(contains("SELECT kind,title,definition_json"),
                 any(org.springframework.jdbc.core.RowMapper.class),eq(72L),eq(1L)))
                 .thenReturn(List.<String[]>of(new String[]{"REWARD","Family time",
@@ -368,7 +368,7 @@ class WorkspaceTemplateControllerTest {
         var catalog=new TemplateCatalogService();
         var economy=new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
         var scoped=new WorkspaceTemplateController(db,catalog,tasks,rewards,
-                mock(TaskController.class),mock(RewardController.class),economy);
+                mock(TaskController.class),mock(RewardController.class),economy, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
         when(db.query(contains("SELECT kind,title,definition_json"),
                 any(org.springframework.jdbc.core.RowMapper.class),eq(81L),eq(1L)))
                 .thenReturn(List.<String[]>of(new String[]{"REWARD","Cartoons",
@@ -389,7 +389,7 @@ class WorkspaceTemplateControllerTest {
         var catalog=new TemplateCatalogService();
         var economy=new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
         var scoped=new WorkspaceTemplateController(db,catalog,tasks,rewards,
-                mock(TaskController.class),mock(RewardController.class),economy);
+                mock(TaskController.class),mock(RewardController.class),economy, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
         when(db.query(contains("SELECT kind,title,definition_json"),
                 any(org.springframework.jdbc.core.RowMapper.class),eq(82L),eq(1L)))
                 .thenReturn(List.<String[]>of(new String[]{"REWARD","Cartoons",
@@ -407,7 +407,7 @@ class WorkspaceTemplateControllerTest {
         var catalog=new TemplateCatalogService();
         var economy=new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
         var scoped=new WorkspaceTemplateController(db,catalog,tasks,rewards,
-                mock(TaskController.class),mock(RewardController.class),economy);
+                mock(TaskController.class),mock(RewardController.class),economy, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
         when(db.query(contains("SELECT kind,title,definition_json"),
                 any(org.springframework.jdbc.core.RowMapper.class),eq(83L),eq(1L)))
                 .thenReturn(List.<String[]>of(new String[]{"REWARD","Family time",
@@ -424,7 +424,7 @@ class WorkspaceTemplateControllerTest {
         var catalog=new TemplateCatalogService();
         var economy=new com.olehkobylianskyi.familypoints.service.TemplateEconomySuggestionsService(catalog);
         var scoped=new WorkspaceTemplateController(db,catalog,tasks,rewards,
-                mock(TaskController.class),mock(RewardController.class),economy);
+                mock(TaskController.class),mock(RewardController.class),economy, org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
         when(db.query(contains("SELECT kind,title,definition_json"),
                 any(org.springframework.jdbc.core.RowMapper.class),eq(84L),eq(1L)))
                 .thenReturn(List.<String[]>of(new String[]{"TASK","Routine",

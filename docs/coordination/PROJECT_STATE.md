@@ -121,3 +121,7 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 ## 2026-10-31 — Backend slot/exchange/ledger fence verified
 - Exact source `fc4fa54b06d000f0449e3875ffea11c7ca10a8bb`, all-green CI https://github.com/o-kobylianskyi/family-points/actions/runs/41231246497 . Backend 280 PASS, including 17 actual Spring/JPA/PostgreSQL service scenarios.
 - Eighteen slot/exchange/point/reputation entry points and transaction-scoped validated-epoch reuse are verified in CI. Remaining writer inventory and full reset/QA/Release gates stay open. No deployment or real data reset.
+
+## 2026-10-31 — Broad remaining Backend writer integration (source; CI pending)
+- Seventeen components now participate in family fencing: groups/roles/group ledger, economy including lazy reads, templates including activation claims, media, suggestions, member/config/timezone writes and per-family startup/default processing.
+- Selected-family role checks and global-account survival on scoped member removal repaired. New transactions cover previously direct multi-write entry points. Auth/invitation/join/reset-finalization and independent consumer/QA/Release acceptance remain OPEN. No migration, live reset or deployment.

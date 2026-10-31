@@ -12,14 +12,16 @@ import java.util.List;
 
 @Service
 public class MemberExceptionPeriodService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
 
     private final MemberExceptionPeriodRepository exceptionPeriodRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
 
     public MemberExceptionPeriodService(
             MemberExceptionPeriodRepository exceptionPeriodRepository,
-            WorkspaceMemberRepository workspaceMemberRepository
-    ) {
+            WorkspaceMemberRepository workspaceMemberRepository,
+            com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.exceptionPeriodRepository = exceptionPeriodRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
     }
@@ -33,6 +35,7 @@ public class MemberExceptionPeriodService {
             LocalDate endDate,
             String comment
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         if (endDate.isBefore(startDate)) {
             throw new IllegalArgumentException(
                     "End date cannot be before start date"

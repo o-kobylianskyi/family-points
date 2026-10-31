@@ -12,6 +12,7 @@ import java.util.List;
 
 @Service
 public class RoleDefinitionService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private final WorkspaceRepository workspaces;
     private final RoleDefinitionRepository roles;
     private final RoleSetRepository roleSets;
@@ -23,8 +24,9 @@ public class RoleDefinitionService {
             RoleDefinitionRepository roles,
             RoleSetRepository roleSets,
             MemberGroupRepository groups,
-            RoleCatalogAuthorizationService authorization
-    ) {
+            RoleCatalogAuthorizationService authorization,
+            com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.workspaces = workspaces;
         this.roles = roles;
         this.roleSets = roleSets;
@@ -42,6 +44,7 @@ public class RoleDefinitionService {
 
     @Transactional
     public RoleDefinitionResponse create(Long workspaceId, RoleDefinitionRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         authorization.requireManage(workspaceId);
         Workspace workspace = workspace(workspaceId);
         RoleContextType contextType = request.getOwnerContextType() == null
@@ -62,6 +65,7 @@ public class RoleDefinitionService {
 
     @Transactional
     public RoleDefinitionResponse update(Long workspaceId, Long roleId, RoleDefinitionRequest request) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         authorization.requireManage(workspaceId);
         RoleDefinition role = role(workspaceId, roleId);
         if (role.isSystemDefault()) {
@@ -83,6 +87,7 @@ public class RoleDefinitionService {
 
     @Transactional
     public void deactivate(Long workspaceId, Long roleId) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         authorization.requireManage(workspaceId);
         RoleDefinition role = role(workspaceId, roleId);
         if (role.isSystemDefault()) {

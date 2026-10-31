@@ -14,6 +14,7 @@ import java.util.List;
 
 @Service
 public class RoleSetService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private final WorkspaceRepository workspaces;
     private final RoleSetRepository roleSets;
     private final GroupRoleRepository roles;
@@ -22,7 +23,8 @@ public class RoleSetService {
 
     public RoleSetService(WorkspaceRepository workspaces, RoleSetRepository roleSets, GroupRoleRepository roles,
                           RoleDefinitionRepository roleDefinitions,
-                          RoleCatalogAuthorizationService authorization) {
+                          RoleCatalogAuthorizationService authorization, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.workspaces = workspaces;
         this.roleSets = roleSets;
         this.roles = roles;
@@ -41,6 +43,7 @@ public class RoleSetService {
 
     @Transactional
     public RoleSetResponse create(Long workspaceId, String name, String description) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         authorization.requireManage(workspaceId);
         Workspace workspace = workspace(workspaceId);
         if (roleSets.existsByWorkspaceIdAndNameIgnoreCase(workspaceId, name.trim())) {
@@ -52,6 +55,7 @@ public class RoleSetService {
 
     @Transactional
     public RoleSetResponse update(Long workspaceId, Long id, String name, String description) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         authorization.requireManage(workspaceId);
         RoleSet set = roleSet(workspaceId, id);
         if (set.isSystemDefault()) throw new IllegalArgumentException("System role sets cannot be edited");
@@ -62,6 +66,7 @@ public class RoleSetService {
 
     @Transactional
     public void deactivate(Long workspaceId, Long id) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         authorization.requireManage(workspaceId);
         RoleSet set = roleSet(workspaceId, id);
         if (set.isSystemDefault()) throw new IllegalArgumentException("System role sets cannot be deleted");

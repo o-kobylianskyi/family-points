@@ -12,6 +12,7 @@ import java.util.List;
 
 @Service
 public class EconomyService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
 
     private final EconomySettingsRepository settingsRepository;
     private final WorkspaceRepository workspaceRepository;
@@ -22,8 +23,9 @@ public class EconomyService {
             EconomySettingsRepository settingsRepository,
             WorkspaceRepository workspaceRepository,
             PointTypeRepository pointTypeRepository,
-            StandardCurrencyForms standardCurrencyForms
-    ) {
+            StandardCurrencyForms standardCurrencyForms,
+            com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.settingsRepository = settingsRepository;
         this.workspaceRepository = workspaceRepository;
         this.pointTypeRepository = pointTypeRepository;
@@ -32,6 +34,7 @@ public class EconomyService {
 
     @Transactional
     public EconomySettings getOrCreateSettings(Long workspaceId) {
+        epochGuard.lockCurrentEpoch(workspaceId);
 
         EconomySettings settings = settingsRepository.findByWorkspaceId(workspaceId)
                 .orElseGet(() -> createDefaultSettings(workspaceId));
@@ -43,6 +46,7 @@ public class EconomyService {
 
     @Transactional
     public List<PointType> getActivePointTypes(Long workspaceId) {
+        epochGuard.lockCurrentEpoch(workspaceId);
         getOrCreateSettings(workspaceId);
         return pointTypeRepository
                 .findByWorkspaceIdAndActiveTrueOrderBySortOrderAsc(
@@ -57,6 +61,7 @@ public class EconomyService {
             String name,
             int sortOrder
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         Workspace workspace = getWorkspaceOrThrow(workspaceId);
 
         if (code == null || !code.trim().toUpperCase(java.util.Locale.ROOT).matches("[A-Z][A-Z0-9_]{1,49}")) {
@@ -94,6 +99,7 @@ public class EconomyService {
 
     @Transactional
     public List<PointType> getAllPointTypes(Long workspaceId) {
+        epochGuard.lockCurrentEpoch(workspaceId);
         getOrCreateSettings(workspaceId);
         return pointTypeRepository.findByWorkspaceIdOrderBySortOrderAsc(workspaceId);
     }
@@ -101,6 +107,7 @@ public class EconomyService {
     @Transactional
     public PointType updatePointType(Long workspaceId, Long pointTypeId, String name,
                                      int sortOrder, boolean active) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         PointType type = getPointTypeOrThrow(workspaceId, pointTypeId);
         if (name == null || name.isBlank() || name.trim().length() > 100) {
             throw new IllegalArgumentException("Currency name must contain 1–100 characters");
@@ -122,6 +129,7 @@ public class EconomyService {
             Long workspaceId,
             Long defaultPointTypeId
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         EconomySettings settings =
                 getOrCreateSettings(workspaceId);
 
@@ -147,6 +155,7 @@ public class EconomyService {
     public EconomySettings enableSimpleMode(
             Long workspaceId
     ) {
+        epochGuard.requireCurrentRequestEpoch(workspaceId);
         EconomySettings settings =
                 getOrCreateSettings(workspaceId);
 

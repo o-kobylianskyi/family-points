@@ -19,7 +19,7 @@ class CalendarServiceSecurityTest {
     private final RewardDefinitionRepository rewards = mock(RewardDefinitionRepository.class);
     private final RewardAvailabilityService availability = mock(RewardAvailabilityService.class);
     private final CalendarService calendar = new CalendarService(user,workspaces,members,tasks,rewards,
-            availability,Clock.fixed(Instant.parse("2026-10-22T12:00:00Z"),ZoneOffset.UTC));
+            availability,Clock.fixed(Instant.parse("2026-10-22T12:00:00Z"),ZoneOffset.UTC), org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard.class));
 
     private final LocalDate from = LocalDate.of(2026,10,22);
 

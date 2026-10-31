@@ -10,16 +10,19 @@ import java.util.List;
 
 @Service
 public class RoleCatalogBootstrapService {
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     private final RoleSetRepository roleSets;
     private final RoleDefinitionRepository roles;
 
-    public RoleCatalogBootstrapService(RoleSetRepository roleSets, RoleDefinitionRepository roles) {
+    public RoleCatalogBootstrapService(RoleSetRepository roleSets, RoleDefinitionRepository roles, com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard) {
+        this.epochGuard = epochGuard;
         this.roleSets = roleSets;
         this.roles = roles;
     }
 
     @Transactional
     public void ensureDefaults(Workspace workspace) {
+        epochGuard.lockCurrentEpoch(workspace.getId());
         RoleSet management = ensureSet(workspace, "MANAGEMENT", "Management", "Default management roles");
         RoleSet execution = ensureSet(workspace, "EXECUTION", "Execution", "Default execution roles");
         RoleSet control = ensureSet(workspace, "CONTROL", "Control", "Default control roles");

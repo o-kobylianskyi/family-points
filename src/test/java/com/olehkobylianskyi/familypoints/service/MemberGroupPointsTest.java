@@ -17,6 +17,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MemberGroupPointsTest {
+    @org.mockito.Mock com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
     @Mock WorkspaceRepository workspaces;
     @Mock WorkspaceMemberRepository members;
     @Mock MemberGroupRepository groups;

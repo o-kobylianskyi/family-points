@@ -18,6 +18,10 @@ import java.util.Set;
  */
 @Service
 public class LegacyGroupRoleBridgeService {
+    private final com.olehkobylianskyi.familypoints.repository.GroupMembershipRepository legacyMemberships;
+    private final com.olehkobylianskyi.familypoints.repository.GroupPermissionGrantRepository legacyGrants;
+    private final com.olehkobylianskyi.familypoints.repository.GroupRoleRepository legacyRoles;
+    private final com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard;
 
     private final RoleDefinitionRepository roleDefinitions;
     private final RoleAssignmentRepository roleAssignments;
@@ -26,15 +30,24 @@ public class LegacyGroupRoleBridgeService {
     public LegacyGroupRoleBridgeService(
             RoleDefinitionRepository roleDefinitions,
             RoleAssignmentRepository roleAssignments,
-            RolePermissionGrantRepository rolePermissionGrants
-    ) {
+            RolePermissionGrantRepository rolePermissionGrants,
+            com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard epochGuard, com.olehkobylianskyi.familypoints.repository.GroupRoleRepository legacyRoles, com.olehkobylianskyi.familypoints.repository.GroupPermissionGrantRepository legacyGrants, com.olehkobylianskyi.familypoints.repository.GroupMembershipRepository legacyMemberships) {
+        this.epochGuard = epochGuard;
+        this.legacyRoles = legacyRoles;
+        this.legacyGrants = legacyGrants;
+        this.legacyMemberships = legacyMemberships;
         this.roleDefinitions = roleDefinitions;
         this.roleAssignments = roleAssignments;
         this.rolePermissionGrants = rolePermissionGrants;
     }
 
     @Transactional
-    public RoleDefinition syncRole(GroupRole legacyRole) {
+    public RoleDefinition syncRole(GroupRole suppliedRole) {
+        Long workspaceId = suppliedRole.getMemberGroup().getWorkspace().getId();
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        GroupRole legacyRole = legacyRoles.findById(suppliedRole.getId())
+                .filter(value -> workspaceId.equals(value.getMemberGroup().getWorkspace().getId()))
+                .orElseThrow(() -> new com.olehkobylianskyi.familypoints.exception.ResourceNotFoundException("Legacy role object not found"));
         MemberGroup group = legacyRole.getMemberGroup();
         Workspace workspace = group.getWorkspace();
 
@@ -63,7 +76,12 @@ public class LegacyGroupRoleBridgeService {
     }
 
     @Transactional
-    public RolePermissionGrant syncPermissionGrant(GroupPermissionGrant legacyGrant) {
+    public RolePermissionGrant syncPermissionGrant(GroupPermissionGrant suppliedGrant) {
+        Long workspaceId = suppliedGrant.getGroupRole().getMemberGroup().getWorkspace().getId();
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        GroupPermissionGrant legacyGrant = legacyGrants.findById(suppliedGrant.getId())
+                .filter(value -> workspaceId.equals(value.getGroupRole().getMemberGroup().getWorkspace().getId()))
+                .orElseThrow(() -> new com.olehkobylianskyi.familypoints.exception.ResourceNotFoundException("Legacy role object not found"));
         RoleDefinition role = syncRole(legacyGrant.getGroupRole());
 
         RolePermissionGrant grant = rolePermissionGrants
@@ -83,13 +101,23 @@ public class LegacyGroupRoleBridgeService {
     }
 
     @Transactional
-    public void removePermissionGrant(GroupPermissionGrant legacyGrant) {
+    public void removePermissionGrant(GroupPermissionGrant suppliedGrant) {
+        Long workspaceId = suppliedGrant.getGroupRole().getMemberGroup().getWorkspace().getId();
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        GroupPermissionGrant legacyGrant = legacyGrants.findById(suppliedGrant.getId())
+                .filter(value -> workspaceId.equals(value.getGroupRole().getMemberGroup().getWorkspace().getId()))
+                .orElseThrow(() -> new com.olehkobylianskyi.familypoints.exception.ResourceNotFoundException("Legacy role object not found"));
         rolePermissionGrants.findByLegacyGroupPermissionGrantId(legacyGrant.getId())
                 .ifPresent(rolePermissionGrants::delete);
     }
 
     @Transactional
-    public void removeRoleBridge(GroupRole legacyRole) {
+    public void removeRoleBridge(GroupRole suppliedRole) {
+        Long workspaceId = suppliedRole.getMemberGroup().getWorkspace().getId();
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        GroupRole legacyRole = legacyRoles.findById(suppliedRole.getId())
+                .filter(value -> workspaceId.equals(value.getMemberGroup().getWorkspace().getId()))
+                .orElseThrow(() -> new com.olehkobylianskyi.familypoints.exception.ResourceNotFoundException("Legacy role object not found"));
         roleDefinitions.findByLegacyGroupRoleId(legacyRole.getId()).ifPresent(role -> {
             rolePermissionGrants.deleteAll(rolePermissionGrants.findByRoleDefinitionId(role.getId()));
             roleAssignments.deleteAll(roleAssignments.findByRoleDefinitionId(role.getId()));
@@ -104,7 +132,12 @@ public class LegacyGroupRoleBridgeService {
     }
 
     @Transactional
-    public void syncMembership(GroupMembership membership) {
+    public void syncMembership(GroupMembership suppliedMembership) {
+        Long workspaceId = suppliedMembership.getMemberGroup().getWorkspace().getId();
+        epochGuard.requireCurrentRequestOrLockedEpoch(workspaceId);
+        GroupMembership membership = legacyMemberships.findById(suppliedMembership.getId())
+                .filter(value -> workspaceId.equals(value.getMemberGroup().getWorkspace().getId()))
+                .orElseThrow(() -> new com.olehkobylianskyi.familypoints.exception.ResourceNotFoundException("Legacy role object not found"));
         MemberGroup group = membership.getMemberGroup();
         Workspace workspace = group.getWorkspace();
         WorkspaceMember member = membership.getMember();
