@@ -24,3 +24,7 @@ export const deletePrivateTemplate = (token, workspaceId, id) =>
 
 export const getTemplateCreationDraft = (token, workspaceId, templateId) =>
   read(apiRequest(`/workspaces/${workspaceId}/templates/${templateId}/creation-draft`, { token }))
+
+// Explicit parent action; changes only server-returned creation draft, not persisted templates.
+export const applyTemplateEconomySuggestion = (token, workspaceId, templateId) =>
+  read(apiRequest(`/workspaces/${workspaceId}/templates/${templateId}/creation-draft/apply-economy-suggestion`, { token, method: 'POST' }))
