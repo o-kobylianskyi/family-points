@@ -737,3 +737,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-10-31 — WEB-EPOCH-02 follow-ups
 - Closed cross-tab write gap for workspace not previously cached (db3271d). Added four-language text in AuthContext reload shield (a24a5b6). CI/build, cross-tab browser tests and automated replay QA still pending. No production deploy/reset.
+
+## 2026-10-31 — WEB-EPOCH-03 active language and logout handling
+- Audited current main, Backend epoch row-lock guard work (db6f4f2, 9e328b5), and Web epoch shield. Corrected the shield to use actual i18next active language rather than document.documentElement.lang, and clear obsolete epochChanged state on logout/clearSession. Commit aadfda6.
+- Cross-tab localStorage notification behavior still requires two-tab authenticated DEV QA; full CI for latest SHA not independently confirmed. Backend protected transaction/execute contract and disposable DEV reset E2E remain pending. No production deployment or actual reset.
