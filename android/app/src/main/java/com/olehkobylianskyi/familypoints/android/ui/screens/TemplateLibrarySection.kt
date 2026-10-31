@@ -442,6 +442,48 @@ fun TemplateLibrarySection(
                         "Nur Vorschau. Mitglied, Währung und Pflichtfelder sind vor dem Erstellen nötig. Nichts aktiviert.",
                         "Preview only. Member, currency and required fields must be supplied before creation. Nothing activated.",
                         "Только просмотр. Для создания нужны участник, валюта и обязательные поля. Ничего не активировано."))
+                    val draft = creationDraft
+                    val suggestion = draft?.getAsJsonObject("economySuggestion")
+                    val suggestedAmount = listOf("suggestedRewardPoints", "suggestedPricePoints")
+                        .firstNotNullOfOrNull { key ->
+                            suggestion?.get(key)?.takeUnless { it.isJsonNull }
+                                ?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isNumber }
+                                ?.asInt
+                        }
+                    val draftId = draft?.get("templateId")?.takeUnless { it.isJsonNull }?.asLong
+                    val mayApply = canManage && draftId != null &&
+                        draft?.get("requiresConfirmation")?.asBoolean == true &&
+                        suggestion?.get("pricingState")?.asString == "OPTIONAL_SUGGESTION" &&
+                        suggestedAmount != null && suggestedAmount >= 0
+                    if (mayApply && draft?.get("suggestionAppliedToDraft")?.asBoolean != true) {
+                        Text(tl(language,
+                            "Рекомендація: $suggestedAmount балів. Застосування змінює лише цю чернетку.",
+                            "Vorschlag: $suggestedAmount Punkte. Nur dieser Entwurf wird geändert.",
+                            "Suggestion: $suggestedAmount points. Only this draft changes.",
+                            "Рекомендация: $suggestedAmount баллов. Меняется только этот черновик."))
+                        OutlinedButton(enabled = !busy, onClick = {
+                            val id = draftId ?: return@OutlinedButton
+                            perform {
+                                val applied = repository.applyEconomySuggestion(workspaceId, id)
+                                if (applied.get("templateId")?.asLong != id ||
+                                    applied.get("suggestionAppliedToDraft")?.asBoolean != true ||
+                                    applied.get("requiresConfirmation")?.asBoolean != true) {
+                                    throw SecurityException("Unexpected economy draft response")
+                                }
+                                creationDraft = applied
+                            }
+                        }) {
+                            Text(tl(language, "Застосувати до чернетки", "Auf Entwurf anwenden",
+                                "Apply to draft", "Применить к черновику"))
+                        }
+                    }
+                    if (draft?.get("suggestionAppliedToDraft")?.asBoolean == true) {
+                        Text(tl(language, "Рекомендацію застосовано лише до чернетки. Нічого не створено.",
+                            "Nur im Entwurf übernommen. Nichts erstellt.",
+                            "Applied to draft only. Nothing was created.",
+                            "Применено только к черновику. Ничего не создано."),
+                            color = MaterialTheme.colorScheme.primary)
+                    }
                     val request = creationDraft?.getAsJsonObject("request")
                     if (request == null) {
                         Text(tl(language, "Сервер не повернув поля чернетки.",
