@@ -284,3 +284,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Manual Chrome Reset Preview succeeds; Playwright diagnosis corrected
 - User supplied Chrome DevTools screenshot on localhost:5173/settings: GET /workspaces/14/data-reset/preview displays a parsed JSON object with workspaceId=14, executionEnabled=false, completeDependencyPlan=false, alwaysPreserved and categories. This disproves prior categorical claim that Backend cannot serialize the preview JSON. Repeated preview requests may occur.
 - Revised qa/e2e/tests/reset-preview-i18n.spec.js at 2349698 to assert rendered category checkboxes first, then separately fetch/parse the authenticated preview using Playwright API request, avoiding first response-header capture. Pending rerun. Actual /plan and reset remain untested; no data deletion.
+
+
+## 2026-10-31 — Root cause found: resetApi read() omits await
+- User's latest Playwright: independently authenticated reset preview API parses JSON, but React shows 'Could not load data', browserErrors=[] and no category checkboxes. Source audit identified exact Web bug: frontend/src/api/resetApi.js `read(response)` received Promise<Response> from `apiRequest()` and immediately inspected `response.ok`, causing false RESET_API_ERROR. Fixed with `response = await response` in commit ef8d6446. Affects preview and plan readers.
+- Fix committed but NOT YET runtime-tested. Next user action: pull main, let Vite hot reload, rerun isolated reset preview/plan Playwright. No reset or DB changes.
