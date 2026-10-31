@@ -137,3 +137,7 @@ Never remove an unresolved item to tidy the register. Close only after affected 
 - Client-originated service calls use the original request header, never a freshly read epoch as proof. No-request ordinary writes remain compatible only at epoch zero; explicit server-derived generation/deadline paths lock current state and reload entities. HTTP-triggered system paths still validate the submitted header.
 - Deadline scanning uses one transaction per workspace including candidate reads and penalty posting, covering scheduler same-bean invocation. Read-triggered obligation refresh locks current state without requiring a mutation header on GET.
 - API bodies, permissions and database schema unchanged; constructor changes are internal. Full writer coverage (slots, groups, exchanges, templates, media and other direct repository paths), final reset dependency/reauth/execute acceptance and consumer/Release sign-off remain OPEN. No deploy or reset.
+
+## 2026-10-31 — IMP-0009 task/reward fence verification evidence
+- Backend source `701ad3ac` verified at compatible `03f12893c4cfa3f6d756ca362188ed2abadf0c78`; all-green Actions 41213010771, backend 269 PASS. Actual service/JPA transaction, rollback, stale replay, cross-family progress and background reload evidence recorded in Backend journal.
+- This is Backend source/CI acceptance of this bounded package, not closure of IMP-0009: remaining direct/upstream writers, complete execute/financial/reauth contract, client/QA/Release acceptance and deployment remain OPEN.

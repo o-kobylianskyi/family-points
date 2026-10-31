@@ -109,3 +109,7 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 ## 2026-10-31 — Backend task/reward service epoch fence (source; CI pending)
 - Task/reward/negotiation/availability transaction entries now validate the original request epoch before domain reads/locks. System generation reloads current entities after locking; deadline batches fence one family transaction before scanning. Hidden obligation-list writes lock current state.
 - No schema/API-body change, no reset execution or deployment. Full direct-writer coverage and destructive-operation acceptance are still incomplete; see Backend journal and IMP-0009.
+
+## 2026-10-31 — Backend task/reward fencing verified in cloud CI
+- Source `701ad3ac`, tested compatible SHA `03f12893c4cfa3f6d756ca362188ed2abadf0c78`, all-green Actions https://github.com/o-kobylianskyi/family-points/actions/runs/41213010771 . Backend: 269 PASS, including nine real Spring/JPA/PostgreSQL service tests.
+- Covers TaskService/RewardService/negotiation/availability/generation service boundaries, family-scoped deadline transactions and hidden obligation-list writes. Remaining direct writer/outer lock-order audit and full reset safety are OPEN. No DEV/BETA deployment or family-data reset.

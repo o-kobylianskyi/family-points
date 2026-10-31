@@ -1446,3 +1446,8 @@ Before each substantial implementation batch:
 - [x] Cover hidden obligation-list writes without changing GET header requirements; add request-vs-system and actual service PostgreSQL tests.
 - [ ] Confirm cloud CI for this package; source integration alone is not test acceptance.
 - [ ] Audit remaining direct writers (including schedule slots, exchange, groups, templates and media), then finish reset dependency/reauth/atomic execute and disposable DEV QA.
+
+## 2026-10-31 — BKL-002 task/reward cloud acceptance
+- [x] Verify source `701ad3ac` in all-green compatible SHA `03f12893c4cfa3f6d756ca362188ed2abadf0c78`, Actions 41213010771.
+- [x] Backend 269 PASS: exhaustive 38-entry guard boundary audit and nine real Spring/JPA/PostgreSQL service scenarios.
+- [ ] Fence remaining direct writers and upstream outer transactions; finalize reset dependency/ledger/reauth/execute and disposable DEV acceptance. Full reset remains disabled.
