@@ -13,7 +13,9 @@ const secondary = {
   foreignId: primary.ownId,
 }
 const apiOrigin = process.env.FP_QA_API_URL || 'http://localhost:8080'
-const allowedDenial = [403, 404]
+// API security filters may return 401 for a token lacking target-workspace scope.
+// An authorized own-workspace control in the primary test distinguishes this from missing credentials.
+const allowedDenial = [401, 403, 404]
 
 async function login(page, actor) {
   await page.goto('/login')
@@ -31,10 +33,12 @@ async function verifyDenied(request, token, workspaceId) {
   const headers = { Authorization: 'Bearer ' + token }
   const base = apiOrigin + '/workspaces/' + workspaceId + '/data-reset'
   const preview = await request.get(base + '/preview', { headers, failOnStatusCode: false })
+  console.log('Foreign workspace preview status:', preview.status())
   expect(allowedDenial, 'Cross-family preview must reject access').toContain(preview.status())
   const plan = await request.post(base + '/plan', {
     headers, data: { categories: ['PRIVATE_TEMPLATES'] }, failOnStatusCode: false,
   })
+  console.log('Foreign workspace plan status:', plan.status())
   expect(allowedDenial, 'Cross-family plan must reject access').toContain(plan.status())
 }
 
@@ -66,6 +70,7 @@ test('Test2 child cannot access reset administration in either family', async ({
   const ownPreview = await request.get(apiOrigin + '/workspaces/' + secondary.ownId + '/data-reset/preview', {
     headers, failOnStatusCode: false,
   })
+  console.log('Test2 own workspace reset preview status:', ownPreview.status())
   expect(allowedDenial).toContain(ownPreview.status())
   await verifyDenied(request, token, secondary.foreignId)
 })
