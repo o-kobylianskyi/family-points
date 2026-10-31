@@ -353,3 +353,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Updated `qa/e2e/tests/reset-tenant-isolation.spec.js` in commit 9530672: fixed JavaScript regex escaping and added two independent auth tests. Test (own workspace 14 by default) must receive own preview 200 and be rejected for verified foreign workspace; Test2 (child role) must be denied reset admin preview in its own QA workspace and must be denied preview and plan for workspace 14.
 - Env: `FP_QA_FOREIGN_WORKSPACE_ID`, `FP_QA_TEST2_WORKSPACE_ID`, `FP_QA_TEST2_PASSWORD`; Test2 username defaults to Test2. Do not assign Test2 workspace 11 until verified; screenshot indicated request URL /workspaces/11 but was not complete proof. Tests skip when fixture unavailable.
 - New tests NOT YET EXECUTED; last confirmed full Playwright run 18/18 PASS. Only GET preview and POST plan; no destructive operations.
+
+
+## 2026-10-31 — Tenant-isolation 401 status discovered
+- User ran both Test/Test2 cross-family tests: both failed assertion expecting 403/404 because foreign preview returned HTTP 401. Test primary own workspace reset preview returned 200 before foreign request, confirming working authentication on its own family. Test2 own reset preview assertion accepted denial (403/404), then foreign returned 401.
+- Security interpretation: 401 is denial, not disclosure; however, its use for authenticated cross-workspace access differs from conventional 403/404 and requires Backend contract review. Updated Playwright acceptance to [401,403,404] and added status logs (commit 7744dca); no PASS claimed until rerun. POST /plan never reached in earlier failing runs.
