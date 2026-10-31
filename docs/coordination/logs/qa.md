@@ -341,3 +341,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Full Playwright suite 18/18 PASS
 - User screenshot confirms Chromium `18 passed (27.1s)` with no failures/skips. Includes read-only unknown reset category rejection, cleared dependency-plan on selection change, mismatched workspace preview rejection, and all prior smoke/access tests.
 - BKL-002 full destructive reset remains NOT APPROVED and untested; synthetic mismatched workspace preview does not demonstrate backend tenant isolation. Next priority is scoped cross-family authorization proof without deletion.
+
+
+## 2026-10-31 — Tenant isolation QA fixture staged
+- Full Playwright baseline 18/18 PASS per screenshot (27.1 seconds).
+- Added `qa/e2e/tests/reset-tenant-isolation.spec.js` (commit abcf1c1), which checks GET /preview and POST /plan on a distinct, real **QA-only** workspace inaccessible to the QA user; expected 403 or 404. This test is skipped unless `FP_QA_FOREIGN_WORKSPACE_ID` explicitly supplies a second workspace ID. Never invent or probe other real families.
+- No destructive endpoint is called. Passing would prove these two authorization checks only, not full tenant safety or reset execution.
