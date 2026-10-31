@@ -258,3 +258,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Windows QA Playwright 6/6 PASS
 - User ran qa/e2e npm test with dedicated QA account and running local Web: 6 Chromium tests passed in 10.6s, zero failures/skips. Catalog TPL-01 API 142/6/110 TASK/32 REWARD; read-only settings no reset execute request; cross-tab epoch UI event guard; public login, private templates navigation, settings navigation. User-provided console output is evidence, not a pinned CI run.
 - Scope limitation: cross-tab UI test is not real Backend epoch>0 reset/replay concurrency verification; read-only settings smoke is not reset preview/plan authorization or execution. BKL-002 full reset E2E remains blocked pending safe Backend and DEV V42 migration. No QA data mutations.
+
+
+## 2026-10-31 — Playwright reset preview/plan and locale expansion
+- Added qa/e2e/tests/reset-preview-i18n.spec.js commit 8347ac6: public login language switch uk/ru/de/en and authenticated read-only /data-reset/preview -> POST /plan with one selected category. Assert preview executionEnabled=false, plan executable=false, workspace same, blockers array, and no /prepare,/challenge,/confirm,/execute requests.
+- Browser tests newly added, NOT YET RUN on user Windows. Requires QA account with MANAGE_WORKSPACE and active compatible DEV Backend; failing preview due to missing V42/backend is environment blocker to diagnose, not proof of reset safety failure. No deletion, only plan POST.
