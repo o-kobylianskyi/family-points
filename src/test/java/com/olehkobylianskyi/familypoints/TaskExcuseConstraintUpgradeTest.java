@@ -42,7 +42,7 @@ class TaskExcuseConstraintUpgradeTest {
             sql.execute("INSERT INTO families(name) VALUES ('Excuse regression family')");
         }
 
-        assertEquals(5, flyway(false).migrate().migrationsExecuted);
+        assertEquals(6, flyway(false).migrate().migrationsExecuted);
         try (var conn = DriverManager.getConnection(DB.getJdbcUrl(), DB.getUsername(), DB.getPassword());
              Statement sql = conn.createStatement();
              ResultSet result = sql.executeQuery("""
