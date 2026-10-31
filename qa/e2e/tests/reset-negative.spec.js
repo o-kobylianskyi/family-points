@@ -102,4 +102,36 @@ test.describe('BKL-002 negative reset checks (read-only)', () => {
     expect(forbidden).toEqual([])
   })
 
+  test('mismatched workspace preview is rejected without rendering categories', async ({ page }) => {
+    const unsafe = []
+    let intercepted = 0
+    page.on('request', request => {
+      if (/\/data-reset\/(plan|prepare|confirm|challenge|execute)$/.test(new URL(request.url()).pathname)) {
+        unsafe.push(request.url())
+      }
+    })
+    await page.route(/\/workspaces\/\d+\/data-reset\/preview(?:\?.*)?$/, async route => {
+      intercepted += 1
+      const current = Number(new URL(route.request().url()).pathname.match(/\/workspaces\/(\d+)\//)[1])
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          workspaceId: current + 1,
+          executionEnabled: false,
+          completeDependencyPlan: false,
+          alwaysPreserved: [],
+          categories: { PRIVATE_TEMPLATES: { code: 'PRIVATE_TEMPLATES', recordCount: 1, executable: false } },
+        }),
+      })
+    })
+    await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    const panel = page.locator('.family-reset-readiness')
+    await expect(panel).toBeVisible()
+    await expect(panel.locator('.error-message')).toBeVisible({ timeout: 10000 })
+    await expect(panel.locator('.family-reset-category input[type="checkbox"]')).toHaveCount(0)
+    expect(intercepted).toBeGreaterThan(0)
+    expect(unsafe).toEqual([])
+  })
+
 })
