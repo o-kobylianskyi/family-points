@@ -15,6 +15,8 @@ class TemplateRepository(private val tokens: TokenStore) {
     }
     suspend fun creationDraft(workspaceId: Long, id: Long) =
         ApiClient.templateApi.creationDraft(auth(), workspaceId, id)
+    suspend fun categoryIcon(workspaceId: Long, catalogKey: String): ByteArray =
+        ApiClient.mediaApi.catalogPreview(auth(), workspaceId, catalogKey).use { it.bytes() }
     suspend fun catalog() = ApiClient.templateApi.catalog(auth())
     suspend fun privateTemplates(workspaceId: Long) = ApiClient.templateApi.privateTemplates(auth(), workspaceId)
     suspend fun preview(workspaceId: Long, codes: List<String>) =
