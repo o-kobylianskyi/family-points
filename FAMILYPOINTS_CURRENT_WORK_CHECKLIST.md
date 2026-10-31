@@ -1506,3 +1506,10 @@ Before each substantial implementation batch:
 - [x] Prepare XTR-20261031-B-01 with concrete owner/retention/shared-account/financial/proof transport decisions; receiver review still pending.
 - [ ] Final owner/delegation/global account-admin/financial/category retention approval, proof delivery/Google fresh reauth, complete atomic idempotent execute/epoch/audit/onboarding.
 - [ ] Independent security/consumer/disposable DEV/QA/Release gates. No live reset/migration/deployment; execute remains423.
+
+## 2026-11-01 — Issue18 Backend contract-first package
+- [x] Audit family creation/token/people/group/catalog/import/draft/activation source and identify missing durable setupState, receipts and WorkNode GROUP API.
+- [x] Fix activation CORS Idempotency-Key and TIME/ITEM portable draft mapping; add preflight/all32/domain and real import->activation regression tests.
+- [ ] Confirm cloud CI and publish exact endpoint/DTO/permission/recovery inventory.
+- [ ] Publish proposed durable setup/skip/resume and per-operation receipt contract; separate current APIs from unimplemented proposals; route typed group mapping/consumer review.
+- [ ] Implement accepted durable state/receipts/folder mapping and complete fresh-family wizard QA. No speculative schema or destructive reset.

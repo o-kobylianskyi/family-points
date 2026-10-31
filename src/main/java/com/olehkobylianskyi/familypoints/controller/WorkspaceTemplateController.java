@@ -254,6 +254,19 @@ public class WorkspaceTemplateController {
                     "workspaceTotalLimit","workspaceDailyLimit","workspaceWeeklyLimit",
                     "extraRequestAllowed"))
                 copyIfPresent(source,form,field);
+            // Portable Designer taxonomy differs from the activation DTO enum.
+            // Normalize the returned draft only; never rewrite catalog/private data.
+            if (form.hasNonNull("rewardKind")) {
+                String kind = form.path("rewardKind").asText();
+                String domainKind = switch (kind) {
+                    case "TIME" -> "TIME_BASED";
+                    case "ITEM" -> "STANDARD";
+                    case "TIME_BASED", "STANDARD" -> kind;
+                    default -> throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                            "Unsupported reward kind in template");
+                };
+                form.put("rewardKind", domainKind);
+            }
             if (!form.hasNonNull("defaultDurationMinutes") && source.hasNonNull("durationMinutes"))
                 form.set("defaultDurationMinutes", source.get("durationMinutes").deepCopy());
             resolveCurrency(workspaceId, source, form, "currencyCode", "pointTypeId");

@@ -1232,6 +1232,58 @@ class PointMutationTransactionPostgresTest {
         } finally { release.countDown(); pool.shutdownNow(); assertTrue(pool.awaitTermination(20,TimeUnit.SECONDS)); }
     }
 
+
+    @Test void onboardingRewardImportDraftAndActivationUseRealDomainKindsWithoutPurchases() throws Exception {
+        var fixture=fixture(); authorizeFixture(fixture);
+        var current=context.getBean(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        var role=org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.entity.WorkspaceRole.class);
+        org.mockito.Mockito.when(role.hasPermission(org.mockito.ArgumentMatchers.any(
+                com.olehkobylianskyi.familypoints.entity.WorkspacePermission.class))).thenReturn(true);
+        org.mockito.Mockito.when(current.getCurrentMember().getWorkspaceRole()).thenReturn(role);
+        var realRewards=new com.olehkobylianskyi.familypoints.controller.RewardController(
+                context.getBean(RewardService.class),context.getBean(RewardAvailabilityService.class),current);
+        var templates=new com.olehkobylianskyi.familypoints.controller.WorkspaceTemplateController(sql,
+                context.getBean(TemplateCatalogService.class),context.getBean(TaskDefinitionRepository.class),
+                context.getBean(RewardDefinitionRepository.class),
+                context.getBean(com.olehkobylianskyi.familypoints.controller.TaskController.class),realRewards,
+                context.getBean(TemplateEconomySuggestionsService.class),context.getBean(WorkspaceEpochTransactionGuard.class));
+        String itemCode=null;
+        for(var item:context.getBean(TemplateCatalogService.class).getCatalog().path("templates"))
+            if ("REWARD".equals(item.path("kind").asText()) && "ITEM".equals(item.path("definition").path("rewardKind").asText())) {
+                itemCode=item.path("code").asText(); break;
+            }
+        assertNotNull(itemCode);
+        var selection=new com.olehkobylianskyi.familypoints.controller.WorkspaceTemplateController.ImportRequest(
+                java.util.List.of("fp.reward.time.007",itemCode));
+        tx.executeWithoutResult(status->withEpoch(0L,()->templates.importSelected(fixture.workspace(),selection)));
+        tx.executeWithoutResult(status->withEpoch(0L,()->templates.importSelected(fixture.workspace(),selection)));
+        assertEquals(2L,sql.queryForObject("SELECT count(*) FROM workspace_private_templates WHERE workspace_id=?",Long.class,fixture.workspace()));
+        assertEquals(0L,sql.queryForObject("SELECT count(*) FROM reward_definitions WHERE family_id=?",Long.class,fixture.workspace()));
+        assertEquals(0,postings(fixture));
+        var mapper=tools.jackson.databind.json.JsonMapper.builder().build();
+        for (var template:templates.list(fixture.workspace())) {
+            var draft=templates.creationDraft(fixture.workspace(),template.id());
+            var request=mapper.readValue(draft.path("request").toString(),com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest.class);
+            boolean timed="fp.reward.time.007".equals(template.catalogCode());
+            assertEquals(timed ? "TIME_BASED" : "STANDARD",request.getRewardKind().name());
+            if(timed) assertEquals(30,request.getDefaultDurationMinutes());
+            assertFalse(draft.path("request").has("priceAmount"));
+            // Explicit parent choice, including an intentional zero for the ITEM fixture.
+            request.setPointTypeId(fixture.currency()); request.setPriceAmount(timed ? 17 : 0);
+            var key=UUID.randomUUID();
+            var created=tx.execute(status->withEpoch(0L,()->templates.activateReward(fixture.workspace(),template.id(),key,request)));
+            assertNotNull(created);
+            assertEquals(timed ? "TIME_BASED" : "STANDARD",sql.queryForObject("SELECT reward_kind FROM reward_definitions WHERE id=?",String.class,created.getId()));
+            assertEquals(timed ? 17 : 0,sql.queryForObject("SELECT price_amount FROM reward_definitions WHERE id=?",Integer.class,created.getId()));
+            assertEquals(409,assertThrows(ResponseStatusException.class,()->tx.execute(status->withEpoch(0L,
+                    ()->templates.activateReward(fixture.workspace(),template.id(),key,request)))).getStatusCode().value());
+        }
+        assertEquals(2L,sql.queryForObject("SELECT count(*) FROM reward_definitions WHERE family_id=?",Long.class,fixture.workspace()));
+        assertEquals(2L,sql.queryForObject("SELECT count(*) FROM template_activation_requests WHERE workspace_id=?",Long.class,fixture.workspace()));
+        assertEquals(0L,sql.queryForObject("SELECT count(*) FROM reward_purchases p JOIN family_members m ON m.id=p.member_id WHERE m.family_id=?",Long.class,fixture.workspace()));
+        assertEquals(0,postings(fixture));
+    }
+
     private static void await(CountDownLatch latch) {
         try {
             if (!latch.await(30, TimeUnit.SECONDS)) throw new IllegalStateException("Fixture lock timeout");

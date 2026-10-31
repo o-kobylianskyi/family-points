@@ -151,3 +151,8 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 - Internal proof lifecycle verifies context/current credential/one-use/rollback and same global account across two independent family fences. HTTP no-secret DTO and execute423 preserved.
 - Published 136-route source/QA matrix, exact70-table/156-FK disposable schema/retention inventory and XTR-20261031-B-01 owner/retention decision request for Architecture. This supplies evidence and specific remaining decisions, not destructive-operation permission.
 - V45 source/test only; no real migration/reset/deployment. Final owner/shared-global-account/financial/deletion/Google-proof transport/atomic executor/onboarding and client/DEV/QA/Release remain OPEN.
+
+## 2026-11-01 — Issue18 Backend inventory in progress; source repairs CI pending
+- Architecture assigned fresh-family setup as P0 alongside BKL-002. Existing primitives audited; durable setupState/skip/resume/outcome receipts and WorkNode GROUP folder API absent. Import and activation remain separate; generic retry409 is not result replay.
+- Fix CORS Idempotency-Key and portable reward draft enum mapping to actual activation kinds; source tests pending CI. Exact API inventory and proposed state/operation protocol follow this batch, no speculative migration.
+- No live creation/reset/deployment. BKL-002 owner/retention/security/execute and onboarding consumer/state implementation gates remain open.

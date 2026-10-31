@@ -147,6 +147,7 @@ public class SecurityConfig {
                 List.of(
                         "Authorization",
                         "X-Workspace-Data-Epoch",
+                        "Idempotency-Key",
                         "Content-Type",
                         "Accept"
                 )

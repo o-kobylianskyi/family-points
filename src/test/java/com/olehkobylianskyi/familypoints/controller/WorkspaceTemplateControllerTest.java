@@ -258,7 +258,7 @@ class WorkspaceTemplateControllerTest {
                                        "priceAmount":null,"currencyCode":null}}
                         """}));
         var request=controller.creationDraft(1L,42L).path("request");
-        assertEquals("TIME",request.path("rewardKind").asText());
+        assertEquals("TIME_BASED",request.path("rewardKind").asText());
         assertEquals(30,request.path("defaultDurationMinutes").asInt());
         assertTrue(request.path("pointTypeId").isNull());
     }
@@ -460,6 +460,49 @@ class WorkspaceTemplateControllerTest {
         assertEquals(30,draftJson.path("request").path("defaultDurationMinutes").asInt());
         assertFalse(previewJson.path("definition").has("nodeType"));
         assertFalse(draftJson.has("nodeType"));
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
+
+    @Test void everyCuratedRewardDraftBindsToTheRealCreationDtoWithoutWriting() throws Exception {
+        var catalog = new TemplateCatalogService().getCatalog();
+        var mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+        int count = 0;
+        for (var entry : catalog.path("templates")) {
+            if (!"REWARD".equals(entry.path("kind").asText())) continue;
+            when(db.query(contains("SELECT kind,title,definition_json"),
+                    any(org.springframework.jdbc.core.RowMapper.class),eq(42L),eq(1L)))
+                    .thenReturn(List.<String[]>of(new String[]{"REWARD",entry.path("title").path("uk").asText(),entry.toString()}));
+            var request = controller.creationDraft(1L,42L).path("request");
+            var dto = mapper.readValue(request.toString(),com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest.class);
+            String portable = entry.path("definition").path("rewardKind").asText();
+            assertEquals("TIME".equals(portable) ? "TIME_BASED" : "STANDARD",dto.getRewardKind().name(),entry.path("code").asText());
+            if ("TIME".equals(portable)) assertEquals(entry.path("definition").path("durationMinutes").asInt(),dto.getDefaultDurationMinutes());
+            if (entry.path("definition").path("priceAmount").isNull()) assertFalse(request.has("priceAmount"));
+            count++;
+        }
+        assertEquals(32,count);
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
+
+    @Test void existingDomainRewardKindsAndExplicitZeroPriceRemainUnchangedInDraft() {
+        for (String kind : List.of("TIME_BASED","STANDARD")) {
+            String raw="{\"rewardKind\":\""+kind+"\",\"priceAmount\":0}";
+            when(db.query(contains("SELECT kind,title,definition_json"),
+                    any(org.springframework.jdbc.core.RowMapper.class),eq(42L),eq(1L)))
+                    .thenReturn(List.<String[]>of(new String[]{"REWARD","Existing family template",raw}));
+            var request=controller.creationDraft(1L,42L).path("request");
+            assertEquals(kind,request.path("rewardKind").asText());
+            assertTrue(request.path("priceAmount").isIntegralNumber());
+            assertEquals(0,request.path("priceAmount").intValue());
+        }
+        verify(db,never()).update(anyString(),any(Object[].class));
+    }
+
+    @Test void unknownPortableRewardKindRejectsDraftBeforeActivationOrMutation() {
+        when(db.query(contains("SELECT kind,title,definition_json"),
+                any(org.springframework.jdbc.core.RowMapper.class),eq(42L),eq(1L)))
+                .thenReturn(List.<String[]>of(new String[]{"REWARD","Unsupported","{\"rewardKind\":\"UNKNOWN\"}"}));
+        assertEquals(422,assertThrows(ResponseStatusException.class,()->controller.creationDraft(1L,42L)).getStatusCode().value());
         verify(db,never()).update(anyString(),any(Object[].class));
     }
 }
