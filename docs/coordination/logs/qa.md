@@ -273,3 +273,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Repeat BKL-002 preview response body failure workspace 14
 - User reran headed isolated Playwright test: GET http://localhost:8080/workspaces/14/data-reset/preview response headers HTTP 200 application/json, but Playwright response.json did not resolve; after 34.2 s page/context/browser closed and response.json raised Target page/context/browser has been closed. Distinguish incomplete response/body from premature browser closure; no proven Backend defect yet. Reset /plan not reached; no delete action.
 - Updated Playwright test at c52f40b to bound body wait to 8s, include visible reset panel text/response URL/status/content-type diagnostic, while preserving non-destructive safety. Next rerun isolated test; inspect Network response and Backend runtime if body remains pending. No DB mutations.
+
+
+## 2026-10-31 — BKL-002 reset preview reproducible runtime defect (workspace 14)
+- User reran headed Playwright after navigation wait fix: GET http://localhost:8080/workspaces/14/data-reset/preview yields HTTP 200 application/json headers but response body remains unreadable >8 seconds (BODY_NOT_READY). Web reset panel shows 'Could not load data.' rather than category counts. Test failed in 10.3 seconds; /plan not exercised, no destructive requests.
+- Repro is independent of full page load; previous headed run hung until browser context closed. Backend/runtime owner should check response stream completion/JSON serialization of reset preview, dev running SHA and Flyway level, server logs; Web must remain fail-closed. Not yet proof that root cause is solely Backend until raw HTTP body inspected.
+- QA keeps BKL-002 preview/plan FAIL/BLOCKED. No data mutations.
