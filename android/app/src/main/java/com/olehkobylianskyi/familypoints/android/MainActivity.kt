@@ -329,13 +329,31 @@ class MainActivity : ComponentActivity() {
                         val queueStore = com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore(this@MainActivity)
                         val previous = queueStore.use { it.knownEpoch(member.workspaceId) }
                         dashboardCache.reconcileAuthenticatedEpoch(member.workspaceId, response.dataEpoch)
-                        epochGate = if (previous != null && previous != response.dataEpoch) {
-                            "changed"
-                        } else {
-                            "ready"
+                        if (previous != null && previous != response.dataEpoch) {
+                            epochGate = "changed"
+                            return@LaunchedEffect
+                        }
+                        epochGate = "ready"
+                        // Keep all mounted feature screens protected while this session is online.
+                        // A changed generation blocks the UI without silently clearing pending work.
+                        while (true) {
+                            delay(30_000L)
+                            val currentToken = tokenStore.getAccessToken()
+                                ?: throw IllegalStateException("Authentication expired")
+                            val latest = ApiClient.workspaceEpochApi.getEpoch(
+                                "Bearer $currentToken", member.workspaceId
+                            )
+                            if (latest.workspaceId != member.workspaceId || latest.dataEpoch < 0L) {
+                                throw SecurityException("Workspace epoch identity mismatch")
+                            }
+                            if (latest.dataEpoch != response.dataEpoch) {
+                                dashboardCache.reconcileAuthenticatedEpoch(member.workspaceId, latest.dataEpoch)
+                                epochGate = "changed"
+                                return@LaunchedEffect
+                            }
                         }
                     } catch (_: Exception) {
-                        epochGate = "unverified"
+                        if (epochGate != "changed") epochGate = "unverified"
                     }
                 }
 
