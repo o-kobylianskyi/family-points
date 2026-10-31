@@ -239,3 +239,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Current safe API contract is GET /workspaces/{workspaceId}/data-reset/preview, POST /plan; /prepare and /confirm are non-executable, and /confirm is acknowledgment, not reauthentication. /challenge and /execute proposed only. No reset authorization.
 - P0 QA pending: scoped category counts/preserved identities/executable=false, empty plan, plan dependencies/blockers, cross-family and non-admin deny, A-B-A stale response, rapid selection race, four-language blockers. No authenticated browser/API evidence this pass.
 - Live DEV read-only SQL: Flyway V42 absent and families.data_epoch absent; private templates count=4. Activation table query blocked. BKL-002 runtime/epoch E2E blocked until compatible deployment and transactional guard integration. No database mutations.
+
+
+## 2026-10-31 — QA Automation Playwright bootstrap
+- Added isolated qa/e2e/package.json, playwright.config.js, tests/smoke.spec.js and README.md on main. Public login test plus credential-gated templates/settings read-only smoke. Missing QA credentials skip protected tests; `/choose-family` intentionally fails closed so an existing family is never selected automatically.
+- No credentials stored, no reset/import/delete/activate write flows, no live browser execution or CI run claimed. Next: create dedicated disposable QA account/family, install browser on Windows and run tests with environment-only secrets; then add source-verified selectors and read-only reset preview/plan. Protect browser traces/cookies from public artifacts.
