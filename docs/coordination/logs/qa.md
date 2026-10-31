@@ -263,3 +263,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Playwright reset preview/plan and locale expansion
 - Added qa/e2e/tests/reset-preview-i18n.spec.js commit 8347ac6: public login language switch uk/ru/de/en and authenticated read-only /data-reset/preview -> POST /plan with one selected category. Assert preview executionEnabled=false, plan executable=false, workspace same, blockers array, and no /prepare,/challenge,/confirm,/execute requests.
 - Browser tests newly added, NOT YET RUN on user Windows. Requires QA account with MANAGE_WORKSPACE and active compatible DEV Backend; failing preview due to missing V42/backend is environment blocker to diagnose, not proof of reset safety failure. No deletion, only plan POST.
+
+
+## 2026-10-31 — Windows Playwright 8-test reset preview failure
+- User reported 7/8 PASS, with BKL-002 read-only preview/plan test timing out at 30 seconds while awaiting Playwright previewResponse.json() after receiving HTTP 200 headers. Other catalog, locale, epoch UI, login and settings tests PASS. This may mean slow/uncompleted response body, not necessarily invalid JSON; plan endpoint not reached.
+- Updated qa/e2e/tests/reset-preview-i18n.spec.js commit 97f12e2 with a 60s budget and clearer HTTP URL/status/content-type body-read diagnostics. No claim this fixes backend latency; pending targeted rerun and trace. No reset executed or data modified.
