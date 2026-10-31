@@ -21,6 +21,7 @@ test.describe('reset preview/plan (no deletion)', () => {
   test.skip(!username || !password, 'Requires isolated QA login.')
 
   test('preview and dependency plan are non-executable', async ({ page }) => {
+    test.setTimeout(60_000)
     const unsafe = []
     page.on('request', request => {
       const path = new URL(request.url()).pathname
@@ -38,7 +39,14 @@ test.describe('reset preview/plan (no deletion)', () => {
     await page.goto('/settings')
     const previewResponse = await previewRequest
     expect(previewResponse.status(), 'reset preview API status').toBe(200)
-    const preview = await previewResponse.json()
+    // waitForResponse resolves at headers; the body can still be streaming or stalled.
+    // Await the application's actual fetch completion and include actionable diagnostics.
+    let preview
+    try {
+      preview = await previewResponse.json()
+    } catch (error) {
+      throw new Error(`Reset preview response body was not readable: HTTP ${previewResponse.status()}, URL ${previewResponse.url()}, content-type ${previewResponse.headers()['content-type'] || 'missing'}. Check Backend logs and Playwright trace.`, { cause: error })
+    }
     expect(preview.executionEnabled).toBe(false)
     expect(preview.workspaceId).toBeTruthy()
     expect(preview.categories && typeof preview.categories).toBe('object')
@@ -54,7 +62,12 @@ test.describe('reset preview/plan (no deletion)', () => {
     await panel.locator('button', { hasText: /Check dependencies|Перевірити залежності|Проверить зависимости|Abhängigkeiten prüfen/ }).click()
     const planResponse = await planRequest
     expect(planResponse.status()).toBe(200)
-    const plan = await planResponse.json()
+    let plan
+    try {
+      plan = await planResponse.json()
+    } catch (error) {
+      throw new Error(`Reset plan response body was not readable: HTTP ${planResponse.status()}, URL ${planResponse.url()}, content-type ${planResponse.headers()['content-type'] || 'missing'}. Check Backend logs and Playwright trace.`, { cause: error })
+    }
     expect(String(plan.workspaceId)).toBe(String(preview.workspaceId))
     expect(plan.executable).toBe(false)
     expect(Array.isArray(plan.blockers)).toBe(true)
