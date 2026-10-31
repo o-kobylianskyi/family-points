@@ -83,4 +83,45 @@ class WorkspaceEpochConcurrencyPostgresTest {
         }));
         assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,family));
     }
+    @Test void lockingOneWorkspaceDoesNotBlockWritesToAnotherWorkspace() throws Exception {
+        Flyway.configure().dataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword())
+                .locations("classpath:db/migration").load().migrate();
+        var source=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
+        var db=new JdbcTemplate(source);
+        var tx=new TransactionTemplate(new DataSourceTransactionManager(source));
+        long familyA=db.queryForObject("INSERT INTO families(name) VALUES ('Epoch A') RETURNING id",Long.class);
+        long familyB=db.queryForObject("INSERT INTO families(name) VALUES ('Epoch B') RETURNING id",Long.class);
+        var acquired=new CountDownLatch(1);
+        var release=new CountDownLatch(1);
+        var executor=Executors.newFixedThreadPool(2);
+        try {
+            var holder=executor.submit(()->tx.executeWithoutResult(status->{
+                db.queryForObject("SELECT data_epoch FROM families WHERE id=? FOR UPDATE",Long.class,familyA);
+                acquired.countDown();
+                try {
+                    if(!release.await(10,TimeUnit.SECONDS)) throw new IllegalStateException("Timeout");
+                } catch(InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(ex);
+                }
+            }));
+            assertTrue(acquired.await(10,TimeUnit.SECONDS));
+            // B has a different families row, so its transaction must complete
+            // before A's lock is released. Use independent physical connections.
+            var other=executor.submit(()->tx.executeWithoutResult(status->{
+                new WorkspaceEpochTransactionGuard(db).requireCurrentEpoch(familyB,0L);
+                db.update("UPDATE families SET name='Epoch B changed' WHERE id=?",familyB);
+            }));
+            other.get(5,TimeUnit.SECONDS);
+            assertEquals("Epoch B changed",
+                    db.queryForObject("SELECT name FROM families WHERE id=?",String.class,familyB));
+            release.countDown();
+            holder.get(15,TimeUnit.SECONDS);
+            assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,familyA));
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+        }
+    }
+
 }
