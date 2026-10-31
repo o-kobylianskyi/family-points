@@ -10,6 +10,7 @@ import { getMyReputation } from '../api/reputationApi'
 import { currencyQuantity } from '../utils/formatCurrencyAmount'
 import { useTranslation } from 'react-i18next'
 import { getTaskDefinitions } from '../api/taskApi'
+import { getPrivateTemplates, getTemplateCreationDraft } from '../api/templateApi'
 import {
   approveRewardRequest,
   createReward,
@@ -132,9 +133,14 @@ function RewardsPage() {
 
   const [categoryName, setCategoryName] = useState('')
   const [rewardForm, setRewardForm] = useState(emptyRewardForm)
+  const [rewardTemplates, setRewardTemplates] = useState([])
+  const [rewardTemplateCategory, setRewardTemplateCategory] = useState('ALL')
+  const [selectedRewardTemplateId, setSelectedRewardTemplateId] = useState('')
+  const [templateBusy, setTemplateBusy] = useState(false)
   const [editingRewardId, setEditingRewardId] = useState(null)
   const [customRequestTitle, setCustomRequestTitle] = useState('')
   const [customRequestDescription, setCustomRequestDescription] = useState('')
+  const [requestTemplateCategory, setRequestTemplateCategory] = useState('ALL')
 
   const [reviewingRequestId, setReviewingRequestId] = useState(null)
   const [reviewForm, setReviewForm] = useState(emptyReviewForm)
@@ -148,6 +154,39 @@ function RewardsPage() {
   const canManage = currentUser.permissions?.includes('MANAGE_REWARDS')
     || currentUser.permissions?.includes('ADMIN_OVERRIDE')
 
+  const templateCategory = item => { try { return JSON.parse(item.definitionJson || '{}')?.category || 'other' } catch { return 'other' } }
+  const templateCategories = [...new Set(rewardTemplates.map(templateCategory))].sort()
+  const templateOptions = category => rewardTemplates.filter(item => category === 'ALL' || templateCategory(item) === category)
+  const language = i18n.language.split('-')[0]
+  const labels = {
+    uk: ['На основі шаблону', 'Без шаблону', 'Категорія шаблону', 'Усі категорії', 'Шаблон нагороди не завантажено', 'Значення необхідно перевірити перед створенням або надсиланням запиту'],
+    ru: ['На основе шаблона', 'Без шаблона', 'Категория шаблона', 'Все категории', 'Не удалось загрузить шаблон награды', 'Проверьте значения перед созданием или отправкой запроса'],
+    de: ['Aus Vorlage', 'Ohne Vorlage', 'Vorlagenkategorie', 'Alle Kategorien', 'Belohnungsvorlage konnte nicht geladen werden', 'Angaben vor dem Erstellen oder Anfragen prüfen'],
+    en: ['From template', 'Without template', 'Template category', 'All categories', 'Could not load reward template', 'Review values before creating or requesting'],
+  }[language] || ['From template', 'Without template', 'Template category', 'All categories', 'Could not load reward template', 'Review values']
+  const chooseRewardTemplate = async id => {
+    setSelectedRewardTemplateId(id)
+    if (!id) return
+    const origin = currentUser.workspaceId
+    setTemplateBusy(true)
+    try {
+      const draft = await getTemplateCreationDraft(getAccessToken(), origin, id)
+      if (String(workspaceRef.current) !== String(origin)) return
+      if (draft?.kind !== 'REWARD' || String(draft?.templateId) !== String(id) || !draft.request) throw new Error('INVALID_REWARD_DRAFT')
+      const d = draft.request
+      setRewardForm(current => ({ ...current, title: d.title ?? current.title, description: d.description ?? '', rewardKind: d.rewardKind ?? current.rewardKind,
+        defaultDurationMinutes: d.defaultDurationMinutes ?? '', cooldownSeconds: d.cooldownSeconds ?? current.cooldownSeconds,
+        priceAmount: d.priceAmount ?? '', pointTypeId: d.pointTypeId ?? current.pointTypeId,
+        acquisitionMode: d.acquisitionMode ?? current.acquisitionMode, requiresApproval: d.requiresApproval ?? current.requiresApproval }))
+    } catch { setError(labels[4]) } finally { if (String(workspaceRef.current) === String(origin)) setTemplateBusy(false) }
+  }
+  const chooseRequestTemplate = id => {
+    const item = rewardTemplates.find(x => String(x.id) === id)
+    if (!item) return
+    let d = {}; try { d = JSON.parse(item.definitionJson || '{}') } catch { /* Ignore malformed optional fields. */ }
+    setCustomRequestTitle(item.title || '')
+    setCustomRequestDescription(typeof d.description === 'string' ? d.description : '')
+  }
   const loadAll = async () => {
     try {
       setLoading(true)
@@ -193,6 +232,9 @@ function RewardsPage() {
       }))
       setCurrencyForms(Object.fromEntries(forms))
       setTasks(taskData.filter((task) => task.active !== false && String(task.workspaceId ?? workspaceId) === String(workspaceId)))
+      getPrivateTemplates(token, workspaceId).then(items => {
+        if (String(workspaceRef.current) === String(workspaceId)) setRewardTemplates((Array.isArray(items) ? items : []).filter(item => item.kind === 'REWARD'))
+      }).catch(() => { if (String(workspaceRef.current) === String(workspaceId)) setRewardTemplates([]) })
 
       const defaultPointTypeId = pointTypeData[0]?.id ?? ''
       setRewardForm((current) => ({
@@ -213,6 +255,7 @@ function RewardsPage() {
   useEffect(() => {
     setTasks([])
     setRewardForm(emptyRewardForm)
+    setRewardTemplates([]); setSelectedRewardTemplateId(''); setRewardTemplateCategory('ALL'); setRequestTemplateCategory('ALL')
     setReviewForm(emptyReviewForm)
     loadAll()
   }, [currentUser.workspaceId])
@@ -313,7 +356,7 @@ function RewardsPage() {
 
   const createCatalogReward = async (event) => {
     event.preventDefault()
-    if (!rewardForm.title.trim() || !rewardForm.pointTypeId) return
+    if (!rewardForm.title.trim() || !rewardForm.pointTypeId || rewardForm.priceAmount === '' || !Number.isFinite(Number(rewardForm.priceAmount))) return
 
     await run(async () => {
       const payload = {
@@ -640,6 +683,9 @@ function RewardsPage() {
             <h2>{t('rewardsUi.customTitle')}</h2>
             <p>{t('rewardsUi.customExample')}</p>
             <form onSubmit={createCustomRequest} className="reward-request-form">
+              <label>{labels[2]} <select value={requestTemplateCategory} onChange={e=>setRequestTemplateCategory(e.target.value)}><option value="ALL">{labels[3]}</option>{templateCategories.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
+              <label>{labels[0]} <select defaultValue="" onChange={e=>chooseRequestTemplate(e.target.value)}><option value="">{labels[1]}</option>{templateOptions(requestTemplateCategory).map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
+              <small>{labels[5]}</small>
               <input
                 value={customRequestTitle}
                 maxLength={150}
@@ -887,6 +933,11 @@ function RewardsPage() {
           <section className="reward-admin-panel">
             <h2>{editingRewardId != null ? t('rewardsUi.editReward') : t('rewardsUi.newReward')}</h2>
             <form onSubmit={createCatalogReward} className="reward-editor">
+              {editingRewardId == null && <>
+                <label>{labels[2]} <select value={rewardTemplateCategory} onChange={e=>{setRewardTemplateCategory(e.target.value);setSelectedRewardTemplateId('')}}><option value="ALL">{labels[3]}</option>{templateCategories.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
+                <label>{labels[0]} <select value={selectedRewardTemplateId} disabled={templateBusy} onChange={e=>chooseRewardTemplate(e.target.value)}><option value="">{labels[1]}</option>{templateOptions(rewardTemplateCategory).map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
+                <small>{labels[5]}</small>
+              </>}
               <label>
                 <span>{t('rewardsUi.name')}</span>
                 <input
