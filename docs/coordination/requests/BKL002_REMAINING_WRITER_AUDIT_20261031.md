@@ -60,3 +60,9 @@ The preceding CI-pending invitation/reset edge delta is now source/CI verified. 
 
 ## 2026-10-31 — Internal proof progress (CI pending)
 Bound password proof now has MANDATORY issue/consume service and additive V45 state. Controller still withholds secret, execute423 unchanged. Current credential/active membership and wall-clock expiry are rechecked; rollbackable consumed flag supports atomic future executor. This does not close owner/role/financial/deletion/FK/Google/transport/client/DEV/QA/Release policy gates. Scope-specific QA coverage matrix and actual disposable schema inventory follow CI; no live data or migrations touched.
+
+## Bound proof / full source inventory acceptance — 2026-10-31
+Exact tested SHA `b4f62fc9bd13b9c9aec223619f016bac2f7ebcc7`; [GitHub Actions 41249950772](https://github.com/o-kobylianskyi/family-points/actions/runs/41249950772) all four jobs SUCCESS. Backend: 329 tests, zero failures/errors/skips; PointMutationTransactionPostgresTest: 54 PASS. WorkspaceResetProofUpgradePostgresTest: 1 PASS, V44->V45 preservation/constraints/repeat-migrate no-op.
+See BKL002_WRITE_PATH_COVERAGE_20261031.md for all136 mutation mappings, source fence/delegate notes, concrete real-scenario evidence and explicit remaining runtime/control-flow limits; no universal protection claim.
+See BKL002_RETENTION_FK_INVENTORY_20261031.md for exact70-table/156-FK metadata and non-FK semantic dependencies; it is NOT an executable cleanup plan. XTR-20261031-B-01 records remaining owner/retention/global-account/financial/proof transport decisions.
+Internal one-use proof lifecycle is now source/CI verified; public proof/Google reauth, owner/financial/deletion policy, atomic execute/epoch/audit/onboarding and independent client/DEV/QA/Release gates remain open. No live reset/migration/deploy.

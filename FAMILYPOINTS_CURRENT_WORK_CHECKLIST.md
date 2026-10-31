@@ -1498,3 +1498,11 @@ Before each substantial implementation batch:
 - [x] Add V45 additive binding constraints and populated legacy-proof upgrade regression; add fourteen PostgreSQL transaction scenarios.
 - [ ] Confirm cloud CI and publish actual schema dependency inventory plus scoped transaction coverage matrix for QA.
 - [ ] Finalize owner/global-account admin/financial/retention policy, proof transport/Google reauth, full dependency-safe executor/onboarding and independent consumer/DEV/QA/Release gates. No live reset/migration/deploy.
+
+## 2026-10-31 — Bound password-proof cloud acceptance and policy handoff
+- [x] Exact tested SHA `b4f62fc9bd13b9c9aec223619f016bac2f7ebcc7`; [GitHub Actions 41249950772](https://github.com/o-kobylianskyi/family-points/actions/runs/41249950772) all four jobs SUCCESS. Backend: 329 tests, zero failures/errors/skips; PointMutationTransactionPostgresTest: 54 PASS. WorkspaceResetProofUpgradePostgresTest: 1 PASS, V44->V45 preservation/constraints/repeat-migrate no-op.
+- [x] Verify 15 added real proof scenarios, same-global-account family isolation, populated V44->45 preservation, constraints and no-op repeat migration.
+- [x] Publish 136-route source/QA matrix with test/coverage limits,70-table/156-FK schema/semantic dependency and proposed retention inventory.
+- [x] Prepare XTR-20261031-B-01 with concrete owner/retention/shared-account/financial/proof transport decisions; receiver review still pending.
+- [ ] Final owner/delegation/global account-admin/financial/category retention approval, proof delivery/Google fresh reauth, complete atomic idempotent execute/epoch/audit/onboarding.
+- [ ] Independent security/consumer/disposable DEV/QA/Release gates. No live reset/migration/deployment; execute remains423.

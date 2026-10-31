@@ -145,3 +145,9 @@ No code, APK, server or DB deployment occurred when establishing this coordinati
 - Internal issue/consume service binds password proof to family/account/member/operation/content/epoch/current credential with five-minute wall-clock expiry and one-use transactional consumption. Challenge rereads current account/membership/password; HTTP DTO still exposes no secret; execute423 unchanged.
 - V45 additive bindings preserve old audit/challenge records; old unbound proofs cannot be consumed and need fresh operation where one already exists. Fourteen added real transaction tests plus V44->V45 populated proof-upgrade regression require cloud CI.
 - Owner/global-account admin/retention/financial deletion policy, approved proof transport/Google reauth and complete executor/onboarding remain OPEN. No live migration, reset or deployment.
+
+## 2026-10-31 — Bound reset proof and QA policy evidence verified
+- Exact tested SHA `b4f62fc9bd13b9c9aec223619f016bac2f7ebcc7`; [GitHub Actions 41249950772](https://github.com/o-kobylianskyi/family-points/actions/runs/41249950772) all four jobs SUCCESS. Backend: 329 tests, zero failures/errors/skips; PointMutationTransactionPostgresTest: 54 PASS. WorkspaceResetProofUpgradePostgresTest: 1 PASS, V44->V45 preservation/constraints/repeat-migrate no-op.
+- Internal proof lifecycle verifies context/current credential/one-use/rollback and same global account across two independent family fences. HTTP no-secret DTO and execute423 preserved.
+- Published 136-route source/QA matrix, exact70-table/156-FK disposable schema/retention inventory and XTR-20261031-B-01 owner/retention decision request for Architecture. This supplies evidence and specific remaining decisions, not destructive-operation permission.
+- V45 source/test only; no real migration/reset/deployment. Final owner/shared-global-account/financial/deletion/Google-proof transport/atomic executor/onboarding and client/DEV/QA/Release remain OPEN.
