@@ -301,3 +301,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Coverage includes login/settings, catalog readonly constraints, synthetic epoch UI, four public-login locales, and non-destructive reset preview/dependency plan.
 - Status: smoke green; BKL-002 destructive operations and real data epoch transaction tests remain unverified, and are not authorized on persistent QA families.
 - Next QA plan: add negative, read-only tests for access control, invalid reset selections, stale response UI and cross-workspace isolation, and rerun full suite after adding each group.
+
+
+## 2026-10-31 — Negative access-control tests staged (not yet run)
+- Added qa/e2e/tests/reset-access-control.spec.js (commit 56e34c9): unauthenticated GET /workspaces/14/data-reset/preview must be 401, and logged-out navigation to /settings must deny access to reset panel. No credentials and no mutations.
+- Baseline full smoke: 8/8 PASS as confirmed by user. New tests are **pending execution**; do not count them as passing until user runs them.
