@@ -452,21 +452,10 @@ fun TemplateLibrarySection(
                         "REWARD" -> "suggestedPricePoints"
                         else -> null
                     }
-                    val suggestedAmount = amountField?.let { field ->
-                        suggestion?.get(field)?.takeUnless { it.isJsonNull }?.let { value ->
-                            if (value.isJsonPrimitive && value.asJsonPrimitive.isNumber) {
-                                value.asString.toIntOrNull()?.takeIf { it >= 0 }
-                            } else null
-                        }
-                    }
+                    val suggestedAmount = applicableEconomyDraftAmount(draft, canManage)
                     val draftId = draft?.get("templateId")?.takeUnless { it.isJsonNull }?.asLong
-                    val mayApply = canManage && draftId != null &&
-                        draftKind in setOf("TASK", "REWARD") &&
-                        draft?.get("requiresConfirmation")?.asBoolean == true &&
-                        suggestion?.get("reviewRequired")?.asBoolean == true &&
-                        suggestion?.get("pricingState")?.asString == "OPTIONAL_SUGGESTION" &&
-                        suggestedAmount != null
-                    if (mayApply && draft?.get("suggestionAppliedToDraft")?.asBoolean != true) {
+                    val mayApply = suggestedAmount != null && draftId != null
+                    if (mayApply) {
                         Text(tl(language,
                             "Рекомендація: $suggestedAmount балів. Застосування змінює лише цю чернетку.",
                             "Vorschlag: $suggestedAmount Punkte. Nur dieser Entwurf wird geändert.",
