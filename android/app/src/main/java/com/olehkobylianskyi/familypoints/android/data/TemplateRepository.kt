@@ -13,6 +13,8 @@ class TemplateRepository(private val tokens: TokenStore) {
         val response = ApiClient.templateApi.deletePrivateTemplate(auth(), workspaceId, id)
         if (!response.isSuccessful) throw retrofit2.HttpException(response)
     }
+    suspend fun applyEconomySuggestion(workspaceId: Long, id: Long) =
+        ApiClient.templateApi.applyEconomySuggestion(auth(), workspaceId, id)
     suspend fun creationDraft(workspaceId: Long, id: Long) =
         ApiClient.templateApi.creationDraft(auth(), workspaceId, id)
     suspend fun categoryIcon(workspaceId: Long, catalogKey: String): ByteArray =
