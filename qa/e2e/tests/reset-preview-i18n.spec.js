@@ -41,18 +41,21 @@ test.describe('reset preview/plan (no deletion)', () => {
     expect(previewResponse.status(), 'reset preview API status').toBe(200)
     // waitForResponse resolves at headers; the body can still be streaming or stalled.
     // Await the application's actual fetch completion and include actionable diagnostics.
-    let preview
-    try {
-      preview = await previewResponse.json()
-    } catch (error) {
-      throw new Error(`Reset preview response body was not readable: HTTP ${previewResponse.status()}, URL ${previewResponse.url()}, content-type ${previewResponse.headers()['content-type'] || 'missing'}. Check Backend logs and Playwright trace.`, { cause: error })
+    const panel = page.locator('.family-reset-readiness')
+    await expect(panel).toBeVisible()
+    const bodyResult = await Promise.race([
+      previewResponse.json().then(value => ({ value }), error => ({ error })),
+      new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 8000)),
+    ])
+    if (bodyResult.timeout || bodyResult.error) {
+      const panelText = (await panel.innerText().catch(() => '')).slice(0, 300)
+      throw new Error(`Reset preview BODY_NOT_READY after 8s: HTTP ${previewResponse.status()}, URL ${previewResponse.url()}, content-type ${previewResponse.headers()['content-type'] || 'missing'}, panel=${JSON.stringify(panelText)}. Investigate streaming/serialization/proxy response completion.`)
     }
+    const preview = bodyResult.value
     expect(preview.executionEnabled).toBe(false)
     expect(preview.workspaceId).toBeTruthy()
     expect(preview.categories && typeof preview.categories).toBe('object')
 
-    const panel = page.locator('.family-reset-readiness')
-    await expect(panel).toBeVisible()
     await expect(panel.locator('.family-reset-category input[type="checkbox"]').first()).toBeVisible()
     await expect(panel.locator('button', { hasText: /Check dependencies|Перевірити залежності|Проверить зависимости|Abhängigkeiten prüfen/ })).toBeDisabled()
 
