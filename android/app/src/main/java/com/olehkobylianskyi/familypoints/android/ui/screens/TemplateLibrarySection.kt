@@ -444,17 +444,26 @@ fun TemplateLibrarySection(
                         "Только просмотр. Для создания нужны участник, валюта и обязательные поля. Ничего не активировано."))
                     val draft = creationDraft
                     val suggestion = draft?.getAsJsonObject("economySuggestion")
-                    val suggestedAmount = listOf("suggestedRewardPoints", "suggestedPricePoints")
-                        .firstNotNullOfOrNull { key ->
-                            suggestion?.get(key)?.takeUnless { it.isJsonNull }
-                                ?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isNumber }
-                                ?.asInt
+                    // A suggestion is typed by its draft kind. Never take an amount
+                    // from the other entity kind or turn missing/invalid values into zero.
+                    val draftKind = draft?.get("kind")?.takeUnless { it.isJsonNull }?.asString
+                    val amountField = when (draftKind) {
+                        "TASK" -> "suggestedRewardPoints"
+                        "REWARD" -> "suggestedPricePoints"
+                        else -> null
+                    }
+                    val suggestedAmount = amountField?.let { field ->
+                        suggestion?.get(field)?.takeUnless { it.isJsonNull }?.let { value ->
+                            if (value.isJsonPrimitive && value.asJsonPrimitive.isNumber) {
+                                value.asString.toIntOrNull()?.takeIf { it >= 0 }
+                            } else null
                         }
+                    }
                     val draftId = draft?.get("templateId")?.takeUnless { it.isJsonNull }?.asLong
                     val mayApply = canManage && draftId != null &&
                         draft?.get("requiresConfirmation")?.asBoolean == true &&
                         suggestion?.get("pricingState")?.asString == "OPTIONAL_SUGGESTION" &&
-                        suggestedAmount != null && suggestedAmount >= 0
+                        suggestedAmount != null
                     if (mayApply && draft?.get("suggestionAppliedToDraft")?.asBoolean != true) {
                         Text(tl(language,
                             "Рекомендація: $suggestedAmount балів. Застосування змінює лише цю чернетку.",
@@ -465,7 +474,11 @@ fun TemplateLibrarySection(
                             val id = draftId ?: return@OutlinedButton
                             perform {
                                 val applied = repository.applyEconomySuggestion(workspaceId, id)
-                                if (applied.get("templateId")?.asLong != id ||
+                                if (loadedDraftWorkspace != workspaceId ||
+                                    creationDraft?.get("templateId")?.asLong != id ||
+                                    applied.get("templateId")?.asLong != id ||
+                                    applied.get("kind")?.asString != draftKind ||
+                                    !applied.has("request") || !applied.get("request").isJsonObject ||
                                     applied.get("suggestionAppliedToDraft")?.asBoolean != true ||
                                     applied.get("requiresConfirmation")?.asBoolean != true) {
                                     throw SecurityException("Unexpected economy draft response")
