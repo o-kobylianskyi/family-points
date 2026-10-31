@@ -318,3 +318,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Added `qa/e2e/tests/reset-negative.spec.js` commit f989c6f: selection must be nonempty before Plan enabled, unchecking disables it and must dispatch no reset POST; preview JSON must mark execution disabled and each category non-executable.
 - Two tests added; **not yet executed**. Previously 10/10 Chromium PASS remains the last confirmed suite. Expected next run 12 total, subject to local result.
 - Reset /execute remains blocked; no database deletion or reset mutations were run.
+
+
+## 2026-10-31 — Access-control regression extended to 14 tests
+- User replied `13+`; no full numbered test output supplied, so exact executed pass count cannot be independently confirmed.
+- Added 2 anonymous negative tests in `qa/e2e/tests/reset-access-control.spec.js` (commit 419dee2): POST reset/plan and GET workspace/data-epoch each require 401 without JWT. These must not make any authorized changes.
+- Repository suite now defines 14 tests (prior 12 + 2), pending full local execution. Reset execute is still disabled.
