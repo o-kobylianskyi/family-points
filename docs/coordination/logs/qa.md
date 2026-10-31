@@ -249,3 +249,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — User Windows Playwright authenticated smoke PASS
 - User ran qa/e2e npm test locally against localhost:5173 with dedicated QA credentials: Chromium 3/3 PASS (public login 727ms; authenticated templates 1.8s; authenticated settings 1.6s; total 5.0s). Verified from pasted command output only, not CI or full feature acceptance.
 - Next QA automation: introduce read-only reset preview and catalog data assertions with bounded selectors, then four-locale and tenant isolation; no destructive reset, no credentials in Git.
+
+
+## 2026-10-31 — Playwright catalog/read-only reset checks
+- Added qa/e2e/tests/catalog-readonly.spec.js at commit 923fded8: TPL-01 response asserts 142 templates / 6 packs / 110 TASK / 32 REWARD and unique codes; settings navigation asserts no reset challenge/confirm/execute POST. All read-only. Local Windows tests PENDING (prior original smoke 3/3 PASS only). No credentials or data mutations.
