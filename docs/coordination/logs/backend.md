@@ -291,3 +291,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Added unit tests for legacy/stale/current and missing workspace, and verification of locking SQL. Commits `9e328b581a1e84ffe886ebf519b0a06fe8dd4bee`, `db6f4f27b32bea51c20344ceedc4cfac80bbc78b`.
 - **NOT COMPLETE:** This guard is currently a reusable primitive and is NOT integrated into all business writes. It must be called within the SAME database transaction as every protected mutation; execution of real reset must use the same families row lock, recheck snapshot, increment epoch atomically with deletion and commit/audit. Existing HTTP filter remains a preliminary check only. No family data reset or DB deletion performed.
 - Cross-team blocker: concurrent writer integration, PostgreSQL concurrency test and full FK-scoped execute, then disposable DEV QA. CI for new commits not yet confirmed.
+
+## 2026-10-31 — Backend ↔ Web BKL-002 challenge/execute contract agreement (proposal)
+- Web asked to agree final challenge/execute contract. Published `docs/coordination/requests/BKL002_RESET_CHALLENGE_EXECUTE_CONTRACT_20261031.md`, commit `f2ab93bf8d59852190c5cae8196f71c6d38a5aaa`.
+- **Proposed, NOT implemented:** separate short-lived one-use challenge with fresh reauthentication (including Google-only accounts), transaction-scoped execute, stable response/error DTOs, epoch increment, rollback/replay, onboardingRequired; Web must keep execute disabled until verified Backend and QA.
+- Existing /confirm is NOT reauthentication. No new delete endpoint, DB wipe or deployment in this coordination change.
+- Next Backend P0: implement and verify protected execution and lock all write paths on PostgreSQL; then send verified contract to Web and QA.
