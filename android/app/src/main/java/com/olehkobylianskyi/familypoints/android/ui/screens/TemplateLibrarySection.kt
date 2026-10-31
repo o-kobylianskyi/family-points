@@ -224,7 +224,14 @@ fun TemplateLibrarySection(
                             previewCodes = emptyList()
                         })
                     Column {
-                        Text(title)
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            TemplateCategoryIcon(
+                                workspaceId = workspaceId,
+                                key = templateCategoryMediaKey(item.kind, item.definition),
+                                repository = repository
+                            )
+                            Text(title)
+                        }
                         Text(if (item.kind == "TASK")
                             tl(language, "Завдання", "Aufgabe", "Task", "Задание")
                             else tl(language, "Нагорода", "Belohnung", "Reward", "Награда"),
