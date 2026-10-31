@@ -788,3 +788,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Fail-closed plan integrity: FamilyResetReadiness now verifies response.selectedCategories exactly matches the requested category set (cardinality and membership), in addition to workspaceId, executable=false and blocker shape. Rejects mismatched/stale server plan before presentation. Source cde338f.
 - Backend /challenge password-only partial; /execute still disabled. Web does NOT expose execute/confirm/delete. Backend contract still needs authenticated Google reauth, complete FK/transaction lock graph, atomic epoch/audit and security/QA gates. Designer media/economy P1 still pending. No BETA/production or DB actions.
 - Next QA: run exact current SHA Playwright after stricter plan validation and check two-tab/epoch; Backend owns safe execute and exact-head CI.
+
+## 2026-10-31 — WEB-RESET-12 current Architecture/Backend check and QA plan echo regression
+- Current main includes Web plan response exact selectedCategories validation cde338f. QA 8/8 PASS covers earlier code, not this additional validation. Added non-destructive Playwright assertion to reset-preview-i18n.spec.js verifying Backend echoes exactly the selected first category in plan, commit 15cee99. No /prepare, /confirm, /challenge or /execute requested.
+- Architecture still prioritizes transactional BKL-002 before next BETA; Backend /execute remains disabled and writer guard not integrated across all services. User-run exact current SHA QA rerun pending; don't infer PASS from previous 8/8.
+- Designer P1 still pending Backend nullable economy DTO / media consumer contract and cross-platform icon coverage. No server reset, release or production action.
