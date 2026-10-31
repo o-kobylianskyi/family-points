@@ -23,6 +23,10 @@ test.describe('reset preview/plan (no deletion)', () => {
   test('preview and dependency plan are non-executable', async ({ page }) => {
     test.setTimeout(60_000)
     const unsafe = []
+    const networkErrors = []
+    page.on('console', msg => { if (msg.type() === 'error') networkErrors.push('console: ' + msg.text().slice(0, 250)) })
+    page.on('requestfailed', req => { if (req.url().includes('data-reset/preview')) networkErrors.push('requestfailed: ' + (req.failure()?.errorText || 'unknown')) })
+    page.on('pageerror', err => networkErrors.push('pageerror: ' + err.message.slice(0, 250)))
     page.on('request', request => {
       const path = new URL(request.url()).pathname
       if (/\/data-reset\/(execute|confirm|challenge|prepare)$/.test(path)) unsafe.push(request.method() + ' ' + path)
@@ -57,7 +61,7 @@ test.describe('reset preview/plan (no deletion)', () => {
       await expect(checkboxes.first()).toBeVisible({ timeout: 8000 })
     } catch (error) {
       const text = (await panel.innerText().catch(() => '')).slice(0, 500)
-      throw new Error(`RESET_WEB_RENDER_FAIL: API preview parsed, but no categories rendered. panel=${JSON.stringify(text)}; url=${previewUrl}`, { cause: error })
+      throw new Error(`RESET_WEB_RENDER_FAIL: API preview parsed, but no categories rendered. panel=${JSON.stringify(text)}; url=${previewUrl}; browserErrors=${JSON.stringify(networkErrors.slice(-8))}`, { cause: error })
     }
     expect(preview.executionEnabled).toBe(false)
     expect(preview.workspaceId).toBeTruthy()
