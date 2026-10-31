@@ -312,3 +312,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - User reported all ten Chromium tests PASS with QA credentials configured; no skips or failures in listed results.
 - Includes 142-template catalog, reset safety, synthetic epoch notification, anonymous preview 401, logged-out settings guard, four locales, BKL-002 read-only preview/plan, login and authenticated templates/settings.
 - BKL-002 destructive reset, transactional rollback and cross-family isolation remain OUT OF SCOPE and unverified. Proceed only with read-only/validation-negative checks on existing workspace.
+
+
+## 2026-10-31 — BKL-002 negative read-only checks staged
+- Added `qa/e2e/tests/reset-negative.spec.js` commit f989c6f: selection must be nonempty before Plan enabled, unchecking disables it and must dispatch no reset POST; preview JSON must mark execution disabled and each category non-executable.
+- Two tests added; **not yet executed**. Previously 10/10 Chromium PASS remains the last confirmed suite. Expected next run 12 total, subject to local result.
+- Reset /execute remains blocked; no database deletion or reset mutations were run.
