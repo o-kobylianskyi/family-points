@@ -36,7 +36,8 @@ test.describe('reset preview/plan (no deletion)', () => {
 
     const previewRequest = page.waitForResponse(r =>
       /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(r.url()).pathname), { timeout: 15000 })
-    await page.goto('/settings')
+    // Navigation should not wait for unrelated assets or unfinished API responses.
+    await page.goto('/settings', { waitUntil: 'domcontentloaded', timeout: 10000 })
     const previewResponse = await previewRequest
     expect(previewResponse.status(), 'reset preview API status').toBe(200)
     // waitForResponse resolves at headers; the body can still be streaming or stalled.
