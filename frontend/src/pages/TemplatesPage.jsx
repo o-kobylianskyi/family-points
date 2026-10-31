@@ -110,6 +110,8 @@ export default function TemplatesPage() {
   const [iconUrls, setIconUrls] = useState({})
   const [selected, setSelected] = useState([])
   const [packFilter, setPackFilter] = useState('ALL')
+  const [kindFilter, setKindFilter] = useState('TASK')
+  const [categoryFilter, setCategoryFilter] = useState('ALL')
   const [templateSearch, setTemplateSearch] = useState('')
   const [showAllTemplates, setShowAllTemplates] = useState(false)
   const [preview, setPreview] = useState(null)
@@ -136,7 +138,7 @@ export default function TemplatesPage() {
     const generation = requestGeneration.current
     setBusy(false)
     editingRef.current = null
-    setEconomySuggestions(null); setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setTemplateSearch(''); setShowAllTemplates(false); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setError(''); setNotice('')
+    setEconomySuggestions(null); setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setKindFilter('TASK'); setCategoryFilter('ALL'); setTemplateSearch(''); setShowAllTemplates(false); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setError(''); setNotice('')
     if (!workspaceId) return () => { alive = false }
     getEconomySuggestions(getAccessToken()).then(data => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) setEconomySuggestions(data) }).catch(() => { /* Suggestions optional; never block catalog browsing. */ })
     Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
@@ -173,7 +175,10 @@ export default function TemplatesPage() {
   const packItems = packFilter === 'ALL'
     ? (catalog.templates || [])
     : (catalog.templates || []).filter(item => (catalog.packs || []).find(pack => pack.code === packFilter)?.templateCodes?.includes(item.code))
+  const categoryOf = item => item?.suggested?.category || item?.definition?.category || (() => { try { return JSON.parse(item?.definitionJson || '{}').category } catch { return null } })() || 'other'
+  const categoriesAvailable = [...new Set(packItems.filter(item => item.kind === kindFilter).map(categoryOf))].sort((a,b) => a.localeCompare(b))
   const matchingItems = packItems.filter(item => {
+    if (item.kind !== kindFilter || (categoryFilter !== 'ALL' && categoryOf(item) !== categoryFilter)) return false
     const haystack = [item.title?.[lang], item.title?.en, item.code, item.description?.[lang]].filter(Boolean).join(' ').toLocaleLowerCase()
     return haystack.includes(templateSearch.trim().toLocaleLowerCase())
   })
@@ -260,6 +265,8 @@ export default function TemplatesPage() {
       <h2>{l[1]}</h2>
       {!(catalog.templates || []).length && <p>{l[4]}</p>}
       <div className="template-toolbar">
+        <label><span>{({uk:'Тип',ru:'Тип',de:'Typ',en:'Type'})[lang]}</span><select value={kindFilter} onChange={e=>{setKindFilter(e.target.value);setCategoryFilter('ALL');setShowAllTemplates(false)}}><option value="TASK">{kindLabel('TASK')}</option><option value="REWARD">{kindLabel('REWARD')}</option></select></label>
+        <label><span>{({uk:'Категорія',ru:'Категория',de:'Kategorie',en:'Category'})[lang]}</span><select value={categoriesAvailable.includes(categoryFilter) ? categoryFilter : 'ALL'} onChange={e=>{setCategoryFilter(e.target.value);setShowAllTemplates(false)}}><option value="ALL">{({uk:'Усі категорії',ru:'Все категории',de:'Alle Kategorien',en:'All categories'})[lang]}</option>{categoriesAvailable.map(category=><option key={category} value={category}>{category}</option>)}</select></label>
         <label>
           <span>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}</span>
           <select value={packFilter} onChange={e => {setPackFilter(e.target.value);setShowAllTemplates(false)}} disabled={busy}>
