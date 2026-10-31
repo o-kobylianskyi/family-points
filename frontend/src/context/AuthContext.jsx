@@ -373,7 +373,7 @@ export function AuthProvider({ children }) {
         createAdditionalFamily,
       }}
     >
-      {epochChanged ? <div role="alert" style={{padding:24,margin:'12vh auto',maxWidth:600}}><h2>Family data changed / Дані сім’ї змінилися</h2><p>Writes are blocked. Reload to fetch current data. / Зміни заблоковані. Перезавантажте сторінку.</p><button type="button" onClick={() => window.location.reload()}>Reload / Перезавантажити</button></div> : children}
+      {epochChanged ? <div role="alert" style={{padding:24,margin:'12vh auto',maxWidth:600}}><h2>{({uk:"Дані сім’ї змінилися",ru:"Данные семьи изменились",de:"Familiendaten wurden geändert",en:"Family data changed"})[document.documentElement.lang?.split("-")[0]] || "Family data changed"}</h2><p>{({uk:"Зміни заблоковано. Перезавантажте сторінку для отримання актуальних даних.",ru:"Изменения заблокированы. Перезагрузите страницу для получения актуальных данных.",de:"Änderungen sind gesperrt. Laden Sie die Seite neu, um aktuelle Daten zu erhalten.",en:"Changes are blocked. Reload to fetch current data."})[document.documentElement.lang?.split("-")[0]] || "Changes are blocked. Reload to fetch current data."}</p><button type="button" onClick={() => window.location.reload()}>{({uk:"Перезавантажити",ru:"Перезагрузить",de:"Neu laden",en:"Reload"})[document.documentElement.lang?.split("-")[0]] || "Reload"}</button></div> : children}
     </AuthContext.Provider>
   )
 }
