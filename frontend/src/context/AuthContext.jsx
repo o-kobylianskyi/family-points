@@ -84,10 +84,30 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('accessToken')
     if (!workspaceId || !token) return
     let active = true
-    observeWorkspaceEpoch(token, workspaceId).catch(error => {
-      if (active && error.message === 'WORKSPACE_DATA_EPOCH_CHANGED') setEpochChanged(true)
-    })
-    return () => { active = false }
+    let inFlight = false
+    const verify = async () => {
+      if (!active || inFlight || document.visibilityState === 'hidden') return
+      const latestToken = localStorage.getItem('accessToken')
+      if (!latestToken) return
+      inFlight = true
+      try {
+        await observeWorkspaceEpoch(latestToken, workspaceId)
+      } catch (error) {
+        if (active && error.message === 'WORKSPACE_DATA_EPOCH_CHANGED') setEpochChanged(true)
+        // A network failure cannot authorize writes; apiRequest independently
+        // requires a successful fresh epoch handshake before each mutation.
+      } finally {
+        inFlight = false
+      }
+    }
+    verify()
+    window.addEventListener('focus', verify)
+    document.addEventListener('visibilitychange', verify)
+    return () => {
+      active = false
+      window.removeEventListener('focus', verify)
+      document.removeEventListener('visibilitychange', verify)
+    }
   }, [currentUser?.workspaceId])
 
   const markActivity = () => {
