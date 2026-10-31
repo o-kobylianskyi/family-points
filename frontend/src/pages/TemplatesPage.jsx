@@ -6,6 +6,7 @@ import TemplateFieldsEditor from '../components/TemplateFieldsEditor'
 import { getMediaCatalog, fetchAuthorizedMediaObjectUrl } from '../api/mediaApi'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 import { getPointTypes } from '../api/economyApi'
+import { getEconomySuggestions } from '../api/economySuggestionsApi'
 import TemplateDraftFieldsEditor from '../components/TemplateDraftFieldsEditor'
 import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates, updatePrivateTemplate, deletePrivateTemplate, getTemplateCreationDraft } from '../api/templateApi'
 
@@ -104,6 +105,7 @@ export default function TemplatesPage() {
   const { currentUser, getAccessToken } = useAuth()
   const workspaceId = currentUser?.workspaceId
   const [catalog, setCatalog] = useState({ templates: [], packs: [] })
+  const [economySuggestions, setEconomySuggestions] = useState(null)
   const [privateItems, setPrivateItems] = useState([])
   const [iconUrls, setIconUrls] = useState({})
   const [selected, setSelected] = useState([])
@@ -134,8 +136,9 @@ export default function TemplatesPage() {
     const generation = requestGeneration.current
     setBusy(false)
     editingRef.current = null
-    setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setTemplateSearch(''); setShowAllTemplates(false); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setError(''); setNotice('')
+    setEconomySuggestions(null); setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setTemplateSearch(''); setShowAllTemplates(false); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setError(''); setNotice('')
     if (!workspaceId) return () => { alive = false }
+    getEconomySuggestions(getAccessToken()).then(data => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) setEconomySuggestions(data) }).catch(() => { /* Suggestions optional; never block catalog browsing. */ })
     Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
       .then(([a,b]) => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
       .catch(e => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) setError(e) })
@@ -165,6 +168,7 @@ export default function TemplatesPage() {
     return () => { active = false; urls.forEach(url => URL.revokeObjectURL(url)) }
   }, [workspaceId, getAccessToken])
 
+  const suggestedByCode = new Map([...(economySuggestions?.tasks || []), ...(economySuggestions?.rewards || [])].map(entry => [entry.code, entry]))
   const importedCodes = new Set(privateItems.map(item => item.catalogCode).filter(Boolean))
   const packItems = packFilter === 'ALL'
     ? (catalog.templates || [])
@@ -279,6 +283,7 @@ export default function TemplatesPage() {
           <span className="template-card-icon" aria-hidden="true">{iconUrls[iconKeyForTemplate(item)] ? <img src={iconUrls[iconKeyForTemplate(item)]} alt="" loading="lazy"/> : item.kind === "REWARD" ? "★" : "✓"}</span>
           <span className="template-card-body"><strong>{item.title?.[lang] || item.title?.en || item.code}</strong>
             <small>{kindLabel(item.kind)}{item.kind === 'REWARD' && Number(item.definition?.durationMinutes)>0 ? ` · ${item.definition.durationMinutes} ${({uk:'хв',ru:'мин',de:'Min.',en:'min'})[lang] || 'min'}` : ''}</small>
+            {(() => { const suggestion = suggestedByCode.get(item.code); if (!suggestion) return null; const amount = item.kind === 'REWARD' ? suggestion.suggestedPricePoints : suggestion.suggestedRewardPoints; const validAmount = Number.isSafeInteger(amount) && amount >= 0 && suggestion.pricingState === 'OPTIONAL_SUGGESTION'; return <small>{validAmount ? `${({uk:'Рекомендовано',ru:'Рекомендовано',de:'Empfehlung',en:'Suggested'})[lang] || 'Suggested'}: ${amount} ${({uk:'балів',ru:'баллов',de:'Punkte',en:'points'})[lang] || 'points'} · ` : ''}{({uk:'Потрібне рішення батьків; не застосовується автоматично',ru:'Нужно решение родителей; автоматически не применяется',de:'Elternfreigabe nötig; nicht automatisch angewendet',en:'Parent review required; not applied automatically'})[lang] || 'Parent review required'}</small> })()}
             {importedCodes.has(item.code) && <small>{({uk:'Уже в бібліотеці',ru:'Уже в библиотеке',de:'Bereits in der Bibliothek',en:'Already in library'})[lang] || 'Already in library'}</small>}
           </span>
         </label>)}
