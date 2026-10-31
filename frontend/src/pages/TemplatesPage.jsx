@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import './TemplatesPage.css'
+import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import TemplateFieldsEditor from '../components/TemplateFieldsEditor'
@@ -266,7 +267,7 @@ export default function TemplatesPage() {
       {!(catalog.templates || []).length && <p>{l[4]}</p>}
       <div className="template-toolbar">
         <label><span>{({uk:'Тип',ru:'Тип',de:'Typ',en:'Type'})[lang]}</span><select value={kindFilter} onChange={e=>{setKindFilter(e.target.value);setCategoryFilter('ALL');setShowAllTemplates(false)}}><option value="TASK">{kindLabel('TASK')}</option><option value="REWARD">{kindLabel('REWARD')}</option></select></label>
-        <label><span>{({uk:'Категорія',ru:'Категория',de:'Kategorie',en:'Category'})[lang]}</span><select value={categoriesAvailable.includes(categoryFilter) ? categoryFilter : 'ALL'} onChange={e=>{setCategoryFilter(e.target.value);setShowAllTemplates(false)}}><option value="ALL">{({uk:'Усі категорії',ru:'Все категории',de:'Alle Kategorien',en:'All categories'})[lang]}</option>{categoriesAvailable.map(category=><option key={category} value={category}>{category}</option>)}</select></label>
+        <label><span>{({uk:'Категорія',ru:'Категория',de:'Kategorie',en:'Category'})[lang]}</span><select value={categoriesAvailable.includes(categoryFilter) ? categoryFilter : 'ALL'} onChange={e=>{setCategoryFilter(e.target.value);setShowAllTemplates(false)}}><option value="ALL">{({uk:'Усі категорії',ru:'Все категории',de:'Alle Kategorien',en:'All categories'})[lang]}</option>{categoriesAvailable.map(category=><option key={category} value={category}>{templateCategoryLabel(category, lang)}</option>)}</select></label>
         <label>
           <span>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}</span>
           <select value={packFilter} onChange={e => {setPackFilter(e.target.value);setShowAllTemplates(false)}} disabled={busy}>
