@@ -39,20 +39,24 @@ test.describe('reset preview/plan (no deletion)', () => {
     await page.goto('/settings', { waitUntil: 'domcontentloaded', timeout: 10000 })
     const panel = page.locator('.family-reset-readiness')
     await expect(panel).toBeVisible()
-    await expect(panel.locator('.family-reset-category input[type="checkbox"]').first()).toBeVisible({ timeout: 15000 })
     const token = await page.evaluate(() => localStorage.getItem('accessToken'))
     if (!token) throw new Error('Authenticated QA session has no access token')
-    const workspaceId = await page.evaluate(() => {
-      const found = performance.getEntriesByType('resource').map(x => x.name).find(x => /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(x).pathname))
-      return found ? new URL(found).pathname.match(/\/workspaces\/(\d+)\//)?.[1] : null
-    })
-    if (!workspaceId) throw new Error('Reset preview request URL not seen')
-    const response = await page.request.get(`http://localhost:8080/workspaces/${workspaceId}/data-reset/preview`, {
+    const previewUrl = await page.evaluate(() => performance.getEntriesByType('resource')
+      .map(entry => entry.name).find(url => /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(url).pathname)))
+    if (!previewUrl) throw new Error('No reset preview request observed in browser resources')
+    const apiResponse = await page.request.get(previewUrl, {
       headers: { Authorization: `Bearer ${token}` },
-      timeout: 15000,
+      timeout: 12000,
     })
-    expect(response.status(), 'independent authenticated preview status').toBe(200)
-    const preview = await response.json()
+    expect(apiResponse.status(), 'independent authenticated reset preview').toBe(200)
+    const preview = await apiResponse.json()
+    const checkboxes = panel.locator('.family-reset-category input[type="checkbox"]')
+    try {
+      await expect(checkboxes.first()).toBeVisible({ timeout: 8000 })
+    } catch (error) {
+      const text = (await panel.innerText().catch(() => '')).slice(0, 500)
+      throw new Error(`RESET_WEB_RENDER_FAIL: API preview parsed, but no categories rendered. panel=${JSON.stringify(text)}; url=${previewUrl}`, { cause: error })
+    }
     expect(preview.executionEnabled).toBe(false)
     expect(preview.workspaceId).toBeTruthy()
     expect(preview.categories && typeof preview.categories).toBe('object')
