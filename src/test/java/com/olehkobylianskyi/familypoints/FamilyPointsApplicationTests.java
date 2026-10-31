@@ -258,7 +258,7 @@ class FamilyPointsApplicationTests {
         var identity = org.mockito.Mockito.mock(
                 com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
         org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(applicant);
-        var joins = new com.olehkobylianskyi.familypoints.service.WorkspaceJoinService(jdbc, identity);
+        var joins = new com.olehkobylianskyi.familypoints.service.WorkspaceJoinService(jdbc, identity, new com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard(jdbc));
         String code = joins.rotateJoinCode(workspace.getId());
         assertEquals(48, code.length());
         joins.requestJoin(code);
@@ -310,7 +310,7 @@ class FamilyPointsApplicationTests {
         var identity = org.mockito.Mockito.mock(
                 com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
         org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(inviter);
-        var invitations = new com.olehkobylianskyi.familypoints.service.WorkspaceInvitationService(jdbc, identity);
+        var invitations = new com.olehkobylianskyi.familypoints.service.WorkspaceInvitationService(jdbc, identity, new com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard(jdbc));
         var issued = invitations.issue(family.getId(), role.getId());
         assertEquals(family.getName(), invitations.preview(issued.token()).workspaceName());
         var context = invitations.begin(issued.token());
@@ -392,7 +392,7 @@ class FamilyPointsApplicationTests {
         var identity = org.mockito.Mockito.mock(
                 com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
         org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(issuer);
-        var invitations = new com.olehkobylianskyi.familypoints.service.WorkspaceInvitationService(jdbc, identity);
+        var invitations = new com.olehkobylianskyi.familypoints.service.WorkspaceInvitationService(jdbc, identity, new com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard(jdbc));
         var issued = invitations.issue(family.getId(), role.getId());
         var context = invitations.begin(issued.token());
         Long inviteId = jdbc.queryForObject(
@@ -424,7 +424,7 @@ class FamilyPointsApplicationTests {
         var identity = org.mockito.Mockito.mock(
                 com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
         org.mockito.Mockito.when(identity.getCurrentAccount()).thenReturn(applicant);
-        var joins = new com.olehkobylianskyi.familypoints.service.WorkspaceJoinService(jdbc, identity);
+        var joins = new com.olehkobylianskyi.familypoints.service.WorkspaceJoinService(jdbc, identity, new com.olehkobylianskyi.familypoints.service.WorkspaceEpochTransactionGuard(jdbc));
         String code = joins.rotateJoinCode(family.getId());
         joins.requestJoin(code);
         Long requestId = jdbc.queryForObject(
