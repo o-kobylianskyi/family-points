@@ -386,3 +386,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Malformed epoch notification regression staged
 - Added a third Playwright case in `qa/e2e/tests/epoch.spec.js` (commit 437880f): malformed JSON and nonnumeric workspace ID in cross-tab epoch notice must not create a stale-workspace alert. Browser-only; no Backend mutation.
 - Previous newly added stale-notice POST-prevention case still awaits local test result; do not claim epoch.spec.js passes before rerun. Run full `npx playwright test tests/epoch.spec.js` with isolated QA account credentials.
+
+
+## 2026-10-31 — Browser dataEpoch regression 3/3 PASS
+- User ran `npx playwright test tests/epoch.spec.js`: **3 passed (11.7s)**. Cross-tab active-workspace notice PASS (3.2s); synthetic stale notice rejects scoped POST before network dispatch PASS (3.7s); malformed JSON/non-numeric workspace ID does not quarantine UI PASS (2.7s).
+- The suite performs no database changes and does not demonstrate backend concurrent stale-write transaction fencing. Next: review Backend PostgreSQL integration coverage and devise disposable-data acceptance gate before any real mutation test.
