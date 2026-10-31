@@ -4,6 +4,7 @@ import { API_URL } from './baseUrl'
 // authenticated current value. No automatic retries of non-idempotent writes.
 const lastEpoch = new Map()
 const quarantined = new Set()
+const quarantinedWorkspaces = new Set()
 const scopedMutation = /^(POST|PUT|PATCH|DELETE)$/
 const workspacePath = /^\/workspaces\/([0-9]+)(?:\/|$)/
 const EPOCH_NOTICE_KEY = 'fp:workspace-epoch-notice'
@@ -14,6 +15,7 @@ if (typeof window !== 'undefined') {
     try {
       const notice = JSON.parse(event.newValue)
       if (!/^\d+$/.test(String(notice.workspaceId))) return
+      quarantinedWorkspaces.add(String(notice.workspaceId))
       for (const key of lastEpoch.keys()) {
         if (key.endsWith(`:${notice.workspaceId}`)) quarantined.add(key)
       }
@@ -48,6 +50,11 @@ async function readWorkspaceEpoch(token, workspaceId) {
   }
   // Partition by token, never share an epoch across families or identities.
   const key = `${token}:${workspaceId}`
+  if (quarantinedWorkspaces.has(workspaceId)) {
+    const error = new Error('WORKSPACE_DATA_EPOCH_CHANGED')
+    error.status = 409
+    throw error
+  }
   if (quarantined.has(key)) {
     const error = new Error('WORKSPACE_DATA_EPOCH_CHANGED')
     error.status = 409
@@ -57,6 +64,7 @@ async function readWorkspaceEpoch(token, workspaceId) {
   if (previous !== undefined && previous !== epoch) {
     lastEpoch.delete(key)
     quarantined.add(key)
+    quarantinedWorkspaces.add(workspaceId)
     notifyEpochChange(workspaceId, previous, epoch)
     const error = new Error('WORKSPACE_DATA_EPOCH_CHANGED')
     error.status = 409
