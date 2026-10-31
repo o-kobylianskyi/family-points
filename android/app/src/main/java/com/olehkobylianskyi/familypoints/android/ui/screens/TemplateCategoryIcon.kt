@@ -1,6 +1,10 @@
 package com.olehkobylianskyi.familypoints.android.ui.screens
 
 import android.graphics.BitmapFactory
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import com.caverock.androidsvg.SVG
+import java.io.ByteArrayInputStream
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
@@ -48,7 +52,18 @@ internal fun TemplateCategoryIcon(
     ) {
         value = try {
             val bytes = repository.categoryIcon(workspaceId, key)
-            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+            val bitmap = if (bytes.take(256).toByteArray()
+                    .toString(Charsets.UTF_8).contains("<svg")) {
+                val picture = SVG.getFromInputStream(ByteArrayInputStream(bytes)).renderToPicture()
+                val width = picture.width.coerceAtLeast(1)
+                val height = picture.height.coerceAtLeast(1)
+                val target = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                Canvas(target).drawPicture(picture)
+                target
+            } else {
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            }
+            bitmap?.asImageBitmap()
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
