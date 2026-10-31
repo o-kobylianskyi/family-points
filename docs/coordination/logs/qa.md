@@ -391,3 +391,10 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — Browser dataEpoch regression 3/3 PASS
 - User ran `npx playwright test tests/epoch.spec.js`: **3 passed (11.7s)**. Cross-tab active-workspace notice PASS (3.2s); synthetic stale notice rejects scoped POST before network dispatch PASS (3.7s); malformed JSON/non-numeric workspace ID does not quarantine UI PASS (2.7s).
 - The suite performs no database changes and does not demonstrate backend concurrent stale-write transaction fencing. Next: review Backend PostgreSQL integration coverage and devise disposable-data acceptance gate before any real mutation test.
+
+
+## 2026-10-31 — Backend dataEpoch transaction audit (source/CI evidence)
+- Reviewed guard implementation commit 9e328b5: `@Transactional(MANDATORY)` and `SELECT data_epoch FROM families WHERE id=? FOR UPDATE`, compares expected epoch, returns HTTP 409 on mismatch; missing row 404. Unit test commit db6f4f2 covers missing/legacy header, stale/current epoch, missing family, with mocked JDBC (NOT real concurrent row locks).
+- Backend coordination log reports GitHub Actions run 41234461782 at exact SHA 4d88716a: four jobs success, 313 backend tests, 39 Spring/JPA/PostgreSQL scenarios; later source integration and deployment not implied. It reports actual family-fence waits/revalidation for invitation/revocation and reset-content snapshot cases, but not proof that every client write path is fenced or that atomic execute is available.
+- QA gaps: evidence-based inventory of ALL workspace mutations guarded by transactional epoch; simultaneous transaction commit/rollback race specifically across reset and ordinary write; fault-injection at commit boundary and orphan/ledger integrity; cross-family lock isolation; Android queued stale operations; deployment parity.
+- Keep reset execute disabled. Do not run destructive tests in Test (14) or Test2 (11). Request Backend to publish coverage matrix and disposable PostgreSQL concurrency fixtures before QA signs off.
