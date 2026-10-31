@@ -31,6 +31,8 @@ fun TemplateLibrarySection(
     onClose: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    var economy by remember(workspaceId) { mutableStateOf<TemplateEconomySuggestionsDto?>(null) }
+    var economyUnavailable by remember(workspaceId) { mutableStateOf(false) }
     var catalog by remember(workspaceId) { mutableStateOf<List<CatalogTemplateDto>>(emptyList()) }
     var packs by remember(workspaceId) { mutableStateOf<List<com.google.gson.JsonObject>>(emptyList()) }
     var packFilter by remember(workspaceId) { mutableStateOf("ALL") }
@@ -71,6 +73,8 @@ fun TemplateLibrarySection(
         confirmDelete = false
         previewCodes = emptyList()
         catalog = emptyList()
+        economy = null
+        economyUnavailable = false
         library = emptyList()
         packs = emptyList()
         packFilter = "ALL"
@@ -81,6 +85,22 @@ fun TemplateLibrarySection(
             catalog = result.templates.orEmpty()
             packs = result.packs.orEmpty()
             catalogLoaded = true
+            // Suggestions are read-only and MUST NOT block template management.
+            try {
+                val suggestions = repository.economySuggestions()
+                if (suggestions.schema == "familypoints.economy.suggestions.v1" &&
+                    suggestions.version == 1 &&
+                    suggestions.sourceCatalogVersion == result.version &&
+                    suggestions.currencyCode == "POINTS" &&
+                    !suggestions.autoApply && !suggestions.workspaceMutation &&
+                    suggestions.approvalRequiredBeforeActivation) {
+                    economy = suggestions
+                } else {
+                    economyUnavailable = true
+                }
+            } catch (_: Exception) {
+                economyUnavailable = true
+            }
             library = repository.privateTemplates(workspaceId)
             libraryLoaded = true
         } catch (e: Exception) { failure(e) }
@@ -237,6 +257,36 @@ fun TemplateLibrarySection(
                             else tl(language, "Нагорода", "Belohnung", "Reward", "Награда"),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        val recommendation = if (item.kind == "TASK") {
+                            economy?.tasks?.firstOrNull { it.code == item.code }
+                        } else {
+                            economy?.rewards?.firstOrNull { it.code == item.code }
+                        }
+                        if (recommendation != null) {
+                            val points = if (item.kind == "TASK")
+                                recommendation.suggestedRewardPoints else recommendation.suggestedPricePoints
+                            val suggestions = mutableListOf<String>()
+                            if (item.kind == "TASK" && !recommendation.difficultySuggestion.isNullOrBlank()) {
+                                suggestions += tl(language, "Складність", "Schwierigkeit", "Difficulty", "Сложность") +
+                                    ": " + recommendation.difficultySuggestion
+                            }
+                            suggestions += if (points == null) {
+                                tl(language, "Бали: не встановлено", "Punkte: nicht festgelegt",
+                                    "Points: not set", "Баллы: не указаны")
+                            } else {
+                                tl(language, "Рекомендація", "Vorschlag", "Suggestion", "Рекомендация") +
+                                    ": $points " + tl(language, "балів", "Punkte", "points", "баллов")
+                            }
+                            Text(suggestions.joinToString(" · "),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(tl(language,
+                                "Лише рекомендація. Перевіряє та підтверджує дорослий.",
+                                "Nur ein Vorschlag. Erwachsene müssen prüfen und bestätigen.",
+                                "Suggestion only. An adult must review and approve.",
+                                "Только рекомендация. Требуется проверка и подтверждение взрослого."),
+                                style = MaterialTheme.typography.labelSmall)
+                        }
                         if (alreadyImported) Text(tl(language, "Уже в бібліотеці", "Bereits gespeichert", "Already in library", "Уже в библиотеке"), color = MaterialTheme.colorScheme.primary)
                         val duration = if (item.kind == "REWARD") {
                             item.definition?.get("defaultDurationMinutes")
