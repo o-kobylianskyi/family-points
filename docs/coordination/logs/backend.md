@@ -319,3 +319,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-10-31 — BKL-002 challenge snapshot freshness check
 - POST /challenge now reads selected categories from the locked confirmed V41 operation, validates canonical category encoding, obtains current scoped reset preview and recomputes `reset-v1` SHA-256 from category counts. A changed count returns 409 `RESET_SNAPSHOT_STALE` before creating V43 challenge. Source `9ddf365c8b7c04c13ceb50e10e9961120752deb0`; negative regression updated `a353650bd06bdefd43d9ca9694557e1d75a286dc`.
 - **LIMITATION:** counts-only fingerprint cannot identify changes preserving row counts; no full MVCC content snapshot, epoch lock, or guaranteed no change between challenge and execute. This is a partial fail-closed check, not authorization for deletion. Execute remains HTTP 423; no real data reset. Await CI for current source.
+
+## 2026-10-31 — PostgreSQL epoch concurrency and rollback regression
+- Added `WorkspaceEpochConcurrencyPostgresTest` using disposable PostgreSQL 18 Testcontainers: lock family row in a reset-shaped transaction, increment epoch, verify concurrent writer using `WorkspaceEpochTransactionGuard` rejects stale epoch and cannot change family name. Second test simulates transaction failure and asserts epoch rolls back.
+- Source `87de4ec1cb06eda11e317911284f219810350223`. No actual reset endpoint enabled or real user data touched. Requires exact-head CI confirmation.
+- **Important**: test proves guard behavior when participating writers use it; business mutation endpoints still require integration and complete FK graph; no claim that the system is fully race-safe.
