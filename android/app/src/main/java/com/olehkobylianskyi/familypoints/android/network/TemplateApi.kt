@@ -15,7 +15,34 @@ data class TemplateCatalogDto(val version: Int, val templates: List<CatalogTempl
 data class PrivateTemplateDto(val id: Long, val kind: String?, val title: String?, val definitionJson: String?, val catalogCode: String?, val catalogVersion: Int?)
 data class TemplateImportPreviewDto(val alreadyImported: List<String>?, val toImport: List<String>?)
 
+data class TemplateEconomySuggestionDto(
+    val code: String,
+    val difficultySuggestion: String? = null,
+    val estimatedMinutes: Int? = null,
+    val suggestedRewardPoints: Int? = null,
+    val suggestedPricePoints: Int? = null,
+    val pricingState: String? = null,
+    val kind: String? = null,
+    val durationMinutes: Int? = null,
+    val reviewRequired: Boolean = true,
+    val flags: List<String>? = null
+)
+data class TemplateEconomySuggestionsDto(
+    val schema: String,
+    val version: Int,
+    val sourceCatalogVersion: Int,
+    val currencyCode: String,
+    val autoApply: Boolean,
+    val workspaceMutation: Boolean,
+    val approvalRequiredBeforeActivation: Boolean,
+    val tasks: List<TemplateEconomySuggestionDto>?,
+    val rewards: List<TemplateEconomySuggestionDto>?
+)
+
 interface TemplateApi {
+    @GET("template-catalog/economy-suggestions")
+    suspend fun economySuggestions(@Header("Authorization") authorization: String): TemplateEconomySuggestionsDto
+
     @GET("workspaces/{workspaceId}/templates/{templateId}/creation-draft")
     suspend fun creationDraft(
         @Header("Authorization") authorization: String,
