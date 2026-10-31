@@ -297,3 +297,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - **Proposed, NOT implemented:** separate short-lived one-use challenge with fresh reauthentication (including Google-only accounts), transaction-scoped execute, stable response/error DTOs, epoch increment, rollback/replay, onboardingRequired; Web must keep execute disabled until verified Backend and QA.
 - Existing /confirm is NOT reauthentication. No new delete endpoint, DB wipe or deployment in this coordination change.
 - Next Backend P0: implement and verify protected execution and lock all write paths on PostgreSQL; then send verified contract to Web and QA.
+
+## 2026-10-31 — BKL-002 challenge/execute fail-closed contract scaffold
+- Added V43 `workspace_reset_challenges` with workspace+operation FK to V41 audit, unique one challenge per operation, expiration and consumed timestamp; no real challenge issuance implemented.
+- Added `WorkspaceResetChallengeController`: POST /workspaces/{workspaceId}/data-reset/challenge validates manager path, workspace membership, UUID and digest then always HTTP 423 `RESET_EXECUTION_DISABLED`. POST /execute similarly always HTTP 423 after tenant auth. Neither endpoint deletes anything or issues security proof. Added `WorkspaceResetChallengeControllerTest`.
+- Updated legacy migration count regression tests to V43. Commits: `cff5021`, `07f59a6`, `04efcff`. CI `41192184402` in progress at inspection.
+- **NOT EXECUTABLE:** Server-side fresh reauthentication, unpredictable challenge secret/verifier, rate limiting, snapshot freshness, complete FK closure, row-lock coverage of every writer, transactional data deletion, audit and atomic epoch increments, rollback/concurrency Postgres tests remain P0. Web must NOT expose destructive CTA. No real DB wipe.
