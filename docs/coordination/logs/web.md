@@ -734,3 +734,6 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Central client broadcasts workspace epoch changes via same-origin localStorage storage event (no token stored in notice) and quarantines known workspace epoch keys across tabs. Source 38d1c3b.
 - AuthProvider listens for epoch change of current workspace and replaces feature tree with a blocking stale-data reload notice (UK/EN text); commit b04dfa0. This prevents continued edits in affected mounted views, while central API itself blocks mutations.
 - Limitations: cross-tab notification for unknown/no initialized epoch key, locale RU/DE, tab-to-tab replay on old page, and browser QA require follow-up. Backend reset execute still unverified; do not treat this as end-to-end reset protection. No BETA/prod changes.
+
+## 2026-10-31 — WEB-EPOCH-02 follow-ups
+- Closed cross-tab write gap for workspace not previously cached (db3271d). Added four-language text in AuthContext reload shield (a24a5b6). CI/build, cross-tab browser tests and automated replay QA still pending. No production deploy/reset.
