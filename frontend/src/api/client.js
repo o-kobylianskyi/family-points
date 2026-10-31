@@ -6,12 +6,27 @@ const lastEpoch = new Map()
 const quarantined = new Set()
 const scopedMutation = /^(POST|PUT|PATCH|DELETE)$/
 const workspacePath = /^\/workspaces\/([0-9]+)(?:\/|$)/
+const EPOCH_NOTICE_KEY = 'fp:workspace-epoch-notice'
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', event => {
+    if (event.key !== EPOCH_NOTICE_KEY || !event.newValue) return
+    try {
+      const notice = JSON.parse(event.newValue)
+      if (!/^\d+$/.test(String(notice.workspaceId))) return
+      for (const key of lastEpoch.keys()) {
+        if (key.endsWith(`:${notice.workspaceId}`)) quarantined.add(key)
+      }
+      window.dispatchEvent(new CustomEvent('workspace:data-epoch-changed', { detail: notice }))
+    } catch { /* Ignore malformed cross-tab notifications. */ }
+  })
+}
 
 function notifyEpochChange(workspaceId, previous, current) {
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('workspace:data-epoch-changed', {
-      detail: { workspaceId, previousEpoch: previous, dataEpoch: current }
-    }))
+    const detail = { workspaceId, previousEpoch: previous, dataEpoch: current }
+    window.dispatchEvent(new CustomEvent('workspace:data-epoch-changed', { detail }))
+    try { localStorage.setItem(EPOCH_NOTICE_KEY, JSON.stringify(detail)) } catch { /* Storage may be disabled. */ }
   }
 }
 
