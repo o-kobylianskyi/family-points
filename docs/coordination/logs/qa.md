@@ -398,3 +398,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Backend coordination log reports GitHub Actions run 41234461782 at exact SHA 4d88716a: four jobs success, 313 backend tests, 39 Spring/JPA/PostgreSQL scenarios; later source integration and deployment not implied. It reports actual family-fence waits/revalidation for invitation/revocation and reset-content snapshot cases, but not proof that every client write path is fenced or that atomic execute is available.
 - QA gaps: evidence-based inventory of ALL workspace mutations guarded by transactional epoch; simultaneous transaction commit/rollback race specifically across reset and ordinary write; fault-injection at commit boundary and orphan/ledger integrity; cross-family lock isolation; Android queued stale operations; deployment parity.
 - Keep reset execute disabled. Do not run destructive tests in Test (14) or Test2 (11). Request Backend to publish coverage matrix and disposable PostgreSQL concurrency fixtures before QA signs off.
+
+
+## 2026-10-31 — Backend acceptance matrix reviewed against current CI
+- Reconciled Backend's source write inventory (136 HTTP mutation mappings), disposable V45 retention/FK metadata (70 application tables/156 FKs), and green CI b4f62fc9 (329 tests, PointMutationTransactionPostgresTest 54 PASS, upgrade proof test 1 PASS).
+- QA conclusion: representative PostgreSQL epoch/contention/proof correctness evidence exists; inventory is not a full end-to-end route or deployed executor proof. Deletion policy, owner/global-account/ledger retention, Google fresh reauth, atomic execute/epoch/onboarding, Android stale queue and release gating remain OPEN.
+- Published `docs/coordination/requests/BKL002_QA_ACCEPTANCE_GAPS_20261031.md` at 6b6472c. No reset, schema mutation, or deployed changes.
