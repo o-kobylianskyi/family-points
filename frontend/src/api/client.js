@@ -3,6 +3,7 @@ import { API_URL } from './baseUrl'
 // Epoch is deliberately NOT persisted: on every workspace write, obtain an
 // authenticated current value. No automatic retries of non-idempotent writes.
 const lastEpoch = new Map()
+const quarantined = new Set()
 const scopedMutation = /^(POST|PUT|PATCH|DELETE)$/
 const workspacePath = /^\/workspaces\/([0-9]+)(?:\/|$)/
 
@@ -32,9 +33,15 @@ async function readWorkspaceEpoch(token, workspaceId) {
   }
   // Partition by token, never share an epoch across families or identities.
   const key = `${token}:${workspaceId}`
+  if (quarantined.has(key)) {
+    const error = new Error('WORKSPACE_DATA_EPOCH_CHANGED')
+    error.status = 409
+    throw error
+  }
   const previous = lastEpoch.get(key)
   if (previous !== undefined && previous !== epoch) {
     lastEpoch.delete(key)
+    quarantined.add(key)
     notifyEpochChange(workspaceId, previous, epoch)
     const error = new Error('WORKSPACE_DATA_EPOCH_CHANGED')
     error.status = 409
