@@ -336,3 +336,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - User reported `16+` without full test output; latest exact run summary not independently available.
 - New Playwright negative test `mismatched workspace preview is rejected without rendering categories` (commit 502414c): intercepts GET preview, returns synthetically valid 200 JSON but workspaceId different from requested; asserts error panel, no category checkboxes, and no reset POST. No persistent database changes.
 - This verifies UI fail-closed on mismatched response workspace only; it does NOT constitute server-side cross-tenant authorization proof. Pending local test.
+
+
+## 2026-10-31 — Full Playwright suite 18/18 PASS
+- User screenshot confirms Chromium `18 passed (27.1s)` with no failures/skips. Includes read-only unknown reset category rejection, cleared dependency-plan on selection change, mismatched workspace preview rejection, and all prior smoke/access tests.
+- BKL-002 full destructive reset remains NOT APPROVED and untested; synthetic mismatched workspace preview does not demonstrate backend tenant isolation. Next priority is scoped cross-family authorization proof without deletion.
