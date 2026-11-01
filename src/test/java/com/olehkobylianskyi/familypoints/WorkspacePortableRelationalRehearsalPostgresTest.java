@@ -151,6 +151,17 @@ class WorkspacePortableRelationalRehearsalPostgresTest {
         assertEquals("Other group",db.queryForObject("SELECT name FROM member_groups WHERE family_id=?",String.class,neighbor));
         assertArrayEquals(original,db.queryForObject("SELECT bytes FROM media_blobs WHERE asset_id=?",byte[].class,imageId));
         assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,source));
+        // Source foreign keys and preserved archive identity must remain exact.
+        assertEquals(1L,db.queryForObject("""
+                SELECT count(*) FROM media_bindings
+                WHERE workspace_id=? AND target_type='MEMBER_GROUP'
+                  AND target_id=? AND asset_id=?
+                """,Long.class,source,group,imageId));
+        assertEquals(1L,db.queryForObject("SELECT count(*) FROM media_assets WHERE workspace_id=?",
+                Long.class,source));
+        assertEquals(0L,db.queryForObject("SELECT count(*) FROM media_assets WHERE workspace_id=?",
+                Long.class,neighbor));
+
     }
 
 }
