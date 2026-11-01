@@ -71,6 +71,29 @@ class WorkspacePortableMediaBindingPreflightPostgresTest {
                             ()->inspector.inspect(archive,family,key),"variant "+variant);
                 } finally {Arrays.fill(invalid,(byte)0);}
             }
+            // No physical FK exists for polymorphic media targets; missing
+            // archive groups and unresolved member identity must be visible blockers.
+            for(String targetType:List.of("MEMBER_GROUP","WORK_NODE","TASK","MEMBER")) {
+                var root=json.readTree(plain).deepCopy();
+                var binding=((com.fasterxml.jackson.databind.node.ObjectNode)
+                        root.path("categories").path("MEDIA_BINDINGS").get(0));
+                binding.put("target_type",targetType);
+                binding.put("target_id",987654321);
+                byte[] modified=json.writeValueAsBytes(root);
+                try {
+                    var sealed=codec.seal(UUID.randomUUID(),family,UUID.randomUUID(),0L,
+                            original.manifest().sourceDigest(),"V50",modified,key);
+                    var inspection=inspector.inspect(files.encode(sealed),family,key);
+                    String blocker=switch(targetType) {
+                        case "MEMBER_GROUP" -> "MISSING_CATEGORY:MEMBER_GROUPS";
+                        case "WORK_NODE" -> "MISSING_CATEGORY:WORK_NODES";
+                        case "TASK" -> "MISSING_CATEGORY:TASK_DEFINITIONS";
+                        default -> "IDENTITY_REBIND_REQUIRED:MEDIA_BINDINGS.target_id";
+                    };
+                    assertTrue(inspection.blockers().contains(blocker),targetType);
+                    assertFalse(inspection.restorable());
+                } finally {Arrays.fill(modified,(byte)0);}
+            }
         } finally {Arrays.fill(plain,(byte)0);}
         assertEquals(1L,db.queryForObject(
                 "SELECT count(*) FROM media_bindings WHERE workspace_id=?",Long.class,family));
