@@ -94,6 +94,40 @@ class WorkspacePortableMediaBindingPreflightPostgresTest {
                     assertFalse(inspection.restorable());
                 } finally {Arrays.fill(modified,(byte)0);}
             }
+            // Encrypted manifest can be genuine while its decrypted
+            // category graph is malformed: duplicate asset keys, missing
+            // referenced assets and noncanonical UUIDs must fail closed.
+            var mediaId=UUID.randomUUID().toString();
+            for(int variant=0;variant<3;variant++) {
+                var root=json.readTree(plain).deepCopy();
+                var categories=((com.fasterxml.jackson.databind.node.ObjectNode)root.path("categories"));
+                var binding=((com.fasterxml.jackson.databind.node.ObjectNode)
+                        categories.path("MEDIA_BINDINGS").get(0));
+                binding.put("asset_id",mediaId);
+                var assets=categories.putArray("MEDIA_ASSETS");
+                var asset=assets.addObject();
+                asset.put("id",mediaId);
+                asset.put("workspace_id",family);
+                asset.putArray("blobs");
+                if(variant==0)assets.add(asset.deepCopy());
+                if(variant==1)asset.put("id","invalid-asset-id");
+                if(variant==2)asset.put("id",UUID.randomUUID().toString());
+                byte[] modified=json.writeValueAsBytes(root);
+                try {
+                    var sealed=codec.seal(UUID.randomUUID(),family,UUID.randomUUID(),0L,
+                            original.manifest().sourceDigest(),"V50",modified,key);
+                    byte[] archive=files.encode(sealed);
+                    if(variant<2)
+                        assertThrows(IllegalArgumentException.class,
+                                ()->inspector.inspect(archive,family,key),"asset variant "+variant);
+                    else {
+                        var inspection=inspector.inspect(archive,family,key);
+                        assertTrue(inspection.blockers().contains(
+                                "DANGLING_REFERENCE:MEDIA_BINDINGS.asset_id"));
+                        assertFalse(inspection.restorable());
+                    }
+                } finally {Arrays.fill(modified,(byte)0);}
+            }
         } finally {Arrays.fill(plain,(byte)0);}
         assertEquals(1L,db.queryForObject(
                 "SELECT count(*) FROM media_bindings WHERE workspace_id=?",Long.class,family));
