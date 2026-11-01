@@ -74,4 +74,21 @@ class TemplateEconomyDraftPolicyTest {
         task.getAsJsonObject("economySuggestion").addProperty("suggestedPricePoints", 25)
         assertNull(applicableEconomyDraftAmount(task, true))
     }
+
+    @Test fun numericBoundariesRemainExplicitAndSafe() {
+        assertEquals(Int.MAX_VALUE, applicableEconomyDraftAmount(draft("TASK", "2147483647"), true))
+        assertNull(applicableEconomyDraftAmount(draft("TASK", "2147483648"), true))
+        assertNull(applicableEconomyDraftAmount(draft("TASK", "1.5"), true))
+        assertNull(applicableEconomyDraftAmount(draft("REWARD", "true"), true))
+        assertNull(applicableEconomyDraftAmount(draft("REWARD", "{}"), true))
+    }
+
+    @Test fun explicitNegativeReviewAndConfirmationRejectApplication() {
+        val noReview = draft("REWARD", "25")
+        noReview.getAsJsonObject("economySuggestion").addProperty("reviewRequired", false)
+        assertNull(applicableEconomyDraftAmount(noReview, true))
+        val noConfirmation = draft("TASK", "5")
+        noConfirmation.addProperty("requiresConfirmation", false)
+        assertNull(applicableEconomyDraftAmount(noConfirmation, true))
+    }
 }
