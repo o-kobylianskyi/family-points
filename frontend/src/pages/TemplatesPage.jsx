@@ -146,7 +146,9 @@ export default function TemplatesPage() {
       .then(([a,b]) => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
       .catch(e => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) setError(e) })
     return () => { alive = false }
-  }, [workspaceId, getAccessToken])
+  // getAccessToken reads the current token at invocation; its function identity is
+  // not a workspace change and must not reset filters or reload media on locale renders.
+  }, [workspaceId])
 
   useEffect(() => {
     let active = true
@@ -169,7 +171,9 @@ export default function TemplatesPage() {
         }))
     }).catch(() => {})
     return () => { active = false; urls.forEach(url => URL.revokeObjectURL(url)) }
-  }, [workspaceId, getAccessToken])
+  // getAccessToken reads the current token at invocation; its function identity is
+  // not a workspace change and must not reset filters or reload media on locale renders.
+  }, [workspaceId])
 
   const suggestedByCode = new Map([...(economySuggestions?.tasks || []), ...(economySuggestions?.rewards || [])].map(entry => [entry.code, entry]))
   const importedCodes = new Set(privateItems.map(item => item.catalogCode).filter(Boolean))
