@@ -24,4 +24,36 @@ class OfflineReplaySessionGateTest {
     @Test fun server409WithoutGenerationChangeIsNotResetProof() {
         assertFalse(OfflineReplaySessionGate.canQuarantine("token", "token", 91, 91, 17, 17))
     }
+    @Test fun comprehensiveReplayResponseAccountEpochMatrix() {
+        data class Case(
+            val original: String?, val active: String?,
+            val expectedWorkspace: Long, val returnedWorkspace: Long,
+            val expectedEpoch: Long, val returnedEpoch: Long,
+            val allowQuarantine: Boolean
+        )
+        val cases = listOf(
+            Case("a", "a", 100, 100, 1, 2, true),
+            Case("a", "a", 100, 100, 2, 1, true),
+            Case("a", "a", 100, 100, 0, 1, true),
+            Case("a", "a", 100, 100, 2, 2, false),
+            Case("a", "b", 100, 100, 1, 2, false),
+            Case("a", null, 100, 100, 1, 2, false),
+            Case(null, "a", 100, 100, 1, 2, false),
+            Case("", "", 100, 100, 1, 2, false),
+            Case("a", "a", 100, 101, 1, 2, false),
+            Case("a", "a", 0, 0, 1, 2, false),
+            Case("a", "a", 100, 100, -1, 2, false),
+            Case("a", "a", 100, 100, 1, -1, false)
+        )
+        cases.forEachIndexed { index, case ->
+            assertEquals(
+                "Replay session/epoch gate scenario #$index", case.allowQuarantine,
+                OfflineReplaySessionGate.canQuarantine(
+                    case.original, case.active, case.expectedWorkspace,
+                    case.returnedWorkspace, case.expectedEpoch, case.returnedEpoch
+                )
+            )
+        }
+    }
+
 }
