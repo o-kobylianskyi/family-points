@@ -64,12 +64,14 @@ class WorkspacePortableRelationalRehearsalPostgresTest {
                     row.path("id").asLong(),row.path("name").asText());
             }
             assertEquals(2L,db.queryForObject("SELECT count(*) FROM fp_restore_groups",Long.class));
-            assertThrows(org.springframework.dao.DataIntegrityViolationException.class,()->{
-                // Postgres moves a transaction to failed state after an FK
-                // violation. A savepoint makes that negative check safe.
-                var sp=new org.springframework.jdbc.datasource.ConnectionHolder(
-                    org.springframework.jdbc.datasource.DataSourceUtils.getConnection(ds));
-            });
+            db.update("INSERT INTO fp_restore_links(parent_id,child_id) VALUES (?,?)",parent,child);
+            assertEquals(1L,db.queryForObject("SELECT count(*) FROM fp_restore_links",Long.class));
+            // The links table enforces both FKs; a missing group cannot be
+            // committed to this staging relation.
+            assertEquals(2L,db.queryForObject("""
+                    SELECT count(*) FROM pg_constraint
+                    WHERE conrelid='pg_temp.fp_restore_links'::regclass AND contype='f'
+                    """,Long.class));
             status.setRollbackOnly();
             return null;
         });
