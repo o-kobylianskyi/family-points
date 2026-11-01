@@ -55,6 +55,30 @@ class WorkspacePortableNativeCommitRoundtripPostgresTest {
         try {cats=new ObjectMapper().readTree(plaintext).path("categories");}
         finally {Arrays.fill(plaintext,(byte)0);}
 
+        // Run the reusable test-only executor against a separate disposable
+        // target, committing native SQL and testing repeated apply rejection.
+        long reusableTarget=db.queryForObject(
+                "INSERT INTO families(name) VALUES ('Executor target') RETURNING id",Long.class);
+        var executor=new DisposableNativeRestoreExecutor(db,
+                new DataSourceTransactionManager(ds),portable,codec,inspector);
+        var first=executor.apply(file,source,reusableTarget,key);
+        assertEquals(2,first.groupIds().size());
+        assertEquals(2,first.bindings());
+        assertEquals(2L,db.queryForObject(
+                "SELECT count(*) FROM member_groups WHERE family_id=?",Long.class,reusableTarget));
+        assertEquals(2L,db.queryForObject(
+                "SELECT count(*) FROM media_bindings WHERE workspace_id=?",Long.class,reusableTarget));
+        assertThrows(IllegalStateException.class,
+                ()->executor.apply(file,source,reusableTarget,key));
+        assertThrows(SecurityException.class,
+                ()->executor.apply(file,neighbor,target,key));
+        byte[] corrupt=file.clone();
+        corrupt[corrupt.length-1]^=1;
+        assertThrows(RuntimeException.class,
+                ()->executor.apply(corrupt,source,target,key));
+        assertEquals(0L,db.queryForObject(
+                "SELECT count(*) FROM member_groups WHERE family_id=?",Long.class,target));
+
         // No rollback here: genuine SQL commit in disposable database only.
         var idMap=tx.execute(status->{
             var map=new TreeMap<Long,Long>();
