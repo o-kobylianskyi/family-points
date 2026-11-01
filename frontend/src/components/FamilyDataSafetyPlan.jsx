@@ -1,0 +1,53 @@
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+
+// Architecture 77d8d2d4: approved product matrix, NOT an executable reset/restore plan.
+const dictionary = {
+  uk: ['Дані сім’ї: очищення та резервні копії','Очищення','Відновлення з файлу','Повне','Вибіркове','Видалити','Залишити','Категорія','Попередній план. Виконання заблоковано до перевіреної резервної копії, узгодження залежностей і підтвердження Backend.','Завантаження та імпорт зашифрованих файлів стануть доступними після впровадження перевірених API.','Тимчасові копії на сервері зберігаються до 30 днів; завантажений вами файл сервер автоматично видалити не може.','Незмінно захищені: облікові записи, сім’я, доступ власника, інші сім’ї, глобальний каталог і журнал безпеки.','Вибір категорій є лише локальним переглядом. Жодних змін у базі даних.','Відновлення вимагає перевірки цілісності файлу, сумісності та конфліктів.'],
+  ru: ['Данные семьи: очистка и резервные копии','Очистка','Восстановление из файла','Полная','Выборочная','Удалить','Сохранить','Категория','Предварительный план. Выполнение заблокировано до подтверждённой резервной копии, проверки зависимостей и одобрения Backend.','Загрузка и импорт зашифрованных файлов станут доступны после готовности проверенных API.','Временные копии на сервере хранятся до 30 дней; скачанный файл сервер автоматически удалить не может.','Всегда защищены: учётные записи, семья, доступ владельца, другие семьи, глобальный каталог и журнал безопасности.','Выбор категорий — только локальный просмотр. База данных не изменяется.','Восстановление требует проверки целостности, совместимости и конфликтов.'],
+  de: ['Familiendaten: Zurücksetzen und Sicherung','Zurücksetzen','Aus Datei wiederherstellen','Vollständig','Selektiv','Löschen','Behalten','Kategorie','Nur Vorplanung. Ausführung bleibt gesperrt bis zur verifizierten Sicherung, Abhängigkeitsprüfung und Backend-Freigabe.','Download und Upload verschlüsselter Dateien erst nach Freigabe geprüfter APIs.','Serverkopien werden bis zu 30 Tage aufbewahrt; heruntergeladene Dateien können nicht vom Server gelöscht werden.','Immer geschützt: Konten, Familie, Eigentümerzugang, andere Familien, globaler Katalog und Sicherheitsprotokoll.','Die Auswahl ist lediglich eine lokale Vorschau. Keine Datenbankänderung.','Wiederherstellung erfordert Integritäts-, Kompatibilitäts- und Konfliktprüfung.'],
+  en: ['Family data: reset and backups','Reset','Restore from file','Full','Selective','Delete','Retain','Category','Planning preview only. Execution is blocked pending a verified backup, dependency checks and Backend approval.','Encrypted file download and upload become available only after verified APIs are released.','Server-side temporary copies expire after 30 days; downloaded files cannot be remotely deleted.','Always protected: accounts, family identity, owner access, other families, global catalog and security audit.','Category choices are local-only preview. No database changes.','Restore requires file integrity, schema compatibility and conflict checks.'],
+}
+const entries = [
+  ['tasks',true,['Завдання, розклади, виконання та історія','Задачи, расписания, выполнения и история','Aufgaben, Zeitpläne und Verlauf','Tasks, schedules, executions and history']],
+  ['rewards',true,['Нагороди, запити та покупки','Награды, запросы и покупки','Belohnungen, Anfragen und Käufe','Rewards, requests and purchases']],
+  ['economy',true,['Баланси, бали, репутація та економічна історія','Балансы, баллы, репутация и история','Guthaben, Punkte, Reputation und Verlauf','Balances, points, reputation and history']],
+  ['groups',true,['Групи учасників та папки завдань','Группы участников и папки задач','Mitgliedergruppen und Aufgabenordner','Member groups and task folders']],
+  ['templates',true,['Приватні шаблони','Частные шаблоны','Private Vorlagen','Private templates']],
+  ['media',true,['Медіафайли сім’ї','Медиафайлы семьи','Familienmedien','Family-uploaded media']],
+  ['members',false,['Учасники, крім власника','Участники, кроме владельца','Mitglieder außer Eigentümer','Non-owner family participants']],
+  ['currencies',false,['Валюти та економічні налаштування','Валюты и настройки экономики','Währungen und Wirtschaftseinstellungen','Currencies and economy configuration']],
+  ['settings',false,['Налаштування сім’ї','Настройки семьи','Familieneinstellungen','Family settings']],
+]
+const indexes = {uk:0,ru:1,de:2,en:3}
+export default function FamilyDataSafetyPlan() {
+  const { i18n } = useTranslation()
+  const language = i18n.language.split('-')[0]
+  const w = dictionary[language] || dictionary.en
+  const index = indexes[language] ?? 3
+  const [tab,setTab] = useState('reset')
+  const [mode,setMode] = useState('selective')
+  const [chosen,setChosen] = useState(() => entries.filter(x=>x[1]).map(x=>x[0]))
+  return <section className="settings-section" aria-label="Family data safety planning">
+    <h2>{w[0]}</h2>
+    <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
+      <button type="button" className="secondary-button" aria-pressed={tab==='reset'} onClick={()=>setTab('reset')}>{w[1]}</button>
+      <button type="button" className="secondary-button" aria-pressed={tab==='restore'} onClick={()=>setTab('restore')}>{w[2]}</button>
+    </div>
+    {tab==='reset' ? <>
+      <p>{w[8]}</p>
+      <fieldset><legend>{w[3]} / {w[4]}</legend>
+        <label><input type="radio" name="safety-reset-mode" checked={mode==='full'} onChange={()=>setMode('full')}/>{w[3]}</label>
+        <label><input type="radio" name="safety-reset-mode" checked={mode==='selective'} onChange={()=>setMode('selective')}/>{w[4]}</label>
+      </fieldset>
+      <div style={{maxHeight:340,overflowY:'auto'}}>
+        {entries.map(([code,initial,label])=><label key={code} style={{display:'flex',gap:10,padding:'5px 0',alignItems:'center'}}>
+          <input type="checkbox" checked={mode==='full'||chosen.includes(code)} disabled={mode==='full'} onChange={()=>setChosen(v=>v.includes(code)?v.filter(c=>c!==code):[...v,code])}/>
+          <span>{label[index]} — {(mode==='full'||chosen.includes(code))?w[5]:w[6]}</span>
+        </label>)}
+      </div>
+      <p>{w[11]}</p><p>{w[12]}</p>
+    </> : <><p>{w[9]}</p><p>{w[13]}</p><p>{w[11]}</p></>}
+    <p>{w[10]}</p>
+  </section>
+}
