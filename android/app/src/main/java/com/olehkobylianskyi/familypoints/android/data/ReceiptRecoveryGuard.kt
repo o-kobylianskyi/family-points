@@ -5,6 +5,12 @@ package com.olehkobylianskyi.familypoints.android.data
  * Timeouts and missing receipts never authorize an additional POST.
  */
 object ReceiptRecoveryGuard {
+    enum class ReceiptRead { FOUND, NOT_FOUND, TIMEOUT, SERVER_ERROR }
+    enum class Decision { VERIFY_IDENTITY_AND_EPOCH, KEEP_UNCERTAIN }
+    fun decision(read: ReceiptRead): Decision =
+        if (read == ReceiptRead.FOUND) Decision.VERIFY_IDENTITY_AND_EPOCH
+        else Decision.KEEP_UNCERTAIN
+
     fun sameIdentityAndEpoch(
         expectedAccountId: Long,
         activeAccountId: Long,
