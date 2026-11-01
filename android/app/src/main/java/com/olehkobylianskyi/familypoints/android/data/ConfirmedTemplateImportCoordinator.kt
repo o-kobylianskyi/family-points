@@ -44,7 +44,13 @@ class ConfirmedTemplateImportCoordinator(
             gson.toJson(orderedCodes), "PREPARED"
         )
         // Durable write MUST happen before network POST.
-        store.prepare(entry)
+        try {
+            store.prepare(entry)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: IllegalStateException) {
+            return Result.Blocked("An existing family import must be reconciled first")
+        }
         return try {
             val receipt = receipts.importConfirmed(workspaceId, id, orderedCodes)
             check(receipt.importResult.selectedCodes == orderedCodes) {
