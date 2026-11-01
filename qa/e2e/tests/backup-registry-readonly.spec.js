@@ -48,7 +48,7 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
     await expect(panel.getByText('22222222', { exact:false })).toBeVisible()
     await expect(panel.getByText('33333333', { exact:false })).toBeVisible()
     // REQUESTED must never be presented as recoverable merely because it is a row.
-    await expect(panel.getByText(/Metadata only|лише реєстр|только реестр|Statusregister/)).toBeVisible()
+    await expect(panel.locator('p').filter({ hasText: /Metadata only\. REQUESTED|Це лише реєстр станів|Это только реестр статусов|Nur Statusregister\. REQUESTED/ })).toHaveCount(1)
     await expect(panel.locator('strong').filter({hasText:/Статус реєстру: перевірено|Статус реестра: проверено|Registerstatus: verifiziert|Registry status: verified/})).toHaveCount(1)
     await panel.getByRole('button', {name:/Refresh list|Оновити список|Обновить список|Liste aktualisieren/}).click()
     await expect.poll(() => loads).toBeGreaterThanOrEqual(2)
