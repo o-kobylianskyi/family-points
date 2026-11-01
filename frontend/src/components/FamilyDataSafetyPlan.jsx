@@ -29,6 +29,7 @@ export default function FamilyDataSafetyPlan() {
   const index = indexes[language] ?? 3
   const { currentUser, getAccessToken } = useAuth()
   const workspaceId = currentUser?.workspaceId
+  const accountScope = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.username ?? null
   const canManage = currentUser?.permissions?.includes('MANAGE_WORKSPACE') || currentUser?.permissions?.includes('ADMIN_OVERRIDE')
   const [backups,setBackups] = useState([])
   const [details,setDetails] = useState(null)
@@ -49,7 +50,7 @@ export default function FamilyDataSafetyPlan() {
       .finally(() => { if (alive) setBackupLoading(false) })
     return () => { alive = false }
   // AuthProvider supplies a new getAccessToken function on render; do not refetch forever.
-  }, [workspaceId, canManage, reload])
+  }, [workspaceId, accountScope, canManage, reload])
   useEffect(() => {
     if (!canManage || !workspaceId || !selectedSnapshot) return
     let active = true
@@ -59,7 +60,7 @@ export default function FamilyDataSafetyPlan() {
       .catch(() => { if (active) setDetailError(true) })
       .finally(() => { if (active) setDetailBusy(false) })
     return () => { active = false }
-  }, [canManage,workspaceId,selectedSnapshot])
+  }, [canManage,workspaceId,accountScope,selectedSnapshot])
   const [tab,setTab] = useState('reset')
   const [mode,setMode] = useState('selective')
   const [chosen,setChosen] = useState(() => entries.filter(x=>x[1]).map(x=>x[0]))
@@ -67,12 +68,12 @@ export default function FamilyDataSafetyPlan() {
   useEffect(() => {
     setTab('reset'); setMode('selective')
     setChosen(entries.filter(x => x[1]).map(x => x[0]))
-  }, [workspaceId])
+  }, [workspaceId, accountScope])
   const [restoreMode,setRestoreMode] = useState('selective')
   const [restoreChosen,setRestoreChosen] = useState([])
   // No upload endpoint currently exists. Categories below are planning-only;
   // archive manifest and compatibility MUST come from validated server preview.
-  useEffect(() => { setRestoreChosen([]); setRestoreMode('selective') }, [workspaceId])
+  useEffect(() => { setRestoreChosen([]); setRestoreMode('selective') }, [workspaceId, accountScope])
   if (!canManage || !workspaceId) return null
   return <section className="settings-section" aria-label="Family data safety planning">
     <h2>{w[0]}</h2>
@@ -120,6 +121,7 @@ export default function FamilyDataSafetyPlan() {
         <strong>{item.state === 'VERIFIED' && item.restoreVerified && item.executable ? ({uk:'Перевірено',ru:'Проверено',de:'Verifiziert',en:'Verified'})[language] : item.state === 'EXPIRED' ? ({uk:'Термін минув',ru:'Срок истёк',de:'Abgelaufen',en:'Expired'})[language] : ({uk:'Не підтверджено',ru:'Не подтверждено',de:'Nicht bestätigt',en:'Unverified'})[language]}</strong>
         <span> · {item.resetMode} · {item.snapshotId.slice(0,8)}</span>
         <div>{item.createdAt ? new Date(item.createdAt).toLocaleString(language) : '—'} / {item.expiresAt ? new Date(item.expiresAt).toLocaleString(language) : '—'}</div>
+        <p style={{margin:'4px 0'}}>{({uk:'Метадані: наявність файлу та можливість імпорту не підтверджені.',ru:'Метаданные: наличие файла и возможность импорта не подтверждены.',de:'Nur Metadaten: Datei und Importfähigkeit sind nicht bestätigt.',en:'Metadata only: file availability and import capability are not confirmed.'})[language]}</p>
         <small>{item.state} · {item.selectedCategories?.length || 0} {({uk:'категорій',ru:'категорий',de:'Kategorien',en:'categories'})[language]}</small>
         <div><button type="button" className="secondary-button" aria-expanded={selectedSnapshot === item.snapshotId}
           onClick={()=>setSelectedSnapshot(v=>v===item.snapshotId?null:item.snapshotId)}>
