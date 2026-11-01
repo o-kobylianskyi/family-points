@@ -14,17 +14,27 @@ import java.util.*;
 
 /**
  * First real, strictly read-only, tenant-scoped database export slice.
- * Only four explicitly-scoped family-direct tables below are exported. No API/download
+ * Only seven explicitly-scoped tables below are exported. No API/download
  * is exposed and no VERIFIED status or automatic pre-reset backup is issued.
  * Additional categories MUST be added only after FK/media/restore design.
  */
 @Service
 public class WorkspacePortableBackupExporter {
-    private static final Map<String,String> SCOPED_TABLES=Map.of(
-        "PRIVATE_TEMPLATES","workspace_private_templates",
-        "MEMBER_GROUPS","member_groups",
-        "TASK_DEFINITIONS","task_definitions",
-        "REWARD_DEFINITIONS","reward_definitions");
+    // Every SQL fragment is hard-coded server-side. FK-scoped tables must
+    // follow a family-owned parent; no untrusted table or column names.
+    private record Scope(String table,String condition) {}
+    private static final Map<String,Scope> SCOPED_TABLES=Map.ofEntries(
+        Map.entry("PRIVATE_TEMPLATES",new Scope("workspace_private_templates","t.workspace_id=?")),
+        Map.entry("MEMBER_GROUPS",new Scope("member_groups","t.family_id=?")),
+        Map.entry("TASK_DEFINITIONS",new Scope("task_definitions","t.family_id=?")),
+        Map.entry("REWARD_DEFINITIONS",new Scope("reward_definitions","t.family_id=?")),
+        Map.entry("TASK_EXECUTIONS",new Scope("task_instances",
+            "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)")),
+        Map.entry("REWARD_PURCHASES",new Scope("reward_purchases",
+            "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)")),
+        Map.entry("TASK_SCHEDULE_SLOTS",new Scope("task_schedule_slots",
+            "EXISTS (SELECT 1 FROM task_definitions d WHERE d.id=t.task_definition_id AND d.family_id=?)"))
+    );
     private static final int MAX_ROWS=2000;
     private static final int MAX_BYTES=12*1024*1024;
     private final JdbcTemplate db;
@@ -61,17 +71,13 @@ public class WorkspacePortableBackupExporter {
         ObjectNode data=root.putObject("categories");
         var counts=new TreeMap<String,Integer>();
         for(String category:selected) {
-            String table=SCOPED_TABLES.get(category); // hard-coded trusted SQL identifier
-            Integer count=db.queryForObject("SELECT count(*) FROM "+table+" WHERE "+
-                    ("workspace_private_templates".equals(table)?"workspace_id":"family_id")+"=?",
-                    Integer.class,workspaceId);
+            Scope scope=SCOPED_TABLES.get(category);
+            String filter=" FROM public."+scope.table()+" t WHERE "+scope.condition();
+            Integer count=db.queryForObject("SELECT count(*)"+filter,Integer.class,workspaceId);
             if(count==null || count>MAX_ROWS)
                 throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,"BACKUP_ROW_LIMIT");
             ArrayNode records=data.putArray(category);
-            String sql="SELECT to_jsonb(t)::text FROM public."+table+" t WHERE "+
-                    ("workspace_private_templates".equals(table)?"workspace_id":"family_id")+
-                    "=? ORDER BY id";
-            db.query(sql,rs->{
+            db.query("SELECT to_jsonb(t)::text"+filter+" ORDER BY t.id",rs->{
                 String row=rs.getString(1);
                 try {records.add(mapper.readTree(row));}
                 catch(Exception ex){throw new IllegalStateException("Unable to encode family row",ex);}
