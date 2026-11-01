@@ -40,14 +40,23 @@ class TemplateReceiptRepository(
         templateId: Long,
         kind: String,
         operation: UUID,
-        reviewedRequest: JsonObject
+        reviewedRequest: JsonObject,
+        expectedAccessToken: String? = null
     ): TemplateActivationReceiptDto {
         require(workspaceId > 0 && templateId > 0)
         require(kind == "TASK" || kind == "REWARD")
+        // Capture one authenticated identity for this entire mutation. A switch
+        // between coordinator preflight and HTTP dispatch must never send the
+        // original operation under another user's new credentials.
+        val currentToken = tokenProvider() ?: error("Missing access token")
+        check(expectedAccessToken == null || expectedAccessToken == currentToken) {
+            "Account session changed before activation transport"
+        }
+        val authorization = "Bearer $currentToken"
         val api = this.api
         val result = when (kind) {
-            "TASK" -> api.activateTask(auth(), workspaceId, templateId, operationId(operation), reviewedRequest)
-            else -> api.activateReward(auth(), workspaceId, templateId, operationId(operation), reviewedRequest)
+            "TASK" -> api.activateTask(authorization, workspaceId, templateId, operationId(operation), reviewedRequest)
+            else -> api.activateReward(authorization, workspaceId, templateId, operationId(operation), reviewedRequest)
         }
         check(result.operationId == operationId(operation) &&
             result.templateId == templateId && result.kind == kind && result.createdDefinitionId > 0
