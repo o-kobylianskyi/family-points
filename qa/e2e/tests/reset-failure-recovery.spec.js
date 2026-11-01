@@ -18,7 +18,7 @@ test.describe('BKL-002 read-only error recovery', () => {
     }
     await page.goto('/settings', { waitUntil: 'domcontentloaded' })
     const panel = page.locator('.family-reset-readiness')
-    const permitted = await panel.isVisible().catch(() => false)
+    const permitted = await panel.waitFor({ state: 'visible', timeout: 10000 }).then(() => true, () => false)
     if (!permitted) {
       const snapshot = await page.evaluate(() => ({
         pathname: location.pathname,
