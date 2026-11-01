@@ -58,7 +58,6 @@ fun TemplateLibrarySection(
     var libraryExpanded by remember(workspaceId) { mutableStateOf(false) }
     var previewCodes by remember(workspaceId) { mutableStateOf<List<String>>(emptyList()) }
     var setupReview by remember(workspaceId) { mutableStateOf<WorkspaceSetupReviewDto?>(null) }
-    var setupReviewError by remember(workspaceId) { mutableStateOf("") }
     var setupReviewCodes by remember(workspaceId) { mutableStateOf<List<String>>(emptyList()) }
 
 
@@ -136,18 +135,18 @@ fun TemplateLibrarySection(
         if (canManage && !loading && catalogLoaded) {
             OutlinedButton(enabled = !busy, onClick = {
                 setupReview = null
-                setupReviewError = ""
                 val ordered = catalog.map { it.code }.filter { it in selected }
                 setupReviewCodes = ordered
                 perform {
                     val setup = com.olehkobylianskyi.familypoints.android.data.WorkspaceSetupRepository(
                         com.olehkobylianskyi.familypoints.android.storage.TokenStore(
-                            /* Context accessed from Compose below. */ setupContext
+                            setupContext
                         )
                     )
                     val state = setup.state(workspaceId)
                     val review = setup.review(workspaceId, state.revision, ordered)
-                    check(review.selectedCodes == ordered && review.dataEpoch == state.dataEpoch) {
+                    check(review.selectedCodes == ordered && review.dataEpoch == state.dataEpoch &&
+                        ordered == catalog.map { it.code }.filter { it in selected }) {
                         "Setup review changed; refresh before confirming"
                     }
                     setupReview = review
@@ -158,8 +157,6 @@ fun TemplateLibrarySection(
                     "Проверить выбор для настройки"))
             }
         }
-        if (setupReviewError.isNotEmpty()) Text(setupReviewError,
-            color = MaterialTheme.colorScheme.error)
         if (setupReview != null && setupReviewCodes ==
             catalog.map { it.code }.filter { it in selected }) {
             val result = setupReview!!
