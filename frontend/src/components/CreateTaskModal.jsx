@@ -578,13 +578,19 @@ function CreateTaskModal({
 
       const token = getAccessToken()
 
+      const originWorkspace = currentUser.workspaceId
       const saved = editing
-        ? await updateTaskDefinition(token, currentUser.workspaceId, initialTask.id, request)
-        : await createTaskDefinition(token, currentUser.workspaceId, request)
+        ? await updateTaskDefinition(token, originWorkspace, initialTask.id, request)
+        : await createTaskDefinition(token, originWorkspace, request)
 
-      await onCreated?.(saved)
+      // POST/PUT succeeded. A subsequent list refresh failure must not invite
+      // another submit of the same non-idempotent create operation.
+      submitLock.current = true
+      try { await onCreated?.(saved) } catch { /* Server write was already confirmed. */ }
       onClose()
     } catch (error) {
+      // A network error after sending a POST has an unknown commit outcome.
+      // Do not automatically retry a potentially successful create.
       setError(error.message)
     } finally {
       submitLock.current = false
