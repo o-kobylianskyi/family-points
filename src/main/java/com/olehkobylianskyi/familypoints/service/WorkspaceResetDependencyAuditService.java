@@ -68,13 +68,24 @@ public class WorkspaceResetDependencyAuditService {
         }
         var edges=new java.util.ArrayList<ForeignKey>();
         for(var fk:audit.foreignKeys()) {
-            if(!tables.contains(fk.referencedTable()))continue;
+            boolean incoming=tables.contains(fk.referencedTable());
+            boolean outgoing=tables.contains(fk.dependentTable());
+            if(!incoming && !outgoing)continue;
             edges.add(fk);
-            if(!tables.contains(fk.dependentTable()))
+            if(incoming && !outgoing)
                 blockers.add("EXTERNAL_FK_DEPENDENCY:"+fk.dependentTable()+"."+fk.constraintName());
-            if(PROTECTED.contains(fk.dependentTable()))
+            if(incoming && PROTECTED.contains(fk.dependentTable()))
                 blockers.add("PROTECTED_DEPENDENT:"+fk.dependentTable()+"."+fk.constraintName());
+            if(outgoing && PROTECTED.contains(fk.referencedTable()))
+                blockers.add("PROTECTED_PARENT_REFERENCE:"+fk.referencedTable()+"."+fk.constraintName());
+            if(incoming && !outgoing && "CASCADE".equals(fk.deleteAction()))
+                blockers.add("UNSELECTED_CASCADE_DEPENDENT:"+fk.dependentTable()+"."+fk.constraintName());
         }
+        // The category map alone cannot prove row-level family ownership:
+        // every FK crossing the selection boundary must be reviewed, even where
+        // the referenced table is globally shared or the FK has ON DELETE CASCADE.
+        if(tables.stream().anyMatch(PROTECTED::contains))
+            blockers.add("SELECTION_INCLUDES_PROTECTED_TABLE");
         if(selected.contains("TASK_DEFINITIONS") &&
                 (!selected.contains("TASK_EXECUTIONS") || !selected.contains("TASK_SCHEDULE_SLOTS")))
             blockers.add("TASK_DEFINITIONS_REQUIRES_EXECUTIONS_AND_SLOTS");
