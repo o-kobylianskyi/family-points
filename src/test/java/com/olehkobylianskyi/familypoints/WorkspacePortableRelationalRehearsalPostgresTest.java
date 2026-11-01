@@ -105,7 +105,9 @@ class WorkspacePortableRelationalRehearsalPostgresTest {
         var generator=KeyGenerator.getInstance("AES");generator.init(256);var key=generator.generateKey();
         var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
         byte[] archive=tx.execute(status->exporter.export(source,UUID.randomUUID(),UUID.randomUUID(),0L,
-                List.of("MEMBER_GROUPS","MEDIA_ASSETS","MEDIA_BINDINGS"),"V50",key)).encryptedFile();
+                List.of("MEMBER_GROUPS","MEDIA_ASSETS","MEDIA_BINDINGS",
+                        "TASK_DEFINITIONS","REWARD_DEFINITIONS","POINT_LEDGER",
+                        "REPUTATION_LEDGER","TASK_EXECUTIONS"),"V50",key)).encryptedFile();
         // Exercise the reusable rollback-only engine against the same genuine
         // archive, rather than only recreating temporary tables in this test.
         var engine=new WorkspaceDisposableRestoreRehearsal(db,
@@ -116,6 +118,9 @@ class WorkspacePortableRelationalRehearsalPostgresTest {
         assertEquals(1,report.assets());
         assertEquals(1,report.bindings());
         assertEquals(1,report.checkedVariants());
+        assertEquals(0,inspector.inspect(archive,source,key).counts().get("TASK_DEFINITIONS"));
+        assertEquals(0,inspector.inspect(archive,source,key).counts().get("POINT_LEDGER"));
+        assertTrue(inspector.inspect(archive,source,key).availableCategories().contains("REPUTATION_LEDGER"));
         assertThrows(SecurityException.class,()->engine.rehearse(archive,neighbor,key));
         // Replaying the same portable file cannot leave a persistent staging
         // table or change the source family. Each rehearsal is rollback-only.
