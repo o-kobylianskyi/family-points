@@ -73,7 +73,8 @@ class TemplateOperationRecovery(
                 store.transition(operation, "HELD", verifiedAfterReceipt.dataEpoch)
                 return Outcome.HELD
             }
-            store.transition(operation, "CONFIRMED", epoch.dataEpoch)
+            if (tokens.getAccessToken() != token) return Outcome.UNKNOWN
+            store.transition(operation, "CONFIRMED", verifiedAfterReceipt.dataEpoch)
             Outcome.CONFIRMED
         } catch (e: HttpException) {
             if (e.code() == 404) Outcome.NOT_FOUND else Outcome.UNKNOWN
