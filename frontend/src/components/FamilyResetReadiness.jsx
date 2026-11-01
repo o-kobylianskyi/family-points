@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './FamilyResetReadiness.css'
 import { useAuth } from '../context/AuthContext'
-import { getResetPreview, planReset, getResetDependencyAudit } from '../api/resetApi'
+import { getResetPreview, planReset, getResetDependencyAudit, inspectResetSelection } from '../api/resetApi'
 
 const categories = {
   PRIVATE_TEMPLATES: ['Приватні шаблони','Частные шаблоны','Private Vorlagen','Private templates'],
@@ -161,6 +161,7 @@ export default function FamilyResetReadiness() {
   const [audit,setAudit] = useState(null)
   const [auditError,setAuditError] = useState(false)
   const [auditBusy,setAuditBusy] = useState(false)
+  const [selectionAudit,setSelectionAudit] = useState(null)
   const [selected,setSelected] = useState([])
   const [plan,setPlan] = useState(null)
   const [error,setError] = useState(null)
@@ -209,6 +210,20 @@ export default function FamilyResetReadiness() {
       if (generation.current === requestId && workspaceRef.current === id) setBusy(false)
     }
   }
+  const inspectSelected = async () => {
+    const id = workspaceId, gen = generation.current, revision = selectionRevision.current
+    const codes = [...selected]
+    if (!codes.length) return
+    setAuditError(false); setAuditBusy(true); setSelectionAudit(null)
+    try {
+      const result = await inspectResetSelection(getAccessToken(), id, codes)
+      if (workspaceRef.current === id && generation.current === gen && selectionRevision.current === revision) setSelectionAudit(result)
+    } catch {
+      if (workspaceRef.current === id && generation.current === gen && selectionRevision.current === revision) setAuditError(true)
+    } finally {
+      if (workspaceRef.current === id && generation.current === gen) setAuditBusy(false)
+    }
+  }
   const inspect = async () => {
     const id = workspaceId
     const gen = generation.current
@@ -246,7 +261,7 @@ export default function FamilyResetReadiness() {
           return <label key={code} className="family-reset-category">
             <input type="checkbox" disabled={busy} checked={selected.includes(code)} onChange={e=>{
               selectionRevision.current += 1
-              setPlan(null)
+              setPlan(null); setSelectionAudit(null)
               setSelected(old=>e.target.checked?[...old,code]:old.filter(item=>item!==code))
             }}/>
             <span><strong>{categories[code]?.[localeIndex[language]??3]||code}</strong>
@@ -256,6 +271,11 @@ export default function FamilyResetReadiness() {
         })}
       </div>
       <p>{words[2]}: {selected.length}</p>
+      <button type="button" className="secondary-button" disabled={auditBusy || busy || !selected.length} onClick={inspectSelected}>{({uk:'Перевірити залежності вибраного',ru:'Проверить зависимости выбранного',de:'Auswahl-Abhängigkeiten prüfen',en:'Check selected dependencies'})[language] || 'Check selection'}</button>
+      {selectionAudit && <div role="status">
+        <p>{({uk:'Залежності вибраних категорій',ru:'Зависимости выбранных категорий',de:'Abhängigkeiten der Auswahl',en:'Selected category dependencies'})[language]}: {selectionAudit.relevantForeignKeys.length}</p>
+        <ul>{selectionAudit.blockers.map((code,i)=><li key={i}>{code}</li>)}</ul>
+      </div>}
       <button type="button" className="secondary-button" disabled={busy || selected.length===0} onClick={check}>{busy?words[3]:words[4]}</button>
       {plan && <div role="status"><p>{words[5]}</p>
         {!!plan.blockers?.length && <><strong>{words[12]}</strong><ul>{plan.blockers.map((blocker,i)=><li key={i}>{localizedServerMessage(blocker, language)}</li>)}</ul></>}
