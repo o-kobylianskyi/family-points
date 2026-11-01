@@ -99,6 +99,22 @@ class WorkspacePortableBackupExporterPostgresTest {
                 "Actual media blob bytes must survive encryption and file roundtrip");
         assertEquals(1,mediaInspection.counts().get("MEDIA_BINDINGS"));
         assertFalse(mediaInspection.restorable());
+        // Transaction-local rehearsal: stage decrypted bytes into an isolated
+        // PostgreSQL temporary table, verify checksum, and force rollback.
+        // Never write restored values into family-owned production tables.
+        tx.execute(status->{
+            db.execute("CREATE TEMP TABLE fp_backup_rehearsal(asset_id uuid,variant text,bytes bytea) ON COMMIT DROP");
+            db.update("INSERT INTO fp_backup_rehearsal(asset_id,variant,bytes) VALUES (?,'COVER',?)",
+                    mediaId,imageBytes);
+            byte[] restored=db.queryForObject(
+                    "SELECT bytes FROM fp_backup_rehearsal WHERE asset_id=?",byte[].class,mediaId);
+            assertArrayEquals(imageBytes,restored);
+            assertEquals(imageDigest,ProtectiveBackupArtifactCodec.sha(restored));
+            status.setRollbackOnly();
+            return null;
+        });
+        assertEquals(1L,db.queryForObject("SELECT count(*) FROM media_blobs WHERE asset_id=?",
+                Long.class,mediaId));
         var supported=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
                 0L,List.of("TASK_DEFINITIONS","REWARD_DEFINITIONS","MEMBER_GROUPS",
                         "PRIVATE_TEMPLATES","TASK_EXECUTIONS","TASK_SCHEDULE_SLOTS",
