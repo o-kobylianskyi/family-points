@@ -860,3 +860,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Fixed reset hold race after HTTP replay and before SQLite deletion: OfflinePointsQueueStore.confirm now atomically checks hold and removes UUID in a single SQLite writer transaction, and returns whether original scoped row was actually removed (2ef87826). PointsRepository only counts success after acknowledgement (bb302d0).
 - Instrumentation SQLite tests (417ed579) assert post-HTTP epoch hold retains UUID, wrong account/family cannot acknowledge, and family B unaffected by A's hold.
 - Tests added but not run; current HEAD Gradle and Android instrumentation execution remain unverified. Full HTTP+SQLite in-flight concurrency harness still OPEN. BETA and BKL002 execute HOLD.
+
+## 2026-11-01 — AND-QA-12 async cache isolation follow-up
+- Under latest Architect evening dispatch, reviewed Android `PointsRepository` and main (at inspection 92d84fcbb). GitHub commit combined statuses returned empty list, **not CI PASS**; exact current-head green 4-job CI remains unverified.
+- Fixed stale HTTP response cache writes in points-type refresh, member refresh, balance prefetch and online balance fetch: results are only saved if original access token still matches active token (ce4a9ec3). Background prefetch silently skips obsolete response; direct refresh fails closed with SecurityException rather than replacing another account session's cache.
+- Prior replay POST acknowledgement and epoch quarantine use existing OfflineReplaySessionGate; corresponding policy tests were committed previously. New async cache paths need exact-head Gradle and concurrent request instrumentation; these were NOT executed in this turn. Android BKL002 reset/restore and BETA deployment remain HOLD.
