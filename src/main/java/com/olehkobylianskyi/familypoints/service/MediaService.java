@@ -49,6 +49,7 @@ public class MediaService {
             Map.entry("category-practical-skills", "categories/practical_skills.svg"),
             Map.entry("category-privilege", "categories/privilege.svg"),
             Map.entry("category-screen-time", "categories/screen_time.svg"),
+            Map.entry("category-video-games", "categories/video_games.svg"),
             Map.entry("category-self-care", "categories/self_care.svg")
     );
     // MEDIA_V38_START: allow new portrait assets and preserve bound legacy keys.
@@ -445,7 +446,8 @@ public class MediaService {
             new CatalogItem("category-practical-skills", "TASK_CATEGORY", "media.catalog.category.practical_skills", 1, true, "/workspaces/{workspaceId}/media/catalog/category-practical-skills/preview", List.of("CATEGORY"), 3140),
             new CatalogItem("category-privilege", "REWARD", "media.catalog.category.privilege", 1, true, "/workspaces/{workspaceId}/media/catalog/category-privilege/preview", List.of("CATEGORY"), 3150),
             new CatalogItem("category-screen-time", "REWARD", "media.catalog.category.screen_time", 1, true, "/workspaces/{workspaceId}/media/catalog/category-screen-time/preview", List.of("CATEGORY"), 3160),
-            new CatalogItem("category-self-care", "TASK_CATEGORY", "media.catalog.category.self_care", 1, true, "/workspaces/{workspaceId}/media/catalog/category-self-care/preview", List.of("CATEGORY"), 3170)
+            new CatalogItem("category-self-care", "TASK_CATEGORY", "media.catalog.category.self_care", 1, true, "/workspaces/{workspaceId}/media/catalog/category-self-care/preview", List.of("CATEGORY"), 3170),
+            new CatalogItem("category-video-games", "REWARD", "media.catalog.category.video_games", 1, true, "/workspaces/{workspaceId}/media/catalog/category-video-games/preview", List.of("CATEGORY"), 3180)
         );
     }
     public List<CatalogItem> catalog() {
