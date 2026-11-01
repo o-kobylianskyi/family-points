@@ -485,3 +485,10 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - User then ran full `npx playwright test`: **32 tests, 29 PASS, 0 FAIL, 3 SKIPPED (50.3s)**. All Reset Preview/Plan recovery, epoch browser, negative auth, catalog, smoke and Settings checks passed.
 - The three skips are Test2 epoch GET and two cross-tenant reset isolation cases; the full-run environment did not satisfy their `FP_QA_TEST2_PASSWORD` / `FP_QA_TEST2_WORKSPACE_ID` / `FP_QA_FOREIGN_WORKSPACE_ID` conditions. Prior isolated tenant tests passed earlier, but this run is NOT 32/32 and is NOT fresh bidirectional coverage.
 - No destructive Reset executed; source/browser acceptance only. Next: configure second account credentials in same PowerShell session (never expose passwords), rerun three tests and then full suite for 32/32 if no failures. CI and deployed SHA are separate gates.
+
+
+## 2026-11-01 — Test2 tenant isolation and dataEpoch: 4/4 PASS
+- User ran `npx playwright test tests/epoch-access.spec.js tests/reset-tenant-isolation.spec.js` with two QA accounts: **4 passed (9.4s)**, zero skipped in this targeted run.
+- Test own epoch access PASS and Test2 own epoch access PASS; each attempted foreign workspace epoch returned HTTP 401.
+- Test reset Preview/Plan into Test2 workspace: both HTTP 401 (PASS). Test2 child attempting own-family reset Preview: HTTP 403; foreign-family Preview/Plan: HTTP 401 (PASS).
+- Combined historical coverage: prior full suite 29 PASS / 3 SKIPPED / 0 FAIL; these three previously skipped cases plus one repeated epoch test now PASS in a separate focused run. Thus all 32 test definitions have recent passing runs, but a single full-suite 32/32 run has NOT been shown. Keep production Reset Execute, Android device/offline and CI on exact SHA as separate unverified gates.
