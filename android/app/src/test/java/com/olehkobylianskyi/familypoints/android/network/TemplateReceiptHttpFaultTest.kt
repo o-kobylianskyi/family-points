@@ -65,7 +65,7 @@ class TemplateReceiptHttpFaultTest {
 
     @Test fun lostActivationPostResponseRecoveredOnlyByGetWithSameUuid() = runBlocking {
         val id = UUID.randomUUID().toString()
-        server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST))
+        server.enqueue(MockResponse().setResponseCode(200).setHeadersDelay(750, TimeUnit.MILLISECONDS))
         server.enqueue(MockResponse().setResponseCode(200)
             .setHeader("Content-Type", "application/json")
             .setBody("""{"operationId":"$id","templateId":19,"kind":"TASK","createdDefinitionId":77,"replayed":false}"""))
