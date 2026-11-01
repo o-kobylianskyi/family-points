@@ -14,7 +14,7 @@ import java.util.*;
 
 /**
  * First real, strictly read-only, tenant-scoped database export slice.
- * Only the two family-direct tables below are exported. No API/download
+ * Only four explicitly-scoped family-direct tables below are exported. No API/download
  * is exposed and no VERIFIED status or automatic pre-reset backup is issued.
  * Additional categories MUST be added only after FK/media/restore design.
  */
@@ -22,7 +22,9 @@ import java.util.*;
 public class WorkspacePortableBackupExporter {
     private static final Map<String,String> SCOPED_TABLES=Map.of(
         "PRIVATE_TEMPLATES","workspace_private_templates",
-        "MEMBER_GROUPS","member_groups");
+        "MEMBER_GROUPS","member_groups",
+        "TASK_DEFINITIONS","task_definitions",
+        "REWARD_DEFINITIONS","reward_definitions");
     private static final int MAX_ROWS=2000;
     private static final int MAX_BYTES=12*1024*1024;
     private final JdbcTemplate db;
