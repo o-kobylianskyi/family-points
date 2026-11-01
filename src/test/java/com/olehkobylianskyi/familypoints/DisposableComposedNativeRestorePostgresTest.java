@@ -88,6 +88,48 @@ class DisposableComposedNativeRestorePostgresTest {
         assertEquals(1L,db.queryForObject("SELECT count(*) FROM media_bindings WHERE workspace_id=?",Long.class,target));
         assertEquals(1L,db.queryForObject("SELECT count(*) FROM media_assets WHERE workspace_id=?",Long.class,source));
         assertEquals(0L,db.queryForObject("SELECT count(*) FROM media_assets WHERE workspace_id=?",Long.class,neighbor));
+        // One authenticated FULL media/group archive, one atomic outer transaction.
+        // The test-only composition reuses the existing native SQL executors.
+        var unifiedEngine=new DisposableUnifiedGroupMediaRestoreExecutor(
+                db,manager,portable,codec,inspector);
+        long unifiedTarget=db.queryForObject(
+                "INSERT INTO families(name) VALUES ('Unified target') RETURNING id",Long.class);
+        long unifiedRole=db.queryForObject(
+                "INSERT INTO family_roles(family_id,code,name,system_role) "
+                +"VALUES (?,'PARENT','Parent',true) RETURNING id",Long.class,unifiedTarget);
+        long unifiedMember=db.queryForObject(
+                "INSERT INTO family_members(family_id,family_role_id,name,active,member_type) "
+                +"VALUES (?,?,'Unified owner',true,'PARENT') RETURNING id",
+                Long.class,unifiedTarget,unifiedRole);
+        var unifiedResult=unifiedEngine.apply(unified,source,unifiedTarget,
+                Map.of(srcMember,unifiedMember),key);
+        assertEquals(1,unifiedResult.groupIds().size());
+        assertEquals(1,unifiedResult.blobs());
+        assertEquals(1,unifiedResult.privateBindings());
+        assertEquals(0,unifiedResult.catalogBindings());
+        assertArrayEquals(bytes,db.queryForObject(
+                "SELECT bytes FROM media_blobs WHERE asset_id=?",byte[].class,
+                unifiedResult.assetIds().get(srcAsset)));
+        assertEquals(1L,db.queryForObject(
+                "SELECT count(*) FROM member_groups WHERE family_id=?",
+                Long.class,unifiedTarget));
+        assertEquals(1L,db.queryForObject(
+                "SELECT count(*) FROM media_bindings WHERE workspace_id=?",
+                Long.class,unifiedTarget));
+
+        long rejectedTarget=db.queryForObject(
+                "INSERT INTO families(name) VALUES ('Rejected unified') RETURNING id",Long.class);
+        assertThrows(SecurityException.class,()->unifiedEngine.apply(
+                unified,source,rejectedTarget,Map.of(srcMember,dstMember),key));
+        assertEquals(0L,db.queryForObject(
+                "SELECT count(*) FROM member_groups WHERE family_id=?",
+                Long.class,rejectedTarget));
+        assertEquals(0L,db.queryForObject(
+                "SELECT count(*) FROM media_assets WHERE workspace_id=?",
+                Long.class,rejectedTarget));
+        assertEquals(0L,db.queryForObject(
+                "SELECT data_epoch FROM families WHERE id=?",
+                Long.class,rejectedTarget));
         long freshTarget=db.queryForObject("INSERT INTO families(name) VALUES ('Invalid target') RETURNING id",Long.class);
         assertThrows(SecurityException.class,()->tx.execute(status->{
             var g=groupEngine.apply(groups,source,freshTarget,key);
