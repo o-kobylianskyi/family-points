@@ -22,10 +22,14 @@ test('template catalog localizes category options in four locales', async ({ pag
   const selects = page.locator('.template-toolbar select')
   await expect(selects.first()).toBeVisible()
   await expect(selects.nth(1).locator('option[value="chores"]')).toHaveCount(1)
+  await selects.nth(1).selectOption('chores')
+  await expect(selects.nth(1)).toHaveValue('chores')
   for (const [locale, label] of expected) {
     const switcher = page.locator('select.language-switcher')
     await expect(switcher).toBeVisible()
     await switcher.selectOption(locale)
-    await expect(page.locator('.template-toolbar select').nth(1).locator('option[value="chores"]')).toHaveText(label)
+    const categorySelect = page.locator('.template-toolbar select').nth(1)
+    await expect(categorySelect.locator('option[value="chores"]')).toHaveText(label)
+    await expect(categorySelect).toHaveValue('chores')
   }
 })
