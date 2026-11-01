@@ -72,7 +72,9 @@ final class DisposableUnifiedGroupMediaRestoreExecutor {
             catalogData.set("MEDIA_BINDINGS",catalogBindings);
             privateData.set("MEDIA_BINDINGS",privateBindings);
             groupFile=project(catalog,envelope,source,key);
-            mediaFile=project((ObjectNode)root.deepCopy().set("categories",privateData),envelope,source,key);
+            var privateRoot=(ObjectNode)root.deepCopy();
+            privateRoot.set("categories",privateData);
+            mediaFile=project(privateRoot,envelope,source,key);
         } catch(Exception ex) {
             if(ex instanceof RuntimeException runtime)throw runtime;
             throw new IllegalArgumentException("UNIFIED_RESTORE_ARCHIVE_INVALID",ex);
@@ -85,7 +87,7 @@ final class DisposableUnifiedGroupMediaRestoreExecutor {
         });
     }
 
-    private byte[] project(ObjectNode root,ProtectiveBackupArtifactCodec.Artifact envelope,
+    private byte[] project(ObjectNode root,ProtectiveBackupArtifactCodec.EncryptedArtifact envelope,
                            long source,SecretKey key) throws Exception {
         byte[] bytes=json.writeValueAsBytes(root);
         try {
