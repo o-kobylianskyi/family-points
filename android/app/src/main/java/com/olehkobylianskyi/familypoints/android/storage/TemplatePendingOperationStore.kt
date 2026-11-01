@@ -60,8 +60,25 @@ class TemplatePendingOperationStore(context: Context) :
             put("payload", value.payload)
             put("status", "PREPARED")
         }
-        // Never replace a UUID or its immutable payload, even on a retry.
-        db.insertOrThrow("pending_template_receipts", null, row)
+        // Refuse concurrent/uncertain imports from any locally known account in
+        // the same family. This check and insertion must be one DB transaction.
+        db.beginTransaction()
+        try {
+            if (value.kind == "IMPORT") {
+                val exists = db.rawQuery(
+                    """SELECT 1 FROM pending_template_receipts
+                       WHERE workspace_id=? AND operation_kind='IMPORT'
+                         AND status!='CONFIRMED' LIMIT 1""",
+                    arrayOf(value.workspaceId.toString())
+                ).use { it.moveToFirst() }
+                check(!exists) { "Existing family import requires receipt reconciliation" }
+            }
+            // Never replace an operation UUID or immutable payload on retries.
+            db.insertOrThrow("pending_template_receipts", null, row)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 
     @Synchronized
