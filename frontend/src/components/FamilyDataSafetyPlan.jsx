@@ -132,7 +132,10 @@ export default function FamilyDataSafetyPlan() {
           {detailError && <p role="alert">{({uk:'Деталі недоступні.',ru:'Детали недоступны.',de:'Details nicht verfügbar.',en:'Details unavailable.'})[language]}</p>}
           {details && <div>
             <p>{({uk:'Статус',ru:'Статус',de:'Status',en:'Status'})[language]}: {details.state}</p>
-            <ul>{(Array.isArray(details.selectedCategories)?details.selectedCategories:[]).map(code=><li key={code}>{code}</li>)}</ul>
+            <p>{({uk:'Створено',ru:'Создано',de:'Erstellt',en:'Created'})[language]}: {details.createdAt ? new Date(details.createdAt).toLocaleString(language) : '—'}</p>
+            <p>{({uk:'Термін серверного зберігання до',ru:'Срок хранения на сервере до',de:'Server-Aufbewahrung bis',en:'Server retention until'})[language]}: {details.expiresAt ? new Date(details.expiresAt).toLocaleString(language) : '—'}</p>
+            <p>{({uk:'Підтверджено відновлення',ru:'Восстановление подтверждено',de:'Wiederherstellung bestätigt',en:'Restore verified'})[language]}: {details.restoreVerified && details.state==='VERIFIED' ? ({uk:'Так (лише статус реєстру)',ru:'Да (только статус реестра)',de:'Ja (nur Registerstatus)',en:'Yes (registry status only)'})[language] : ({uk:'Ні',ru:'Нет',de:'Nein',en:'No'})[language]}</p>
+            <ul>{details.selectedCategories.map(code=><li key={code}>{code}</li>)}</ul>
             <p>{({uk:'Цей запис не підтверджує можливість відновлення.',ru:'Запись не подтверждает возможность восстановления.',de:'Dieser Eintrag bestätigt keine Wiederherstellbarkeit.',en:'This record does not prove recoverability.'})[language]}</p>
           </div>}
         </div>}
