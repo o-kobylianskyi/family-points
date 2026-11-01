@@ -38,6 +38,9 @@ class ConfirmedTemplateActivationCoordinator(
             (kind == "REWARD" && "MANAGE_REWARDS" in permissions)
         if (!authorized) return Result.Blocked("Parent permission required")
         if (reviewedRequest.entrySet().isEmpty()) return Result.Blocked("Review the full activation request first")
+        // An unknown/HELD activation in the same family must not be bypassed
+        // by signing in with a different account. SQLite prepare enforces this
+        // workspace-wide as the final atomic gate.
         if (store.pending(accountId, workspaceId).any {
                 it.kind == kind && it.templateId == templateId
             }) return Result.Blocked("Resolve previous activation receipt first")
