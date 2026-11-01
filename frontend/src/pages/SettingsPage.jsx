@@ -10,7 +10,6 @@ import GoogleAccountLink from '../components/GoogleAccountLink'
 import GooglePasswordSetup from '../components/GooglePasswordSetup'
 import ThemePreference from '../components/ThemePreference'
 import FamilyCoverSettings from '../components/FamilyCoverSettings'
-import FamilyResetReadiness from '../components/FamilyResetReadiness'
 import FamilyDataSafetyPlan from '../components/FamilyDataSafetyPlan'
 import InitialFamilySetupReview from '../components/InitialFamilySetupReview'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
@@ -209,7 +208,6 @@ function SettingsPage() {
     <ThemePreference />
     <FamilyCoverSettings />
     {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) && <FamilyDataSafetyPlan key={`${currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.username ?? "anon"}:${currentUser?.workspaceId ?? "none"}`} />}
-    {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) && <FamilyResetReadiness />}
 
     <section className="settings-section">
       <h2>{t('settings.password.title')}</h2>
