@@ -116,13 +116,16 @@ class TemplatePendingOperationStore(context: Context) :
     fun transition(operation: Pending, status: String, verifiedEpoch: Long) {
         require(status in setOf("UNCERTAIN", "CONFIRMED", "HELD"))
         require(verifiedEpoch >= 0)
+        require(operation.status in setOf("PREPARED", "UNCERTAIN")) {
+            "Terminal receipt state cannot be reopened"
+        }
         // Epoch drift never confirms or deletes previously prepared operations.
         val target = if (verifiedEpoch == operation.epoch) status else "HELD"
         val values = ContentValues().apply { put("status", target) }
         val updated = writableDatabase.update(
             "pending_template_receipts", values,
             """operation_id=? AND account_id=? AND workspace_id=? AND data_epoch=?
-               AND operation_kind=? AND payload=? AND status!='CONFIRMED'""",
+               AND operation_kind=? AND payload=? AND status IN ('PREPARED','UNCERTAIN')""",
             arrayOf(operation.operationId.toString(), operation.accountId.toString(),
                 operation.workspaceId.toString(), operation.epoch.toString(),
                 operation.kind, operation.payload)
