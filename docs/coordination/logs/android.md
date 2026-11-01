@@ -837,3 +837,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Balance refresh for earlier acknowledged operations also checks captured session before network GET and before updating `OfflineBalanceStore`; prevents delayed previous-account HTTP response from repopulating a switched account's cache. Original UUID retained if auth changes during replay; no automatic retry.
 - Pure `OfflineReplaySessionGate` (48933496) consolidates token binding and authoritative epoch change policy; JVM test matrix (b38a500d) checks same/changed/missing session, cross-family, invalid, unchanged epoch and 409 non-reset. These source changes NOT tested on exact HEAD, and actual network-interleaving integration test still outstanding.
 - SQLite AndroidTest remains unexecuted (device tests postponed). BKL002 portable RESTORE/RESET write controls remain disabled; no BETA publication or real family data mutation.
+
+## 2026-11-01 — AND-QA-12 HTTP timeout/409 real wire tests and cancellation correction
+- Fixed Kotlin cancellation handling during secondary 409 epoch verification and post-replay confirmed balance refresh: CancellationException now propagates rather than being caught as a generic Exception (bf44807e).
+- Added MockWebServer JVM wire tests for offline replay timeout (exactly one POST with original UUID and X-Workspace-Data-Epoch) and HTTP409 (not proof of reset without verified epoch); commits cb7d8922 and 85cc86c0. No real server/point mutation.
+- Source checks only: this assistant did not run Gradle at current HEAD. Full PointsRepository+SQLite+HTTP session-switch end-to-end test and Android instrumentation still outstanding; never infer their PASS from the previous local build.
+- Backend full/selective portable restore and BKL002 reset are not authorized for Android execution. BETA remains HOLD.
