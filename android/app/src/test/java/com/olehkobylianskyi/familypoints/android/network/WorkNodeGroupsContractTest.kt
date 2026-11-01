@@ -22,9 +22,12 @@ class WorkNodeGroupsContractTest {
     @Test fun mutationKeepsNullParentAndDoesNotInferCatalogCategory() {
         val request = WorkNodeGroupMutation("Chores", null, null, 0)
         WorkNodeGroupsRepository.validate(request)
-        assertEquals(
-            """{"title":"Chores","parentGroupId":null,"sortOrder":0}""",
-            gson.toJson(request))
+        val encoded = gson.toJsonTree(request).asJsonObject
+        assertEquals("Chores", encoded.get("title").asString)
+        assertEquals(0, encoded.get("sortOrder").asInt)
+        assertFalse(encoded.has("parentGroupId")) // Gson omits nullable fields by default
+        assertFalse(encoded.has("description"))
+        assertNull(request.parentGroupId)
     }
 
     @Test fun malformedFoldersAreRejectedLocallyBeforePost() {
