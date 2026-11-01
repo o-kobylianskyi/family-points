@@ -76,10 +76,12 @@ class ConfirmedTemplateActivationCoordinator(
                 Result.Confirmed(receipt)
             }
         } catch (cancelled: CancellationException) {
-            store.transition(entry, "UNCERTAIN", epoch.dataEpoch)
+            // A concurrent generation change may already have put the row in HELD.
+            runCatching { store.transition(entry, "UNCERTAIN", epoch.dataEpoch) }
             throw cancelled
         } catch (_: Exception) {
-            store.transition(entry, "UNCERTAIN", epoch.dataEpoch)
+            // Preserve terminal journal rows; never reopen HELD or CONFIRMED.
+            runCatching { store.transition(entry, "UNCERTAIN", epoch.dataEpoch) }
             Result.Uncertain(operation)
         }
     }
