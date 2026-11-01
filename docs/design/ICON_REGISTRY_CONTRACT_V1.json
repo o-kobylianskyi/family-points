@@ -134,6 +134,13 @@
       "category": "TASK_CATEGORY",
       "labelKey": "media.catalog.category.self_care",
       "sortOrder": 3170
+    },
+    {
+      "catalogKey": "category-video-games",
+      "source": "media/catalog/categories/video_games.svg",
+      "category": "REWARD",
+      "labelKey": "media.catalog.category.video_games",
+      "sortOrder": 3180
     }
   ],
   "templateCategoryMapping": {
@@ -150,12 +157,13 @@
     "adult": "category-adult-tasks",
     "time": "category-screen-time",
     "privilege": "category-privilege",
-    "items": "category-material-reward"
+    "items": "category-material-reward",
+    "games": "category-video-games"
   },
   "qa": [
-    "All 19 catalog keys unique",
+    "All 20 catalog keys unique",
     "MediaService.CATALOG allowlist includes keys",
-    "MediaService.catalog() contains 19 catalog records with unique sort order",
+    "MediaService.catalog() contains 20 catalog records with unique sort order",
     "catalogPreview resolves exactly one SVG classpath resource per key",
     "Workspace access controls preserved",
     "Runtime media MIME image/svg+xml and CSP validated",
