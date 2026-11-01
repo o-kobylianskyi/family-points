@@ -38,7 +38,7 @@ public class WorkspacePortableBackupExporter {
     public record Result(byte[] encryptedFile,String contentDigest,long byteCount,
                          UUID snapshotId,Map<String,Integer> recordCounts) {}
 
-    @Transactional(readOnly=true)
+    @Transactional
     public Result export(long workspaceId,UUID snapshotId,UUID operationId,
                          long expectedEpoch,Collection<String> categories,
                          String schemaVersion,SecretKey key) {
