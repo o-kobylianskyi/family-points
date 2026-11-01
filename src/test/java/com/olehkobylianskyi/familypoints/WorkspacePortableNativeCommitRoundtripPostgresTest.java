@@ -78,6 +78,14 @@ class WorkspacePortableNativeCommitRoundtripPostgresTest {
                 ()->executor.apply(corrupt,source,target,key));
         assertEquals(0L,db.queryForObject(
                 "SELECT count(*) FROM member_groups WHERE family_id=?",Long.class,target));
+        long staleTarget=db.queryForObject(
+                "INSERT INTO families(name,data_epoch) VALUES ('Stale disposable target',1) RETURNING id",
+                Long.class);
+        assertThrows(IllegalStateException.class,
+                ()->executor.apply(file,source,staleTarget,key));
+        assertEquals(0L,db.queryForObject(
+                "SELECT count(*) FROM member_groups WHERE family_id=?",Long.class,staleTarget));
+
 
         // No rollback here: genuine SQL commit in disposable database only.
         var idMap=tx.execute(status->{
