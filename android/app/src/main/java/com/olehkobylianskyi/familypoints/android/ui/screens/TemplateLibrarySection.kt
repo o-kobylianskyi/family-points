@@ -280,6 +280,21 @@ fun TemplateLibrarySection(
                 }
             }) { Text(tl(language, "Перевірити квитанцію", "Beleg prüfen", "Check receipt", "Проверить квитанцию")) }
         }
+        var showSetupStatus by remember(workspaceId) { mutableStateOf(false) }
+        OutlinedButton(enabled = !busy && !loading, onClick = {
+            showSetupStatus = !showSetupStatus
+        }) {
+            Text(tl(language, "Кроки налаштування сім'ї", "Schritte der Familieneinrichtung",
+                "Family setup steps", "Шаги настройки семьи"))
+        }
+        if (showSetupStatus) {
+            WorkspaceSetupOverviewSection(
+                language = language, workspaceId = workspaceId,
+                repository = remember(tokens) {
+                    com.olehkobylianskyi.familypoints.android.data.WorkspaceSetupOverviewRepository(tokens)
+                }
+            )
+        }
         // Task folders are a distinct Backend entity; never map catalog labels into them.
         var showTaskFolders by remember(workspaceId) { mutableStateOf(false) }
         OutlinedButton(enabled = !loading && !busy, onClick = {
