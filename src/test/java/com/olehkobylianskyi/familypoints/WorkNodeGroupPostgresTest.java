@@ -46,7 +46,7 @@ class WorkNodeGroupPostgresTest {
         assertEquals(HttpStatus.NOT_FOUND,assertThrows(ResponseStatusException.class,
                 ()->f.tx.execute(s->f.groups.create(f.b,input("Alien",root.id())))).getStatusCode());
         assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,
-                ()->f.tx.execute(s->f.groups.deactivate(f.a,root.id()))).getStatusCode());
+                ()->f.tx.executeWithoutResult(s->f.groups.deactivate(f.a,root.id()))).getStatusCode());
         assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,
                 ()->f.tx.execute(s->f.groups.update(f.a,root.id(),input("Chores",child.id())))).getStatusCode());
         assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,
