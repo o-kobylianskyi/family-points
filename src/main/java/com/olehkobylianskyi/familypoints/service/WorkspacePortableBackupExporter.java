@@ -14,7 +14,7 @@ import java.util.*;
 
 /**
  * First real, strictly read-only, tenant-scoped database export slice.
- * Only seven explicitly-scoped tables below are exported. No API/download
+ * Only explicitly-scoped rows are exported; media blobs still require separate handling. No API/download
  * is exposed and no VERIFIED status or automatic pre-reset backup is issued.
  * Additional categories MUST be added only after FK/media/restore design.
  */
@@ -33,7 +33,14 @@ public class WorkspacePortableBackupExporter {
         Map.entry("REWARD_PURCHASES",new Scope("reward_purchases",
             "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)")),
         Map.entry("TASK_SCHEDULE_SLOTS",new Scope("task_schedule_slots",
-            "EXISTS (SELECT 1 FROM task_definitions d WHERE d.id=t.task_definition_id AND d.family_id=?)"))
+            "EXISTS (SELECT 1 FROM task_definitions d WHERE d.id=t.task_definition_id AND d.family_id=?)")),
+        Map.entry("REWARD_REQUESTS",new Scope("reward_requests","t.family_id=?")),
+        Map.entry("WORK_NODES",new Scope("work_nodes","t.family_id=?")),
+        Map.entry("MEDIA_BINDINGS",new Scope("media_bindings","t.workspace_id=?")),
+        Map.entry("POINT_LEDGER",new Scope("point_transactions",
+            "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)")),
+        Map.entry("REPUTATION_LEDGER",new Scope("reputation_transactions",
+            "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)"))
     );
     private static final int MAX_ROWS=2000;
     private static final int MAX_BYTES=12*1024*1024;
