@@ -41,8 +41,8 @@ export default function FamilySetupPage() {
   const lock = useRef(false)
   const workspaceRef = useRef(workspaceId)
   if (workspaceRef.current !== workspaceId) { workspaceRef.current = workspaceId; generation.current++; revision.current++; lock.current = false }
-  const load = async (id, request) => {
-    setBusy(true); setError(''); setPreview(null)
+  const load = async (id, request, preserveError = false) => {
+    setBusy(true); if (!preserveError) setError(''); setPreview(null)
     try {
       const [nextCatalog, nextOwned] = await Promise.all([
         getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), id)
@@ -119,7 +119,7 @@ export default function FamilySetupPage() {
       if (request === generation.current && workspaceRef.current === id) {
         setPreview(null); setStep(1); setError(t[21])
         // An ambiguous network failure may have committed. Require fresh server reconciliation.
-        await load(id, request)
+        await load(id, request, true)
       }
     } finally {
       lock.current = false
