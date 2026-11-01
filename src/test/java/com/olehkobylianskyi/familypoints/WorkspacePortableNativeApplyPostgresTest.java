@@ -49,6 +49,20 @@ class WorkspacePortableNativeApplyPostgresTest {
         assertEquals(original,record.path("id").asLong());
         assertEquals(source,record.path("family_id").asLong());
 
+        var nativeRestorer=new WorkspaceDisposableNativeGroupRestorer(db,
+                new DataSourceTransactionManager(ds),inspector,portable,codec);
+        var proof=nativeRestorer.rehearse(file,source,target,key);
+        assertTrue(proof.rolledBack());
+        assertEquals(1,proof.inserted());
+        assertTrue(proof.groupIdMapping().containsKey(original));
+        assertNotEquals(original,proof.groupIdMapping().get(original));
+        assertThrows(IllegalArgumentException.class,
+                ()->nativeRestorer.rehearse(file,source,source,key));
+        assertThrows(SecurityException.class,
+                ()->nativeRestorer.rehearse(file,neighbor,target,key));
+        assertEquals(0L,db.queryForObject("SELECT count(*) FROM member_groups WHERE family_id=?",
+                Long.class,target));
+
         // Real table insert (not JSON staging). The source PK cannot be reused
         // in the destination family: return a fresh PK and assert its mapping.
         var mapped=tx.execute(status->{
