@@ -977,3 +977,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Checked current Backend protective-backup HTTP controller: still registration + GET metadata list/detail only; portable export/restore implementation has no approved user-facing file HTTP endpoints. No upload/download/reset/restore enabled.
 - `FamilyDataSafetyPlan.jsx` d671cdf guards expanded detail rendering against selected snapshot and workspace mismatch, explicitly clears prior detail on row toggle, and adds manual detail refresh that revalidates against backend. List refresh now also refreshes expanded detail. This prevents showing stale detail under another snapshot during async transitions. All operations remain GET-only.
 - QA CONDITIONAL: click A then B with delayed HTTP, refresh selected B, switch workspace/account, 403, invalid DTO, all 4 locales; no destructive request. Exact SHA CI/browser pass not established.
+
+## 2026-11-01 — WEB-BKL002-15 HTTP contract gate and backup registry clarity
+- Rechecked current Backend `WorkspaceProtectiveBackupController`: metadata list/detail and metadata registration only. Portable file export and PostgreSQL staging/rehearsal remain internal services, with no approved browser download/upload/restore endpoints; Web does not invoke them.
+- FamilyDataSafetyPlan (b32d9e9) explicitly labels record count and differentiates metadata from actual downloadable backup files, in UK/RU/DE/EN. All archive and destructive operations remain disabled; no BETA deploy.
+- QA handoff CONDITIONAL: registry empty/error/loaded, count, four locales, family switch, expired status, detail refresh and no unsafe file controls. GitHub exact-SHA CI remains to be verified; do not claim PASS.
