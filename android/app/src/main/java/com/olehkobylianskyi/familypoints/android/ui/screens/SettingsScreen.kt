@@ -373,6 +373,7 @@ fun SettingsScreen(
                             "MANAGE_TEMPLATES" in currentUser.permissions ||
                             "MANAGE_TASKS" in currentUser.permissions ||
                             "MANAGE_REWARDS" in currentUser.permissions,
+                        canCreateTasks = "CREATE_TASKS" in currentUser.permissions,
                         repository = remember(templateWorkspaceId, repository) { repository.templates() },
                         onUnauthorized = onUnauthorized,
                         onClose = { showTemplateLibrary = false }
