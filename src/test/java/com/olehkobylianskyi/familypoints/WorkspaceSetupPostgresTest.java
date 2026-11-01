@@ -36,7 +36,7 @@ class WorkspaceSetupPostgresTest {
         var flyway = Flyway.configure().dataSource(source).locations("classpath:db/migration");
         flyway.target(MigrationVersion.fromVersion("45")).load().migrate();
         long old = db.queryForObject("INSERT INTO families(name) VALUES ('Existing family') RETURNING id",Long.class);
-        assertEquals(4,Flyway.configure().dataSource(source).locations("classpath:db/migration")
+        assertEquals(5,Flyway.configure().dataSource(source).locations("classpath:db/migration")
                 .load().migrate().migrationsExecuted,"V46 should be additive");
         assertEquals(0L,db.queryForObject(
                 "SELECT count(*) FROM workspace_setup_states WHERE workspace_id=?",Long.class,old),
