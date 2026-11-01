@@ -47,6 +47,11 @@ export default function FamilyDataSafetyPlan() {
   const [tab,setTab] = useState('reset')
   const [mode,setMode] = useState('selective')
   const [chosen,setChosen] = useState(() => entries.filter(x=>x[1]).map(x=>x[0]))
+  const [restoreMode,setRestoreMode] = useState('selective')
+  const [restoreChosen,setRestoreChosen] = useState([])
+  // No upload endpoint currently exists. Categories below are planning-only;
+  // archive manifest and compatibility MUST come from validated server preview.
+  useEffect(() => { setRestoreChosen([]); setRestoreMode('selective') }, [workspaceId])
   return <section className="settings-section" aria-label="Family data safety planning">
     <h2>{w[0]}</h2>
     <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
@@ -66,7 +71,22 @@ export default function FamilyDataSafetyPlan() {
         </label>)}
       </div>
       <p>{w[11]}</p><p>{w[12]}</p>
-    </> : <><p>{w[9]}</p><p>{w[13]}</p><p>{w[11]}</p></>}
+    </> : <>
+      <p>{w[9]}</p><p>{w[13]}</p>
+      <fieldset><legend>{({uk:'Режим відновлення — лише план',ru:'Режим восстановления — только план',de:'Wiederherstellungsmodus — nur Planung',en:'Restore mode — planning only'})[language]}</legend>
+        <label><input type="radio" name="restore-plan-mode" checked={restoreMode==='full'} onChange={()=>setRestoreMode('full')}/>{w[3]}</label>
+        <label><input type="radio" name="restore-plan-mode" checked={restoreMode==='selective'} onChange={()=>setRestoreMode('selective')}/>{w[4]}</label>
+      </fieldset>
+      <p>{({uk:'Ці категорії не підтверджені складом архіву. Після завантаження файлу Backend має перевірити фактичний вміст, сумісність, залежності й конфлікти.',ru:'Категории не подтверждены содержимым архива. Backend должен проверить состав, совместимость, зависимости и конфликты.',de:'Kategorien sind nicht aus einer Archivdatei verifiziert. Backend muss Inhalt, Kompatibilität, Abhängigkeiten und Konflikte prüfen.',en:'Categories are not verified against an archive. Backend must validate actual contents, compatibility, dependencies and conflicts.'})[language]}</p>
+      <div style={{maxHeight:280,overflowY:'auto'}}>
+        {entries.map(([code,initial,label])=><label key={code} style={{display:'flex',gap:10,padding:'5px 0'}}>
+          <input type="checkbox" checked={restoreMode==='full' || restoreChosen.includes(code)} disabled={restoreMode==='full'} onChange={()=>setRestoreChosen(v=>v.includes(code)?v.filter(c=>c!==code):[...v,code])}/>
+          <span>{label[index]} — {(restoreMode==='full' || restoreChosen.includes(code))?({uk:'Планується відновити',ru:'Планируется восстановить',de:'Zur Wiederherstellung vorgesehen',en:'Planned for restore'})[language]:w[6]}</span>
+        </label>)}
+      </div>
+      <p>{({uk:'Конфлікти, що блокують застосування: стан невідомий до серверного аналізу файлу. Заміна чи об’єднання даних не дозволяються за замовчуванням.',ru:'Блокирующие конфликты неизвестны до проверки файла сервером. Замена или объединение по умолчанию запрещены.',de:'Blockierende Konflikte sind bis zur serverseitigen Archivprüfung unbekannt. Kein implizites Ersetzen oder Zusammenführen.',en:'Blocking conflicts are unknown until server-side archive inspection. Replacement or merge is forbidden by default.'})[language]}</p>
+      <p>{w[11]}</p>
+    </>}
     <div>
       <h3>{({uk:'Серверні резервні копії',ru:'Резервные копии на сервере',de:'Server-Sicherungen',en:'Server backup records'})[language] || 'Server backup records'}</h3>
       <p>{({uk:'Це лише реєстр станів. Запис REQUESTED не означає наявність файлу або можливість відновлення.',ru:'Это только реестр статусов. REQUESTED не означает, что файл существует или доступен для восстановления.',de:'Nur Statusregister. REQUESTED bedeutet nicht, dass die Datei existiert oder wiederherstellbar ist.',en:'Metadata only. REQUESTED does not mean the file exists or can be restored.'})[language]}</p>
