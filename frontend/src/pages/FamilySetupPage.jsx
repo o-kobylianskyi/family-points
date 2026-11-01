@@ -86,7 +86,12 @@ export default function FamilySetupPage() {
     try {
       const result = await previewTemplateImport(getAccessToken(), id, codes)
       if (request !== generation.current || id !== workspaceRef.current || revisionAtStart !== revision.current) return
-      if (!result || (result.workspaceId != null && String(result.workspaceId) !== String(id))) throw new Error('INVALID_IMPORT_PREVIEW')
+      if (!result || (result.workspaceId != null && String(result.workspaceId) !== String(id)) ||
+          !Array.isArray(result.toImport) || !Array.isArray(result.alreadyImported) ||
+          result.toImport.some(code => !codes.includes(code)) ||
+          result.alreadyImported.some(code => !codes.includes(code)) ||
+          new Set([...result.toImport, ...result.alreadyImported]).size !== codes.length)
+        throw new Error('INVALID_IMPORT_PREVIEW')
       setPreview({ result, codes })
       setStep(2)
     } catch {
@@ -97,12 +102,13 @@ export default function FamilySetupPage() {
     }
   }
   const confirm = async () => {
-    if (lock.current || !preview || !preview.codes.length || preview.codes.join('|') !== selectedNew.join('|')) return
+    if (lock.current || !preview || !preview.codes.length || !preview.result.toImport.length ||
+        preview.codes.join('|') !== selectedNew.join('|')) return
     lock.current = true
     const id = workspaceId, request = generation.current, codes = [...preview.codes]
     setBusy(true); setError('')
     try {
-      await importTemplates(getAccessToken(), id, codes)
+      await importTemplates(getAccessToken(), id, preview.result.toImport)
       if (request !== generation.current || workspaceRef.current !== id) return
       // Re-read authoritative server state. Never infer imported records from a POST alone.
       const latest = await getPrivateTemplates(getAccessToken(), id)
@@ -113,7 +119,7 @@ export default function FamilySetupPage() {
       if (request === generation.current && workspaceRef.current === id) {
         setPreview(null); setStep(1); setError(t[21])
         // An ambiguous network failure may have committed. Require fresh server reconciliation.
-        load(id, ++generation.current)
+        await load(id, request)
       }
     } finally {
       lock.current = false
@@ -151,11 +157,11 @@ export default function FamilySetupPage() {
         <button type="button" disabled={busy} onClick={() => setStep(3)}>{t[24]}</button></div>
     </section>}
     {step === 2 && <section><h2>{t[3]}</h2><p>{t[15]}</p>
-      <p>{t[25]}: {preview?.codes.length || 0}</p>
+      <p>{t[25]}: {preview?.result?.toImport?.length || 0} · {t[12]}: {preview?.result?.alreadyImported?.length || 0}</p>
       <ul>{preview?.codes.map(code => <li key={code}>{nameOf(catalog.templates.find(item => item.code === code), lang)}</li>)}</ul>
       {preview?.result?.warnings?.length > 0 && <ul>{preview.result.warnings.map((warning, index) => <li key={index}>{String(warning)}</li>)}</ul>}
       <div className="family-setup-actions"><button type="button" disabled={busy} onClick={() => {setPreview(null);setStep(1)}}>{t[17]}</button>
-        <button type="button" disabled={busy || !preview} onClick={confirm}>{t[14]}</button></div>
+        <button type="button" disabled={busy || !preview?.result?.toImport?.length} onClick={confirm}>{t[14]}</button></div>
     </section>}
     {step === 3 && <section><h2>{t[4]}</h2><p role="status">{complete ? t[23] : t[15]}</p>
       <Link to="/templates">{t[16]}</Link>
