@@ -563,3 +563,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Following user-confirmed 2/2 PostgreSQL restore preview PASS, QA added `WorkspacePortableRestoreArchiveSecurityPostgresTest` (0765b38): one real disposable PostgreSQL Testcontainers scenario covering independently generated wrong AES key, ciphertext last-byte tamper, trailing envelope bytes, invalid FPB magic, foreign-family archive binding, plus unchanged both families' group names and dataEpoch.
 - An attempted append to shared `WorkspacePortableRestorePreviewPostgresTest` hit GitHub 409 because another track concurrently changed its blob. Avoided overwriting and created a separate test class instead. No persistent QA/production DB writes.
 - New test SOURCE ONLY, **NOT YET EXECUTED**. Run Maven with Docker: `./mvnw.cmd -Dtest=WorkspacePortableRestoreArchiveSecurityPostgresTest test`; preserve console/XML result and exact SHA. Restore execution remains blocked.
+
+
+## 2026-11-01 — Maven compile blocker, concurrent Backend fix verified
+- User ran `mvnw.cmd -Dtest=WorkspacePortableRestoreArchiveSecurityPostgresTest test`; Maven stopped at javac in `ProtectiveBackupImportInspector.java:122`, shadowed local `byte[] bytes` conflicts with method `inspect(byte[] bytes,...)`. Test did not run, no PostgreSQL security PASS.
+- Re-read current GitHub main file: offending local now `mediaBytes`, both length validation and zero-fill use new name. Concurrent Backend commit `9b0efac1a` explicitly fixes this compile issue. No duplicate QA code edits needed.
+- Operator action: `git pull --ff-only origin main` then rerun targeted Maven command. If other compile errors emerge, preserve output; do not claim success before actual test result.
