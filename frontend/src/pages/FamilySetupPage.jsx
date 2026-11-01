@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates } from '../api/templateApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
+import { getMemberGroups, createMemberGroup } from '../api/memberGroupApi'
 import './FamilySetupPage.css'
 
 // This is an explicit, non-destructive onboarding entry. It does not infer that an
@@ -46,6 +47,9 @@ export default function FamilySetupPage() {
   const [step, setStep] = useState(0)
   const [catalog, setCatalog] = useState({ templates: [], packs: [] })
   const [owned, setOwned] = useState([])
+  const [groups, setGroups] = useState([])
+  const [groupName, setGroupName] = useState('')
+  const [groupStatus, setGroupStatus] = useState('')
   const [selected, setSelected] = useState([])
   const [kind, setKind] = useState('TASK')
   const [pack, setPack] = useState('ALL')
@@ -68,12 +72,13 @@ export default function FamilySetupPage() {
   const load = async (id, request, preserveError = false) => {
     setBusy(true); if (!preserveError) setError(''); setPreview(null)
     try {
-      const [nextCatalog, nextOwned] = await Promise.all([
-        getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), id)
+      const [nextCatalog, nextOwned, nextGroups] = await Promise.all([
+        getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), id),
+        getMemberGroups(getAccessToken(), id)
       ])
-      if (!validCatalog(nextCatalog) || !Array.isArray(nextOwned)) throw new Error('INVALID_TEMPLATE_CATALOG')
+      if (!validCatalog(nextCatalog) || !Array.isArray(nextOwned) || !Array.isArray(nextGroups)) throw new Error('INVALID_TEMPLATE_CATALOG')
       if (generation.current === request && workspaceRef.current === id) {
-        setCatalog(nextCatalog); setOwned(nextOwned)
+        setCatalog(nextCatalog); setOwned(nextOwned); setGroups(nextGroups)
       }
     } catch {
       if (generation.current === request && workspaceRef.current === id) setError(t[21])
@@ -83,7 +88,7 @@ export default function FamilySetupPage() {
   }
   useEffect(() => {
     const request = ++generation.current
-    setDraftReady(false); setStep(0); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
+    setDraftReady(false); setStep(0); setGroupName(''); setGroupStatus(''); setGroups([]); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
     setPack('ALL'); setKind('TASK'); setCategory('ALL'); setSearch('')
     setComplete(false); setPreview(null)
     if (workspaceId) load(workspaceId, request).finally(() => { if (generation.current === request) setDraftReady(true) })
@@ -157,6 +162,42 @@ export default function FamilySetupPage() {
       if (request === generation.current && workspaceRef.current === id) setBusy(false)
     }
   }
+  const canManageGroups = currentUser?.permissions?.includes('MANAGE_GROUPS') ||
+    currentUser?.permissions?.includes('ADMIN_OVERRIDE')
+  const createExplicitGroup = async () => {
+    const name = groupName.trim()
+    if (!canManageGroups || !name || name.length > 120 || lock.current) return
+    lock.current = true
+    const id = workspaceId, request = generation.current
+    setBusy(true); setError(''); setGroupStatus('')
+    try {
+      // Re-read server state before each explicitly requested create.
+      const latest = await getMemberGroups(getAccessToken(), id)
+      if (request !== generation.current || workspaceRef.current !== id) return
+      if (!Array.isArray(latest)) throw new Error('INVALID_GROUPS')
+      setGroups(latest)
+      if (latest.some(group => group.name?.trim().toLocaleLowerCase() === name.toLocaleLowerCase())) {
+        setGroupStatus('EXISTS'); setGroupName(''); return
+      }
+      await createMemberGroup(getAccessToken(), id, { name, description: null })
+      // A timeout after POST is ambiguous: the next manual attempt first reconciles.
+      const updated = await getMemberGroups(getAccessToken(), id)
+      if (request !== generation.current || workspaceRef.current !== id) return
+      if (!Array.isArray(updated)) throw new Error('INVALID_GROUPS')
+      setGroups(updated); setGroupName(''); setGroupStatus('CREATED')
+    } catch {
+      if (request === generation.current && workspaceRef.current === id) {
+        setError(t[21]); setGroupStatus('UNKNOWN')
+        try {
+          const latest = await getMemberGroups(getAccessToken(), id)
+          if (request === generation.current && workspaceRef.current === id && Array.isArray(latest)) setGroups(latest)
+        } catch { /* Preserve unknown state, no automatic POST retry. */ }
+      }
+    } finally {
+      lock.current = false
+      if (request === generation.current && workspaceRef.current === id) setBusy(false)
+    }
+  }
   if (!workspaceId) return null
   return <main className="family-setup settings-section">
     <h1>{t[0]}</h1>
@@ -166,6 +207,20 @@ export default function FamilySetupPage() {
     {busy && <p role="status">{t[19]}</p>}
     {step === 0 && <section><h2>{t[1]}</h2><p>{t[5]}</p>
       <Link to="/members" className="secondary-button">{t[6]}</Link>
+      <h3>{({uk:'Групи учасників',ru:'Группы участников',de:'Mitgliedergruppen',en:'Member groups'})[lang] || 'Member groups'}</h3>
+      <ul>{groups.map(group => <li key={group.id}>{group.name}</li>)}</ul>
+      {canManageGroups && <div className="family-setup-actions">
+        <label>{({uk:'Нова група учасників',ru:'Новая группа участников',de:'Neue Mitgliedergruppe',en:'New member group'})[lang] || 'New group'}
+          <input value={groupName} maxLength={120} disabled={busy} onChange={event => {setGroupName(event.target.value);setGroupStatus('')}}/>
+        </label>
+        <button type="button" disabled={busy || !groupName.trim()} onClick={createExplicitGroup}>{({uk:'Створити групу',ru:'Создать группу',de:'Gruppe erstellen',en:'Create group'})[lang] || 'Create group'}</button>
+      </div>}
+      {groupStatus && <p role="status">{({
+        uk:{CREATED:'Групу створено.',EXISTS:'Група з такою назвою вже існує.',UNKNOWN:'Стан запиту невідомий. Перевірте список перед повторенням.'},
+        ru:{CREATED:'Группа создана.',EXISTS:'Группа с таким именем уже существует.',UNKNOWN:'Результат неизвестен. Проверьте список перед повтором.'},
+        de:{CREATED:'Gruppe erstellt.',EXISTS:'Gruppe existiert bereits.',UNKNOWN:'Ergebnis unklar. Liste vor erneutem Versuch prüfen.'},
+        en:{CREATED:'Group created.',EXISTS:'Group already exists.',UNKNOWN:'Result uncertain. Check the list before trying again.'}
+      })[lang]?.[groupStatus]}</p>}
       <p>{t[15]}</p><button type="button" onClick={() => setStep(1)}>{t[18]}</button>
     </section>}
     {step === 1 && <section><h2>{t[2]}</h2>
