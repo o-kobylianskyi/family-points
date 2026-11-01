@@ -48,6 +48,7 @@ export default function FamilySetupPage() {
   const [catalog, setCatalog] = useState({ templates: [], packs: [] })
   const [owned, setOwned] = useState([])
   const [groups, setGroups] = useState([])
+  const [groupsAvailable, setGroupsAvailable] = useState(false)
   const [groupName, setGroupName] = useState('')
   const [groupStatus, setGroupStatus] = useState('')
   const [selected, setSelected] = useState([])
@@ -72,13 +73,13 @@ export default function FamilySetupPage() {
   const load = async (id, request, preserveError = false) => {
     setBusy(true); if (!preserveError) setError(''); setPreview(null)
     try {
-      const [nextCatalog, nextOwned, nextGroups] = await Promise.all([
+      const [nextCatalog, nextOwned, groupResult] = await Promise.all([
         getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), id),
-        getMemberGroups(getAccessToken(), id)
+        getMemberGroups(getAccessToken(), id).then(data => ({ ok:true, data }), () => ({ ok:false, data:[] }))
       ])
-      if (!validCatalog(nextCatalog) || !Array.isArray(nextOwned) || !Array.isArray(nextGroups)) throw new Error('INVALID_TEMPLATE_CATALOG')
+      if (!validCatalog(nextCatalog) || !Array.isArray(nextOwned) || (groupResult.ok && !Array.isArray(groupResult.data))) throw new Error('INVALID_TEMPLATE_CATALOG')
       if (generation.current === request && workspaceRef.current === id) {
-        setCatalog(nextCatalog); setOwned(nextOwned); setGroups(nextGroups)
+        setCatalog(nextCatalog); setOwned(nextOwned); setGroups(groupResult.data); setGroupsAvailable(groupResult.ok)
       }
     } catch {
       if (generation.current === request && workspaceRef.current === id) setError(t[21])
@@ -88,7 +89,7 @@ export default function FamilySetupPage() {
   }
   useEffect(() => {
     const request = ++generation.current
-    setDraftReady(false); setStep(0); setGroupName(''); setGroupStatus(''); setGroups([]); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
+    setDraftReady(false); setStep(0); setGroupName(''); setGroupStatus(''); setGroups([]); setGroupsAvailable(false); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
     setPack('ALL'); setKind('TASK'); setCategory('ALL'); setSearch('')
     setComplete(false); setPreview(null)
     if (workspaceId) load(workspaceId, request).finally(() => { if (generation.current === request) setDraftReady(true) })
@@ -166,7 +167,7 @@ export default function FamilySetupPage() {
     currentUser?.permissions?.includes('ADMIN_OVERRIDE')
   const createExplicitGroup = async () => {
     const name = groupName.trim()
-    if (!canManageGroups || !name || name.length > 120 || lock.current) return
+    if (!canManageGroups || !groupsAvailable || !name || name.length > 120 || lock.current) return
     lock.current = true
     const id = workspaceId, request = generation.current
     setBusy(true); setError(''); setGroupStatus('')
@@ -175,7 +176,7 @@ export default function FamilySetupPage() {
       const latest = await getMemberGroups(getAccessToken(), id)
       if (request !== generation.current || workspaceRef.current !== id) return
       if (!Array.isArray(latest)) throw new Error('INVALID_GROUPS')
-      setGroups(latest)
+      setGroups(latest); setGroupsAvailable(true)
       if (latest.some(group => group.name?.trim().toLocaleLowerCase() === name.toLocaleLowerCase())) {
         setGroupStatus('EXISTS'); setGroupName(''); return
       }
@@ -184,7 +185,7 @@ export default function FamilySetupPage() {
       const updated = await getMemberGroups(getAccessToken(), id)
       if (request !== generation.current || workspaceRef.current !== id) return
       if (!Array.isArray(updated)) throw new Error('INVALID_GROUPS')
-      setGroups(updated); setGroupName(''); setGroupStatus('CREATED')
+      setGroups(updated); setGroupsAvailable(true); setGroupName(''); setGroupStatus('CREATED')
     } catch {
       if (request === generation.current && workspaceRef.current === id) {
         setError(t[21]); setGroupStatus('UNKNOWN')
@@ -209,7 +210,8 @@ export default function FamilySetupPage() {
       <Link to="/members" className="secondary-button">{t[6]}</Link>
       <h3>{({uk:'Групи учасників',ru:'Группы участников',de:'Mitgliedergruppen',en:'Member groups'})[lang] || 'Member groups'}</h3>
       <ul>{groups.map(group => <li key={group.id}>{group.name}</li>)}</ul>
-      {canManageGroups && <div className="family-setup-actions">
+      {!groupsAvailable && <p role="status">{({uk:'Перегляд груп зараз недоступний. Імпорт шаблонів можна продовжити окремо.',ru:'Группы сейчас недоступны. Импорт шаблонов можно продолжить отдельно.',de:'Gruppen sind derzeit nicht verfügbar. Vorlagen können separat importiert werden.',en:'Groups are unavailable. Template import can continue independently.'})[lang]}</p>}
+      {canManageGroups && groupsAvailable && <div className="family-setup-actions">
         <label>{({uk:'Нова група учасників',ru:'Новая группа участников',de:'Neue Mitgliedergruppe',en:'New member group'})[lang] || 'New group'}
           <input value={groupName} maxLength={120} disabled={busy} onChange={event => {setGroupName(event.target.value);setGroupStatus('')}}/>
         </label>
