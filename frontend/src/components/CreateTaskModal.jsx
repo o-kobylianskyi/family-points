@@ -279,19 +279,23 @@ function CreateTaskModal({
   useEffect(() => {
     if (editing) return
     let alive = true
+    const workspace = currentUser.workspaceId
     setTemplateLoadError(false)
-    getPrivateTemplates(getAccessToken(), currentUser.workspaceId)
+    getPrivateTemplates(getAccessToken(), workspace)
       .then(items => {
-        if (!alive) return
+        if (!alive || String(templateWorkspaceRef.current) !== String(workspace)) return
         const ownTasks = (Array.isArray(items) ? items : []).filter(item => item.kind === 'TASK')
         setTaskTemplates(ownTasks)
+        // A foreign, deleted, or stale template ID cannot prefill a task.
         if (initialTemplateId != null && ownTasks.some(item => String(item.id) === String(initialTemplateId))) {
           applyTaskTemplate(String(initialTemplateId))
+        } else if (initialTemplateId != null) {
+          setError(({uk:'Шаблон недоступний у цій сім’ї.',ru:'Шаблон недоступен в этой семье.',de:'Vorlage in dieser Familie nicht verfügbar.',en:'Template is unavailable in this family.'})[i18n.language.split('-')[0]])
         }
       })
       .catch(() => { if (alive) { setTaskTemplates([]); setTemplateLoadError(true) } })
-    return () => { alive = false }
-  }, [currentUser.workspaceId, getAccessToken, editing, initialTemplateId])
+    return () => { alive = false; templateRequestGeneration.current += 1 }
+  }, [currentUser.workspaceId, editing, initialTemplateId])
 
   const templateCategory = item => { try { return JSON.parse(item.definitionJson || '{}')?.category || 'other' } catch { return 'other' } }
   const taskCategories = [...new Set(taskTemplates.map(templateCategory))].sort((a,b)=>a.localeCompare(b))
