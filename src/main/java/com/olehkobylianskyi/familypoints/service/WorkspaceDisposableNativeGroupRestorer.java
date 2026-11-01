@@ -37,12 +37,16 @@ public final class WorkspaceDisposableNativeGroupRestorer {
         if(sourceWorkspace<=0 || targetWorkspace<=0 || sourceWorkspace==targetWorkspace)
             throw new IllegalArgumentException("NATIVE_REHEARSAL_REQUIRES_DISTINCT_FAMILIES");
         var inspection=inspector.inspect(file,sourceWorkspace,key);
-        if(!inspection.availableCategories().equals(List.of("MEMBER_GROUPS")))
-            throw new IllegalArgumentException("NATIVE_REHEARSAL_SINGLE_CATEGORY_ONLY");
+        boolean bindings=inspection.availableCategories().equals(
+                List.of("MEDIA_BINDINGS","MEMBER_GROUPS"));
+        if(!bindings && !inspection.availableCategories().equals(List.of("MEMBER_GROUPS")))
+            throw new IllegalArgumentException("NATIVE_REHEARSAL_UNSUPPORTED_CATEGORIES");
         var artifact=portable.decode(file);
         byte[] clear=codec.open(artifact,artifact.manifest().snapshotId(),sourceWorkspace,key);
         final JsonNode rows;
-        try {rows=mapper.readTree(clear).path("categories").path("MEMBER_GROUPS");}
+        final JsonNode categories;
+        try {categories=mapper.readTree(clear).path("categories");
+            rows=categories.path("MEMBER_GROUPS");}
         catch(Exception e){throw new IllegalArgumentException("INVALID_REHEARSAL_ARCHIVE",e);}
         finally {Arrays.fill(clear,(byte)0);}
         return tx.execute(status->{
@@ -72,6 +76,28 @@ public final class WorkspaceDisposableNativeGroupRestorer {
                 if(newId==null || newId==oldId)
                     throw new IllegalStateException("REHEARSAL_ID_REMAP_FAILURE");
                 mappings.put(oldId,newId);
+            }
+            if(bindings) {
+                // Catalog-backed group binding has no asset ownership FK to
+                // remap. Every other binding kind remains explicitly blocked.
+                for(JsonNode row:categories.path("MEDIA_BINDINGS")) {
+                    long originalGroup=row.path("target_id").asLong();
+                    Long remapped=mappings.get(originalGroup);
+                    if(remapped==null || !"MEMBER_GROUP".equals(row.path("target_type").asText())
+                            || row.hasNonNull("asset_id") || !row.path("catalog_key").isTextual()
+                            || row.path("workspace_id").asLong()!=sourceWorkspace)
+                        throw new IllegalArgumentException("NATIVE_REHEARSAL_UNSUPPORTED_BINDING");
+                    db.update("""
+                            INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,catalog_key)
+                            VALUES (?,'MEMBER_GROUP',?,?,?)
+                            """,targetWorkspace,remapped,row.path("slot").asText(),
+                            row.path("catalog_key").asText());
+                }
+                Long restored=db.queryForObject(
+                        "SELECT count(*) FROM media_bindings WHERE workspace_id=? AND target_type='MEMBER_GROUP'",
+                        Long.class,targetWorkspace);
+                if(restored==null || restored.longValue()!=inspection.counts().get("MEDIA_BINDINGS"))
+                    throw new IllegalStateException("NATIVE_REHEARSAL_BINDINGS_MISMATCH");
             }
             if(mappings.size()!=inspection.counts().get("MEMBER_GROUPS"))
                 throw new IllegalStateException("REHEARSAL_GROUP_COUNT_MISMATCH");
