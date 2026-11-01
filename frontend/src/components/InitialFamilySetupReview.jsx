@@ -33,8 +33,10 @@ export default function InitialFamilySetupReview() {
   const [confirmed, setConfirmed] = useState(false)
   const [finished, setFinished] = useState(null)
   const seq = useRef(0)
+  const activeScope = useRef(null)
   const accountId = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.workspaceMemberId ?? currentUser?.username
   const storageKey = accountId && workspaceId ? `fp:setup:pending:${accountId}:${workspaceId}` : null
+  activeScope.current = storageKey
   useEffect(() => {
     setPending(null); setConfirmed(false); setFinished(null)
     if (!storageKey) return
@@ -61,11 +63,14 @@ export default function InitialFamilySetupReview() {
     catch (error) { localStorage.removeItem(sharedKey); throw error }
     setPending(value)
   }
-  const clear = () => {
-    // Never remove a pending record belonging to another tab's newer operation.
+  const clear = operation => {
+    // Clear only the exact completed operation. Never erase another tab's marker.
     const shared = readShared()
-    if (shared?.operationId === pending?.operationId) localStorage.removeItem(sharedKey)
-    sessionStorage.removeItem(storageKey)
+    if (shared?.operationId === operation.operationId) localStorage.removeItem(sharedKey)
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null')
+      if (saved?.operationId === operation.operationId) sessionStorage.removeItem(storageKey)
+    } catch { /* Malformed data remains blocked, never silently replaced. */ }
     setPending(null)
   }
   useEffect(() => {
@@ -82,7 +87,7 @@ export default function InitialFamilySetupReview() {
   }, [sharedKey])
   useEffect(() => {
     const id = ++seq.current
-    setSetup(null); setCatalog([]); setPacks([]); setPack('ALL'); setSelected([]); setReview(null); setConfirmed(false); setError(false); setUnavailable(false)
+    setSetup(null); setCatalog([]); setPacks([]); setPack('ALL'); setSelected([]); setReview(null); setConfirmed(false); setError(false); setUnavailable(false); setBusy(false); setFinished(null)
     if (!workspaceId) return
     Promise.all([getSetupState(getAccessToken(), workspaceId), getTemplateCatalog(getAccessToken())])
       .then(([state, data]) => { if (seq.current === id) { setSetup(state); setCatalog(data?.templates || []); setPacks(data?.packs || []) } })
@@ -118,13 +123,18 @@ export default function InitialFamilySetupReview() {
   }
   const recover = async () => {
     if (!pending?.operationId || !Number.isSafeInteger(pending.epoch) || busy) return
+    const scope = storageKey
+    const operation = pending
     setBusy(true); setError(false)
     try {
-      const result = await getSetupFinalizeReceipt(getAccessToken(), workspaceId, pending.operationId)
-      if (result.dataEpoch !== pending.epoch) throw new Error('EPOCH_MISMATCH')
-      setFinished(result); clear()
-      setSetup(await getSetupState(getAccessToken(), workspaceId))
-    } catch { setError(true) } finally { setBusy(false) }
+      const result = await getSetupFinalizeReceipt(getAccessToken(), operation.workspaceId, operation.operationId)
+      if (activeScope.current !== scope) return
+      if (result.dataEpoch !== operation.epoch) throw new Error('EPOCH_MISMATCH')
+      const refreshed = await getSetupState(getAccessToken(), operation.workspaceId)
+      if (activeScope.current !== scope || refreshed.dataEpoch !== operation.epoch) return
+      clear(operation); setFinished(result); setSetup(refreshed)
+    } catch { if (activeScope.current === scope) setError(true) }
+    finally { if (activeScope.current === scope) setBusy(false) }
   }
   const finalize = async () => {
     if (!confirmed || pending || busy || !storageKey || !setup || !review ||
@@ -134,16 +144,20 @@ export default function InitialFamilySetupReview() {
         !Object.values(setup.steps || {}).every(v => v === 'COMPLETE' || v === 'SKIPPED')) return
     const codes = catalog.filter(item => selected.includes(item.code)).map(item => item.code)
     if (JSON.stringify(codes) !== JSON.stringify(review.selectedCodes)) return
+    const scope = storageKey
     const operation = { accountId, workspaceId, epoch: setup.dataEpoch, revision: setup.revision,
       codes, operationId: window.crypto.randomUUID() }
     try { persist(operation) } catch { setError(true); return }
     setBusy(true); setError(false)
     try {
-      const result = await finalizeSetupImport(getAccessToken(), workspaceId, operation.operationId, operation.revision, operation.codes)
+      const result = await finalizeSetupImport(getAccessToken(), operation.workspaceId, operation.operationId, operation.revision, operation.codes)
+      if (activeScope.current !== scope) return
       if (result.dataEpoch !== operation.epoch) throw new Error('EPOCH_MISMATCH')
-      setFinished(result); clear()
-      setSetup(await getSetupState(getAccessToken(), workspaceId))
-    } catch { setError(true) } finally { setBusy(false) }
+      const refreshed = await getSetupState(getAccessToken(), operation.workspaceId)
+      if (activeScope.current !== scope || refreshed.dataEpoch !== operation.epoch) return
+      clear(operation); setFinished(result); setSetup(refreshed)
+    } catch { if (activeScope.current === scope) setError(true) }
+    finally { if (activeScope.current === scope) setBusy(false) }
   }
   return <section className="settings-section" aria-label="Initial family setup">
     <h2>{w[0]}</h2>
