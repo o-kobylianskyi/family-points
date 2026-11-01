@@ -73,7 +73,11 @@ class TemplateOperationRecovery(
                 store.transition(operation, "HELD", verifiedAfterReceipt.dataEpoch)
                 return Outcome.HELD
             }
-            if (tokens.getAccessToken() != token) return Outcome.UNKNOWN
+            if (!ReceiptRecoveryGuard.sameIdentityAndEpoch(
+                    operation.accountId, accountId, operation.workspaceId,
+                    verifiedAfterReceipt.workspaceId, operation.epoch,
+                    verifiedAfterReceipt.dataEpoch, token, tokens.getAccessToken()
+                )) return Outcome.UNKNOWN
             store.transition(operation, "CONFIRMED", verifiedAfterReceipt.dataEpoch)
             Outcome.CONFIRMED
         } catch (e: HttpException) {
