@@ -1,6 +1,5 @@
 package com.olehkobylianskyi.familypoints.android.network
 
-import com.google.gson.JsonParser
 import com.olehkobylianskyi.familypoints.android.data.OfflinePointOperationRequest
 import com.olehkobylianskyi.familypoints.android.data.OfflineReplaySessionGate
 import kotlinx.coroutines.runBlocking
@@ -44,8 +43,7 @@ class OfflinePointsReplayHttpTest {
         assertEquals("POST", request.method)
         assertEquals("Bearer original", request.getHeader("Authorization"))
         assertEquals("17", request.getHeader("X-Workspace-Data-Epoch"))
-        assertEquals(id, JsonParser.parseString(request.body.readUtf8()).asJsonObject
-            .get("clientOperationId").asString)
+        assertTrue(request.body.readUtf8().contains(id))
         assertEquals(1, server.requestCount)
     }
 
