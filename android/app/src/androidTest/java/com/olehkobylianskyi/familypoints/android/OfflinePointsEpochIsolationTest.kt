@@ -80,4 +80,28 @@ class OfflinePointsEpochIsolationTest {
         }
     }
 
+    @Test fun epochQuarantineDuringHttpReplayPreventsAcknowledgement() = withQueue { q ->
+        assertTrue(q.observeEpoch(91, 17))
+        val pending = q.enqueue(91, 11, 1001, 21, 1, "POINT", "Points", "earn", 3, null)
+        // Simulates verified server epoch change after POST but before commit.
+        assertFalse(q.observeEpoch(91, 18))
+        assertFalse(q.confirm(pending.operationId, 91, 11, 1001))
+        assertEquals(pending.operationId, q.pending(91, 11, 1001).single().operationId)
+        assertTrue(q.isHeldForReset(91))
+    }
+
+    @Test fun acknowledgementIsScopedToOriginalOwnerAndUnrelatedFamilyIsUnaffected() = withQueue { q ->
+        assertTrue(q.observeEpoch(91, 17))
+        assertTrue(q.observeEpoch(92, 17))
+        val first = q.enqueue(91, 11, 1001, 21, 1, "POINT", "Points", "earn", 3, null)
+        val second = q.enqueue(92, 12, 1002, 22, 1, "POINT", "Points", "earn", 4, null)
+        assertFalse(q.confirm(first.operationId, 91, 11, 1002))
+        assertFalse(q.confirm(first.operationId, 92, 12, 1002))
+        q.holdForReset(91)
+        assertFalse(q.confirm(first.operationId, 91, 11, 1001))
+        assertTrue(q.confirm(second.operationId, 92, 12, 1002))
+        assertEquals(first.operationId, q.pending(91, 11, 1001).single().operationId)
+        assertTrue(q.pending(92, 12, 1002).isEmpty())
+    }
+
 }
