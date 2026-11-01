@@ -72,6 +72,12 @@ class WorkspacePortableBackupExporterPostgresTest {
         assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,
                 ()->tx.execute(s->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),7L,
                         List.of("MEMBER_GROUPS"),"V50",key))).getStatusCode());
+        var mediaArchive=tx.execute(status->exporter.export(a,UUID.randomUUID(),
+                UUID.randomUUID(),0L,List.of("MEDIA_ASSETS","MEDIA_BINDINGS"),"V50",key));
+        var mediaInspection=inspector.inspect(mediaArchive.encryptedFile(),a,key);
+        assertEquals(0,mediaInspection.counts().get("MEDIA_ASSETS"));
+        assertEquals(1,mediaInspection.counts().get("MEDIA_BINDINGS"));
+        assertFalse(mediaInspection.restorable());
         var supported=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
                 0L,List.of("TASK_DEFINITIONS","REWARD_DEFINITIONS","MEMBER_GROUPS",
                         "PRIVATE_TEMPLATES","TASK_EXECUTIONS","TASK_SCHEDULE_SLOTS",
