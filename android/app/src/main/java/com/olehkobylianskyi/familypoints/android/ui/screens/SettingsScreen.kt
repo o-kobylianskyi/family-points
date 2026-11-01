@@ -366,7 +366,7 @@ fun SettingsScreen(
                     TemplateLibrarySection(
                         language = language,
                         workspaceId = currentUser.workspaceId ?: return@key,
-                        accountId = currentUser.accountId,
+                        accountId = currentUser.accountId ?: return@key,
                         canManage = "ADMIN_OVERRIDE" in currentUser.permissions ||
                             "MANAGE_TEMPLATES" in currentUser.permissions ||
                             "MANAGE_TASKS" in currentUser.permissions ||
