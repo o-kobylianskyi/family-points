@@ -45,7 +45,7 @@ test('family data navigation must not expose destructive controls to child accou
   await page.locator('form input[type="text"]').fill(process.env.FP_QA_CHILD_USERNAME)
   await page.locator('form input[type="password"]').fill(process.env.FP_QA_CHILD_PASSWORD)
   await page.locator('form button[type="submit"]').click()
-  await expect(page).not.toHaveURL(/\\/login(?:\\?|$)/, { timeout: 12000 })
+  await expect(page).not.toHaveURL(/\/login(?:\?|$)/, { timeout: 12000 })
   test.skip(new URL(page.url()).pathname === '/choose-family', 'Requires selected QA family')
   await page.goto('/settings')
   await expect(page.locator('section[aria-label="Family data safety planning"]')).toHaveCount(0)
