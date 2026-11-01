@@ -5,6 +5,8 @@ import com.olehkobylianskyi.familypoints.android.storage.TemplatePendingOperatio
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import retrofit2.HttpException
 import kotlinx.coroutines.CancellationException
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 /**
  * Explicit receipt-only recovery for a selected account/workspace.
@@ -25,6 +27,7 @@ class TemplateOperationRecovery(
         require(accountId > 0 && workspaceId > 0)
         require(operation.accountId == accountId && operation.workspaceId == workspaceId)
         if (operation.status == "HELD") return Outcome.HELD
+        if (operation.status !in setOf("PREPARED", "UNCERTAIN")) return Outcome.UNKNOWN
         val token = tokens.getAccessToken() ?: return Outcome.UNKNOWN
         val epoch = try {
             ApiClient.workspaceEpochApi.getEpoch("Bearer $token", workspaceId)
@@ -37,7 +40,13 @@ class TemplateOperationRecovery(
         }
         return try {
             if (operation.kind == "IMPORT") {
-                receipts.importReceipt(workspaceId, operation.operationId)
+                val response = receipts.importReceipt(workspaceId, operation.operationId)
+                val expected = Gson().fromJson<List<String>>(
+                    operation.payload, object : TypeToken<List<String>>() {}.type
+                )
+                check(expected != null && response.importResult.selectedCodes == expected) {
+                    "Import receipt selection differs from persisted operation"
+                }
             } else {
                 val result = receipts.activationReceipt(workspaceId, operation.operationId)
                 check(result.templateId == operation.templateId && result.kind == operation.kind) {
