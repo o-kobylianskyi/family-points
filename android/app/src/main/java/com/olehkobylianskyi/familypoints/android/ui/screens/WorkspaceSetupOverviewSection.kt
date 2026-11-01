@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.WorkspaceSetupOverviewRepository
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 private fun ol(lang: AppLanguage, uk: String, de: String, en: String, ru: String): String =
     when (lang) {
@@ -22,6 +23,7 @@ private fun ol(lang: AppLanguage, uk: String, de: String, en: String, ru: String
 fun WorkspaceSetupOverviewSection(
     language: AppLanguage,
     workspaceId: Long,
+    canManage: Boolean,
     repository: WorkspaceSetupOverviewRepository
 ) {
     var overview by remember(workspaceId) {
@@ -30,6 +32,10 @@ fun WorkspaceSetupOverviewSection(
     var loadError by remember(workspaceId) { mutableStateOf("") }
     var reload by remember(workspaceId) { mutableIntStateOf(0) }
     var loading by remember(workspaceId) { mutableStateOf(false) }
+    var saving by remember(workspaceId) { mutableStateOf(false) }
+    var selectedStep by remember(workspaceId) { mutableStateOf<String?>(null) }
+    var selectedStatus by remember(workspaceId) { mutableStateOf("SKIPPED") }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(workspaceId, reload) {
         loading = true
         try {
@@ -72,8 +78,18 @@ fun WorkspaceSetupOverviewSection(
             )
             WorkspaceSetupOverviewRepository.STEPS.forEachIndexed { index, step ->
                 val status = data.state.steps?.get(step)
-                Text("${index + 1}. ${labels[index]}: " + (status ?: "PENDING"),
-                    style = MaterialTheme.typography.bodySmall)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("${index + 1}. ${labels[index]}: " + (status ?: "PENDING"),
+                        modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+                    if (canManage && !saving && data.state.status != "COMPLETED") {
+                        TextButton(onClick = {
+                            selectedStep = step
+                            selectedStatus = if (status == "COMPLETE") "COMPLETE" else "SKIPPED"
+                        }) {
+                            Text(ol(language, "Статус", "Status", "Status", "Статус"))
+                        }
+                    }
+                }
             }
             Text(if (WorkspaceSetupOverviewRepository.readyToFinalize(data.state))
                 ol(language, "Серверні кроки заповнено. Перед завершенням перевірте імпорт.",
@@ -83,6 +99,56 @@ fun WorkspaceSetupOverviewSection(
             else ol(language, "Налаштування ще не завершено.",
                 "Einrichtung noch nicht abgeschlossen.", "Setup is not yet complete.",
                 "Настройка ещё не завершена."))
+        }
+        if (selectedStep != null && overview != null) {
+            val step = selectedStep!!
+            AlertDialog(
+                onDismissRequest = { if (!saving) selectedStep = null },
+                title = { Text(ol(language, "Підтвердити крок", "Schritt bestätigen",
+                    "Confirm step", "Подтвердить шаг")) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(ol(language,
+                            "COMPLETE означає, що ви вже виконали крок. SKIPPED означає свідомий пропуск. Жодна дія не створює груп чи завдань.",
+                            "COMPLETE bestätigt einen bereits erledigten Schritt, SKIPPED überspringt ihn ausdrücklich. Keine Gruppen oder Aufgaben werden erstellt.",
+                            "COMPLETE acknowledges work already done; SKIPPED explicitly skips it. Neither action creates groups or tasks.",
+                            "COMPLETE подтверждает выполненный шаг, SKIPPED явно пропускает. Группы и задания не создаются."))
+                        Row {
+                            FilterChip(selected = selectedStatus == "COMPLETE",
+                                onClick = { selectedStatus = "COMPLETE" },
+                                label = { Text("COMPLETE") })
+                            Spacer(Modifier.width(8.dp))
+                            FilterChip(selected = selectedStatus == "SKIPPED",
+                                onClick = { selectedStatus = "SKIPPED" },
+                                label = { Text("SKIPPED") })
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(enabled = canManage && !saving, onClick = {
+                        val state = overview!!.state
+                        val choice = selectedStatus
+                        saving = true
+                        scope.launch {
+                            try {
+                                repository.acknowledgeStep(
+                                    workspaceId, step, choice, state.revision, state.dataEpoch)
+                                selectedStep = null
+                                reload++
+                            } catch (cancelled: CancellationException) { throw cancelled }
+                            catch (error: Exception) {
+                                loadError = error.message ?: "Setup step update failed"
+                                selectedStep = null
+                            } finally { saving = false }
+                        }
+                    }) { Text(ol(language, "Зберегти", "Speichern", "Save", "Сохранить")) }
+                },
+                dismissButton = {
+                    TextButton(enabled = !saving, onClick = { selectedStep = null }) {
+                        Text(ol(language, "Скасувати", "Abbrechen", "Cancel", "Отмена"))
+                    }
+                }
+            )
         }
         OutlinedButton(enabled = !loading, onClick = { reload++ }) {
             Text(ol(language, "Оновити статус", "Status aktualisieren",
