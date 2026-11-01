@@ -443,3 +443,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - User reran first case with `--headed`: panel precondition succeeded, but `.error-message` absent after 12s. Thus previous hypothesis that Reset section is absent due to permissions was not supported by this run.
 - Found QA-fixture issue: `beforeEach` navigated to Settings and triggered Preview **before** each test registered Playwright route interception; test subsequently revisited Settings. Changed fixture to land on Templates; each case registers routes and only then enters Settings. First case also asserts interception was hit. GitHub commit a2378a5.
 - New code NOT YET verified by local run. Keep 4/4 previous FAIL and first-case 1/1 recheck FAIL historical; no backend/security failures established from those assertions. Next: local rerun first case, then full 4-case suite.
+
+
+## 2026-11-01 — Four Reset recovery tests still fail; deterministic Preview fixtures staged
+- User reran full 4-case suite after route-order correction: **4 FAIL**, with first test interception observed yet `.error-message` never displayed, other cases lacking category checkboxes. Therefore route-order-only fix was insufficient; previous backend-vs-UI root cause remains unresolved.
+- QA test update fc80c67: deterministic browser-local Preview 200 fixture for Plan tests; first failure scenario returns 503 until manual recovery, then mocked Preview 200; late Preview test also uses mocked fresh response. This removes live backend preview state/permissions from *most* test setup, but actual component rendering remains under test. No destructive endpoints called; no production Web/Backend patch.
+- New code NOT YET EXECUTED; 4 FAIL remains latest observed outcome. If still failing, obtain `error-context.md` and screenshot/trace to identify actual rendered DOM and network response rather than guessing.
