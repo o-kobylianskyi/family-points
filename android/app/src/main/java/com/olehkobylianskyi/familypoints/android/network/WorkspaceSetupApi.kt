@@ -36,6 +36,22 @@ data class WorkspaceSetupReviewDto(
     val createsActiveDefinitions: Boolean
 )
 
+
+/** V49: private import and setup completion only; no active definitions. */
+data class SetupFinalizeImportRequest(
+    val expectedRevision: Long,
+    val selectedCatalogCodes: List<String>
+)
+data class SetupFinalizeImportReceiptDto(
+    val operationId: String,
+    val replayed: Boolean,
+    val workspaceId: Long,
+    val dataEpoch: Long,
+    val revision: Long,
+    val setupStatus: String,
+    val importResult: TemplateImportReceiptResultDto
+)
+
 interface WorkspaceSetupApi {
     @GET("workspaces/{workspaceId}/setup")
     suspend fun state(
@@ -50,4 +66,19 @@ interface WorkspaceSetupApi {
         @Path("workspaceId") workspaceId: Long,
         @Body request: WorkspaceSetupReviewRequest
     ): WorkspaceSetupReviewDto
+
+    @retrofit2.http.POST("workspaces/{workspaceId}/setup/finalize-import")
+    suspend fun finalizeImport(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Header("Idempotency-Key") operationId: String,
+        @Body request: SetupFinalizeImportRequest
+    ): SetupFinalizeImportReceiptDto
+
+    @GET("workspaces/{workspaceId}/setup/finalize-import/receipts/{operationId}")
+    suspend fun finalizeReceipt(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("operationId") operationId: String
+    ): SetupFinalizeImportReceiptDto
 }
