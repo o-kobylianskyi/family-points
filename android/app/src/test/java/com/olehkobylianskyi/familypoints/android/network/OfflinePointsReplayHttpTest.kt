@@ -87,7 +87,7 @@ class OfflinePointsReplayHttpTest {
     @Test fun changingAccountDuringDelayed409ResponseRejectsStaleQuarantine() = runBlocking {
         val activeSession = AtomicReference("original")
         val originalUuid = UUID.randomUUID().toString()
-        server.enqueue(MockResponse().setResponseCode(409).setBodyDelay(500, TimeUnit.MILLISECONDS))
+        server.enqueue(MockResponse().setResponseCode(409).setHeadersDelay(500, TimeUnit.MILLISECONDS))
         val response = async(Dispatchers.IO) {
             try {
                 api.replayOffline("Bearer original", 17, 91, 21, "earn",
