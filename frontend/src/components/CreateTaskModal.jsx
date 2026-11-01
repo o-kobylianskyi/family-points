@@ -131,7 +131,7 @@ function CreateTaskModal({
   const [templateLoadError, setTemplateLoadError] = useState(false)
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [taskTemplateCategory, setTaskTemplateCategory] = useState('ALL')
-  const [templateLoading, setTemplateLoading] = useState(false)
+  const [templateLoading, setTemplateLoading] = useState(initialTemplateId != null)
   const templateRequestGeneration = useRef(0)
   const templateWorkspaceRef = useRef(currentUser?.workspaceId)
   if (templateWorkspaceRef.current !== currentUser?.workspaceId) {
@@ -290,10 +290,11 @@ function CreateTaskModal({
         if (initialTemplateId != null && ownTasks.some(item => String(item.id) === String(initialTemplateId))) {
           applyTaskTemplate(String(initialTemplateId))
         } else if (initialTemplateId != null) {
+          setTemplateLoading(false)
           setError(({uk:'Шаблон недоступний у цій сім’ї.',ru:'Шаблон недоступен в этой семье.',de:'Vorlage in dieser Familie nicht verfügbar.',en:'Template is unavailable in this family.'})[i18n.language.split('-')[0]])
         }
       })
-      .catch(() => { if (alive) { setTaskTemplates([]); setTemplateLoadError(true) } })
+      .catch(() => { if (alive) { setTaskTemplates([]); setTemplateLoadError(true); setTemplateLoading(false) } })
     return () => { alive = false; templateRequestGeneration.current += 1 }
   }, [currentUser.workspaceId, editing, initialTemplateId])
 
