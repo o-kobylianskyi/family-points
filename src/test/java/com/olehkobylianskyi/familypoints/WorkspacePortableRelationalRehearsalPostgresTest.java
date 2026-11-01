@@ -117,6 +117,18 @@ class WorkspacePortableRelationalRehearsalPostgresTest {
         assertEquals(1,report.bindings());
         assertEquals(1,report.checkedVariants());
         assertThrows(SecurityException.class,()->engine.rehearse(archive,neighbor,key));
+        // Replaying the same portable file cannot leave a persistent staging
+        // table or change the source family. Each rehearsal is rollback-only.
+        var repeated=engine.rehearse(archive,source,key);
+        assertEquals(report,repeated);
+        assertEquals(1L,db.queryForObject(
+                "SELECT count(*) FROM member_groups WHERE family_id=?",Long.class,source));
+        assertEquals(1L,db.queryForObject(
+                "SELECT count(*) FROM media_assets WHERE workspace_id=?",Long.class,source));
+        // Corruption must fail before touching even temporary PostgreSQL rows.
+        byte[] corrupt=archive.clone();
+        corrupt[corrupt.length-1]^=1;
+        assertThrows(RuntimeException.class,()->engine.rehearse(corrupt,source,key));
         var checked=inspector.inspect(archive,source,key);
         assertFalse(checked.restorable());
         assertEquals(1,checked.counts().get("MEMBER_GROUPS"));
