@@ -75,4 +75,39 @@ class TemplatePendingOperationSqliteTest {
             context.deleteDatabase("fp_template_receipts.db")
         }
     }
+    @Test fun confirmedReceiptIsNotPendingAndCannotBeReopened() = withFreshStore { store ->
+        val entry = draft(11, 91)
+        store.prepare(entry)
+        store.transition(entry, "CONFIRMED", 17L)
+        assertTrue(store.pending(11, 91).isEmpty())
+        assertThrows(IllegalStateException::class.java) {
+            store.transition(entry, "UNCERTAIN", 17L)
+        }
+    }
+
+    @Test fun aForeignAccountCannotMutateAnotherAccountsOperation() = withFreshStore { store ->
+        val entry = draft(11, 91)
+        store.prepare(entry)
+        val forged = entry.copy(accountId = 12L)
+        assertThrows(IllegalStateException::class.java) {
+            store.transition(forged, "CONFIRMED", 17L)
+        }
+        assertEquals("PREPARED", store.pending(11, 91).single().status)
+        assertTrue(store.pending(12, 91).isEmpty())
+    }
+
+    @Test fun sameUuidCannotOverwriteAnotherFamilyOrOriginalPayload() = withFreshStore { store ->
+        val entry = draft(11, 91)
+        store.prepare(entry)
+        assertThrows(android.database.SQLException::class.java) {
+            store.prepare(draft(12, 92, entry.operationId))
+        }
+        assertEquals(entry.payload, store.pending(11, 91).single().payload)
+        assertTrue(store.pending(12, 92).isEmpty())
+        assertThrows(IllegalStateException::class.java) {
+            store.transition(entry.copy(payload = "gcm1:modified"), "CONFIRMED", 17L)
+        }
+    }
+
+
 }
