@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { listProtectiveBackups, getProtectiveBackup } from '../api/backupApi'
 import { useTranslation } from 'react-i18next'
+import FamilyResetReadiness from './FamilyResetReadiness'
 
 // Architecture 77d8d2d4: approved product matrix, NOT an executable reset/restore plan.
 const dictionary = {
@@ -117,6 +118,9 @@ export default function FamilyDataSafetyPlan() {
       {mode==='full' && <p role="alert">{({uk:'У повному режимі захищені та заблоковані категорії не видаляються автоматично. Заблокованих категорій:',ru:'В полном режиме защищённые и заблокированные категории не удаляются автоматически. Заблокировано категорий:',de:'Im vollständigen Modus werden geschützte und gesperrte Kategorien nicht automatisch gelöscht. Gesperrte Kategorien:',en:'Full reset does not automatically remove protected or blocked categories. Blocked categories:'})[language]} {fullBlockedCount}</p>}
       <p role="status">{({uk:'У попередньому плані вибрано',ru:'В предварительном плане выбрано',de:'In der Vorplanung ausgewählt',en:'Selected in planning preview'})[language]}: {resetCount} / {entries.length}. {({uk:'Це не серверний план і не дозвіл на видалення.',ru:'Это не серверный план и не разрешение на удаление.',de:'Dies ist weder ein Serverplan noch eine Löschfreigabe.',en:'This is not a server-approved plan or deletion authorization.'})[language]}</p>
       <p>{w[11]}</p><p>{w[12]}</p>
+      <h3>{({uk:'Окрема серверна перевірка залежностей',ru:'Отдельная серверная проверка зависимостей',de:'Gesonderte serverseitige Abhängigkeitsprüfung',en:'Separate server dependency check'})[language]}</h3>
+      <p>{({uk:'Вибір у цьому локальному плані не передається автоматично в серверний план. Додаткові залежності можна перевірити нижче; виконання залишається вимкненим.',ru:'Выбор в локальном плане не передаётся автоматически на сервер. Зависимости можно проверить ниже; выполнение недоступно.',de:'Diese lokale Auswahl wird nicht automatisch an den Serverplan übertragen. Abhängigkeiten können unten geprüft werden; Ausführung ist gesperrt.',en:'This local selection is not automatically submitted to the server plan. Check dependencies separately below; execution remains disabled.'})[language]}</p>
+      <FamilyResetReadiness />
     </> : tab==='restore' ? <>
       <p>{w[9]}</p><p>{w[13]}</p>
       <fieldset><legend>{({uk:'Режим відновлення — лише план',ru:'Режим восстановления — только план',de:'Wiederherstellungsmodus — nur Planung',en:'Restore mode — planning only'})[language]}</legend>
