@@ -71,6 +71,9 @@ export default function FamilyDataSafetyPlan() {
   }, [workspaceId, accountScope])
   const [restoreMode,setRestoreMode] = useState('selective')
   const [restoreChosen,setRestoreChosen] = useState([])
+  const [showSafetyDetails,setShowSafetyDetails] = useState(false)
+  const resetCount = mode === 'full' ? entries.length : chosen.length
+  const restoreCount = restoreMode === 'full' ? entries.length : restoreChosen.length
   // No upload endpoint currently exists. Categories below are planning-only;
   // archive manifest and compatibility MUST come from validated server preview.
   useEffect(() => { setRestoreChosen([]); setRestoreMode('selective') }, [workspaceId, accountScope])
@@ -93,6 +96,7 @@ export default function FamilyDataSafetyPlan() {
           <span>{label[index]} — {(mode==='full'||chosen.includes(code))?w[5]:w[6]}</span>
         </label>)}
       </div>
+      <p role="status">{({uk:'У попередньому плані вибрано',ru:'В предварительном плане выбрано',de:'In der Vorplanung ausgewählt',en:'Selected in planning preview'})[language]}: {resetCount} / {entries.length}. {({uk:'Це не серверний план і не дозвіл на видалення.',ru:'Это не серверный план и не разрешение на удаление.',de:'Dies ist weder ein Serverplan noch eine Löschfreigabe.',en:'This is not a server-approved plan or deletion authorization.'})[language]}</p>
       <p>{w[11]}</p><p>{w[12]}</p>
     </> : <>
       <p>{w[9]}</p><p>{w[13]}</p>
@@ -108,6 +112,7 @@ export default function FamilyDataSafetyPlan() {
         </label>)}
       </div>
       <p>{({uk:'Конфлікти, що блокують застосування: стан невідомий до серверного аналізу файлу. Заміна чи об’єднання даних не дозволяються за замовчуванням.',ru:'Блокирующие конфликты неизвестны до проверки файла сервером. Замена или объединение по умолчанию запрещены.',de:'Blockierende Konflikte sind bis zur serverseitigen Archivprüfung unbekannt. Kein implizites Ersetzen oder Zusammenführen.',en:'Blocking conflicts are unknown until server-side archive inspection. Replacement or merge is forbidden by default.'})[language]}</p>
+      <p role="status">{({uk:'Заплановано категорій',ru:'Запланировано категорий',de:'Vorgesehene Kategorien',en:'Planned categories'})[language]}: {restoreCount} / {entries.length}</p>
       <p>{w[11]}</p>
     </>}
     <div>
