@@ -47,3 +47,27 @@ function validUuid(value) {
     throw new Error('INVALID_SETUP_OPERATION_ID')
   return value
 }
+
+// V49: explicit atomic PRIVATE template import + completion only.
+// Never creates active TASK/REWARD definitions, purchases or ledger entries.
+// The caller must preserve the original UUID, revision and ordered codes on retry.
+export async function finalizeSetupImport(token, workspaceId, operationId, expectedRevision, selectedCodes) {
+  validUuid(operationId)
+  if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0 ||
+      !Array.isArray(selectedCodes) || selectedCodes.some(code => typeof code !== 'string' || !code.trim()) ||
+      new Set(selectedCodes).size !== selectedCodes.length) throw new Error('INVALID_SETUP_FINALIZE_REQUEST')
+  const result = await read(apiRequest(`/workspaces/${workspace(workspaceId)}/setup/finalize-import`, {
+    token, method: 'POST', headers: { 'Idempotency-Key': operationId },
+    body: { expectedRevision, selectedCatalogCodes: selectedCodes }, cache: 'no-store',
+  }))
+  if (String(result?.workspaceId) !== String(workspaceId) || result?.operationId !== operationId ||
+      result?.setupStatus !== 'COMPLETED' || !result?.importResult) throw new Error('SETUP_FINALIZE_RESPONSE_INVALID')
+  return result
+}
+
+export async function getSetupFinalizeReceipt(token, workspaceId, operationId) {
+  const result = await read(apiRequest(`/workspaces/${workspace(workspaceId)}/setup/finalize-import/receipts/${validUuid(operationId)}`, { token, cache: 'no-store' }))
+  if (String(result?.workspaceId) !== String(workspaceId) || result?.operationId !== operationId ||
+      result?.setupStatus !== 'COMPLETED' || result?.replayed !== true) throw new Error('SETUP_FINALIZE_RECEIPT_INVALID')
+  return result
+}
