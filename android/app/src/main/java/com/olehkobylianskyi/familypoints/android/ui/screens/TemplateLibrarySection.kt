@@ -28,6 +28,7 @@ fun TemplateLibrarySection(
     accountId: Long,
     canManage: Boolean,
     canCreateTasks: Boolean,
+    activationPermissions: Set<String>,
     repository: TemplateRepository,
     onUnauthorized: () -> Unit,
     onClose: () -> Unit
@@ -68,7 +69,19 @@ fun TemplateLibrarySection(
     var busy by remember(workspaceId) { mutableStateOf(false) }
     var error by remember(workspaceId) { mutableStateOf("") }
     var notice by remember(workspaceId) { mutableStateOf("") }
-    var creationDraft by remember(workspaceId) { mutableStateOf<com.google.gson.JsonObject?>(null) }
+    var creationDraft by remember(accountId, workspaceId) { mutableStateOf<com.google.gson.JsonObject?>(null) }
+    var activationText by remember(accountId, workspaceId) { mutableStateOf("") }
+    var activationConfirm by remember(accountId, workspaceId) { mutableStateOf(false) }
+    var pendingActivation by remember(accountId, workspaceId) {
+        mutableStateOf(pendingStore.pending(accountId, workspaceId)
+            .filter { it.kind in setOf("TASK", "REWARD") })
+    }
+    val activationCoordinator = remember(tokens, pendingStore, receiptRepository) {
+        com.olehkobylianskyi.familypoints.android.data.ConfirmedTemplateActivationCoordinator(
+            tokens, pendingStore, receiptRepository,
+            com.olehkobylianskyi.familypoints.android.storage.TemplateOperationCipher()
+        )
+    }
     var editing by remember(workspaceId) { mutableStateOf<PrivateTemplateDto?>(null) }
     var editTitle by remember(workspaceId) { mutableStateOf("") }
     var editJson by remember(workspaceId) { mutableStateOf("") }
@@ -605,6 +618,7 @@ fun TemplateLibrarySection(
                                 val draft = repository.creationDraft(workspaceId, item.id)
                                 if (draft.get("templateId")?.asLong == item.id) {
                                     creationDraft = draft
+                                    activationText = draft.getAsJsonObject("request")?.toString().orEmpty()
                                     loadedDraftWorkspace = workspaceId
                                 } else {
                                     error = tl(language, "Відповідь сервера не відповідає вибраному шаблону.",
@@ -670,6 +684,7 @@ fun TemplateLibrarySection(
                                     throw SecurityException("Unexpected economy draft response")
                                 }
                                 creationDraft = applied
+                                activationText = applied.getAsJsonObject("request")?.toString().orEmpty()
                             }
                         }) {
                             Text(tl(language, "Застосувати до чернетки", "Auf Entwurf anwenden",
@@ -684,6 +699,91 @@ fun TemplateLibrarySection(
                             color = MaterialTheme.colorScheme.primary)
                     }
                     val request = creationDraft?.getAsJsonObject("request")
+                    val allowedToActivate = when(draftKind) {
+                        "TASK" -> "CREATE_TASKS" in activationPermissions
+                        "REWARD" -> "MANAGE_REWARDS" in activationPermissions
+                        else -> false
+                    }
+                    OutlinedTextField(
+                        value = activationText,
+                        onValueChange = { activationText = it.take(30000) },
+                        enabled = !busy && allowedToActivate,
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        maxLines = 8,
+                        label = { Text(tl(language, "Повний JSON запиту створення",
+                            "Vollständiger JSON-Erstellungsantrag",
+                            "Full creation request JSON", "Полный JSON запроса создания")) }
+                    )
+                    val reviewedActivation = remember(activationText) {
+                        try {
+                            com.google.gson.JsonParser.parseString(activationText)
+                                .takeIf { it.isJsonObject }?.asJsonObject
+                        } catch (_: Exception) { null }
+                    }
+                    val activationReady = allowedToActivate && draftId != null &&
+                        reviewedActivation != null && reviewedActivation.entrySet().isNotEmpty() &&
+                        reviewedActivation.entrySet().none { it.value == null || it.value.isJsonNull } &&
+                        pendingActivation.none { it.templateId == draftId && it.kind == draftKind }
+                    if (pendingActivation.isNotEmpty()) {
+                        Text(tl(language,
+                            "Невизначена активація: спочатку перевірте квитанцію. Нове підтвердження заблоковано.",
+                            "Ungeklärte Aktivierung: zuerst Beleg prüfen. Neue Bestätigung gesperrt.",
+                            "Activation pending: check receipt before a new confirmation.",
+                            "Активация не подтверждена: сначала проверьте квитанцию."),
+                            color = MaterialTheme.colorScheme.error)
+                        OutlinedButton(enabled = !busy, onClick = {
+                            perform {
+                                for (operation in pendingActivation) recovery.check(accountId, workspaceId, operation)
+                                pendingActivation = pendingStore.pending(accountId, workspaceId)
+                                    .filter { it.kind in setOf("TASK", "REWARD") }
+                                if (pendingActivation.isEmpty()) {
+                                    notice = tl(language, "Квитанцію підтверджено", "Beleg bestätigt",
+                                        "Receipt confirmed", "Квитанция подтверждена")
+                                }
+                            }
+                        }) { Text(tl(language, "Перевірити квитанцію", "Beleg prüfen",
+                            "Check receipt", "Проверить квитанцию")) }
+                    }
+                    Button(enabled = !busy && activationReady && pendingActivation.isEmpty(),
+                        onClick = { activationConfirm = true }) {
+                        Text(tl(language, "Перевірити та створити", "Prüfen und erstellen",
+                            "Review and create", "Проверить и создать"))
+                    }
+                    if (activationConfirm && reviewedActivation != null && draftId != null && draftKind != null) {
+                        val exactRequest = reviewedActivation.deepCopy()
+                        AlertDialog(
+                            onDismissRequest = { activationConfirm = false },
+                            title = { Text(tl(language, "Підтвердити створення?",
+                                "Erstellung bestätigen?", "Confirm creation?", "Подтвердить создание?")) },
+                            text = { Text(exactRequest.toString().take(1200)) },
+                            confirmButton = { Button(onClick = {
+                                activationConfirm = false
+                                perform {
+                                    when (val outcome = activationCoordinator.confirm(
+                                        accountId, workspaceId, draftId, draftKind,
+                                        activationPermissions, exactRequest
+                                    )) {
+                                        is com.olehkobylianskyi.familypoints.android.data.ConfirmedTemplateActivationCoordinator.Result.Confirmed -> {
+                                            creationDraft = null
+                                            notice = tl(language, "Створено", "Erstellt", "Created", "Создано")
+                                        }
+                                        is com.olehkobylianskyi.familypoints.android.data.ConfirmedTemplateActivationCoordinator.Result.Uncertain ->
+                                            notice = tl(language, "Результат невідомий. Перевірте квитанцію.",
+                                                "Ergebnis unklar. Beleg prüfen.", "Result unknown. Check receipt.",
+                                                "Результат неизвестен. Проверьте квитанцию.")
+                                        is com.olehkobylianskyi.familypoints.android.data.ConfirmedTemplateActivationCoordinator.Result.Blocked ->
+                                            error = outcome.reason
+                                    }
+                                    pendingActivation = pendingStore.pending(accountId, workspaceId)
+                                        .filter { it.kind in setOf("TASK", "REWARD") }
+                                }
+                            }) { Text(tl(language, "Підтвердити", "Bestätigen", "Confirm", "Подтвердить")) } },
+                            dismissButton = { TextButton(onClick = { activationConfirm = false }) {
+                                Text(tl(language, "Скасувати", "Abbrechen", "Cancel", "Отмена"))
+                            } }
+                        )
+                    }
                     if (request == null) {
                         Text(tl(language, "Сервер не повернув поля чернетки.",
                             "Der Server hat keine Entwurfsfelder geliefert.",
