@@ -1,3 +1,4 @@
+import { backupRow } from './family-data-qa-helpers.js'
 import { test, expect } from '@playwright/test'
 
 const username = process.env.FP_QA_USERNAME || process.env.FP_QA_EMAIL
@@ -27,7 +28,7 @@ test.describe('V50 backup metadata detail fail-closed', () => {
     await page.route(listPath, route => {
       activeId = Number(new URL(route.request().url()).pathname.match(/\/workspaces\/(\d+)\//)[1])
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{
-        workspaceId:activeId,snapshotId,state:'REQUESTED',resetMode:'SELECTIVE',selectedCategories:['PRIVATE_TEMPLATES']
+        ...backupRow(activeId,snapshotId,{selectedCategories:['PRIVATE_TEMPLATES']})
       }])})
     })
     let detailCalls=0
@@ -35,8 +36,7 @@ test.describe('V50 backup metadata detail fail-closed', () => {
       detailCalls++
       const wrong = detailCalls > 1
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-        workspaceId:wrong ? activeId + 1 : activeId,snapshotId,state:'REQUESTED',
-        resetMode:'SELECTIVE',selectedCategories:['PRIVATE_TEMPLATES'],restoreVerified:false,
+        ...backupRow(wrong ? activeId+1 : activeId,snapshotId,{selectedCategories:['PRIVATE_TEMPLATES']}),
       })})
     })
     await page.goto('/settings')
@@ -58,8 +58,8 @@ test.describe('V50 backup metadata detail fail-closed', () => {
     await page.route(listPath,route=>{
       const id=Number(new URL(route.request().url()).pathname.match(/\/workspaces\/(\d+)\//)[1])
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([
-        {workspaceId:id,snapshotId,state:'REQUESTED'},
-        {workspaceId:id+1,snapshotId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',state:'VERIFIED'}
+        backupRow(id,snapshotId),
+        backupRow(id+1,'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',{state:'VERIFIED',restoreVerified:true})
       ])})
     })
     await page.goto('/settings')
