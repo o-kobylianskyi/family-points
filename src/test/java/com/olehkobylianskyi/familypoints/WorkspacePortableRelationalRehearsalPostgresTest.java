@@ -151,6 +151,20 @@ class WorkspacePortableRelationalRehearsalPostgresTest {
         assertEquals("Other group",db.queryForObject("SELECT name FROM member_groups WHERE family_id=?",String.class,neighbor));
         assertArrayEquals(original,db.queryForObject("SELECT bytes FROM media_blobs WHERE asset_id=?",byte[].class,imageId));
         assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,source));
+        // Fault injection: a partial staging reconstruction with an invalid
+        // media reference must abort atomically, not leave staged data behind.
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class,()->tx.execute(status->{
+            db.execute("CREATE TEMP TABLE fp_fault_group(id bigint PRIMARY KEY) ON COMMIT DROP");
+            db.execute("CREATE TEMP TABLE fp_fault_media(id uuid PRIMARY KEY) ON COMMIT DROP");
+            db.execute("CREATE TEMP TABLE fp_fault_link(group_id bigint REFERENCES fp_fault_group(id), asset_id uuid REFERENCES fp_fault_media(id)) ON COMMIT DROP");
+            db.update("INSERT INTO fp_fault_group(id) VALUES (?)",group);
+            db.update("INSERT INTO fp_fault_link(group_id,asset_id) VALUES (?,?)",
+                    group,UUID.randomUUID());
+            return null;
+        }));
+        assertEquals(1L,db.queryForObject("SELECT count(*) FROM media_blobs WHERE asset_id=?",
+                Long.class,imageId));
+
         // Source foreign keys and preserved archive identity must remain exact.
         assertEquals(1L,db.queryForObject("""
                 SELECT count(*) FROM media_bindings
