@@ -111,4 +111,43 @@ class WorkspaceIsolationFilterTest {
         assertNull(chain.getRequest());
     }
 
+    @Test
+    void setupReviewFinalizeAndReceiptsBlockForeignWorkspaceBeforeControllers() throws Exception {
+        authenticate();
+        when(currentUser.belongsToWorkspace(200L)).thenReturn(false);
+        for (String path : List.of(
+                "/workspaces/200/setup",
+                "/workspaces/200/setup/review",
+                "/workspaces/200/setup/finalize-import",
+                "/workspaces/200/setup/finalize-import/receipts/00000000-0000-4000-8000-000000000001",
+                "/workspaces/200/templates/imports/idempotent",
+                "/workspaces/200/templates/imports/receipts/00000000-0000-4000-8000-000000000001",
+                "/workspaces/200/templates/42/activate-task/idempotent",
+                "/workspaces/200/templates/42/activate-reward/idempotent",
+                "/workspaces/200/templates/activations/receipts/00000000-0000-4000-8000-000000000001")) {
+            var response=new MockHttpServletResponse();
+            var chain=new MockFilterChain();
+            filter.doFilter(request(path),response,chain);
+            assertEquals(403,response.getStatus(),path);
+            assertNull(chain.getRequest(),"Must not invoke any onboarding controller for "+path);
+        }
+        verify(currentUser,times(9)).belongsToWorkspace(200L);
+    }
+
+    @Test
+    void setupRoutesAllowSelectedMembershipPastIsolationFilterOnly() throws Exception {
+        authenticate();
+        when(currentUser.belongsToWorkspace(100L)).thenReturn(true);
+        for(String path : List.of("/workspaces/100/setup/review",
+                "/workspaces/100/setup/finalize-import",
+                "/workspaces/100/templates/10/activate-task/idempotent",
+                "/workspaces/100/templates/activations/receipts/00000000-0000-4000-8000-000000000001")) {
+            var response=new MockHttpServletResponse();
+            var chain=new MockFilterChain();
+            filter.doFilter(request(path),response,chain);
+            assertEquals(200,response.getStatus());
+            assertNotNull(chain.getRequest(),path);
+        }
+    }
+
 }
