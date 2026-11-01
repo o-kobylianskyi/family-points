@@ -434,7 +434,7 @@ function CreateTaskModal({
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (submitLock.current || loading || templateLoading || (initialTemplateId != null && selectedTemplateId !== String(initialTemplateId))) return
+    if (submitLock.current || loading || templateLoading) return
 
     const trimmedTitle = title.trim()
 
