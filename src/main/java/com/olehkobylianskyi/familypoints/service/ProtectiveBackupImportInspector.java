@@ -206,7 +206,15 @@ public final class ProtectiveBackupImportInspector {
                     else if(!rowIds.getOrDefault(parent,Set.of()).contains(targetId))
                         blockers.add("DANGLING_REFERENCE:MEDIA_BINDINGS.target_id");
                 }
-                if(binding.hasNonNull("asset_id")) {
+                // Each binding must point to exactly one representation.
+                // Null/empty catalog keys are not valid alternatives to
+                // private binary assets. Never silently guess binding type.
+                boolean privateAsset=binding.hasNonNull("asset_id");
+                boolean catalogKey=binding.path("catalog_key").isTextual()
+                        && !binding.path("catalog_key").asText().isBlank();
+                if(privateAsset==catalogKey)
+                    blockers.add("INVALID_MEDIA_BINDING_SOURCE");
+                if(privateAsset) {
                     if(!categories.has("MEDIA_ASSETS")) {
                         blockers.add("MISSING_CATEGORY:MEDIA_ASSETS");
                     } else {
