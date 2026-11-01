@@ -171,7 +171,7 @@ test.describe('BKL-002 read-only error recovery', () => {
         new Promise((_, reject) => setTimeout(() => reject(new Error('Plan request never arrived')), 10000)),
       ])
       // Navigate away to invalidate the generation that issued the Plan.
-      await page.goto('/templates', { waitUntil: 'domcontentloaded' })
+      await page.goto('/points', { waitUntil: 'domcontentloaded' })
       finishResponse()
       await page.goto('/settings', { waitUntil: 'domcontentloaded' })
       const nextPanel = page.locator('.family-reset-readiness')
@@ -215,7 +215,7 @@ test.describe('BKL-002 read-only error recovery', () => {
     try {
       await page.goto('/settings', { waitUntil: 'domcontentloaded' })
       await arrived
-      await page.goto('/templates', { waitUntil: 'domcontentloaded' })
+      await page.goto('/points', { waitUntil: 'domcontentloaded' })
       release()
       await page.goto('/settings', { waitUntil: 'domcontentloaded' })
       const panel = page.locator('.family-reset-readiness')
