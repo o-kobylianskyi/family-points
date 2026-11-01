@@ -843,3 +843,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Added MockWebServer JVM wire tests for offline replay timeout (exactly one POST with original UUID and X-Workspace-Data-Epoch) and HTTP409 (not proof of reset without verified epoch); commits cb7d8922 and 85cc86c0. No real server/point mutation.
 - Source checks only: this assistant did not run Gradle at current HEAD. Full PointsRepository+SQLite+HTTP session-switch end-to-end test and Android instrumentation still outstanding; never infer their PASS from the previous local build.
 - Backend full/selective portable restore and BKL002 reset are not authorized for Android execution. BETA remains HOLD.
+
+## 2026-11-01 — AND-QA-12 consolidated offline replay checkpoint
+- Added mid-sync account identity checks after authenticated /me and after observeEpoch before queue snapshot/replay (f41988fc). Prior session checks before POST and after response remain.
+- MockWebServer transport regression models lost first offline POST response followed by an **explicit later synchronization** using the same immutable clientOperationId and identical body, while HTTP409 requires epoch reconciliation rather than reset assumption (224f34d). This is deliberately distinct from V48 template activation: offline points replay uses a server-idempotent clientOperationId, not an auto-created new mutation UUID.
+- Exact-head Gradle and AndroidTest runtime not performed in this tool session. No claim of coordinator+SQLite+HTTP full E2E; it remains open. BKL002 Android reset/restore writes and BETA deployment remain HOLD.
