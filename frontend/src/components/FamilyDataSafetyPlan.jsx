@@ -84,7 +84,7 @@ export default function FamilyDataSafetyPlan() {
   }
   const resetCount = mode === 'full' ? entries.filter(([code]) => fullAction(code) === 'DELETE').length : chosen.length
   const fullBlockedCount = entries.filter(([code]) => fullAction(code) === 'BLOCKED').length
-  const restoreCount = restoreMode === 'full' ? entries.length : restoreChosen.length
+  const restoreCount = restoreMode === 'full' ? 0 : restoreChosen.length
   const workflow = {
     uk: ['Вибір категорій','Перевірка наслідків','Перевірена захисна копія','Повторна авторизація','Підтвердження','Квитанція операції'],
     ru: ['Выбор категорий','Проверка последствий','Проверенная защитная копия','Повторная авторизация','Подтверждение','Квитанция операции'],
@@ -126,8 +126,8 @@ export default function FamilyDataSafetyPlan() {
       <p>{({uk:'Ці категорії не підтверджені складом архіву. Після завантаження файлу Backend має перевірити фактичний вміст, сумісність, залежності й конфлікти.',ru:'Категории не подтверждены содержимым архива. Backend должен проверить состав, совместимость, зависимости и конфликты.',de:'Kategorien sind nicht aus einer Archivdatei verifiziert. Backend muss Inhalt, Kompatibilität, Abhängigkeiten und Konflikte prüfen.',en:'Categories are not verified against an archive. Backend must validate actual contents, compatibility, dependencies and conflicts.'})[language]}</p>
       <div style={{maxHeight:280,overflowY:'auto'}}>
         {entries.map(([code,initial,label])=><label key={code} style={{display:'flex',gap:10,padding:'5px 0'}}>
-          <input type="checkbox" checked={restoreMode==='full' || restoreChosen.includes(code)} disabled={restoreMode==='full'} onChange={()=>setRestoreChosen(v=>v.includes(code)?v.filter(c=>c!==code):[...v,code])}/>
-          <span>{label[index]} — {(restoreMode==='full' || restoreChosen.includes(code))?({uk:'Планується відновити',ru:'Планируется восстановить',de:'Zur Wiederherstellung vorgesehen',en:'Planned for restore'})[language]:w[6]}</span>
+          <input type="checkbox" checked={restoreMode==='selective' && restoreChosen.includes(code)} disabled={restoreMode==='full'} onChange={()=>setRestoreChosen(v=>v.includes(code)?v.filter(c=>c!==code):[...v,code])}/>
+          <span>{label[index]} — {restoreMode==='full' ? ({uk:'Невідомо без перевіреного архіву',ru:'Неизвестно без проверенного архива',de:'Ohne geprüftes Archiv unbekannt',en:'Unknown without verified archive'})[language] : restoreChosen.includes(code) ? ({uk:'Намір, не перевірено',ru:'Намерение, не проверено',de:'Absicht, nicht geprüft',en:'Intent, not verified'})[language] : w[6]}</span>
         </label>)}
       </div>
       <p>{({uk:'Конфлікти, що блокують застосування: стан невідомий до серверного аналізу файлу. Заміна чи об’єднання даних не дозволяються за замовчуванням.',ru:'Блокирующие конфликты неизвестны до проверки файла сервером. Замена или объединение по умолчанию запрещены.',de:'Blockierende Konflikte sind bis zur serverseitigen Archivprüfung unbekannt. Kein implizites Ersetzen oder Zusammenführen.',en:'Blocking conflicts are unknown until server-side archive inspection. Replacement or merge is forbidden by default.'})[language]}</p>
