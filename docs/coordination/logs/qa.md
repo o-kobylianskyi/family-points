@@ -557,3 +557,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - User executed targeted Maven `WorkspacePortableRestorePreviewPostgresTest`: **Tests run 2, Failures 0, Errors 0, Skipped 0; BUILD SUCCESS**. This verifies two disposable-PostgreSQL preview scenarios including tenant/epoch/conflict rejection and invalid/unsupported selection fail-closed with no data changes.
 - Exact checked-out local SHA and XML artifact not provided, so this is user-reported local acceptance, not proof CI on current origin/main.
 - This does NOT approve portable full/selective restore execute, actual export-download-import roundtrip, rollback or BKL-002 destructive reset. Next independent tests: wrong-key/tamper, stale archive selection, duplicate ID and bounded payload behavior, PostgreSQL foreign workspace preservation.
+
+
+## 2026-11-01 — Portable restore encrypted archive negative PostgreSQL suite staged
+- Following user-confirmed 2/2 PostgreSQL restore preview PASS, QA added `WorkspacePortableRestoreArchiveSecurityPostgresTest` (0765b38): one real disposable PostgreSQL Testcontainers scenario covering independently generated wrong AES key, ciphertext last-byte tamper, trailing envelope bytes, invalid FPB magic, foreign-family archive binding, plus unchanged both families' group names and dataEpoch.
+- An attempted append to shared `WorkspacePortableRestorePreviewPostgresTest` hit GitHub 409 because another track concurrently changed its blob. Avoided overwriting and created a separate test class instead. No persistent QA/production DB writes.
+- New test SOURCE ONLY, **NOT YET EXECUTED**. Run Maven with Docker: `./mvnw.cmd -Dtest=WorkspacePortableRestoreArchiveSecurityPostgresTest test`; preserve console/XML result and exact SHA. Restore execution remains blocked.
