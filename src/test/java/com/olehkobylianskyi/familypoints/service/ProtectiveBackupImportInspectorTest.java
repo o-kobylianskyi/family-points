@@ -143,6 +143,20 @@ class ProtectiveBackupImportInspectorTest {
         assertFalse(result.restorable());
     }
 
+    @Test void rejectsMalformedMediaBlobsBeforeAnyRestore() throws Exception {
+        var key=key();
+        for(String blobs:java.util.List.of(
+                "[{\"variant\":\"COVER\",\"bytesBase64\":\"*bad*\"}]",
+                "[{\"variant\":\"COVER\",\"bytesBase64\":\"AQI=\"},{\"variant\":\"COVER\",\"bytesBase64\":\"AQI=\"}]",
+                "[{\"variant\":\"FULL\",\"bytesBase64\":\"AQI=\"}]",
+                "[{\"variant\":\"CARD\",\"bytesBase64\":\"\"}]")) {
+            var json="{\"format\":\"family-points-export-v1\",\"workspaceId\":42,"
+                    +"\"categories\":{\"MEDIA_ASSETS\":[{\"id\":\"77cc92a5-7905-4396-975a-8a1387555730\","
+                    +"\"workspace_id\":42,\"blobs\":"+blobs+"}]}}";
+            assertThrows(IllegalArgumentException.class,()->inspector.inspect(file(42L,json,key),42L,key));
+        }
+    }
+
     @Test void unknownCategoriesAndUnsafeArchiveShapeFailClosed() throws Exception {
         var key=key();
         for(String payload:java.util.List.of(
