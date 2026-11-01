@@ -168,11 +168,15 @@ export default function FamilyResetReadiness() {
   const [busy,setBusy] = useState(false)
   const generation = useRef(0)
   const selectionRevision = useRef(0)
+  const auditGeneration = useRef(0)
+  const selectionAuditGeneration = useRef(0)
   const workspaceRef = useRef(workspaceId)
   if (workspaceRef.current !== workspaceId) { workspaceRef.current = workspaceId; generation.current += 1 }
 
   const load = async (id, requestId) => {
     selectionRevision.current += 1
+    auditGeneration.current += 1; selectionAuditGeneration.current += 1
+    setAudit(null); setSelectionAudit(null); setAuditError(false); setAuditBusy(false)
     setBusy(true);setError(null);setPreview(null);setPlan(null);setSelected([])
     try {
       const result = await getResetPreview(getAccessToken(), id)
@@ -212,29 +216,31 @@ export default function FamilyResetReadiness() {
   }
   const inspectSelected = async () => {
     const id = workspaceId, gen = generation.current, revision = selectionRevision.current
+    const auditId = ++selectionAuditGeneration.current
     const codes = [...selected]
     if (!codes.length) return
     setAuditError(false); setAuditBusy(true); setSelectionAudit(null)
     try {
       const result = await inspectResetSelection(getAccessToken(), id, codes)
-      if (workspaceRef.current === id && generation.current === gen && selectionRevision.current === revision) setSelectionAudit(result)
+      if (workspaceRef.current === id && generation.current === gen && selectionRevision.current === revision && selectionAuditGeneration.current === auditId) setSelectionAudit(result)
     } catch {
-      if (workspaceRef.current === id && generation.current === gen && selectionRevision.current === revision) setAuditError(true)
+      if (workspaceRef.current === id && generation.current === gen && selectionRevision.current === revision && selectionAuditGeneration.current === auditId) setAuditError(true)
     } finally {
-      if (workspaceRef.current === id && generation.current === gen) setAuditBusy(false)
+      if (workspaceRef.current === id && generation.current === gen && selectionAuditGeneration.current === auditId) setAuditBusy(false)
     }
   }
   const inspect = async () => {
     const id = workspaceId
     const gen = generation.current
+    const auditId = ++auditGeneration.current
     setAudit(null); setAuditError(false); setAuditBusy(true)
     try {
       const result = await getResetDependencyAudit(getAccessToken(), id)
-      if (generation.current === gen && workspaceRef.current === id) setAudit(result)
+      if (generation.current === gen && workspaceRef.current === id && auditGeneration.current === auditId) setAudit(result)
     } catch {
-      if (generation.current === gen && workspaceRef.current === id) setAuditError(true)
+      if (generation.current === gen && workspaceRef.current === id && auditGeneration.current === auditId) setAuditError(true)
     } finally {
-      if (generation.current === gen && workspaceRef.current === id) setAuditBusy(false)
+      if (generation.current === gen && workspaceRef.current === id && auditGeneration.current === auditId) setAuditBusy(false)
     }
   }
   const keys = Object.keys(preview?.categories || {})
@@ -261,7 +267,8 @@ export default function FamilyResetReadiness() {
           return <label key={code} className="family-reset-category">
             <input type="checkbox" disabled={busy} checked={selected.includes(code)} onChange={e=>{
               selectionRevision.current += 1
-              setPlan(null); setSelectionAudit(null)
+              selectionAuditGeneration.current += 1
+              setPlan(null); setSelectionAudit(null); setAuditBusy(false)
               setSelected(old=>e.target.checked?[...old,code]:old.filter(item=>item!==code))
             }}/>
             <span><strong>{categories[code]?.[localeIndex[language]??3]||code}</strong>
