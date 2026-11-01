@@ -42,6 +42,18 @@ public final class ProtectiveBackupImportInspector {
         }
     }
 
+    private static void checkMemberParent(JsonNode categories,Set<String> blockers,String child) {
+        if(!categories.has(child))return;
+        for(JsonNode row:categories.path(child)) {
+            if(!row.path("member_id").canConvertToLong() || row.path("member_id").asLong()<=0)
+                blockers.add("INVALID_REFERENCE:"+child+".member_id");
+            // FamilyMembers are identity-protected and intentionally omitted
+            // from this archive version. Cross-family identity resolution is
+            // therefore unverified even when the foreign ID is plausible.
+            else blockers.add("IDENTITY_REBIND_REQUIRED:"+child+".member_id");
+        }
+    }
+
     public Inspection inspect(byte[] bytes,long targetWorkspace,SecretKey key) {
         var artifact=files.decode(bytes);
         var manifest=artifact.manifest();
@@ -121,6 +133,16 @@ public final class ProtectiveBackupImportInspector {
                 rowIds.put(cat.getKey(),idsForCategory);
             }
             checkParent(categories,rowIds,blockers,"TASK_SCHEDULE_SLOTS","task_definition_id","TASK_DEFINITIONS");
+            // Portable archives cannot assume that a parent omitted by the
+            // selected subset will be present in the target workspace.
+            checkParent(categories,rowIds,blockers,"TASK_EXECUTIONS","task_definition_id","TASK_DEFINITIONS");
+            checkParent(categories,rowIds,blockers,"REWARD_REQUESTS","reward_definition_id","REWARD_DEFINITIONS");
+            checkParent(categories,rowIds,blockers,"REWARD_PURCHASES","reward_definition_id","REWARD_DEFINITIONS");
+            checkMemberParent(categories,blockers,"TASK_EXECUTIONS");
+            checkMemberParent(categories,blockers,"REWARD_PURCHASES");
+            checkMemberParent(categories,blockers,"POINT_LEDGER");
+            checkMemberParent(categories,blockers,"REPUTATION_LEDGER");
+
             for(JsonNode binding:categories.path("MEDIA_BINDINGS")) {
                 if(binding.hasNonNull("asset_id")) {
                     if(!categories.has("MEDIA_ASSETS")) {
