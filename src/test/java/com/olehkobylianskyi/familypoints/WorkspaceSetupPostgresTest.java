@@ -30,7 +30,7 @@ class WorkspaceSetupPostgresTest {
     private Fixture fixture() {
         var source = new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
         var db = new JdbcTemplate(source);
-        var flyway = Flyway.configure().dataSource(source).locations("classpath:db/migration");
+        // Reset only this disposable Testcontainers database between test methods.\n        // Never use Flyway.clean() against DEV, BETA, PROD or real family data.\n        Flyway.configure().dataSource(source).cleanDisabled(false).load().clean();\n        var flyway = Flyway.configure().dataSource(source).locations("classpath:db/migration");
         flyway.target(MigrationVersion.fromVersion("45")).load().migrate();
         long old = db.queryForObject("INSERT INTO families(name) VALUES ('Existing family') RETURNING id",Long.class);
         assertEquals(1,Flyway.configure().dataSource(source).locations("classpath:db/migration")
