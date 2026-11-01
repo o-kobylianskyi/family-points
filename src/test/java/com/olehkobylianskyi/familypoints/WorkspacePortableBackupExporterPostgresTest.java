@@ -66,6 +66,14 @@ class WorkspacePortableBackupExporterPostgresTest {
         assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,
                 ()->tx.execute(s->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),7L,
                         List.of("MEMBER_GROUPS"),"V50",key))).getStatusCode());
+        var supported=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
+                0L,List.of("TASK_DEFINITIONS","REWARD_DEFINITIONS","MEMBER_GROUPS",
+                        "PRIVATE_TEMPLATES"),"V50",key));
+        var four=inspector.inspect(supported.encryptedFile(),a,key);
+        assertEquals(4,four.availableCategories().size());
+        assertEquals(0,four.counts().get("TASK_DEFINITIONS"));
+        assertEquals(0,four.counts().get("REWARD_DEFINITIONS"));
+        assertFalse(four.restorable(),"An exported archive is not yet a verified restore");
         assertEquals(1L,db.queryForObject("SELECT count(*) FROM member_groups WHERE family_id=?",
                 Long.class,a));
         assertEquals("Private B",db.queryForObject(
