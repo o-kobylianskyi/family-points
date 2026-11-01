@@ -153,6 +153,38 @@ class WorkspaceSetupFullCatalogPostgresTest {
         assertEquals(0L,count(f,"workspace_setup_finalize_receipts",f.family));
     }
 
+    @Test void completionFailureAfterRealPrivateImportRollsBackEverything() {
+        var f=fixture();
+        long revision=0;
+        for(var step:WorkspaceSetupService.STEPS) {
+            final long expected=revision;
+            revision=Objects.requireNonNull(f.tx.execute(s->f.setup.setStep(f.family,step,
+                    new WorkspaceSetupService.StepRequest("COMPLETE",expected)))).revision();
+        }
+        // Same real catalog import path as finalize; inject a failure specifically
+        // at the final setup-state write, after private template INSERT statements.
+        var guard=new WorkspaceEpochTransactionGuard(f.db);
+        var source=new WorkspaceSetupService(f.db,guard,true);
+        var failingSetup=spy(source);
+        doThrow(new IllegalStateException("final completion unavailable"))
+                .when(failingSetup).complete(eq(f.family),eq(revision));
+        var realTemplates=new WorkspaceTemplateController(f.db,new TemplateCatalogService(),
+                mock(TaskDefinitionRepository.class),mock(RewardDefinitionRepository.class),
+                mock(TaskController.class),mock(RewardController.class),guard);
+        var imports=new WorkspaceTemplateImportReceiptService(f.db,guard,realTemplates);
+        var finalizeWithFailure=new WorkspaceSetupFinalizeService(f.db,guard,failingSetup,imports);
+        String firstCode=new TemplateCatalogService().getCatalog().path("templates").get(0).path("code").asText();
+        final long expected=revision;
+        assertThrows(IllegalStateException.class,()->f.tx.execute(s->
+                finalizeWithFailure.finalizeWizard(f.family,UUID.randomUUID(),
+                        new WorkspaceSetupFinalizeService.Request(expected,List.of(firstCode)))));
+        assertEquals("IN_PROGRESS",f.setup.current(f.family).status());
+        assertEquals(expected,f.setup.current(f.family).revision());
+        assertEquals(0L,count(f,"workspace_private_templates",f.family));
+        assertEquals(0L,count(f,"workspace_template_import_receipts",f.family));
+        assertEquals(0L,count(f,"workspace_setup_finalize_receipts",f.family));
+    }
+
     private static long count(Fixture f,String table,long family) {
         // Table names are fixed test literals only.
         if(!Set.of("workspace_private_templates","workspace_template_import_receipts",
