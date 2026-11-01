@@ -92,9 +92,13 @@ final class DisposablePrivateMediaRestoreExecutor {
                         asset.path("height").asInt(),asset.path("byte_size").asInt(),
                         asset.path("sha256").asText(),owner);
                 ids.put(oldId,newId);
+                int originalVariantBytes=0;
                 for(JsonNode variant:asset.path("blobs")) {
                     byte[] bytes=Base64.getDecoder().decode(variant.path("bytesBase64").asText());
                     try {
+                        if(bytes.length==0 || bytes.length>5_242_880)
+                            throw new IllegalArgumentException("PRIVATE_MEDIA_INVALID_BLOB_SIZE");
+                        originalVariantBytes+=bytes.length;
                         db.update("INSERT INTO media_blobs(asset_id,variant,bytes) VALUES (?,?,?)",
                                 newId,variant.path("variant").asText(),bytes);
                         byte[] retrieved=db.queryForObject(
@@ -105,6 +109,13 @@ final class DisposablePrivateMediaRestoreExecutor {
                         blobs++;
                     } finally {Arrays.fill(bytes,(byte)0);}
                 }
+                if(originalVariantBytes==0)
+                    throw new IllegalArgumentException("PRIVATE_MEDIA_MISSING_BINARY");
+                Long persistedBlobs=db.queryForObject(
+                        "SELECT count(*) FROM media_blobs WHERE asset_id=?",Long.class,newId);
+                if(persistedBlobs==null ||
+                        persistedBlobs.longValue()!=asset.path("blobs").size())
+                    throw new IllegalStateException("PRIVATE_MEDIA_BLOB_COUNT_MISMATCH");
             }
             for(JsonNode binding:cats.path("MEDIA_BINDINGS")) {
                 UUID original=UUID.fromString(binding.path("asset_id").asText());
