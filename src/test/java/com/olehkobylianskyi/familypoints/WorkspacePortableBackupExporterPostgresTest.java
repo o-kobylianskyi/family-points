@@ -30,6 +30,8 @@ class WorkspacePortableBackupExporterPostgresTest {
         long b=db.queryForObject("INSERT INTO families(name) VALUES ('Archive B') RETURNING id",Long.class);
         db.update("INSERT INTO member_groups(family_id,name,active,show_in_navigation) VALUES (?, 'Kids A',true,false)",a);
         db.update("INSERT INTO member_groups(family_id,name,active,show_in_navigation) VALUES (?, 'Private B',true,false)",b);
+        db.update("INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,catalog_key) "+
+                "VALUES (?,'WORKSPACE',?,'COVER','avatar-test')",a,a);
         var guard=new WorkspaceEpochTransactionGuard(db);
         var snapshot=new WorkspaceResetSnapshotService(db,guard);
         var codec=new ProtectiveBackupArtifactCodec();
@@ -88,7 +90,8 @@ class WorkspacePortableBackupExporterPostgresTest {
         var extendedInspection=inspector.inspect(extended.encryptedFile(),a,key);
         assertEquals(5,extendedInspection.availableCategories().size());
         for(String category:extendedInspection.availableCategories())
-            assertEquals(0,extendedInspection.counts().get(category));
+            assertEquals("MEDIA_BINDINGS".equals(category)?1:0,
+                    extendedInspection.counts().get(category),category);
         assertFalse(extendedInspection.restorable(),
                 "Read-only financial archive does not authorize ledger deletion or restore");
 
