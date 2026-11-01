@@ -126,7 +126,7 @@ export default function InitialFamilySetupReview() {
       </div>
       <div style={{maxHeight:260,overflowY:'auto'}}>
         {items.map(item=><label key={item.code} style={{display:'flex',gap:8,padding:'4px 0'}}>
-          <input type="checkbox" disabled={busy || setup.status === 'COMPLETED'} checked={selected.includes(item.code)} onChange={()=>{setSelected(v=>v.includes(item.code)?v.filter(c=>c!==item.code):[...v,item.code]);setReview(null);setConfirmed(false);seq.current++;setConfirmed(false);seq.current++}}/>
+          <input type="checkbox" disabled={busy || setup.status === 'COMPLETED'} checked={selected.includes(item.code)} onChange={()=>{setSelected(v=>v.includes(item.code)?v.filter(c=>c!==item.code):[...v,item.code]);setReview(null);setConfirmed(false);seq.current++}}/>
           <span>{item.title?.[lang] || item.title?.en || item.code}</span>
         </label>)}
       </div>
