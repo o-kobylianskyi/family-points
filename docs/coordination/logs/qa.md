@@ -414,3 +414,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-11-01 — Reset Preview/Plan failure-recovery regression staged
 - Added `qa/e2e/tests/reset-failure-recovery.spec.js` (commits ed86622, 617c5c7): simulated HTTP 503 for Preview must display fail-closed error, no categories, and recover on manual Reload; synthetic HTTP 200 with wrong workspaceId plus executable=true Plan must be rejected with error, not accepted as a safe plan. Assert no prepare/confirm/challenge/execute requests.
 - All interceptions are browser-local; no server data mutation. Two new cases **await local Playwright execution**; no PASS assumed. Existing confirmed browser dataEpoch 3/3 and server tenant/epoch 2/2 remain separate baselines.
+
+
+## 2026-11-01 — BKL-002 Preview/Plan failure recovery 2/2 PASS
+- User reran `npx playwright test tests/reset-failure-recovery.spec.js` with QA credentials: **2 passed (7.4s)**, no skips. Simulated HTTP 503 Preview failed closed and recovered through Reload (2.8s); malformed cross-workspace executable Plan was rejected and did not enable reset (3.7s).
+- Tests use Playwright interception; no backend reset or data mutation. Next: stale/out-of-order dependency plan response regression.
