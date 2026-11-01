@@ -4,6 +4,22 @@ const username = process.env.FP_QA_USERNAME || process.env.FP_QA_EMAIL
 const password = process.env.FP_QA_PASSWORD
 const forbiddenPattern = /\/data-reset\/(prepare|confirm|challenge|execute)$/
 
+const previewPattern = /\/workspaces\/\d+\/data-reset\/preview(?:\?.*)?$/
+function previewBody(route, count = 3) {
+  const id = Number(new URL(route.request().url()).pathname.match(/\/workspaces\/(\d+)\//)[1])
+  return {
+    workspaceId: id, executionEnabled: false, completeDependencyPlan: false,
+    alwaysPreserved: [],
+    categories: { PRIVATE_TEMPLATES: { code: 'PRIVATE_TEMPLATES', recordCount: count, executable: false } },
+  }
+}
+async function mockPreview(page) {
+  await page.route(previewPattern, route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify(previewBody(route)),
+  }))
+}
+
+
 test.describe('BKL-002 read-only error recovery', () => {
   test.skip(!username || !password, 'Requires isolated QA account credentials')
 
@@ -36,7 +52,7 @@ test.describe('BKL-002 read-only error recovery', () => {
           body: JSON.stringify({ code: 'TEMPORARY_FAILURE' }),
         })
       } else {
-        await route.continue()
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(previewBody(route)) })
       }
     })
     await page.goto('/settings', { waitUntil: 'domcontentloaded' })
@@ -61,6 +77,7 @@ test.describe('BKL-002 read-only error recovery', () => {
     page.on('request', req => {
       if (forbiddenPattern.test(new URL(req.url()).pathname)) forbidden.push(req.url())
     })
+    await mockPreview(page)
     await page.route(/\/workspaces\/\d+\/data-reset\/plan(?:\?.*)?$/, async route => {
       intercepted++
       const match = new URL(route.request().url()).pathname.match(/\/workspaces\/(\d+)\//)
@@ -98,6 +115,7 @@ test.describe('BKL-002 read-only error recovery', () => {
     let finishResponse
     const unblock = new Promise(resolve => { finishResponse = resolve })
     let interceptionCount = 0
+    await mockPreview(page)
     await page.route(/\/workspaces\/\d+\/data-reset\/plan(?:\?.*)?$/, async route => {
       interceptionCount += 1
       releasePlan.arrived()
@@ -159,7 +177,7 @@ test.describe('BKL-002 read-only error recovery', () => {
     let hits = 0
     await page.route(/\/workspaces\/\d+\/data-reset\/preview(?:\?.*)?$/, async route => {
       hits++
-      if (hits !== 1) { await route.continue(); return }
+      if (hits !== 1) { await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(previewBody(route)) }); return }
       started()
       await unblock
       await route.fulfill({
