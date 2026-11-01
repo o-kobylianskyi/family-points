@@ -888,3 +888,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Architect dispatch identifies GitHub run 41352872511 job 124986700310: 77 tests / 3 failed. Job log shows ConnectException from MockWebServer DISCONNECT_AFTER_REQUEST in the repository activation, transport activation and offline points lost-response tests.
 - Test-only fixes: 56c4074a and 747082ee use delayed response headers 750ms against 250ms read timeout; cddc5777 uses 3s delay against 2s timeout. Subsequent receipt GET and explicit offline replay keep original operation UUID; do not enable hidden POST retries. No production behavior changed.
 - Green CI for these new commits NOT YET VERIFIED. Previous exact-SHA local PASS applies to older source. Android device instrumentation deferred. BETA/BKL002 execute HOLD.
+
+## 2026-11-01 23:51 CET — operator confirmed forced JVM regression PASS
+- User reports `BUILD SUCCESSFUL in 3m 11s`, `26 actionable tasks: 26 executed`, configuration cache reused after instruction to run `:app:testDebugUnitTest --rerun-tasks`. This is stronger than prior all-up-to-date Gradle evidence and supports local JVM regression PASS.
+- The returned output did NOT include `git rev-parse HEAD`, so exact SHA cannot be independently pinned to this operator report. Exact-head GitHub Actions green remains unverified. Do not claim CI PASS or close Android P0 until Github CI evidence. Android instrumentation runtime deferred, BETA and BKL002 execute HOLD.
