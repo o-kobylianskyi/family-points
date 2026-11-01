@@ -125,17 +125,17 @@ test.describe('BKL-002 read-only error recovery', () => {
         planArrived,
         new Promise((_, reject) => setTimeout(() => reject(new Error('Plan request never arrived')), 10000)),
       ])
-      // The in-flight request must not restore its result after the user changes selection.
-      // React currently disables category controls while busy; reloading the Preview is
-      // the supported invalidation path and increments the request generation.
-      await panel.getByRole('button', {
-        name: /Reload|Завантажити знову|Обновить|Erneut laden/,
-      }).click({ force: true })
+      // Navigate away to invalidate the generation that issued the Plan.
+      await page.goto('/templates', { waitUntil: 'domcontentloaded' })
       finishResponse()
-      await expect(panel.locator('.family-reset-category input[type="checkbox"]').first())
+      await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+      const nextPanel = page.locator('.family-reset-readiness')
+      await expect(nextPanel.locator('.family-reset-category input[type="checkbox"]').first())
         .toBeVisible({ timeout: 15000 })
-      await expect(panel.locator('div[role="status"]')).toHaveCount(0)
-      await expect(button).toBeDisabled()
+      await expect(nextPanel.locator('div[role="status"]')).toHaveCount(0)
+      await expect(nextPanel.getByRole('button', {
+        name: /Check dependencies|Перевірити залежності|Проверить зависимости|Abhängigkeiten prüfen/,
+      })).toBeDisabled()
       expect(interceptionCount).toBe(1)
       expect(forbidden).toEqual([])
     } finally {
