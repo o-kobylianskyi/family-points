@@ -391,7 +391,7 @@ function RewardsPage() {
 
   const createCatalogReward = async (event) => {
     event.preventDefault()
-    if (!rewardForm.title.trim() || !rewardForm.pointTypeId || rewardForm.priceAmount === '' || !Number.isFinite(Number(rewardForm.priceAmount))) return
+    if (templateBusy || !rewardForm.title.trim() || !rewardForm.pointTypeId || rewardForm.priceAmount === '' || !Number.isSafeInteger(Number(rewardForm.priceAmount)) || Number(rewardForm.priceAmount) < 0 || (rewardForm.rewardKind === 'TIME_BASED' && (!Number.isSafeInteger(Number(rewardForm.defaultDurationMinutes)) || Number(rewardForm.defaultDurationMinutes) <= 0))) return
 
     await run(async () => {
       const payload = {
@@ -734,7 +734,7 @@ function RewardsPage() {
                 placeholder={t("rewardsUi.commentOptional")}
                 onChange={(event) => setCustomRequestDescription(event.target.value)}
               />
-              <button type="submit" className="primary-button" disabled={processing}>
+              <button type="submit" className="primary-button" disabled={processing || templateBusy}>
                 {t('rewardsUi.send')}
               </button>
             </form>
