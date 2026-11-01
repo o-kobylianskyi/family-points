@@ -48,9 +48,8 @@ test.describe('BKL-002 read-only error recovery', () => {
     if (new URL(page.url()).pathname === '/choose-family') {
       throw new Error('QA family must be selected explicitly')
     }
-    // Interception is installed inside each test BEFORE the first visit to Settings.
-    // Do not pre-load the component and consume Preview in beforeEach.
-    await page.goto('/templates', { waitUntil: 'domcontentloaded' })
+    // Do not visit Templates or Settings in setup: install routes first,
+    // then navigate directly to Settings within the test.
     page.on('pageerror', error => console.log('[RESET_QA_PAGEERROR]', error.message))
     page.on('response', response => {
       if (/\/data-reset\/preview(?:\?|$)/.test(new URL(response.url()).pathname)) {
