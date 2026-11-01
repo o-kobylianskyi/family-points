@@ -111,6 +111,26 @@ class WorkspacePortableMediaBindingPreflightPostgresTest {
                 assertThrows(IllegalArgumentException.class,
                         ()->inspector.inspect(files.encode(sealed),family,key));
             } finally {Arrays.fill(excessive,(byte)0);}
+            // A binding cannot be both catalog-backed and private-backed,
+            // or backed by neither. Inspector must return an explicit blocker
+            // rather than allowing a future executor to choose implicitly.
+            for(int variant=0;variant<3;variant++) {
+                var root=json.readTree(plain).deepCopy();
+                var binding=((com.fasterxml.jackson.databind.node.ObjectNode)
+                        root.path("categories").path("MEDIA_BINDINGS").get(0));
+                if(variant==0)binding.putNull("catalog_key");
+                if(variant==1)binding.put("catalog_key","   ");
+                if(variant==2)binding.put("asset_id",UUID.randomUUID().toString());
+                byte[] changed=json.writeValueAsBytes(root);
+                try {
+                    var sealed=codec.seal(UUID.randomUUID(),family,UUID.randomUUID(),0L,
+                            original.manifest().sourceDigest(),"V50",changed,key);
+                    var inspection=inspector.inspect(files.encode(sealed),family,key);
+                    assertTrue(inspection.blockers().contains("INVALID_MEDIA_BINDING_SOURCE"),
+                            "binding source variant "+variant);
+                    assertFalse(inspection.restorable());
+                } finally {Arrays.fill(changed,(byte)0);}
+            }
             // No physical FK exists for polymorphic media targets; missing
             // archive groups and unresolved member identity must be visible blockers.
             for(String targetType:List.of("MEMBER_GROUP","WORK_NODE","TASK","MEMBER")) {
