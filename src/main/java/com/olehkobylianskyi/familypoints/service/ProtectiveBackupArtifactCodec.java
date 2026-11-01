@@ -1,6 +1,5 @@
 package com.olehkobylianskyi.familypoints.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -25,7 +24,6 @@ public final class ProtectiveBackupArtifactCodec {
     private static final int NONCE_LENGTH=12;
     private static final int MAX_PLAINTEXT=64*1024*1024;
     private final SecureRandom random=new SecureRandom();
-    private final ObjectMapper mapper=new ObjectMapper();
 
     public record Manifest(UUID snapshotId,long workspaceId,UUID operationId,long dataEpoch,
                            String sourceDigest,String schemaVersion,Instant createdAt,
@@ -43,7 +41,7 @@ public final class ProtectiveBackupArtifactCodec {
         try {
             var manifest=new Manifest(snapshotId,workspaceId,operationId,dataEpoch,
                 sourceDigest,schemaVersion,Instant.now(),sha(plaintext),plaintext.length);
-            byte[] associated=mapper.writeValueAsBytes(manifest);
+            byte[] associated=aad(manifest);
             byte[] nonce=new byte[NONCE_LENGTH];random.nextBytes(nonce);
             var cipher=Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE,key,new GCMParameterSpec(128,nonce));
@@ -68,7 +66,7 @@ public final class ProtectiveBackupArtifactCodec {
             var nonce=java.util.Arrays.copyOfRange(data,MAGIC.length,MAGIC.length+NONCE_LENGTH);
             var cipher=Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE,key,new GCMParameterSpec(128,nonce));
-            cipher.updateAAD(mapper.writeValueAsBytes(manifest));
+            cipher.updateAAD(aad(manifest));
             byte[] content=cipher.doFinal(data,MAGIC.length+NONCE_LENGTH,
                 data.length-MAGIC.length-NONCE_LENGTH);
             if(content.length!=manifest.contentBytes() ||
@@ -78,6 +76,17 @@ public final class ProtectiveBackupArtifactCodec {
             return content;
         }catch(SecurityException e){throw e;}
         catch(Exception e){throw new SecurityException("Backup authentication failed",e);}
+    }
+
+    private static byte[] aad(Manifest m) {
+        // Deterministic length-prefixed metadata (no JavaTime Jackson module dependency).
+        var fields=new String[]{m.snapshotId().toString(),Long.toString(m.workspaceId()),
+                m.operationId().toString(),Long.toString(m.dataEpoch()),m.sourceDigest(),
+                m.schemaVersion(),m.createdAt().toString(),m.contentSha256(),
+                Long.toString(m.contentBytes())};
+        var joined=new StringBuilder();
+        for(String field:fields)joined.append(field.length()).append(':').append(field);
+        return joined.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     private static void checkKey(SecretKey key) {
