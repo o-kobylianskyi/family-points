@@ -878,3 +878,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Expanded pure JVM session+epoch gate regression to 12 cross-account, mismatched workspace, invalid epoch and changed/unchanged epoch combinations (a99361ad). Exact new SHA build/test status not established in this session.
 - Attempted to add a deterministic in-flight MockWebServer account-switch test; repository mutation was blocked by tool execution, so the test was not committed and remains OPEN. Existing MockWebServer timeout/409 cases and SQLite instrumentation exist but are not an E2E proof for actual in-flight switched session.
 - Acceptance blocker remains real replay coordinator+SQLite+network concurrency integration with Gradle at exact pinned SHA. Instrumentation runtime remains deferred. BETA and BKL002 reset/restore execute HOLD.
+
+## 2026-11-01 — AND-QA-12 delayed in-flight network response cross-account regression
+- Added JVM MockWebServer real HTTP test which sends one offline point POST with fixed UUID/token, waits until request was received, switches active test-session, then releases a delayed HTTP409 response; session+epoch gate must refuse old-account reset quarantine. Existing transport tests cover lost response UUID and explicit idempotent retries.
+- Commits 4ef0dd2f, f32ddf83, 5ca05c77; HTTP headers (not empty body) are delayed for deterministic ordering; 2s client read timeout avoids premature timeout in this test.
+- Scope is real Retrofit wire + pure session gate, **not** complete production PointsRepository/SQLite integration. Gradle/testDebugUnitTest on these commits has not run; user's earlier BUILD SUCCESSFUL is pinned only to 0f7a8283 and 9355730e. Instrumentation remains deferred. BETA/Reset Execute HOLD.
