@@ -80,6 +80,11 @@ public final class ProtectiveBackupImportInspector {
                         rowKey=item.path("workspace_id").asText()+":"+
                                 item.path("target_type").asText()+":"+
                                 item.path("target_id").asText()+":"+item.path("slot").asText();
+                    } else if("MEDIA_ASSETS".equals(name)) {
+                        try {rowKey=UUID.fromString(item.path("id").asText()).toString();}
+                        catch(IllegalArgumentException ex) {
+                            throw new IllegalArgumentException("Media asset requires UUID id",ex);
+                        }
                     } else {
                         if(!item.path("id").canConvertToLong() || item.path("id").asLong()<=0)
                             throw new IllegalArgumentException("Archive row requires positive numeric id");
@@ -90,7 +95,7 @@ public final class ProtectiveBackupImportInspector {
                     // Validate direct tenant keys. For FK-scoped descendants
                     // ownership must later be proven through their parent graph.
                     String ownerColumn="PRIVATE_TEMPLATES".equals(name)
-                            || "MEDIA_BINDINGS".equals(name)?"workspace_id":
+                            || "MEDIA_BINDINGS".equals(name) || "MEDIA_ASSETS".equals(name)?"workspace_id":
                             java.util.Set.of("MEMBER_GROUPS","TASK_DEFINITIONS",
                                     "REWARD_DEFINITIONS","REWARD_REQUESTS","WORK_NODES")
                                     .contains(name)?"family_id":null;
