@@ -865,3 +865,10 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Under latest Architect evening dispatch, reviewed Android `PointsRepository` and main (at inspection 92d84fcbb). GitHub commit combined statuses returned empty list, **not CI PASS**; exact current-head green 4-job CI remains unverified.
 - Fixed stale HTTP response cache writes in points-type refresh, member refresh, balance prefetch and online balance fetch: results are only saved if original access token still matches active token (ce4a9ec3). Background prefetch silently skips obsolete response; direct refresh fails closed with SecurityException rather than replacing another account session's cache.
 - Prior replay POST acknowledgement and epoch quarantine use existing OfflineReplaySessionGate; corresponding policy tests were committed previously. New async cache paths need exact-head Gradle and concurrent request instrumentation; these were NOT executed in this turn. Android BKL002 reset/restore and BETA deployment remain HOLD.
+
+## 2026-11-01 — User-confirmed local Android Gradle evidence (two exact SHAs)
+- User ran from `family-points/android`: `git rev-parse HEAD; .\\gradlew.bat --no-daemon -PfamilyPointsCiAndroidSdk=36 :app:assembleDebug :app:testDebugUnitTest :app:assembleDebugAndroidTest`.
+- SHA `0f7a8283911eaecad2c3950fdf1d4391c75df0fc`: **BUILD SUCCESSFUL in 1m 23s**, 76 actionable tasks (12 executed, 64 up-to-date); configuration cache stored.
+- SHA `9355730ed3bacfb296e08cc0f74ae57294fe809b`: **BUILD SUCCESSFUL in 1m 6s**, 76 actionable tasks (12 executed, 64 up-to-date); configuration cache reused. This is the latest user-verified Android build SHA, not automatically the latest repository main HEAD.
+- Evidence confirms assembleDebug, JVM testDebugUnitTest and **compilation/assembly** of debug AndroidTest at these SHAs. It does **not** prove instrumentation test execution on device/emulator, nor full HTTP+SQLite runtime E2E, nor complete green multi-job current-main CI.
+- AND-QA-12 local Gradle compilation/unit-test gate for these SHAs marked PASS; live device gate deferred; BETA and BKL002 destructive Reset Execute remain HOLD.
