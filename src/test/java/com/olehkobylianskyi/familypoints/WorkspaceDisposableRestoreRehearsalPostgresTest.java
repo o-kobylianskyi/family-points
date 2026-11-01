@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @Testcontainers
 class WorkspaceDisposableRestoreRehearsalPostgresTest {
-    @Container static final PostgreSQLContainer<?> DB = new PostgreSQLContainer<>("postgres:18-alpine")
+    @Container static final PostgreSQLContainer DB = new PostgreSQLContainer("postgres:18-alpine")
             .withDatabaseName("rehearsal_contract").withUsername("rehearsal").withPassword("rehearsal_password");
 
     @Test void portableGroupMediaFileRoundtripsThroughRealRehearsalServiceWithoutMutations() throws Exception {
