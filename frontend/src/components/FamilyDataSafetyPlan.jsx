@@ -137,7 +137,7 @@ export default function FamilyDataSafetyPlan() {
       <p>{({uk:'Конфлікти, що блокують застосування: стан невідомий до серверного аналізу файлу. Заміна чи об’єднання даних не дозволяються за замовчуванням.',ru:'Блокирующие конфликты неизвестны до проверки файла сервером. Замена или объединение по умолчанию запрещены.',de:'Blockierende Konflikte sind bis zur serverseitigen Archivprüfung unbekannt. Kein implizites Ersetzen oder Zusammenführen.',en:'Blocking conflicts are unknown until server-side archive inspection. Replacement or merge is forbidden by default.'})[language]}</p>
       <p role="status">{({uk:'Заплановано категорій',ru:'Запланировано категорий',de:'Vorgesehene Kategorien',en:'Planned categories'})[language]}: {restoreCount} / {entries.length}</p>
       <p>{w[11]}</p>
-    </>}
+    </> : null}
     {tab==='backup' && <div>
       <h3>{({uk:'Серверні резервні копії',ru:'Резервные копии на сервере',de:'Server-Sicherungen',en:'Server backup records'})[language] || 'Server backup records'}</h3>
       <p>{({uk:'Це лише реєстр станів. Запис REQUESTED не означає наявність файлу або можливість відновлення.',ru:'Это только реестр статусов. REQUESTED не означает, что файл существует или доступен для восстановления.',de:'Nur Statusregister. REQUESTED bedeutet nicht, dass die Datei existiert oder wiederherstellbar ist.',en:'Metadata only. REQUESTED does not mean the file exists or can be restored.'})[language]}</p>
