@@ -152,13 +152,14 @@ export default function FamilySetupPage() {
       if (request !== generation.current || workspaceRef.current !== id) return
       const toImport = checked?.toImport
       const alreadyImported = checked?.alreadyImported
-      if ((checked.workspaceId != null && String(checked.workspaceId) !== String(id)) ||
+      if ((checked?.workspaceId != null && String(checked.workspaceId) !== String(id)) ||
           !Array.isArray(toImport) || !Array.isArray(alreadyImported) ||
           [...toImport, ...alreadyImported].length !== preview.codes.length ||
           new Set([...toImport, ...alreadyImported]).size !== preview.codes.length ||
           [...toImport, ...alreadyImported].some(code => !preview.codes.includes(code)))
         throw new Error('STALE_IMPORT_PREVIEW')
-      if (toImport.join('|') !== preview.result.toImport.join('|')) {
+      if (toImport.length !== preview.result.toImport.length ||
+          toImport.some(code => !preview.result.toImport.includes(code))) {
         setPreview(null); setStep(1); setError(t[29])
         return // Explicit new review required; never issue a stale POST.
       }
