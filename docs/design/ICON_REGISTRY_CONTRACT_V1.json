@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "DESIGNER_APPROVED_BACKEND_REGISTRY_PENDING",
+  "status": "IMPLEMENTED_SOURCE_PENDING_CI_DEV_VISUAL_QA",
   "assets": [
     {
       "catalogKey": "category-achievements",
@@ -64,6 +64,13 @@
       "category": "TASK_CATEGORY",
       "labelKey": "media.catalog.category.home",
       "sortOrder": 3080
+    },
+    {
+      "catalogKey": "category-habits",
+      "source": "media/catalog/categories/habits.svg",
+      "category": "TASK_CATEGORY",
+      "labelKey": "media.catalog.category.habits",
+      "sortOrder": 3085
     },
     {
       "catalogKey": "category-initiative",
@@ -138,7 +145,7 @@
     "activity": "category-activity",
     "creativity": "category-creativity",
     "social": "category-family-communication",
-    "habits": "category-initiative",
+    "habits": "category-habits",
     "family": "category-home",
     "adult": "category-adult-tasks",
     "time": "category-screen-time",
@@ -146,9 +153,9 @@
     "items": "category-material-reward"
   },
   "qa": [
-    "All 18 catalog keys unique",
+    "All 19 catalog keys unique",
     "MediaService.CATALOG allowlist includes keys",
-    "MediaService.catalog() contains 18 catalog records with unique sort order",
+    "MediaService.catalog() contains 19 catalog records with unique sort order",
     "catalogPreview resolves exactly one SVG classpath resource per key",
     "Workspace access controls preserved",
     "Runtime media MIME image/svg+xml and CSP validated",
