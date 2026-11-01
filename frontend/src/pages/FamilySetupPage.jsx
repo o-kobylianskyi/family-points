@@ -59,6 +59,7 @@ export default function FamilySetupPage() {
   const [preview, setPreview] = useState(null)
   const [busy, setBusy] = useState(false)
   const [draftReady, setDraftReady] = useState(false)
+  const [catalogReady, setCatalogReady] = useState(false)
   const [error, setError] = useState('')
   const [complete, setComplete] = useState(false)
   const generation = useRef(0)
@@ -79,7 +80,7 @@ export default function FamilySetupPage() {
       ])
       if (!validCatalog(nextCatalog) || !Array.isArray(nextOwned) || (groupResult.ok && !Array.isArray(groupResult.data))) throw new Error('INVALID_TEMPLATE_CATALOG')
       if (generation.current === request && workspaceRef.current === id) {
-        setCatalog(nextCatalog); setOwned(nextOwned); setGroups(groupResult.data); setGroupsAvailable(groupResult.ok)
+        setCatalog(nextCatalog); setOwned(nextOwned); setGroups(groupResult.data); setGroupsAvailable(groupResult.ok); setCatalogReady(true)
       }
     } catch {
       if (generation.current === request && workspaceRef.current === id) setError(t[21])
@@ -89,7 +90,7 @@ export default function FamilySetupPage() {
   }
   useEffect(() => {
     const request = ++generation.current
-    setDraftReady(false); setStep(0); setGroupName(''); setGroupStatus(''); setGroups([]); setGroupsAvailable(false); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
+    setCatalogReady(false); setDraftReady(false); setStep(0); setGroupName(''); setGroupStatus(''); setGroups([]); setGroupsAvailable(false); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
     setPack('ALL'); setKind('TASK'); setCategory('ALL'); setSearch('')
     setComplete(false); setPreview(null)
     if (workspaceId) load(workspaceId, request).finally(() => { if (generation.current === request) setDraftReady(true) })
@@ -110,12 +111,12 @@ export default function FamilySetupPage() {
     setSelected(old => typeof updater === 'function' ? updater(old) : updater)
   }
   useEffect(() => {
-    if (draftStorageKey && draftReady && catalog.templates.length && !busy) saveDraft(draftStorageKey, selected)
-  }, [draftStorageKey, draftReady, selected, catalog.templates.length, busy])
+    if (draftStorageKey && draftReady && catalogReady && !busy) saveDraft(draftStorageKey, selected)
+  }, [draftStorageKey, draftReady, catalogReady, selected, busy])
   const invalidate = () => { revision.current++; setPreview(null); setError('') }
   const toggle = code => choose(old => old.includes(code) ? old.filter(value => value !== code) : [...old, code])
   const previewSelection = async () => {
-    if (lock.current || !selectedNew.length) { if (!selectedNew.length) setError(t[22]); return }
+    if (lock.current || !catalogReady || !selectedNew.length) { if (!selectedNew.length) setError(t[22]); return }
     lock.current = true
     const request = generation.current, revisionAtStart = revision.current, id = workspaceId
     const codes = [...selectedNew]
@@ -139,7 +140,7 @@ export default function FamilySetupPage() {
     }
   }
   const confirm = async () => {
-    if (lock.current || !preview || !preview.codes.length || !preview.result.toImport.length ||
+    if (lock.current || !catalogReady || !preview || !preview.codes.length || !preview.result.toImport.length ||
         preview.codes.join('|') !== selectedNew.join('|')) return
     lock.current = true
     const id = workspaceId, request = generation.current
@@ -149,7 +150,7 @@ export default function FamilySetupPage() {
       if (request !== generation.current || workspaceRef.current !== id) return
       // Re-read authoritative server state. Never infer imported records from a POST alone.
       const latest = await getPrivateTemplates(getAccessToken(), id)
-      if (!Array.isArray(latest)) throw new Error('INVALID_IMPORT_RESULT')
+      if (!Array.isArray(latest) || !preview.result.toImport.every(code => latest.some(item => item.catalogCode === code))) throw new Error('INVALID_IMPORT_RESULT')
       if (request !== generation.current || workspaceRef.current !== id) return
       setOwned(latest); choose([]); setComplete(true); setStep(3)
     } catch {
@@ -239,9 +240,10 @@ export default function FamilySetupPage() {
         <span><strong>{nameOf(item, lang)}</strong><small>{templateCategoryLabel(categoryOf(item), lang)}{ownedCodes.has(item.code) ? ' · ' + t[12] : ''}</small></span>
       </label>)}</div>
       <p role="status">{t[11]}: {selectedNew.length} · {t[12]}: {ownedCodes.size}</p>
+      {!catalogReady && <p role="alert">{t[21]}</p>
       <p>{t[15]}</p>
       <div className="family-setup-actions"><button type="button" onClick={() => setStep(0)}>{t[17]}</button>
-        <button type="button" disabled={busy || !selectedNew.length} onClick={previewSelection}>{t[13]}</button>
+        <button type="button" disabled={busy || !catalogReady || !selectedNew.length} onClick={previewSelection}>{t[13]}</button>
         <button type="button" disabled={busy} onClick={() => setStep(3)}>{t[24]}</button></div>
     </section>}
     {step === 2 && <section><h2>{t[3]}</h2><p>{t[15]}</p>
@@ -249,7 +251,7 @@ export default function FamilySetupPage() {
       <ul>{preview?.codes.map(code => <li key={code}>{nameOf(catalog.templates.find(item => item.code === code), lang)}</li>)}</ul>
       {preview?.result?.warnings?.length > 0 && <ul>{preview.result.warnings.map((warning, index) => <li key={index}>{String(warning)}</li>)}</ul>}
       <div className="family-setup-actions"><button type="button" disabled={busy} onClick={() => {setPreview(null);setStep(1)}}>{t[17]}</button>
-        <button type="button" disabled={busy || !preview?.result?.toImport?.length} onClick={confirm}>{t[14]}</button></div>
+        <button type="button" disabled={busy || !catalogReady || !preview?.result?.toImport?.length} onClick={confirm}>{t[14]}</button></div>
     </section>}
     {step === 3 && <section><h2>{t[4]}</h2><p role="status">{complete ? t[23] : t[15]}</p>
       <Link to="/templates">{t[16]}</Link>
