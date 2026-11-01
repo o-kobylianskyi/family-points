@@ -104,6 +104,30 @@ public final class ProtectiveBackupImportInspector {
                     }
                     if(!ids.add(rowKey))
                         throw new IllegalArgumentException("Duplicate archive row key in "+name);
+                    if("MEDIA_ASSETS".equals(name)) {
+                        JsonNode blobs=item.path("blobs");
+                        if(!blobs.isArray() || blobs.size()>3)
+                            throw new IllegalArgumentException("Missing or oversized media variants");
+                        var variants=new HashSet<String>();
+                        for(JsonNode blob:blobs) {
+                            if(!blob.isObject() || !blob.path("variant").isTextual()
+                                    || !Set.of("COVER","CARD","THUMB").contains(blob.path("variant").asText())
+                                    || !variants.add(blob.path("variant").asText())
+                                    || !blob.path("bytesBase64").isTextual())
+                                throw new IllegalArgumentException("Invalid media variant");
+                            String encoded=blob.path("bytesBase64").asText();
+                            if(encoded.length()>8_000_000)
+                                throw new IllegalArgumentException("Media variant exceeds limit");
+                            try {
+                                byte[] bytes=Base64.getDecoder().decode(encoded);
+                                if(bytes.length==0 || bytes.length>5_242_880)
+                                    throw new IllegalArgumentException("Invalid media binary length");
+                                Arrays.fill(bytes,(byte)0);
+                            }catch(IllegalArgumentException exception) {
+                                throw new IllegalArgumentException("Invalid encoded media payload",exception);
+                            }
+                        }
+                    }
                     // Validate direct tenant keys. For FK-scoped descendants
                     // ownership must later be proven through their parent graph.
                     String ownerColumn="PRIVATE_TEMPLATES".equals(name)
