@@ -272,7 +272,17 @@ export default function FamilySetupPage() {
     </section>}
     {step === 3 && <section><h2>{t[4]}</h2><p role="status">{complete ? t[23] : t[15]}</p>
       <Link to="/templates">{t[16]}</Link>
-      <p><Link to="/tasks">{t[7]}</Link> · <Link to="/rewards">{t[8]}</Link></p>
+      <h3>{({uk:'Імпортовані шаблони: перегляньте й відредагуйте перед активацією',ru:'Импортированные шаблоны: проверьте и измените перед активацией',de:'Importierte Vorlagen vor Aktivierung prüfen und bearbeiten',en:'Review imported templates before activation'})[lang]}</h3>
+      <div className="family-setup-catalog">
+        {owned.map(item => <div key={item.id} className="family-setup-item">
+          <span><strong>{typeof item.title === 'string' ? item.title : nameOf(item, lang)}</strong>
+            <small>{item.kind === 'TASK' ? t[7] : t[8]} · {item.catalogCode || ''}</small>
+            <Link to={`/templates?edit=${encodeURIComponent(item.id)}`}>{({uk:'Редагувати шаблон',ru:'Редактировать шаблон',de:'Vorlage bearbeiten',en:'Edit template'})[lang]}</Link>
+          </span>
+        </div>)}
+      </div>
+      <p>{({uk:'Активація — окремий крок: відкрийте відповідний розділ, виберіть приватний шаблон, перевірте виконавця, складність, розклад та валюту або вартість і підтвердьте створення.',ru:'Активация — отдельный шаг. Откройте нужный раздел, выберите частный шаблон, проверьте исполнителя, сложность, расписание и цену, затем подтвердите создание.',de:'Aktivierung ist ein eigener Schritt: Bereich öffnen, private Vorlage wählen, Zuordnung, Aufwand, Zeitplan und Preis prüfen und Erstellung bestätigen.',en:'Activation is separate: open the relevant section, select the private template, review assignee, difficulty, schedule and price, then explicitly confirm creation.'})[lang]}</p>
+      <p><Link to="/tasks?create=1">{t[7]} · {({uk:'Створити з шаблону',ru:'Создать из шаблона',de:'Aus Vorlage erstellen',en:'Create from template'})[lang]}</Link> · <Link to="/rewards">{t[8]} · {({uk:'Створити з шаблону',ru:'Создать из шаблона',de:'Aus Vorlage erstellen',en:'Create from template'})[lang]}</Link></p>
       <button type="button" onClick={() => {setStep(1); setComplete(false)}}>{t[30]}</button>
     </section>}
     {error && <button type="button" disabled={busy} onClick={() => load(workspaceId, ++generation.current)}>{t[20]}</button>}
