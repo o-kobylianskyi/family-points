@@ -146,11 +146,27 @@ export default function FamilySetupPage() {
     const id = workspaceId, request = generation.current
     setBusy(true); setError('')
     try {
-      await importTemplates(getAccessToken(), id, preview.result.toImport)
+      // Refresh the authoritative import plan immediately before a write.
+      // Selection preview may be stale after another tab imports the same codes.
+      const checked = await previewTemplateImport(getAccessToken(), id, preview.codes)
+      if (request !== generation.current || workspaceRef.current !== id) return
+      const toImport = checked?.toImport
+      const alreadyImported = checked?.alreadyImported
+      if ((checked.workspaceId != null && String(checked.workspaceId) !== String(id)) ||
+          !Array.isArray(toImport) || !Array.isArray(alreadyImported) ||
+          [...toImport, ...alreadyImported].length !== preview.codes.length ||
+          new Set([...toImport, ...alreadyImported]).size !== preview.codes.length ||
+          [...toImport, ...alreadyImported].some(code => !preview.codes.includes(code)))
+        throw new Error('STALE_IMPORT_PREVIEW')
+      if (toImport.join('|') !== preview.result.toImport.join('|')) {
+        setPreview(null); setStep(1); setError(t[29])
+        return // Explicit new review required; never issue a stale POST.
+      }
+      await importTemplates(getAccessToken(), id, toImport)
       if (request !== generation.current || workspaceRef.current !== id) return
       // Re-read authoritative server state. Never infer imported records from a POST alone.
       const latest = await getPrivateTemplates(getAccessToken(), id)
-      if (!Array.isArray(latest) || !preview.result.toImport.every(code => latest.some(item => item.catalogCode === code))) throw new Error('INVALID_IMPORT_RESULT')
+      if (!Array.isArray(latest) || !preview.codes.every(code => latest.some(item => item.catalogCode === code))) throw new Error('INVALID_IMPORT_RESULT')
       if (request !== generation.current || workspaceRef.current !== id) return
       setOwned(latest); choose([]); setComplete(true); setStep(3)
     } catch {
