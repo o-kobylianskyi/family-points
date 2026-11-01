@@ -71,3 +71,16 @@ export async function getSetupFinalizeReceipt(token, workspaceId, operationId) {
       result?.setupStatus !== 'COMPLETED' || result?.replayed !== true) throw new Error('SETUP_FINALIZE_RECEIPT_INVALID')
   return result
 }
+
+// Explicit parent step decision: COMPLETE or SKIPPED, optimistic revision required.
+export async function setSetupStep(token, workspaceId, stepCode, status, expectedRevision) {
+  const allowed = ['MEMBERS','MEMBER_GROUPS','WORK_NODE_GROUPS','CATALOG_SELECTION','TASK_REVIEW','REWARD_REVIEW','FINAL_REVIEW']
+  if (!allowed.includes(stepCode) || !['COMPLETE','SKIPPED'].includes(status) || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0)
+    throw new Error('INVALID_SETUP_STEP')
+  const result = await read(apiRequest(`/workspaces/${workspace(workspaceId)}/setup/steps/${stepCode}`, {
+    token, method: 'PATCH', body: { status, expectedRevision }, cache: 'no-store',
+  }))
+  if (String(result?.workspaceId) !== String(workspaceId) || result?.revision !== expectedRevision + 1 || result?.steps?.[stepCode] !== status)
+    throw new Error('SETUP_STEP_RESPONSE_INVALID')
+  return result
+}
