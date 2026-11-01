@@ -98,7 +98,7 @@ class WorkspaceSetupFinalizeRealServicesPostgresTest {
                 ()->tx.execute(s->finalizer.finalizeWizard(family,UUID.randomUUID(),request))).getStatusCode());
         assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,
                 ()->tx.execute(s->finalizer.finalizeWizard(family,key,
-                        new WorkspaceSetupFinalizeService.Request(7L,List.of(taskCode))))).getStatusCode());
+                        new WorkspaceSetupFinalizeService.Request(7L,List.of(selected.get(0)))))).getStatusCode());
     }
 
     @Test void unknownCatalogSelectionRollsBackRealWizardCompletion() {
