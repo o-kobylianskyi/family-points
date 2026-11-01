@@ -7,7 +7,8 @@ test('family data has one protected entry point with three read-only modes', asy
   test.skip(!username || !password, 'Requires isolated QA credentials')
   const writes = []
   page.on('request', req => {
-    if (/\/data-reset\/(?:prepare|confirm|challenge|execute)|\/restore\/(?:apply|execute)|\/protective-backups\/(?:export|upload)/.test(req.url())) writes.push(req.url())
+    const path = new URL(req.url()).pathname
+    if (/\/data-reset\/(?:prepare|confirm|challenge|execute)|\/restore\/(?:apply|execute)|\/protective-backups\/(?:export|upload)/.test(path) || (req.method() !== 'GET' && /\/protective-backups(?:\/|$)/.test(path))) writes.push(`${req.method()} ${path}`)
   })
   await page.goto('/login')
   await page.locator('form input[type="text"]').fill(username)
@@ -24,6 +25,12 @@ test('family data has one protected entry point with three read-only modes', asy
   await expect(tabs.filter({ hasText: /backup|резерв|sicher|копи/i })).toHaveCount(1)
   await tabs.nth(1).click()
   await expect(panel.locator('section.family-reset-readiness')).toHaveCount(1)
+  await expect(panel.locator('section.family-reset-readiness button')).not.toContainText('Execute')
+  const full = panel.locator('input[name="safety-reset-mode"][type="radio"]').first()
+  await full.check()
+  const blockedRows = panel.locator('label').filter({ hasText: /Заблоковано|Заблокировано|gesperrt|Blocked pending/i })
+  await expect(blockedRows.first()).toBeVisible()
+  await expect(panel.locator('section[aria-label="Safety gates"]')).toBeVisible()
   await expect(panel.locator('section[aria-label="Safety gates"]')).toBeVisible()
   await tabs.nth(2).click()
   await expect(panel.locator('section.family-reset-readiness')).toHaveCount(0)
