@@ -18,7 +18,7 @@ test('family data has one protected entry point with three read-only modes', asy
   test.skip(new URL(page.url()).pathname === '/choose-family', 'Requires selected QA family')
   await page.goto('/settings')
   const panel = page.locator('section[aria-label="Family data safety planning"]')
-  test.skip(await panel.count() === 0, 'Manager-only safety panel')
+  await expect(panel).toBeVisible({ timeout: 15000 })
   await expect(panel).toHaveCount(1)
   const tabs = panel.locator('button[aria-pressed]')
   await expect(tabs).toHaveCount(3)
