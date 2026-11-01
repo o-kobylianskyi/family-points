@@ -127,4 +127,29 @@ class TemplateReceiptRepositoryHttpTest {
     }
 
 
+    @Test fun switchedSessionBeforeRecoveryGetIssuesZeroRequests() = runBlocking {
+        val api = Retrofit.Builder().baseUrl(server.url("/"))
+            .addConverterFactory(GsonConverterFactory.create())
+            .build().create(TemplateReceiptApi::class.java)
+        val switched = TemplateReceiptRepository({ "new-account-token" }, api)
+        try {
+            switched.activationReceipt(31, UUID.randomUUID(), expectedToken = "old-account-token")
+            fail("Switched account must not read original receipt")
+        } catch (_: IllegalStateException) { }
+        assertEquals(0, server.requestCount)
+    }
+
+    @Test fun recoveryGetUsesPinnedOriginalAuthorization() = runBlocking {
+        val id = UUID.randomUUID()
+        server.enqueue(MockResponse().setResponseCode(404))
+        try {
+            repository.activationReceipt(31, id, expectedToken = "synthetic-token")
+            fail("HTTP 404 expected")
+        } catch (e: HttpException) { assertEquals(404, e.code()) }
+        val request = server.takeRequest(2, TimeUnit.SECONDS)!!
+        assertEquals("Bearer synthetic-token", request.getHeader("Authorization"))
+        assertEquals("GET", request.method)
+        assertEquals(1, server.requestCount)
+    }
+
 }
