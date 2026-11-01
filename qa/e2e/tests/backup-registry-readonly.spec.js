@@ -36,7 +36,7 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
         status: 200, contentType: 'application/json',
         body: JSON.stringify([
           backupRow(id,'11111111-1111-4111-8111-111111111111',{selectedCategories:['PRIVATE_TEMPLATES']}),
-          backupRow(id,'22222222-2222-4222-8222-222222222222',{state:'VERIFIED',resetMode:'FULL',restoreVerified:true,selectedCategories:['TASK_DEFINITIONS']}),
+          backupRow(id,'22222222-2222-4222-8222-222222222222',{state:'VERIFIED',resetMode:'FULL',restoreVerified:true,executable:true,selectedCategories:['TASK_DEFINITIONS']}),
           backupRow(id,'33333333-3333-4333-8333-333333333333',{state:'EXPIRED',resetMode:'FULL'}),
         ])
       })
@@ -49,7 +49,7 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
     await expect(panel.getByText('33333333', { exact:false })).toBeVisible()
     // REQUESTED must never be presented as recoverable merely because it is a row.
     await expect(panel.getByText(/Metadata only|лише реєстр|только реестр|Statusregister/)).toBeVisible()
-    await expect(panel.getByText(/Registry verified|Перевірено в реєстрі|Проверено в реестре|Im Register bestätigt|Verifiziert|Verified/, { exact: false })).toHaveCount(1)
+    await expect(panel.locator('strong').filter({hasText:/Статус реєстру: перевірено|Статус реестра: проверено|Registerstatus: verifiziert|Registry status: verified/})).toHaveCount(1)
     await panel.getByRole('button', {name:/Refresh list|Оновити список|Обновить список|Liste aktualisieren/}).click()
     await expect.poll(() => loads).toBeGreaterThanOrEqual(2)
     await openRestorePlanning(page)
