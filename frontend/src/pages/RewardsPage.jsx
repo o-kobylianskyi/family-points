@@ -136,6 +136,7 @@ function RewardsPage() {
   const [categoryName, setCategoryName] = useState('')
   const [rewardForm, setRewardForm] = useState(emptyRewardForm)
   const [rewardTemplates, setRewardTemplates] = useState([])
+  const [privateTemplatesLoaded, setPrivateTemplatesLoaded] = useState(false)
   const [globalRewardTemplates, setGlobalRewardTemplates] = useState([])
   const [rewardTemplateCategory, setRewardTemplateCategory] = useState('ALL')
   const [selectedRewardTemplateId, setSelectedRewardTemplateId] = useState('')
@@ -207,7 +208,7 @@ function RewardsPage() {
       next.delete('createFromTemplate')
       return next
     }, { replace: true })
-  }, [searchParams, setSearchParams, rewardTemplates, canManage, loading])
+  }, [searchParams, setSearchParams, rewardTemplates, canManage, loading, privateTemplatesLoaded])
   const chooseRequestTemplate = id => {
     const item = requestTemplates.find(x => String(x.id ?? x.code) === id)
     setSelectedRequestTemplateId(id)
@@ -264,8 +265,8 @@ function RewardsPage() {
       setTasks(taskData.filter((task) => task.active !== false && String(task.workspaceId ?? workspaceId) === String(workspaceId)))
       getTemplateCatalog(token).then(data => { if (String(workspaceRef.current) === String(workspaceId)) setGlobalRewardTemplates((data?.templates || []).filter(item => item.kind === 'REWARD')) }).catch(() => {})
       if (canManage) getPrivateTemplates(token, workspaceId).then(items => {
-        if (String(workspaceRef.current) === String(workspaceId)) setRewardTemplates((Array.isArray(items) ? items : []).filter(item => item.kind === 'REWARD'))
-      }).catch(() => { if (String(workspaceRef.current) === String(workspaceId)) setRewardTemplates([]) })
+        if (String(workspaceRef.current) === String(workspaceId)) { setRewardTemplates((Array.isArray(items) ? items : []).filter(item => item.kind === 'REWARD')); setPrivateTemplatesLoaded(true) }
+      }).catch(() => { if (String(workspaceRef.current) === String(workspaceId)) { setRewardTemplates([]); setPrivateTemplatesLoaded(true) } })
 
       const defaultPointTypeId = pointTypeData[0]?.id ?? ''
       setRewardForm((current) => ({
