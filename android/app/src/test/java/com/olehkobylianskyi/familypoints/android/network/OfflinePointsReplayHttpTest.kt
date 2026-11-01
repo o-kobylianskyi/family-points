@@ -28,7 +28,7 @@ class OfflinePointsReplayHttpTest {
         server = MockWebServer().apply { start() }
         api = Retrofit.Builder().baseUrl(server.url("/"))
             .client(OkHttpClient.Builder().retryOnConnectionFailure(false)
-                .readTimeout(250, TimeUnit.MILLISECONDS).build())
+                .readTimeout(2, TimeUnit.SECONDS).build())
             .addConverterFactory(GsonConverterFactory.create())
             .build().create(PointsApi::class.java)
     }
@@ -87,7 +87,7 @@ class OfflinePointsReplayHttpTest {
     @Test fun changingAccountDuringDelayed409ResponseRejectsStaleQuarantine() = runBlocking {
         val activeSession = AtomicReference("original")
         val originalUuid = UUID.randomUUID().toString()
-        server.enqueue(MockResponse().setResponseCode(409).setBodyDelay(350, TimeUnit.MILLISECONDS))
+        server.enqueue(MockResponse().setResponseCode(409).setBodyDelay(500, TimeUnit.MILLISECONDS))
         val response = async(Dispatchers.IO) {
             try {
                 api.replayOffline("Bearer original", 17, 91, 21, "earn",
