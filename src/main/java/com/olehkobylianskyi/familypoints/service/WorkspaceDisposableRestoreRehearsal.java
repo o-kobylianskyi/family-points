@@ -54,6 +54,41 @@ public final class WorkspaceDisposableRestoreRehearsal {
             db.execute("CREATE TEMP TABLE fp_rehearsal_assets(id uuid PRIMARY KEY, workspace_id bigint NOT NULL, digest text NOT NULL) ON COMMIT DROP");
             db.execute("CREATE TEMP TABLE fp_rehearsal_variants(asset_id uuid REFERENCES fp_rehearsal_assets(id), variant text NOT NULL, data bytea NOT NULL, PRIMARY KEY(asset_id,variant)) ON COMMIT DROP");
             db.execute("CREATE TEMP TABLE fp_rehearsal_bindings(group_id bigint REFERENCES fp_rehearsal_groups(id), asset_id uuid REFERENCES fp_rehearsal_assets(id), slot text NOT NULL) ON COMMIT DROP");
+            // All archived category identities are staged as JSONB, even
+            // categories that cannot yet be safely reconstructed in normal
+            // FamilyPoints tables. This allows a complete byte-for-byte
+            // PostgreSQL archive roundtrip without enabling Restore Apply.
+            db.execute("""
+                    CREATE TEMP TABLE fp_rehearsal_archive_rows(
+                      category text NOT NULL, ordinal int NOT NULL,
+                      payload jsonb NOT NULL, PRIMARY KEY(category,ordinal)
+                    ) ON COMMIT DROP
+                    """);
+            int archivedRows=0;
+            for(var fieldIterator=cats.fields();fieldIterator.hasNext();) {
+                var category=fieldIterator.next();
+                int ordinal=0;
+                for(JsonNode item:category.getValue()) {
+                    String serialized;
+                    try {serialized=json.writeValueAsString(item);}
+                    catch(Exception e) {throw new IllegalArgumentException("REHEARSAL_JSON_ENCODE_FAILURE",e);}
+                    db.update("INSERT INTO fp_rehearsal_archive_rows(category,ordinal,payload) VALUES (?,?,?::jsonb)",
+                            category.getKey(),ordinal++,serialized);
+                    archivedRows++;
+                }
+                int expected=inspection.counts().get(category.getKey());
+                if(ordinal!=expected)throw new IllegalStateException("REHEARSAL_ARCHIVE_COUNT_MISMATCH");
+            }
+            Long sqlRows=db.queryForObject("SELECT count(*) FROM fp_rehearsal_archive_rows",Long.class);
+            if(sqlRows==null || sqlRows!=archivedRows)
+                throw new IllegalStateException("REHEARSAL_ARCHIVE_ROWS_MISMATCH");
+            for(var category:inspection.availableCategories()) {
+                Long persisted=db.queryForObject(
+                        "SELECT count(*) FROM fp_rehearsal_archive_rows WHERE category=?",
+                        Long.class,category);
+                if(persisted==null || persisted!=inspection.counts().get(category))
+                    throw new IllegalStateException("REHEARSAL_CATEGORY_MISMATCH:"+category);
+            }
             int groups=0,assets=0,bindings=0,variants=0;
             for(JsonNode row:cats.path("MEMBER_GROUPS")) {
                 if(row.path("family_id").asLong()!=workspaceId)throw new SecurityException("GROUP_TENANT_MISMATCH");
