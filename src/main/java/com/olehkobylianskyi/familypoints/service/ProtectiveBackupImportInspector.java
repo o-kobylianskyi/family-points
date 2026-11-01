@@ -119,10 +119,10 @@ public final class ProtectiveBackupImportInspector {
                             if(encoded.length()>8_000_000)
                                 throw new IllegalArgumentException("Media variant exceeds limit");
                             try {
-                                byte[] bytes=Base64.getDecoder().decode(encoded);
-                                if(bytes.length==0 || bytes.length>5_242_880)
+                                byte[] mediaBytes=Base64.getDecoder().decode(encoded);
+                                if(mediaBytes.length==0 || mediaBytes.length>5_242_880)
                                     throw new IllegalArgumentException("Invalid media binary length");
-                                Arrays.fill(bytes,(byte)0);
+                                Arrays.fill(mediaBytes,(byte)0);
                             }catch(IllegalArgumentException exception) {
                                 throw new IllegalArgumentException("Invalid encoded media payload",exception);
                             }
