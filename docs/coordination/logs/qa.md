@@ -539,3 +539,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Failed positive registry case `backup-registry-readonly.spec.js` expected visible snapshot `11111111` but saw none. The fixture mixed three current-family backups with one foreign-family record; newer `backupApi.js` intentionally rejects the *entire* malformed cross-tenant list (fail closed), superseding older silent filtering. The security behavior is correct; positive fixture was obsolete.
 - Fixed positive fixture to supply only same-family records, preserving REQUESTED/VERIFIED/EXPIRED assertions. Cross-family poisoned-list rejection stays covered by separate `backup-detail-readonly.spec.js` negative case; no relaxation of application tenant checks. Commit f438c9a. **Fix not yet rerun, 36/37 remains latest observed complete-suite result.**
 - Next: run focused registry spec, then full 37-case Playwright. Destructive reset/export/restore remain separately gated and never exercised on Test/Test2.
+
+
+## 2026-11-01 — Full Web Playwright suite 37/37 PASS (user report)
+- User reported **37 passed** after pulling `f438c9a` (correct positive registry fixture). Thus the former 36 PASS / 1 FAIL is superseded by user-confirmed **37 PASS, 0 FAIL** for the 37-case suite; full raw console/exact local SHA not supplied in this message.
+- Cross-tenant fail-closed rejection remains covered by `backup-detail-readonly.spec.js`; positive registry covers valid same-family REQUESTED/VERIFIED/EXPIRED.
+- This is Web E2E only, NOT disposable PostgreSQL backup-export/restore acceptance nor approval for BKL-002 Reset Execute. Next QA P0: backend encrypted exporter FK-bound seven-category fixture, source digest/epoch, foreign family and tamper, and exact-head CI; full/selective restore remains unverified.
