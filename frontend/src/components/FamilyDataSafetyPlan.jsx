@@ -39,6 +39,7 @@ export default function FamilyDataSafetyPlan() {
   const [backupLoading,setBackupLoading] = useState(false)
   const [reload,setReload] = useState(0)
   useEffect(() => {
+    setBackups([]); setDetails(null); setSelectedSnapshot(null); setBackupError(false); setBackupLoading(false)
     if (!workspaceId || !canManage) return
     let alive = true
     setBackupLoading(true); setBackupError(false); setBackups([]); setDetails(null); setSelectedSnapshot(null); setDetailError(false)
@@ -61,11 +62,17 @@ export default function FamilyDataSafetyPlan() {
   const [tab,setTab] = useState('reset')
   const [mode,setMode] = useState('selective')
   const [chosen,setChosen] = useState(() => entries.filter(x=>x[1]).map(x=>x[0]))
+  // Selection is only a provisional local proposal: never carry it between families.
+  useEffect(() => {
+    setTab('reset'); setMode('selective')
+    setChosen(entries.filter(x => x[1]).map(x => x[0]))
+  }, [workspaceId])
   const [restoreMode,setRestoreMode] = useState('selective')
   const [restoreChosen,setRestoreChosen] = useState([])
   // No upload endpoint currently exists. Categories below are planning-only;
   // archive manifest and compatibility MUST come from validated server preview.
   useEffect(() => { setRestoreChosen([]); setRestoreMode('selective') }, [workspaceId])
+  if (!canManage || !workspaceId) return null
   return <section className="settings-section" aria-label="Family data safety planning">
     <h2>{w[0]}</h2>
     <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
