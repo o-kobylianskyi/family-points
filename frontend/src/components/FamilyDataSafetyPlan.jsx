@@ -72,7 +72,17 @@ export default function FamilyDataSafetyPlan() {
   }, [workspaceId, accountScope])
   const [restoreMode,setRestoreMode] = useState('selective')
   const [restoreChosen,setRestoreChosen] = useState([])
-  const resetCount = mode === 'full' ? entries.length : chosen.length
+  // FULL is not "delete every checkbox": some categories reset to defaults,
+  // while identity/ledger-dependent operations remain blocked pending policy.
+  const fullAction = code => code === 'currencies' || code === 'settings' ? 'RESET_DEFAULT'
+    : code === 'members' || code === 'economy' ? 'BLOCKED' : 'DELETE'
+  const actionLabels = {
+    uk: {DELETE:'Видалити після перевірки', RETAIN:'Залишити', RESET_DEFAULT:'Скинути до стандартних значень після перевірки', BLOCKED:'Заблоковано до узгодження'},
+    ru: {DELETE:'Удалить после проверки', RETAIN:'Сохранить', RESET_DEFAULT:'Сбросить настройки после проверки', BLOCKED:'Заблокировано до согласования'},
+    de: {DELETE:'Nach Prüfung löschen', RETAIN:'Behalten', RESET_DEFAULT:'Nach Prüfung zurücksetzen', BLOCKED:'Bis zur Freigabe gesperrt'},
+    en: {DELETE:'Delete after validation', RETAIN:'Retain', RESET_DEFAULT:'Reset to defaults after validation', BLOCKED:'Blocked pending approval'}
+  }
+  const resetCount = mode === 'full' ? entries.filter(([code]) => fullAction(code) === 'DELETE').length : chosen.length
   const restoreCount = restoreMode === 'full' ? entries.length : restoreChosen.length
   // No upload endpoint currently exists. Categories below are planning-only;
   // archive manifest and compatibility MUST come from validated server preview.
@@ -92,8 +102,8 @@ export default function FamilyDataSafetyPlan() {
       </fieldset>
       <div style={{maxHeight:340,overflowY:'auto'}}>
         {entries.map(([code,initial,label])=><label key={code} style={{display:'flex',gap:10,padding:'5px 0',alignItems:'center'}}>
-          <input type="checkbox" checked={mode==='full'||chosen.includes(code)} disabled={mode==='full'} onChange={()=>setChosen(v=>v.includes(code)?v.filter(c=>c!==code):[...v,code])}/>
-          <span>{label[index]} — {(mode==='full'||chosen.includes(code))?w[5]:w[6]}</span>
+          <input type="checkbox" checked={mode==='full' ? fullAction(code)==='DELETE' : chosen.includes(code)} disabled={mode==='full'} onChange={()=>setChosen(v=>v.includes(code)?v.filter(c=>c!==code):[...v,code])}/>
+          <span>{label[index]} — {(actionLabels[language] || actionLabels.en)[mode==='full'?fullAction(code):(chosen.includes(code)?'DELETE':'RETAIN')]}</span>
         </label>)}
       </div>
       <p role="status">{({uk:'У попередньому плані вибрано',ru:'В предварительном плане выбрано',de:'In der Vorplanung ausgewählt',en:'Selected in planning preview'})[language]}: {resetCount} / {entries.length}. {({uk:'Це не серверний план і не дозвіл на видалення.',ru:'Это не серверный план и не разрешение на удаление.',de:'Dies ist weder ein Serverplan noch eine Löschfreigabe.',en:'This is not a server-approved plan or deletion authorization.'})[language]}</p>
