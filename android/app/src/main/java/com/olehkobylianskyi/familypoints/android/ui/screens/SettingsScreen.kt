@@ -348,7 +348,9 @@ fun SettingsScreen(
             }
         }
     }
-    if (online && showTemplateLibrary) {
+    val templateWorkspaceId = currentUser.workspaceId
+    val templateAccountId = currentUser.accountId
+    if (online && showTemplateLibrary && templateWorkspaceId != null && templateAccountId != null) {
         Dialog(
             onDismissRequest = {},
             properties = DialogProperties(
@@ -362,16 +364,16 @@ fun SettingsScreen(
                 shape = MaterialTheme.shapes.large,
                 color = MaterialTheme.colorScheme.surface
             ) {
-                key(currentUser.workspaceId) {
+                key(templateWorkspaceId) {
                     TemplateLibrarySection(
                         language = language,
-                        workspaceId = currentUser.workspaceId ?: return@key,
-                        accountId = currentUser.accountId ?: return@key,
+                        workspaceId = templateWorkspaceId,
+                        accountId = templateAccountId,
                         canManage = "ADMIN_OVERRIDE" in currentUser.permissions ||
                             "MANAGE_TEMPLATES" in currentUser.permissions ||
                             "MANAGE_TASKS" in currentUser.permissions ||
                             "MANAGE_REWARDS" in currentUser.permissions,
-                        repository = remember(currentUser.workspaceId, repository) { repository.templates() },
+                        repository = remember(templateWorkspaceId, repository) { repository.templates() },
                         onUnauthorized = onUnauthorized,
                         onClose = { showTemplateLibrary = false }
                     )
