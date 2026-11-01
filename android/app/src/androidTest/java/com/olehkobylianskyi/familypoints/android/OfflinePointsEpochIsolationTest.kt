@@ -55,4 +55,29 @@ class OfflinePointsEpochIsolationTest {
         assertEquals(entry.operationId, q.pending(91, 11, 1001).single().operationId)
         assertTrue(q.isHeldForReset(91))
     }
+    @Test fun resetHoldRemainsDurableAndBlocksNewEnqueueAfterReopen() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        context.deleteDatabase("fp_pending_points.db")
+        val first = OfflinePointsQueueStore(context)
+        try {
+            assertTrue(first.observeEpoch(91, 17))
+            first.holdForReset(91)
+        } finally { first.close() }
+        val reopened = OfflinePointsQueueStore(context)
+        try {
+            assertTrue(reopened.isHeldForReset(91))
+            assertThrows(IllegalStateException::class.java) {
+                reopened.enqueue(91, 11, 1001, 21, 1, "POINT", "Points", "earn", 3, null)
+            }
+            assertTrue(reopened.pending(91, 11, 1001).isEmpty())
+            // A hold in family A must not block safe operations in family B.
+            assertTrue(reopened.observeEpoch(92, 17))
+            reopened.enqueue(92, 12, 1002, 22, 1, "POINT", "Points", "earn", 3, null)
+            assertEquals(1, reopened.pending(92, 12, 1002).size)
+        } finally {
+            reopened.close()
+            context.deleteDatabase("fp_pending_points.db")
+        }
+    }
+
 }
