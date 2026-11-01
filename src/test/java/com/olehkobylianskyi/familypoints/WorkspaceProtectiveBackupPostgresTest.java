@@ -35,9 +35,12 @@ class WorkspaceProtectiveBackupPostgresTest {
             VALUES (?, ?, 'Backup owner', true, 'PARENT') RETURNING id
             """,Long.class,a,role);
         var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
-        var backups=new WorkspaceProtectiveBackupService(db,new WorkspaceEpochTransactionGuard(db));
+        var guard=new WorkspaceEpochTransactionGuard(db);
+        var snapshots=new WorkspaceResetSnapshotService(db,guard);
+        var backups=new WorkspaceProtectiveBackupService(db,guard,snapshots);
+        String digest=tx.execute(status->snapshots.digest(a,List.of("PRIVATE_TEMPLATES")));
         var req=new WorkspaceProtectiveBackupService.Request(UUID.randomUUID(),"SELECTIVE",
-                List.of("PRIVATE_TEMPLATES"),"a".repeat(64),"V50");
+                List.of("PRIVATE_TEMPLATES"),digest,"V50");
         var first=tx.execute(s->backups.request(a,member,req));
         assertNotNull(first);
         assertEquals("REQUESTED",first.state());
