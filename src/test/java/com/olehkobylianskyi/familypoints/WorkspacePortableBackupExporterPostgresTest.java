@@ -46,6 +46,18 @@ class WorkspacePortableBackupExporterPostgresTest {
         assertTrue(exported.byteCount()>0);
         var inspected=inspector.inspect(exported.encryptedFile(),a,key);
         assertEquals(1,inspected.counts().get("MEMBER_GROUPS"));
+        // Export is read-only, but its source fingerprint must correspond to
+        // exactly the persisted family snapshot, not just matching counts.
+        assertEquals(exported.contentDigest(),
+                tx.execute(status->snapshot.digest(a,List.of("MEMBER_GROUPS"))));
+        db.update("UPDATE member_groups SET name='Kids A renamed' WHERE family_id=?",a);
+        var changed=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
+                0L,List.of("MEMBER_GROUPS"),"V50",key));
+        assertNotEquals(exported.contentDigest(),changed.contentDigest(),
+                "A same-count value change must invalidate the previous export fingerprint");
+        assertEquals(1,inspector.inspect(changed.encryptedFile(),a,key)
+                .counts().get("MEMBER_GROUPS"));
+
         assertFalse(inspected.restorable());
         assertThrows(SecurityException.class,()->inspector.inspect(exported.encryptedFile(),b,key));
         assertEquals(HttpStatus.BAD_REQUEST,assertThrows(ResponseStatusException.class,
