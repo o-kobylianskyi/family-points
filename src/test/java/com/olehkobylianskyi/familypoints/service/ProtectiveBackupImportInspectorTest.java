@@ -73,6 +73,43 @@ class ProtectiveBackupImportInspectorTest {
                 ()->inspector.inspect(duplicated,42L,key));
     }
 
+    @Test void reportsMissingScheduleParentAndDanglingMediaAssetWithoutRestore() throws Exception {
+        var key=key();
+        byte[] missingTask=file(42L,"""
+                {"format":"family-points-export-v1","workspaceId":42,
+                 "categories":{"TASK_SCHEDULE_SLOTS":[{"id":3,"task_definition_id":9}]}}
+                """,key);
+        var first=inspector.inspect(missingTask,42L,key);
+        assertTrue(first.blockers().contains("MISSING_CATEGORY:TASK_DEFINITIONS"));
+        assertFalse(first.restorable());
+
+        byte[] danglingTask=file(42L,"""
+                {"format":"family-points-export-v1","workspaceId":42,
+                 "categories":{"TASK_DEFINITIONS":[{"id":5,"family_id":42}],
+                 "TASK_SCHEDULE_SLOTS":[{"id":3,"task_definition_id":9}]}}
+                """,key);
+        assertTrue(inspector.inspect(danglingTask,42L,key).blockers()
+                .contains("DANGLING_REFERENCE:TASK_SCHEDULE_SLOTS.task_definition_id"));
+        byte[] missingMedia=file(42L,"""
+                {"format":"family-points-export-v1","workspaceId":42,
+                 "categories":{"MEDIA_BINDINGS":[{"workspace_id":42,"target_type":"WORKSPACE",
+                 "target_id":42,"slot":"COVER","asset_id":"77cc92a5-7905-4396-975a-8a1387555730"}]}}
+                """,key);
+        assertTrue(inspector.inspect(missingMedia,42L,key).blockers()
+                .contains("MISSING_CATEGORY:MEDIA_ASSETS"));
+        byte[] suppliedMedia=file(42L,"""
+                {"format":"family-points-export-v1","workspaceId":42,
+                 "categories":{"MEDIA_ASSETS":[{"id":"77cc92a5-7905-4396-975a-8a1387555730",
+                 "workspace_id":42}],
+                 "MEDIA_BINDINGS":[{"workspace_id":42,"target_type":"WORKSPACE",
+                 "target_id":42,"slot":"COVER","asset_id":"77cc92a5-7905-4396-975a-8a1387555730"}]}}
+                """,key);
+        var checked=inspector.inspect(suppliedMedia,42L,key);
+        assertFalse(checked.blockers().contains("MISSING_CATEGORY:MEDIA_ASSETS"));
+        assertFalse(checked.blockers().contains("DANGLING_REFERENCE:MEDIA_BINDINGS.asset_id"));
+        assertFalse(checked.restorable());
+    }
+
     @Test void unknownCategoriesAndUnsafeArchiveShapeFailClosed() throws Exception {
         var key=key();
         for(String payload:java.util.List.of(
