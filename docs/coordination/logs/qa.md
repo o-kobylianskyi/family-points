@@ -613,3 +613,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-11-01 — New integrated rehearsal test compile failure and correction
 - User ran aggregate 5-class Maven command. Maven compiled 325 main Java sources successfully but **testCompile failed** at `WorkspaceDisposableRestoreRehearsalPostgresTest.java:22`: `org.testcontainers.postgresql.PostgreSQLContainer` in this project is **non-generic**; new QA test erroneously used `PostgreSQLContainer<?>` and `new PostgreSQLContainer<>()`. None of the five tests ran in that attempt.
 - Fixed the QA-only declaration to raw `PostgreSQLContainer DB = new PostgreSQLContainer("postgres:18-alpine")` in commit `79857568`. No production code modification, no current PASS claim. Request same aggregate targeted Maven re-run after pull; retain exact SHA and Surefire counters.
+
+
+## 2026-11-01 — Five-class disposable PostgreSQL QA aggregate BUILD SUCCESS (operator report)
+- User confirmed **BUILD SUCCESS** after the `PostgreSQLContainer` non-generic testCompile fix `79857568`, in response to rerunning the five-class aggregate `WorkspacePortableRestoreArchiveSecurityPostgresTest,WorkspacePortableRestorePreviewPostgresTest,WorkspacePortableRelationalRehearsalPostgresTest,WorkspacePortableBackupExporterPostgresTest,WorkspaceDisposableRestoreRehearsalPostgresTest`.
+- Targeted Maven goal completed successfully; exact Surefire test counts, skipped tests, local git SHA and CI URL not supplied. Record as user-reported local success, not current-head CI proof.
+- This accepts available isolated encrypted exporter/import inspection, read-only preview, group/media JSONB/FK staging, rollback rehearsal safety coverage. It does NOT demonstrate persisted FULL/SELECTIVE domain restore, verified protective pre-reset snapshot, durable receipt, physical TTL or authorized Reset Execute. BKL-002 remains HOLD under architecture integration matrix E01-E30.
