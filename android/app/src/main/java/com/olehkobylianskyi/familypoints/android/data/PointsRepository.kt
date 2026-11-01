@@ -87,6 +87,7 @@ class PointsRepository(
             if (epoch.workspaceId != workspaceId || epoch.dataEpoch < 0L) {
                 throw SecurityException("Invalid workspace data epoch")
             }
+            if (tokenStore.getAccessToken() != auth.removePrefix("Bearer ")) return 0
             if (!queue.observeEpoch(workspaceId, epoch.dataEpoch)) return 0
             var confirmed = 0
             val affectedMembers = mutableSetOf<Long>()
@@ -95,11 +96,13 @@ class PointsRepository(
             var replayDenial: HttpException? = null
             for (entry in queue.pending(workspaceId, viewerId, owner)) {
             if (queue.isHeldForReset(workspaceId)) break
+            if (tokenStore.getAccessToken() != auth.removePrefix("Bearer ")) break
             try {
                 ApiClient.pointsApi.replayOffline(
                     auth, epoch.dataEpoch, workspaceId, entry.memberId, entry.type,
                     OfflinePointOperationRequest(entry.operationId, entry.pointTypeId, entry.amount, entry.description)
                 )
+                if (tokenStore.getAccessToken() != auth.removePrefix("Bearer ")) break
                 queue.confirm(entry.operationId, workspaceId, viewerId, owner)
                 confirmed++
                 affectedMembers.add(entry.memberId)
