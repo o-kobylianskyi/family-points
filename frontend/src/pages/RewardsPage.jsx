@@ -386,7 +386,6 @@ function RewardsPage() {
   const cancelEditReward = () => {
     rewardDraftGeneration.current += 1
     setSelectedRewardTemplateId('')
-    setRewardWriteUnknown(false)
     setEditingRewardId(null)
     setRewardForm({ ...emptyRewardForm, pointTypeId: pointTypes[0]?.id ?? '' })
   }
@@ -952,6 +951,7 @@ function RewardsPage() {
       {pageTab === 'manage' && canManage && (
         <div className="reward-manage-layout">
           <section className="reward-admin-panel">
+            {rewardWriteUnknown && <p role="alert" className="page-error">{({uk:'Результат запису невідомий. Перевірте список нагород перед новою спробою; повторна відправка заблокована.',ru:'Результат записи неизвестен. Проверьте список наград перед новой попыткой; повторная отправка заблокирована.',de:'Speicherergebnis unklar. Vor erneutem Versuch die Belohnungsliste prüfen; erneutes Senden ist gesperrt.',en:'Save outcome unknown. Check the rewards list before trying again; resubmission is blocked.'})[language]}</p>
             <h2>{t('rewardsUi.categories')}</h2>
             <div className="reward-tags">
               {categories.map((category) => (
