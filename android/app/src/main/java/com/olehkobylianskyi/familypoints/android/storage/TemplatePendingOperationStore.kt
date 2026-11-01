@@ -73,6 +73,16 @@ class TemplatePendingOperationStore(context: Context) :
                 ).use { it.moveToFirst() }
                 check(!exists) { "Existing family import requires receipt reconciliation" }
             }
+            if (value.kind == "TASK" || value.kind == "REWARD") {
+                require(value.payload.startsWith("gcm1:")) { "Activation payload must be encrypted" }
+                val exists = db.rawQuery(
+                    """SELECT 1 FROM pending_template_receipts
+                       WHERE workspace_id=? AND operation_kind=? AND template_id=?
+                       AND status!='CONFIRMED' LIMIT 1""",
+                    arrayOf(value.workspaceId.toString(), value.kind, value.templateId.toString())
+                ).use { it.moveToFirst() }
+                check(!exists) { "Existing activation requires receipt reconciliation" }
+            }
             // Never replace an operation UUID or immutable payload on retries.
             db.insertOrThrow("pending_template_receipts", null, row)
             db.setTransactionSuccessful()
