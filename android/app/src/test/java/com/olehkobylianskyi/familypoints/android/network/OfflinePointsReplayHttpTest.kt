@@ -59,4 +59,26 @@ class OfflinePointsReplayHttpTest {
         assertTrue(OfflineReplaySessionGate.canQuarantine("original", "original", 91, 91, 17, 18))
         assertEquals(1, server.requestCount)
     }
+    @Test fun lostResponseKeepsOriginalIdForExplicitIdempotentReconciliation() = runBlocking {
+        val id = UUID.randomUUID().toString()
+        server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST))
+        server.enqueue(MockResponse().setResponseCode(409))
+        val request = OfflinePointOperationRequest(id, 1L, 3, null)
+        try {
+            api.replayOffline("Bearer original", 17, 91, 21, "earn", request)
+            fail("Expected the first response to be lost")
+        } catch (_: IOException) { }
+        // This models an explicit next synchronization, never an internal HTTP retry.
+        try {
+            api.replayOffline("Bearer original", 17, 91, 21, "earn", request)
+            fail("Expected a conflict requiring epoch verification")
+        } catch (e: HttpException) { assertEquals(409, e.code()) }
+        val first = server.takeRequest(2, TimeUnit.SECONDS)!!
+        val second = server.takeRequest(2, TimeUnit.SECONDS)!!
+        assertEquals("POST", first.method)
+        assertEquals("POST", second.method)
+        assertEquals(first.body.readUtf8(), second.body.readUtf8())
+        assertEquals(2, server.requestCount)
+    }
+
 }
