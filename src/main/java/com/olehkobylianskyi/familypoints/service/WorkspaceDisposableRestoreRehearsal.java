@@ -88,6 +88,18 @@ public final class WorkspaceDisposableRestoreRehearsal {
                         Long.class,category);
                 if(persisted==null || persisted.longValue()!=inspection.counts().get(category).longValue())
                     throw new IllegalStateException("REHEARSAL_CATEGORY_MISMATCH:"+category);
+                int originalOrdinal=0;
+                for(JsonNode original:cats.path(category)) {
+                    String stored=db.queryForObject(
+                            "SELECT payload::text FROM fp_rehearsal_archive_rows WHERE category=? AND ordinal=?",
+                            String.class,category,originalOrdinal++);
+                    try {
+                        if(stored==null || !original.equals(json.readTree(stored)))
+                            throw new IllegalStateException("REHEARSAL_PAYLOAD_MISMATCH:"+category);
+                    } catch(java.io.IOException e) {
+                        throw new IllegalStateException("REHEARSAL_INVALID_STAGED_JSON:"+category,e);
+                    }
+                }
             }
             int groups=0,assets=0,bindings=0,variants=0;
             for(JsonNode row:cats.path("MEMBER_GROUPS")) {
