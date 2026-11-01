@@ -38,6 +38,7 @@ class TemplateOperationRecovery(
             store.transition(operation, "HELD", epoch.dataEpoch)
             return Outcome.HELD
         }
+        if (tokens.getAccessToken() != token) return Outcome.UNKNOWN
         return try {
             if (operation.kind == "FINALIZE") {
                 val response = ApiClient.workspaceSetupApi.finalizeReceipt(
@@ -54,7 +55,7 @@ class TemplateOperationRecovery(
                     response.importResult.selectedCodes == request.selectedCatalogCodes
                 ) { "Finalize receipt conflicts with durable request" }
             } else if (operation.kind == "IMPORT") {
-                val response = receipts.importReceipt(workspaceId, operation.operationId)
+                val response = receipts.importReceipt(workspaceId, operation.operationId, token)
                 val expected = Gson().fromJson<List<String>>(
                     operation.payload, object : TypeToken<List<String>>() {}.type
                 )
@@ -62,7 +63,7 @@ class TemplateOperationRecovery(
                     "Import receipt selection differs from persisted operation"
                 }
             } else if (operation.kind == "TASK" || operation.kind == "REWARD") {
-                val result = receipts.activationReceipt(workspaceId, operation.operationId)
+                val result = receipts.activationReceipt(workspaceId, operation.operationId, token)
                 check(result.templateId == operation.templateId && result.kind == operation.kind) {
                     "Activation receipt does not match pending operation"
                 }
