@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { getTemplateCatalog } from '../api/templateApi'
-import { getSetupState, reviewSetupCatalog, setSetupStep } from '../api/setupApi'
+import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 
 // Read-only setup review. Do not enable finalize/activation until full saga UX is approved.
@@ -29,10 +29,27 @@ export default function InitialFamilySetupReview() {
   const [review, setReview] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(false)
+  const [pending, setPending] = useState(null)
+  const [confirmed, setConfirmed] = useState(false)
+  const [finished, setFinished] = useState(null)
   const seq = useRef(0)
+  const accountId = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id
+  const storageKey = accountId && workspaceId ? `fp:setup:pending:${accountId}:${workspaceId}` : null
+  useEffect(() => {
+    setPending(null); setConfirmed(false); setFinished(null)
+    if (!storageKey) return
+    try {
+      const value = JSON.parse(sessionStorage.getItem(storageKey) || 'null')
+      if (value && String(value.workspaceId) === String(workspaceId) && String(value.accountId) === String(accountId) &&
+          Number.isSafeInteger(value.epoch) && Number.isSafeInteger(value.revision) &&
+          typeof value.operationId === 'string' && Array.isArray(value.codes)) setPending(value)
+    } catch { /* invalid scoped browser data is never replayed */ }
+  }, [storageKey])
+  const persist = value => { sessionStorage.setItem(storageKey, JSON.stringify(value)); setPending(value) }
+  const clear = () => { sessionStorage.removeItem(storageKey); setPending(null) }
   useEffect(() => {
     const id = ++seq.current
-    setSetup(null); setCatalog([]); setPacks([]); setPack('ALL'); setSelected([]); setReview(null); setError(false); setUnavailable(false)
+    setSetup(null); setCatalog([]); setPacks([]); setPack('ALL'); setSelected([]); setReview(null); setConfirmed(false); setError(false); setUnavailable(false)
     if (!workspaceId) return
     Promise.all([getSetupState(getAccessToken(), workspaceId), getTemplateCatalog(getAccessToken())])
       .then(([state, data]) => { if (seq.current === id) { setSetup(state); setCatalog(data?.templates || []); setPacks(data?.packs || []) } })
@@ -59,12 +76,40 @@ export default function InitialFamilySetupReview() {
     const id = ++seq.current
     const workspace = workspaceId
     const codes = catalog.filter(item => selected.includes(item.code)).map(item => item.code)
-    setBusy(true); setReview(null); setError(false)
+    setBusy(true); setReview(null); setConfirmed(false); setError(false)
     try {
       const result = await reviewSetupCatalog(getAccessToken(), workspace, setup.revision, codes)
       if (seq.current === id) setReview(result)
     } catch { if (seq.current === id) setError(true) }
     finally { if (seq.current === id) setBusy(false) }
+  }
+  const recover = async () => {
+    if (!pending || busy) return
+    setBusy(true); setError(false)
+    try {
+      const result = await getSetupFinalizeReceipt(getAccessToken(), workspaceId, pending.operationId)
+      if (result.dataEpoch !== pending.epoch) throw new Error('EPOCH_MISMATCH')
+      setFinished(result); clear()
+      setSetup(await getSetupState(getAccessToken(), workspaceId))
+    } catch { setError(true) } finally { setBusy(false) }
+  }
+  const finalize = async () => {
+    if (!confirmed || pending || busy || !storageKey || !setup || !review ||
+        review.revision !== setup.revision || review.dataEpoch !== setup.dataEpoch ||
+        setup.status === 'COMPLETED' || !window.crypto?.randomUUID ||
+        !Object.values(setup.steps || {}).every(v => v === 'COMPLETE' || v === 'SKIPPED')) return
+    const codes = catalog.filter(item => selected.includes(item.code)).map(item => item.code)
+    if (JSON.stringify(codes) !== JSON.stringify(review.selectedCodes)) return
+    const operation = { accountId, workspaceId, epoch: setup.dataEpoch, revision: setup.revision,
+      codes, operationId: window.crypto.randomUUID() }
+    try { persist(operation) } catch { setError(true); return }
+    setBusy(true); setError(false)
+    try {
+      const result = await finalizeSetupImport(getAccessToken(), workspaceId, operation.operationId, operation.revision, operation.codes)
+      if (result.dataEpoch !== operation.epoch) throw new Error('EPOCH_MISMATCH')
+      setFinished(result); clear()
+      setSetup(await getSetupState(getAccessToken(), workspaceId))
+    } catch { setError(true) } finally { setBusy(false) }
   }
   return <section className="settings-section" aria-label="Initial family setup">
     <h2>{w[0]}</h2>
@@ -97,6 +142,12 @@ export default function InitialFamilySetupReview() {
       </div>
       <button type="button" className="secondary-button" disabled={!selected.length || busy || setup.status === 'COMPLETED'} onClick={preview}>{w[7]}</button>
       {review && <p role="status">{w[9]}: {review.toImportCount} · {w[10]}: {review.alreadyImportedCount}</p>}
+      {pending && <div role="status"><p>{({uk:'Результат попередньої операції невідомий. Новий імпорт заблоковано.',ru:'Результат предыдущей операции неизвестен. Новый импорт заблокирован.',de:'Vorheriger Vorgang unklar. Neuer Import gesperrt.',en:'Previous result unknown. New import blocked.'})[lang]}</p><button type="button" className="secondary-button" disabled={busy} onClick={recover}>{({uk:'Перевірити квитанцію',ru:'Проверить квитанцию',de:'Beleg prüfen',en:'Check receipt'})[lang]}</button></div>}
+      {review && !pending && setup.status !== 'COMPLETED' && <div>
+        <label><input type="checkbox" checked={confirmed} disabled={busy} onChange={e=>setConfirmed(e.target.checked)} />{({uk:'Підтверджую імпорт приватних шаблонів і завершення налаштування без активації.',ru:'Подтверждаю импорт и завершение без активации.',de:'Import und Abschluss ohne Aktivierung bestätigen.',en:'Confirm private template import and setup completion without activation.'})[lang]}</label>
+        <button type="button" className="secondary-button" disabled={busy || !confirmed || !storageKey || !Object.values(setup.steps || {}).every(v=>v==='COMPLETE'||v==='SKIPPED')} onClick={finalize}>{({uk:'Завершити й імпортувати',ru:'Завершить и импортировать',de:'Abschließen und importieren',en:'Finalize and import'})[lang]}</button>
+      </div>}
+      {finished && <p role="status">{({uk:'Імпорт завершено',ru:'Импорт завершён',de:'Import abgeschlossen',en:'Import completed'})[lang]}</p>}
     </>}
   </section>
 }
