@@ -1,0 +1,24 @@
+# Designer → Web BKL-002 UX gap audit — 2026-11-01
+Source baseline inspected: `frontend/src/components/FamilyDataSafetyPlan.jsx`, `FamilyResetReadiness.jsx`, `backupApi.js`, `resetApi.js`. Contract: `DESIGNER_BKL002_BACKUP_RESET_RESTORE_UX_V1_20261101.md`; product approval: `BKL002_APPROVED_FILE_BACKUP_RESTORE_20261101.md`.
+
+## Correct and safe today
+- Manager-scoped metadata list/detail and local read-only FULL/SELECTIVE reset/restore sketches; four-locale warning copy; workspace/account lifecycle isolation; no file upload/download/reset/restore execution.
+- The UI explicitly describes local selections as *not* executable or archive-validated. Backend exposes metadata only; no authorized file HTTP API to wire. Preserve this restriction.
+
+## Actionable gaps (ordered)
+1. **P0 IA / distinct actions**: `FamilyDataSafetyPlan.jsx` exposes Reset and Restore tabs, but Backup is only a registry section inside Restore. Once HTTP contract approved, present three conceptually distinct top-level panels/tabs **Backup / Restore / Reset**, without suggesting download/upload are already supported. For now even a disabled/annotated Backup panel can explain status and expiration; avoid inventing API.
+2. **P0 confusing FULL reset checkbox**: local FULL mode checks every generic `entries` row regardless of per-category retention policy. This is a preview ONLY, but it visually implies people, currency and settings are all `DELETE`. Split operations into `DELETE`, `RESET_DEFAULT`, `RETAIN`, `PROTECTED`, `BLOCKED` per approved matrix; FULL must **not** imply deletion of owner/global identity, other families, audit. SELECTIVE suggested defaults must not mean implicit executed selection.
+3. **P0 restore scope is not archive-backed**: current restore FULL selects all local categories and SELECTIVE toggles local entries independent of archive manifest. UI already warns. Until upload + verified manifest endpoint exists, show `unverified archive coverage` as distinct state and disable any restoration CTA. After available, derive selectable categories and conflict policy from authoritative preview and block unresolved replace/merge, FK/media/ledger mappings.
+4. **P0 metadata != recoverability**: list/detail `state=VERIFIED`, `restoreVerified`, `executable` are registry values. Current detail text explicitly says 'registry status only' (correct), but an item list heading 'Verified' could be mistaken for actual recoverable file. Label `Registry verified` consistently and never show usable Download/Undo absent tested portable archive.
+5. **P1 missing future gate visibility**: surface a compact noninteractive sequence `Select → Preview → Verified protective backup → Reauth → Confirm → Receipt`. Every unavailable phase should explain blocking conditions (not simply hidden); never collect real passwords before Backend reauth proof endpoint exists.
+6. **P1 statuses and time**: surface server-created UTC expiry and remaining time only when timestamp trustworthy; distinguish EXPIRED local copy from user-owned downloaded file. Unknown byte size/count/schema must display `not available`, not fabricated zero. Include 4 locales and accessible text, not color-only status.
+7. **P1 duplicate reset entry views**: `FamilyResetReadiness.jsx` still presents a second selective reset planner distinct from `FamilyDataSafetyPlan.jsx`; avoid conflicting labels, counts, selections and implied authority. Consolidate presentation contract when source integration is ready, keeping one authoritative server-plan safety gate. No premature rewrite while Backend executor absent.
+8. **P1 error/reentry**: workspace/account switch invalidates selected archive, plan and pending receipts; stale 401/403/409/422/423 and timeout must fail closed. An uncertain result needs SAME UUID receipt lookup, not a fresh operation. Wire only when Backend publishes exact DTO and idempotency.
+
+## QA conditions
+- Read-only browser QA: four locales x two themes/mobile; full protected rows and selective default/unchecked; no POST to execute/restore; expired/REQUESTED/VERIFIED registry records distinguished; archive-unverified state and account/workspace A→B; stale async responses; accessible disabled actions.
+- Disposable PG only: export/import FULL/SELECTIVE roundtrip, overwrite policy, ledger/media/FK isolation, owner/global account retained; Backend first, then Web actions.
+- Latest source/CI is not DEV deployment proof; do not infer green Playwright from compile success.
+
+## Handoff
+Designer: this is an audit + implementation contract, not source UI implementation or deploy. Web owner should resolve P0 clarity without enabling unsafe operations, then wait for Backend-approved portable endpoints before wiring file/actions. Architecture owner: resolve per-category replace/merge and protected retention semantics before executable preview.
