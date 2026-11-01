@@ -34,7 +34,8 @@ final class DisposableNativeRestoreExecutor {
         if(source<=0 || target<=0 || source==target)
             throw new IllegalArgumentException("DISPOSABLE_DISTINCT_FAMILIES_REQUIRED");
         var proof=inspector.inspect(file,source,key);
-        if(!proof.availableCategories().equals(List.of("MEDIA_BINDINGS","MEMBER_GROUPS")))
+        if(!proof.availableCategories().equals(List.of("MEDIA_BINDINGS","MEMBER_GROUPS"))
+                && !proof.availableCategories().equals(List.of("MEMBER_GROUPS")))
             throw new IllegalArgumentException("DISPOSABLE_CATEGORY_SCOPE_UNSUPPORTED");
         var envelope=portable.decode(file);
         byte[] plain=codec.open(envelope,envelope.manifest().snapshotId(),source,key);
@@ -102,7 +103,7 @@ final class DisposableNativeRestoreExecutor {
             Long bindingsAfter=db.queryForObject("SELECT count(*) FROM media_bindings WHERE workspace_id=?",
                     Long.class,target);
             if(groupsAfter==null || groupsAfter.longValue()!=proof.counts().get("MEMBER_GROUPS")
-                    || bindingsAfter==null || bindingsAfter.longValue()!=proof.counts().get("MEDIA_BINDINGS"))
+                    || bindingsAfter==null || bindingsAfter.longValue()!=proof.counts().getOrDefault("MEDIA_BINDINGS",0))
                 throw new IllegalStateException("NATIVE_RESTORE_COUNT_MISMATCH");
             return new Result(Map.copyOf(remap),bindings,proof.snapshotId());
         });
