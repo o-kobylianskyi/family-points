@@ -12,7 +12,7 @@ async function read(response) {
 }
 
 const workspace = id => {
-  if (!/^\\d+$/.test(String(id))) throw new Error('INVALID_WORKSPACE_ID')
+  if (!/^\d+$/.test(String(id))) throw new Error('INVALID_WORKSPACE_ID')
   return String(id)
 }
 
