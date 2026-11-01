@@ -94,9 +94,9 @@ class WorkspacePortableRestorePreviewPostgresTest {
         var result=tx.execute(status->preview.preview(archive,a,0L,List.of("POINT_LEDGER"),key));
         assertFalse(result.executable());
         assertEquals(1,result.categories().size());
-        assertEquals(-1L,result.categories().get(0).targetRows());
-        assertTrue(result.blockers().contains("RESTORE_CATEGORY_MAPPING_REQUIRED:POINT_LEDGER"));
-        assertFalse(result.blockers().contains("RESTORE_FK_REMAP_UNVERIFIED:POINT_LEDGER"));
+        assertEquals(0L,result.categories().get(0).targetRows());
+        assertFalse(result.blockers().contains("RESTORE_CATEGORY_MAPPING_REQUIRED:POINT_LEDGER"));
+        assertTrue(result.blockers().contains("RESTORE_FK_REMAP_UNVERIFIED:POINT_LEDGER"));
         assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,a));
         assertEquals("Export group",db.queryForObject("SELECT name FROM member_groups WHERE family_id=?",String.class,a));
         assertEquals("Keep group",db.queryForObject("SELECT name FROM member_groups WHERE family_id=?",String.class,b));
