@@ -12,6 +12,18 @@ const words = {
   de: ['Ersteinrichtung der Familie', 'Einrichtung nicht verfügbar oder deaktiviert.', 'Typ', 'Kategorie', 'Aufgaben', 'Belohnungen', 'Alle Kategorien', 'Auswahl prüfen', 'Ausgewählt', 'Zu importieren', 'Bereits importiert', 'Nur Vorschau, kein Import und keine Aktivierung.', 'Auswahl konnte nicht geprüft werden. Seite aktualisieren.'],
   en: ['Initial family setup', 'Setup is unavailable or disabled.', 'Type', 'Category', 'Tasks', 'Rewards', 'All categories', 'Review selection', 'Selected', 'To import', 'Already imported', 'Read-only preview: no import or activation.', 'Could not review selection. Refresh the page.'],
 }
+const setupSteps = {
+  uk: { MEMBERS:'Учасники',MEMBER_GROUPS:'Групи учасників',WORK_NODE_GROUPS:'Папки завдань',CATALOG_SELECTION:'Вибір шаблонів',TASK_REVIEW:'Перевірка завдань',REWARD_REVIEW:'Перевірка нагород',FINAL_REVIEW:'Підсумкова перевірка' },
+  ru: { MEMBERS:'Участники',MEMBER_GROUPS:'Группы участников',WORK_NODE_GROUPS:'Папки задач',CATALOG_SELECTION:'Выбор шаблонов',TASK_REVIEW:'Проверка задач',REWARD_REVIEW:'Проверка наград',FINAL_REVIEW:'Итоговая проверка' },
+  de: { MEMBERS:'Mitglieder',MEMBER_GROUPS:'Mitgliedergruppen',WORK_NODE_GROUPS:'Aufgabenordner',CATALOG_SELECTION:'Vorlagenauswahl',TASK_REVIEW:'Aufgaben prüfen',REWARD_REVIEW:'Belohnungen prüfen',FINAL_REVIEW:'Abschlussprüfung' },
+  en: { MEMBERS:'Members',MEMBER_GROUPS:'Member groups',WORK_NODE_GROUPS:'Task folders',CATALOG_SELECTION:'Template selection',TASK_REVIEW:'Task review',REWARD_REVIEW:'Reward review',FINAL_REVIEW:'Final review' }
+}
+const setupStates = {
+  uk: { COMPLETE:'Виконано',COMPLETED:'Завершено',SKIPPED:'Пропущено',PENDING:'Очікує',IN_PROGRESS:'У процесі' },
+  ru: { COMPLETE:'Выполнено',COMPLETED:'Завершено',SKIPPED:'Пропущено',PENDING:'Ожидает',IN_PROGRESS:'В процессе' },
+  de: { COMPLETE:'Erledigt',COMPLETED:'Abgeschlossen',SKIPPED:'Übersprungen',PENDING:'Ausstehend',IN_PROGRESS:'In Bearbeitung' },
+  en: { COMPLETE:'Complete',COMPLETED:'Completed',SKIPPED:'Skipped',PENDING:'Pending',IN_PROGRESS:'In progress' }
+}
 export default function InitialFamilySetupReview() {
   const { i18n } = useTranslation()
   const lang = i18n.language.split('-')[0]
@@ -29,6 +41,7 @@ export default function InitialFamilySetupReview() {
   const [review, setReview] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(false)
+  const [errorStatus, setErrorStatus] = useState(null)
   const [pending, setPending] = useState(null)
   const [confirmed, setConfirmed] = useState(false)
   const [finished, setFinished] = useState(null)
@@ -106,7 +119,7 @@ export default function InitialFamilySetupReview() {
     try {
       const result = await setSetupStep(getAccessToken(), origin, step, status, setup.revision)
       if (id === seq.current) setSetup(result)
-    } catch { if (id === seq.current) setError(true) }
+    } catch (e) { if (id === seq.current) { setError(true); setErrorStatus(e?.status) } }
     finally { if (id === seq.current) setBusy(false) }
   }
   const preview = async () => {
@@ -133,7 +146,7 @@ export default function InitialFamilySetupReview() {
       const refreshed = await getSetupState(getAccessToken(), operation.workspaceId)
       if (activeScope.current !== scope || refreshed.dataEpoch !== operation.epoch) return
       clear(operation); setFinished(result); setSetup(refreshed)
-    } catch { if (activeScope.current === scope) setError(true) }
+    } catch (e) { if (activeScope.current === scope) { setError(true); setErrorStatus(e?.status) } }
     finally { if (activeScope.current === scope) setBusy(false) }
   }
   const finalize = async () => {
@@ -163,9 +176,9 @@ export default function InitialFamilySetupReview() {
     <h2>{w[0]}</h2>
     <p>{w[11]}</p>
     {unavailable && <p role="status">{w[1]}</p>}
-    {error && <p role="alert">{w[12]}</p>}
+    {error && <p role="alert">{errorStatus === 409 ? ({uk:'Дані налаштування змінилися. Оновіть сторінку та перевірте стан операції.',ru:'Данные изменились. Обновите страницу и проверьте операцию.',de:'Einrichtungsdaten geändert. Seite aktualisieren und Vorgang prüfen.',en:'Setup changed. Refresh and check operation status.'})[lang] : errorStatus === 403 ? ({uk:'Недостатньо прав для налаштування.',ru:'Недостаточно прав для настройки.',de:'Keine Berechtigung für die Einrichtung.',en:'Not authorized to manage setup.'})[lang] : w[12]}</p>}
     {setup && <>
-      <p>{setup.status} · {Object.values(setup.steps || {}).filter(x => x === 'COMPLETE' || x === 'SKIPPED').length}/{Object.keys(setup.steps || {}).length}</p>
+      <p>{(setupStates[lang] || setupStates.en)[setup.status] || setup.status} · {Object.values(setup.steps || {}).filter(x => x === 'COMPLETE' || x === 'SKIPPED').length}/{Object.keys(setup.steps || {}).length}</p>
       <div className="template-toolbar">
         <label>{w[2]}<select value={kind} onChange={e=>{setKind(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="TASK">{w[4]}</option><option value="REWARD">{w[5]}</option></select></label>
         <label>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}<select value={pack} onChange={e=>{setPack(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{packs.map(p=><option value={p.code} key={p.code}>{p.title?.[lang] || p.title?.en || p.code}</option>)}</select></label>
@@ -181,7 +194,7 @@ export default function InitialFamilySetupReview() {
       <div>
         <strong>{({uk:'Кроки налаштування',ru:'Шаги настройки',de:'Einrichtungsschritte',en:'Setup steps'})[lang] || 'Setup steps'}</strong>
         {Object.entries(setup.steps || {}).map(([step, value]) => <div key={step} style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',padding:'5px 0'}}>
-          <span>{step} — {value}</span>
+          <span>{(setupSteps[lang] || setupSteps.en)[step] || step} — {(setupStates[lang] || setupStates.en)[value] || value}</span>
           {setup.status !== 'COMPLETED' && <>
             <button className="secondary-button" type="button" disabled={busy || !!pending} onClick={()=>setStep(step,'COMPLETE')}>{({uk:'Позначити виконаним',ru:'Отметить выполненным',de:'Als erledigt markieren',en:'Mark complete'})[lang]}</button>
             <button className="secondary-button" type="button" disabled={busy || !!pending} onClick={()=>setStep(step,'SKIPPED')}>{({uk:'Пропустити',ru:'Пропустить',de:'Überspringen',en:'Skip'})[lang]}</button>
