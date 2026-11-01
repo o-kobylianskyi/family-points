@@ -82,7 +82,7 @@ test.describe('BKL-002 read-only error recovery', () => {
     expect(intercepted).toBe(1)
     expect(forbidden).toEqual([])
   })
-  test('late Plan response cannot restore a selection that was changed', async ({ page }) => {
+  test('late Plan response cannot restore a plan after page navigation', async ({ page }) => {
     const forbidden = []
     page.on('request', req => {
       if (forbiddenPattern.test(new URL(req.url()).pathname)) forbidden.push(req.url())
