@@ -883,3 +883,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Added JVM MockWebServer real HTTP test which sends one offline point POST with fixed UUID/token, waits until request was received, switches active test-session, then releases a delayed HTTP409 response; session+epoch gate must refuse old-account reset quarantine. Existing transport tests cover lost response UUID and explicit idempotent retries.
 - Commits 4ef0dd2f, f32ddf83, 5ca05c77; HTTP headers (not empty body) are delayed for deterministic ordering; 2s client read timeout avoids premature timeout in this test.
 - Scope is real Retrofit wire + pure session gate, **not** complete production PointsRepository/SQLite integration. Gradle/testDebugUnitTest on these commits has not run; user's earlier BUILD SUCCESSFUL is pinned only to 0f7a8283 and 9355730e. Instrumentation remains deferred. BETA/Reset Execute HOLD.
+
+## 2026-11-01 22:47 CET — Android P0 red CI 3 failures
+- Architect dispatch identifies GitHub run 41352872511 job 124986700310: 77 tests / 3 failed. Job log shows ConnectException from MockWebServer DISCONNECT_AFTER_REQUEST in the repository activation, transport activation and offline points lost-response tests.
+- Test-only fixes: 56c4074a and 747082ee use delayed response headers 750ms against 250ms read timeout; cddc5777 uses 3s delay against 2s timeout. Subsequent receipt GET and explicit offline replay keep original operation UUID; do not enable hidden POST retries. No production behavior changed.
+- Green CI for these new commits NOT YET VERIFIED. Previous exact-SHA local PASS applies to older source. Android device instrumentation deferred. BETA/BKL002 execute HOLD.
