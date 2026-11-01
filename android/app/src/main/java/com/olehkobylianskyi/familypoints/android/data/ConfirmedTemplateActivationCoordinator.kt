@@ -51,6 +51,9 @@ class ConfirmedTemplateActivationCoordinator(
           catch (_: Exception) { return Result.Blocked("Server epoch unavailable") }
         if (epoch.workspaceId != workspaceId || epoch.dataEpoch < 0)
             return Result.Blocked("Invalid workspace epoch")
+        // The session may change while the first authoritative epoch GET is in flight.
+        if (tokens.getAccessToken() != token)
+            return Result.Blocked("Account changed before activation")
         val operation = UUID.randomUUID()
         // Encrypt BEFORE storing. Never persist plaintext task/reward request.
         val encrypted = cipher.encrypt(reviewedRequest.toString())
