@@ -53,7 +53,7 @@ public final class WorkspaceDisposableRestoreRehearsal {
             db.execute("CREATE TEMP TABLE fp_rehearsal_groups(id bigint PRIMARY KEY, family_id bigint NOT NULL, name text NOT NULL) ON COMMIT DROP");
             db.execute("CREATE TEMP TABLE fp_rehearsal_assets(id uuid PRIMARY KEY, workspace_id bigint NOT NULL, digest text NOT NULL) ON COMMIT DROP");
             db.execute("CREATE TEMP TABLE fp_rehearsal_variants(asset_id uuid REFERENCES fp_rehearsal_assets(id), variant text NOT NULL, data bytea NOT NULL, PRIMARY KEY(asset_id,variant)) ON COMMIT DROP");
-            db.execute("CREATE TEMP TABLE fp_rehearsal_bindings(group_id bigint REFERENCES fp_rehearsal_groups(id), asset_id uuid REFERENCES fp_rehearsal_assets(id), slot text NOT NULL)");
+            db.execute("CREATE TEMP TABLE fp_rehearsal_bindings(group_id bigint REFERENCES fp_rehearsal_groups(id), asset_id uuid REFERENCES fp_rehearsal_assets(id), slot text NOT NULL) ON COMMIT DROP");
             int groups=0,assets=0,bindings=0,variants=0;
             for(JsonNode row:cats.path("MEMBER_GROUPS")) {
                 if(row.path("family_id").asLong()!=workspaceId)throw new SecurityException("GROUP_TENANT_MISMATCH");
@@ -98,9 +98,23 @@ public final class WorkspaceDisposableRestoreRehearsal {
                     || assets!=inspection.counts().get("MEDIA_ASSETS")
                     || bindings!=inspection.counts().get("MEDIA_BINDINGS"))
                 throw new IllegalStateException("REHEARSAL_ROW_COUNT_MISMATCH");
+            if(!Objects.equals((long)groups,db.queryForObject("SELECT count(*) FROM fp_rehearsal_groups",Long.class))
+                    || !Objects.equals((long)assets,db.queryForObject("SELECT count(*) FROM fp_rehearsal_assets",Long.class))
+                    || !Objects.equals((long)variants,db.queryForObject("SELECT count(*) FROM fp_rehearsal_variants",Long.class)))
+                throw new IllegalStateException("REHEARSAL_STAGED_ROW_COUNT_MISMATCH");
             if(!Objects.equals((long)bindings,db.queryForObject(
                     "SELECT count(*) FROM fp_rehearsal_bindings",Long.class)))
                 throw new IllegalStateException("REHEARSAL_BINDINGS_MISMATCH");
+            // Verify every binding points to the declared tenant and that no
+            // nullable FK evaded the staging constraints.
+            Long invalid=db.queryForObject("""
+                    SELECT count(*) FROM fp_rehearsal_bindings b
+                    JOIN fp_rehearsal_groups g ON g.id=b.group_id
+                    JOIN fp_rehearsal_assets a ON a.id=b.asset_id
+                    WHERE g.family_id<>? OR a.workspace_id<>?
+                    """,Long.class,workspaceId,workspaceId);
+            if(invalid==null || invalid!=0)
+                throw new SecurityException("REHEARSAL_CROSS_TENANT_REFERENCE");
             status.setRollbackOnly();
             return new Report(workspaceId,inspection.snapshotId(),groups,assets,bindings,variants,true);
         });
