@@ -100,7 +100,7 @@ class ProtectiveBackupImportInspectorTest {
         byte[] suppliedMedia=file(42L,"""
                 {"format":"family-points-export-v1","workspaceId":42,
                  "categories":{"MEDIA_ASSETS":[{"id":"77cc92a5-7905-4396-975a-8a1387555730",
-                 "workspace_id":42}],
+                 "workspace_id":42,"blobs":[]}],
                  "MEDIA_BINDINGS":[{"workspace_id":42,"target_type":"WORKSPACE",
                  "target_id":42,"slot":"COVER","asset_id":"77cc92a5-7905-4396-975a-8a1387555730"}]}}
                 """,key);
