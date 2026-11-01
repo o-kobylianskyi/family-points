@@ -73,7 +73,7 @@ class ConfirmedTemplateActivationCoordinator(
         }
         return try {
             val receipt = receipts.activateConfirmed(workspaceId, templateId, kind, operation,
-                JsonParser.parseString(cipher.decrypt(entry.payload)).asJsonObject)
+                JsonParser.parseString(cipher.decrypt(entry.payload)).asJsonObject, token)
             // The second epoch GET is required even after a successful POST.
             val verified = ApiClient.workspaceEpochApi.getEpoch("Bearer $token", workspaceId)
             when (ActivationCompletionGate.decide(
