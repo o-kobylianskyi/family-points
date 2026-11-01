@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import {
   BrowserRouter,
   Navigate,
@@ -9,24 +10,24 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AppLayout from './components/AppLayout'
 
-import LoginPage from './pages/LoginPage'
-import DownloadAppPage from './pages/DownloadAppPage'
-import ChooseFamilyPage from './pages/ChooseFamilyPage'
-import RegisterAccountPage from './pages/RegisterAccountPage'
-import EmailActionPage from './pages/EmailActionPage'
-import AcceptMemberInvitePage from './pages/AcceptMemberInvitePage'
-import RegisterFamilyPage from './pages/RegisterFamilyPage'
-import DashboardPage from './pages/DashboardPage'
-import MembersPage from './pages/MembersPage'
-import GroupPage from './pages/GroupPage'
-import TasksPage from './pages/TasksPage'
-import TaskDetailsPage from './pages/TaskDetailsPage'
-import PointsPage from './pages/PointsPage'
-import RewardsPage from './pages/RewardsPage'
-import SettingsPage from './pages/SettingsPage'
-import TemplatesPage from './pages/TemplatesPage'
-import FamilySetupPage from './pages/FamilySetupPage'
-import CalendarPage from './pages/CalendarPage'
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const DownloadAppPage = lazy(() => import('./pages/DownloadAppPage'))
+const ChooseFamilyPage = lazy(() => import('./pages/ChooseFamilyPage'))
+const RegisterAccountPage = lazy(() => import('./pages/RegisterAccountPage'))
+const EmailActionPage = lazy(() => import('./pages/EmailActionPage'))
+const AcceptMemberInvitePage = lazy(() => import('./pages/AcceptMemberInvitePage'))
+const RegisterFamilyPage = lazy(() => import('./pages/RegisterFamilyPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const MembersPage = lazy(() => import('./pages/MembersPage'))
+const GroupPage = lazy(() => import('./pages/GroupPage'))
+const TasksPage = lazy(() => import('./pages/TasksPage'))
+const TaskDetailsPage = lazy(() => import('./pages/TaskDetailsPage'))
+const PointsPage = lazy(() => import('./pages/PointsPage'))
+const RewardsPage = lazy(() => import('./pages/RewardsPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const TemplatesPage = lazy(() => import('./pages/TemplatesPage'))
+const FamilySetupPage = lazy(() => import('./pages/FamilySetupPage'))
+const CalendarPage = lazy(() => import('./pages/CalendarPage'))
 
 import { ThemeInitializer } from './components/ThemePreference'
 
@@ -38,6 +39,7 @@ function App() {
     <BrowserRouter>
       <ThemeInitializer />
       <AuthProvider>
+        <Suspense fallback={<div className="app-loading" role="status">FamilyPoints…</div>}>
         <Routes>
           <Route path="/download" element={<DownloadAppPage />} />
           <Route path="/register" element={<RegisterFamilyPage />} />
@@ -110,6 +112,7 @@ function App() {
             element={<Navigate to="/" replace />}
           />
         </Routes>
+        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   )
