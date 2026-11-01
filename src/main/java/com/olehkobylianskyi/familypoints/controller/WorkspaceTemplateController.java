@@ -522,7 +522,9 @@ public class WorkspaceTemplateController {
     }
 
     private List<JsonNode> resolveSelection(List<String> codes){
-        if(codes == null || codes.size() > catalog.getCatalog().path("templates").size()\n                || codes.stream().anyMatch(code -> code == null || code.isBlank())\n                || codes.stream().distinct().count()!=codes.size())
+        if(codes == null || codes.size() > catalog.getCatalog().path("templates").size()
+                || codes.stream().anyMatch(code -> code == null || code.isBlank())
+                || codes.stream().distinct().count()!=codes.size())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid selection");
         JsonNode all=catalog.getCatalog().path("templates");
         List<JsonNode> out=new ArrayList<>();
