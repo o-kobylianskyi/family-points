@@ -3,6 +3,8 @@ package com.olehkobylianskyi.familypoints.android.network
 import com.olehkobylianskyi.familypoints.android.data.OfflinePointOperationRequest
 import com.olehkobylianskyi.familypoints.android.data.OfflineReplaySessionGate
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.async
+import kotlinx.coroutines.Dispatchers
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -16,6 +18,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.TimeUnit
 
 class OfflinePointsReplayHttpTest {
@@ -79,6 +82,32 @@ class OfflinePointsReplayHttpTest {
         assertEquals("POST", second.method)
         assertEquals(first.body.readUtf8(), second.body.readUtf8())
         assertEquals(2, server.requestCount)
+    }
+
+    @Test fun changingAccountDuringDelayed409ResponseRejectsStaleQuarantine() = runBlocking {
+        val activeSession = AtomicReference("original")
+        val originalUuid = UUID.randomUUID().toString()
+        server.enqueue(MockResponse().setResponseCode(409).setBodyDelay(350, TimeUnit.MILLISECONDS))
+        val response = async(Dispatchers.IO) {
+            try {
+                api.replayOffline("Bearer original", 17, 91, 21, "earn",
+                    OfflinePointOperationRequest(originalUuid, 1L, 3, null))
+                fail("Expected 409")
+                false
+            } catch (e: HttpException) {
+                assertEquals(409, e.code())
+                OfflineReplaySessionGate.canQuarantine(
+                    "original", activeSession.get(), 91, 91, 17, 18
+                )
+            }
+        }
+        val intercepted = server.takeRequest(2, TimeUnit.SECONDS)
+        assertNotNull("HTTP request not received", intercepted)
+        activeSession.set("replacement-account")
+        assertFalse("Old-account 409 cannot quarantine switched session", response.await())
+        assertEquals("Bearer original", intercepted!!.getHeader("Authorization"))
+        assertTrue(intercepted.body.readUtf8().contains(originalUuid))
+        assertEquals(1, server.requestCount)
     }
 
 }
