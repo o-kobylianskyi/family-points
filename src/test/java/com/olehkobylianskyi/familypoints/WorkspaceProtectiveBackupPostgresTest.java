@@ -26,9 +26,14 @@ class WorkspaceProtectiveBackupPostgresTest {
         long a=db.queryForObject("INSERT INTO families(name) VALUES ('Backup family A') RETURNING id",Long.class);
         long b=db.queryForObject("INSERT INTO families(name) VALUES ('Backup family B') RETURNING id",Long.class);
         // FamilyMembers are required by registry FK and actor membership check.
-        long member=db.queryForObject("""
-            INSERT INTO family_members(family_id,name) VALUES (?, 'Backup owner') RETURNING id
+        long role=db.queryForObject("""
+            INSERT INTO family_roles(family_id,code,name,system_role)
+            VALUES (?, 'PARENT', 'Parent', true) RETURNING id
             """,Long.class,a);
+        long member=db.queryForObject("""
+            INSERT INTO family_members(family_id,family_role_id,name,active,member_type)
+            VALUES (?, ?, 'Backup owner', true, 'PARENT') RETURNING id
+            """,Long.class,a,role);
         var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
         var backups=new WorkspaceProtectiveBackupService(db,new WorkspaceEpochTransactionGuard(db));
         var req=new WorkspaceProtectiveBackupService.Request(UUID.randomUUID(),"SELECTIVE",
