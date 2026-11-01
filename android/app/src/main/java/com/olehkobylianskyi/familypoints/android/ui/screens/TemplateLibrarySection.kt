@@ -310,6 +310,24 @@ fun TemplateLibrarySection(
                 }
             )
         }
+        var showBackupRegistry by remember(accountId, workspaceId) { mutableStateOf(false) }
+        if (canManage) {
+            OutlinedButton(enabled = !busy && !loading, onClick = {
+                showBackupRegistry = !showBackupRegistry
+            }) {
+                Text(tl(language, "Резервні копії — журнал", "Sicherungsregister",
+                    "Backup registry", "Реестр резервных копий"))
+            }
+            if (showBackupRegistry) {
+                ProtectiveBackupMetadataSection(
+                    language = language,
+                    workspaceId = workspaceId,
+                    repository = remember(tokens) {
+                        com.olehkobylianskyi.familypoints.android.data.ProtectiveBackupMetadataRepository(tokens)
+                    }
+                )
+            }
+        }
         // Task folders are a distinct Backend entity; never map catalog labels into them.
         var showTaskFolders by remember(workspaceId) { mutableStateOf(false) }
         OutlinedButton(enabled = !loading && !busy, onClick = {
