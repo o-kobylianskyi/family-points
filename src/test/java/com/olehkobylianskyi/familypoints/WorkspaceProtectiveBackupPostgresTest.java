@@ -53,6 +53,9 @@ class WorkspaceProtectiveBackupPostgresTest {
         var first=tx.execute(s->backups.request(a,member,req));
         assertNotNull(first);
         assertEquals("REQUESTED",first.state());
+        assertEquals(digest,tx.execute(status->snapshots.digest(a,List.of("PRIVATE_TEMPLATES"))),
+                "Backup registry metadata must not invalidate the protected content snapshot");
+
         assertFalse(first.restoreVerified());
         assertFalse(first.executable());
         assertFalse(first.expiresAt().isBefore(first.createdAt().plusDays(30)));
