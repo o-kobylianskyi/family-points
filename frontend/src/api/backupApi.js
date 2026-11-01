@@ -17,6 +17,14 @@ export async function listProtectiveBackups(token, workspaceId, limit = 25) {
   if (data.some(item => !item || String(item.workspaceId) !== String(workspaceId) ||
     typeof item.snapshotId !== 'string' || typeof item.state !== 'string'))
     throw new Error('BACKUP_METADATA_TENANT_MISMATCH')
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  if (data.some(item => !uuid.test(item.snapshotId) ||
+      !Array.isArray(item.selectedCategories) ||
+      typeof item.restoreVerified !== 'boolean' ||
+      typeof item.executable !== 'boolean' ||
+      !['FULL','SELECTIVE'].includes(item.resetMode) ||
+      typeof item.createdAt !== 'string' || typeof item.expiresAt !== 'string'))
+    throw new Error('INVALID_BACKUP_LIST_ITEM')
   const ids = data.map(item => item.snapshotId.toLowerCase())
   if (new Set(ids).size !== ids.length) throw new Error('DUPLICATE_BACKUP_METADATA')
   return data
