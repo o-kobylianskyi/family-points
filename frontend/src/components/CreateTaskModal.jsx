@@ -204,6 +204,7 @@ function CreateTaskModal({
 
   const [loading, setLoading] = useState(false)
   const submitLock = useRef(false)
+  const [unknownWrite, setUnknownWrite] = useState(false)
 
   // Escape is safe while editing, but must not dismiss a save in progress.
   useEffect(() => {
@@ -435,7 +436,7 @@ function CreateTaskModal({
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (submitLock.current || loading || templateLoading) return
+    if (submitLock.current || loading || templateLoading || unknownWrite) return
 
     const trimmedTitle = title.trim()
 
@@ -579,10 +580,13 @@ function CreateTaskModal({
       const token = getAccessToken()
 
       const originWorkspace = currentUser.workspaceId
+      // A rejected response may mean the server committed but the reply was lost.
+      setUnknownWrite(true)
       const saved = editing
         ? await updateTaskDefinition(token, originWorkspace, initialTask.id, request)
         : await createTaskDefinition(token, originWorkspace, request)
 
+      setUnknownWrite(false)
       // POST/PUT succeeded. A subsequent list refresh failure must not invite
       // another submit of the same non-idempotent create operation.
       submitLock.current = true
@@ -591,7 +595,7 @@ function CreateTaskModal({
     } catch (error) {
       // A network error after sending a POST has an unknown commit outcome.
       // Do not automatically retry a potentially successful create.
-      setError(error.message)
+      setError(`${error.message || 'Request failed'} — ${({uk:'Стан запису невідомий. Закрийте форму й перевірте список перед новою спробою.',ru:'Статус записи неизвестен. Закройте форму и проверьте список перед повтором.',de:'Speicherstatus unklar. Formular schließen und Liste vor einem neuen Versuch prüfen.',en:'Save outcome unknown. Close this form and check the list before trying again.'})[i18n.language.split('-')[0]]}`)
     } finally {
       submitLock.current = false
       setLoading(false)
