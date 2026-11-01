@@ -1,3 +1,4 @@
+import { openResetPlanning } from './family-data-qa-helpers.js'
 import { test, expect } from '@playwright/test'
 
 const username = process.env.FP_QA_USERNAME || process.env.FP_QA_EMAIL
@@ -26,6 +27,7 @@ test.describe('BKL-002 negative reset checks (read-only)', () => {
       }
     })
     await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    await openResetPlanning(page)
     const panel = page.locator('.family-reset-readiness')
     const first = panel.locator('.family-reset-category input[type="checkbox"]').first()
     await expect(first).toBeVisible({ timeout: 15000 })
@@ -39,10 +41,11 @@ test.describe('BKL-002 negative reset checks (read-only)', () => {
   })
 
   test('preview never marks any category executable', async ({ page }) => {
+    await page.goto('/settings', { waitUntil: 'domcontentloaded' })
     const previewRequest = page.waitForRequest(request =>
       request.method() === 'GET' && /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(request.url()).pathname),
       { timeout: 15000 })
-    await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    await openResetPlanning(page)
     const request = await previewRequest
     const response = await page.request.get(request.url(), {
       headers: { Authorization: request.headers()['authorization'] },
@@ -65,6 +68,7 @@ test.describe('BKL-002 negative reset checks (read-only)', () => {
       if (/\/data-reset\/(prepare|confirm|challenge|execute)$/.test(path)) unsafe.push(path)
     })
     await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    await openResetPlanning(page)
     const panel = page.locator('.family-reset-readiness')
     const first = panel.locator('.family-reset-category input[type="checkbox"]').first()
     await expect(first).toBeVisible({ timeout: 15000 })
@@ -84,6 +88,7 @@ test.describe('BKL-002 negative reset checks (read-only)', () => {
       }
     })
     await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    await openResetPlanning(page)
     const panel = page.locator('.family-reset-readiness')
     const checkbox = panel.locator('.family-reset-category input[type="checkbox"]').first()
     await expect(checkbox).toBeVisible({ timeout: 15000 })
@@ -126,6 +131,7 @@ test.describe('BKL-002 negative reset checks (read-only)', () => {
       })
     })
     await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    await openResetPlanning(page)
     const panel = page.locator('.family-reset-readiness')
     await expect(panel).toBeVisible()
     await expect(panel.locator('.error-message')).toBeVisible({ timeout: 10000 })
