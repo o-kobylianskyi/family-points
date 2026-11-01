@@ -1048,6 +1048,8 @@ function CreateTaskModal({
               disabled={
                 loading ||
                 loadingPointTypes ||
+                templateLoading ||
+                unknownWrite ||
                 executors.length === 0
               }
             >
