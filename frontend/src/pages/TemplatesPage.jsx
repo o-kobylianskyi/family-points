@@ -86,7 +86,7 @@ const templateIconKeys = {
   hygiene:'category-self-care', routine:'category-planning', chores:'category-chores',
   school:'category-learning', reading:'category-learning', activity:'category-activity',
   creativity:'category-creativity', social:'category-family-communication',
-  habits:'category-initiative', family:'category-home', adult:'category-adult-tasks',
+  habits:'category-habits', family:'category-home', adult:'category-adult-tasks',
   time:'category-screen-time', privilege:'category-privilege', items:'category-material-reward'
 }
 const iconKeyForTemplate = item => {
