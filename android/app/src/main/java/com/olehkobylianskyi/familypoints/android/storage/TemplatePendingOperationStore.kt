@@ -45,8 +45,8 @@ class TemplatePendingOperationStore(context: Context) :
     @Synchronized
     fun prepare(value: Pending) {
         require(value.accountId > 0 && value.workspaceId > 0 && value.epoch >= 0)
-        require(value.kind in setOf("IMPORT", "TASK", "REWARD"))
-        require((value.kind == "IMPORT") == (value.templateId == null))
+        require(value.kind in setOf("IMPORT", "FINALIZE", "TASK", "REWARD"))
+        require((value.kind in setOf("IMPORT", "FINALIZE")) == (value.templateId == null))
         require(value.templateId == null || value.templateId > 0)
         require(value.payload.isNotBlank() && value.status == "PREPARED")
         val db = writableDatabase
@@ -64,10 +64,10 @@ class TemplatePendingOperationStore(context: Context) :
         // the same family. This check and insertion must be one DB transaction.
         db.beginTransaction()
         try {
-            if (value.kind == "IMPORT") {
+            if (value.kind == "IMPORT" || value.kind == "FINALIZE") {
                 val exists = db.rawQuery(
                     """SELECT 1 FROM pending_template_receipts
-                       WHERE workspace_id=? AND operation_kind='IMPORT'
+                       WHERE workspace_id=? AND operation_kind IN ('IMPORT','FINALIZE')
                          AND status!='CONFIRMED' LIMIT 1""",
                     arrayOf(value.workspaceId.toString())
                 ).use { it.moveToFirst() }
