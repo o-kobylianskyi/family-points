@@ -81,6 +81,7 @@ class WorkspaceResetEpochConcurrencyPostgresTest {
 
     @Test void failedAtomicEpochTransitionRollsBackWithoutAffectingOtherFamily() {
         var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
+        Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
         var db=new JdbcTemplate(ds);
         long family=db.queryForObject("INSERT INTO families(name) VALUES ('Failure injection') RETURNING id",Long.class);
         long other=db.queryForObject("INSERT INTO families(name) VALUES ('Preserved peer') RETURNING id",Long.class);
