@@ -56,6 +56,8 @@ public class WorkspacePortableRestorePreviewService {
         if(actual!=expectedEpoch)
             throw new ResponseStatusException(HttpStatus.CONFLICT,"RESTORE_TARGET_EPOCH_STALE");
         var blockers=new TreeSet<String>(imported.blockers());
+        blockers.addAll(new ProtectiveRestoreSelectionPolicy()
+                .inspect(requested,imported.availableCategories()).blockers());
         var summaries=new ArrayList<CategoryPreview>();
         for(String category:requested) {
             String sql=COUNT_SQL.get(category);
