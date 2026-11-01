@@ -71,7 +71,6 @@ export default function FamilyDataSafetyPlan() {
   }, [workspaceId, accountScope])
   const [restoreMode,setRestoreMode] = useState('selective')
   const [restoreChosen,setRestoreChosen] = useState([])
-  const [showSafetyDetails,setShowSafetyDetails] = useState(false)
   const resetCount = mode === 'full' ? entries.length : chosen.length
   const restoreCount = restoreMode === 'full' ? entries.length : restoreChosen.length
   // No upload endpoint currently exists. Categories below are planning-only;
