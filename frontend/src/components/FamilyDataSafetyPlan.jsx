@@ -39,6 +39,7 @@ export default function FamilyDataSafetyPlan() {
   const [backupError,setBackupError] = useState(false)
   const [backupLoading,setBackupLoading] = useState(false)
   const [reload,setReload] = useState(0)
+  const [detailReload,setDetailReload] = useState(0)
   useEffect(() => {
     setBackups([]); setDetails(null); setSelectedSnapshot(null); setBackupError(false); setBackupLoading(false); setDetailBusy(false); setDetailError(false)
     if (!workspaceId || !canManage) return
@@ -60,7 +61,7 @@ export default function FamilyDataSafetyPlan() {
       .catch(() => { if (active) setDetailError(true) })
       .finally(() => { if (active) setDetailBusy(false) })
     return () => { active = false }
-  }, [canManage,workspaceId,accountScope,selectedSnapshot])
+  }, [canManage,workspaceId,accountScope,selectedSnapshot,detailReload,reload])
   const [tab,setTab] = useState('reset')
   const [mode,setMode] = useState('selective')
   const [chosen,setChosen] = useState(() => entries.filter(x=>x[1]).map(x=>x[0]))
@@ -128,13 +129,14 @@ export default function FamilyDataSafetyPlan() {
         <p style={{margin:'4px 0'}}>{({uk:'Метадані: наявність файлу та можливість імпорту не підтверджені.',ru:'Метаданные: наличие файла и возможность импорта не подтверждены.',de:'Nur Metadaten: Datei und Importfähigkeit sind nicht bestätigt.',en:'Metadata only: file availability and import capability are not confirmed.'})[language]}</p>
         <small>{item.state} · {item.selectedCategories?.length || 0} {({uk:'категорій',ru:'категорий',de:'Kategorien',en:'categories'})[language]}</small>
         <div><button type="button" className="secondary-button" aria-expanded={selectedSnapshot === item.snapshotId}
-          onClick={()=>setSelectedSnapshot(v=>v===item.snapshotId?null:item.snapshotId)}>
+          onClick={()=>{setDetails(null);setDetailError(false);setSelectedSnapshot(v=>v===item.snapshotId?null:item.snapshotId)}}>
           {({uk:'Переглянути запис',ru:'Просмотреть запись',de:'Eintrag ansehen',en:'View metadata'})[language]}
         </button></div>
         {selectedSnapshot === item.snapshotId && <div role="region" style={{padding:'8px 12px'}}>
           {detailBusy && <p role="status">{({uk:'Завантаження…',ru:'Загрузка…',de:'Laden…',en:'Loading…'})[language]}</p>}
           {detailError && <p role="alert">{({uk:'Деталі недоступні.',ru:'Детали недоступны.',de:'Details nicht verfügbar.',en:'Details unavailable.'})[language]}</p>}
-          {details && <div>
+          {!detailBusy && <button type="button" className="secondary-button" onClick={()=>setDetailReload(n=>n+1)}>{({uk:'Оновити деталі',ru:'Обновить детали',de:'Details aktualisieren',en:'Refresh details'})[language]}</button>}
+          {details && details.snapshotId === selectedSnapshot && details.workspaceId != null && String(details.workspaceId) === String(workspaceId) && <div>
             <p>{({uk:'Статус',ru:'Статус',de:'Status',en:'Status'})[language]}: {details.state}</p>
             <p>{({uk:'Створено',ru:'Создано',de:'Erstellt',en:'Created'})[language]}: {details.createdAt ? new Date(details.createdAt).toLocaleString(language) : '—'}</p>
             <p>{({uk:'Термін серверного зберігання до',ru:'Срок хранения на сервере до',de:'Server-Aufbewahrung bis',en:'Server retention until'})[language]}: {details.expiresAt ? new Date(details.expiresAt).toLocaleString(language) : '—'}</p>
