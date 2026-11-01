@@ -16,8 +16,15 @@ import java.util.*;
 public class WorkspaceProtectiveBackupService {
     private final JdbcTemplate db;
     private final WorkspaceEpochTransactionGuard epoch;
-    public WorkspaceProtectiveBackupService(JdbcTemplate db, WorkspaceEpochTransactionGuard epoch) {
-        this.db=db; this.epoch=epoch;
+    private final WorkspaceResetSnapshotService sourceSnapshots;
+    private static final Set<String> VALID_CATEGORIES=Set.of(
+        "PRIVATE_TEMPLATES","TASK_DEFINITIONS","TASK_EXECUTIONS",
+        "TASK_SCHEDULE_SLOTS","REWARD_DEFINITIONS","REWARD_REQUESTS",
+        "REWARD_PURCHASES","MEMBER_GROUPS","WORK_NODES","MEDIA_ASSETS",
+        "MEDIA_BINDINGS","POINT_LEDGER","REPUTATION_LEDGER");
+    public WorkspaceProtectiveBackupService(JdbcTemplate db, WorkspaceEpochTransactionGuard epoch,
+            WorkspaceResetSnapshotService sourceSnapshots) {
+        this.db=db; this.epoch=epoch; this.sourceSnapshots=sourceSnapshots;
     }
     public record Request(UUID operationId, String resetMode, List<String> categories,
                           String sourceDigest, String schemaVersion) {}
@@ -31,14 +38,19 @@ public class WorkspaceProtectiveBackupService {
         if(request==null || request.operationId()==null
                 || !Set.of("FULL","SELECTIVE").contains(request.resetMode())
                 || request.categories()==null || request.categories().stream().anyMatch(Objects::isNull)
+                || !VALID_CATEGORIES.containsAll(request.categories())
                 || request.sourceDigest()==null || !request.sourceDigest().matches("[0-9a-f]{64}")
                 || request.schemaVersion()==null || request.schemaVersion().isBlank()
                 || request.schemaVersion().length()>80)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"INVALID_BACKUP_REQUEST");
         var selected=request.categories().stream().distinct().sorted().toList();
-        if("SELECTIVE".equals(request.resetMode()) && selected.isEmpty())
+        if(selected.isEmpty())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"EMPTY_BACKUP_SELECTION");
         long currentEpoch=epoch.requireCurrentRequestEpoch(workspaceId);
+        // The caller cannot assert that arbitrary user-provided bytes are a real
+        // snapshot. Recompute the canonical digest under the SAME family fence.
+        if(!sourceSnapshots.digest(workspaceId,selected).equals(request.sourceDigest()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"BACKUP_SOURCE_SNAPSHOT_STALE");
         String selectedJson;
         try {selectedJson=new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(selected);}
         catch(Exception e){throw new IllegalStateException(e);}
