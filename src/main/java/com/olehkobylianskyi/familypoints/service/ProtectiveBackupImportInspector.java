@@ -105,7 +105,11 @@ public final class ProtectiveBackupImportInspector {
                                 item.path("target_type").asText()+":"+
                                 item.path("target_id").asText()+":"+item.path("slot").asText();
                     } else if("MEDIA_ASSETS".equals(name)) {
-                        try {rowKey=UUID.fromString(item.path("id").asText()).toString();}
+                        try {
+                            String id=item.path("id").asText();
+                            if(!isUuid(id))throw new IllegalArgumentException("Noncanonical UUID");
+                            rowKey=UUID.fromString(id).toString();
+                        }
                         catch(IllegalArgumentException ex) {
                             throw new IllegalArgumentException("Media asset requires UUID id",ex);
                         }
@@ -182,6 +186,9 @@ public final class ProtectiveBackupImportInspector {
             // A media binding uses polymorphic target_type/target_id without a physical FK.
             // Validate the archived target graph before any future restore executor
             // can treat an archive as sufficient evidence for mapping.
+            var assetIds=new HashSet<String>();
+            for(JsonNode asset:categories.path("MEDIA_ASSETS"))
+                assetIds.add(asset.path("id").asText());
             for(JsonNode binding:categories.path("MEDIA_BINDINGS")) {
                 String type=binding.path("target_type").asText();
                 long targetId=binding.path("target_id").asLong();
@@ -204,11 +211,8 @@ public final class ProtectiveBackupImportInspector {
                         blockers.add("MISSING_CATEGORY:MEDIA_ASSETS");
                     } else {
                         // Media asset identifiers are UUIDs, not numeric IDs.
-                        boolean found=false;
-                        for(JsonNode asset:categories.path("MEDIA_ASSETS"))
-                            if(binding.path("asset_id").asText().equals(asset.path("id").asText()))
-                                found=true;
-                        if(!found)blockers.add("DANGLING_REFERENCE:MEDIA_BINDINGS.asset_id");
+                        if(!assetIds.contains(binding.path("asset_id").asText()))
+                            blockers.add("DANGLING_REFERENCE:MEDIA_BINDINGS.asset_id");
                     }
                 }
             }
