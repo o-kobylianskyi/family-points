@@ -208,7 +208,7 @@ function SettingsPage() {
     {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) && <InitialFamilySetupReview />}
     <ThemePreference />
     <FamilyCoverSettings />
-    {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) && <FamilyDataSafetyPlan />}
+    {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) && <FamilyDataSafetyPlan key={`${currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.username ?? "anon"}:${currentUser?.workspaceId ?? "none"}`} />}
     {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) && <FamilyResetReadiness />}
 
     <section className="settings-section">
