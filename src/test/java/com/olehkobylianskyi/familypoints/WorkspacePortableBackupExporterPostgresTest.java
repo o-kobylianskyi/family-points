@@ -78,6 +78,16 @@ class WorkspacePortableBackupExporterPostgresTest {
         assertEquals(0,seven.counts().get("TASK_SCHEDULE_SLOTS"));
         assertEquals(0,seven.counts().get("REWARD_PURCHASES"));
         assertFalse(seven.restorable(),"An exported archive is not yet a verified restore");
+        var extended=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
+                0L,List.of("REWARD_REQUESTS","WORK_NODES","MEDIA_BINDINGS",
+                        "POINT_LEDGER","REPUTATION_LEDGER"),"V50",key));
+        var extendedInspection=inspector.inspect(extended.encryptedFile(),a,key);
+        assertEquals(5,extendedInspection.availableCategories().size());
+        for(String category:extendedInspection.availableCategories())
+            assertEquals(0,extendedInspection.counts().get(category));
+        assertFalse(extendedInspection.restorable(),
+                "Read-only financial archive does not authorize ledger deletion or restore");
+
         assertEquals(1L,db.queryForObject("SELECT count(*) FROM member_groups WHERE family_id=?",
                 Long.class,a));
         assertEquals("Private B",db.queryForObject(
