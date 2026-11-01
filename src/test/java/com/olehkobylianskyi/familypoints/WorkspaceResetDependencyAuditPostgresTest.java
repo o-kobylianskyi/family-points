@@ -39,6 +39,21 @@ class WorkspaceResetDependencyAuditPostgresTest {
                 "SELECT count(*) FROM workspace_setup_states WHERE workspace_id=?",Long.class,family));
         assertEquals("Read-only safety audit",jdbc.queryForObject(
                 "SELECT name FROM families WHERE id=?",String.class,family));
+        var selection=service.inspectSelection(family,java.util.List.of(
+                "TASK_DEFINITIONS","POINT_LEDGER","TASK_DEFINITIONS"));
+        assertFalse(selection.executable());
+        assertEquals(java.util.List.of("POINT_LEDGER","TASK_DEFINITIONS"),
+                selection.selectedCategories());
+        assertTrue(selection.blockers().contains("PROTECTED_LEDGER:POINT_LEDGER"));
+        assertTrue(selection.blockers().contains("TASK_DEFINITIONS_REQUIRES_EXECUTIONS_AND_SLOTS"));
+        assertFalse(selection.relevantForeignKeys().isEmpty());
+        assertTrue(selection.blockers().stream().anyMatch(x->x.startsWith("EXTERNAL_FK_DEPENDENCY:")));
+        assertEquals(HttpStatus.BAD_REQUEST,assertThrows(ResponseStatusException.class,
+                ()->service.inspectSelection(family,java.util.List.of("UNKNOWN"))).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,assertThrows(ResponseStatusException.class,
+                ()->service.inspectSelection(family,java.util.List.of())).getStatusCode());
+        assertEquals(1L,jdbc.queryForObject("SELECT count(*) FROM families WHERE id=?",
+                Long.class,family));
         assertEquals(HttpStatus.NOT_FOUND,assertThrows(ResponseStatusException.class,
                 ()->service.audit(Long.MAX_VALUE)).getStatusCode());
     }
