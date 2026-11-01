@@ -52,4 +52,40 @@ class WorkspacePortableRestorePreviewPostgresTest {
         assertThrows(ResponseStatusException.class,
                 ()->tx.execute(status->preview.preview(archive,a,2L,List.of("MEMBER_GROUPS"),key)));
     }
+
+    @Test void rejectsMissingSelectionAbsentCategoryAndUnsupportedMappingWithoutWrites() throws Exception {
+        var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
+        Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
+        var db=new JdbcTemplate(ds);
+        long a=db.queryForObject("INSERT INTO families(name) VALUES ('Preview source') RETURNING id",Long.class);
+        long b=db.queryForObject("INSERT INTO families(name) VALUES ('Untouched second family') RETURNING id",Long.class);
+        db.update("INSERT INTO member_groups(family_id,name,active,show_in_navigation) VALUES (?,'Export group',true,false)",a);
+        db.update("INSERT INTO member_groups(family_id,name,active,show_in_navigation) VALUES (?,'Keep group',true,false)",b);
+        var guard=new WorkspaceEpochTransactionGuard(db);
+        var codec=new ProtectiveBackupArtifactCodec();
+        var file=new ProtectiveBackupPortableFile();
+        var inspector=new ProtectiveBackupImportInspector(file,codec);
+        var exporter=new WorkspacePortableBackupExporter(db,new WorkspaceResetSnapshotService(db,guard),codec,file);
+        var preview=new WorkspacePortableRestorePreviewService(db,guard,inspector);
+        var generator=KeyGenerator.getInstance("AES");generator.init(256);var key=generator.generateKey();
+        var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
+        byte[] archive=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
+                0L,List.of("MEMBER_GROUPS","POINT_LEDGER"),"V50",key)).encryptedFile();
+
+        var noSelection=assertThrows(ResponseStatusException.class,
+                ()->tx.execute(status->preview.preview(archive,a,0L,List.of(),key)));
+        assertEquals(org.springframework.http.HttpStatus.BAD_REQUEST,noSelection.getStatusCode());
+        var notInArchive=assertThrows(ResponseStatusException.class,
+                ()->tx.execute(status->preview.preview(archive,a,0L,List.of("PRIVATE_TEMPLATES"),key)));
+        assertEquals(org.springframework.http.HttpStatus.BAD_REQUEST,notInArchive.getStatusCode());
+        var result=tx.execute(status->preview.preview(archive,a,0L,List.of("POINT_LEDGER"),key));
+        assertFalse(result.executable());
+        assertEquals(1,result.categories().size());
+        assertEquals(-1L,result.categories().get(0).targetRows());
+        assertTrue(result.blockers().contains("RESTORE_CATEGORY_MAPPING_REQUIRED:POINT_LEDGER"));
+        assertTrue(result.blockers().contains("RESTORE_FK_REMAP_UNVERIFIED:POINT_LEDGER") == false);
+        assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,a));
+        assertEquals("Export group",db.queryForObject("SELECT name FROM member_groups WHERE family_id=?",String.class,a));
+        assertEquals("Keep group",db.queryForObject("SELECT name FROM member_groups WHERE family_id=?",String.class,b));
+    }
 }
