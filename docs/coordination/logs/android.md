@@ -848,3 +848,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Added mid-sync account identity checks after authenticated /me and after observeEpoch before queue snapshot/replay (f41988fc). Prior session checks before POST and after response remain.
 - MockWebServer transport regression models lost first offline POST response followed by an **explicit later synchronization** using the same immutable clientOperationId and identical body, while HTTP409 requires epoch reconciliation rather than reset assumption (224f34d). This is deliberately distinct from V48 template activation: offline points replay uses a server-idempotent clientOperationId, not an auto-created new mutation UUID.
 - Exact-head Gradle and AndroidTest runtime not performed in this tool session. No claim of coordinator+SQLite+HTTP full E2E; it remains open. BKL002 Android reset/restore writes and BETA deployment remain HOLD.
+
+## 2026-11-01 — AND-QA-12 atomic offline enqueue/reset hold integration
+- Reviewed latest main: Backend continues disposable PostgreSQL portable archive reconstruction and Web onboarding; no approved Android file restore/reset mutation contract.
+- Fixed actual race in OfflinePointsQueueStore.enqueue: earlier non-transactional reset-hold check could pass and then another thread/epoch quarantine could insert a hold before the pending row was written. The hold check and SQLite insertion now execute in the same write transaction (f627d1c7), preserving fail-closed reset hold invariants.
+- Added AndroidTest regression (4468df87) for durable hold surviving database close/reopen, blocked enqueue under held family A, and independent allowed enqueue for non-held family B.
+- No exact-head local Gradle or runtime AndroidTest executed in this turn; tests source-only. HTTP+SQLite complete injected concurrency test remains open, and prior reported BUILD SUCCESSFUL applies to previous HEAD. BETA and BKL002 execute HOLD.
