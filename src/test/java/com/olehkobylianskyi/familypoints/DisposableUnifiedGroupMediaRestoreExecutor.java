@@ -1,0 +1,97 @@
+package com.olehkobylianskyi.familypoints;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.olehkobylianskyi.familypoints.service.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import javax.crypto.SecretKey;
+import java.util.*;
+
+/**
+ * Test-only proof of atomic native group + owned-media COMMIT from one encrypted
+ * portable file. Never available to production HTTP, reset or restore services.
+ *
+ * Existing isolated executors accept category-specific files. Here both receive
+ * verified projections of ONE authenticated input, not separately exported
+ * source snapshots. A single outer JDBC transaction commits or rolls back both.
+ */
+final class DisposableUnifiedGroupMediaRestoreExecutor {
+    record Result(Map<Long,Long> groupIds, Map<UUID,UUID> assetIds,
+                  int blobs, int privateBindings, int catalogBindings) {}
+    private final TransactionTemplate transaction;
+    private final DisposableNativeRestoreExecutor groups;
+    private final DisposablePrivateMediaRestoreExecutor media;
+    private final ProtectiveBackupPortableFile files;
+    private final ProtectiveBackupArtifactCodec codec;
+    private final ProtectiveBackupImportInspector inspector;
+    private final ObjectMapper json=new ObjectMapper();
+
+    DisposableUnifiedGroupMediaRestoreExecutor(JdbcTemplate db,PlatformTransactionManager manager,
+            ProtectiveBackupPortableFile files,ProtectiveBackupArtifactCodec codec,
+            ProtectiveBackupImportInspector inspector) {
+        this.transaction=new TransactionTemplate(manager);
+        this.groups=new DisposableNativeRestoreExecutor(db,manager,files,codec,inspector);
+        this.media=new DisposablePrivateMediaRestoreExecutor(db,manager,inspector,files,codec);
+        this.files=files;this.codec=codec;this.inspector=inspector;
+    }
+
+    Result apply(byte[] unified,long source,long target,Map<Long,Long> memberIds,SecretKey key) {
+        if(source<=0 || target<=0 || source==target)
+            throw new IllegalArgumentException("DISPOSABLE_DISTINCT_FAMILIES_REQUIRED");
+        var inspected=inspector.inspect(unified,source,key);
+        if(!"V50".equals(inspected.schemaVersion())
+                || !inspected.availableCategories().equals(List.of(
+                    "MEDIA_ASSETS","MEDIA_BINDINGS","MEMBER_GROUPS")))
+            throw new IllegalArgumentException("UNIFIED_RESTORE_SCOPE_UNSUPPORTED");
+        var envelope=files.decode(unified);
+        byte[] clear=codec.open(envelope,envelope.manifest().snapshotId(),source,key);
+        byte[] groupFile;
+        byte[] mediaFile;
+        try {
+            var root=json.readTree(clear);
+            var categories=root.path("categories");
+            var catalog=((ObjectNode)root.deepCopy());
+            var catalogData=catalog.putObject("categories");
+            catalogData.set("MEMBER_GROUPS",categories.path("MEMBER_GROUPS").deepCopy());
+            var privateData=((ObjectNode)root.deepCopy()).putObject("categories");
+            privateData.set("MEDIA_ASSETS",categories.path("MEDIA_ASSETS").deepCopy());
+            var catalogBindings=json.createArrayNode();
+            var privateBindings=json.createArrayNode();
+            for(var binding:categories.path("MEDIA_BINDINGS")) {
+                if(!"MEMBER_GROUP".equals(binding.path("target_type").asText()))
+                    throw new IllegalArgumentException("UNIFIED_UNSUPPORTED_MEDIA_TARGET");
+                if(binding.hasNonNull("asset_id") && binding.hasNonNull("catalog_key"))
+                    throw new IllegalArgumentException("UNIFIED_AMBIGUOUS_MEDIA_BINDING");
+                if(binding.hasNonNull("asset_id"))privateBindings.add(binding.deepCopy());
+                else if(binding.path("catalog_key").isTextual())catalogBindings.add(binding.deepCopy());
+                else throw new IllegalArgumentException("UNIFIED_UNRESOLVED_MEDIA_BINDING");
+            }
+            catalogData.set("MEDIA_BINDINGS",catalogBindings);
+            privateData.set("MEDIA_BINDINGS",privateBindings);
+            groupFile=project(catalog,envelope,source,key);
+            mediaFile=project((ObjectNode)root.deepCopy().set("categories",privateData),envelope,source,key);
+        } catch(Exception ex) {
+            if(ex instanceof RuntimeException runtime)throw runtime;
+            throw new IllegalArgumentException("UNIFIED_RESTORE_ARCHIVE_INVALID",ex);
+        } finally {Arrays.fill(clear,(byte)0);}
+        return transaction.execute(status->{
+            var groupsResult=groups.apply(groupFile,source,target,key);
+            var mediaResult=media.apply(mediaFile,source,target,memberIds,groupsResult.groupIds(),key);
+            return new Result(groupsResult.groupIds(),mediaResult.assetIds(),
+                    mediaResult.blobs(),mediaResult.bindings(),groupsResult.bindings());
+        });
+    }
+
+    private byte[] project(ObjectNode root,ProtectiveBackupArtifactCodec.Artifact envelope,
+                           long source,SecretKey key) throws Exception {
+        byte[] bytes=json.writeValueAsBytes(root);
+        try {
+            var manifest=envelope.manifest();
+            return files.encode(codec.seal(UUID.randomUUID(),source,UUID.randomUUID(),
+                    manifest.dataEpoch(),manifest.sourceDigest(),manifest.schemaVersion(),bytes,key));
+        } finally {Arrays.fill(bytes,(byte)0);}
+    }
+}
