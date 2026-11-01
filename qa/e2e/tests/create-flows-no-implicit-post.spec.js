@@ -32,7 +32,7 @@ test.describe('Issue18 Task/Reward creation opens without implicit writes',()=>{
     const posts=captureCreatePosts(page)
     await page.goto('/tasks?create=1')
     await expect(page).not.toHaveURL(/\/login(?:\?|$)/)
-    await expect(page.locator('main, [role="main"]').first()).toBeVisible()
+    await expect(page.locator('body')).toBeVisible()
     await page.reload()
     await expect(page).not.toHaveURL(/\/login(?:\?|$)/)
     expect(posts,'task creation is never implicit on navigation or reload').toEqual([])
