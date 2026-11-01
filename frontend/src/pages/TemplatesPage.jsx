@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import './TemplatesPage.css'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { useTranslation } from 'react-i18next'
@@ -263,6 +264,7 @@ export default function TemplatesPage() {
   if (!workspaceId) return <div className="page-loading">...</div>
   return <div className="templates-page">
     <h1>{l[0]}</h1>
+    <p><Link to="/family-setup">{({uk:'Налаштування сім’ї: групи, шаблони та імпорт',ru:'Настройка семьи: группы, шаблоны и импорт',de:'Familie einrichten: Gruppen, Vorlagen und Import',en:'Set up family: groups, templates and import'})[lang] || 'Family setup'}</Link></p>
     <p>{l[3]}</p>
     {error && <div className="error-message" role="alert">{localizedTemplateError(error, lang)}</div>}
     {notice && <p role="status">{notice}</p>}
