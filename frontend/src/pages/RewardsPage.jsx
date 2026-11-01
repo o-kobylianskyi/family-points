@@ -195,7 +195,7 @@ function RewardsPage() {
   // purchases, persists, or activates a reward on navigation.
   useEffect(() => {
     const requested = searchParams.get('createFromTemplate')
-    if (!requested || !/^\\d+$/.test(requested) || !canManage || loading || !privateTemplatesLoaded) return
+    if (!requested || !/^[0-9]+$/.test(requested) || !canManage || loading || !privateTemplatesLoaded) return
     const item = rewardTemplates.find(entry => String(entry.id) === requested)
     if (item) {
       setPageTab('manage')
