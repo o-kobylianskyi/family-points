@@ -47,12 +47,12 @@ public class WorkspacePortableBackupExporter {
                 || !SCOPED_TABLES.keySet().containsAll(categories))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"UNSUPPORTED_EXPORT_SCOPE");
         var selected=categories.stream().distinct().sorted().toList();
-        Long epoch=db.query("SELECT data_epoch FROM families WHERE id=?",
-                rs->rs.next()?rs.getLong(1):null,workspaceId);
-        if(epoch==null)throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Workspace not found");
+        // The same row lock must cover both the digest and all exported rows.
+        // A late epoch check outside the lock permits a reset to race export.
+        String digest=snapshots.digest(workspaceId,selected);
+        Long epoch=db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,workspaceId);
         if(epoch!=expectedEpoch)
             throw new ResponseStatusException(HttpStatus.CONFLICT,"BACKUP_SOURCE_EPOCH_STALE");
-        String digest=snapshots.digest(workspaceId,selected);
         ObjectNode root=mapper.createObjectNode();
         root.put("format","family-points-export-v1");
         root.put("workspaceId",workspaceId);
@@ -78,6 +78,10 @@ public class WorkspacePortableBackupExporter {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,"BACKUP_SOURCE_CHANGED");
             counts.put(category,count);
         }
+        // Detect direct SQL mutations that bypass the application epoch guard
+        // while the family lock is held. Counts alone cannot detect row edits.
+        if(!digest.equals(snapshots.digest(workspaceId,selected)))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"BACKUP_SOURCE_CHANGED");
         byte[] plain;
         try {plain=mapper.writeValueAsBytes(root);}
         catch(Exception ex){throw new IllegalStateException("Backup serialization failed",ex);}
