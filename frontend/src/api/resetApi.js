@@ -1,5 +1,19 @@
 import { apiRequest } from './client'
 
+const allowedResetCategories = new Set(['PRIVATE_TEMPLATES','TASK_DEFINITIONS','TASK_EXECUTIONS','TASK_SCHEDULE_SLOTS','REWARD_DEFINITIONS','REWARD_REQUESTS','REWARD_PURCHASES','MEMBER_GROUPS','WORK_NODES','MEDIA_ASSETS','MEDIA_BINDINGS','POINT_LEDGER','REPUTATION_LEDGER'])
+function validateRequest(workspaceId, categories) {
+  if (!/^[1-9][0-9]*$/.test(String(workspaceId)) || !Number.isSafeInteger(Number(workspaceId))) throw new Error('INVALID_WORKSPACE_ID')
+  if (categories !== undefined && (!Array.isArray(categories) || categories.length === 0 || new Set(categories).size !== categories.length || categories.some(code => !allowedResetCategories.has(code)))) throw new Error('INVALID_RESET_SELECTION')
+}
+function validateResponse(data, workspaceId, categories) {
+  if (!data || String(data.workspaceId) !== String(workspaceId) || data.executable !== false ||
+      !Array.isArray(data.blockers) || !Array.isArray(data.selectedCategories) ||
+      data.selectedCategories.length !== categories.length ||
+      new Set(data.selectedCategories).size !== categories.length ||
+      !categories.every(code => data.selectedCategories.includes(code))) throw new Error('RESET_PLAN_INVALID')
+  return data
+}
+
 async function read(response) {
   response = await response
   if (!response.ok) {
@@ -10,17 +24,29 @@ async function read(response) {
   return response.json()
 }
 
-export const getResetPreview = (token, workspaceId) =>
-  read(apiRequest(`/workspaces/${workspaceId}/data-reset/preview`, { token, cache: 'no-store' }))
+export async function getResetPreview(token, workspaceId) {
+  validateRequest(workspaceId)
+  const result = await read(apiRequest(`/workspaces/${workspaceId}/data-reset/preview`, { token, cache: 'no-store' }))
+  if (!result || String(result.workspaceId) !== String(workspaceId) ||
+      result.executionEnabled !== false || result.completeDependencyPlan !== false ||
+      !result.categories || typeof result.categories !== 'object' || Array.isArray(result.categories) ||
+      Object.entries(result.categories).some(([code, item]) => !allowedResetCategories.has(code) ||
+        !item || !Number.isSafeInteger(item.recordCount) || item.recordCount < 0))
+    throw new Error('RESET_PREVIEW_INVALID')
+  return result
+}
 
-export const planReset = (token, workspaceId, categories) =>
-  read(apiRequest(`/workspaces/${workspaceId}/data-reset/plan`, {
-    token, method: 'POST', body: { categories }
+export async function planReset(token, workspaceId, categories) {
+  validateRequest(workspaceId, categories)
+  const result = await read(apiRequest(`/workspaces/${workspaceId}/data-reset/plan`, {
+    token, method: 'POST', body: { categories }, cache: 'no-store'
   }))
+  return validateResponse(result, workspaceId, categories)
+}
 
 // Read-only PostgreSQL FK audit; this never authorizes deletion.
 export async function getResetDependencyAudit(token, workspaceId) {
-  if (!/^\d+$/.test(String(workspaceId))) throw new Error('INVALID_WORKSPACE_ID')
+  validateRequest(workspaceId)
   const response = await apiRequest(`/workspaces/${workspaceId}/data-reset/dependency-audit`, {
     token, cache: 'no-store',
   })
@@ -38,10 +64,7 @@ export async function getResetDependencyAudit(token, workspaceId) {
 }
 
 export async function inspectResetSelection(token, workspaceId, categories) {
-  const valid = new Set(['PRIVATE_TEMPLATES','TASK_DEFINITIONS','TASK_EXECUTIONS','TASK_SCHEDULE_SLOTS','REWARD_DEFINITIONS','REWARD_REQUESTS','REWARD_PURCHASES','MEMBER_GROUPS','WORK_NODES','MEDIA_ASSETS','MEDIA_BINDINGS','POINT_LEDGER','REPUTATION_LEDGER'])
-  if (!/^\d+$/.test(String(workspaceId)) || !Array.isArray(categories) || !categories.length ||
-      categories.some(code => !valid.has(code)) || new Set(categories).size !== categories.length)
-    throw new Error('INVALID_RESET_AUDIT_SELECTION')
+  validateRequest(workspaceId, categories)
   const response = await apiRequest(`/workspaces/${workspaceId}/data-reset/dependency-audit/selection`, {
     token, method: 'POST', body: { categories }, cache: 'no-store',
   })
@@ -51,10 +74,6 @@ export async function inspectResetSelection(token, workspaceId, categories) {
     throw error
   }
   const result = await response.json()
-  if (String(result?.workspaceId) !== String(workspaceId) || result.executable !== false ||
-      !Array.isArray(result.blockers) || !Array.isArray(result.relevantForeignKeys) ||
-      !Array.isArray(result.selectedCategories) || result.selectedCategories.length !== categories.length ||
-      !categories.every(code => result.selectedCategories.includes(code)))
-    throw new Error('INVALID_RESET_SELECTION_AUDIT')
-  return result
+  if (!Array.isArray(result?.relevantForeignKeys)) throw new Error('INVALID_RESET_SELECTION_AUDIT')
+  return validateResponse(result, workspaceId, categories)
 }
