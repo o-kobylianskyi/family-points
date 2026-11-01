@@ -48,6 +48,34 @@ class WorkspaceTemplateControllerTest {
                         new WorkspaceTemplateController.ImportRequest(List.of("unknown.template"))));
         verifyNoInteractions(db);
     }
+    @Test void fullBundledCatalogCanBePreviewedAndImportedInOneExplicitRequest() {
+        var catalog = new TemplateCatalogService().getCatalog().path("templates");
+        var codes = new java.util.ArrayList<String>();
+        for (var item : catalog) codes.add(item.path("code").asText());
+        assertEquals(142,codes.size(),"Source catalog count changed: review onboarding scope");
+        when(db.queryForObject(contains("SELECT count(*) FROM workspace_private_templates"),
+                eq(Integer.class),eq(1L),anyString())).thenReturn(0);
+        var request = new WorkspaceTemplateController.ImportRequest(codes);
+        var preview = controller.preview(1L,request);
+        assertEquals(142,preview.toImport().size());
+        verify(db,never()).update(anyString(),any(Object[].class));
+        var imported = controller.importSelected(1L,request);
+        assertEquals(142,imported.selectedCodes().size());
+        verify(db,times(142)).update(contains("INSERT INTO workspace_private_templates"),
+                eq(1L),anyString(),anyString(),anyString(),anyString(),anyInt());
+    }
+
+    @Test void duplicateOrNullSelectionIsRejectedWithoutWrites() {
+        var catalog = new TemplateCatalogService().getCatalog().path("templates");
+        String code = catalog.get(0).path("code").asText();
+        for (var codes : List.of(List.of(code,code),java.util.Arrays.asList(code,null))) {
+            assertEquals(org.springframework.http.HttpStatus.BAD_REQUEST,
+                    assertThrows(ResponseStatusException.class,()->controller.preview(1L,
+                            new WorkspaceTemplateController.ImportRequest(codes))).getStatusCode());
+        }
+        verifyNoInteractions(db);
+    }
+
     @Test void cannotSaveForeignTaskAsTemplate() {
         when(tasks.findByIdAndWorkspaceId(55L, 1L)).thenReturn(Optional.empty());
         assertThrows(ResponseStatusException.class, () -> controller.saveFromTask(1L, 55L));
