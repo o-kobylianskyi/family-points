@@ -63,7 +63,7 @@ public class WorkspacePortableRestorePreviewService {
                  WHERE success=true AND version IS NOT NULL
                  ORDER BY installed_rank DESC LIMIT 1
                 """,String.class);
-        if(expectedSchema==null || !expectedSchema.equals(imported.schemaVersion()))
+        if(expectedSchema==null || !expectedSchema.equals(imported.schemaVersion().replaceFirst("^V", "")))
             blockers.add("RESTORE_SCHEMA_VERSION_MISMATCH");
         if(imported.sourceEpoch()>actual)
             blockers.add("RESTORE_SOURCE_EPOCH_AHEAD_OF_TARGET");
