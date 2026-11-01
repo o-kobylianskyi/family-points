@@ -279,6 +279,23 @@ fun TemplateLibrarySection(
                 }
             }) { Text(tl(language, "Перевірити квитанцію", "Beleg prüfen", "Check receipt", "Проверить квитанцию")) }
         }
+        // Task folders are a distinct Backend entity; never map catalog labels into them.
+        var showTaskFolders by remember(workspaceId) { mutableStateOf(false) }
+        OutlinedButton(enabled = !loading && !busy, onClick = {
+            showTaskFolders = !showTaskFolders
+        }) {
+            Text(tl(language, "Папки завдань", "Aufgabenordner",
+                "Task folders", "Папки заданий"))
+        }
+        if (showTaskFolders) {
+            WorkNodeGroupsSection(
+                language = language, workspaceId = workspaceId,
+                canCreateTasks = canManage,
+                repository = remember(tokens) {
+                    com.olehkobylianskyi.familypoints.android.data.WorkNodeGroupsRepository(tokens)
+                }
+            )
+        }
         if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (error.isNotBlank()) {
             Text(error, color = MaterialTheme.colorScheme.error)
