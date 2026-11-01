@@ -61,11 +61,17 @@ class TemplateOperationRecovery(
                 check(expected != null && response.importResult.selectedCodes == expected) {
                     "Import receipt selection differs from persisted operation"
                 }
-            } else {
+            } else if (operation.kind == "TASK" || operation.kind == "REWARD") {
                 val result = receipts.activationReceipt(workspaceId, operation.operationId)
                 check(result.templateId == operation.templateId && result.kind == operation.kind) {
                     "Activation receipt does not match pending operation"
                 }
+            } else { return Outcome.UNKNOWN }
+            val verifiedAfterReceipt = ApiClient.workspaceEpochApi.getEpoch("Bearer $token", workspaceId)
+            if (verifiedAfterReceipt.workspaceId != workspaceId || verifiedAfterReceipt.dataEpoch < 0) return Outcome.UNKNOWN
+            if (verifiedAfterReceipt.dataEpoch != operation.epoch) {
+                store.transition(operation, "HELD", verifiedAfterReceipt.dataEpoch)
+                return Outcome.HELD
             }
             store.transition(operation, "CONFIRMED", epoch.dataEpoch)
             Outcome.CONFIRMED
