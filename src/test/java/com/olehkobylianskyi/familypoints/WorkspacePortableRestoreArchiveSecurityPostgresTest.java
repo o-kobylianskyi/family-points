@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 class WorkspacePortableRestoreArchiveSecurityPostgresTest {
-    @Container static final PostgreSQLContainer<?> DB=new PostgreSQLContainer<>("postgres:18-alpine")
+    @Container static final PostgreSQLContainer DB=new PostgreSQLContainer("postgres:18-alpine")
             .withDatabaseName("archive_security").withUsername("qa").withPassword("qa_password");
 
     @Test void wrongKeyTamperMalformedEnvelopeAndForeignWorkspaceNeverMutate() throws Exception {
