@@ -1,3 +1,4 @@
+import { openResetPlanning } from './family-data-qa-helpers.js'
 import { test, expect } from '@playwright/test'
 
 // Synthetic browser safety, no real epoch mutation or data writes.
@@ -30,6 +31,7 @@ test.describe('epoch quarantine: all scoped write verbs', () => {
     const familyId = epochRequests[0]
     const observer = await context.newPage()
     await observer.goto('/settings')
+    await openResetPlanning(observer)
     await expect(observer.locator('.family-reset-readiness')).toBeVisible({ timeout: 12000 })
 
     const dispatched = []
