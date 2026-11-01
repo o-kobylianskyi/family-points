@@ -419,3 +419,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-11-01 — BKL-002 Preview/Plan failure recovery 2/2 PASS
 - User reran `npx playwright test tests/reset-failure-recovery.spec.js` with QA credentials: **2 passed (7.4s)**, no skips. Simulated HTTP 503 Preview failed closed and recovered through Reload (2.8s); malformed cross-workspace executable Plan was rejected and did not enable reset (3.7s).
 - Tests use Playwright interception; no backend reset or data mutation. Next: stale/out-of-order dependency plan response regression.
+
+
+## 2026-11-01 — Delayed reset Plan navigation-invalidation test staged
+- Added third non-destructive Playwright case to `qa/e2e/tests/reset-failure-recovery.spec.js` (commits 151db34, e56a9ca, final title 7913d5b): hold browser-intercepted POST /plan, navigate to Templates to invalidate old Settings component, release response, reopen Settings and verify no stale plan is restored, no selected category and no prepare/confirm/challenge/execute calls.
+- Earlier 2/2 reset recovery PASS is confirmed; new third delayed-response test is **NOT YET RUN**. It covers page-navigation invalidation, not in-place checkbox changes (checkboxes are disabled while busy).
