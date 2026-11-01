@@ -25,6 +25,7 @@ import PointsPage from './pages/PointsPage'
 import RewardsPage from './pages/RewardsPage'
 import SettingsPage from './pages/SettingsPage'
 import TemplatesPage from './pages/TemplatesPage'
+import FamilySetupPage from './pages/FamilySetupPage'
 import CalendarPage from './pages/CalendarPage'
 
 import { ThemeInitializer } from './components/ThemePreference'
@@ -95,6 +96,8 @@ function App() {
             />
 
             <Route path="/templates" element={<TemplatesPage />} />
+
+            <Route path="/family-setup" element={<FamilySetupPage />} />
 
             <Route
               path="/settings"
