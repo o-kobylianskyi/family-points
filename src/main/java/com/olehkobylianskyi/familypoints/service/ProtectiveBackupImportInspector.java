@@ -32,7 +32,7 @@ public final class ProtectiveBackupImportInspector {
             Set<String> blockers,String child,String column,String parent) {
         if(!categories.has(child))return;
         for(JsonNode row:categories.path(child)) {
-            if(!row.path(column).canConvertToLong() || row.path(column).asLong()<=0) {
+            if(!row.path(column).isIntegralNumber() || row.path(column).asLong()<=0) {
                 blockers.add("INVALID_REFERENCE:"+child+"."+column);
             } else if(!categories.has(parent)) {
                 blockers.add("MISSING_CATEGORY:"+parent);
@@ -45,7 +45,7 @@ public final class ProtectiveBackupImportInspector {
     private static void checkMemberParent(JsonNode categories,Set<String> blockers,String child) {
         if(!categories.has(child))return;
         for(JsonNode row:categories.path(child)) {
-            if(!row.path("member_id").canConvertToLong() || row.path("member_id").asLong()<=0)
+            if(!row.path("member_id").isIntegralNumber() || row.path("member_id").asLong()<=0)
                 blockers.add("INVALID_REFERENCE:"+child+".member_id");
             // FamilyMembers are identity-protected and intentionally omitted
             // from this archive version. Cross-family identity resolution is
@@ -81,7 +81,7 @@ public final class ProtectiveBackupImportInspector {
                 var entry=iterator.next();String name=entry.getKey();
                 if(!CATEGORIES.contains(name) || !entry.getValue().isArray())
                     throw new IllegalArgumentException("Unknown or malformed archive category");
-                if(entry.getValue().size()>100000)
+                if(entry.getValue().size()>2000)
                     throw new IllegalArgumentException("Archive category exceeds safety limit");
                 var ids=new HashSet<String>();
                 for(JsonNode item:entry.getValue()) {
@@ -89,8 +89,8 @@ public final class ProtectiveBackupImportInspector {
                         throw new IllegalArgumentException("Archive row must be an object");
                     String rowKey;
                     if("MEDIA_BINDINGS".equals(name)) {
-                        if(!item.path("workspace_id").canConvertToLong()
-                                || !item.path("target_id").canConvertToLong()
+                        if(!item.path("workspace_id").isIntegralNumber()
+                                || !item.path("target_id").isIntegralNumber()
                                 || item.path("target_id").asLong()<=0
                                 || !item.path("target_type").isTextual()
                                 || !Set.of("WORKSPACE","MEMBER","MEMBER_GROUP","WORK_NODE","TASK")
@@ -101,9 +101,9 @@ public final class ProtectiveBackupImportInspector {
                                         && item.path("target_id").asLong()!=targetWorkspace)
                                 || (item.hasNonNull("asset_id") && !isUuid(item.path("asset_id").asText())))
                             throw new IllegalArgumentException("Invalid media binding composite key");
-                        rowKey=item.path("workspace_id").asText()+":"+
+                        rowKey=Long.toString(item.path("workspace_id").asLong())+":"+
                                 item.path("target_type").asText()+":"+
-                                item.path("target_id").asText()+":"+item.path("slot").asText();
+                                item.path("target_id").asLong()+":"+item.path("slot").asText();
                     } else if("MEDIA_ASSETS".equals(name)) {
                         try {
                             String id=item.path("id").asText();
@@ -114,9 +114,9 @@ public final class ProtectiveBackupImportInspector {
                             throw new IllegalArgumentException("Media asset requires UUID id",ex);
                         }
                     } else {
-                        if(!item.path("id").canConvertToLong() || item.path("id").asLong()<=0)
+                        if(!item.path("id").isIntegralNumber() || item.path("id").asLong()<=0)
                             throw new IllegalArgumentException("Archive row requires positive numeric id");
-                        rowKey=item.path("id").asText();
+                        rowKey=Long.toString(item.path("id").asLong());
                     }
                     if(!ids.add(rowKey))
                         throw new IllegalArgumentException("Duplicate archive row key in "+name);
@@ -151,7 +151,7 @@ public final class ProtectiveBackupImportInspector {
                             java.util.Set.of("MEMBER_GROUPS","TASK_DEFINITIONS",
                                     "REWARD_DEFINITIONS","REWARD_REQUESTS","WORK_NODES")
                                     .contains(name)?"family_id":null;
-                    if(ownerColumn!=null && (!item.path(ownerColumn).canConvertToLong()
+                    if(ownerColumn!=null && (!item.path(ownerColumn).isIntegralNumber()
                             || item.path(ownerColumn).asLong()!=targetWorkspace))
                         throw new SecurityException("Archive row references another workspace");
                 }
@@ -168,7 +168,7 @@ public final class ProtectiveBackupImportInspector {
                 if("MEDIA_BINDINGS".equals(cat.getKey()))continue;
                 var idsForCategory=new HashSet<Long>();
                 for(JsonNode row:cat.getValue()) {
-                    if(row.path("id").canConvertToLong())idsForCategory.add(row.path("id").asLong());
+                    if(row.path("id").isIntegralNumber())idsForCategory.add(row.path("id").asLong());
                 }
                 rowIds.put(cat.getKey(),idsForCategory);
             }
