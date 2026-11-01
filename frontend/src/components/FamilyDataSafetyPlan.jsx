@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { listProtectiveBackups } from '../api/backupApi'
+import { listProtectiveBackups, getProtectiveBackup } from '../api/backupApi'
 import { useTranslation } from 'react-i18next'
 
 // Architecture 77d8d2d4: approved product matrix, NOT an executable reset/restore plan.
@@ -31,19 +31,33 @@ export default function FamilyDataSafetyPlan() {
   const workspaceId = currentUser?.workspaceId
   const canManage = currentUser?.permissions?.includes('MANAGE_WORKSPACE') || currentUser?.permissions?.includes('ADMIN_OVERRIDE')
   const [backups,setBackups] = useState([])
+  const [details,setDetails] = useState(null)
+  const [detailError,setDetailError] = useState(false)
+  const [detailBusy,setDetailBusy] = useState(false)
+  const [selectedSnapshot,setSelectedSnapshot] = useState(null)
   const [backupError,setBackupError] = useState(false)
   const [backupLoading,setBackupLoading] = useState(false)
   const [reload,setReload] = useState(0)
   useEffect(() => {
     if (!workspaceId || !canManage) return
     let alive = true
-    setBackupLoading(true); setBackupError(false); setBackups([])
+    setBackupLoading(true); setBackupError(false); setBackups([]); setDetails(null); setSelectedSnapshot(null); setDetailError(false)
     listProtectiveBackups(getAccessToken(), workspaceId).then(result => {
       if (alive) setBackups(result)
     }).catch(() => { if (alive) setBackupError(true) })
       .finally(() => { if (alive) setBackupLoading(false) })
     return () => { alive = false }
   }, [workspaceId, canManage, reload, getAccessToken])
+  useEffect(() => {
+    if (!canManage || !workspaceId || !selectedSnapshot) return
+    let active = true
+    setDetailBusy(true); setDetailError(false); setDetails(null)
+    getProtectiveBackup(getAccessToken(),workspaceId,selectedSnapshot)
+      .then(result => { if (active) setDetails(result) })
+      .catch(() => { if (active) setDetailError(true) })
+      .finally(() => { if (active) setDetailBusy(false) })
+    return () => { active = false }
+  }, [canManage,workspaceId,selectedSnapshot,getAccessToken])
   const [tab,setTab] = useState('reset')
   const [mode,setMode] = useState('selective')
   const [chosen,setChosen] = useState(() => entries.filter(x=>x[1]).map(x=>x[0]))
@@ -99,6 +113,19 @@ export default function FamilyDataSafetyPlan() {
         <span> · {item.resetMode} · {item.snapshotId.slice(0,8)}</span>
         <div>{item.createdAt ? new Date(item.createdAt).toLocaleString(language) : '—'} / {item.expiresAt ? new Date(item.expiresAt).toLocaleString(language) : '—'}</div>
         <small>{item.state} · {item.selectedCategories?.length || 0} {({uk:'категорій',ru:'категорий',de:'Kategorien',en:'categories'})[language]}</small>
+        <div><button type="button" className="secondary-button" aria-expanded={selectedSnapshot === item.snapshotId}
+          onClick={()=>setSelectedSnapshot(v=>v===item.snapshotId?null:item.snapshotId)}>
+          {({uk:'Переглянути запис',ru:'Просмотреть запись',de:'Eintrag ansehen',en:'View metadata'})[language]}
+        </button></div>
+        {selectedSnapshot === item.snapshotId && <div role="region" style={{padding:'8px 12px'}}>
+          {detailBusy && <p role="status">{({uk:'Завантаження…',ru:'Загрузка…',de:'Laden…',en:'Loading…'})[language]}</p>}
+          {detailError && <p role="alert">{({uk:'Деталі недоступні.',ru:'Детали недоступны.',de:'Details nicht verfügbar.',en:'Details unavailable.'})[language]}</p>}
+          {details && <div>
+            <p>{({uk:'Статус',ru:'Статус',de:'Status',en:'Status'})[language]}: {details.state}</p>
+            <ul>{(Array.isArray(details.selectedCategories)?details.selectedCategories:[]).map(code=><li key={code}>{code}</li>)}</ul>
+            <p>{({uk:'Цей запис не підтверджує можливість відновлення.',ru:'Запись не подтверждает возможность восстановления.',de:'Dieser Eintrag bestätigt keine Wiederherstellbarkeit.',en:'This record does not prove recoverability.'})[language]}</p>
+          </div>}
+        </div>}
       </div>)}
     </div>
     <p>{w[10]}</p>
