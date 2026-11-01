@@ -1,7 +1,7 @@
 import RewardAvailabilityEditor from '../components/RewardAvailabilityEditor'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import NumberInput from '../components/NumberInput'
 
 import { useAuth } from '../context/AuthContext'
@@ -109,6 +109,7 @@ function RewardsPage() {
   const { currentUser, getAccessToken } = useAuth()
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const workspaceRef = useRef(currentUser.workspaceId)
   workspaceRef.current = currentUser.workspaceId
   const [currencyForms, setCurrencyForms] = useState({})
@@ -189,6 +190,24 @@ function RewardsPage() {
         acquisitionMode: d.acquisitionMode ?? current.acquisitionMode, requiresApproval: d.requiresApproval ?? current.requiresApproval }))
     } catch { if (String(workspaceRef.current) === String(origin) && rewardDraftGeneration.current === generation) setError(labels[4]) } finally { if (String(workspaceRef.current) === String(origin) && rewardDraftGeneration.current === generation) setTemplateBusy(false) }
   }
+  // A deep link only selects a server-returned private template. It never
+  // purchases, persists, or activates a reward on navigation.
+  useEffect(() => {
+    const requested = searchParams.get('createFromTemplate')
+    if (!requested || !/^\\d+$/.test(requested) || !canManage || loading || !rewardTemplates.length) return
+    const item = rewardTemplates.find(entry => String(entry.id) === requested)
+    if (item) {
+      setPageTab('manage')
+      setEditingRewardId(null)
+      setRewardTemplateCategory('ALL')
+      chooseRewardTemplate(String(item.id))
+    }
+    setSearchParams(previous => {
+      const next = new URLSearchParams(previous)
+      next.delete('createFromTemplate')
+      return next
+    }, { replace: true })
+  }, [searchParams, setSearchParams, rewardTemplates, canManage, loading])
   const chooseRequestTemplate = id => {
     const item = requestTemplates.find(x => String(x.id ?? x.code) === id)
     setSelectedRequestTemplateId(id)
