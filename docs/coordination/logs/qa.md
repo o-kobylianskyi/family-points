@@ -424,3 +424,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-11-01 — Delayed reset Plan navigation-invalidation test staged
 - Added third non-destructive Playwright case to `qa/e2e/tests/reset-failure-recovery.spec.js` (commits 151db34, e56a9ca, final title 7913d5b): hold browser-intercepted POST /plan, navigate to Templates to invalidate old Settings component, release response, reopen Settings and verify no stale plan is restored, no selected category and no prepare/confirm/challenge/execute calls.
 - Earlier 2/2 reset recovery PASS is confirmed; new third delayed-response test is **NOT YET RUN**. It covers page-navigation invalidation, not in-place checkbox changes (checkboxes are disabled while busy).
+
+
+## 2026-11-01 — QA architect/task check + delayed Preview test staged
+- Reviewed architecture coordination and latest QA journal: architect's standing QA ownership covers multi-family ACL, safe reset/epoch, Web/Android parity, and consumer integration. No newer specific QA assignment was found in architecture journal. BKL-002 remains fail-closed; no execute authorization or data wipe.
+- Earlier delayed Plan navigation test still awaits local run, not PASS. Added 4th browser test `late Preview cannot restore stale categories after leaving Settings` to `qa/e2e/tests/reset-failure-recovery.spec.js` (commit d30c3ea). Delays a synthetic Preview response, navigates away, then reloads Settings and verifies fresh categories/no stale selection or destructive endpoints. No Backend modification.
+- New 3rd/4th cases remain PENDING local execution. Existing first two cases 2/2 PASS are unchanged. After these run, reconcile browser QA handoff, auth and CI status.
