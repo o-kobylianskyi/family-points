@@ -15,6 +15,18 @@ public class WorkspaceResetDependencyAuditController {
     public WorkspaceResetDependencyAuditController(WorkspaceResetDependencyAuditService audit) {
         this.audit=audit;
     }
+    public record SelectionRequest(java.util.List<String> categories) {}
+
+    @PostMapping("/dependency-audit/selection")
+    public ResponseEntity<WorkspaceResetDependencyAuditService.SelectionAudit> inspectSelection(
+            @PathVariable Long workspaceId, @RequestBody SelectionRequest request) {
+        if(request==null)
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,"Categories required");
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(audit.inspectSelection(workspaceId,request.categories()));
+    }
+
     @GetMapping("/dependency-audit")
     public ResponseEntity<WorkspaceResetDependencyAuditService.Audit> dependencyAudit(
             @PathVariable Long workspaceId) {
