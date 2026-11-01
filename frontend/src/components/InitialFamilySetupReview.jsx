@@ -33,7 +33,7 @@ export default function InitialFamilySetupReview() {
   const [confirmed, setConfirmed] = useState(false)
   const [finished, setFinished] = useState(null)
   const seq = useRef(0)
-  const accountId = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id
+  const accountId = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.workspaceMemberId ?? currentUser?.username
   const storageKey = accountId && workspaceId ? `fp:setup:pending:${accountId}:${workspaceId}` : null
   useEffect(() => {
     setPending(null); setConfirmed(false); setFinished(null)
@@ -45,7 +45,7 @@ export default function InitialFamilySetupReview() {
           typeof value.operationId === 'string' && Array.isArray(value.codes)) setPending(value)
     } catch { /* invalid scoped browser data is never replayed */ }
   }, [storageKey])
-  const persist = value => { sessionStorage.setItem(storageKey, JSON.stringify(value)); setPending(value) }
+  const persist = value => { if (sessionStorage.getItem(storageKey)) throw new Error('PENDING_SETUP_ALREADY_EXISTS'); sessionStorage.setItem(storageKey, JSON.stringify(value)); setPending(value) }
   const clear = () => { sessionStorage.removeItem(storageKey); setPending(null) }
   useEffect(() => {
     const id = ++seq.current
@@ -95,6 +95,7 @@ export default function InitialFamilySetupReview() {
   }
   const finalize = async () => {
     if (!confirmed || pending || busy || !storageKey || !setup || !review ||
+        sessionStorage.getItem(storageKey) ||
         review.revision !== setup.revision || review.dataEpoch !== setup.dataEpoch ||
         setup.status === 'COMPLETED' || !window.crypto?.randomUUID ||
         !Object.values(setup.steps || {}).every(v => v === 'COMPLETE' || v === 'SKIPPED')) return
@@ -119,13 +120,13 @@ export default function InitialFamilySetupReview() {
     {setup && <>
       <p>{setup.status} · {Object.values(setup.steps || {}).filter(x => x === 'COMPLETE' || x === 'SKIPPED').length}/{Object.keys(setup.steps || {}).length}</p>
       <div className="template-toolbar">
-        <label>{w[2]}<select value={kind} onChange={e=>{setKind(e.target.value);setCategory('ALL');setReview(null)}}><option value="TASK">{w[4]}</option><option value="REWARD">{w[5]}</option></select></label>
-        <label>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}<select value={pack} onChange={e=>{setPack(e.target.value);setCategory('ALL');setReview(null)}}><option value="ALL">{w[6]}</option>{packs.map(p=><option value={p.code} key={p.code}>{p.title?.[lang] || p.title?.en || p.code}</option>)}</select></label>
-        <label>{w[3]}<select value={category} onChange={e=>{setCategory(e.target.value);setReview(null)}}><option value="ALL">{w[6]}</option>{categories.map(c=><option key={c} value={c}>{templateCategoryLabel(c, lang)}</option>)}</select></label>
+        <label>{w[2]}<select value={kind} onChange={e=>{setKind(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="TASK">{w[4]}</option><option value="REWARD">{w[5]}</option></select></label>
+        <label>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}<select value={pack} onChange={e=>{setPack(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{packs.map(p=><option value={p.code} key={p.code}>{p.title?.[lang] || p.title?.en || p.code}</option>)}</select></label>
+        <label>{w[3]}<select value={category} onChange={e=>{setCategory(e.target.value);setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{categories.map(c=><option key={c} value={c}>{templateCategoryLabel(c, lang)}</option>)}</select></label>
       </div>
       <div style={{maxHeight:260,overflowY:'auto'}}>
         {items.map(item=><label key={item.code} style={{display:'flex',gap:8,padding:'4px 0'}}>
-          <input type="checkbox" disabled={busy || setup.status === 'COMPLETED'} checked={selected.includes(item.code)} onChange={()=>{setSelected(v=>v.includes(item.code)?v.filter(c=>c!==item.code):[...v,item.code]);setReview(null)}}/>
+          <input type="checkbox" disabled={busy || setup.status === 'COMPLETED'} checked={selected.includes(item.code)} onChange={()=>{setSelected(v=>v.includes(item.code)?v.filter(c=>c!==item.code):[...v,item.code]);setReview(null);setConfirmed(false);seq.current++;setConfirmed(false);seq.current++}}/>
           <span>{item.title?.[lang] || item.title?.en || item.code}</span>
         </label>)}
       </div>
