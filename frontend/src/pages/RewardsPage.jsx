@@ -195,7 +195,7 @@ function RewardsPage() {
   // purchases, persists, or activates a reward on navigation.
   useEffect(() => {
     const requested = searchParams.get('createFromTemplate')
-    if (!requested || !/^\\d+$/.test(requested) || !canManage || loading || !rewardTemplates.length) return
+    if (!requested || !/^\\d+$/.test(requested) || !canManage || loading || !privateTemplatesLoaded) return
     const item = rewardTemplates.find(entry => String(entry.id) === requested)
     if (item) {
       setPageTab('manage')
@@ -288,7 +288,7 @@ function RewardsPage() {
     setTasks([])
     setRewardForm(emptyRewardForm)
     rewardDraftGeneration.current += 1
-    setRewardTemplates([]); setGlobalRewardTemplates([]); setSelectedRewardTemplateId(''); setSelectedRequestTemplateId(''); setRewardTemplateCategory('ALL'); setRequestTemplateCategory('ALL')
+    setRewardTemplates([]); setPrivateTemplatesLoaded(false); setGlobalRewardTemplates([]); setSelectedRewardTemplateId(''); setSelectedRequestTemplateId(''); setRewardTemplateCategory('ALL'); setRequestTemplateCategory('ALL')
     setReviewForm(emptyReviewForm)
     loadAll()
   }, [currentUser.workspaceId])
