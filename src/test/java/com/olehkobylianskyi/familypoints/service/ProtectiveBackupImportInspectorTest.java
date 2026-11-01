@@ -110,6 +110,39 @@ class ProtectiveBackupImportInspectorTest {
         assertFalse(checked.restorable());
     }
 
+    @Test void detectsFinancialIdentityAndRewardDependenciesInOneArchivedGraph() throws Exception {
+        var key=key();
+        byte[] archive=file(42L,"""
+                {"format":"family-points-export-v1","workspaceId":42,
+                 "categories":{
+                   "REWARD_DEFINITIONS":[{"id":5,"family_id":42}],
+                   "REWARD_PURCHASES":[{"id":8,"member_id":12,"reward_definition_id":77}],
+                   "POINT_LEDGER":[{"id":9,"member_id":12}],
+                   "REPUTATION_LEDGER":[{"id":10,"member_id":12}],
+                   "TASK_EXECUTIONS":[{"id":13,"member_id":12,"task_definition_id":99}],
+                   "TASK_DEFINITIONS":[{"id":2,"family_id":42}]}}
+                """,key);
+        var result=inspector.inspect(archive,42L,key);
+        assertFalse(result.restorable());
+        assertTrue(result.blockers().contains("DANGLING_REFERENCE:REWARD_PURCHASES.reward_definition_id"));
+        assertTrue(result.blockers().contains("DANGLING_REFERENCE:TASK_EXECUTIONS.task_definition_id"));
+        assertTrue(result.blockers().contains("IDENTITY_REBIND_REQUIRED:POINT_LEDGER.member_id"));
+        assertTrue(result.blockers().contains("IDENTITY_REBIND_REQUIRED:REPUTATION_LEDGER.member_id"));
+        assertTrue(result.blockers().contains("IDENTITY_REBIND_REQUIRED:REWARD_PURCHASES.member_id"));
+        assertTrue(result.blockers().contains("IDENTITY_REBIND_REQUIRED:TASK_EXECUTIONS.member_id"));
+    }
+
+    @Test void missingRewardParentCannotSilentlyUseTargetDatabaseRecords() throws Exception {
+        var key=key();
+        byte[] archive=file(42L,"""
+                {"format":"family-points-export-v1","workspaceId":42,
+                 "categories":{"REWARD_PURCHASES":[{"id":7,"member_id":5,"reward_definition_id":19}]}}
+                """,key);
+        var result=inspector.inspect(archive,42L,key);
+        assertTrue(result.blockers().contains("MISSING_CATEGORY:REWARD_DEFINITIONS"));
+        assertFalse(result.restorable());
+    }
+
     @Test void unknownCategoriesAndUnsafeArchiveShapeFailClosed() throws Exception {
         var key=key();
         for(String payload:java.util.List.of(
