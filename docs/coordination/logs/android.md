@@ -814,3 +814,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Fixed V48 coordinator to pass initial access token to receipt repository (7615280f). Repository captures one token, rejects a switched login **before POST** and uses the exact captured token for Authorization (418e0b95). Original SQLite UUID retains UNCERTAIN status on transport exceptions; no automatic POST retry.
 - Added actual repository MockWebServer tests: switched token => zero requests, valid pinned token => correct Authorization and Idempotency-Key (79465598). Prior HTTP 404/timeout/lost-response tests remain.
 - Exact-head Gradle and instrumentation runtime NOT run in this turn. Full coordinator+SQLite+HTTP E2E and offline outbox remain open; no BETA deployment or reset.
+
+## 2026-11-01 — AND-QA-12 pinned receipt recovery GET follow-up
+- Fixed session TOCTOU for V47/V48 receipt GET: `TemplateReceiptRepository.importReceipt` and `.activationReceipt` now optionally validate expected original access token and send GET only under that pinned token (efc0b33a); `TemplateOperationRecovery` checks session after first epoch GET and forwards original token for each receipt lookup (d1178c74).
+- Extended MockWebServer JVM tests for switched account = ZERO receipt GETs, and valid pinned Authorization header on GET (631a20cc). Existing production callers without expectedToken remain backward compatible; recovery path passes it explicitly.
+- Exact HEAD JVM tests/build NOT run in this turn, so source changes are not claimed PASS. Full offline outbox implementation path has not yet been mapped/verified, and Android SQLite instrumentation remains deferred; do NOT call AND-QA-12 complete or imply new BETA deploy.
+- Backend BKL002 reset/restore remains HOLD pending Architect contract and verified disposable roundtrip. Android backup registry read-only.
