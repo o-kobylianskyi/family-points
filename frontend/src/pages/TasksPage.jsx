@@ -79,6 +79,7 @@ function TasksPage() {
   const currency = useCurrencyQuantity(getAccessToken(), currentUser.workspaceId)
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [initialCreateTemplateId, setInitialCreateTemplateId] = useState(null)
   const [suggestionOpen, setSuggestionOpen] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
   const [members, setMembers] = useState([])
@@ -115,10 +116,15 @@ function TasksPage() {
 
   useEffect(() => {
     if (searchParams.get('create') === '1') {
-      if (canCreateTasks) setCreateModalOpen(true)
+      if (canCreateTasks) {
+        const requested = searchParams.get('template')
+        setInitialCreateTemplateId(requested && /^\\d+$/.test(requested) ? requested : null)
+        setCreateModalOpen(true)
+      }
       setSearchParams(prev => {
         const next = new URLSearchParams(prev)
         next.delete('create')
+        next.delete('template')
         return next
       }, { replace: true })
     }
@@ -1008,7 +1014,8 @@ function TasksPage() {
           members={members}
           existingTaskDefinitions={visibleDefinitions}
           defaultMemberId={selectedMemberId}
-          onClose={() => setCreateModalOpen(false)}
+          initialTemplateId={initialCreateTemplateId}
+          onClose={() => {setCreateModalOpen(false);setInitialCreateTemplateId(null)}}
           onCreated={async () => {
             await Promise.all([loadAllTasks(), loadManagedTasks(true)])
           }}
