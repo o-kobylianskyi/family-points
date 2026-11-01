@@ -53,6 +53,7 @@ export default function FamilySetupPage() {
   const [search, setSearch] = useState('')
   const [preview, setPreview] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [draftReady, setDraftReady] = useState(false)
   const [error, setError] = useState('')
   const [complete, setComplete] = useState(false)
   const generation = useRef(0)
@@ -82,10 +83,10 @@ export default function FamilySetupPage() {
   }
   useEffect(() => {
     const request = ++generation.current
-    setStep(0); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
+    setDraftReady(false); setStep(0); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
     setPack('ALL'); setKind('TASK'); setCategory('ALL'); setSearch('')
     setComplete(false); setPreview(null)
-    if (workspaceId) load(workspaceId, request)
+    if (workspaceId) load(workspaceId, request).finally(() => { if (generation.current === request) setDraftReady(true) })
     return () => { generation.current++ }
   }, [workspaceId, draftStorageKey])
   const ownedCodes = new Set(owned.map(item => item.catalogCode).filter(Boolean))
@@ -100,12 +101,11 @@ export default function FamilySetupPage() {
   const selectedNew = selected.filter(code => available.some(item => item.code === code))
   const choose = updater => {
     invalidate()
-    setSelected(old => {
-      const codes = typeof updater === 'function' ? updater(old) : updater
-      if (draftStorageKey) saveDraft(draftStorageKey, codes)
-      return codes
-    })
+    setSelected(old => typeof updater === 'function' ? updater(old) : updater)
   }
+  useEffect(() => {
+    if (draftStorageKey && draftReady && catalog.templates.length && !busy) saveDraft(draftStorageKey, selected)
+  }, [draftStorageKey, draftReady, selected, catalog.templates.length, busy])
   const invalidate = () => { revision.current++; setPreview(null); setError('') }
   const toggle = code => choose(old => old.includes(code) ? old.filter(value => value !== code) : [...old, code])
   const previewSelection = async () => {
@@ -136,7 +136,7 @@ export default function FamilySetupPage() {
     if (lock.current || !preview || !preview.codes.length || !preview.result.toImport.length ||
         preview.codes.join('|') !== selectedNew.join('|')) return
     lock.current = true
-    const id = workspaceId, request = generation.current, codes = [...preview.codes]
+    const id = workspaceId, request = generation.current
     setBusy(true); setError('')
     try {
       await importTemplates(getAccessToken(), id, preview.result.toImport)
@@ -175,7 +175,7 @@ export default function FamilySetupPage() {
         <label>{t[28]}<select value={category} onChange={e => setCategory(e.target.value)}><option value="ALL">{t[28]}</option>{categories.map(code => <option key={code} value={code}>{templateCategoryLabel(code, lang)}</option>)}</select></label>
         <label>{t[10]}<input type="search" value={search} onChange={e => setSearch(e.target.value)}/></label>
       </div>
-      <div className="family-setup-actions"><button type="button" disabled={busy} onClick={() => {invalidate(); choose(old => [...new Set([...old, ...filtered.filter(item => !ownedCodes.has(item.code)).map(item => item.code)])])}}>{t[26]}</button>
+      <div className="family-setup-actions"><button type="button" disabled={busy} onClick={() => {choose(old => [...new Set([...old, ...filtered.filter(item => !ownedCodes.has(item.code)).map(item => item.code)])])}}>{t[26]}</button>
         <button type="button" disabled={busy} onClick={() => choose([])}>{t[27]}</button></div>
       <div className="family-setup-catalog">{filtered.map(item => <label key={item.code} className="family-setup-item">
         <input type="checkbox" checked={selected.includes(item.code) || ownedCodes.has(item.code)} disabled={busy || ownedCodes.has(item.code)} onChange={() => toggle(item.code)}/>
