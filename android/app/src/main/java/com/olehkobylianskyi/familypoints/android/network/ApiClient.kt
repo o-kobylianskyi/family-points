@@ -214,4 +214,8 @@ object ApiClient {
     val templateReceiptApi: TemplateReceiptApi by lazy { retrofit.create(TemplateReceiptApi::class.java) }
     val workspaceSetupApi: WorkspaceSetupApi by lazy { retrofit.create(WorkspaceSetupApi::class.java) }
 
+    val workNodeGroupsApi: WorkNodeGroupsApi by lazy {
+        retrofit.create(WorkNodeGroupsApi::class.java)
+    }
+
 }
