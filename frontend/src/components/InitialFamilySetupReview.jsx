@@ -94,10 +94,10 @@ export default function InitialFamilySetupReview() {
   const categories = [...new Set(typed.map(cat))].sort()
   const items = typed.filter(item => category === 'ALL' || cat(item) === category)
   const setStep = async (step, status) => {
-    if (!setup || busy || setup.status === 'COMPLETED') return
+    if (!setup || busy || pending || readShared() || setup.status === 'COMPLETED') return
     const id = ++seq.current
     const origin = workspaceId
-    setBusy(true); setError(false); setReview(null)
+    setBusy(true); setError(false); setReview(null); setConfirmed(false)
     try {
       const result = await setSetupStep(getAccessToken(), origin, step, status, setup.revision)
       if (id === seq.current) setSetup(result)
@@ -105,7 +105,7 @@ export default function InitialFamilySetupReview() {
     finally { if (id === seq.current) setBusy(false) }
   }
   const preview = async () => {
-    if (!setup || busy || !selected.length) return
+    if (!setup || busy || pending || readShared() || !selected.length) return
     const id = ++seq.current
     const workspace = workspaceId
     const codes = catalog.filter(item => selected.includes(item.code)).map(item => item.code)
@@ -117,7 +117,7 @@ export default function InitialFamilySetupReview() {
     finally { if (seq.current === id) setBusy(false) }
   }
   const recover = async () => {
-    if (!pending || busy) return
+    if (!pending?.operationId || !Number.isSafeInteger(pending.epoch) || busy) return
     setBusy(true); setError(false)
     try {
       const result = await getSetupFinalizeReceipt(getAccessToken(), workspaceId, pending.operationId)
@@ -169,14 +169,14 @@ export default function InitialFamilySetupReview() {
         {Object.entries(setup.steps || {}).map(([step, value]) => <div key={step} style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',padding:'5px 0'}}>
           <span>{step} — {value}</span>
           {setup.status !== 'COMPLETED' && <>
-            <button className="secondary-button" type="button" disabled={busy} onClick={()=>setStep(step,'COMPLETE')}>{({uk:'Позначити виконаним',ru:'Отметить выполненным',de:'Als erledigt markieren',en:'Mark complete'})[lang]}</button>
-            <button className="secondary-button" type="button" disabled={busy} onClick={()=>setStep(step,'SKIPPED')}>{({uk:'Пропустити',ru:'Пропустить',de:'Überspringen',en:'Skip'})[lang]}</button>
+            <button className="secondary-button" type="button" disabled={busy || !!pending} onClick={()=>setStep(step,'COMPLETE')}>{({uk:'Позначити виконаним',ru:'Отметить выполненным',de:'Als erledigt markieren',en:'Mark complete'})[lang]}</button>
+            <button className="secondary-button" type="button" disabled={busy || !!pending} onClick={()=>setStep(step,'SKIPPED')}>{({uk:'Пропустити',ru:'Пропустить',de:'Überspringen',en:'Skip'})[lang]}</button>
           </>}
         </div>)}
       </div>
-      <button type="button" className="secondary-button" disabled={!selected.length || busy || setup.status === 'COMPLETED'} onClick={preview}>{w[7]}</button>
+      <button type="button" className="secondary-button" disabled={!selected.length || busy || !!pending || setup.status === 'COMPLETED'} onClick={preview}>{w[7]}</button>
       {review && <p role="status">{w[9]}: {review.toImportCount} · {w[10]}: {review.alreadyImportedCount}</p>}
-      {pending && <div role="status"><p>{({uk:'Результат попередньої операції невідомий. Новий імпорт заблоковано.',ru:'Результат предыдущей операции неизвестен. Новый импорт заблокирован.',de:'Vorheriger Vorgang unklar. Neuer Import gesperrt.',en:'Previous result unknown. New import blocked.'})[lang]}</p><button type="button" className="secondary-button" disabled={busy} onClick={recover}>{({uk:'Перевірити квитанцію',ru:'Проверить квитанцию',de:'Beleg prüfen',en:'Check receipt'})[lang]}</button></div>}
+      {pending && <div role="status"><p>{({uk:'Результат попередньої операції невідомий. Новий імпорт заблоковано.',ru:'Результат предыдущей операции неизвестен. Новый импорт заблокирован.',de:'Vorheriger Vorgang unklar. Neuer Import gesperrt.',en:'Previous result unknown. New import blocked.'})[lang]}</p><button type="button" className="secondary-button" disabled={busy || !pending?.operationId} onClick={recover}>{({uk:'Перевірити квитанцію',ru:'Проверить квитанцию',de:'Beleg prüfen',en:'Check receipt'})[lang]}</button></div>}
       {review && !pending && setup.status !== 'COMPLETED' && <div>
         <label><input type="checkbox" checked={confirmed} disabled={busy} onChange={e=>setConfirmed(e.target.checked)} />{({uk:'Підтверджую імпорт приватних шаблонів і завершення налаштування без активації.',ru:'Подтверждаю импорт и завершение без активации.',de:'Import und Abschluss ohne Aktivierung bestätigen.',en:'Confirm private template import and setup completion without activation.'})[lang]}</label>
         <button type="button" className="secondary-button" disabled={busy || !confirmed || !storageKey || !Object.values(setup.steps || {}).every(v=>v==='COMPLETE'||v==='SKIPPED')} onClick={finalize}>{({uk:'Завершити й імпортувати',ru:'Завершить и импортировать',de:'Abschließen und importieren',en:'Finalize and import'})[lang]}</button>
