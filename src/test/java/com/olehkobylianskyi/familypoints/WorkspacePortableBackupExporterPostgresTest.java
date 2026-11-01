@@ -66,9 +66,10 @@ class WorkspacePortableBackupExporterPostgresTest {
                 UUID.randomUUID(),0L,List.of("POINT_LEDGER"),"V50",key));
         assertEquals(0,inspector.inspect(ledgerExport.encryptedFile(),a,key)
                 .counts().get("POINT_LEDGER"));
-        assertEquals(HttpStatus.BAD_REQUEST,assertThrows(ResponseStatusException.class,
-                ()->tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
-                        0L,List.of("MEDIA_ASSETS"),"V50",key))).getStatusCode());
+        var mediaOnly=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
+                0L,List.of("MEDIA_ASSETS"),"V50",key));
+        assertEquals(0,inspector.inspect(mediaOnly.encryptedFile(),a,key)
+                .counts().get("MEDIA_ASSETS"));
         assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,
                 ()->tx.execute(s->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),7L,
                         List.of("MEMBER_GROUPS"),"V50",key))).getStatusCode());
