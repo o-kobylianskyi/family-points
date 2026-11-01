@@ -103,12 +103,18 @@ export default function InitialFamilySetupReview() {
     setSetup(null); setCatalog([]); setPacks([]); setPack('ALL'); setSelected([]); setReview(null); setConfirmed(false); setError(false); setUnavailable(false); setBusy(false); setFinished(null)
     if (!workspaceId) return
     Promise.all([getSetupState(getAccessToken(), workspaceId), getTemplateCatalog(getAccessToken())])
-      .then(([state, data]) => { if (seq.current === id) { setSetup(state); setCatalog(data?.templates || []); setPacks(data?.packs || []) } })
+      .then(([state, data]) => { if (seq.current === id) { setSetup(state); setCatalog(Array.isArray(data?.templates) ? data.templates : []); setPacks(Array.isArray(data?.packs) ? data.packs : []) } })
       .catch(() => { if (seq.current === id) setUnavailable(true) })
     return () => { seq.current++ }
   }, [workspaceId, getAccessToken])
+  // Catalog responses are portable localized DTOs. Invalid entries must never
+  // become part of a finalize payload (no duplicate or blank catalog codes).
+  const validCatalog = catalog.filter(item => item && typeof item.code === 'string' &&
+    item.code.trim() && (item.kind === 'TASK' || item.kind === 'REWARD'))
+  const catalogCodes = new Set(validCatalog.map(item => item.code))
   const cat = item => item?.definition?.category || item?.suggested?.category || 'other'
-  const typed = catalog.filter(item => item.kind === kind && (pack === 'ALL' || packs.find(p => p.code === pack)?.templateCodes?.includes(item.code)))
+  const typed = validCatalog.filter(item => item.kind === kind &&
+    (pack === 'ALL' || packs.find(p => p.code === pack)?.templateCodes?.includes(item.code)))
   const categories = [...new Set(typed.map(cat))].sort()
   const items = typed.filter(item => category === 'ALL' || cat(item) === category)
   const setStep = async (step, status) => {
@@ -123,10 +129,10 @@ export default function InitialFamilySetupReview() {
     finally { if (id === seq.current) setBusy(false) }
   }
   const preview = async () => {
-    if (!setup || busy || pending || readShared() || !selected.length) return
+    if (!setup || busy || pending || readShared() || !selected.length || selected.some(code => !catalogCodes.has(code))) return
     const id = ++seq.current
     const workspace = workspaceId
-    const codes = catalog.filter(item => selected.includes(item.code)).map(item => item.code)
+    const codes = [...new Set(validCatalog.filter(item => selected.includes(item.code)).map(item => item.code))]
     setBusy(true); setReview(null); setConfirmed(false); setError(false)
     try {
       const result = await reviewSetupCatalog(getAccessToken(), workspace, setup.revision, codes)
@@ -155,8 +161,9 @@ export default function InitialFamilySetupReview() {
         review.revision !== setup.revision || review.dataEpoch !== setup.dataEpoch ||
         setup.status === 'COMPLETED' || !window.crypto?.randomUUID ||
         !Object.values(setup.steps || {}).every(v => v === 'COMPLETE' || v === 'SKIPPED')) return
-    const codes = catalog.filter(item => selected.includes(item.code)).map(item => item.code)
-    if (JSON.stringify(codes) !== JSON.stringify(review.selectedCodes)) return
+    const codes = [...new Set(validCatalog.filter(item => selected.includes(item.code)).map(item => item.code))]
+    if (!codes.length || selected.some(code => !catalogCodes.has(code)) ||
+        JSON.stringify(codes) !== JSON.stringify(review.selectedCodes)) return
     const scope = storageKey
     const operation = { accountId, workspaceId, epoch: setup.dataEpoch, revision: setup.revision,
       codes, operationId: window.crypto.randomUUID() }
