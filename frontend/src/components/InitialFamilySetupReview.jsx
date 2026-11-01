@@ -30,6 +30,7 @@ export default function InitialFamilySetupReview() {
   const w = words[lang] || words.en
   const { currentUser, getAccessToken } = useAuth()
   const workspaceId = currentUser?.workspaceId
+  const canManageSetup = currentUser?.permissions?.includes('MANAGE_WORKSPACE') || currentUser?.permissions?.includes('ADMIN_OVERRIDE')
   const [setup, setSetup] = useState(null)
   const [catalog, setCatalog] = useState([])
   const [packs, setPacks] = useState([])
@@ -101,12 +102,12 @@ export default function InitialFamilySetupReview() {
   useEffect(() => {
     const id = ++seq.current
     setSetup(null); setCatalog([]); setPacks([]); setPack('ALL'); setSelected([]); setReview(null); setConfirmed(false); setError(false); setUnavailable(false); setBusy(false); setFinished(null)
-    if (!workspaceId) return
+    if (!workspaceId || !canManageSetup) return
     Promise.all([getSetupState(getAccessToken(), workspaceId), getTemplateCatalog(getAccessToken())])
       .then(([state, data]) => { if (seq.current === id) { setSetup(state); setCatalog(Array.isArray(data?.templates) ? data.templates : []); setPacks(Array.isArray(data?.packs) ? data.packs : []) } })
       .catch(() => { if (seq.current === id) setUnavailable(true) })
     return () => { seq.current++ }
-  }, [workspaceId, getAccessToken])
+  }, [workspaceId, getAccessToken, canManageSetup])
   // Catalog responses are portable localized DTOs. Invalid entries must never
   // become part of a finalize payload (no duplicate or blank catalog codes).
   const validCatalog = catalog.filter(item => item && typeof item.code === 'string' &&
@@ -118,7 +119,7 @@ export default function InitialFamilySetupReview() {
   const categories = [...new Set(typed.map(cat))].sort()
   const items = typed.filter(item => category === 'ALL' || cat(item) === category)
   const setStep = async (step, status) => {
-    if (!setup || busy || pending || readShared() || setup.status === 'COMPLETED') return
+    if (!canManageSetup || !setup || busy || pending || readShared() || setup.status === 'COMPLETED') return
     const id = ++seq.current
     const origin = workspaceId
     setBusy(true); setError(false); setReview(null); setConfirmed(false)
@@ -129,7 +130,7 @@ export default function InitialFamilySetupReview() {
     finally { if (id === seq.current) setBusy(false) }
   }
   const preview = async () => {
-    if (!setup || busy || pending || readShared() || !selected.length || selected.some(code => !catalogCodes.has(code))) return
+    if (!canManageSetup || !setup || busy || pending || readShared() || !selected.length || selected.some(code => !catalogCodes.has(code))) return
     const id = ++seq.current
     const workspace = workspaceId
     const codes = [...new Set(validCatalog.filter(item => selected.includes(item.code)).map(item => item.code))]
@@ -141,7 +142,7 @@ export default function InitialFamilySetupReview() {
     finally { if (seq.current === id) setBusy(false) }
   }
   const recover = async () => {
-    if (!pending?.operationId || !Number.isSafeInteger(pending.epoch) || busy) return
+    if (!canManageSetup || !pending?.operationId || !Number.isSafeInteger(pending.epoch) || busy) return
     const scope = storageKey
     const operation = pending
     setBusy(true); setError(false)
@@ -156,7 +157,7 @@ export default function InitialFamilySetupReview() {
     finally { if (activeScope.current === scope) setBusy(false) }
   }
   const finalize = async () => {
-    if (!confirmed || pending || busy || !storageKey || !setup || !review ||
+    if (!canManageSetup || !confirmed || pending || busy || !storageKey || !setup || !review ||
         sessionStorage.getItem(storageKey) || readShared() ||
         review.revision !== setup.revision || review.dataEpoch !== setup.dataEpoch ||
         setup.status === 'COMPLETED' || !window.crypto?.randomUUID ||
@@ -185,19 +186,20 @@ export default function InitialFamilySetupReview() {
     {unavailable && <p role="status">{w[1]}</p>}
     {error && <p role="alert">{errorStatus === 409 ? ({uk:'Дані налаштування змінилися. Оновіть сторінку та перевірте стан операції.',ru:'Данные изменились. Обновите страницу и проверьте операцию.',de:'Einrichtungsdaten geändert. Seite aktualisieren und Vorgang prüfen.',en:'Setup changed. Refresh and check operation status.'})[lang] : errorStatus === 403 ? ({uk:'Недостатньо прав для налаштування.',ru:'Недостаточно прав для настройки.',de:'Keine Berechtigung für die Einrichtung.',en:'Not authorized to manage setup.'})[lang] : w[12]}</p>}
     {setup && <>
+      {setup.status === 'COMPLETED' && <p role="status">{({uk:'Початкове налаштування завершено. Новий імпорт недоступний.',ru:'Первоначальная настройка завершена. Повторный импорт недоступен.',de:'Ersteinrichtung abgeschlossen. Erneuter Import nicht verfügbar.',en:'Initial setup completed. New import is unavailable.'})[lang]}</p>}
       <p>{(setupStates[lang] || setupStates.en)[setup.status] || setup.status} · {Object.values(setup.steps || {}).filter(x => x === 'COMPLETE' || x === 'SKIPPED').length}/{Object.keys(setup.steps || {}).length}</p>
-      <div className="template-toolbar">
+      {setup.status !== 'COMPLETED' && <div className="template-toolbar">
         <label>{w[2]}<select value={kind} onChange={e=>{setKind(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="TASK">{w[4]}</option><option value="REWARD">{w[5]}</option></select></label>
         <label>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}<select value={pack} onChange={e=>{setPack(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{packs.map(p=><option value={p.code} key={p.code}>{p.title?.[lang] || p.title?.en || p.code}</option>)}</select></label>
         <label>{w[3]}<select value={category} onChange={e=>{setCategory(e.target.value);setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{categories.map(c=><option key={c} value={c}>{templateCategoryLabel(c, lang)}</option>)}</select></label>
-      </div>
-      <div style={{maxHeight:260,overflowY:'auto'}}>
+      </div>}
+      {setup.status !== 'COMPLETED' && <div style={{maxHeight:260,overflowY:'auto'}}>
         {items.map(item=><label key={item.code} style={{display:'flex',gap:8,padding:'4px 0'}}>
           <input type="checkbox" disabled={busy || setup.status === 'COMPLETED'} checked={selected.includes(item.code)} onChange={()=>{setSelected(v=>v.includes(item.code)?v.filter(c=>c!==item.code):[...v,item.code]);setReview(null);setConfirmed(false);seq.current++}}/>
           <span>{item.title?.[lang] || item.title?.en || item.code}</span>
         </label>)}
-      </div>
-      <p>{w[8]}: {selected.length}</p>
+      </div>}
+      {setup.status !== 'COMPLETED' && <p>{w[8]}: {selected.length}</p>}
       <div>
         <strong>{({uk:'Кроки налаштування',ru:'Шаги настройки',de:'Einrichtungsschritte',en:'Setup steps'})[lang] || 'Setup steps'}</strong>
         {Object.entries(setup.steps || {}).map(([step, value]) => <div key={step} style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',padding:'5px 0'}}>
@@ -208,7 +210,7 @@ export default function InitialFamilySetupReview() {
           </>}
         </div>)}
       </div>
-      <button type="button" className="secondary-button" disabled={!selected.length || busy || !!pending || setup.status === 'COMPLETED'} onClick={preview}>{w[7]}</button>
+      {setup.status !== 'COMPLETED' && <button type="button" className="secondary-button" disabled={!selected.length || busy || !!pending || setup.status === 'COMPLETED'} onClick={preview}>{w[7]}</button>}
       {review && <p role="status">{w[9]}: {review.toImportCount} · {w[10]}: {review.alreadyImportedCount}</p>}
       {pending && <div role="status"><p>{({uk:'Результат попередньої операції невідомий. Новий імпорт заблоковано.',ru:'Результат предыдущей операции неизвестен. Новый импорт заблокирован.',de:'Vorheriger Vorgang unklar. Neuer Import gesperrt.',en:'Previous result unknown. New import blocked.'})[lang]}</p><button type="button" className="secondary-button" disabled={busy || !pending?.operationId} onClick={recover}>{({uk:'Перевірити квитанцію',ru:'Проверить квитанцию',de:'Beleg prüfen',en:'Check receipt'})[lang]}</button></div>}
       {review && !pending && setup.status !== 'COMPLETED' && <div>
