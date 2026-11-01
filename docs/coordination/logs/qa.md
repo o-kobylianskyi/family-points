@@ -465,3 +465,10 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-11-01 — Reset Preview recovery focused rerun PASS
 - User ran `npx playwright test tests/reset-failure-recovery.spec.js --grep "preview failure"`: **1 passed (2.8s overall)**, case duration 1.9s. Mock Preview yielded 503 twice; diagnostic showed Settings mounted with panelCount=1, no categories, localized error visible, token present; Reload yielded 200 and recovered. No INVALID_WORKSPACE_ID page errors in this run.
 - Removal of extraneous pre-test Templates navigation is associated with restored test behavior. This confirms one case only; remaining three cases in the four-case suite are pending rerun, not PASS. No backend writes or reset execution.
+
+
+## 2026-11-01 — Reset Preview/Plan recovery full suite 4/4 PASS
+- User reran focused Preview failure case: **1 passed (2.8s overall)**, repeat acceptance of 503 fail-closed and manual Reload recovery.
+- User then ran `npx playwright test tests/reset-failure-recovery.spec.js`: **4 passed (10.9s)**. Preview 503/Reload 2.2s; invalid Plan response 2.1s; delayed Plan after page navigation 3.3s; delayed Preview after page navigation 2.6s.
+- Browser intercepted Preview 503 and 200; earlier INVALID_WORKSPACE_ID crash absent in shown latest runs. Test 2 diagnostic snapshot was taken before React rendered (panelCount 0 at that instant) but final assertion passed; that snapshot alone is not a regression.
+- All four are non-destructive browser tests. This does NOT prove deployed Reset Execute, PostgreSQL atomic deletion, or user-account authorization universally. Next QA: full Playwright suite and isolate any failures with exact test/trace evidence.
