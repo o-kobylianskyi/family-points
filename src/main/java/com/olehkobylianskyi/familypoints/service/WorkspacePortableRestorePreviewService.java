@@ -15,11 +15,23 @@ import java.util.*;
  */
 @Service
 public class WorkspacePortableRestorePreviewService {
-    private static final Map<String,String> COUNT_SQL=Map.of(
-        "PRIVATE_TEMPLATES","SELECT count(*) FROM workspace_private_templates WHERE workspace_id=?",
-        "MEMBER_GROUPS","SELECT count(*) FROM member_groups WHERE family_id=?",
-        "TASK_DEFINITIONS","SELECT count(*) FROM task_definitions WHERE family_id=?",
-        "REWARD_DEFINITIONS","SELECT count(*) FROM reward_definitions WHERE family_id=?");
+    // All SQL fragments are server-owned and tenant-fenced. Unknown categories
+    // are blocked; user-controlled input is never inserted into identifiers.
+    private static final Map<String,String> COUNT_SQL=Map.ofEntries(
+        Map.entry("PRIVATE_TEMPLATES","SELECT count(*) FROM workspace_private_templates WHERE workspace_id=?"),
+        Map.entry("MEMBER_GROUPS","SELECT count(*) FROM member_groups WHERE family_id=?"),
+        Map.entry("TASK_DEFINITIONS","SELECT count(*) FROM task_definitions WHERE family_id=?"),
+        Map.entry("REWARD_DEFINITIONS","SELECT count(*) FROM reward_definitions WHERE family_id=?"),
+        Map.entry("REWARD_REQUESTS","SELECT count(*) FROM reward_requests WHERE family_id=?"),
+        Map.entry("WORK_NODES","SELECT count(*) FROM work_nodes WHERE family_id=?"),
+        Map.entry("MEDIA_ASSETS","SELECT count(*) FROM media_assets WHERE workspace_id=?"),
+        Map.entry("MEDIA_BINDINGS","SELECT count(*) FROM media_bindings WHERE workspace_id=?"),
+        Map.entry("TASK_EXECUTIONS","SELECT count(*) FROM task_instances t JOIN family_members m ON m.id=t.member_id WHERE m.family_id=?"),
+        Map.entry("TASK_SCHEDULE_SLOTS","SELECT count(*) FROM task_schedule_slots t JOIN task_definitions d ON d.id=t.task_definition_id WHERE d.family_id=?"),
+        Map.entry("REWARD_PURCHASES","SELECT count(*) FROM reward_purchases t JOIN family_members m ON m.id=t.member_id WHERE m.family_id=?"),
+        Map.entry("POINT_LEDGER","SELECT count(*) FROM point_transactions t JOIN family_members m ON m.id=t.member_id WHERE m.family_id=?"),
+        Map.entry("REPUTATION_LEDGER","SELECT count(*) FROM reputation_transactions t JOIN family_members m ON m.id=t.member_id WHERE m.family_id=?")
+    );
     private final JdbcTemplate db;
     private final WorkspaceEpochTransactionGuard epoch;
     private final ProtectiveBackupImportInspector inspector;
