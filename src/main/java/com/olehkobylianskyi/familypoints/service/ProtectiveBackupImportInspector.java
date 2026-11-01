@@ -54,6 +54,11 @@ public final class ProtectiveBackupImportInspector {
         }
     }
 
+    private static boolean isUuid(String value) {
+        try {return UUID.fromString(value).toString().equalsIgnoreCase(value);}
+        catch(RuntimeException ex) {return false;}
+    }
+
     public Inspection inspect(byte[] bytes,long targetWorkspace,SecretKey key) {
         var artifact=files.decode(bytes);
         var manifest=artifact.manifest();
@@ -86,8 +91,15 @@ public final class ProtectiveBackupImportInspector {
                     if("MEDIA_BINDINGS".equals(name)) {
                         if(!item.path("workspace_id").canConvertToLong()
                                 || !item.path("target_id").canConvertToLong()
+                                || item.path("target_id").asLong()<=0
                                 || !item.path("target_type").isTextual()
-                                || !item.path("slot").isTextual())
+                                || !Set.of("WORKSPACE","MEMBER","MEMBER_GROUP","WORK_NODE","TASK")
+                                        .contains(item.path("target_type").asText())
+                                || !item.path("slot").isTextual()
+                                || item.path("slot").asText().isBlank()
+                                || ("WORKSPACE".equals(item.path("target_type").asText())
+                                        && item.path("target_id").asLong()!=targetWorkspace)
+                                || (item.hasNonNull("asset_id") && !isUuid(item.path("asset_id").asText())))
                             throw new IllegalArgumentException("Invalid media binding composite key");
                         rowKey=item.path("workspace_id").asText()+":"+
                                 item.path("target_type").asText()+":"+
