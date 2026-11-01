@@ -52,8 +52,24 @@ public final class ProtectiveBackupImportInspector {
                     throw new IllegalArgumentException("Unknown or malformed archive category");
                 if(entry.getValue().size()>100000)
                     throw new IllegalArgumentException("Archive category exceeds safety limit");
+                var ids=new HashSet<Long>();
                 for(JsonNode item:entry.getValue()) {
-                    if(!item.isObject())throw new IllegalArgumentException("Archive record must be an object");
+                    if(!item.isObject() || !item.path("id").canConvertToLong()
+                            || item.path("id").asLong()<=0)
+                        throw new IllegalArgumentException("Archive row requires positive numeric id");
+                    long id=item.path("id").asLong();
+                    if(!ids.add(id))
+                        throw new IllegalArgumentException("Duplicate archive row id in "+name);
+                    // Validate direct tenant keys. For FK-scoped descendants
+                    // ownership must later be proven through their parent graph.
+                    String ownerColumn="PRIVATE_TEMPLATES".equals(name)
+                            || "MEDIA_BINDINGS".equals(name)?"workspace_id":
+                            java.util.Set.of("MEMBER_GROUPS","TASK_DEFINITIONS",
+                                    "REWARD_DEFINITIONS","REWARD_REQUESTS","WORK_NODES")
+                                    .contains(name)?"family_id":null;
+                    if(ownerColumn!=null && (!item.path(ownerColumn).canConvertToLong()
+                            || item.path(ownerColumn).asLong()!=targetWorkspace))
+                        throw new SecurityException("Archive row references another workspace");
                 }
                 names.add(name);counts.put(name,entry.getValue().size());
             }
