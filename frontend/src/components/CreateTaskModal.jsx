@@ -311,7 +311,7 @@ function CreateTaskModal({
     try {
       const draft = await getTemplateCreationDraft(getAccessToken(), origin, templateId)
       if (templateRequestGeneration.current !== generation || templateWorkspaceRef.current !== origin) return
-      if (draft.kind !== 'TASK' || !draft.request) throw new Error('Invalid task template')
+      if (!draft || draft.kind !== 'TASK' || String(draft.templateId) !== String(templateId) || !draft.request) throw new Error('Invalid task template')
       const d = draft.request
       if (d.title) { setTitle(d.title); setTitleTouched(true) }
       if (typeof d.description === 'string') setDescription(d.description)
@@ -434,7 +434,7 @@ function CreateTaskModal({
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (submitLock.current || loading) return
+    if (submitLock.current || loading || templateLoading || (initialTemplateId != null && selectedTemplateId !== String(initialTemplateId))) return
 
     const trimmedTitle = title.trim()
 
