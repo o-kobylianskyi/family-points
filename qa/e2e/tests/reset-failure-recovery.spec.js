@@ -82,4 +82,65 @@ test.describe('BKL-002 read-only error recovery', () => {
     expect(intercepted).toBe(1)
     expect(forbidden).toEqual([])
   })
+  test('late Plan response cannot restore a selection that was changed', async ({ page }) => {
+    const forbidden = []
+    page.on('request', req => {
+      if (forbiddenPattern.test(new URL(req.url()).pathname)) forbidden.push(req.url())
+    })
+    let releasePlan
+    const planArrived = new Promise(resolve => {
+      releasePlan = { arrived: resolve }
+    })
+    let finishResponse
+    const unblock = new Promise(resolve => { finishResponse = resolve })
+    let interceptionCount = 0
+    await page.route(/\/workspaces\/\d+\/data-reset\/plan(?:\?.*)?$/, async route => {
+      interceptionCount += 1
+      releasePlan.arrived()
+      await unblock
+      const url = new URL(route.request().url())
+      const id = url.pathname.match(/\/workspaces\/(\d+)\//)?.[1]
+      const payload = route.request().postDataJSON()
+      await route.fulfill({
+        status: 200, contentType: 'application/json',
+        body: JSON.stringify({
+          workspaceId: Number(id), executable: false,
+          selectedCategories: payload.categories,
+          blockers: ['Execution is disabled until dependent FK graph and tenant-safe deletion order are approved'],
+          preserved: [],
+        }),
+      })
+    })
+    try {
+      await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+      const panel = page.locator('.family-reset-readiness')
+      const checkbox = panel.locator('.family-reset-category input[type="checkbox"]').first()
+      await expect(checkbox).toBeVisible({ timeout: 15000 })
+      await checkbox.check()
+      const button = panel.getByRole('button', {
+        name: /Check dependencies|Перевірити залежності|Проверить зависимости|Abhängigkeiten prüfen/,
+      })
+      await button.click()
+      await Promise.race([
+        planArrived,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Plan request never arrived')), 10000)),
+      ])
+      // The in-flight request must not restore its result after the user changes selection.
+      // React currently disables category controls while busy; reloading the Preview is
+      // the supported invalidation path and increments the request generation.
+      await panel.getByRole('button', {
+        name: /Reload|Завантажити знову|Обновить|Erneut laden/,
+      }).click({ force: true })
+      finishResponse()
+      await expect(panel.locator('.family-reset-category input[type="checkbox"]').first())
+        .toBeVisible({ timeout: 15000 })
+      await expect(panel.locator('div[role="status"]')).toHaveCount(0)
+      await expect(button).toBeDisabled()
+      expect(interceptionCount).toBe(1)
+      expect(forbidden).toEqual([])
+    } finally {
+      finishResponse()
+    }
+  })
+
 })
