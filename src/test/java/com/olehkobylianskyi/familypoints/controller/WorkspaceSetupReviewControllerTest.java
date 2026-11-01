@@ -54,6 +54,7 @@ class WorkspaceSetupReviewControllerTest {
         assertFalse(result.createsActiveDefinitions());
         assertEquals(3L,result.revision());
         verify(templates,never()).importSelected(anyLong(),any());
+        verify(templates).preview(eq(7L),any());
         verifyNoMoreInteractions(templates);
     }
 }
