@@ -41,6 +41,15 @@ class WorkspaceProtectiveBackupPostgresTest {
         String digest=tx.execute(status->snapshots.digest(a,List.of("PRIVATE_TEMPLATES")));
         var req=new WorkspaceProtectiveBackupService.Request(UUID.randomUUID(),"SELECTIVE",
                 List.of("PRIVATE_TEMPLATES"),digest,"V50");
+        assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,
+                ()->tx.execute(status->backups.request(a,member,
+                        new WorkspaceProtectiveBackupService.Request(UUID.randomUUID(),"SELECTIVE",
+                            List.of("PRIVATE_TEMPLATES"),"a".repeat(64),"V50"))))
+                .getStatusCode(),"Client cannot invent a restorable source snapshot");
+        assertEquals(HttpStatus.BAD_REQUEST,assertThrows(ResponseStatusException.class,
+                ()->tx.execute(status->backups.request(a,member,
+                        new WorkspaceProtectiveBackupService.Request(UUID.randomUUID(),"SELECTIVE",
+                            List.of("UNKNOWN"),digest,"V50")))).getStatusCode());
         var first=tx.execute(s->backups.request(a,member,req));
         assertNotNull(first);
         assertEquals("REQUESTED",first.state());
