@@ -25,7 +25,7 @@ public class WorkspaceResetSnapshotService {
     private final WorkspaceEpochTransactionGuard guard;
     private static final Set<String> EXCLUDED = Set.of("user_accounts", "account_external_identities",
             "account_email_tokens", "workspace_reset_operations", "workspace_reset_challenges",
-            "workspace_reset_reauth_limits", "media_blobs", "flyway_schema_history");
+            "workspace_reset_reauth_limits", "workspace_protective_backups", "media_blobs", "flyway_schema_history");
     private static final Set<String> CATEGORIES = Set.of("PRIVATE_TEMPLATES","TASK_DEFINITIONS",
             "TASK_EXECUTIONS","REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_PURCHASES",
             "POINT_LEDGER","REPUTATION_LEDGER","MEMBER_GROUPS","WORK_NODES","TASK_SCHEDULE_SLOTS",
