@@ -73,6 +73,36 @@ public class WorkspaceProtectiveBackupService {
         return get(workspaceId,id);
     }
 
+    /**
+     * Family-scoped metadata listing, never exposes storage keys, encryption
+     * secrets or backup bytes. Expired REQUESTED backups are not usable.
+     */
+    @Transactional(readOnly=true)
+    public List<Backup> list(long workspaceId,int limit) {
+        if(limit<1 || limit>100)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"INVALID_BACKUP_LIST_LIMIT");
+        var snapshots=db.queryForList("""
+            SELECT snapshot_id FROM workspace_protective_backups
+            WHERE workspace_id=? ORDER BY created_at DESC,id DESC LIMIT ?
+            """,UUID.class,workspaceId,limit);
+        return snapshots.stream().map(id->get(workspaceId,id)).toList();
+    }
+
+    /**
+     * Internal metadata-only expiry sweep. Does NOT delete encrypted objects:
+     * the independent storage lifecycle worker must verify remote deletion.
+     * Never expires RESET_COMPLETED records or claims backup data is destroyed.
+     */
+    @Transactional
+    public int expireUnverifiedMetadata() {
+        return db.update("""
+            UPDATE workspace_protective_backups SET state='EXPIRED',
+                failure_code='RETENTION_WINDOW_EXPIRED'
+            WHERE expires_at<CURRENT_TIMESTAMP
+              AND state IN ('REQUESTED','BACKING_UP','FAILED','BLOCKED')
+            """);
+    }
+
     @Transactional(readOnly=true)
     public Backup get(long workspaceId,UUID snapshotId) {
         var rows=db.query("""
