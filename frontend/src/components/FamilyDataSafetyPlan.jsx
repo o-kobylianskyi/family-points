@@ -166,8 +166,7 @@ export default function FamilyDataSafetyPlan() {
           </div>}
         </div>}
       </div>)}
-    </div>
-    <p>{w[10]}</p>
+      <p>{w[10]}</p>
     </div>}
     {tab!=='backup' && <section aria-label="Safety gates" style={{marginTop:16}}>
       <h3>{({uk:'Етапи безпечного виконання (ще недоступні)',ru:'Этапы безопасного выполнения (пока недоступны)',de:'Sichere Ausführung (noch nicht verfügbar)',en:'Safe execution gates (not yet available)'})[language]}</h3>
