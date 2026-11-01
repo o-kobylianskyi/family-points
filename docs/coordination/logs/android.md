@@ -872,3 +872,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - SHA `9355730ed3bacfb296e08cc0f74ae57294fe809b`: **BUILD SUCCESSFUL in 1m 6s**, 76 actionable tasks (12 executed, 64 up-to-date); configuration cache reused. This is the latest user-verified Android build SHA, not automatically the latest repository main HEAD.
 - Evidence confirms assembleDebug, JVM testDebugUnitTest and **compilation/assembly** of debug AndroidTest at these SHAs. It does **not** prove instrumentation test execution on device/emulator, nor full HTTP+SQLite runtime E2E, nor complete green multi-job current-main CI.
 - AND-QA-12 local Gradle compilation/unit-test gate for these SHAs marked PASS; live device gate deferred; BETA and BKL002 destructive Reset Execute remain HOLD.
+
+## 2026-11-01 — AND-QA-12 post-build consolidated session/epoch regression
+- User verified Gradle full Android build, JVM unit tests, AndroidTest assembly on `0f7a8283911eaecad2c3950fdf1d4391c75df0fc` and `9355730ed3bacfb296e08cc0f74ae57294fe809b`; those are proven BUILD SUCCESSFUL SHAs, not evidence for later commits.
+- Expanded pure JVM session+epoch gate regression to 12 cross-account, mismatched workspace, invalid epoch and changed/unchanged epoch combinations (a99361ad). Exact new SHA build/test status not established in this session.
+- Attempted to add a deterministic in-flight MockWebServer account-switch test; repository mutation was blocked by tool execution, so the test was not committed and remains OPEN. Existing MockWebServer timeout/409 cases and SQLite instrumentation exist but are not an E2E proof for actual in-flight switched session.
+- Acceptance blocker remains real replay coordinator+SQLite+network concurrency integration with Gradle at exact pinned SHA. Instrumentation runtime remains deferred. BETA and BKL002 reset/restore execute HOLD.
