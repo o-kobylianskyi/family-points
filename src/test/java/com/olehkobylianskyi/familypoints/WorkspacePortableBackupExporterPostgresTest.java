@@ -66,9 +66,24 @@ class WorkspacePortableBackupExporterPostgresTest {
                 UUID.randomUUID(),0L,List.of("POINT_LEDGER"),"V50",key));
         assertEquals(0,inspector.inspect(ledgerExport.encryptedFile(),a,key)
                 .counts().get("POINT_LEDGER"));
+        // Real family-owned image with an actual binary variant, not an empty
+        // media-assets table. This is the data recovery smoke test.
+        long mediaRole=db.queryForObject(
+                "INSERT INTO family_roles(family_id,code,name,system_role) "+
+                "VALUES (?,'PARENT','Parent',true) RETURNING id",Long.class,a);
+        long mediaMember=db.queryForObject(
+                "INSERT INTO family_members(family_id,family_role_id,name,active,member_type) "+
+                "VALUES (?,?,'Image owner',true,'PARENT') RETURNING id",Long.class,a,mediaRole);
+        UUID mediaId=UUID.randomUUID();
+        byte[] imageBytes=new byte[]{(byte)137,80,78,71,13,10,26,10,1,2,3,4};
+        String imageDigest=ProtectiveBackupArtifactCodec.sha(imageBytes);
+        db.update("INSERT INTO media_assets(id,workspace_id,mime_type,width,height,byte_size,sha256,created_by_member_id) "+
+                "VALUES (?,?,'image/png',1,1,?,?,?)",
+                mediaId,a,imageBytes.length,imageDigest,mediaMember);
+        db.update("INSERT INTO media_blobs(asset_id,variant,bytes) VALUES (?,'COVER',?)",mediaId,imageBytes);
         var mediaOnly=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
                 0L,List.of("MEDIA_ASSETS"),"V50",key));
-        assertEquals(0,inspector.inspect(mediaOnly.encryptedFile(),a,key)
+        assertEquals(1,inspector.inspect(mediaOnly.encryptedFile(),a,key)
                 .counts().get("MEDIA_ASSETS"));
         assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,
                 ()->tx.execute(s->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),7L,
@@ -76,7 +91,12 @@ class WorkspacePortableBackupExporterPostgresTest {
         var mediaArchive=tx.execute(status->exporter.export(a,UUID.randomUUID(),
                 UUID.randomUUID(),0L,List.of("MEDIA_ASSETS","MEDIA_BINDINGS"),"V50",key));
         var mediaInspection=inspector.inspect(mediaArchive.encryptedFile(),a,key);
-        assertEquals(0,mediaInspection.counts().get("MEDIA_ASSETS"));
+        assertEquals(1,mediaInspection.counts().get("MEDIA_ASSETS"));
+        var decrypted=files.decode(mediaArchive.encryptedFile());
+        var content=new String(codec.open(decrypted,decrypted.manifest().snapshotId(),a,key),
+                java.nio.charset.StandardCharsets.UTF_8);
+        assertTrue(content.contains(Base64.getEncoder().encodeToString(imageBytes)),
+                "Actual media blob bytes must survive encryption and file roundtrip");
         assertEquals(1,mediaInspection.counts().get("MEDIA_BINDINGS"));
         assertFalse(mediaInspection.restorable());
         var supported=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
