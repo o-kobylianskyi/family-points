@@ -84,7 +84,7 @@ public class WorkspacePortableBackupExporter {
             if(count==null || count>MAX_ROWS)
                 throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,"BACKUP_ROW_LIMIT");
             ArrayNode records=data.putArray(category);
-            db.query("SELECT to_jsonb(t)::text"+filter+" ORDER BY t.id",rs->{
+            db.query("SELECT to_jsonb(t)::text AS row_data"+filter+" ORDER BY row_data",rs->{
                 String row=rs.getString(1);
                 try {records.add(mapper.readTree(row));}
                 catch(Exception ex){throw new IllegalStateException("Unable to encode family row",ex);}
