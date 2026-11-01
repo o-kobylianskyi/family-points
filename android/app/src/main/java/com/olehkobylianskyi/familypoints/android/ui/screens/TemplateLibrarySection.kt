@@ -31,6 +31,7 @@ fun TemplateLibrarySection(
     onClose: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val setupContext = androidx.compose.ui.platform.LocalContext.current
     var economy by remember(workspaceId) { mutableStateOf<TemplateEconomySuggestionsDto?>(null) }
     var economyUnavailable by remember(workspaceId) { mutableStateOf(false) }
     var catalog by remember(workspaceId) { mutableStateOf<List<CatalogTemplateDto>>(emptyList()) }
@@ -56,6 +57,10 @@ fun TemplateLibrarySection(
     var rewardGroupExpanded by remember(workspaceId, packFilter) { mutableStateOf(false) }
     var libraryExpanded by remember(workspaceId) { mutableStateOf(false) }
     var previewCodes by remember(workspaceId) { mutableStateOf<List<String>>(emptyList()) }
+    var setupReview by remember(workspaceId) { mutableStateOf<WorkspaceSetupReviewDto?>(null) }
+    var setupReviewError by remember(workspaceId) { mutableStateOf("") }
+    var setupReviewCodes by remember(workspaceId) { mutableStateOf<List<String>>(emptyList()) }
+
 
     fun failure(e: Exception) {
         if (e is HttpException && e.code() == 401) onUnauthorized()
@@ -128,6 +133,51 @@ fun TemplateLibrarySection(
             "Import speichert Vorlagen nur in der Familienbibliothek, nicht als aktive Aufgaben oder Belohnungen.",
             "Import saves selections into your family library, not as active tasks or rewards.",
             "Импорт сохраняет шаблоны в семейной библиотеке без создания активных задач или наград."))
+        if (canManage && !loading && catalogLoaded) {
+            OutlinedButton(enabled = !busy, onClick = {
+                setupReview = null
+                setupReviewError = ""
+                val ordered = catalog.map { it.code }.filter { it in selected }
+                setupReviewCodes = ordered
+                perform {
+                    val setup = com.olehkobylianskyi.familypoints.android.data.WorkspaceSetupRepository(
+                        com.olehkobylianskyi.familypoints.android.storage.TokenStore(
+                            /* Context accessed from Compose below. */ setupContext
+                        )
+                    )
+                    val state = setup.state(workspaceId)
+                    val review = setup.review(workspaceId, state.revision, ordered)
+                    check(review.selectedCodes == ordered && review.dataEpoch == state.dataEpoch) {
+                        "Setup review changed; refresh before confirming"
+                    }
+                    setupReview = review
+                }
+            }) {
+                Text(tl(language, "Перевірити вибір для налаштування",
+                    "Auswahl für Einrichtung prüfen", "Review setup selection",
+                    "Проверить выбор для настройки"))
+            }
+        }
+        if (setupReviewError.isNotEmpty()) Text(setupReviewError,
+            color = MaterialTheme.colorScheme.error)
+        if (setupReview != null && setupReviewCodes ==
+            catalog.map { it.code }.filter { it in selected }) {
+            val result = setupReview!!
+            AlertDialog(onDismissRequest = { setupReview = null },
+                title = { Text(tl(language, "Перегляд налаштування",
+                    "Einrichtung prüfen", "Setup review", "Проверка настройки")) },
+                text = { Column {
+                    Text("${result.selectedCount} / ${result.alreadyImportedCount} / ${result.toImportCount}")
+                    Text(tl(language,
+                        "Вибрано / вже імпортовано / до імпорту. Це лише перегляд: нічого не створено.",
+                        "Ausgewählt / bereits importiert / zu importieren. Nur Vorschau, nichts erstellt.",
+                        "Selected / imported / to import. Read-only review; nothing was created.",
+                        "Выбрано / импортировано / к импорту. Только просмотр, ничего не создано."))
+                } },
+                confirmButton = { TextButton(onClick = { setupReview = null }) {
+                    Text(tl(language, "Закрити", "Schließen", "Close", "Закрыть"))
+                } })
+        }
         if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (error.isNotBlank()) {
             Text(error, color = MaterialTheme.colorScheme.error)
