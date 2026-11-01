@@ -25,6 +25,8 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
     page.on('request', req => {
       if (req.method() !== 'GET' && forbidden.test(new URL(req.url()).pathname)) writes.push(req.url())
     })
+    // A foreign-family row must reject the entire response. That negative
+    // case is covered by backup-detail-readonly.spec.js; this fixture is valid.
     let loads = 0
     await page.route(registry, route => {
       loads++
@@ -35,7 +37,6 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
           { workspaceId:id,snapshotId:'11111111-1111-4111-8111-111111111111',state:'REQUESTED',resetMode:'SELECTIVE',restoreVerified:false,selectedCategories:['PRIVATE_TEMPLATES'] },
           { workspaceId:id,snapshotId:'22222222-2222-4222-8222-222222222222',state:'VERIFIED',resetMode:'FULL',restoreVerified:true,selectedCategories:['TASK_DEFINITIONS'] },
           { workspaceId:id,snapshotId:'33333333-3333-4333-8333-333333333333',state:'EXPIRED',resetMode:'FULL',restoreVerified:false,selectedCategories:[] },
-          { workspaceId:id+1,snapshotId:'44444444-4444-4444-8444-444444444444',state:'VERIFIED',restoreVerified:true },
         ])
       })
     })
@@ -45,7 +46,6 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
     await expect(panel.getByText('11111111', { exact:false })).toBeVisible()
     await expect(panel.getByText('22222222', { exact:false })).toBeVisible()
     await expect(panel.getByText('33333333', { exact:false })).toBeVisible()
-    await expect(panel.getByText('44444444', { exact:false })).toHaveCount(0)
     // REQUESTED must never be presented as recoverable merely because it is a row.
     await expect(panel.getByText(/Metadata only|лише реєстр|только реестр|Statusregister/)).toBeVisible()
     await expect(panel.getByText('Verified', { exact: true })).toHaveCount(1)
