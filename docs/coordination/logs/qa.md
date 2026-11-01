@@ -569,3 +569,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - User ran `mvnw.cmd -Dtest=WorkspacePortableRestoreArchiveSecurityPostgresTest test`; Maven stopped at javac in `ProtectiveBackupImportInspector.java:122`, shadowed local `byte[] bytes` conflicts with method `inspect(byte[] bytes,...)`. Test did not run, no PostgreSQL security PASS.
 - Re-read current GitHub main file: offending local now `mediaBytes`, both length validation and zero-fill use new name. Concurrent Backend commit `9b0efac1a` explicitly fixes this compile issue. No duplicate QA code edits needed.
 - Operator action: `git pull --ff-only origin main` then rerun targeted Maven command. If other compile errors emerge, preserve output; do not claim success before actual test result.
+
+
+## 2026-11-01 — Archive Security Maven rerun BUILD SUCCESS (user-reported)
+- User reports **BUILD SUCCESS** after pulling concurrent Backend compile fix `9b0efac1a` and rerunning targeted `WorkspacePortableRestoreArchiveSecurityPostgresTest`. Unlike prior attempt, Maven now completes. Exact Surefire tests-run/failure/skip counters and SHA were not supplied; log as targeted build success, do not invent a count.
+- Target suite source checks wrong AES key, ciphertext tamper, trailing bytes, invalid portable magic, foreign-workspace archive denial and unchanged disposable A/B rows and dataEpoch. Last detailed Web baseline 37/37 and Restore Preview 2/2 unchanged.
+- Next QA: confirm Surefire count if needed, review newest exporter/inspector/preview changes and test schema/duplicate-ID/FK-negative behavior on disposable PostgreSQL only. BKL-002 execute remains blocked.
