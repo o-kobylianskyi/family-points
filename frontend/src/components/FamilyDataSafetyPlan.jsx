@@ -62,12 +62,12 @@ export default function FamilyDataSafetyPlan() {
       .finally(() => { if (active) setDetailBusy(false) })
     return () => { active = false }
   }, [canManage,workspaceId,accountScope,selectedSnapshot,detailReload,reload])
-  const [tab,setTab] = useState('reset')
+  const [tab,setTab] = useState('backup')
   const [mode,setMode] = useState('selective')
   const [chosen,setChosen] = useState(() => entries.filter(x=>x[1]).map(x=>x[0]))
   // Selection is only a provisional local proposal: never carry it between families.
   useEffect(() => {
-    setTab('reset'); setMode('selective')
+    setTab('backup'); setMode('selective')
     setChosen(entries.filter(x => x[1]).map(x => x[0]))
   }, [workspaceId, accountScope])
   const [restoreMode,setRestoreMode] = useState('selective')
@@ -83,7 +83,14 @@ export default function FamilyDataSafetyPlan() {
     en: {DELETE:'Delete after validation', RETAIN:'Retain', RESET_DEFAULT:'Reset to defaults after validation', BLOCKED:'Blocked pending approval'}
   }
   const resetCount = mode === 'full' ? entries.filter(([code]) => fullAction(code) === 'DELETE').length : chosen.length
+  const fullBlockedCount = entries.filter(([code]) => fullAction(code) === 'BLOCKED').length
   const restoreCount = restoreMode === 'full' ? entries.length : restoreChosen.length
+  const workflow = {
+    uk: ['Вибір категорій','Перевірка наслідків','Перевірена захисна копія','Повторна авторизація','Підтвердження','Квитанція операції'],
+    ru: ['Выбор категорий','Проверка последствий','Проверенная защитная копия','Повторная авторизация','Подтверждение','Квитанция операции'],
+    de: ['Kategorien auswählen','Auswirkungen prüfen','Verifizierte Schutzkopie','Erneute Anmeldung','Bestätigung','Vorgangsbeleg'],
+    en: ['Select categories','Review impact','Verified protective backup','Reauthenticate','Confirm','Operation receipt']
+  }
   // No upload endpoint currently exists. Categories below are planning-only;
   // archive manifest and compatibility MUST come from validated server preview.
   useEffect(() => { setRestoreChosen([]); setRestoreMode('selective') }, [workspaceId, accountScope])
@@ -91,6 +98,7 @@ export default function FamilyDataSafetyPlan() {
   return <section className="settings-section" aria-label="Family data safety planning">
     <h2>{w[0]}</h2>
     <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
+      <button type="button" className="secondary-button" aria-pressed={tab==='backup'} onClick={()=>setTab('backup')}>{({uk:'Резервні копії',ru:'Резервные копии',de:'Sicherungen',en:'Backups'})[language]}</button>
       <button type="button" className="secondary-button" aria-pressed={tab==='reset'} onClick={()=>setTab('reset')}>{w[1]}</button>
       <button type="button" className="secondary-button" aria-pressed={tab==='restore'} onClick={()=>setTab('restore')}>{w[2]}</button>
     </div>
@@ -106,9 +114,10 @@ export default function FamilyDataSafetyPlan() {
           <span>{label[index]} — {(actionLabels[language] || actionLabels.en)[mode==='full'?fullAction(code):(chosen.includes(code)?'DELETE':'RETAIN')]}</span>
         </label>)}
       </div>
+      {mode==='full' && <p role="alert">{({uk:'У повному режимі захищені та заблоковані категорії не видаляються автоматично. Заблокованих категорій:',ru:'В полном режиме защищённые и заблокированные категории не удаляются автоматически. Заблокировано категорий:',de:'Im vollständigen Modus werden geschützte und gesperrte Kategorien nicht automatisch gelöscht. Gesperrte Kategorien:',en:'Full reset does not automatically remove protected or blocked categories. Blocked categories:'})[language]} {fullBlockedCount}</p>}
       <p role="status">{({uk:'У попередньому плані вибрано',ru:'В предварительном плане выбрано',de:'In der Vorplanung ausgewählt',en:'Selected in planning preview'})[language]}: {resetCount} / {entries.length}. {({uk:'Це не серверний план і не дозвіл на видалення.',ru:'Это не серверный план и не разрешение на удаление.',de:'Dies ist weder ein Serverplan noch eine Löschfreigabe.',en:'This is not a server-approved plan or deletion authorization.'})[language]}</p>
       <p>{w[11]}</p><p>{w[12]}</p>
-    </> : <>
+    </> : tab==='restore' ? <>
       <p>{w[9]}</p><p>{w[13]}</p>
       <fieldset><legend>{({uk:'Режим відновлення — лише план',ru:'Режим восстановления — только план',de:'Wiederherstellungsmodus — nur Planung',en:'Restore mode — planning only'})[language]}</legend>
         <label><input type="radio" name="restore-plan-mode" checked={restoreMode==='full'} onChange={()=>setRestoreMode('full')}/>{w[3]}</label>
@@ -125,7 +134,7 @@ export default function FamilyDataSafetyPlan() {
       <p role="status">{({uk:'Заплановано категорій',ru:'Запланировано категорий',de:'Vorgesehene Kategorien',en:'Planned categories'})[language]}: {restoreCount} / {entries.length}</p>
       <p>{w[11]}</p>
     </>}
-    <div>
+    {tab==='backup' && <div>
       <h3>{({uk:'Серверні резервні копії',ru:'Резервные копии на сервере',de:'Server-Sicherungen',en:'Server backup records'})[language] || 'Server backup records'}</h3>
       <p>{({uk:'Це лише реєстр станів. Запис REQUESTED не означає наявність файлу або можливість відновлення.',ru:'Это только реестр статусов. REQUESTED не означает, что файл существует или доступен для восстановления.',de:'Nur Statusregister. REQUESTED bedeutet nicht, dass die Datei existiert oder wiederherstellbar ist.',en:'Metadata only. REQUESTED does not mean the file exists or can be restored.'})[language]}</p>
       <button type="button" className="secondary-button" disabled={backupLoading} onClick={()=>setReload(v=>v+1)}>{({uk:'Оновити список',ru:'Обновить список',de:'Liste aktualisieren',en:'Refresh list'})[language]}</button>
@@ -134,7 +143,7 @@ export default function FamilyDataSafetyPlan() {
       {!backupLoading && !backupError && !backups.length && <p>{({uk:'Записів немає.',ru:'Записей нет.',de:'Keine Einträge.',en:'No records.'})[language]}</p>}
       {!backupLoading && !backupError && backups.length > 0 && <p role="status">{({uk:'Записи реєстру',ru:'Записи реестра',de:'Registereinträge',en:'Registry records'})[language]}: {backups.length}. {({uk:'Нижче лише метадані, не файли резервних копій.',ru:'Ниже только метаданные, не файлы резервных копий.',de:'Nur Metadaten, keine Sicherungsdateien.',en:'These are metadata records, not backup files.'})[language]}</p>}
       {backups.map(item => <div key={item.snapshotId} style={{padding:'8px 0',borderBottom:'1px solid var(--border-color, #7775)'}}>
-        <strong>{item.state === 'VERIFIED' && item.restoreVerified && item.executable ? ({uk:'Перевірено',ru:'Проверено',de:'Verifiziert',en:'Verified'})[language] : item.state === 'EXPIRED' ? ({uk:'Термін минув',ru:'Срок истёк',de:'Abgelaufen',en:'Expired'})[language] : ({uk:'Не підтверджено',ru:'Не подтверждено',de:'Nicht bestätigt',en:'Unverified'})[language]}</strong>
+        <strong>{item.state === 'VERIFIED' && item.restoreVerified && item.executable ? ({uk:'Статус реєстру: перевірено',ru:'Статус реестра: проверено',de:'Registerstatus: verifiziert',en:'Registry status: verified'})[language] : item.state === 'EXPIRED' ? ({uk:'Термін минув',ru:'Срок истёк',de:'Abgelaufen',en:'Expired'})[language] : ({uk:'Не підтверджено',ru:'Не подтверждено',de:'Nicht bestätigt',en:'Unverified'})[language]}</strong>
         <span> · {item.resetMode} · {item.snapshotId.slice(0,8)}</span>
         <div>{item.createdAt ? new Date(item.createdAt).toLocaleString(language) : '—'} / {item.expiresAt ? new Date(item.expiresAt).toLocaleString(language) : '—'}</div>
         <p style={{margin:'4px 0'}}>{({uk:'Метадані: наявність файлу та можливість імпорту не підтверджені.',ru:'Метаданные: наличие файла и возможность импорта не подтверждены.',de:'Nur Metadaten: Datei und Importfähigkeit sind nicht bestätigt.',en:'Metadata only: file availability and import capability are not confirmed.'})[language]}</p>
@@ -159,5 +168,11 @@ export default function FamilyDataSafetyPlan() {
       </div>)}
     </div>
     <p>{w[10]}</p>
+    </div>}
+    {tab!=='backup' && <section aria-label="Safety gates" style={{marginTop:16}}>
+      <h3>{({uk:'Етапи безпечного виконання (ще недоступні)',ru:'Этапы безопасного выполнения (пока недоступны)',de:'Sichere Ausführung (noch nicht verfügbar)',en:'Safe execution gates (not yet available)'})[language]}</h3>
+      <ol>{(workflow[language] || workflow.en).map((step,i)=><li key={step}>{step} — {i===0 ? ({uk:'тільки локальне планування',ru:'только локальное планирование',de:'nur lokale Planung',en:'local planning only'})[language] : ({uk:'очікує Backend та перевірок',ru:'ожидает Backend и проверок',de:'wartet auf Backend und Prüfungen',en:'pending Backend and verification'})[language]}</li>)}</ol>
+      <p role="status">{({uk:'Дії очищення та відновлення заблоковані; жодні файли чи сімейні записи не змінено.',ru:'Очистка и восстановление заблокированы; файлы и семейные данные не изменены.',de:'Zurücksetzen und Wiederherstellen sind gesperrt; Dateien und Familiendaten bleiben unverändert.',en:'Reset and restore actions are locked; no files or family records were changed.'})[language]}</p>
+    </section>}
   </section>
 }
