@@ -23,7 +23,7 @@ class ProtectiveBackupImportInspectorTest {
         var key=key();
         byte[] data=file(42L,"""
                 {"format":"family-points-export-v1","workspaceId":42,
-                 "categories":{"PRIVATE_TEMPLATES":[{"id":1},{"id":2}],
+                 "categories":{"PRIVATE_TEMPLATES":[{"id":1,"workspace_id":42},{"id":2,"workspace_id":42}],
                                "MEMBER_GROUPS":[]}}
                 """,key);
         var result=inspector.inspect(data,42L,key);
@@ -37,10 +37,18 @@ class ProtectiveBackupImportInspectorTest {
     @Test void rejectsDuplicateIdsAndCrossFamilyRowsEvenWhenGcmIsValid() throws Exception {
         var key=key();
         var invalid=java.util.List.of(
-                "{\\"format\\":\\"family-points-export-v1\\",\\"workspaceId\\":42,\\"categories\\":{\\"MEMBER_GROUPS\\":[{\\"id\\":7,\\"family_id\\":42},{\\"id\\":7,\\"family_id\\":42}]}}",
-                "{\\"format\\":\\"family-points-export-v1\\",\\"workspaceId\\":42,\\"categories\\":{\\"MEMBER_GROUPS\\":[{\\"id\\":7,\\"family_id\\":43}]}}",
-                "{\\"format\\":\\"family-points-export-v1\\",\\"workspaceId\\":42,\\"categories\\":{\\"PRIVATE_TEMPLATES\\":[{\\"id\\":2,\\"workspace_id\\":41}]}}",
-                "{\\"format\\":\\"family-points-export-v1\\",\\"workspaceId\\":42,\\"categories\\":{\\"TASK_DEFINITIONS\\":[{\\"id\\":0,\\"family_id\\":42}]}}");
+                """
+                {"format":"family-points-export-v1","workspaceId":42,"categories":{"MEMBER_GROUPS":[{"id":7,"family_id":42},{"id":7,"family_id":42}]}}
+                """,
+                """
+                {"format":"family-points-export-v1","workspaceId":42,"categories":{"MEMBER_GROUPS":[{"id":7,"family_id":43}]}}
+                """,
+                """
+                {"format":"family-points-export-v1","workspaceId":42,"categories":{"PRIVATE_TEMPLATES":[{"id":2,"workspace_id":41}]}}
+                """,
+                """
+                {"format":"family-points-export-v1","workspaceId":42,"categories":{"TASK_DEFINITIONS":[{"id":0,"family_id":42}]}}
+                """);
         for(var payload:invalid) {
             byte[] bytes=file(42L,payload,key);
             assertThrows(RuntimeException.class,()->inspector.inspect(bytes,42L,key));
