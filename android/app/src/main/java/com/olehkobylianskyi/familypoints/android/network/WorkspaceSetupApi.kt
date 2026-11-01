@@ -4,6 +4,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PATCH
 import retrofit2.http.Path
 
 /** V46/V48 setup metadata and safe read-only selection review; no imports or activation. */
@@ -52,7 +53,17 @@ data class SetupFinalizeImportReceiptDto(
     val importResult: TemplateImportReceiptResultDto
 )
 
+data class WorkspaceSetupStepRequest(val status: String, val expectedRevision: Long)
+
 interface WorkspaceSetupApi {
+    @PATCH("workspaces/{workspaceId}/setup/steps/{stepCode}")
+    suspend fun setStep(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Path("stepCode") stepCode: String,
+        @Body request: WorkspaceSetupStepRequest
+    ): WorkspaceSetupStateDto
+
     @GET("workspaces/{workspaceId}/setup")
     suspend fun state(
         @Header("Authorization") authorization: String,
