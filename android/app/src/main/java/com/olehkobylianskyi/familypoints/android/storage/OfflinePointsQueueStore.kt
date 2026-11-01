@@ -181,7 +181,22 @@ class OfflinePointsQueueStore(context: Context) :
             put("description", item.description)
             put("created_at", item.createdAt)
         }
-        check(writableDatabase.insertOrThrow("pending_points", null, values) >= 0)
+        // Hold check + insertion must be one SQLite transaction. Otherwise a
+        // reset epoch may quarantine the workspace after the initial check but
+        // before a new operation is inserted.
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            val held = db.rawQuery(
+                "SELECT 1 FROM reset_holds WHERE workspace_id=? LIMIT 1",
+                arrayOf(workspaceId.toString())
+            ).use { it.moveToFirst() }
+            check(!held) { "Workspace reset hold blocks offline point enqueue" }
+            check(db.insertOrThrow("pending_points", null, values) >= 0)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
         return item
     }
 
