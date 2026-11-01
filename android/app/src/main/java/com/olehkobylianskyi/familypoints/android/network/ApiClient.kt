@@ -211,4 +211,7 @@ object ApiClient {
     val mediaApi: MediaApi by lazy {
         retrofit.create(MediaApi::class.java)
     }
+    val templateReceiptApi: TemplateReceiptApi by lazy { retrofit.create(TemplateReceiptApi::class.java) }
+    val workspaceSetupApi: WorkspaceSetupApi by lazy { retrofit.create(WorkspaceSetupApi::class.java) }
+
 }
