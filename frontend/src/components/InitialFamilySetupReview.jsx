@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { getTemplateCatalog } from '../api/templateApi'
-import { getSetupState, reviewSetupCatalog } from '../api/setupApi'
+import { getSetupState, reviewSetupCatalog, setSetupStep } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 
 // Read-only setup review. Do not enable finalize/activation until full saga UX is approved.
@@ -20,6 +20,8 @@ export default function InitialFamilySetupReview() {
   const workspaceId = currentUser?.workspaceId
   const [setup, setSetup] = useState(null)
   const [catalog, setCatalog] = useState([])
+  const [packs, setPacks] = useState([])
+  const [pack, setPack] = useState('ALL')
   const [unavailable, setUnavailable] = useState(false)
   const [kind, setKind] = useState('TASK')
   const [category, setCategory] = useState('ALL')
@@ -30,17 +32,28 @@ export default function InitialFamilySetupReview() {
   const seq = useRef(0)
   useEffect(() => {
     const id = ++seq.current
-    setSetup(null); setCatalog([]); setSelected([]); setReview(null); setError(false); setUnavailable(false)
+    setSetup(null); setCatalog([]); setPacks([]); setPack('ALL'); setSelected([]); setReview(null); setError(false); setUnavailable(false)
     if (!workspaceId) return
     Promise.all([getSetupState(getAccessToken(), workspaceId), getTemplateCatalog(getAccessToken())])
-      .then(([state, data]) => { if (seq.current === id) { setSetup(state); setCatalog(data?.templates || []) } })
+      .then(([state, data]) => { if (seq.current === id) { setSetup(state); setCatalog(data?.templates || []); setPacks(data?.packs || []) } })
       .catch(() => { if (seq.current === id) setUnavailable(true) })
     return () => { seq.current++ }
   }, [workspaceId, getAccessToken])
   const cat = item => item?.definition?.category || item?.suggested?.category || 'other'
-  const typed = catalog.filter(item => item.kind === kind)
+  const typed = catalog.filter(item => item.kind === kind && (pack === 'ALL' || packs.find(p => p.code === pack)?.templateCodes?.includes(item.code)))
   const categories = [...new Set(typed.map(cat))].sort()
   const items = typed.filter(item => category === 'ALL' || cat(item) === category)
+  const setStep = async (step, status) => {
+    if (!setup || busy || setup.status === 'COMPLETED') return
+    const id = ++seq.current
+    const origin = workspaceId
+    setBusy(true); setError(false); setReview(null)
+    try {
+      const result = await setSetupStep(getAccessToken(), origin, step, status, setup.revision)
+      if (id === seq.current) setSetup(result)
+    } catch { if (id === seq.current) setError(true) }
+    finally { if (id === seq.current) setBusy(false) }
+  }
   const preview = async () => {
     if (!setup || busy || !selected.length) return
     const id = ++seq.current
@@ -62,6 +75,7 @@ export default function InitialFamilySetupReview() {
       <p>{setup.status} · {Object.values(setup.steps || {}).filter(x => x === 'COMPLETE' || x === 'SKIPPED').length}/{Object.keys(setup.steps || {}).length}</p>
       <div className="template-toolbar">
         <label>{w[2]}<select value={kind} onChange={e=>{setKind(e.target.value);setCategory('ALL');setReview(null)}}><option value="TASK">{w[4]}</option><option value="REWARD">{w[5]}</option></select></label>
+        <label>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}<select value={pack} onChange={e=>{setPack(e.target.value);setCategory('ALL');setReview(null)}}><option value="ALL">{w[6]}</option>{packs.map(p=><option value={p.code} key={p.code}>{p.title?.[lang] || p.title?.en || p.code}</option>)}</select></label>
         <label>{w[3]}<select value={category} onChange={e=>{setCategory(e.target.value);setReview(null)}}><option value="ALL">{w[6]}</option>{categories.map(c=><option key={c} value={c}>{templateCategoryLabel(c, lang)}</option>)}</select></label>
       </div>
       <div style={{maxHeight:260,overflowY:'auto'}}>
@@ -71,6 +85,16 @@ export default function InitialFamilySetupReview() {
         </label>)}
       </div>
       <p>{w[8]}: {selected.length}</p>
+      <div>
+        <strong>{({uk:'Кроки налаштування',ru:'Шаги настройки',de:'Einrichtungsschritte',en:'Setup steps'})[lang] || 'Setup steps'}</strong>
+        {Object.entries(setup.steps || {}).map(([step, value]) => <div key={step} style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',padding:'5px 0'}}>
+          <span>{step} — {value}</span>
+          {setup.status !== 'COMPLETED' && <>
+            <button className="secondary-button" type="button" disabled={busy} onClick={()=>setStep(step,'COMPLETE')}>{({uk:'Позначити виконаним',ru:'Отметить выполненным',de:'Als erledigt markieren',en:'Mark complete'})[lang]}</button>
+            <button className="secondary-button" type="button" disabled={busy} onClick={()=>setStep(step,'SKIPPED')}>{({uk:'Пропустити',ru:'Пропустить',de:'Überspringen',en:'Skip'})[lang]}</button>
+          </>}
+        </div>)}
+      </div>
       <button type="button" className="secondary-button" disabled={!selected.length || busy || setup.status === 'COMPLETED'} onClick={preview}>{w[7]}</button>
       {review && <p role="status">{w[9]}: {review.toImportCount} · {w[10]}: {review.alreadyImportedCount}</p>}
     </>}
