@@ -240,7 +240,7 @@ export default function FamilySetupPage() {
         <span><strong>{nameOf(item, lang)}</strong><small>{templateCategoryLabel(categoryOf(item), lang)}{ownedCodes.has(item.code) ? ' · ' + t[12] : ''}</small></span>
       </label>)}</div>
       <p role="status">{t[11]}: {selectedNew.length} · {t[12]}: {ownedCodes.size}</p>
-      {!catalogReady && <p role="alert">{t[21]}</p>
+      {!catalogReady && <p role="alert">{t[21]}</p>}
       <p>{t[15]}</p>
       <div className="family-setup-actions"><button type="button" onClick={() => setStep(0)}>{t[17]}</button>
         <button type="button" disabled={busy || !catalogReady || !selectedNew.length} onClick={previewSelection}>{t[13]}</button>
