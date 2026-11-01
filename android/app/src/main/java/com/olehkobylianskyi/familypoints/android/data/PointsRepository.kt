@@ -84,6 +84,7 @@ class PointsRepository(
                 verified.memberId != viewerId) {
                 throw SecurityException("Offline operation owner does not match authenticated account")
             }
+            if (!OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) return 0
             if (queue.isHeldForReset(workspaceId)) return 0
             val epoch = ApiClient.workspaceEpochApi.getEpoch(auth, workspaceId)
             if (epoch.workspaceId != workspaceId || epoch.dataEpoch < 0L) {
@@ -91,6 +92,7 @@ class PointsRepository(
             }
             if (!OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) return 0
             if (!queue.observeEpoch(workspaceId, epoch.dataEpoch)) return 0
+            if (!OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) return 0
             var confirmed = 0
             val affectedMembers = mutableSetOf<Long>()
             // A later 4xx must not prevent balance refresh for earlier
