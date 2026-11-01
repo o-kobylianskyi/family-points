@@ -45,6 +45,15 @@ class WorkspaceResetDependencyAuditPostgresTest {
         assertEquals(java.util.List.of("POINT_LEDGER","TASK_DEFINITIONS"),
                 selection.selectedCategories());
         assertTrue(selection.blockers().contains("PROTECTED_LEDGER:POINT_LEDGER"));
+        assertTrue(selection.blockers().contains("SELECTION_INCLUDES_PROTECTED_TABLE"));
+        assertTrue(selection.relevantForeignKeys().stream().anyMatch(fk->
+                fk.dependentTable().equals("task_definitions") &&
+                fk.referencedTable().equals("families")),
+                "Outgoing FK to protected parent must be present in selection report");
+        assertTrue(selection.blockers().stream().anyMatch(x->
+                x.startsWith("PROTECTED_PARENT_REFERENCE:families.")),
+                "Must explicitly disclose outgoing link to protected family identity");
+
         assertTrue(selection.blockers().contains("TASK_DEFINITIONS_REQUIRES_EXECUTIONS_AND_SLOTS"));
         assertFalse(selection.relevantForeignKeys().isEmpty());
         assertTrue(selection.blockers().stream().anyMatch(x->x.startsWith("EXTERNAL_FK_DEPENDENCY:")));
