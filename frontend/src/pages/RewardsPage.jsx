@@ -141,6 +141,7 @@ function RewardsPage() {
   const [rewardTemplateCategory, setRewardTemplateCategory] = useState('ALL')
   const [selectedRewardTemplateId, setSelectedRewardTemplateId] = useState('')
   const [templateBusy, setTemplateBusy] = useState(false)
+  const [rewardWriteUnknown, setRewardWriteUnknown] = useState(false)
   const [editingRewardId, setEditingRewardId] = useState(null)
   const [customRequestTitle, setCustomRequestTitle] = useState('')
   const [customRequestDescription, setCustomRequestDescription] = useState('')
@@ -288,7 +289,7 @@ function RewardsPage() {
     setTasks([])
     setRewardForm(emptyRewardForm)
     rewardDraftGeneration.current += 1
-    setRewardTemplates([]); setPrivateTemplatesLoaded(false); setGlobalRewardTemplates([]); setSelectedRewardTemplateId(''); setSelectedRequestTemplateId(''); setRewardTemplateCategory('ALL'); setRequestTemplateCategory('ALL')
+    setRewardTemplates([]); setPrivateTemplatesLoaded(false); setRewardWriteUnknown(false); setGlobalRewardTemplates([]); setSelectedRewardTemplateId(''); setSelectedRequestTemplateId(''); setRewardTemplateCategory('ALL'); setRequestTemplateCategory('ALL')
     setReviewForm(emptyReviewForm)
     loadAll()
   }, [currentUser.workspaceId])
@@ -385,13 +386,14 @@ function RewardsPage() {
   const cancelEditReward = () => {
     rewardDraftGeneration.current += 1
     setSelectedRewardTemplateId('')
+    setRewardWriteUnknown(false)
     setEditingRewardId(null)
     setRewardForm({ ...emptyRewardForm, pointTypeId: pointTypes[0]?.id ?? '' })
   }
 
   const createCatalogReward = async (event) => {
     event.preventDefault()
-    if (templateBusy || !rewardForm.title.trim() || !rewardForm.pointTypeId || rewardForm.priceAmount === '' || !Number.isSafeInteger(Number(rewardForm.priceAmount)) || Number(rewardForm.priceAmount) < 0 || (rewardForm.rewardKind === 'TIME_BASED' && (!Number.isSafeInteger(Number(rewardForm.defaultDurationMinutes)) || Number(rewardForm.defaultDurationMinutes) <= 0))) return
+    if (rewardWriteUnknown || templateBusy || !rewardForm.title.trim() || !rewardForm.pointTypeId || rewardForm.priceAmount === '' || !Number.isSafeInteger(Number(rewardForm.priceAmount)) || Number(rewardForm.priceAmount) < 0 || (rewardForm.rewardKind === 'TIME_BASED' && (!Number.isSafeInteger(Number(rewardForm.defaultDurationMinutes)) || Number(rewardForm.defaultDurationMinutes) <= 0))) return
 
     await run(async () => {
       const payload = {
@@ -421,11 +423,15 @@ function RewardsPage() {
           categoryIds: rewardForm.categoryIds,
           requirements: taskRequirements(rewardForm),
         }
+      // Once a write is sent, do not offer a blind second POST if its
+      // response is lost. A confirmed write clears the uncertain state.
+      setRewardWriteUnknown(true)
       if (editingRewardId != null) {
         await updateReward(getAccessToken(), currentUser.workspaceId, editingRewardId, payload)
       } else {
         await createReward(getAccessToken(), currentUser.workspaceId, payload)
       }
+      setRewardWriteUnknown(false)
       setEditingRewardId(null)
 
       setRewardForm((current) => ({
@@ -734,7 +740,7 @@ function RewardsPage() {
                 placeholder={t("rewardsUi.commentOptional")}
                 onChange={(event) => setCustomRequestDescription(event.target.value)}
               />
-              <button type="submit" className="primary-button" disabled={processing || templateBusy}>
+              <button type="submit" className="primary-button" disabled={processing || templateBusy || rewardWriteUnknown}>
                 {t('rewardsUi.send')}
               </button>
             </form>
