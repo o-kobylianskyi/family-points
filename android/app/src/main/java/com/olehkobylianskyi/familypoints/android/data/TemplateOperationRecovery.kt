@@ -4,6 +4,7 @@ import com.olehkobylianskyi.familypoints.android.network.ApiClient
 import com.olehkobylianskyi.familypoints.android.storage.TemplatePendingOperationStore
 import com.olehkobylianskyi.familypoints.android.storage.TokenStore
 import retrofit2.HttpException
+import kotlinx.coroutines.CancellationException
 
 /**
  * Explicit receipt-only recovery for a selected account/workspace.
@@ -27,7 +28,8 @@ class TemplateOperationRecovery(
         val token = tokens.getAccessToken() ?: return Outcome.UNKNOWN
         val epoch = try {
             ApiClient.workspaceEpochApi.getEpoch("Bearer $token", workspaceId)
-        } catch (_: Exception) { return Outcome.UNKNOWN }
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { return Outcome.UNKNOWN }
         if (epoch.workspaceId != workspaceId || epoch.dataEpoch < 0) return Outcome.UNKNOWN
         if (epoch.dataEpoch != operation.epoch) {
             store.transition(operation, "HELD", epoch.dataEpoch)
@@ -46,6 +48,7 @@ class TemplateOperationRecovery(
             Outcome.CONFIRMED
         } catch (e: HttpException) {
             if (e.code() == 404) Outcome.NOT_FOUND else Outcome.UNKNOWN
-        } catch (_: Exception) { Outcome.UNKNOWN }
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { Outcome.UNKNOWN }
     }
 }
