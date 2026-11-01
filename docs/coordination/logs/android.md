@@ -854,3 +854,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Fixed actual race in OfflinePointsQueueStore.enqueue: earlier non-transactional reset-hold check could pass and then another thread/epoch quarantine could insert a hold before the pending row was written. The hold check and SQLite insertion now execute in the same write transaction (f627d1c7), preserving fail-closed reset hold invariants.
 - Added AndroidTest regression (4468df87) for durable hold surviving database close/reopen, blocked enqueue under held family A, and independent allowed enqueue for non-held family B.
 - No exact-head local Gradle or runtime AndroidTest executed in this turn; tests source-only. HTTP+SQLite complete injected concurrency test remains open, and prior reported BUILD SUCCESSFUL applies to previous HEAD. BETA and BKL002 execute HOLD.
+
+## 2026-11-01 — AND-QA-12 atomic offline acknowledgement / Architect dispatch ACK
+- Reviewed Architect evening dispatch: pin exact-head CI/Gradle, device instrumentation separately unclaimed, no Android portable restore/reset writes.
+- Fixed reset hold race after HTTP replay and before SQLite deletion: OfflinePointsQueueStore.confirm now atomically checks hold and removes UUID in a single SQLite writer transaction, and returns whether original scoped row was actually removed (2ef87826). PointsRepository only counts success after acknowledgement (bb302d0).
+- Instrumentation SQLite tests (417ed579) assert post-HTTP epoch hold retains UUID, wrong account/family cannot acknowledge, and family B unaffected by A's hold.
+- Tests added but not run; current HEAD Gradle and Android instrumentation execution remain unverified. Full HTTP+SQLite in-flight concurrency harness still OPEN. BETA and BKL002 execute HOLD.
