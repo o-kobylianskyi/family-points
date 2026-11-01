@@ -37,6 +37,7 @@ public class WorkspacePortableBackupExporter {
         Map.entry("REWARD_REQUESTS",new Scope("reward_requests","t.family_id=?")),
         Map.entry("WORK_NODES",new Scope("work_nodes","t.family_id=?")),
         Map.entry("MEDIA_BINDINGS",new Scope("media_bindings","t.workspace_id=?")),
+        Map.entry("MEDIA_ASSETS",new Scope("media_assets","t.workspace_id=?")),
         Map.entry("POINT_LEDGER",new Scope("point_transactions",
             "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)")),
         Map.entry("REPUTATION_LEDGER",new Scope("reputation_transactions",
@@ -84,7 +85,15 @@ public class WorkspacePortableBackupExporter {
             if(count==null || count>MAX_ROWS)
                 throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,"BACKUP_ROW_LIMIT");
             ArrayNode records=data.putArray(category);
-            db.query("SELECT to_jsonb(t)::text AS row_data"+filter+" ORDER BY row_data",rs->{
+            // Preserve the actual binary media variants inside the encrypted
+            // archive; a media metadata-only export is not recoverable.
+            String projection="MEDIA_ASSETS".equals(category)
+                    ? "(to_jsonb(t) || jsonb_build_object('blobs',COALESCE(("
+                        + "SELECT jsonb_agg(jsonb_build_object('variant',b.variant,"
+                        + "'bytesBase64',encode(b.bytes,'base64')) ORDER BY b.variant)"
+                        + " FROM media_blobs b WHERE b.asset_id=t.id),'[]'::jsonb)))::text"
+                    : "to_jsonb(t)::text";
+            db.query("SELECT "+projection+" AS row_data"+filter+" ORDER BY row_data",rs->{
                 String row=rs.getString(1);
                 try {records.add(mapper.readTree(row));}
                 catch(Exception ex){throw new IllegalStateException("Unable to encode family row",ex);}
