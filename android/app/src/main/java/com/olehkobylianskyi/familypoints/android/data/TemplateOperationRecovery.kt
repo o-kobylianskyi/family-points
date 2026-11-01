@@ -39,7 +39,21 @@ class TemplateOperationRecovery(
             return Outcome.HELD
         }
         return try {
-            if (operation.kind == "IMPORT") {
+            if (operation.kind == "FINALIZE") {
+                val response = ApiClient.workspaceSetupApi.finalizeReceipt(
+                    "Bearer $token", workspaceId, operation.operationId.toString()
+                )
+                val request = Gson().fromJson(
+                    operation.payload,
+                    com.olehkobylianskyi.familypoints.android.network.SetupFinalizeImportRequest::class.java
+                )
+                check(request != null && response.operationId == operation.operationId.toString() &&
+                    response.workspaceId == workspaceId && response.dataEpoch == operation.epoch &&
+                    response.setupStatus == "COMPLETED" &&
+                    response.revision > request.expectedRevision &&
+                    response.importResult.selectedCodes == request.selectedCatalogCodes
+                ) { "Finalize receipt conflicts with durable request" }
+            } else if (operation.kind == "IMPORT") {
                 val response = receipts.importReceipt(workspaceId, operation.operationId)
                 val expected = Gson().fromJson<List<String>>(
                     operation.payload, object : TypeToken<List<String>>() {}.type
