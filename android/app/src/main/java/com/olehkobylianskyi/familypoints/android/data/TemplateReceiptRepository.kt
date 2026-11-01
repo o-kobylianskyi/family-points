@@ -18,6 +18,11 @@ class TemplateReceiptRepository(
     constructor(tokens: TokenStore): this({ tokens.getAccessToken() }, ApiClient.templateReceiptApi)
     private fun auth(): String = "Bearer " + (tokenProvider() ?: error("Missing access token"))
     private fun operationId(value: UUID): String = value.toString()
+    private fun authForExpected(expectedToken: String): String {
+        require(expectedToken.isNotBlank())
+        check(tokenProvider() == expectedToken) { "Account changed before receipt request" }
+        return "Bearer $expectedToken"
+    }
 
     suspend fun importConfirmed(workspaceId: Long, operation: UUID, orderedCodes: List<String>): TemplateImportReceiptDto {
         require(workspaceId > 0)
@@ -28,9 +33,9 @@ class TemplateReceiptRepository(
         return result
     }
 
-    suspend fun importReceipt(workspaceId: Long, operation: UUID): TemplateImportReceiptDto {
+    suspend fun importReceipt(workspaceId: Long, operation: UUID, expectedToken: String? = null): TemplateImportReceiptDto {
         require(workspaceId > 0)
-        val result = api.importReceipt(auth(), workspaceId, operationId(operation))
+        val result = api.importReceipt(if (expectedToken == null) auth() else authForExpected(expectedToken), workspaceId, operationId(operation))
         check(result.operationId == operationId(operation)) { "Import receipt identity mismatch" }
         return result
     }
@@ -64,9 +69,9 @@ class TemplateReceiptRepository(
         return result
     }
 
-    suspend fun activationReceipt(workspaceId: Long, operation: UUID): TemplateActivationReceiptDto {
+    suspend fun activationReceipt(workspaceId: Long, operation: UUID, expectedToken: String? = null): TemplateActivationReceiptDto {
         require(workspaceId > 0)
-        val result = api.activationReceipt(auth(), workspaceId, operationId(operation))
+        val result = api.activationReceipt(if (expectedToken == null) auth() else authForExpected(expectedToken), workspaceId, operationId(operation))
         check(result.operationId == operationId(operation) && result.createdDefinitionId > 0) {
             "Activation receipt identity mismatch"
         }
