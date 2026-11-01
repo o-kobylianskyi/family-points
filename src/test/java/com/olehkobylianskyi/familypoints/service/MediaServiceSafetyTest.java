@@ -108,8 +108,8 @@ class MediaServiceSafetyTest {
     @Test void designerCategoryIconsAreRegisteredAndServedOnlyToWorkspaceMembers() {
         var catalog=media.catalog();
         var approved=catalog.stream().filter(item->item.key().startsWith("category-")).toList();
-        assertEquals(18,approved.size());
-        assertEquals(18,approved.stream().map(MediaService.CatalogItem::key).distinct().count());
+        assertEquals(20,approved.size());
+        assertEquals(20,approved.stream().map(MediaService.CatalogItem::key).distinct().count());
         when(current.belongsToWorkspace(123L)).thenReturn(true);
         for(var item:approved) {
             byte[] svg=media.catalogPreview(123L,item.key());
