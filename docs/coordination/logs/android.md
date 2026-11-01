@@ -820,3 +820,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Extended MockWebServer JVM tests for switched account = ZERO receipt GETs, and valid pinned Authorization header on GET (631a20cc). Existing production callers without expectedToken remain backward compatible; recovery path passes it explicitly.
 - Exact HEAD JVM tests/build NOT run in this turn, so source changes are not claimed PASS. Full offline outbox implementation path has not yet been mapped/verified, and Android SQLite instrumentation remains deferred; do NOT call AND-QA-12 complete or imply new BETA deploy.
 - Backend BKL002 reset/restore remains HOLD pending Architect contract and verified disposable roundtrip. Android backup registry read-only.
+
+## 2026-11-01 — AND-QA-12 epoch response account-switch race
+- Fixed TemplateOperationRecovery to recheck pinned access token immediately after both authoritative epoch GET responses (018d1949). Old-account delayed epoch replies can no longer mark durable journal HELD when user changed login before the response. Existing pinned receipt GET and final confirmation checks remain.
+- The offline queue concrete source implementation remains UNVERIFIED: attempted likely filenames returned not found, so no speculative queue edits were made. Work on queue quarantine is still open pending exact code discovery.
+- New commit NOT built or tested at exact HEAD. Prior user's BUILD SUCCESSFUL belongs to earlier source state; Android instrumentation remains postponed. No BETA promotion or reset/restore write operations.
