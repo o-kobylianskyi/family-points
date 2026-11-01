@@ -71,6 +71,46 @@ class WorkspacePortableMediaBindingPreflightPostgresTest {
                             ()->inspector.inspect(archive,family,key),"variant "+variant);
                 } finally {Arrays.fill(invalid,(byte)0);}
             }
+            // Strict archive identifiers: decimal/string coercion must not
+            // bypass exact composite key or tenant checks on an encrypted file.
+            for(int variant=0;variant<4;variant++) {
+                var root=json.readTree(plain).deepCopy();
+                var binding=((com.fasterxml.jackson.databind.node.ObjectNode)
+                        root.path("categories").path("MEDIA_BINDINGS").get(0));
+                switch(variant) {
+                    case 0 -> binding.put("target_id",family + 0.5);
+                    case 1 -> binding.put("target_id",Long.toString(family));
+                    case 2 -> binding.put("workspace_id",family + 0.5);
+                    case 3 -> binding.put("workspace_id",Long.toString(family));
+                    default -> throw new IllegalStateException();
+                }
+                byte[] malformed=json.writeValueAsBytes(root);
+                try {
+                    var sealed=codec.seal(UUID.randomUUID(),family,UUID.randomUUID(),0L,
+                            original.manifest().sourceDigest(),"V50",malformed,key);
+                    assertThrows(IllegalArgumentException.class,
+                            ()->inspector.inspect(files.encode(sealed),family,key),
+                            "nonintegral archive identifier variant "+variant);
+                } finally {Arrays.fill(malformed,(byte)0);}
+            }
+            // Exporter maximum is 2000 rows per category. Imported archives
+            // may be re-sealed by a valid key holder but may not exceed this limit.
+            var overLimit=json.readTree(plain).deepCopy();
+            var bindings=((com.fasterxml.jackson.databind.node.ArrayNode)
+                    overLimit.path("categories").path("MEDIA_BINDINGS"));
+            var originalBinding=bindings.get(0);
+            for(int i=1;i<=2000;i++) {
+                var row=((com.fasterxml.jackson.databind.node.ObjectNode)originalBinding.deepCopy());
+                row.put("target_id",family+i);
+                bindings.add(row);
+            }
+            byte[] excessive=json.writeValueAsBytes(overLimit);
+            try {
+                var sealed=codec.seal(UUID.randomUUID(),family,UUID.randomUUID(),0L,
+                        original.manifest().sourceDigest(),"V50",excessive,key);
+                assertThrows(IllegalArgumentException.class,
+                        ()->inspector.inspect(files.encode(sealed),family,key));
+            } finally {Arrays.fill(excessive,(byte)0);}
             // No physical FK exists for polymorphic media targets; missing
             // archive groups and unresolved member identity must be visible blockers.
             for(String targetType:List.of("MEMBER_GROUP","WORK_NODE","TASK","MEMBER")) {
