@@ -290,6 +290,7 @@ fun TemplateLibrarySection(
         if (showSetupStatus) {
             WorkspaceSetupOverviewSection(
                 language = language, workspaceId = workspaceId,
+                canManage = canManage,
                 repository = remember(tokens) {
                     com.olehkobylianskyi.familypoints.android.data.WorkspaceSetupOverviewRepository(tokens)
                 }
