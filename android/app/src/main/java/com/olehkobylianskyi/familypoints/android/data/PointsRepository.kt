@@ -36,7 +36,9 @@ class PointsRepository(
         typesStore.load(workspaceId, viewerId).filter { it.active }.sortedBy { it.sortOrder }
 
     suspend fun refreshPointTypes(workspaceId: Long, viewerId: Long): List<PointTypeResponse> {
-        val types = ApiClient.createTaskApi.getPointTypes(authorization(), workspaceId)
+        val auth = authorization()
+        val types = ApiClient.createTaskApi.getPointTypes(auth, workspaceId)
+        if (!OfflineReplaySessionGate.matches(auth.removePrefix("Bearer "), tokenStore.getAccessToken())) throw SecurityException("Account switched during types refresh")
         typesStore.save(workspaceId, viewerId, types)
         return types.filter { it.active }.sortedBy { it.sortOrder }
     }
@@ -164,13 +166,14 @@ class PointsRepository(
         workspaceId: Long, members: List<WorkspaceMemberResponse>
     ) = supervisorScope {
         val auth = authorization()
+        val sessionToken = auth.removePrefix("Bearer ")
         members.map { member ->
             async {
                 try {
                     val result = withTimeout(8_000L) {
                         ApiClient.pointsApi.getBalance(auth, workspaceId, member.id)
                     }
-                    offlineStore.save(workspaceId, member.id, result.balance)
+                    if (OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) offlineStore.save(workspaceId, member.id, result.balance)
                 } catch (error: TimeoutCancellationException) {
                     // Timeout affects one member only, never the whole list.
                 } catch (_: IOException) {
@@ -190,6 +193,7 @@ class PointsRepository(
         val auth = authorization()
         val balance = try {
             ApiClient.pointsApi.getBalance(auth, workspaceId, memberId).balance.also { value ->
+                if (!OfflineReplaySessionGate.matches(auth.removePrefix("Bearer "), tokenStore.getAccessToken())) throw SecurityException("Account switched during balance refresh")
                 offlineStore.save(workspaceId, memberId, value)
             }
         } catch (error: IOException) {
@@ -206,7 +210,9 @@ class PointsRepository(
         workspaceId: Long,
         viewerId: Long
     ): List<WorkspaceMemberResponse> {
-        val members = ApiClient.taskApi.getWorkspaceMembers(authorization(), workspaceId)
+        val auth = authorization()
+        val members = ApiClient.taskApi.getWorkspaceMembers(auth, workspaceId)
+        if (!OfflineReplaySessionGate.matches(auth.removePrefix("Bearer "), tokenStore.getAccessToken())) throw SecurityException("Account switched during members refresh")
         membersStore.saveMembers(workspaceId, viewerId, members)
         return members
     }
