@@ -89,6 +89,31 @@ class WorkspaceSetupFinalizePostgresTest {
         verify(f.setup,never()).complete(anyLong(),anyLong());
     }
 
+    @Test void staleRevisionRejectsBeforeImportAndDoesNotPersistReceipt() {
+        var f=fixture();
+        var ex=assertThrows(ResponseStatusException.class,
+                ()->f.tx.execute(s->f.service.finalizeWizard(f.workspace,UUID.randomUUID(),
+                        new WorkspaceSetupFinalizeService.Request(6L,List.of()))));
+        assertEquals(HttpStatus.CONFLICT,ex.getStatusCode());
+        verifyNoInteractions(f.imports);
+        verify(f.setup,never()).complete(anyLong(),anyLong());
+        assertEquals(0L,f.db.queryForObject(
+                "SELECT count(*) FROM workspace_setup_finalize_receipts WHERE workspace_id=?",
+                Long.class,f.workspace));
+    }
+
+    @Test void completedWizardCannotFinalizeAgainWithNewKey() {
+        var f=fixture();
+        when(f.setup.current(f.workspace)).thenReturn(new WorkspaceSetupService.SetupState(
+                f.workspace,0,8,"COMPLETED",Map.of(),null));
+        var ex=assertThrows(ResponseStatusException.class,
+                ()->f.tx.execute(s->f.service.finalizeWizard(f.workspace,UUID.randomUUID(),
+                        new WorkspaceSetupFinalizeService.Request(8L,List.of()))));
+        assertEquals(HttpStatus.CONFLICT,ex.getStatusCode());
+        verifyNoInteractions(f.imports);
+        verify(f.setup,never()).complete(anyLong(),anyLong());
+    }
+
     @Test void importFailureRollsBackFamilyMutationAndReceipt() {
         var f=fixture();
         when(f.imports.importOnce(eq(f.workspace),any(UUID.class),any())).thenAnswer(inv->{
