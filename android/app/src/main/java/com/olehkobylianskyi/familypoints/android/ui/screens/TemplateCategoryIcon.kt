@@ -34,6 +34,7 @@ internal fun templateCategoryMediaKey(kind: String, definition: JsonObject?): St
         "family" to "category-home",
         "adult" to "category-adult-tasks",
         "time" to "category-screen-time",
+        "games" to "category-video-games",
         "privilege" to "category-privilege",
         "items" to "category-material-reward"
     )
