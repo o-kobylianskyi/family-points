@@ -80,4 +80,77 @@ class WorkspacePortableRelationalRehearsalPostgresTest {
             "SELECT name FROM member_groups WHERE family_id=?",String.class,other));
         assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,family));
     }
+    @Test void archivedGroupAndMediaBytesRoundtripThroughSqlWithRollbackAndTenantFence() throws Exception {
+        var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
+        Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
+        var db=new JdbcTemplate(ds);
+        long source=db.queryForObject("INSERT INTO families(name) VALUES ('Roundtrip source') RETURNING id",Long.class);
+        long neighbor=db.queryForObject("INSERT INTO families(name) VALUES ('Roundtrip neighbor') RETURNING id",Long.class);
+        long group=db.queryForObject("INSERT INTO member_groups(family_id,name,active,show_in_navigation) VALUES (?,'Archived group',true,false) RETURNING id",Long.class,source);
+        db.update("INSERT INTO member_groups(family_id,name,active,show_in_navigation) VALUES (?,'Other group',true,false)",neighbor);
+        long role=db.queryForObject("INSERT INTO family_roles(family_id,code,name,system_role) VALUES (?,'PARENT','Parent',true) RETURNING id",Long.class,source);
+        long member=db.queryForObject("INSERT INTO family_members(family_id,family_role_id,name,active,member_type) VALUES (?,?,'Media owner',true,'PARENT') RETURNING id",Long.class,source,role);
+        UUID imageId=UUID.randomUUID();
+        byte[] original=new byte[]{1,2,3,4,5,6,7,8};
+        String hash=ProtectiveBackupArtifactCodec.sha(original);
+        db.update("INSERT INTO media_assets(id,workspace_id,mime_type,width,height,byte_size,sha256,created_by_member_id) VALUES (?,?,'image/png',1,1,?,?,?)",
+                imageId,source,original.length,hash,member);
+        db.update("INSERT INTO media_blobs(asset_id,variant,bytes) VALUES (?,'COVER',?)",imageId,original);
+        db.update("INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,asset_id) VALUES (?,'MEMBER_GROUP',?,'COVER',?)",source,group,imageId);
+        var guard=new WorkspaceEpochTransactionGuard(db);
+        var codec=new ProtectiveBackupArtifactCodec();
+        var portable=new ProtectiveBackupPortableFile();
+        var exporter=new WorkspacePortableBackupExporter(db,new WorkspaceResetSnapshotService(db,guard),codec,portable);
+        var inspector=new ProtectiveBackupImportInspector(portable,codec);
+        var generator=KeyGenerator.getInstance("AES");generator.init(256);var key=generator.generateKey();
+        var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
+        byte[] archive=tx.execute(status->exporter.export(source,UUID.randomUUID(),UUID.randomUUID(),0L,
+                List.of("MEMBER_GROUPS","MEDIA_ASSETS","MEDIA_BINDINGS"),"V50",key)).encryptedFile();
+        var checked=inspector.inspect(archive,source,key);
+        assertFalse(checked.restorable());
+        assertEquals(1,checked.counts().get("MEMBER_GROUPS"));
+        assertEquals(1,checked.counts().get("MEDIA_ASSETS"));
+        assertEquals(1,checked.counts().get("MEDIA_BINDINGS"));
+        assertThrows(SecurityException.class,()->inspector.inspect(archive,neighbor,key));
+
+        var envelope=portable.decode(archive);
+        byte[] plaintext=codec.open(envelope,envelope.manifest().snapshotId(),source,key);
+        JsonNode categories=new ObjectMapper().readTree(plaintext).path("categories");
+        Arrays.fill(plaintext,(byte)0);
+        var archivedGroup=categories.path("MEMBER_GROUPS").get(0);
+        var archivedAsset=categories.path("MEDIA_ASSETS").get(0);
+        var archivedBinding=categories.path("MEDIA_BINDINGS").get(0);
+        byte[] decoded=Base64.getDecoder().decode(archivedAsset.path("blobs").get(0).path("bytesBase64").asText());
+        assertArrayEquals(original,decoded);
+        assertEquals(hash,ProtectiveBackupArtifactCodec.sha(decoded));
+
+        tx.execute(status->{
+            db.execute("CREATE TEMP TABLE fp_stage_groups(id bigint PRIMARY KEY, family_id bigint NOT NULL, name text NOT NULL) ON COMMIT DROP");
+            db.execute("CREATE TEMP TABLE fp_stage_assets(id uuid PRIMARY KEY, workspace_id bigint NOT NULL, sha256 text NOT NULL, bytes bytea NOT NULL) ON COMMIT DROP");
+            db.execute("CREATE TEMP TABLE fp_stage_bindings(group_id bigint REFERENCES fp_stage_groups(id), asset_id uuid REFERENCES fp_stage_assets(id)) ON COMMIT DROP");
+            db.update("INSERT INTO fp_stage_groups(id,family_id,name) VALUES (?,?,?)",
+                    archivedGroup.path("id").asLong(),archivedGroup.path("family_id").asLong(),
+                    archivedGroup.path("name").asText());
+            db.update("INSERT INTO fp_stage_assets(id,workspace_id,sha256,bytes) VALUES (?,?,?,?)",
+                    UUID.fromString(archivedAsset.path("id").asText()),
+                    archivedAsset.path("workspace_id").asLong(),archivedAsset.path("sha256").asText(),decoded);
+            db.update("INSERT INTO fp_stage_bindings(group_id,asset_id) VALUES (?,?)",
+                    archivedBinding.path("target_id").asLong(),
+                    UUID.fromString(archivedBinding.path("asset_id").asText()));
+            assertEquals(1L,db.queryForObject("SELECT count(*) FROM fp_stage_bindings",Long.class));
+            assertEquals("Archived group",db.queryForObject("SELECT name FROM fp_stage_groups WHERE id=?",
+                    String.class,group));
+            byte[] staged=db.queryForObject("SELECT bytes FROM fp_stage_assets WHERE id=?",
+                    byte[].class,imageId);
+            assertArrayEquals(original,staged);
+            assertEquals(hash,ProtectiveBackupArtifactCodec.sha(staged));
+            status.setRollbackOnly();
+            return null;
+        });
+        assertEquals("Archived group",db.queryForObject("SELECT name FROM member_groups WHERE id=?",String.class,group));
+        assertEquals("Other group",db.queryForObject("SELECT name FROM member_groups WHERE family_id=?",String.class,neighbor));
+        assertArrayEquals(original,db.queryForObject("SELECT bytes FROM media_blobs WHERE asset_id=?",byte[].class,imageId));
+        assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,source));
+    }
+
 }
