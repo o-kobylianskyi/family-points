@@ -46,6 +46,19 @@ class WorkspacePortableRestorePreviewPostgresTest {
         assertTrue(result.blockers().contains("RESTORE_FK_REMAP_UNVERIFIED:MEMBER_GROUPS"));
         assertThrows(SecurityException.class,
                 ()->tx.execute(status->preview.preview(archive,b,0L,List.of("MEMBER_GROUPS"),key)));
+        var allSelected=List.of("PRIVATE_TEMPLATES","MEMBER_GROUPS","TASK_DEFINITIONS",
+                "REWARD_DEFINITIONS","REWARD_REQUESTS","WORK_NODES","MEDIA_BINDINGS",
+                "TASK_EXECUTIONS","TASK_SCHEDULE_SLOTS","REWARD_PURCHASES",
+                "POINT_LEDGER","REPUTATION_LEDGER");
+        byte[] fullSlice=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
+                0L,allSelected,"V50",key)).encryptedFile();
+        var previewSlice=tx.execute(status->preview.preview(fullSlice,a,0L,allSelected,key));
+        assertEquals(12,previewSlice.categories().size());
+        assertTrue(previewSlice.categories().stream().allMatch(row->row.targetRows()>=0));
+        assertFalse(previewSlice.executable());
+        assertTrue(previewSlice.blockers().contains("RESTORE_TARGET_CONFLICT:MEMBER_GROUPS"));
+        assertEquals("Others",db.queryForObject(
+                "SELECT name FROM member_groups WHERE family_id=?",String.class,b));
         assertEquals(1L,db.queryForObject("SELECT count(*) FROM member_groups WHERE family_id=?",Long.class,a));
         assertEquals("Others",db.queryForObject("SELECT name FROM member_groups WHERE family_id=?",String.class,b));
         assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,a));
