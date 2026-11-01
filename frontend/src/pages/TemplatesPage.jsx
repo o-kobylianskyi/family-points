@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import './TemplatesPage.css'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { useTranslation } from 'react-i18next'
@@ -100,6 +100,7 @@ const iconKeyForTemplate = item => {
 }
 
 export default function TemplatesPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const { i18n } = useTranslation()
   const lang = i18n.language.split('-')[0]
   const l = texts[lang] || texts.uk
@@ -213,6 +214,19 @@ export default function TemplatesPage() {
   }
   const refresh = async () => { const id = workspaceId; const generation = requestGeneration.current; const items = await getPrivateTemplates(getAccessToken(), id); if (workspaceRef.current === id && requestGeneration.current === generation) setPrivateItems(items) }
   const chooseEdit = item => { editingRef.current = item.id; setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setEditing(item); setTitle(item.title); setDefinition(item.definitionJson); setError('') }
+  // Deep-link to a private template after onboarding. Never open a foreign ID:
+  // an ID must first exist in the currently authenticated family's GET response.
+  useEffect(() => {
+    const requested = searchParams.get('edit')
+    if (!requested || !/^\\d+$/.test(requested) || !privateItems.length || busy) return
+    const found = privateItems.find(item => String(item.id) === requested)
+    if (found && editingRef.current !== found.id) chooseEdit(found)
+    setSearchParams(previous => {
+      const next = new URLSearchParams(previous)
+      next.delete('edit')
+      return next
+    }, { replace: true })
+  }, [privateItems, searchParams, setSearchParams, busy])
   const validDefinition = (() => { try { return definition.length <= 30000 && !Array.isArray(JSON.parse(definition)) && JSON.parse(definition) !== null && typeof JSON.parse(definition) === 'object' } catch { return false } })()
   const validDraft = (() => { try { const value = JSON.parse(draftText); return value !== null && typeof value === 'object' && !Array.isArray(value) && draftText.length <= 30000 } catch { return false } })()
   const draftWarnings = (() => {
