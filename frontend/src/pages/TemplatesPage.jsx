@@ -87,7 +87,7 @@ const templateIconKeys = {
   school:'category-learning', reading:'category-learning', activity:'category-activity',
   creativity:'category-creativity', social:'category-family-communication',
   habits:'category-habits', family:'category-home', adult:'category-adult-tasks',
-  time:'category-screen-time', privilege:'category-privilege', items:'category-material-reward'
+  time:'category-screen-time', games:'category-video-games', privilege:'category-privilege', items:'category-material-reward'
 }
 const iconKeyForTemplate = item => {
   let definition = item?.definition
