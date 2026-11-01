@@ -72,6 +72,7 @@ fun TemplateLibrarySection(
     var creationDraft by remember(accountId, workspaceId) { mutableStateOf<com.google.gson.JsonObject?>(null) }
     var activationText by remember(accountId, workspaceId) { mutableStateOf("") }
     var activationConfirm by remember(accountId, workspaceId) { mutableStateOf(false) }
+    var activationAdvanced by remember(accountId, workspaceId) { mutableStateOf(false) }
     var pendingActivation by remember(accountId, workspaceId) {
         mutableStateOf(pendingStore.pending(accountId, workspaceId)
             .filter { it.kind in setOf("TASK", "REWARD") })
@@ -704,7 +705,19 @@ fun TemplateLibrarySection(
                         "REWARD" -> "MANAGE_REWARDS" in activationPermissions
                         else -> false
                     }
-                    OutlinedTextField(
+                    ActivationRequestFieldsEditor(
+                        language = language,
+                        kind = draftKind.orEmpty(),
+                        jsonText = activationText,
+                        enabled = !busy && allowedToActivate,
+                        onChange = { activationText = it }
+                    )
+                    TextButton(onClick = { activationAdvanced = !activationAdvanced }) {
+                        Text(if (activationAdvanced)
+                            tl(language, "Сховати JSON", "JSON verbergen", "Hide JSON", "Скрыть JSON")
+                        else tl(language, "Розширений JSON", "Erweiterter JSON", "Advanced JSON", "Расширенный JSON"))
+                    }
+                    if (activationAdvanced) OutlinedTextField(
                         value = activationText,
                         onValueChange = { activationText = it.take(30000) },
                         enabled = !busy && allowedToActivate,
@@ -723,7 +736,7 @@ fun TemplateLibrarySection(
                     }
                     val activationReady = allowedToActivate && draftId != null &&
                         reviewedActivation != null && reviewedActivation.entrySet().isNotEmpty() &&
-                        reviewedActivation.entrySet().none { it.value == null || it.value.isJsonNull } &&
+                        reviewedActivation.entrySet().all { it.value != null } &&
                         pendingActivation.none { it.templateId == draftId && it.kind == draftKind }
                     if (pendingActivation.isNotEmpty()) {
                         Text(tl(language,
