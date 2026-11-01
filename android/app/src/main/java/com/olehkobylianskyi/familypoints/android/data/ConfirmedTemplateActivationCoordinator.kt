@@ -62,12 +62,14 @@ class ConfirmedTemplateActivationCoordinator(
         return try {
             val receipt = receipts.activateConfirmed(workspaceId, templateId, kind, operation,
                 JsonParser.parseString(cipher.decrypt(entry.payload)).asJsonObject)
+            check(tokens.getAccessToken() == token) { "Account changed during activation" }
             // A successful POST alone does not authorize showing success after
             // a concurrent family reset or workspace generation change.
             val verified = ApiClient.workspaceEpochApi.getEpoch("Bearer $token", workspaceId)
             check(verified.workspaceId == workspaceId && verified.dataEpoch >= 0) {
                 "Workspace epoch unavailable after activation"
             }
+            check(tokens.getAccessToken() == token) { "Account changed during epoch verification" }
             if (verified.dataEpoch != entry.epoch) {
                 store.transition(entry, "HELD", verified.dataEpoch)
                 Result.Uncertain(operation)
