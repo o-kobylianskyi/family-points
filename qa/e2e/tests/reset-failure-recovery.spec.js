@@ -16,6 +16,19 @@ test.describe('BKL-002 read-only error recovery', () => {
     if (new URL(page.url()).pathname === '/choose-family') {
       throw new Error('QA family must be selected explicitly')
     }
+    await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    const panel = page.locator('.family-reset-readiness')
+    const permitted = await panel.isVisible().catch(() => false)
+    if (!permitted) {
+      const snapshot = await page.evaluate(() => ({
+        pathname: location.pathname,
+        headings: Array.from(document.querySelectorAll('h1')).map(el => el.textContent?.trim()),
+        resetPanelCount: document.querySelectorAll('.family-reset-readiness').length,
+      }))
+      throw new Error('RESET_QA_PRECONDITION: Reset panel is absent for the authenticated QA session. ' +
+        'SettingsPage renders it only with MANAGE_WORKSPACE or ADMIN_OVERRIDE. ' +
+        'Check QA account role/permissions and selected family; no permissions were changed. ' + JSON.stringify(snapshot))
+    }
   })
 
   test('preview failure is fail-closed and Reload recovers', async ({ page }) => {
