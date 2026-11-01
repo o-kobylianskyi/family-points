@@ -1,0 +1,75 @@
+package com.olehkobylianskyi.familypoints.android.data
+
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import com.olehkobylianskyi.familypoints.android.network.ApiClient
+import com.olehkobylianskyi.familypoints.android.network.TemplateActivationReceiptDto
+import com.olehkobylianskyi.familypoints.android.storage.TemplateOperationCipher
+import com.olehkobylianskyi.familypoints.android.storage.TemplatePendingOperationStore
+import com.olehkobylianskyi.familypoints.android.storage.TokenStore
+import kotlinx.coroutines.CancellationException
+import java.util.UUID
+
+/**
+ * Explicit parent-confirmed online TASK/REWARD activation.
+ * UI must supply a fully reviewed server-compatible request and actual permissions.
+ * No offline enqueue, no automatic retry, no activation from catalog browsing.
+ */
+class ConfirmedTemplateActivationCoordinator(
+    private val tokens: TokenStore,
+    private val store: TemplatePendingOperationStore,
+    private val receipts: TemplateReceiptRepository,
+    private val cipher: TemplateOperationCipher
+) {
+    sealed class Result {
+        data class Confirmed(val receipt: TemplateActivationReceiptDto): Result()
+        data class Uncertain(val operationId: UUID): Result()
+        data class Blocked(val reason: String): Result()
+    }
+
+    suspend fun confirm(
+        accountId: Long, workspaceId: Long, templateId: Long, kind: String,
+        permissions: Set<String>, reviewedRequest: JsonObject
+    ): Result {
+        require(accountId > 0 && workspaceId > 0 && templateId > 0)
+        require(kind == "TASK" || kind == "REWARD")
+        val authorized = "ADMIN_OVERRIDE" in permissions ||
+            (kind == "TASK" && "CREATE_TASKS" in permissions) ||
+            (kind == "REWARD" && "MANAGE_REWARDS" in permissions)
+        if (!authorized) return Result.Blocked("Parent permission required")
+        if (reviewedRequest.entrySet().isEmpty()) return Result.Blocked("Review the full activation request first")
+        if (store.pending(accountId, workspaceId).any {
+                it.kind == kind && it.templateId == templateId
+            }) return Result.Blocked("Resolve previous activation receipt first")
+        val token = tokens.getAccessToken() ?: return Result.Blocked("Sign in before activation")
+        val epoch = try {
+            ApiClient.workspaceEpochApi.getEpoch("Bearer $token", workspaceId)
+        } catch (cancelled: CancellationException) { throw cancelled }
+          catch (_: Exception) { return Result.Blocked("Server epoch unavailable") }
+        if (epoch.workspaceId != workspaceId || epoch.dataEpoch < 0)
+            return Result.Blocked("Invalid workspace epoch")
+        val operation = UUID.randomUUID()
+        // Encrypt BEFORE storing. Never persist plaintext task/reward request.
+        val encrypted = cipher.encrypt(reviewedRequest.toString())
+        val entry = TemplatePendingOperationStore.Pending(
+            operation, accountId, workspaceId, epoch.dataEpoch,
+            kind, templateId, encrypted, "PREPARED"
+        )
+        try {
+            store.prepare(entry)
+        } catch (cancelled: CancellationException) { throw cancelled }
+          catch (_: IllegalStateException) { return Result.Blocked("Previous activation is pending") }
+        return try {
+            val receipt = receipts.activateConfirmed(workspaceId, templateId, kind, operation,
+                JsonParser.parseString(cipher.decrypt(entry.payload)).asJsonObject)
+            store.transition(entry, "CONFIRMED", epoch.dataEpoch)
+            Result.Confirmed(receipt)
+        } catch (cancelled: CancellationException) {
+            store.transition(entry, "UNCERTAIN", epoch.dataEpoch)
+            throw cancelled
+        } catch (_: Exception) {
+            store.transition(entry, "UNCERTAIN", epoch.dataEpoch)
+            Result.Uncertain(operation)
+        }
+    }
+}
