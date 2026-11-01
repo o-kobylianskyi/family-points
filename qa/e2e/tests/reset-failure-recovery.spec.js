@@ -20,6 +20,22 @@ async function mockPreview(page) {
 }
 
 
+
+async function diagnoseResetPage(page, label) {
+  const diagnostic = await page.evaluate(() => ({
+    pathname: location.pathname,
+    title: document.title,
+    headings: [...document.querySelectorAll('h1,h2')].map(node => node.textContent?.trim()).slice(0, 20),
+    panelCount: document.querySelectorAll('.family-reset-readiness').length,
+    panelText: document.querySelector('.family-reset-readiness')?.textContent?.slice(0, 1000) || null,
+    checkboxes: document.querySelectorAll('.family-reset-category input[type="checkbox"]').length,
+    alerts: [...document.querySelectorAll('[role="alert"]')].map(node => node.textContent?.trim()).slice(0, 5),
+    hasAccessToken: Boolean(localStorage.getItem('accessToken')),
+  }))
+  console.log('[RESET_QA_DIAGNOSTIC] ' + label + ': ' + JSON.stringify(diagnostic))
+  return diagnostic
+}
+
 test.describe('BKL-002 read-only error recovery', () => {
   test.skip(!username || !password, 'Requires isolated QA account credentials')
 
@@ -35,6 +51,12 @@ test.describe('BKL-002 read-only error recovery', () => {
     // Interception is installed inside each test BEFORE the first visit to Settings.
     // Do not pre-load the component and consume Preview in beforeEach.
     await page.goto('/templates', { waitUntil: 'domcontentloaded' })
+    page.on('pageerror', error => console.log('[RESET_QA_PAGEERROR]', error.message))
+    page.on('response', response => {
+      if (/\/data-reset\/preview(?:\?|$)/.test(new URL(response.url()).pathname)) {
+        console.log('[RESET_QA_PREVIEW_RESPONSE]', response.status(), response.url())
+      }
+    })
   })
 
   test('preview failure is fail-closed and Reload recovers', async ({ page }) => {
@@ -58,6 +80,7 @@ test.describe('BKL-002 read-only error recovery', () => {
     await page.goto('/settings', { waitUntil: 'domcontentloaded' })
     const panel = page.locator('.family-reset-readiness')
     await expect.poll(() => intercepted, { timeout: 12000 }).toBeGreaterThan(0)
+    await diagnoseResetPage(page, 'after intercepted preview')
     await expect(panel.locator('.error-message')).toBeVisible({ timeout: 12000 })
     await expect(panel.locator('.family-reset-category input[type="checkbox"]')).toHaveCount(0)
     recovering = true
@@ -92,6 +115,7 @@ test.describe('BKL-002 read-only error recovery', () => {
     })
     await page.goto('/settings', { waitUntil: 'domcontentloaded' })
     const panel = page.locator('.family-reset-readiness')
+    await diagnoseResetPage(page, 'before Plan selection')
     const first = panel.locator('.family-reset-category input[type="checkbox"]').first()
     await expect(first).toBeVisible({ timeout: 15000 })
     await first.check()
