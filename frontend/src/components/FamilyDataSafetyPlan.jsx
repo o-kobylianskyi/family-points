@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { listProtectiveBackups } from '../api/backupApi'
 import { useTranslation } from 'react-i18next'
 
 // Architecture 77d8d2d4: approved product matrix, NOT an executable reset/restore plan.
@@ -25,6 +27,23 @@ export default function FamilyDataSafetyPlan() {
   const language = i18n.language.split('-')[0]
   const w = dictionary[language] || dictionary.en
   const index = indexes[language] ?? 3
+  const { currentUser, getAccessToken } = useAuth()
+  const workspaceId = currentUser?.workspaceId
+  const canManage = currentUser?.permissions?.includes('MANAGE_WORKSPACE') || currentUser?.permissions?.includes('ADMIN_OVERRIDE')
+  const [backups,setBackups] = useState([])
+  const [backupError,setBackupError] = useState(false)
+  const [backupLoading,setBackupLoading] = useState(false)
+  const [reload,setReload] = useState(0)
+  useEffect(() => {
+    if (!workspaceId || !canManage) return
+    let alive = true
+    setBackupLoading(true); setBackupError(false); setBackups([])
+    listProtectiveBackups(getAccessToken(), workspaceId).then(result => {
+      if (alive) setBackups(result)
+    }).catch(() => { if (alive) setBackupError(true) })
+      .finally(() => { if (alive) setBackupLoading(false) })
+    return () => { alive = false }
+  }, [workspaceId, canManage, reload, getAccessToken])
   const [tab,setTab] = useState('reset')
   const [mode,setMode] = useState('selective')
   const [chosen,setChosen] = useState(() => entries.filter(x=>x[1]).map(x=>x[0]))
@@ -48,6 +67,20 @@ export default function FamilyDataSafetyPlan() {
       </div>
       <p>{w[11]}</p><p>{w[12]}</p>
     </> : <><p>{w[9]}</p><p>{w[13]}</p><p>{w[11]}</p></>}
+    <div>
+      <h3>{({uk:'Серверні резервні копії',ru:'Резервные копии на сервере',de:'Server-Sicherungen',en:'Server backup records'})[language] || 'Server backup records'}</h3>
+      <p>{({uk:'Це лише реєстр станів. Запис REQUESTED не означає наявність файлу або можливість відновлення.',ru:'Это только реестр статусов. REQUESTED не означает, что файл существует или доступен для восстановления.',de:'Nur Statusregister. REQUESTED bedeutet nicht, dass die Datei existiert oder wiederherstellbar ist.',en:'Metadata only. REQUESTED does not mean the file exists or can be restored.'})[language]}</p>
+      <button type="button" className="secondary-button" disabled={backupLoading} onClick={()=>setReload(v=>v+1)}>{({uk:'Оновити список',ru:'Обновить список',de:'Liste aktualisieren',en:'Refresh list'})[language]}</button>
+      {backupLoading && <p role="status">{({uk:'Завантаження…',ru:'Загрузка…',de:'Laden…',en:'Loading…'})[language]}</p>}
+      {backupError && <p role="alert">{({uk:'Не вдалося отримати реєстр резервних копій.',ru:'Не удалось загрузить реестр резервных копий.',de:'Sicherungsliste konnte nicht geladen werden.',en:'Could not load backup records.'})[language]}</p>}
+      {!backupLoading && !backupError && !backups.length && <p>{({uk:'Записів немає.',ru:'Записей нет.',de:'Keine Einträge.',en:'No records.'})[language]}</p>}
+      {backups.map(item => <div key={item.snapshotId} style={{padding:'8px 0',borderBottom:'1px solid var(--border-color, #7775)'}}>
+        <strong>{item.state === 'VERIFIED' && item.restoreVerified ? ({uk:'Перевірено',ru:'Проверено',de:'Verifiziert',en:'Verified'})[language] : item.state === 'EXPIRED' ? ({uk:'Термін минув',ru:'Срок истёк',de:'Abgelaufen',en:'Expired'})[language] : ({uk:'Не підтверджено',ru:'Не подтверждено',de:'Nicht bestätigt',en:'Unverified'})[language]}</strong>
+        <span> · {item.resetMode} · {item.snapshotId.slice(0,8)}</span>
+        <div>{item.createdAt ? new Date(item.createdAt).toLocaleString(language) : '—'} / {item.expiresAt ? new Date(item.expiresAt).toLocaleString(language) : '—'}</div>
+        <small>{item.state} · {item.selectedCategories?.length || 0} {({uk:'категорій',ru:'категорий',de:'Kategorien',en:'categories'})[language]}</small>
+      </div>)}
+    </div>
     <p>{w[10]}</p>
   </section>
 }
