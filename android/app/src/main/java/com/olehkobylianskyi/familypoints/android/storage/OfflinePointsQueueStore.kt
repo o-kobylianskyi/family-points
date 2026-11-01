@@ -227,12 +227,35 @@ class OfflinePointsQueueStore(context: Context) :
             items
         }
 
+    /**
+     * Acknowledgement and reset quarantine are serialized on the same SQLite
+     * writer. If dataEpoch changed while HTTP replay was in flight, retain the
+     * original UUID for review rather than silently deleting the operation.
+     */
     @Synchronized
-    fun confirm(operationId: String, workspaceId: Long, viewerId: Long, accountId: Long) {
-        writableDatabase.delete(
-            "pending_points",
-            "operation_id=? AND workspace_id=? AND viewer_id=? AND account_id=?",
-            arrayOf(operationId, workspaceId.toString(), viewerId.toString(), accountId.toString())
-        )
+    fun confirm(operationId: String, workspaceId: Long, viewerId: Long, accountId: Long): Boolean {
+        require(workspaceId > 0 && viewerId > 0 && accountId > 0)
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            val held = db.rawQuery(
+                "SELECT 1 FROM reset_holds WHERE workspace_id=? LIMIT 1",
+                arrayOf(workspaceId.toString())
+            ).use { it.moveToFirst() }
+            if (held) {
+                db.setTransactionSuccessful()
+                return false
+            }
+            val removed = db.delete(
+                "pending_points",
+                "operation_id=? AND workspace_id=? AND viewer_id=? AND account_id=?",
+                arrayOf(operationId, workspaceId.toString(), viewerId.toString(), accountId.toString())
+            )
+            check(removed in 0..1) { "Duplicate offline operation UUID" }
+            db.setTransactionSuccessful()
+            return removed == 1
+        } finally {
+            db.endTransaction()
+        }
     }
 }
