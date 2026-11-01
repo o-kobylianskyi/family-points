@@ -278,6 +278,7 @@ export default function FamilySetupPage() {
           <span><strong>{typeof item.title === 'string' ? item.title : nameOf(item, lang)}</strong>
             <small>{item.kind === 'TASK' ? t[7] : t[8]} · {item.catalogCode || ''}</small>
             <Link to={`/templates?edit=${encodeURIComponent(item.id)}`}>{({uk:'Редагувати шаблон',ru:'Редактировать шаблон',de:'Vorlage bearbeiten',en:'Edit template'})[lang]}</Link>
+            {item.kind === 'TASK' && <Link to={`/tasks?create=1&template=${encodeURIComponent(item.id)}`}>{({uk:'Створити завдання з цього шаблону',ru:'Создать задачу из этого шаблона',de:'Aufgabe aus dieser Vorlage erstellen',en:'Create task from this template'})[lang]}</Link>}
             {item.kind === 'REWARD' && <Link to={`/rewards?createFromTemplate=${encodeURIComponent(item.id)}`}>{({uk:'Створити нагороду з цього шаблону',ru:'Создать награду из этого шаблона',de:'Belohnung aus dieser Vorlage erstellen',en:'Create reward from this template'})[lang]}</Link>}
           </span>
         </div>)}
