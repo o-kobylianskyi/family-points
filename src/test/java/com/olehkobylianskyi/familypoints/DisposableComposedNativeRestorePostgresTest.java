@@ -54,6 +54,21 @@ class DisposableComposedNativeRestorePostgresTest {
                 UUID.randomUUID(),0L,List.of("MEMBER_GROUPS"),"V50",key)).encryptedFile();
         byte[] media=tx.execute(status->exporter.export(source,UUID.randomUUID(),
                 UUID.randomUUID(),0L,List.of("MEDIA_ASSETS","MEDIA_BINDINGS"),"V50",key)).encryptedFile();
+        byte[] unified=tx.execute(status->exporter.export(source,UUID.randomUUID(),
+                UUID.randomUUID(),0L,
+                List.of("MEMBER_GROUPS","MEDIA_ASSETS","MEDIA_BINDINGS"),"V50",key))
+                .encryptedFile();
+        var unifiedProof=inspector.inspect(unified,source,key);
+        assertEquals(1,unifiedProof.counts().get("MEMBER_GROUPS"));
+        assertEquals(1,unifiedProof.counts().get("MEDIA_ASSETS"));
+        assertEquals(1,unifiedProof.counts().get("MEDIA_BINDINGS"));
+        var decoded=portable.decode(unified);
+        byte[] unifiedPlain=codec.open(decoded,decoded.manifest().snapshotId(),source,key);
+        try {
+            var categories=new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readTree(unifiedPlain).path("categories");
+            assertEquals(3,categories.size());
+        } finally {Arrays.fill(unifiedPlain,(byte)0);}
         var groupEngine=new DisposableNativeRestoreExecutor(db,manager,portable,codec,inspector);
         var mediaEngine=new DisposablePrivateMediaRestoreExecutor(db,manager,inspector,portable,codec);
         var restored=tx.execute(status->{
