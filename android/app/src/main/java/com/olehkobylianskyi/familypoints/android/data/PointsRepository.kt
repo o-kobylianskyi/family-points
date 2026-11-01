@@ -75,6 +75,7 @@ class PointsRepository(
             if (ServerReachability.status.value != ServerStatus.ONLINE) return 0
             val owner = accountId?.takeIf { it > 0 } ?: return 0
             val auth = authorization()
+            val sessionToken = auth.removePrefix("Bearer ")
             // Never accept an owner identifier supplied only from a stale offline profile.
             // Verify account + workspace + member against the current authenticated backend.
             val verified = ApiClient.authApi.getCurrentUser(auth)
@@ -87,7 +88,7 @@ class PointsRepository(
             if (epoch.workspaceId != workspaceId || epoch.dataEpoch < 0L) {
                 throw SecurityException("Invalid workspace data epoch")
             }
-            if (tokenStore.getAccessToken() != auth.removePrefix("Bearer ")) return 0
+            if (!OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) return 0
             if (!queue.observeEpoch(workspaceId, epoch.dataEpoch)) return 0
             var confirmed = 0
             val affectedMembers = mutableSetOf<Long>()
@@ -96,13 +97,13 @@ class PointsRepository(
             var replayDenial: HttpException? = null
             for (entry in queue.pending(workspaceId, viewerId, owner)) {
             if (queue.isHeldForReset(workspaceId)) break
-            if (tokenStore.getAccessToken() != auth.removePrefix("Bearer ")) break
+            if (!OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) break
             try {
                 ApiClient.pointsApi.replayOffline(
                     auth, epoch.dataEpoch, workspaceId, entry.memberId, entry.type,
                     OfflinePointOperationRequest(entry.operationId, entry.pointTypeId, entry.amount, entry.description)
                 )
-                if (tokenStore.getAccessToken() != auth.removePrefix("Bearer ")) break
+                if (!OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) break
                 queue.confirm(entry.operationId, workspaceId, viewerId, owner)
                 confirmed++
                 affectedMembers.add(entry.memberId)
@@ -116,9 +117,11 @@ class PointsRepository(
                     // any pending operation; the next sync must reauthenticate.
                     try {
                         val latest = ApiClient.workspaceEpochApi.getEpoch(auth, workspaceId)
-                        if (latest.workspaceId != workspaceId || latest.dataEpoch < 0L) {
-                            queue.holdForReset(workspaceId)
-                        } else if (latest.dataEpoch != epoch.dataEpoch) {
+                        if (!OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) break
+                        if (OfflineReplaySessionGate.canQuarantine(
+                                sessionToken, tokenStore.getAccessToken(), workspaceId,
+                                latest.workspaceId, epoch.dataEpoch, latest.dataEpoch
+                            )) {
                             queue.observeEpoch(workspaceId, latest.dataEpoch)
                             queue.holdForReset(workspaceId)
                         }
@@ -133,8 +136,10 @@ class PointsRepository(
             }
             }
             for (memberId in affectedMembers) {
+                if (!OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) break
                 try {
                     val fresh = ApiClient.pointsApi.getBalance(auth, workspaceId, memberId)
+                    if (!OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) break
                     offlineStore.save(workspaceId, memberId, fresh.balance)
                 } catch (_: Exception) {
                     // Idempotent point operation was confirmed. Keep last snapshot
