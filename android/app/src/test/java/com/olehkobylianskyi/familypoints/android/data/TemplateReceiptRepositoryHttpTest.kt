@@ -93,4 +93,38 @@ class TemplateReceiptRepositoryHttpTest {
         assertEquals("GET", get.method)
         assertEquals(2, server.requestCount)
     }
+    @Test fun switchedLoginBeforeDispatchCannotSendPreparedActivation() = runBlocking {
+        var token = "account-b"
+        val client = OkHttpClient.Builder().retryOnConnectionFailure(false).build()
+        val api = Retrofit.Builder().baseUrl(server.url("/")).client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build().create(TemplateReceiptApi::class.java)
+        val guarded = TemplateReceiptRepository({ token }, api)
+        val operation = UUID.randomUUID()
+        try {
+            guarded.activateConfirmed(31, 19, "TASK", operation,
+                JsonParser.parseString("""{"name":"test"}""").asJsonObject,
+                expectedAccessToken = "account-a")
+            fail("A prepared operation must not use another account's token")
+        } catch (_: IllegalStateException) { }
+        assertEquals(0, server.requestCount)
+        token = "account-a"
+    }
+
+    @Test fun pinnedCredentialsUseOriginalAccountAuthorization() = runBlocking {
+        val id = UUID.randomUUID()
+        server.enqueue(MockResponse().setResponseCode(200)
+            .setHeader("Content-Type", "application/json")
+            .setBody("""{"operationId":"$id","templateId":19,"kind":"TASK","createdDefinitionId":77,"replayed":false}"""))
+        val result = repository.activateConfirmed(31, 19, "TASK", id,
+            JsonParser.parseString("""{"name":"test"}""").asJsonObject,
+            expectedAccessToken = "synthetic-token")
+        assertEquals(id.toString(), result.operationId)
+        val request = server.takeRequest(2, TimeUnit.SECONDS)!!
+        assertEquals("Bearer synthetic-token", request.getHeader("Authorization"))
+        assertEquals(id.toString(), request.getHeader("Idempotency-Key"))
+        assertEquals(1, server.requestCount)
+    }
+
+
 }
