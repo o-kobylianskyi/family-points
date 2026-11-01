@@ -24,6 +24,14 @@ public class WorkspaceProtectiveBackupController {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore())
                 .body(backups.request(workspaceId,current.getCurrentMemberId(),request));
     }
+    @GetMapping
+    public ResponseEntity<java.util.List<WorkspaceProtectiveBackupService.Backup>> list(
+            @PathVariable Long workspaceId,
+            @RequestParam(defaultValue="25") int limit) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(backups.list(workspaceId,limit));
+    }
+
     @GetMapping("/{snapshotId}")
     public ResponseEntity<WorkspaceProtectiveBackupService.Backup> get(
             @PathVariable Long workspaceId,@PathVariable UUID snapshotId) {
