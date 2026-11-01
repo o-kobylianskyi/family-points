@@ -39,7 +39,7 @@ export default function FamilyDataSafetyPlan() {
   const [backupLoading,setBackupLoading] = useState(false)
   const [reload,setReload] = useState(0)
   useEffect(() => {
-    setBackups([]); setDetails(null); setSelectedSnapshot(null); setBackupError(false); setBackupLoading(false)
+    setBackups([]); setDetails(null); setSelectedSnapshot(null); setBackupError(false); setBackupLoading(false); setDetailBusy(false); setDetailError(false)
     if (!workspaceId || !canManage) return
     let alive = true
     setBackupLoading(true); setBackupError(false); setBackups([]); setDetails(null); setSelectedSnapshot(null); setDetailError(false)
@@ -48,7 +48,8 @@ export default function FamilyDataSafetyPlan() {
     }).catch(() => { if (alive) setBackupError(true) })
       .finally(() => { if (alive) setBackupLoading(false) })
     return () => { alive = false }
-  }, [workspaceId, canManage, reload, getAccessToken])
+  // AuthProvider supplies a new getAccessToken function on render; do not refetch forever.
+  }, [workspaceId, canManage, reload])
   useEffect(() => {
     if (!canManage || !workspaceId || !selectedSnapshot) return
     let active = true
@@ -58,7 +59,7 @@ export default function FamilyDataSafetyPlan() {
       .catch(() => { if (active) setDetailError(true) })
       .finally(() => { if (active) setDetailBusy(false) })
     return () => { active = false }
-  }, [canManage,workspaceId,selectedSnapshot,getAccessToken])
+  }, [canManage,workspaceId,selectedSnapshot])
   const [tab,setTab] = useState('reset')
   const [mode,setMode] = useState('selective')
   const [chosen,setChosen] = useState(() => entries.filter(x=>x[1]).map(x=>x[0]))
@@ -116,7 +117,7 @@ export default function FamilyDataSafetyPlan() {
       {backupError && <p role="alert">{({uk:'Не вдалося отримати реєстр резервних копій.',ru:'Не удалось загрузить реестр резервных копий.',de:'Sicherungsliste konnte nicht geladen werden.',en:'Could not load backup records.'})[language]}</p>}
       {!backupLoading && !backupError && !backups.length && <p>{({uk:'Записів немає.',ru:'Записей нет.',de:'Keine Einträge.',en:'No records.'})[language]}</p>}
       {backups.map(item => <div key={item.snapshotId} style={{padding:'8px 0',borderBottom:'1px solid var(--border-color, #7775)'}}>
-        <strong>{item.state === 'VERIFIED' && item.restoreVerified ? ({uk:'Перевірено',ru:'Проверено',de:'Verifiziert',en:'Verified'})[language] : item.state === 'EXPIRED' ? ({uk:'Термін минув',ru:'Срок истёк',de:'Abgelaufen',en:'Expired'})[language] : ({uk:'Не підтверджено',ru:'Не подтверждено',de:'Nicht bestätigt',en:'Unverified'})[language]}</strong>
+        <strong>{item.state === 'VERIFIED' && item.restoreVerified && item.executable ? ({uk:'Перевірено',ru:'Проверено',de:'Verifiziert',en:'Verified'})[language] : item.state === 'EXPIRED' ? ({uk:'Термін минув',ru:'Срок истёк',de:'Abgelaufen',en:'Expired'})[language] : ({uk:'Не підтверджено',ru:'Не подтверждено',de:'Nicht bestätigt',en:'Unverified'})[language]}</strong>
         <span> · {item.resetMode} · {item.snapshotId.slice(0,8)}</span>
         <div>{item.createdAt ? new Date(item.createdAt).toLocaleString(language) : '—'} / {item.expiresAt ? new Date(item.expiresAt).toLocaleString(language) : '—'}</div>
         <small>{item.state} · {item.selectedCategories?.length || 0} {({uk:'категорій',ru:'категорий',de:'Kategorien',en:'categories'})[language]}</small>
