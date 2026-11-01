@@ -1,3 +1,4 @@
+import { openResetPlanning } from './family-data-qa-helpers.js'
 import { test, expect } from '@playwright/test'
 
 // Validation-only request: an unknown category must never create a reset plan,
@@ -25,13 +26,12 @@ test('reset plan rejects unknown category without destructive API calls', async 
     throw new Error('Select a disposable QA family explicitly before running this test.')
   }
 
-  const [preview] = await Promise.all([
-    page.waitForResponse(response =>
-      /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(response.url()).pathname),
-      { timeout: 15000 }
-    ),
-    page.goto('/settings', { waitUntil: 'domcontentloaded' }),
-  ])
+  await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+  const previewPromise = page.waitForResponse(response =>
+    /\/workspaces\/\d+\/data-reset\/preview$/.test(new URL(response.url()).pathname),
+    { timeout: 15000 })
+  await openResetPlanning(page)
+  const preview = await previewPromise
   expect(preview.status()).toBe(200)
   const match = new URL(preview.url()).pathname.match(/\/workspaces\/(\d+)\//)
   expect(match).not.toBeNull()
