@@ -26,6 +26,7 @@ class TemplateCategoryIconTest {
             "family" to "category-home",
             "adult" to "category-adult-tasks",
             "time" to "category-screen-time",
+            "games" to "category-video-games",
             "privilege" to "category-privilege",
             "items" to "category-material-reward"
         )
