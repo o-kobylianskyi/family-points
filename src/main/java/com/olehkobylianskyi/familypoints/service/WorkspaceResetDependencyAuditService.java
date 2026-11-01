@@ -29,6 +29,63 @@ public class WorkspaceResetDependencyAuditService {
                         boolean dependenciesApproved, List<String> protectedTables,
                         List<ForeignKey> foreignKeys, List<String> blockers) {}
 
+    /**
+     * Conservative category-scoped preflight. A report is NEVER an execution
+     * authorization: unknown and protected categories fail closed.
+     */
+    public record SelectionAudit(long workspaceId, java.util.List<String> selectedCategories,
+            boolean executable, java.util.List<String> blockers,
+            java.util.List<ForeignKey> relevantForeignKeys) {}
+
+    private static final java.util.Map<String,java.util.Set<String>> CATEGORY_TABLES=java.util.Map.ofEntries(
+            java.util.Map.entry("PRIVATE_TEMPLATES",java.util.Set.of("workspace_private_templates")),
+            java.util.Map.entry("TASK_DEFINITIONS",java.util.Set.of("task_definitions")),
+            java.util.Map.entry("TASK_EXECUTIONS",java.util.Set.of("task_instances")),
+            java.util.Map.entry("TASK_SCHEDULE_SLOTS",java.util.Set.of("task_schedule_slots")),
+            java.util.Map.entry("REWARD_DEFINITIONS",java.util.Set.of("reward_definitions")),
+            java.util.Map.entry("REWARD_REQUESTS",java.util.Set.of("reward_requests")),
+            java.util.Map.entry("REWARD_PURCHASES",java.util.Set.of("reward_purchases")),
+            java.util.Map.entry("MEMBER_GROUPS",java.util.Set.of("member_groups")),
+            java.util.Map.entry("WORK_NODES",java.util.Set.of("work_nodes")),
+            java.util.Map.entry("MEDIA_ASSETS",java.util.Set.of("media_assets")),
+            java.util.Map.entry("MEDIA_BINDINGS",java.util.Set.of("media_bindings")),
+            java.util.Map.entry("POINT_LEDGER",java.util.Set.of("point_transactions")),
+            java.util.Map.entry("REPUTATION_LEDGER",java.util.Set.of("reputation_transactions")));
+
+    @Transactional(readOnly=true)
+    public SelectionAudit inspectSelection(long workspaceId, java.util.Collection<String> categories) {
+        if(categories==null || categories.isEmpty() || categories.stream().anyMatch(java.util.Objects::isNull)
+                || !CATEGORY_TABLES.keySet().containsAll(categories))
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,"Invalid category selection");
+        var selected=categories.stream().distinct().sorted().toList();
+        var audit=audit(workspaceId);
+        var tables=new java.util.TreeSet<String>();
+        selected.forEach(category->tables.addAll(CATEGORY_TABLES.get(category)));
+        var blockers=new java.util.TreeSet<String>(audit.blockers());
+        for(var category:selected) {
+            if(category.endsWith("_LEDGER"))blockers.add("PROTECTED_LEDGER:"+category);
+        }
+        var edges=new java.util.ArrayList<ForeignKey>();
+        for(var fk:audit.foreignKeys()) {
+            if(!tables.contains(fk.referencedTable()))continue;
+            edges.add(fk);
+            if(!tables.contains(fk.dependentTable()))
+                blockers.add("EXTERNAL_FK_DEPENDENCY:"+fk.dependentTable()+"."+fk.constraintName());
+            if(PROTECTED.contains(fk.dependentTable()))
+                blockers.add("PROTECTED_DEPENDENT:"+fk.dependentTable()+"."+fk.constraintName());
+        }
+        if(selected.contains("TASK_DEFINITIONS") &&
+                (!selected.contains("TASK_EXECUTIONS") || !selected.contains("TASK_SCHEDULE_SLOTS")))
+            blockers.add("TASK_DEFINITIONS_REQUIRES_EXECUTIONS_AND_SLOTS");
+        if(selected.contains("REWARD_DEFINITIONS") &&
+                (!selected.contains("REWARD_REQUESTS") || !selected.contains("REWARD_PURCHASES")))
+            blockers.add("REWARD_DEFINITIONS_REQUIRES_REQUESTS_AND_PURCHASES");
+        if(selected.contains("MEDIA_ASSETS")&&!selected.contains("MEDIA_BINDINGS"))
+            blockers.add("MEDIA_ASSETS_REQUIRES_BINDINGS");
+        return new SelectionAudit(workspaceId,selected,false,java.util.List.copyOf(blockers),java.util.List.copyOf(edges));
+    }
+
     @Transactional(readOnly=true)
     public Audit audit(long workspaceId) {
         Integer exists=db.queryForObject("SELECT count(*) FROM families WHERE id=?",
