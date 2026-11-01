@@ -120,6 +120,41 @@ class WorkspaceSetupFullCatalogPostgresTest {
         assertEquals(0L,count(f,"workspace_setup_finalize_receipts",f.family));
     }
 
+
+    @Test void staleEpochBlocksFinalizeBeforeAnyImportOrReceipt() {
+        var f=fixture();
+        long revision=0;
+        for(var step:WorkspaceSetupService.STEPS) {
+            final long expected=revision;
+            revision=Objects.requireNonNull(f.tx.execute(s->f.setup.setStep(f.family,step,
+                    new WorkspaceSetupService.StepRequest("COMPLETE",expected)))).revision();
+        }
+        var selected=List.of(new TemplateCatalogService().getCatalog().path("templates").get(0).path("code").asText());
+        f.db.update("UPDATE families SET data_epoch=1 WHERE id=?",f.family);
+        final long expected=revision;
+        assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,
+                ()->f.tx.execute(s->f.finalizeService.finalizeWizard(f.family,UUID.randomUUID(),
+                        new WorkspaceSetupFinalizeService.Request(expected,selected)))).getStatusCode());
+        assertEquals(0L,count(f,"workspace_private_templates",f.family));
+        assertEquals(0L,count(f,"workspace_template_import_receipts",f.family));
+        assertEquals(0L,count(f,"workspace_setup_finalize_receipts",f.family));
+        assertEquals("NOT_STARTED",f.setup.current(f.unrelated).status());
+    }
+
+    @Test void legacyFamilyWithoutWizardCannotFinalizeOrImport() {
+        var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
+        var db=new JdbcTemplate(ds);
+        // This fixture uses an existing migrated disposable container. An old-style
+        // family can be modeled by deleting only its setup metadata in this test DB.
+        var f=fixture();
+        f.db.update("DELETE FROM workspace_setup_states WHERE workspace_id=?",f.family);
+        assertEquals(HttpStatus.NOT_FOUND,assertThrows(ResponseStatusException.class,
+                ()->f.tx.execute(s->f.finalizeService.finalizeWizard(f.family,UUID.randomUUID(),
+                        new WorkspaceSetupFinalizeService.Request(0L,List.of())))).getStatusCode());
+        assertEquals(0L,count(f,"workspace_private_templates",f.family));
+        assertEquals(0L,count(f,"workspace_setup_finalize_receipts",f.family));
+    }
+
     private static long count(Fixture f,String table,long family) {
         // Table names are fixed test literals only.
         if(!Set.of("workspace_private_templates","workspace_template_import_receipts",
