@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><g stroke-linecap="round" stroke-linejoin="round"><path d="M32 55C9 38 5 28 12 17q10-14 20 1 12-15 22-1 10 17-22 38Z" fill="#fc5867"/><path d="M17 23q4-8 11-6" stroke="#ffd6db" stroke-width="5"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <!-- Toothbrush: hygiene rather than emotional care -->
+    <path d="M17 10v17c0 7 4 11 10 11s10-4 10-11V10" fill="#e4f8ff" stroke="#2c718d" stroke-width="2.5"/>
+    <path d="M20 10v13M25 10v13M30 10v13M35 10v13" stroke="#41b9d8" stroke-width="3.5"/>
+    <path d="M27 38v16" stroke="#2c718d" stroke-width="7"/>
+    <path d="M27 39v14" stroke="#85d6e8" stroke-width="4"/>
+    <!-- Water droplet -->
+    <path d="M48 23C46 28 40 34 40 40a9 9 0 0 0 18 0c0-6-6-12-10-17Z" fill="#49b9e6" stroke="#236a9d" stroke-width="2"/>
+    <path d="M44 40a4 4 0 0 0 4 4" fill="none" stroke="#d8f7ff" stroke-width="2.5"/>
+  </g>
+</svg>
