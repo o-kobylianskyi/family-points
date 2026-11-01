@@ -1,3 +1,4 @@
+import { openResetPlanning } from './family-data-qa-helpers.js'
 import { test, expect } from '@playwright/test'
 
 const username = process.env.FP_QA_USERNAME || process.env.FP_QA_EMAIL
@@ -77,6 +78,7 @@ test.describe('BKL-002 read-only error recovery', () => {
       }
     })
     await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    await openResetPlanning(page)
     const panel = page.locator('.family-reset-readiness')
     await expect.poll(() => intercepted, { timeout: 12000 }).toBeGreaterThan(0)
     await diagnoseResetPage(page, 'after intercepted preview')
@@ -113,6 +115,7 @@ test.describe('BKL-002 read-only error recovery', () => {
       })
     })
     await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    await openResetPlanning(page)
     const panel = page.locator('.family-reset-readiness')
     await diagnoseResetPage(page, 'before Plan selection')
     const first = panel.locator('.family-reset-category input[type="checkbox"]').first()
@@ -158,6 +161,7 @@ test.describe('BKL-002 read-only error recovery', () => {
     })
     try {
       await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    await openResetPlanning(page)
       const panel = page.locator('.family-reset-readiness')
       const checkbox = panel.locator('.family-reset-category input[type="checkbox"]').first()
       await expect(checkbox).toBeVisible({ timeout: 15000 })
@@ -174,6 +178,7 @@ test.describe('BKL-002 read-only error recovery', () => {
       await page.goto('/points', { waitUntil: 'domcontentloaded' })
       finishResponse()
       await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    await openResetPlanning(page)
       const nextPanel = page.locator('.family-reset-readiness')
       await expect(nextPanel.locator('.family-reset-category input[type="checkbox"]').first())
         .toBeVisible({ timeout: 15000 })
@@ -214,10 +219,12 @@ test.describe('BKL-002 read-only error recovery', () => {
     })
     try {
       await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    await openResetPlanning(page)
       await arrived
       await page.goto('/points', { waitUntil: 'domcontentloaded' })
       release()
       await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+    await openResetPlanning(page)
       const panel = page.locator('.family-reset-readiness')
       await expect(panel.locator('.family-reset-category input[type="checkbox"]').first())
         .toBeVisible({ timeout: 15000 })
