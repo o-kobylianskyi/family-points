@@ -64,7 +64,7 @@ class OfflinePointsReplayHttpTest {
     }
     @Test fun lostResponseKeepsOriginalIdForExplicitIdempotentReconciliation() = runBlocking {
         val id = UUID.randomUUID().toString()
-        server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST))
+        server.enqueue(MockResponse().setResponseCode(409).setHeadersDelay(3, TimeUnit.SECONDS))
         server.enqueue(MockResponse().setResponseCode(409))
         val request = OfflinePointOperationRequest(id, 1L, 3, null)
         try {
