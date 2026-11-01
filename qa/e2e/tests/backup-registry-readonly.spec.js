@@ -1,3 +1,4 @@
+import { backupRow, openRestorePlanning } from './family-data-qa-helpers.js'
 import { test, expect } from '@playwright/test'
 
 const username = process.env.FP_QA_USERNAME || process.env.FP_QA_EMAIL
@@ -34,9 +35,9 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
       return route.fulfill({
         status: 200, contentType: 'application/json',
         body: JSON.stringify([
-          { workspaceId:id,snapshotId:'11111111-1111-4111-8111-111111111111',state:'REQUESTED',resetMode:'SELECTIVE',restoreVerified:false,selectedCategories:['PRIVATE_TEMPLATES'] },
-          { workspaceId:id,snapshotId:'22222222-2222-4222-8222-222222222222',state:'VERIFIED',resetMode:'FULL',restoreVerified:true,selectedCategories:['TASK_DEFINITIONS'] },
-          { workspaceId:id,snapshotId:'33333333-3333-4333-8333-333333333333',state:'EXPIRED',resetMode:'FULL',restoreVerified:false,selectedCategories:[] },
+          backupRow(id,'11111111-1111-4111-8111-111111111111',{selectedCategories:['PRIVATE_TEMPLATES']}),
+          backupRow(id,'22222222-2222-4222-8222-222222222222',{state:'VERIFIED',resetMode:'FULL',restoreVerified:true,selectedCategories:['TASK_DEFINITIONS']}),
+          backupRow(id,'33333333-3333-4333-8333-333333333333',{state:'EXPIRED',resetMode:'FULL'}),
         ])
       })
     })
@@ -48,10 +49,10 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
     await expect(panel.getByText('33333333', { exact:false })).toBeVisible()
     // REQUESTED must never be presented as recoverable merely because it is a row.
     await expect(panel.getByText(/Metadata only|лише реєстр|только реестр|Statusregister/)).toBeVisible()
-    await expect(panel.getByText('Verified', { exact: true })).toHaveCount(1)
+    await expect(panel.getByText(/Registry verified|Перевірено в реєстрі|Проверено в реестре|Im Register bestätigt|Verifiziert|Verified/, { exact: false })).toHaveCount(1)
     await panel.getByRole('button', {name:/Refresh list|Оновити список|Обновить список|Liste aktualisieren/}).click()
     await expect.poll(() => loads).toBeGreaterThanOrEqual(2)
-    await panel.getByRole('button', {name:/Restore from file|Відновлення з файлу|Восстановление из файла|Aus Datei wiederherstellen/}).click()
+    await openRestorePlanning(page)
     await expect(panel.locator('input[type="file"]')).toHaveCount(0)
     expect(writes).toEqual([])
   })
