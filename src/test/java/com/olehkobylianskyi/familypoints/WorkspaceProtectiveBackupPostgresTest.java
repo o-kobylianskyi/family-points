@@ -58,6 +58,23 @@ class WorkspaceProtectiveBackupPostgresTest {
                 db.update("UPDATE workspace_protective_backups SET state='VERIFIED' WHERE snapshot_id=?",
                     first.snapshotId()));
         assertEquals("REQUESTED",backups.get(a,first.snapshotId()).state());
+        assertEquals(1,backups.list(a,25).size());
+        assertTrue(backups.list(b,25).isEmpty());
+        assertEquals(HttpStatus.BAD_REQUEST,assertThrows(ResponseStatusException.class,
+                ()->backups.list(a,0)).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,assertThrows(ResponseStatusException.class,
+                ()->backups.list(a,101)).getStatusCode());
+        // Simulate a draft created 32 days ago, without altering protected real data.
+        db.update("""
+            UPDATE workspace_protective_backups
+            SET created_at=CURRENT_TIMESTAMP-INTERVAL '32 days',
+                expires_at=CURRENT_TIMESTAMP-INTERVAL '2 days'
+            WHERE snapshot_id=?
+            """,first.snapshotId());
+        assertEquals(1,backups.expireUnverifiedMetadata());
+        assertEquals(0,backups.expireUnverifiedMetadata());
+        assertEquals("EXPIRED",backups.get(a,first.snapshotId()).state());
+
         assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,a));
         assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,b));
     }
