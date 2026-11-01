@@ -43,10 +43,43 @@ export default function InitialFamilySetupReview() {
       if (value && String(value.workspaceId) === String(workspaceId) && String(value.accountId) === String(accountId) &&
           Number.isSafeInteger(value.epoch) && Number.isSafeInteger(value.revision) &&
           typeof value.operationId === 'string' && Array.isArray(value.codes)) setPending(value)
-    } catch { /* invalid scoped browser data is never replayed */ }
+      const shared = readShared()
+      if (shared && String(shared.workspaceId) === String(workspaceId) && String(shared.accountId) === String(accountId)) setPending(shared)
+      else if (shared) setPending({ blocked: true })
+    } catch { setPending({ blocked: true }) }
   }, [storageKey])
-  const persist = value => { if (sessionStorage.getItem(storageKey)) throw new Error('PENDING_SETUP_ALREADY_EXISTS'); sessionStorage.setItem(storageKey, JSON.stringify(value)); setPending(value) }
-  const clear = () => { sessionStorage.removeItem(storageKey); setPending(null) }
+  // Shared pending receipt marker coordinates tabs. Backend revision/epoch remain authoritative.
+  const sharedKey = storageKey ? storageKey + ':shared' : null
+  const readShared = () => {
+    try { return sharedKey ? JSON.parse(localStorage.getItem(sharedKey) || 'null') : null }
+    catch { return { blocked: true } } // fail closed on malformed shared state
+  }
+  const persist = value => {
+    if (sessionStorage.getItem(storageKey) || readShared()) throw new Error('PENDING_SETUP_ALREADY_EXISTS')
+    localStorage.setItem(sharedKey, JSON.stringify(value))
+    try { sessionStorage.setItem(storageKey, JSON.stringify(value)) }
+    catch (error) { localStorage.removeItem(sharedKey); throw error }
+    setPending(value)
+  }
+  const clear = () => {
+    // Never remove a pending record belonging to another tab's newer operation.
+    const shared = readShared()
+    if (shared?.operationId === pending?.operationId) localStorage.removeItem(sharedKey)
+    sessionStorage.removeItem(storageKey)
+    setPending(null)
+  }
+  useEffect(() => {
+    if (!sharedKey) return
+    const sync = event => {
+      if (event.key !== sharedKey) return
+      setConfirmed(false)
+      if (event.newValue) {
+        try { setPending(JSON.parse(event.newValue)) } catch { setPending({ blocked: true }) }
+      } else setPending(null)
+    }
+    window.addEventListener('storage', sync)
+    return () => window.removeEventListener('storage', sync)
+  }, [sharedKey])
   useEffect(() => {
     const id = ++seq.current
     setSetup(null); setCatalog([]); setPacks([]); setPack('ALL'); setSelected([]); setReview(null); setConfirmed(false); setError(false); setUnavailable(false)
@@ -95,7 +128,7 @@ export default function InitialFamilySetupReview() {
   }
   const finalize = async () => {
     if (!confirmed || pending || busy || !storageKey || !setup || !review ||
-        sessionStorage.getItem(storageKey) ||
+        sessionStorage.getItem(storageKey) || readShared() ||
         review.revision !== setup.revision || review.dataEpoch !== setup.dataEpoch ||
         setup.status === 'COMPLETED' || !window.crypto?.randomUUID ||
         !Object.values(setup.steps || {}).every(v => v === 'COMPLETE' || v === 'SKIPPED')) return
