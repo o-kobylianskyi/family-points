@@ -143,4 +143,45 @@ test.describe('BKL-002 read-only error recovery', () => {
     }
   })
 
+  test('late Preview cannot restore stale categories after leaving Settings', async ({ page }) => {
+    const forbidden = []
+    page.on('request', req => {
+      if (forbiddenPattern.test(new URL(req.url()).pathname)) forbidden.push(req.url())
+    })
+    let release
+    const unblock = new Promise(resolve => { release = resolve })
+    let started
+    const arrived = new Promise(resolve => { started = resolve })
+    let hits = 0
+    await page.route(/\/workspaces\/\d+\/data-reset\/preview(?:\?.*)?$/, async route => {
+      hits++
+      if (hits !== 1) { await route.continue(); return }
+      started()
+      await unblock
+      await route.fulfill({
+        status: 200, contentType: 'application/json',
+        body: JSON.stringify({
+          workspaceId: Number(new URL(route.request().url()).pathname.match(/\/workspaces\/(\d+)\//)[1]),
+          executionEnabled: false, completeDependencyPlan: false,
+          categories: { PRIVATE_TEMPLATES: { code: 'PRIVATE_TEMPLATES', recordCount: 999, executable: false } },
+        }),
+      }).catch(() => {}) // Navigation may cancel the abandoned request.
+    })
+    try {
+      await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+      await arrived
+      await page.goto('/templates', { waitUntil: 'domcontentloaded' })
+      release()
+      await page.goto('/settings', { waitUntil: 'domcontentloaded' })
+      const panel = page.locator('.family-reset-readiness')
+      await expect(panel.locator('.family-reset-category input[type="checkbox"]').first())
+        .toBeVisible({ timeout: 15000 })
+      // Current preview must come from the new request, not the abandoned sentinel.
+      await expect(panel.getByText('999', { exact: true })).toHaveCount(0)
+      await expect(panel.locator('.family-reset-category input[type="checkbox"]:checked')).toHaveCount(0)
+      expect(hits).toBeGreaterThanOrEqual(2)
+      expect(forbidden).toEqual([])
+    } finally { release() }
+  })
+
 })
