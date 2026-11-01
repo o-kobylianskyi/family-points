@@ -21,12 +21,13 @@ test.describe('BKL-002 read-only error recovery', () => {
   test('preview failure is fail-closed and Reload recovers', async ({ page }) => {
     const forbidden = []
     let intercepted = 0
+    let recovering = false
     page.on('request', req => {
       if (forbiddenPattern.test(new URL(req.url()).pathname)) forbidden.push(req.url())
     })
     await page.route(/\/workspaces\/\d+\/data-reset\/preview(?:\?.*)?$/, async route => {
       intercepted++
-      if (intercepted === 1) {
+      if (!recovering) {
         await route.fulfill({
           status: 503, contentType: 'application/json',
           body: JSON.stringify({ code: 'TEMPORARY_FAILURE' }),
@@ -39,6 +40,7 @@ test.describe('BKL-002 read-only error recovery', () => {
     const panel = page.locator('.family-reset-readiness')
     await expect(panel.locator('.error-message')).toBeVisible({ timeout: 12000 })
     await expect(panel.locator('.family-reset-category input[type="checkbox"]')).toHaveCount(0)
+    recovering = true
     await panel.getByRole('button', {
       name: /Reload|Завантажити знову|Обновить|Erneut laden/,
     }).click()
