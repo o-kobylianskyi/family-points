@@ -107,7 +107,7 @@ class PointsRepository(
                     OfflinePointOperationRequest(entry.operationId, entry.pointTypeId, entry.amount, entry.description)
                 )
                 if (!OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) break
-                queue.confirm(entry.operationId, workspaceId, viewerId, owner)
+                if (!queue.confirm(entry.operationId, workspaceId, viewerId, owner)) break
                 confirmed++
                 affectedMembers.add(entry.memberId)
             } catch (error: HttpException) {
