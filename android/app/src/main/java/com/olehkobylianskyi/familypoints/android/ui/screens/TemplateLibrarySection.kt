@@ -42,6 +42,9 @@ fun TemplateLibrarySection(
     val receiptRepository = remember(tokens) {
         com.olehkobylianskyi.familypoints.android.data.TemplateReceiptRepository(tokens)
     }
+    val finalizeCoordinator = remember(tokens, pendingStore) {
+        com.olehkobylianskyi.familypoints.android.data.ConfirmedSetupFinalizeCoordinator(tokens, pendingStore)
+    }
     val importCoordinator = remember(tokens, pendingStore, receiptRepository) {
         com.olehkobylianskyi.familypoints.android.data.ConfirmedTemplateImportCoordinator(tokens, pendingStore, receiptRepository)
     }
@@ -49,7 +52,7 @@ fun TemplateLibrarySection(
         com.olehkobylianskyi.familypoints.android.data.TemplateOperationRecovery(tokens, pendingStore, receiptRepository)
     }
     var pendingImports by remember(accountId, workspaceId) {
-        mutableStateOf(pendingStore.pending(accountId, workspaceId).filter { it.kind == "IMPORT" })
+        mutableStateOf(pendingStore.pending(accountId, workspaceId).filter { it.kind in setOf("IMPORT", "FINALIZE") })
     }
 
     var economy by remember(workspaceId) { mutableStateOf<TemplateEconomySuggestionsDto?>(null) }
@@ -79,6 +82,8 @@ fun TemplateLibrarySection(
     var previewCodes by remember(workspaceId) { mutableStateOf<List<String>>(emptyList()) }
     var setupReview by remember(workspaceId) { mutableStateOf<WorkspaceSetupReviewDto?>(null) }
     var setupReviewCodes by remember(workspaceId) { mutableStateOf<List<String>>(emptyList()) }
+    var setupCanFinalize by remember(accountId, workspaceId) { mutableStateOf(false) }
+    var showFinalizeConfirm by remember(accountId, workspaceId) { mutableStateOf(false) }
 
 
     fun failure(e: Exception) {
@@ -155,6 +160,7 @@ fun TemplateLibrarySection(
         if (canManage && !loading && catalogLoaded) {
             OutlinedButton(enabled = !busy, onClick = {
                 setupReview = null
+                setupCanFinalize = false
                 val ordered = catalog.map { it.code }.filter { it in selected }
                 setupReviewCodes = ordered
                 perform {
@@ -169,6 +175,11 @@ fun TemplateLibrarySection(
                         ordered == catalog.map { it.code }.filter { it in selected }) {
                         "Setup review changed; refresh before confirming"
                     }
+                    setupCanFinalize = state.status != "COMPLETED" &&
+                        listOf("MEMBERS", "MEMBER_GROUPS", "WORK_NODE_GROUPS", "CATALOG_SELECTION",
+                            "TASK_REVIEW", "REWARD_REVIEW", "FINAL_REVIEW").all {
+                            state.steps?.get(it) in listOf("COMPLETE", "SKIPPED")
+                        }
                     setupReview = review
                 }
             }) {
@@ -195,6 +206,62 @@ fun TemplateLibrarySection(
                     Text(tl(language, "Закрити", "Schließen", "Close", "Закрыть"))
                 } })
         }
+        if (canManage && setupCanFinalize && setupReview != null &&
+            setupReviewCodes == catalog.map { it.code }.filter { it in selected } &&
+            pendingImports.isEmpty()) {
+            OutlinedButton(enabled = !busy, onClick = { showFinalizeConfirm = true }) {
+                Text(tl(language, "Завершити налаштування та імпортувати",
+                    "Einrichtung abschließen und importieren",
+                    "Finalize setup and import", "Завершить настройку и импортировать"))
+            }
+        }
+        if (showFinalizeConfirm && setupReview != null) {
+            val reviewed = setupReview!!
+            AlertDialog(
+                onDismissRequest = { if (!busy) showFinalizeConfirm = false },
+                title = { Text(tl(language, "Завершити налаштування?",
+                    "Einrichtung abschließen?", "Finalize setup?", "Завершить настройку?")) },
+                text = { Text(tl(language,
+                    "Шаблони будуть імпортовані без активації завдань чи нагород.",
+                    "Vorlagen werden ohne Aktivierung importiert.",
+                    "Templates are imported without task or reward activation.",
+                    "Шаблоны импортируются без активации заданий и наград.")) },
+                confirmButton = {
+                    Button(enabled = !busy && pendingImports.isEmpty(), onClick = {
+                        val codes = setupReviewCodes.toList()
+                        showFinalizeConfirm = false
+                        perform {
+                            val state = com.olehkobylianskyi.familypoints.android.data.WorkspaceSetupRepository(tokens)
+                                .state(workspaceId)
+                            check(state.revision == reviewed.revision &&
+                                state.dataEpoch == reviewed.dataEpoch &&
+                                codes == catalog.map { it.code }.filter { it in selected }) {
+                                "Setup changed; review again"
+                            }
+                            when (val outcome = finalizeCoordinator.confirm(accountId, workspaceId, state.revision, codes)) {
+                                is com.olehkobylianskyi.familypoints.android.data.ConfirmedSetupFinalizeCoordinator.Result.Confirmed -> {
+                                    library = repository.privateTemplates(workspaceId)
+                                    setupReview = null
+                                    setupCanFinalize = false
+                                    notice = tl(language, "Налаштування завершено", "Einrichtung abgeschlossen",
+                                        "Setup completed", "Настройка завершена")
+                                }
+                                is com.olehkobylianskyi.familypoints.android.data.ConfirmedSetupFinalizeCoordinator.Result.Uncertain ->
+                                    notice = tl(language, "Перевірте квитанцію", "Beleg prüfen",
+                                        "Check receipt", "Проверьте квитанцию")
+                                is com.olehkobylianskyi.familypoints.android.data.ConfirmedSetupFinalizeCoordinator.Result.Blocked ->
+                                    error = outcome.reason
+                            }
+                            pendingImports = pendingStore.pending(accountId, workspaceId)
+                                .filter { it.kind in setOf("IMPORT", "FINALIZE") }
+                        }
+                    }) { Text(tl(language, "Підтвердити", "Bestätigen", "Confirm", "Подтвердить")) }
+                },
+                dismissButton = { TextButton(onClick = { showFinalizeConfirm = false }) {
+                    Text(tl(language, "Скасувати", "Abbrechen", "Cancel", "Отмена"))
+                } }
+            )
+        }
         if (canManage && pendingImports.isNotEmpty()) {
             Text(tl(language, "Є незавершений імпорт. Новий імпорт заблоковано до перевірки.",
                 "Ungeklärter Import. Neuer Import bis zur Prüfung gesperrt.",
@@ -203,7 +270,7 @@ fun TemplateLibrarySection(
             OutlinedButton(enabled = !busy, onClick = {
                 perform {
                     for (operation in pendingImports) recovery.check(accountId, workspaceId, operation)
-                    pendingImports = pendingStore.pending(accountId, workspaceId).filter { it.kind == "IMPORT" }
+                    pendingImports = pendingStore.pending(accountId, workspaceId).filter { it.kind in setOf("IMPORT", "FINALIZE") }
                     if (pendingImports.isEmpty()) library = repository.privateTemplates(workspaceId)
                     notice = if (pendingImports.isEmpty())
                         tl(language, "Квитанцію підтверджено", "Beleg bestätigt", "Receipt confirmed", "Квитанция подтверждена")
@@ -455,7 +522,7 @@ fun TemplateLibrarySection(
                                 is com.olehkobylianskyi.familypoints.android.data.ConfirmedTemplateImportCoordinator.Result.Blocked ->
                                     error = result.reason
                             }
-                            pendingImports = pendingStore.pending(accountId, workspaceId).filter { it.kind == "IMPORT" }
+                            pendingImports = pendingStore.pending(accountId, workspaceId).filter { it.kind in setOf("IMPORT", "FINALIZE") }
                         }
                     }) { Text(tl(language, "Імпортувати вибране", "Auswahl importieren",
                         "Import selected", "Импортировать выбранное")) }
