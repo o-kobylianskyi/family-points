@@ -142,8 +142,6 @@ class WorkspaceSetupFullCatalogPostgresTest {
     }
 
     @Test void legacyFamilyWithoutWizardCannotFinalizeOrImport() {
-        var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
-        var db=new JdbcTemplate(ds);
         // This fixture uses an existing migrated disposable container. An old-style
         // family can be modeled by deleting only its setup metadata in this test DB.
         var f=fixture();
