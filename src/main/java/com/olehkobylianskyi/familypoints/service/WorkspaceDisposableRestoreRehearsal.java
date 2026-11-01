@@ -86,7 +86,7 @@ public final class WorkspaceDisposableRestoreRehearsal {
                 Long persisted=db.queryForObject(
                         "SELECT count(*) FROM fp_rehearsal_archive_rows WHERE category=?",
                         Long.class,category);
-                if(persisted==null || persisted!=inspection.counts().get(category))
+                if(persisted==null || persisted.longValue()!=inspection.counts().get(category).longValue())
                     throw new IllegalStateException("REHEARSAL_CATEGORY_MISMATCH:"+category);
             }
             int groups=0,assets=0,bindings=0,variants=0;
