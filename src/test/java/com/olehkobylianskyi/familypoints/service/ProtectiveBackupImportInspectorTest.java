@@ -55,6 +55,24 @@ class ProtectiveBackupImportInspectorTest {
         }
     }
 
+    @Test void acceptsMediaCompositeKeysAndRejectsDuplicateBindings() throws Exception {
+        var key=key();
+        byte[] valid=file(42L,"""
+                {"format":"family-points-export-v1","workspaceId":42,
+                 "categories":{"MEDIA_BINDINGS":[{"workspace_id":42,
+                     "target_type":"WORKSPACE","target_id":42,"slot":"COVER"}]}}
+                """,key);
+        assertEquals(1,inspector.inspect(valid,42L,key).counts().get("MEDIA_BINDINGS"));
+        byte[] duplicated=file(42L,"""
+                {"format":"family-points-export-v1","workspaceId":42,
+                 "categories":{"MEDIA_BINDINGS":[
+                    {"workspace_id":42,"target_type":"WORKSPACE","target_id":42,"slot":"COVER"},
+                    {"workspace_id":42,"target_type":"WORKSPACE","target_id":42,"slot":"COVER"}]}}
+                """,key);
+        assertThrows(IllegalArgumentException.class,
+                ()->inspector.inspect(duplicated,42L,key));
+    }
+
     @Test void unknownCategoriesAndUnsafeArchiveShapeFailClosed() throws Exception {
         var key=key();
         for(String payload:java.util.List.of(
