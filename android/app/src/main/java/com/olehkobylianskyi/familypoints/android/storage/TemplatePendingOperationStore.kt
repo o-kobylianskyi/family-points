@@ -112,6 +112,15 @@ class TemplatePendingOperationStore(context: Context) :
             }
         }
 
+    companion object {
+        fun targetStatus(current: String, requested: String, originalEpoch: Long, verifiedEpoch: Long): String {
+            require(current in setOf("PREPARED", "UNCERTAIN"))
+            require(requested in setOf("UNCERTAIN", "CONFIRMED", "HELD"))
+            require(originalEpoch >= 0 && verifiedEpoch >= 0)
+            return if (originalEpoch == verifiedEpoch) requested else "HELD"
+        }
+    }
+
     @Synchronized
     fun transition(operation: Pending, status: String, verifiedEpoch: Long) {
         require(status in setOf("UNCERTAIN", "CONFIRMED", "HELD"))
@@ -120,7 +129,7 @@ class TemplatePendingOperationStore(context: Context) :
             "Terminal receipt state cannot be reopened"
         }
         // Epoch drift never confirms or deletes previously prepared operations.
-        val target = if (verifiedEpoch == operation.epoch) status else "HELD"
+        val target = targetStatus(operation.status, status, operation.epoch, verifiedEpoch)
         val values = ContentValues().apply { put("status", target) }
         val updated = writableDatabase.update(
             "pending_template_receipts", values,
