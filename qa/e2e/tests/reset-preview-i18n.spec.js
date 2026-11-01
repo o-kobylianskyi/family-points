@@ -1,3 +1,4 @@
+import { openResetPlanning } from './family-data-qa-helpers.js'
 import { test, expect } from '@playwright/test'
 
 const username = process.env.FP_QA_USERNAME || process.env.FP_QA_EMAIL
@@ -45,6 +46,7 @@ test.describe('reset preview/plan (no deletion)', () => {
       { timeout: 15000 },
     )
     await page.goto('/settings', { waitUntil: 'domcontentloaded', timeout: 10000 })
+    await openResetPlanning(page)
     const previewUrl = (await previewCall).url()
     const panel = page.locator('.family-reset-readiness')
     await expect(panel).toBeVisible()
