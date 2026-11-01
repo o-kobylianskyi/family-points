@@ -106,6 +106,17 @@ class WorkspacePortableRelationalRehearsalPostgresTest {
         var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
         byte[] archive=tx.execute(status->exporter.export(source,UUID.randomUUID(),UUID.randomUUID(),0L,
                 List.of("MEMBER_GROUPS","MEDIA_ASSETS","MEDIA_BINDINGS"),"V50",key)).encryptedFile();
+        // Exercise the reusable rollback-only engine against the same genuine
+        // archive, rather than only recreating temporary tables in this test.
+        var engine=new WorkspaceDisposableRestoreRehearsal(db,
+                new DataSourceTransactionManager(ds),portable,codec,inspector);
+        var report=engine.rehearse(archive,source,key);
+        assertTrue(report.rolledBack());
+        assertEquals(1,report.groups());
+        assertEquals(1,report.assets());
+        assertEquals(1,report.bindings());
+        assertEquals(1,report.checkedVariants());
+        assertThrows(SecurityException.class,()->engine.rehearse(archive,neighbor,key));
         var checked=inspector.inspect(archive,source,key);
         assertFalse(checked.restorable());
         assertEquals(1,checked.counts().get("MEMBER_GROUPS"));
