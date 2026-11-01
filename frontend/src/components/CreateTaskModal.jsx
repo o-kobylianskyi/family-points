@@ -115,6 +115,7 @@ function CreateTaskModal({
   initialParticipants = [],
   parentTaskDefinitionId = null,
   parentTaskTitle = null,
+  initialTemplateId = null,
 }) {
   const { t, i18n } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
@@ -280,10 +281,17 @@ function CreateTaskModal({
     let alive = true
     setTemplateLoadError(false)
     getPrivateTemplates(getAccessToken(), currentUser.workspaceId)
-      .then(items => { if (alive) setTaskTemplates((Array.isArray(items) ? items : []).filter(item => item.kind === 'TASK')) })
+      .then(items => {
+        if (!alive) return
+        const ownTasks = (Array.isArray(items) ? items : []).filter(item => item.kind === 'TASK')
+        setTaskTemplates(ownTasks)
+        if (initialTemplateId != null && ownTasks.some(item => String(item.id) === String(initialTemplateId))) {
+          applyTaskTemplate(String(initialTemplateId))
+        }
+      })
       .catch(() => { if (alive) { setTaskTemplates([]); setTemplateLoadError(true) } })
     return () => { alive = false }
-  }, [currentUser.workspaceId, getAccessToken, editing])
+  }, [currentUser.workspaceId, getAccessToken, editing, initialTemplateId])
 
   const templateCategory = item => { try { return JSON.parse(item.definitionJson || '{}')?.category || 'other' } catch { return 'other' } }
   const taskCategories = [...new Set(taskTemplates.map(templateCategory))].sort((a,b)=>a.localeCompare(b))
