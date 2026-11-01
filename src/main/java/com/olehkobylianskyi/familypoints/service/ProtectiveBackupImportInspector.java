@@ -179,7 +179,26 @@ public final class ProtectiveBackupImportInspector {
             checkMemberParent(categories,blockers,"POINT_LEDGER");
             checkMemberParent(categories,blockers,"REPUTATION_LEDGER");
 
+            // A media binding uses polymorphic target_type/target_id without a physical FK.
+            // Validate the archived target graph before any future restore executor
+            // can treat an archive as sufficient evidence for mapping.
             for(JsonNode binding:categories.path("MEDIA_BINDINGS")) {
+                String type=binding.path("target_type").asText();
+                long targetId=binding.path("target_id").asLong();
+                String parent= switch(type) {
+                    case "MEMBER_GROUP" -> "MEMBER_GROUPS";
+                    case "WORK_NODE" -> "WORK_NODES";
+                    case "TASK" -> "TASK_DEFINITIONS";
+                    default -> null;
+                };
+                if("MEMBER".equals(type))
+                    blockers.add("IDENTITY_REBIND_REQUIRED:MEDIA_BINDINGS.target_id");
+                else if(parent!=null) {
+                    if(!categories.has(parent))
+                        blockers.add("MISSING_CATEGORY:"+parent);
+                    else if(!rowIds.getOrDefault(parent,Set.of()).contains(targetId))
+                        blockers.add("DANGLING_REFERENCE:MEDIA_BINDINGS.target_id");
+                }
                 if(binding.hasNonNull("asset_id")) {
                     if(!categories.has("MEDIA_ASSETS")) {
                         blockers.add("MISSING_CATEGORY:MEDIA_ASSETS");
