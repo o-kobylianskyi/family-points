@@ -43,26 +43,33 @@ final class DisposableNativeRestoreExecutor {
         catch(Exception ex){throw new IllegalArgumentException("INVALID_PORTABLE_ARCHIVE",ex);}
         finally {Arrays.fill(plain,(byte)0);}
         // Preflight every binding before opening a write transaction.
+        if(!"V50".equals(proof.schemaVersion()))
+            throw new IllegalArgumentException("DISPOSABLE_SCHEMA_VERSION_UNSUPPORTED");
         var groupIds=new HashSet<Long>();
         for(JsonNode group:categories.path("MEMBER_GROUPS")) {
             if(group.path("family_id").asLong()!=source ||
                     !groupIds.add(group.path("id").asLong()))
                 throw new SecurityException("INVALID_ARCHIVED_GROUP_OWNER");
         }
+        var bindingKeys=new HashSet<String>();
         for(JsonNode binding:categories.path("MEDIA_BINDINGS")) {
             if(binding.path("workspace_id").asLong()!=source ||
                     !"MEMBER_GROUP".equals(binding.path("target_type").asText()) ||
                     !groupIds.contains(binding.path("target_id").asLong()) ||
                     binding.hasNonNull("asset_id") ||
-                    !binding.path("catalog_key").isTextual())
+                    !binding.path("catalog_key").isTextual() ||
+                    !bindingKeys.add(binding.path("target_id").asLong()+":"+binding.path("slot").asText()))
                 throw new IllegalArgumentException("UNSAFE_ARCHIVED_BINDING");
         }
         return tx.execute(status->{
             // Transactional, target-scoped, conflict-safe. This is not used by
             // any main-source production service or HTTP controller.
-            Long targetExists=db.queryForObject("SELECT count(*) FROM families WHERE id=?",
+            Long targetExists=db.queryForObject("SELECT id FROM families WHERE id=? FOR UPDATE",
                     Long.class,target);
-            if(targetExists==null || targetExists!=1)throw new IllegalArgumentException("TARGET_MISSING");
+            if(targetExists==null)throw new IllegalArgumentException("TARGET_MISSING");
+            Long actualEpoch=db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,target);
+            if(actualEpoch==null || actualEpoch!=0L)
+                throw new IllegalStateException("DISPOSABLE_TARGET_EPOCH_NOT_FRESH");
             Long targetGroups=db.queryForObject("SELECT count(*) FROM member_groups WHERE family_id=?",
                     Long.class,target);
             Long targetBindings=db.queryForObject("SELECT count(*) FROM media_bindings WHERE workspace_id=?",
