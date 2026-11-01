@@ -33,6 +33,7 @@ class TemplateOperationRecovery(
             ApiClient.workspaceEpochApi.getEpoch("Bearer $token", workspaceId)
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) { return Outcome.UNKNOWN }
+        if (tokens.getAccessToken() != token) return Outcome.UNKNOWN
         if (epoch.workspaceId != workspaceId || epoch.dataEpoch < 0) return Outcome.UNKNOWN
         if (epoch.dataEpoch != operation.epoch) {
             store.transition(operation, "HELD", epoch.dataEpoch)
@@ -69,6 +70,7 @@ class TemplateOperationRecovery(
                 }
             } else { return Outcome.UNKNOWN }
             val verifiedAfterReceipt = ApiClient.workspaceEpochApi.getEpoch("Bearer $token", workspaceId)
+            if (tokens.getAccessToken() != token) return Outcome.UNKNOWN
             if (verifiedAfterReceipt.workspaceId != workspaceId || verifiedAfterReceipt.dataEpoch < 0) return Outcome.UNKNOWN
             if (verifiedAfterReceipt.dataEpoch != operation.epoch) {
                 store.transition(operation, "HELD", verifiedAfterReceipt.dataEpoch)
