@@ -27,6 +27,7 @@ fun TemplateLibrarySection(
     workspaceId: Long,
     accountId: Long,
     canManage: Boolean,
+    canCreateTasks: Boolean,
     repository: TemplateRepository,
     onUnauthorized: () -> Unit,
     onClose: () -> Unit
@@ -290,7 +291,7 @@ fun TemplateLibrarySection(
         if (showTaskFolders) {
             WorkNodeGroupsSection(
                 language = language, workspaceId = workspaceId,
-                canCreateTasks = canManage,
+                canCreateTasks = canCreateTasks,
                 repository = remember(tokens) {
                     com.olehkobylianskyi.familypoints.android.data.WorkNodeGroupsRepository(tokens)
                 }
