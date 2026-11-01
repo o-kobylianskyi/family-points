@@ -52,14 +52,27 @@ public final class ProtectiveBackupImportInspector {
                     throw new IllegalArgumentException("Unknown or malformed archive category");
                 if(entry.getValue().size()>100000)
                     throw new IllegalArgumentException("Archive category exceeds safety limit");
-                var ids=new HashSet<Long>();
+                var ids=new HashSet<String>();
                 for(JsonNode item:entry.getValue()) {
-                    if(!item.isObject() || !item.path("id").canConvertToLong()
-                            || item.path("id").asLong()<=0)
-                        throw new IllegalArgumentException("Archive row requires positive numeric id");
-                    long id=item.path("id").asLong();
-                    if(!ids.add(id))
-                        throw new IllegalArgumentException("Duplicate archive row id in "+name);
+                    if(!item.isObject())
+                        throw new IllegalArgumentException("Archive row must be an object");
+                    String rowKey;
+                    if("MEDIA_BINDINGS".equals(name)) {
+                        if(!item.path("workspace_id").canConvertToLong()
+                                || !item.path("target_id").canConvertToLong()
+                                || !item.path("target_type").isTextual()
+                                || !item.path("slot").isTextual())
+                            throw new IllegalArgumentException("Invalid media binding composite key");
+                        rowKey=item.path("workspace_id").asText()+":"+
+                                item.path("target_type").asText()+":"+
+                                item.path("target_id").asText()+":"+item.path("slot").asText();
+                    } else {
+                        if(!item.path("id").canConvertToLong() || item.path("id").asLong()<=0)
+                            throw new IllegalArgumentException("Archive row requires positive numeric id");
+                        rowKey=item.path("id").asText();
+                    }
+                    if(!ids.add(rowKey))
+                        throw new IllegalArgumentException("Duplicate archive row key in "+name);
                     // Validate direct tenant keys. For FK-scoped descendants
                     // ownership must later be proven through their parent graph.
                     String ownerColumn="PRIVATE_TEMPLATES".equals(name)
