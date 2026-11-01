@@ -54,4 +54,37 @@ class WorkspaceDataEpochFilterTest {
         verify(chain).doFilter(any(),any());
         verifyNoInteractions(db);
     }
+    @Test void onboardingWritesRequireCurrentEpochButReceiptReadsRemainAvailable() throws Exception {
+        var authentication=new TestingAuthenticationToken("member","none","ROLE_USER");
+        authentication.setAuthenticated(true);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,7L))
+                .thenReturn(3L);
+        for(String path:java.util.List.of(
+                "/workspaces/7/setup/steps/MEMBERS",
+                "/workspaces/7/setup/finalize-import",
+                "/workspaces/7/templates/imports/idempotent",
+                "/workspaces/7/templates/42/activate-task/idempotent",
+                "/workspaces/7/templates/42/activate-reward/idempotent")) {
+            var request=new MockHttpServletRequest("POST",path);
+            request.setServletPath(path);
+            request.addHeader(WorkspaceDataEpochFilter.HEADER,"0");
+            var response=new MockHttpServletResponse();
+            filter.doFilter(request,response,chain);
+            assertEquals(409,response.getStatus(),path);
+        }
+        verifyNoInteractions(chain);
+        for(String path:java.util.List.of(
+                "/workspaces/7/setup/finalize-import/receipts/00000000-0000-4000-8000-000000000001",
+                "/workspaces/7/templates/imports/receipts/00000000-0000-4000-8000-000000000001",
+                "/workspaces/7/templates/activations/receipts/00000000-0000-4000-8000-000000000001")) {
+            var request=new MockHttpServletRequest("GET",path);
+            request.setServletPath(path);
+            var response=new MockHttpServletResponse();
+            filter.doFilter(request,response,chain);
+            assertEquals(200,response.getStatus(),path);
+        }
+        verify(chain,times(3)).doFilter(any(),any());
+    }
+
 }
