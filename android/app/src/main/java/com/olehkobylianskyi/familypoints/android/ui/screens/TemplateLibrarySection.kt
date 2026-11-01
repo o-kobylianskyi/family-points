@@ -25,6 +25,7 @@ private fun tl(language: AppLanguage, uk: String, de: String, en: String, ru: St
 fun TemplateLibrarySection(
     language: AppLanguage,
     workspaceId: Long,
+    accountId: Long,
     canManage: Boolean,
     repository: TemplateRepository,
     onUnauthorized: () -> Unit,
@@ -32,6 +33,25 @@ fun TemplateLibrarySection(
 ) {
     val scope = rememberCoroutineScope()
     val setupContext = androidx.compose.ui.platform.LocalContext.current
+    val pendingStore = remember(setupContext) {
+        com.olehkobylianskyi.familypoints.android.storage.TemplatePendingOperationStore(setupContext)
+    }
+    val tokens = remember(setupContext) {
+        com.olehkobylianskyi.familypoints.android.storage.TokenStore(setupContext)
+    }
+    val receiptRepository = remember(tokens) {
+        com.olehkobylianskyi.familypoints.android.data.TemplateReceiptRepository(tokens)
+    }
+    val importCoordinator = remember(tokens, pendingStore, receiptRepository) {
+        com.olehkobylianskyi.familypoints.android.data.ConfirmedTemplateImportCoordinator(tokens, pendingStore, receiptRepository)
+    }
+    val recovery = remember(tokens, pendingStore, receiptRepository) {
+        com.olehkobylianskyi.familypoints.android.data.TemplateOperationRecovery(tokens, pendingStore, receiptRepository)
+    }
+    var pendingImports by remember(accountId, workspaceId) {
+        mutableStateOf(pendingStore.pending(accountId, workspaceId).filter { it.kind == "IMPORT" })
+    }
+
     var economy by remember(workspaceId) { mutableStateOf<TemplateEconomySuggestionsDto?>(null) }
     var economyUnavailable by remember(workspaceId) { mutableStateOf(false) }
     var catalog by remember(workspaceId) { mutableStateOf<List<CatalogTemplateDto>>(emptyList()) }
@@ -174,6 +194,23 @@ fun TemplateLibrarySection(
                 confirmButton = { TextButton(onClick = { setupReview = null }) {
                     Text(tl(language, "Закрити", "Schließen", "Close", "Закрыть"))
                 } })
+        }
+        if (canManage && pendingImports.isNotEmpty()) {
+            Text(tl(language, "Є незавершений імпорт. Новий імпорт заблоковано до перевірки.",
+                "Ungeklärter Import. Neuer Import bis zur Prüfung gesperrt.",
+                "Unresolved import. New imports are blocked pending verification.",
+                "Незавершённый импорт. Новые импорты заблокированы до проверки."))
+            OutlinedButton(enabled = !busy, onClick = {
+                perform {
+                    for (operation in pendingImports) recovery.check(accountId, workspaceId, operation)
+                    pendingImports = pendingStore.pending(accountId, workspaceId).filter { it.kind == "IMPORT" }
+                    if (pendingImports.isEmpty()) library = repository.privateTemplates(workspaceId)
+                    notice = if (pendingImports.isEmpty())
+                        tl(language, "Квитанцію підтверджено", "Beleg bestätigt", "Receipt confirmed", "Квитанция подтверждена")
+                    else tl(language, "Імпорт потребує перевірки. Повтору немає.", "Import muss geprüft werden. Kein Wiederholen.",
+                        "Import needs review. No automatic retry.", "Импорт требует проверки. Без повтора.")
+                }
+            }) { Text(tl(language, "Перевірити квитанцію", "Beleg prüfen", "Check receipt", "Проверить квитанцию")) }
         }
         if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (error.isNotBlank()) {
@@ -398,17 +435,27 @@ fun TemplateLibrarySection(
                         "Все выбранные шаблоны уже сохранены. Выберите другой для импорта."),
                         style = MaterialTheme.typography.bodySmall)
                 }
-                Button(enabled = canManage && !busy && !loading && catalogLoaded && libraryLoaded && previewCodes == selected.sorted() && result.toImport.orEmpty().isNotEmpty(),
+                Button(enabled = canManage && !busy && !loading && catalogLoaded && libraryLoaded && previewCodes == selected.sorted() && pendingImports.isEmpty() && result.toImport.orEmpty().isNotEmpty(),
                     onClick = {
                         val codes = previewCodes.toList()
                         perform {
                             if (selected.sorted() != codes) return@perform
-                            repository.importSelected(workspaceId, codes)
-                            library = repository.privateTemplates(workspaceId)
-                            selected = emptySet()
-                            preview = null
-                            previewCodes = emptyList()
-                            notice = tl(language, "Імпортовано", "Importiert", "Imported", "Импортировано")
+                            when (val result = importCoordinator.confirm(accountId, workspaceId, codes)) {
+                                is com.olehkobylianskyi.familypoints.android.data.ConfirmedTemplateImportCoordinator.Result.Confirmed -> {
+                                    library = repository.privateTemplates(workspaceId)
+                                    selected = emptySet()
+                                    preview = null
+                                    previewCodes = emptyList()
+                                    notice = tl(language, "Імпортовано", "Importiert", "Imported", "Импортировано")
+                                }
+                                is com.olehkobylianskyi.familypoints.android.data.ConfirmedTemplateImportCoordinator.Result.Uncertain ->
+                                    notice = tl(language, "Результат невідомий. Перевірте квитанцію.",
+                                        "Ergebnis unklar. Beleg prüfen.", "Result uncertain. Check receipt.",
+                                        "Результат неизвестен. Проверьте квитанцию.")
+                                is com.olehkobylianskyi.familypoints.android.data.ConfirmedTemplateImportCoordinator.Result.Blocked ->
+                                    error = result.reason
+                            }
+                            pendingImports = pendingStore.pending(accountId, workspaceId).filter { it.kind == "IMPORT" }
                         }
                     }) { Text(tl(language, "Імпортувати вибране", "Auswahl importieren",
                         "Import selected", "Импортировать выбранное")) }
