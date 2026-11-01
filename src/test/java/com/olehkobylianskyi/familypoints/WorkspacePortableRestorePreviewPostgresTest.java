@@ -41,6 +41,16 @@ class WorkspacePortableRestorePreviewPostgresTest {
         var result=tx.execute(status->preview.preview(archive,a,0L,List.of("MEMBER_GROUPS"),key));
         assertFalse(result.executable());
         assertFalse(result.blockers().contains("RESTORE_SCHEMA_VERSION_MISMATCH"));
+        var decoded=portable.decode(archive);
+        byte[] plain=codec.open(decoded,decoded.manifest().snapshotId(),a,key);
+        var oldSealed=codec.seal(UUID.randomUUID(),a,UUID.randomUUID(),0L,
+                decoded.manifest().sourceDigest(),"V49",plain,key);
+        var oldPreview=tx.execute(status->preview.preview(portable.encode(oldSealed),a,0L,
+                List.of("MEMBER_GROUPS"),key));
+        assertFalse(oldPreview.executable());
+        assertTrue(oldPreview.blockers().contains("RESTORE_SCHEMA_VERSION_MISMATCH"));
+        assertEquals(0L,db.queryForObject("SELECT data_epoch FROM families WHERE id=?",Long.class,a));
+
         assertEquals(1L,result.categories().get(0).targetRows());
         assertEquals(1,result.categories().get(0).archiveRows());
         assertTrue(result.blockers().contains("RESTORE_TARGET_CONFLICT:MEMBER_GROUPS"));
