@@ -17,6 +17,8 @@ export async function listProtectiveBackups(token, workspaceId, limit = 25) {
   if (data.some(item => !item || String(item.workspaceId) !== String(workspaceId) ||
     typeof item.snapshotId !== 'string' || typeof item.state !== 'string'))
     throw new Error('BACKUP_METADATA_TENANT_MISMATCH')
+  const ids = data.map(item => item.snapshotId.toLowerCase())
+  if (new Set(ids).size !== ids.length) throw new Error('DUPLICATE_BACKUP_METADATA')
   return data
 }
 
@@ -36,7 +38,8 @@ export async function getProtectiveBackup(token, workspaceId, snapshotId) {
   const data = await response.json()
   if (!data || String(data.workspaceId) !== String(workspaceId) ||
       String(data.snapshotId).toLowerCase() !== snapshotId.toLowerCase() ||
-      typeof data.state !== 'string')
+      typeof data.state !== 'string' || !Array.isArray(data.selectedCategories) ||
+      typeof data.restoreVerified !== 'boolean' || typeof data.executable !== 'boolean')
     throw new Error('INVALID_BACKUP_DETAIL_RESPONSE')
   return data
 }
