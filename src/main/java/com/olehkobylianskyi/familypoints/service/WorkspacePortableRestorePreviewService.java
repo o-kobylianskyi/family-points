@@ -56,6 +56,17 @@ public class WorkspacePortableRestorePreviewService {
         if(actual!=expectedEpoch)
             throw new ResponseStatusException(HttpStatus.CONFLICT,"RESTORE_TARGET_EPOCH_STALE");
         var blockers=new TreeSet<String>(imported.blockers());
+        // Do not restore archives exported against a different database
+        // migration level until an explicit, tested upgrade path exists.
+        String expectedSchema=db.queryForObject("""
+                SELECT version FROM flyway_schema_history
+                 WHERE success=true AND version IS NOT NULL
+                 ORDER BY installed_rank DESC LIMIT 1
+                """,String.class);
+        if(expectedSchema==null || !expectedSchema.equals(imported.schemaVersion()))
+            blockers.add("RESTORE_SCHEMA_VERSION_MISMATCH");
+        if(imported.sourceEpoch()>actual)
+            blockers.add("RESTORE_SOURCE_EPOCH_AHEAD_OF_TARGET");
         blockers.addAll(new ProtectiveRestoreSelectionPolicy()
                 .inspect(requested,imported.availableCategories()).blockers());
         var summaries=new ArrayList<CategoryPreview>();
