@@ -11,6 +11,7 @@ import GooglePasswordSetup from '../components/GooglePasswordSetup'
 import ThemePreference from '../components/ThemePreference'
 import FamilyCoverSettings from '../components/FamilyCoverSettings'
 import FamilyResetReadiness from '../components/FamilyResetReadiness'
+import FamilyDataSafetyPlan from '../components/FamilyDataSafetyPlan'
 import InitialFamilySetupReview from '../components/InitialFamilySetupReview'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 
@@ -207,6 +208,7 @@ function SettingsPage() {
     {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) && <InitialFamilySetupReview />}
     <ThemePreference />
     <FamilyCoverSettings />
+    {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) && <FamilyDataSafetyPlan />}
     {(currentUser.permissions?.includes('MANAGE_WORKSPACE') || currentUser.permissions?.includes('ADMIN_OVERRIDE')) && <FamilyResetReadiness />}
 
     <section className="settings-section">
