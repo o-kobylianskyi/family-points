@@ -437,3 +437,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Latest `SettingsPage.jsx` renders `<FamilyResetReadiness />` only when currentUser.permissions contains MANAGE_WORKSPACE or ADMIN_OVERRIDE. This is a plausible shared cause (or auth/navigation/runtime readiness issue), **not yet confirmed**. Previously first two tests passed, so status regressed in user's latest environment.
 - Added explicit precondition to QA fixture after Settings navigation: wait for panel, then report pathname, heading and panel count plus required permissions if unavailable. Commits 82b3b2e, 7640883. No Backend/Web permissions changed; test results stay FAIL, not SKIPPED or PASS.
 - Next: user run first test with --headed / updated precondition; use browser trace/error-context and actual roles to disambiguate hidden panel vs frontend crash vs stale auth. No destructive mutations.
+
+
+## 2026-11-01 — Reset recovery 1/1 recheck FAIL; QA setup sequencing fixed
+- User reran first case with `--headed`: panel precondition succeeded, but `.error-message` absent after 12s. Thus previous hypothesis that Reset section is absent due to permissions was not supported by this run.
+- Found QA-fixture issue: `beforeEach` navigated to Settings and triggered Preview **before** each test registered Playwright route interception; test subsequently revisited Settings. Changed fixture to land on Templates; each case registers routes and only then enters Settings. First case also asserts interception was hit. GitHub commit a2378a5.
+- New code NOT YET verified by local run. Keep 4/4 previous FAIL and first-case 1/1 recheck FAIL historical; no backend/security failures established from those assertions. Next: local rerun first case, then full 4-case suite.
