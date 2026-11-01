@@ -118,7 +118,7 @@ function TasksPage() {
     if (searchParams.get('create') === '1') {
       if (canCreateTasks) {
         const requested = searchParams.get('template')
-        setInitialCreateTemplateId(requested && /^\\d+$/.test(requested) ? requested : null)
+        setInitialCreateTemplateId(requested && /^[0-9]+$/.test(requested) ? requested : null)
         setCreateModalOpen(true)
       }
       setSearchParams(prev => {
