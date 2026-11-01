@@ -12,6 +12,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import retrofit2.HttpException
 import java.io.IOException
@@ -125,6 +126,8 @@ class PointsRepository(
                             queue.observeEpoch(workspaceId, latest.dataEpoch)
                             queue.holdForReset(workspaceId)
                         }
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
                     } catch (_: Exception) {
                         // Retain the original denial; no optimistic retry.
                     }
@@ -141,6 +144,8 @@ class PointsRepository(
                     val fresh = ApiClient.pointsApi.getBalance(auth, workspaceId, memberId)
                     if (!OfflineReplaySessionGate.matches(sessionToken, tokenStore.getAccessToken())) break
                     offlineStore.save(workspaceId, memberId, fresh.balance)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
                 } catch (_: Exception) {
                     // Idempotent point operation was confirmed. Keep last snapshot
                     // until the next balance fetch; never queue a duplicate.
