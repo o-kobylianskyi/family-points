@@ -32,6 +32,8 @@ class WorkspacePortableNativeApplyPostgresTest {
         long neighbor=db.queryForObject("INSERT INTO families(name) VALUES ('Neighbor') RETURNING id",Long.class);
         long original=db.queryForObject("INSERT INTO member_groups(family_id,name,active,show_in_navigation) VALUES (?,'Archive group',true,false) RETURNING id",Long.class,source);
         db.update("INSERT INTO member_groups(family_id,name,active,show_in_navigation) VALUES (?,'Protected neighbor',true,false)",neighbor);
+        db.update("INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,catalog_key) "+
+                "VALUES (?,'MEMBER_GROUP',?,'ICON','group-default')",source,original);
         var codec=new ProtectiveBackupArtifactCodec();
         var portable=new ProtectiveBackupPortableFile();
         var inspector=new ProtectiveBackupImportInspector(portable,codec);
@@ -62,6 +64,16 @@ class WorkspacePortableNativeApplyPostgresTest {
                 ()->nativeRestorer.rehearse(file,neighbor,target,key));
         assertEquals(0L,db.queryForObject("SELECT count(*) FROM member_groups WHERE family_id=?",
                 Long.class,target));
+
+        byte[] mixed=tx.execute(status->exporter.export(source,UUID.randomUUID(),
+                UUID.randomUUID(),0L,List.of("MEMBER_GROUPS","MEDIA_BINDINGS"),"V50",key))
+                .encryptedFile();
+        var mediaProof=nativeRestorer.rehearse(mixed,source,target,key);
+        assertEquals(1,mediaProof.inserted());
+        assertEquals(0L,db.queryForObject(
+                "SELECT count(*) FROM media_bindings WHERE workspace_id=?",Long.class,target));
+        assertEquals(1L,db.queryForObject(
+                "SELECT count(*) FROM media_bindings WHERE workspace_id=?",Long.class,source));
 
         // Real table insert (not JSON staging). The source PK cannot be reused
         // in the destination family: return a fresh PK and assert its mapping.
