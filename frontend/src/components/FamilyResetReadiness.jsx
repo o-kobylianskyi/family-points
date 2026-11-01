@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './FamilyResetReadiness.css'
 import { useAuth } from '../context/AuthContext'
-import { getResetPreview, planReset } from '../api/resetApi'
+import { getResetPreview, planReset, getResetDependencyAudit } from '../api/resetApi'
 
 const categories = {
   PRIVATE_TEMPLATES: ['Приватні шаблони','Частные шаблоны','Private Vorlagen','Private templates'],
@@ -158,6 +158,9 @@ export default function FamilyResetReadiness() {
   const words = ui[language] || ui.en
   const workspaceId = currentUser?.workspaceId
   const [preview,setPreview] = useState(null)
+  const [audit,setAudit] = useState(null)
+  const [auditError,setAuditError] = useState(false)
+  const [auditBusy,setAuditBusy] = useState(false)
   const [selected,setSelected] = useState([])
   const [plan,setPlan] = useState(null)
   const [error,setError] = useState(null)
@@ -206,11 +209,33 @@ export default function FamilyResetReadiness() {
       if (generation.current === requestId && workspaceRef.current === id) setBusy(false)
     }
   }
+  const inspect = async () => {
+    const id = workspaceId
+    const gen = generation.current
+    setAudit(null); setAuditError(false); setAuditBusy(true)
+    try {
+      const result = await getResetDependencyAudit(getAccessToken(), id)
+      if (generation.current === gen && workspaceRef.current === id) setAudit(result)
+    } catch {
+      if (generation.current === gen && workspaceRef.current === id) setAuditError(true)
+    } finally {
+      if (generation.current === gen && workspaceRef.current === id) setAuditBusy(false)
+    }
+  }
   const keys = Object.keys(preview?.categories || {})
   return <section className="settings-section family-reset-readiness" aria-labelledby="family-reset-heading">
     <h2 id="family-reset-heading">{words[0]}</h2>
     <p>{words[6]}</p>
     <p role="status">{words[7]}</p>
+    <div>
+      <h3>{({uk:'Аудит залежностей бази даних',ru:'Аудит зависимостей базы данных',de:'Datenbank-Abhängigkeitsprüfung',en:'Database dependency audit'})[language] || 'Database dependency audit'}</h3>
+      <button type="button" className="secondary-button" disabled={auditBusy} onClick={inspect}>{({uk:'Перевірити зв’язки',ru:'Проверить связи',de:'Abhängigkeiten prüfen',en:'Inspect dependencies'})[language] || 'Inspect'}</button>
+      {auditError && <p role="alert">{words[8]}</p>}
+      {audit && <div role="status">
+        <p>{({uk:'Зовнішні ключі',ru:'Внешние ключи',de:'Fremdschlüssel',en:'Foreign keys'})[language]}: {audit.foreignKeys.length} · {({uk:'Блокувальні умови',ru:'Блокирующие условия',de:'Blockaden',en:'Blockers'})[language]}: {audit.blockers.length}</p>
+        <ul>{audit.blockers.map((code,i)=><li key={i}>{code}</li>)}</ul>
+      </div>}
+    </div>
     <div className="modal-actions"><button type="button" className="secondary-button" disabled={busy} onClick={()=>load(workspaceId, ++generation.current)}>{busy?words[3]:words[10]}</button></div>
     {error && <p className="error-message" role="alert">{error.status===403?words[9]:words[8]}</p>}
     {preview && <><h3>{words[1]}</h3>
