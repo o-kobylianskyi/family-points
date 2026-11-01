@@ -33,8 +33,8 @@ class ConfirmedTemplateActivationCoordinator(
     ): Result {
         require(accountId > 0 && workspaceId > 0 && templateId > 0)
         require(kind == "TASK" || kind == "REWARD")
-        val authorized = "ADMIN_OVERRIDE" in permissions ||
-            (kind == "TASK" && "CREATE_TASKS" in permissions) ||
+        // Exact feature permissions are required in addition to server workspace ACL.
+        val authorized = (kind == "TASK" && "CREATE_TASKS" in permissions) ||
             (kind == "REWARD" && "MANAGE_REWARDS" in permissions)
         if (!authorized) return Result.Blocked("Parent permission required")
         if (reviewedRequest.entrySet().isEmpty()) return Result.Blocked("Review the full activation request first")
