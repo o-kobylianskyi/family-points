@@ -68,12 +68,16 @@ class WorkspacePortableBackupExporterPostgresTest {
                         List.of("MEMBER_GROUPS"),"V50",key))).getStatusCode());
         var supported=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
                 0L,List.of("TASK_DEFINITIONS","REWARD_DEFINITIONS","MEMBER_GROUPS",
-                        "PRIVATE_TEMPLATES"),"V50",key));
-        var four=inspector.inspect(supported.encryptedFile(),a,key);
-        assertEquals(4,four.availableCategories().size());
-        assertEquals(0,four.counts().get("TASK_DEFINITIONS"));
-        assertEquals(0,four.counts().get("REWARD_DEFINITIONS"));
-        assertFalse(four.restorable(),"An exported archive is not yet a verified restore");
+                        "PRIVATE_TEMPLATES","TASK_EXECUTIONS","TASK_SCHEDULE_SLOTS",
+                        "REWARD_PURCHASES"),"V50",key));
+        var seven=inspector.inspect(supported.encryptedFile(),a,key);
+        assertEquals(7,seven.availableCategories().size());
+        assertEquals(0,seven.counts().get("TASK_DEFINITIONS"));
+        assertEquals(0,seven.counts().get("REWARD_DEFINITIONS"));
+        assertEquals(0,seven.counts().get("TASK_EXECUTIONS"));
+        assertEquals(0,seven.counts().get("TASK_SCHEDULE_SLOTS"));
+        assertEquals(0,seven.counts().get("REWARD_PURCHASES"));
+        assertFalse(seven.restorable(),"An exported archive is not yet a verified restore");
         assertEquals(1L,db.queryForObject("SELECT count(*) FROM member_groups WHERE family_id=?",
                 Long.class,a));
         assertEquals("Private B",db.queryForObject(
