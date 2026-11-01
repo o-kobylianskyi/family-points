@@ -65,6 +65,12 @@ class ConfirmedTemplateActivationCoordinator(
             store.prepare(entry)
         } catch (cancelled: CancellationException) { throw cancelled }
           catch (_: IllegalStateException) { return Result.Blocked("Previous activation is pending") }
+        // Re-check the session after SQLite prepare: do not send a mutation under
+        // a token that changed between durable persistence and HTTP dispatch.
+        if (tokens.getAccessToken() != token) {
+            runCatching { store.transition(entry, "UNCERTAIN", epoch.dataEpoch) }
+            return Result.Uncertain(operation)
+        }
         return try {
             val receipt = receipts.activateConfirmed(workspaceId, templateId, kind, operation,
                 JsonParser.parseString(cipher.decrypt(entry.payload)).asJsonObject)
