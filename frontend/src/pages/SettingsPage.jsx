@@ -28,6 +28,11 @@ function localizedSettingsError(error, language) {
   return messages.general
 }
 
+// Vite injects this constant at build time. Older/dev bundles must not crash Settings if injection is absent.
+const buildInfo = typeof __FP_BUILD_INFO__ !== 'undefined' && __FP_BUILD_INFO__ && typeof __FP_BUILD_INFO__ === 'object'
+  ? __FP_BUILD_INFO__
+  : { channel: 'DEV', version: 'unknown', commit: 'unknown', builtAt: null }
+
 function SettingsPage() {
   const { t, i18n } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
@@ -189,12 +194,12 @@ function SettingsPage() {
       <h2>{({uk:'Версія застосунку',ru:'Версия приложения',de:'App-Version',en:'Application version'})[i18n.language.split('-')[0]] || 'Application version'}</h2>
       <p>{({uk:'Дані поточної Web-збірки для перевірки оновлень і повідомлень про помилки.',ru:'Данные текущей Web-сборки для проверки обновлений и сообщений об ошибках.',de:'Informationen zum aktuellen Web-Build für Updates und Fehlermeldungen.',en:'Current Web build details for update checks and bug reports.'})[i18n.language.split('-')[0]] || 'Current Web build information'}</p>
       <dl style={{display:'grid',gridTemplateColumns:'minmax(105px,auto) 1fr',gap:'8px 16px',overflowWrap:'anywhere'}}>
-        <dt>{({uk:'Канал',ru:'Канал',de:'Kanal',en:'Channel'})[i18n.language.split('-')[0]] || 'Channel'}</dt><dd>{__FP_BUILD_INFO__.channel}</dd>
-        <dt>{({uk:'Версія',ru:'Версия',de:'Version',en:'Version'})[i18n.language.split('-')[0]] || 'Version'}</dt><dd>{__FP_BUILD_INFO__.version}</dd>
-        <dt>Git SHA</dt><dd><code>{__FP_BUILD_INFO__.commit}</code></dd>
-        <dt>{({uk:'Зібрано',ru:'Собрано',de:'Erstellt',en:'Built'})[i18n.language.split('-')[0]] || 'Built'}</dt><dd>{new Date(__FP_BUILD_INFO__.builtAt).toLocaleString(i18n.language)}</dd>
+        <dt>{({uk:'Канал',ru:'Канал',de:'Kanal',en:'Channel'})[i18n.language.split('-')[0]] || 'Channel'}</dt><dd>{buildInfo.channel}</dd>
+        <dt>{({uk:'Версія',ru:'Версия',de:'Version',en:'Version'})[i18n.language.split('-')[0]] || 'Version'}</dt><dd>{buildInfo.version}</dd>
+        <dt>Git SHA</dt><dd><code>{buildInfo.commit}</code></dd>
+        <dt>{({uk:'Зібрано',ru:'Собрано',de:'Erstellt',en:'Built'})[i18n.language.split('-')[0]] || 'Built'}</dt><dd>{buildInfo.builtAt && !Number.isNaN(Date.parse(buildInfo.builtAt)) ? new Date(buildInfo.builtAt).toLocaleString(i18n.language) : '—'}</dd>
       </dl>
-      <button type="button" className="secondary-button" onClick={() => navigator.clipboard?.writeText(`FamilyPoints Web | ${__FP_BUILD_INFO__.channel} | ${__FP_BUILD_INFO__.version} | ${__FP_BUILD_INFO__.commit} | ${__FP_BUILD_INFO__.builtAt}`)}>
+      <button type="button" className="secondary-button" onClick={() => navigator.clipboard?.writeText(`FamilyPoints Web | ${buildInfo.channel} | ${buildInfo.version} | ${buildInfo.commit} | ${buildInfo.builtAt}`)}>
         {({uk:'Скопіювати дані збірки',ru:'Скопировать данные сборки',de:'Build-Informationen kopieren',en:'Copy build information'})[i18n.language.split('-')[0]] || 'Copy build information'}
       </button>
     </section>
