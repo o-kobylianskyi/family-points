@@ -44,6 +44,7 @@ import com.olehkobylianskyi.familypoints.android.data.RewardDefinitionSummary
 import com.olehkobylianskyi.familypoints.android.data.RewardRequestReviewRequest
 import com.olehkobylianskyi.familypoints.android.data.RewardRequirementRequest
 import com.olehkobylianskyi.familypoints.android.data.RewardRequestSummary
+import com.olehkobylianskyi.familypoints.android.data.RewardHistoryPurchase
 import com.olehkobylianskyi.familypoints.android.data.RewardsPageData
 import com.olehkobylianskyi.familypoints.android.data.RewardsRepository
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
@@ -61,6 +62,7 @@ import retrofit2.HttpException
 private enum class RewardsTab {
     CATALOG,
     REQUESTS,
+    HISTORY,
     MANAGE
 }
 
@@ -85,7 +87,15 @@ fun RewardsScreen(
         "MANAGE_REWARDS" in currentUser.permissions ||
             "ADMIN_OVERRIDE" in currentUser.permissions
 
-    var tab by remember { mutableStateOf(RewardsTab.CATALOG) }
+    var tab by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(RewardsTab.CATALOG) }
+    var history by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf<List<RewardHistoryPurchase>>(emptyList()) }
+    var historyCursor by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf<String?>(null) }
+    var historyHasMore by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(false) }
+    var historyLoading by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(false) }
+    var historyError by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf("") }
+    var historyMemberId by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf<Long?>(null) }
+    var historyFilterDraft by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf("") }
+    var historyGeneration by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(0) }
     var data by remember { mutableStateOf<RewardsPageData?>(null) }
     var nameForms by remember { mutableStateOf<Map<Long, List<PointNameFormDto>>>(emptyMap()) }
     var loading by remember { mutableStateOf(true) }
@@ -135,6 +145,34 @@ fun RewardsScreen(
     var reviewPrice by remember { mutableStateOf("20") }
     var reviewMinReputation by remember { mutableStateOf("") }
     var reviewDuration by remember { mutableStateOf("") }
+
+    LaunchedEffect(tab, historyMemberId, historyGeneration, currentUser.workspaceId, currentUser.memberId) {
+        if (tab != RewardsTab.HISTORY) return@LaunchedEffect
+        history = emptyList()
+        historyCursor = null
+        historyHasMore = false
+        historyError = ""
+        if (serverStatus != ServerStatus.ONLINE) {
+            historyError = when (language) {
+                AppLanguage.UK -> "Історія доступна лише із сервером."
+                AppLanguage.RU -> "История доступна только при соединении с сервером."
+                AppLanguage.DE -> "Verlauf ist nur mit Serververbindung verfügbar."
+                AppLanguage.EN -> "History requires a server connection."
+            }
+            return@LaunchedEffect
+        }
+        historyLoading = true
+        try {
+            val page = repository.purchaseHistory(currentUser.workspaceId,
+                if (canManage) historyMemberId else null, null)
+            history = page.items
+            historyCursor = page.nextCursor
+            historyHasMore = page.hasMore
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            historyError = e.message.orEmpty().ifBlank { "History unavailable" }
+        } finally { historyLoading = false }
+    }
 
     fun pointTypeLabel(
         pointTypes: List<PointTypeResponse>,
@@ -365,6 +403,12 @@ fun RewardsScreen(
             selected = tab,
             catalog = text.catalog,
             requests = text.requests,
+            history = when (language) {
+                AppLanguage.UK -> "Історія"
+                AppLanguage.RU -> "История"
+                AppLanguage.DE -> "Verlauf"
+                AppLanguage.EN -> "History"
+            },
             requestCount = data?.requests?.size ?: 0,
             manage = text.settings,
             canManage = canManage,
@@ -1231,6 +1275,7 @@ private fun RewardsTabs(
     selected: RewardsTab,
     catalog: String,
     requests: String,
+    history: String,
     requestCount: Int,
     manage: String,
     canManage: Boolean,
@@ -1253,6 +1298,12 @@ private fun RewardsTabs(
             label = requests,
             count = requestCount,
             onClick = { onSelect(RewardsTab.REQUESTS) },
+            modifier = Modifier.fillMaxWidth(0.48f)
+        )
+        RewardTabButton(
+            selected = selected == RewardsTab.HISTORY,
+            label = history,
+            onClick = { onSelect(RewardsTab.HISTORY) },
             modifier = Modifier.fillMaxWidth(0.48f)
         )
         if (canManage) RewardTabButton(
