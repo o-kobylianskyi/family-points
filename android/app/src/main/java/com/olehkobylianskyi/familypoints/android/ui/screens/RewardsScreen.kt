@@ -496,6 +496,83 @@ fun RewardsScreen(
                 }
 
                 when (tab) {
+                    RewardsTab.HISTORY -> {
+                        item {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                if (canManage) {
+                                    OutlinedTextField(
+                                        value = historyFilterDraft,
+                                        onValueChange = { historyFilterDraft = it.filter(Char::isDigit).take(18) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        label = { Text(when (language) {
+                                            AppLanguage.UK -> "ID учасника (порожньо — всі)"
+                                            AppLanguage.RU -> "ID участника (пусто — все)"
+                                            AppLanguage.DE -> "Mitglied-ID (leer = alle)"
+                                            AppLanguage.EN -> "Member ID (blank = all)"
+                                        }) }
+                                    )
+                                    OutlinedButton(onClick = {
+                                        historyMemberId = historyFilterDraft.toLongOrNull()
+                                        historyGeneration += 1
+                                    }) { Text(when (language) {
+                                        AppLanguage.UK -> "Застосувати фільтр"
+                                        AppLanguage.RU -> "Применить фильтр"
+                                        AppLanguage.DE -> "Filter anwenden"
+                                        AppLanguage.EN -> "Apply filter"
+                                    }) }
+                                }
+                                if (historyLoading) Text(text.loading)
+                                if (historyError.isNotBlank())
+                                    Text(historyError, color = MaterialTheme.colorScheme.error)
+                                if (!historyLoading && historyError.isBlank() && history.isEmpty())
+                                    Text(when (language) {
+                                        AppLanguage.UK -> "Покупок поки немає"
+                                        AppLanguage.RU -> "Покупок пока нет"
+                                        AppLanguage.DE -> "Noch keine Käufe"
+                                        AppLanguage.EN -> "No purchases yet"
+                                    })
+                            }
+                        }
+                        items(history, key = { it.id }) { purchase ->
+                            Card(modifier = Modifier.fillMaxWidth()) {
+                                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(purchase.rewardTitle, style = MaterialTheme.typography.titleMedium)
+                                    Text((purchase.memberName ?: "") + " · " + (purchase.purchasedAt ?: ""))
+                                    Text(purchase.priceAmount.toString() + " " + (purchase.pointTypeCode ?: ""))
+                                    Text(purchase.status)
+                                    purchase.durationMinutes?.let { Text("$it min") }
+                                }
+                            }
+                        }
+                        if (historyHasMore && historyCursor != null) item {
+                            OutlinedButton(
+                                enabled = !historyLoading,
+                                onClick = {
+                                    scope.launch {
+                                        val next = historyCursor ?: return@launch
+                                        historyLoading = true
+                                        historyError = ""
+                                        try {
+                                            val page = repository.purchaseHistory(
+                                                currentUser.workspaceId, if (canManage) historyMemberId else null, next
+                                            )
+                                            history = (history + page.items).distinctBy { it.id }
+                                            historyCursor = page.nextCursor
+                                            historyHasMore = page.hasMore
+                                        } catch (e: Exception) {
+                                            if (e is kotlinx.coroutines.CancellationException) throw e
+                                            historyError = e.message.orEmpty().ifBlank { "History unavailable" }
+                                        } finally { historyLoading = false }
+                                    }
+                                }
+                            ) { Text(when (language) {
+                                AppLanguage.UK -> "Завантажити ще"
+                                AppLanguage.RU -> "Загрузить ещё"
+                                AppLanguage.DE -> "Mehr laden"
+                                AppLanguage.EN -> "Load more"
+                            }) }
+                        }
+                    }
                     RewardsTab.CATALOG -> {
                         if (current.rewards.isEmpty()) {
                             item { Text(text.emptyRewards) }
