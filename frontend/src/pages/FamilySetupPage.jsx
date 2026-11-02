@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates } from '../api/templateApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { getMemberGroups, createMemberGroup } from '../api/memberGroupApi'
+import { getWorkNodeGroups, createWorkNodeGroup } from '../api/workNodeGroupApi'
 import './FamilySetupPage.css'
 
 // This is an explicit, non-destructive onboarding entry. It does not infer that an
@@ -49,6 +50,10 @@ export default function FamilySetupPage() {
   const [owned, setOwned] = useState([])
   const [groups, setGroups] = useState([])
   const [groupsAvailable, setGroupsAvailable] = useState(false)
+  const [workGroups, setWorkGroups] = useState([])
+  const [workGroupsAvailable, setWorkGroupsAvailable] = useState(false)
+  const [workGroupName, setWorkGroupName] = useState('')
+  const [workGroupParent, setWorkGroupParent] = useState('')
   const [groupName, setGroupName] = useState('')
   const [groupStatus, setGroupStatus] = useState('')
   const [selected, setSelected] = useState([])
@@ -74,13 +79,14 @@ export default function FamilySetupPage() {
   const load = async (id, request, preserveError = false) => {
     setBusy(true); if (!preserveError) setError(''); setPreview(null)
     try {
-      const [nextCatalog, nextOwned, groupResult] = await Promise.all([
+      const [nextCatalog, nextOwned, groupResult, workResult] = await Promise.all([
         getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), id),
-        getMemberGroups(getAccessToken(), id).then(data => ({ ok:true, data }), () => ({ ok:false, data:[] }))
+        getMemberGroups(getAccessToken(), id).then(data => ({ ok:true, data }), () => ({ ok:false, data:[] })),
+        getWorkNodeGroups(getAccessToken(), id).then(data => ({ ok:true, data }), () => ({ ok:false, data:[] }))
       ])
-      if (!validCatalog(nextCatalog) || !Array.isArray(nextOwned) || (groupResult.ok && !Array.isArray(groupResult.data))) throw new Error('INVALID_TEMPLATE_CATALOG')
+      if (!validCatalog(nextCatalog) || !Array.isArray(nextOwned) || (groupResult.ok && !Array.isArray(groupResult.data)) || (workResult.ok && !Array.isArray(workResult.data))) throw new Error('INVALID_TEMPLATE_CATALOG')
       if (generation.current === request && workspaceRef.current === id) {
-        setCatalog(nextCatalog); setOwned(nextOwned); setGroups(groupResult.data); setGroupsAvailable(groupResult.ok); setCatalogReady(true)
+        setCatalog(nextCatalog); setOwned(nextOwned); setGroups(groupResult.data); setGroupsAvailable(groupResult.ok); setWorkGroups(workResult.data); setWorkGroupsAvailable(workResult.ok); setCatalogReady(true)
       }
     } catch {
       if (generation.current === request && workspaceRef.current === id) setError(t[21])
@@ -90,7 +96,7 @@ export default function FamilySetupPage() {
   }
   useEffect(() => {
     const request = ++generation.current
-    setCatalogReady(false); setDraftReady(false); setStep(0); setGroupName(''); setGroupStatus(''); setGroups([]); setGroupsAvailable(false); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
+    setCatalogReady(false); setDraftReady(false); setStep(0); setGroupName(''); setGroupStatus(''); setGroups([]); setGroupsAvailable(false); setWorkGroups([]); setWorkGroupsAvailable(false); setWorkGroupName(''); setWorkGroupParent(''); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
     setPack('ALL'); setKind('TASK'); setCategory('ALL'); setSearch('')
     setComplete(false); setPreview(null)
     if (workspaceId) load(workspaceId, request).finally(() => { if (generation.current === request) setDraftReady(true) })
@@ -183,6 +189,44 @@ export default function FamilySetupPage() {
   }
   const canManageGroups = currentUser?.permissions?.includes('MANAGE_GROUPS') ||
     currentUser?.permissions?.includes('ADMIN_OVERRIDE')
+  const canCreateWorkGroups = currentUser?.permissions?.includes('CREATE_TASKS') ||
+    currentUser?.permissions?.includes('ADMIN_OVERRIDE')
+  const createExplicitWorkGroup = async () => {
+    const title = workGroupName.trim()
+    if (!canCreateWorkGroups || !workGroupsAvailable || !title || title.length > 120 || lock.current) return
+    lock.current = true
+    const id = workspaceId, request = generation.current
+    setBusy(true); setError('')
+    try {
+      const current = await getWorkNodeGroups(getAccessToken(), id)
+      if (generation.current !== request || workspaceRef.current !== id) return
+      if (!Array.isArray(current)) throw new Error('INVALID_WORK_NODE_GROUPS')
+      const parentGroupId = workGroupParent ? Number(workGroupParent) : null
+      if (parentGroupId != null && !current.some(g => g.id === parentGroupId && g.active !== false)) {
+        throw new Error('INVALID_WORK_NODE_PARENT')
+      }
+      if (current.some(g => String(g.parentGroupId ?? '') === String(parentGroupId ?? '') &&
+        g.title?.trim().toLocaleLowerCase() === title.toLocaleLowerCase() && g.active !== false)) {
+        setWorkGroups(current); setWorkGroupName(''); return
+      }
+      await createWorkNodeGroup(getAccessToken(), id, { title, description: null, parentGroupId, sortOrder: 0 })
+      const updated = await getWorkNodeGroups(getAccessToken(), id)
+      if (generation.current === request && workspaceRef.current === id && Array.isArray(updated)) {
+        setWorkGroups(updated); setWorkGroupName('')
+      }
+    } catch {
+      if (generation.current === request && workspaceRef.current === id) {
+        setError(t[21])
+        // POST could have completed despite timeout. Reconcile; never auto-retry.
+        try {
+          const updated = await getWorkNodeGroups(getAccessToken(), id)
+          if (generation.current === request && workspaceRef.current === id && Array.isArray(updated)) setWorkGroups(updated)
+        } catch { /* Preserve uncertain outcome. */ }
+      }
+    } finally {
+      if (generation.current === request && workspaceRef.current === id) { lock.current = false; setBusy(false) }
+    }
+  }
   const createExplicitGroup = async () => {
     const name = groupName.trim()
     if (!canManageGroups || !groupsAvailable || !name || name.length > 120 || lock.current) return
@@ -241,6 +285,20 @@ export default function FamilySetupPage() {
         de:{CREATED:'Gruppe erstellt.',EXISTS:'Gruppe existiert bereits.',UNKNOWN:'Ergebnis unklar. Liste vor erneutem Versuch prüfen.'},
         en:{CREATED:'Group created.',EXISTS:'Group already exists.',UNKNOWN:'Result uncertain. Check the list before trying again.'}
       })[lang]?.[groupStatus]}</p>}
+      <h3>{({uk:'Робочі папки завдань (WorkNode)',ru:'Рабочие папки задач (WorkNode)',de:'Aufgabenordner (WorkNode)',en:'Task folders (WorkNode)'})[lang]}</h3>
+      <ul>{workGroups.map(group => <li key={group.id}>{group.title}</li>)}</ul>
+      {!workGroupsAvailable && <p role="status">{({uk:'Робочі папки зараз недоступні.',ru:'Папки задач сейчас недоступны.',de:'Aufgabenordner sind derzeit nicht verfügbar.',en:'Task folders are currently unavailable.'})[lang]}</p>}
+      {canCreateWorkGroups && workGroupsAvailable && <div className="family-setup-actions">
+        <label>{({uk:'Нова папка завдань',ru:'Новая папка задач',de:'Neuer Aufgabenordner',en:'New task folder'})[lang]}
+          <input maxLength={120} disabled={busy} value={workGroupName} onChange={event => setWorkGroupName(event.target.value)}/>
+        </label>
+        <label>{({uk:'Батьківська папка',ru:'Родительская папка',de:'Übergeordneter Ordner',en:'Parent folder'})[lang]}
+          <select disabled={busy} value={workGroupParent} onChange={event => setWorkGroupParent(event.target.value)}>
+            <option value="">—</option>{workGroups.filter(g => g.active !== false).map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
+          </select>
+        </label>
+        <button type="button" disabled={busy || !workGroupName.trim()} onClick={createExplicitWorkGroup}>{({uk:'Створити папку',ru:'Создать папку',de:'Ordner erstellen',en:'Create folder'})[lang]}</button>
+      </div>}
       <p>{t[15]}</p><button type="button" onClick={() => setStep(1)}>{t[18]}</button>
     </section>}
     {step === 1 && <section><h2>{t[2]}</h2>
