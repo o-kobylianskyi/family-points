@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.time.LocalDateTime;
+import com.olehkobylianskyi.familypoints.entity.RewardPurchaseStatus;
 
 @RestController
 @RequestMapping("/workspaces/{workspaceId}/rewards")
@@ -194,6 +196,26 @@ public class RewardController {
                 currentUser.getCurrentMemberId(),
                 canManageRewards()
         );
+    }
+
+    /**
+     * Purchase history only; no delivery/receipt event is inferred from READY
+     * or REDEEMED. All member filters are server-authorized.
+     */
+    @GetMapping("/history")
+    public RewardPurchaseHistoryPage history(
+            @PathVariable Long workspaceId,
+            @RequestParam(required = false) Long memberId,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) RewardPurchaseStatus status,
+            @RequestParam(required = false) LocalDateTime from,
+            @RequestParam(required = false) LocalDateTime to
+    ) {
+        assertWorkspace(workspaceId);
+        return rewardService.purchaseHistory(workspaceId,
+                currentUser.getCurrentMemberId(),canManageRewards(),
+                memberId,limit,cursor,status,from,to);
     }
 
     @GetMapping("/purchases")
