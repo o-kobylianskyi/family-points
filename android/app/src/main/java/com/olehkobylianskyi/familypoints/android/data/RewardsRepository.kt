@@ -20,6 +20,19 @@ class RewardsRepository(
         return "Bearer $token"
     }
 
+    /** Read-only; never cache across accounts or infer receipt/delivery from purchase state. */
+    suspend fun purchaseHistory(
+        workspaceId: Long, memberId: Long?, cursor: String?, limit: Int = 30,
+        status: String? = null
+    ): RewardPurchaseHistoryPage {
+        val token = tokenStore.getAccessToken() ?: error("Missing access token")
+        val page = ApiClient.rewardsApi.getPurchaseHistory(
+            "Bearer $token", workspaceId, memberId, cursor, limit, status
+        )
+        check(tokenStore.getAccessToken() == token) { "Account changed during reward history request" }
+        return page
+    }
+
     suspend fun loadPointNameForms(workspaceId: Long, pointTypeId: Long): List<PointNameFormDto> =
         ApiClient.settingsApi.pointNameForms(authorization(), workspaceId, pointTypeId)
 
