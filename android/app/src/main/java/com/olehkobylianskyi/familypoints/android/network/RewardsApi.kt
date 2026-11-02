@@ -14,8 +14,20 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
+import com.olehkobylianskyi.familypoints.android.data.RewardPurchaseHistoryPage
 
 interface RewardsApi {
+
+    @GET("workspaces/{workspaceId}/rewards/history")
+    suspend fun getPurchaseHistory(
+        @Header("Authorization") authorization: String,
+        @Path("workspaceId") workspaceId: Long,
+        @Query("memberId") memberId: Long? = null,
+        @Query("cursor") cursor: String? = null,
+        @Query("limit") limit: Int = 30,
+        @Query("status") status: String? = null
+    ): RewardPurchaseHistoryPage
 
     @GET("workspaces/{workspaceId}/rewards")
     suspend fun getRewards(
