@@ -8,6 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import org.springframework.data.domain.PageRequest;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -63,6 +67,58 @@ public class RewardService {
         this.reputationService = reputationService;
         this.pointService = pointService;
         this.availabilityService = availabilityService;
+    }
+
+    /**
+     * Cursor is an opaque time/id pair. The result and every lookup are scoped
+     * by authenticated workspace and effective member, not client authority.
+     * Only persisted PURCHASE states are represented, never receipt/delivery.
+     */
+    @Transactional(readOnly = true)
+    public RewardPurchaseHistoryPage purchaseHistory(Long workspaceId,Long callerId,
+            boolean canManage,Long selectedMember,Integer requestedLimit,String cursor,
+            RewardPurchaseStatus status,LocalDateTime from,LocalDateTime to) {
+        if(workspaceId==null || workspaceId<=0 || callerId==null || callerId<=0)
+            throw new IllegalArgumentException("HISTORY_MEMBER_REQUIRED");
+        // Validate the current member belongs to the current workspace even
+        // for a manager; request parameters cannot grant another membership.
+        getMember(workspaceId,callerId);
+        if(!canManage && selectedMember!=null && !callerId.equals(selectedMember))
+            throw new IllegalArgumentException("HISTORY_MEMBER_ACCESS_DENIED");
+        Long memberId=canManage?selectedMember:callerId;
+        if(memberId!=null)getMember(workspaceId,memberId);
+        int limit=requestedLimit==null?25:requestedLimit;
+        if(limit<1 || limit>100)throw new IllegalArgumentException("HISTORY_LIMIT_INVALID");
+        if(from!=null && to!=null && from.isAfter(to))
+            throw new IllegalArgumentException("HISTORY_DATE_RANGE_INVALID");
+        LocalDateTime beforeTime=null;
+        Long beforeId=null;
+        if(cursor!=null && !cursor.isBlank()) {
+            try {
+                String decoded=new String(Base64.getUrlDecoder().decode(cursor),
+                        StandardCharsets.US_ASCII);
+                String[] parts=decoded.split("\\|",-1);
+                if(parts.length!=2 || !parts[1].matches("[1-9][0-9]*"))
+                    throw new IllegalArgumentException("HISTORY_CURSOR_INVALID");
+                beforeTime=LocalDateTime.parse(parts[0]);
+                beforeId=Long.valueOf(parts[1]);
+            } catch(RuntimeException ex) {
+                throw new IllegalArgumentException("HISTORY_CURSOR_INVALID",ex);
+            }
+        }
+        var found=purchases.findHistoryPage(workspaceId,memberId,beforeTime,beforeId,
+                from,to,status,PageRequest.of(0,limit+1));
+        boolean hasMore=found.size()>limit;
+        var page=hasMore?found.subList(0,limit):found;
+        String next=null;
+        if(hasMore && !page.isEmpty()) {
+            var last=page.get(page.size()-1);
+            next=Base64.getUrlEncoder().withoutPadding().encodeToString(
+                    (last.getPurchasedAt().toString()+"|"+last.getId())
+                    .getBytes(StandardCharsets.US_ASCII));
+        }
+        return new RewardPurchaseHistoryPage(
+                page.stream().map(RewardPurchaseResponse::from).toList(),next,hasMore);
     }
 
     @Transactional(readOnly = true)
