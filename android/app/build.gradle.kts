@@ -34,8 +34,10 @@ android {
     val releaseStorePassword = providers.environmentVariable("FP_ANDROID_KEYSTORE_PASSWORD").orElse("").get()
     val releaseKeyAlias = providers.environmentVariable("FP_ANDROID_KEY_ALIAS").orElse("").get()
     val releaseKeyPassword = providers.environmentVariable("FP_ANDROID_KEY_PASSWORD").orElse("").get()
-    val hasReleaseSigning = listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword)
-        .all { it.isNotBlank() }
+    val hasReleaseSigning = releaseStoreFile.isNotBlank() &&
+        releaseStorePassword.isNotBlank() &&
+        releaseKeyAlias.isNotBlank() &&
+        releaseKeyPassword.isNotBlank()
     if (hasReleaseSigning) {
         signingConfigs {
             create("familyPointsRelease") {
