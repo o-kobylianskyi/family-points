@@ -20,10 +20,12 @@ import java.util.*;
  */
 final class DisposableUnifiedGroupMediaRestoreExecutor {
     record Result(Map<Long,Long> groupIds, Map<UUID,UUID> assetIds,
-                  int blobs, int privateBindings, int catalogBindings) {}
+                  int blobs, int privateBindings, int catalogBindings,
+                  Map<Long,Long> templateIds) {}
     private final TransactionTemplate transaction;
     private final DisposableNativeRestoreExecutor groups;
     private final DisposablePrivateMediaRestoreExecutor media;
+    private final DisposablePrivateTemplateRestoreExecutor templates;
     private final ProtectiveBackupPortableFile files;
     private final ProtectiveBackupArtifactCodec codec;
     private final ProtectiveBackupImportInspector inspector;
@@ -35,6 +37,7 @@ final class DisposableUnifiedGroupMediaRestoreExecutor {
         this.transaction=new TransactionTemplate(manager);
         this.groups=new DisposableNativeRestoreExecutor(db,manager,files,codec,inspector);
         this.media=new DisposablePrivateMediaRestoreExecutor(db,manager,inspector,files,codec);
+        this.templates=new DisposablePrivateTemplateRestoreExecutor(db,manager,inspector,files,codec);
         this.files=files;this.codec=codec;this.inspector=inspector;
     }
 
@@ -42,14 +45,18 @@ final class DisposableUnifiedGroupMediaRestoreExecutor {
         if(source<=0 || target<=0 || source==target)
             throw new IllegalArgumentException("DISPOSABLE_DISTINCT_FAMILIES_REQUIRED");
         var inspected=inspector.inspect(unified,source,key);
+        boolean hasTemplates=inspected.availableCategories().contains("PRIVATE_TEMPLATES");
+        var allowed=hasTemplates
+                ? List.of("MEDIA_ASSETS","MEDIA_BINDINGS","MEMBER_GROUPS","PRIVATE_TEMPLATES")
+                : List.of("MEDIA_ASSETS","MEDIA_BINDINGS","MEMBER_GROUPS");
         if(!"V50".equals(inspected.schemaVersion())
-                || !inspected.availableCategories().equals(List.of(
-                    "MEDIA_ASSETS","MEDIA_BINDINGS","MEMBER_GROUPS")))
+                || !inspected.availableCategories().equals(allowed))
             throw new IllegalArgumentException("UNIFIED_RESTORE_SCOPE_UNSUPPORTED");
         var envelope=files.decode(unified);
         byte[] clear=codec.open(envelope,envelope.manifest().snapshotId(),source,key);
         byte[] groupFile;
         byte[] mediaFile;
+        byte[] templateFile=null;
         try {
             var root=json.readTree(clear);
             var categories=root.path("categories");
@@ -75,15 +82,25 @@ final class DisposableUnifiedGroupMediaRestoreExecutor {
             var privateRoot=(ObjectNode)root.deepCopy();
             privateRoot.set("categories",privateData);
             mediaFile=project(privateRoot,envelope,source,key);
+            if(hasTemplates) {
+                var templateRoot=(ObjectNode)root.deepCopy();
+                var templateCats=templateRoot.putObject("categories");
+                templateCats.set("PRIVATE_TEMPLATES",categories.path("PRIVATE_TEMPLATES").deepCopy());
+                templateFile=project(templateRoot,envelope,source,key);
+            }
         } catch(Exception ex) {
             if(ex instanceof RuntimeException runtime)throw runtime;
             throw new IllegalArgumentException("UNIFIED_RESTORE_ARCHIVE_INVALID",ex);
         } finally {Arrays.fill(clear,(byte)0);}
+        final byte[] finalTemplateFile=templateFile;
         return transaction.execute(status->{
             var groupsResult=groups.apply(groupFile,source,target,key);
             var mediaResult=media.apply(mediaFile,source,target,memberIds,groupsResult.groupIds(),key);
+            var templateResult=finalTemplateFile==null?null:
+                    templates.apply(finalTemplateFile,source,target,key);
             return new Result(groupsResult.groupIds(),mediaResult.assetIds(),
-                    mediaResult.blobs(),mediaResult.bindings(),groupsResult.bindings());
+                    mediaResult.blobs(),mediaResult.bindings(),groupsResult.bindings(),
+                    templateResult==null?Map.of():templateResult.templateIds());
         });
     }
 
