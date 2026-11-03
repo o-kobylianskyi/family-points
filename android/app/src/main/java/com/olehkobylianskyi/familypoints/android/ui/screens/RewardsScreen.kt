@@ -524,6 +524,37 @@ fun RewardsScreen(
                                         AppLanguage.EN -> "Apply filter"
                                     }) }
                                 }
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    OutlinedButton(onClick = { historyStatusMenu = true }) {
+                                        Text(historyStatus ?: when (language) {
+                                            AppLanguage.UK -> "Усі статуси"
+                                            AppLanguage.RU -> "Все статусы"
+                                            AppLanguage.DE -> "Alle Status"
+                                            AppLanguage.EN -> "All statuses"
+                                        })
+                                    }
+                                    DropdownMenu(expanded = historyStatusMenu, onDismissRequest = { historyStatusMenu = false }) {
+                                        listOf<String?>(null, "PENDING_APPROVAL", "READY", "REDEEMED", "CANCELLED")
+                                            .forEach { status ->
+                                                DropdownMenuItem(
+                                                    text = { Text(status ?: "ALL") },
+                                                    onClick = {
+                                                        historyStatus = status
+                                                        historyGeneration += 1
+                                                        historyStatusMenu = false
+                                                    }
+                                                )
+                                            }
+                                    }
+                                    OutlinedButton(onClick = { historyGeneration += 1 }) {
+                                        Text(when (language) {
+                                            AppLanguage.UK -> "Оновити історію"
+                                            AppLanguage.RU -> "Обновить историю"
+                                            AppLanguage.DE -> "Verlauf aktualisieren"
+                                            AppLanguage.EN -> "Refresh history"
+                                        })
+                                    }
+                                }
                                 if (historyLoading) Text(text.loading)
                                 if (historyError.isNotBlank())
                                     Text(historyError, color = MaterialTheme.colorScheme.error)
@@ -553,15 +584,29 @@ fun RewardsScreen(
                                 onClick = {
                                     scope.launch {
                                         val next = historyCursor ?: return@launch
+                                        if (historyLoading || tab != RewardsTab.HISTORY || serverStatus != ServerStatus.ONLINE) return@launch
+                                        val expectedGeneration = historyGeneration
+                                        val expectedMember = historyMemberId
+                                        val expectedStatus = historyStatus
+                                        val expectedWorkspace = currentUser.workspaceId
+                                        val expectedAccount = currentUser.accountId
                                         historyLoading = true
                                         historyError = ""
                                         try {
                                             val page = repository.purchaseHistory(
-                                                currentUser.workspaceId, if (canManage) historyMemberId else null, next
+                                                expectedWorkspace, if (canManage) expectedMember else null, next, status = expectedStatus
                                             )
-                                            history = (history + page.items).distinctBy { it.id }
-                                            historyCursor = page.nextCursor
-                                            historyHasMore = page.hasMore
+                                            if (tab == RewardsTab.HISTORY &&
+                                                historyGeneration == expectedGeneration &&
+                                                historyMemberId == expectedMember &&
+                                                historyStatus == expectedStatus &&
+                                                currentUser.workspaceId == expectedWorkspace &&
+                                                currentUser.accountId == expectedAccount &&
+                                                historyCursor == next) {
+                                                history = RewardHistoryPagination.append(history, page)
+                                                historyCursor = page.nextCursor
+                                                historyHasMore = page.hasMore
+                                            }
                                         } catch (e: Exception) {
                                             if (e is kotlinx.coroutines.CancellationException) throw e
                                             historyError = e.message.orEmpty().ifBlank { "History unavailable" }
