@@ -280,7 +280,7 @@ function RewardsPage() {
       getTemplateCatalog(token).then(data => { if (identityRef.current === identityAtStart) setGlobalRewardTemplates((data?.templates || []).filter(item => item.kind === 'REWARD')) }).catch(() => {})
       if (canManage) getPrivateTemplates(token, workspaceId).then(items => {
         if (identityRef.current === identityAtStart) { setRewardTemplates((Array.isArray(items) ? items : []).filter(item => item.kind === 'REWARD')); setPrivateTemplatesLoaded(true) }
-      }).catch(() => { if (String(workspaceRef.current) === String(workspaceId)) { setRewardTemplates([]); setPrivateTemplatesLoaded(true) } })
+      }).catch(() => { if (identityRef.current === identityAtStart) { setRewardTemplates([]); setPrivateTemplatesLoaded(true) } })
 
       const defaultPointTypeId = pointTypeData[0]?.id ?? ''
       setRewardForm((current) => ({
@@ -299,7 +299,7 @@ function RewardsPage() {
   }
 
   useEffect(() => {
-    setTasks([])
+    setTasks([]); setRewards([]); setRequests([]); setPurchases([]); setObligations([]); setBalances([]); setCategories([]); setPointTypes([])
     setPendingRewardActivation(rewardActivationKey ? readActivation(sessionStorage, rewardActivationKey, currentUser.workspaceId, 'REWARD') : null)
     setRewardForm(emptyRewardForm)
     rewardDraftGeneration.current += 1
