@@ -68,7 +68,7 @@ internal fun TemplateFieldsEditor(
                 ) change(key, entered, number = numeric)
             },
             label = { Text(title) },
-            supportingText = if (key in setOf("rewardAmount", "penaltyAmount", "priceAmount")) {{
+            supportingText = if (key in setOf("rewardAmount", "penaltyAmount", "priceAmount")) {
                 val guidance = when {
                     value.isBlank() -> label(
                         "Не задано — рішення про бали ще потрібне. Це не безкоштовно.",
@@ -86,7 +86,7 @@ internal fun TemplateFieldsEditor(
                     )
                 }
                 Text(guidance)
-            }} else null,
+            } else null,
             enabled = enabled,
             minLines = if (multiline) 2 else 1,
             maxLines = if (multiline) 4 else 1,
