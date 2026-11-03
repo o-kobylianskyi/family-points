@@ -42,11 +42,12 @@ test.describe('P1 purchase-only reward history v1: synthetic read-only acceptanc
 
   test('26 purchase rows paginate; overlaps deduplicated; no purchase POST',async({page})=>{
     const writes=assertNoWrites(page)
-    let calls=0
+    let initialCalls=0, cursorCalls=0
     await page.route(historyPath,route=>{
-      calls++
       const url=new URL(route.request().url())
       const cursor=url.searchParams.get('cursor')
+      if (cursor) cursorCalls++
+      else initialCalls++
       const rows=cursor?[purchase(25),purchase(26)]:Array.from({length:25},(_,i)=>purchase(i+1))
       return route.fulfill({status:200,contentType:'application/json',
         body:JSON.stringify({items:rows,nextCursor:cursor?null:'qa-cursor-page-2',hasMore:!cursor})})
@@ -55,30 +56,44 @@ test.describe('P1 purchase-only reward history v1: synthetic read-only acceptanc
     const panel=page.locator('section.reward-history-panel')
     await expect(panel.locator('article.reward-history-item')).toHaveCount(25)
     await panel.getByRole('button',{name:moreLabel}).click()
-    await expect(panel.locator('article.reward-history-item')).toHaveCount(26)
+    await expect.poll(()=>cursorCalls, {message:'Load more must issue one cursor GET'}).toBe(1)
+    try {
+      await expect(panel.locator('article.reward-history-item')).toHaveCount(26)
+    } catch (error) {
+      // Only expose synthetic fixture labels/counts; never dump URLs, headers, storage or credentials.
+      const count=await panel.locator('article.reward-history-item').count()
+      const has26=await panel.getByText('QA reward 26').count()
+      const alerts=await panel.getByRole('alert').allTextContents()
+      const loadMore=await panel.getByRole('button',{name:moreLabel}).count()
+      throw new Error(`RH-01: initialGET=${initialCalls}, cursorGET=${cursorCalls}, DOM=${count}, row26=${has26}, alerts=${JSON.stringify(alerts)}, loadMoreButton=${loadMore}`, {cause:error})
+    }
     await expect(panel.getByText('QA reward 26')).toBeVisible()
     await expect(panel.locator('article.reward-history-item').filter({hasText:'QA reward 25'})).toHaveCount(1)
-    expect(calls).toBe(2)
+    expect(initialCalls).toBeGreaterThanOrEqual(1)
+    expect(cursorCalls).toBe(1)
     expect(writes).toEqual([])
   })
 
   test('invalid history page fails closed and retry recovers without mutations',async({page})=>{
     const writes=assertNoWrites(page)
-    let calls=0
+    let calls=0, retryRequested=false
     await page.route(historyPath,route=>{
       calls++
+      // Initial mount may legitimately issue more than one GET (React StrictMode).
+      // Keep every pre-retry response malformed; only the explicit Retry can recover.
       return route.fulfill({status:200,contentType:'application/json',
-        body:JSON.stringify(calls===1?
-          {items:[purchase(1)],nextCursor:null,hasMore:true}:
-          {items:[purchase(3)],nextCursor:null,hasMore:false})})
+        body:JSON.stringify(retryRequested?
+          {items:[purchase(3)],nextCursor:null,hasMore:false}:
+          {items:[purchase(1)],nextCursor:null,hasMore:true})})
     })
     await enterHistory(page)
     const panel=page.locator('section.reward-history-panel')
     await expect(panel.getByRole('alert')).toBeVisible()
     await expect(panel.locator('article.reward-history-item')).toHaveCount(0)
+    retryRequested=true
     await panel.getByRole('button',{name:/^(Retry|Повторити завантаження|Повторить загрузку|Erneut laden)$/}).click()
     await expect(panel.getByText('QA reward 3')).toBeVisible()
-    expect(calls).toBe(2)
+    expect(calls).toBeGreaterThanOrEqual(2)
     expect(writes).toEqual([])
   })
 
