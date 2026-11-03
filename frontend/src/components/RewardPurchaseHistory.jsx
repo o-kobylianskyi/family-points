@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getRewardPurchaseHistory } from '../api/rewardApi'
 import { getWorkspaceMembers } from '../api/workspaceApi'
-import { PURCHASE_STATUSES, validateRewardHistoryPage, appendRewardHistory } from '../utils/rewardHistoryPage'
+import { PURCHASE_STATUSES, validateRewardHistoryPage, verifyRewardHistoryMemberScope, appendRewardHistory } from '../utils/rewardHistoryPage'
 import './RewardPurchaseHistory.css'
 
 const wording = {
@@ -78,7 +78,7 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
     getRewardPurchaseHistory(getAccessToken(), workspaceId, options)
       .then(result => {
         if (id !== requestId.current || identityRef.current !== observedKey) return
-        validateRewardHistoryPage(result)
+        verifyRewardHistoryMemberScope(validateRewardHistoryPage(result), {canManage, currentMemberId:memberId, selectedMemberId:applied.memberId})
         setItems(result.items); setCursor(result.nextCursor); setHasMore(result.hasMore)
       })
       .catch(() => { if (id === requestId.current && identityRef.current === observedKey) setError(words.error) })
@@ -99,7 +99,7 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
     try {
       const result = await getRewardPurchaseHistory(getAccessToken(), workspaceId, options)
       if (id !== requestId.current || identityRef.current !== observedKey) return
-      validateRewardHistoryPage(result)
+      verifyRewardHistoryMemberScope(validateRewardHistoryPage(result), {canManage, currentMemberId:memberId, selectedMemberId:applied.memberId})
       setItems(current => appendRewardHistory(current, result.items))
       setCursor(result.nextCursor); setHasMore(result.hasMore)
     } catch {
