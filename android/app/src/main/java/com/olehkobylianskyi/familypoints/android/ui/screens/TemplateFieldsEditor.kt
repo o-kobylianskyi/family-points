@@ -68,6 +68,25 @@ internal fun TemplateFieldsEditor(
                 ) change(key, entered, number = numeric)
             },
             label = { Text(title) },
+            supportingText = if (key in setOf("rewardAmount", "penaltyAmount", "priceAmount")) {{
+                val guidance = when {
+                    value.isBlank() -> label(
+                        "Не задано — рішення про бали ще потрібне. Це не безкоштовно.",
+                        "Nicht festgelegt — Punkte müssen noch entschieden werden. Nicht kostenlos.",
+                        "Not set — points require a decision. Not free.",
+                        "Не задано — баллы ещё нужно определить. Это не бесплатно."
+                    )
+                    value == "0" -> label(
+                        "0 — явно задане значення.", "0 — ausdrücklich festgelegt.",
+                        "0 — explicitly set.", "0 — явно установлено."
+                    )
+                    else -> label(
+                        "Бали задано.", "Punkte festgelegt.",
+                        "Points value set.", "Баллы установлены."
+                    )
+                }
+                Text(guidance)
+            }} else null,
             enabled = enabled,
             minLines = if (multiline) 2 else 1,
             maxLines = if (multiline) 4 else 1,
