@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {PURCHASE_STATUSES, validateRewardHistoryPage, appendRewardHistory} from '../src/utils/rewardHistoryPage.js'
+import {PURCHASE_STATUSES, validateRewardHistoryPage, verifyRewardHistoryMemberScope, appendRewardHistory} from '../src/utils/rewardHistoryPage.js'
 
 const purchase = id => ({id,status:'READY',rewardTitle:'Old snapshot',priceAmount:0})
 test('purchase history supports 26+ rows with overlapping cursor pages', () => {
@@ -25,4 +25,13 @@ test('fail closed on bad pages or missing cursor', () => {
   assert.throws(()=>validateRewardHistoryPage({items:[purchase(0)],hasMore:false,nextCursor:null}))
   assert.throws(()=>validateRewardHistoryPage({items:[],hasMore:'false',nextCursor:null}))
   assert.deepEqual(validateRewardHistoryPage({items:[],hasMore:false,nextCursor:null}).items,[])
+})
+
+test('history never renders a sibling row for ordinary members or selected manager', () => {
+  const own = {items:[{...purchase(1),memberId:8}],nextCursor:null,hasMore:false}
+  const sibling = {items:[{...purchase(2),memberId:9}],nextCursor:null,hasMore:false}
+  assert.equal(verifyRewardHistoryMemberScope(own,{canManage:false,currentMemberId:8}),own)
+  assert.throws(()=>verifyRewardHistoryMemberScope(sibling,{canManage:false,currentMemberId:8}))
+  assert.throws(()=>verifyRewardHistoryMemberScope(sibling,{canManage:true,currentMemberId:8,selectedMemberId:'8'}))
+  assert.equal(verifyRewardHistoryMemberScope(sibling,{canManage:true,currentMemberId:8,selectedMemberId:''}),sibling)
 })
