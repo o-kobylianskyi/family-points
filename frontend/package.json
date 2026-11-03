@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "i18n:check": "node scripts/check-i18n.mjs"
+    "i18n:check": "node scripts/check-i18n.mjs",
+    "test:onboarding": "node --test tests/onboardingImportOperation.test.mjs"
   },
   "dependencies": {
     "i18next": "^26.4.2",
