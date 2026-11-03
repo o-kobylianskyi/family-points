@@ -7,6 +7,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -45,4 +46,35 @@ class RewardHistoryHttpTest {
         assertEquals("Bearer session-a", a.getHeader("Authorization"))
         assertEquals(2, server.requestCount)
     }
+    @Test fun forbiddenMemberHistoryDoesNotWriteOrFallbackToForeignFamily() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(403)
+            .setBody("""{"code":"FORBIDDEN"}"""))
+        try {
+            api.getPurchaseHistory("Bearer child", 91L, 999L, null, 30)
+            fail("Backend must deny unauthorized member history")
+        } catch (e: HttpException) {
+            assertEquals(403, e.code())
+        }
+        val request = server.takeRequest(2, TimeUnit.SECONDS)!!
+        assertEquals("GET", request.method)
+        assertEquals("Bearer child", request.getHeader("Authorization"))
+        assertTrue(request.path!!.contains("memberId=999"))
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test fun persistedStatusAndCursorAreTransportedAsReadOnlyFilters() = runBlocking {
+        server.enqueue(MockResponse().setHeader("Content-Type", "application/json")
+            .setBody("""{"items":[],"nextCursor":null,"hasMore":false}"""))
+        val page = api.getPurchaseHistory(
+            "Bearer manager", 91L, 7L, "cursor-2", 20, "CANCELLED"
+        )
+        assertTrue(page.items.isEmpty())
+        val request = server.takeRequest(2, TimeUnit.SECONDS)!!
+        assertEquals("GET", request.method)
+        assertTrue(request.path!!.contains("cursor=cursor-2"))
+        assertTrue(request.path!!.contains("status=CANCELLED"))
+        assertTrue(request.path!!.contains("limit=20"))
+        assertEquals(1, server.requestCount)
+    }
+
 }
