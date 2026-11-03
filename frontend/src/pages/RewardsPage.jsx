@@ -11,7 +11,9 @@ import { getMyReputation } from '../api/reputationApi'
 import { currencyQuantity } from '../utils/formatCurrencyAmount'
 import { useTranslation } from 'react-i18next'
 import { getTaskDefinitions } from '../api/taskApi'
-import { getPrivateTemplates, getTemplateCreationDraft, getTemplateCatalog } from '../api/templateApi'
+import { getPrivateTemplates, getTemplateCreationDraft, getTemplateCatalog, activateRewardTemplateIdempotent, getTemplateActivationReceipt } from '../api/templateApi'
+import { observeWorkspaceEpoch } from '../api/client'
+import { activationStorageKey, readActivation, makeActivation, saveActivation, verifyActivationReceipt } from '../utils/templateActivationOperation'
 import {
   approveRewardRequest,
   createReward,
@@ -142,6 +144,12 @@ function RewardsPage() {
   const [selectedRewardTemplateId, setSelectedRewardTemplateId] = useState('')
   const [templateBusy, setTemplateBusy] = useState(false)
   const [rewardWriteUnknown, setRewardWriteUnknown] = useState(false)
+  const activationAccount = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id
+  const rewardActivationKey = activationAccount != null
+    ? activationStorageKey(activationAccount, currentUser.workspaceId, 'REWARD') : null
+  const [pendingRewardActivation, setPendingRewardActivation] = useState(() =>
+    rewardActivationKey ? readActivation(sessionStorage, rewardActivationKey, currentUser.workspaceId, 'REWARD') : null)
+
   const [editingRewardId, setEditingRewardId] = useState(null)
   const [customRequestTitle, setCustomRequestTitle] = useState('')
   const [customRequestDescription, setCustomRequestDescription] = useState('')
@@ -287,6 +295,7 @@ function RewardsPage() {
 
   useEffect(() => {
     setTasks([])
+    setPendingRewardActivation(rewardActivationKey ? readActivation(sessionStorage, rewardActivationKey, currentUser.workspaceId, 'REWARD') : null)
     setRewardForm(emptyRewardForm)
     rewardDraftGeneration.current += 1
     setRewardTemplates([]); setPrivateTemplatesLoaded(false); setRewardWriteUnknown(false); setGlobalRewardTemplates([]); setSelectedRewardTemplateId(''); setSelectedRequestTemplateId(''); setRewardTemplateCategory('ALL'); setRequestTemplateCategory('ALL')
@@ -390,9 +399,37 @@ function RewardsPage() {
     setRewardForm({ ...emptyRewardForm, pointTypeId: pointTypes[0]?.id ?? '' })
   }
 
+  const recoverRewardActivation = async (retry = false) => {
+    if (actionLock.current || !pendingRewardActivation || !rewardActivationKey) return
+    actionLock.current = true
+    const origin = currentUser.workspaceId, operation = pendingRewardActivation
+    setProcessing(true); setError('')
+    try {
+      const epoch = await observeWorkspaceEpoch(getAccessToken(), origin)
+      if (epoch !== operation.epoch) throw new Error('WORKSPACE_DATA_EPOCH_CHANGED')
+      const receipt = retry
+        ? await activateRewardTemplateIdempotent(getAccessToken(), origin, operation.templateId, operation.request, operation.operationId)
+        : await getTemplateActivationReceipt(getAccessToken(), origin, operation.operationId)
+      verifyActivationReceipt(receipt, operation)
+      if (String(workspaceRef.current) !== String(origin)) return
+      sessionStorage.removeItem(rewardActivationKey)
+      setPendingRewardActivation(null); setRewardWriteUnknown(false)
+      setSelectedRewardTemplateId('')
+      setRewardForm({ ...emptyRewardForm, pointTypeId: pointTypes[0]?.id ?? '' })
+      try { await loadAll() } catch { /* Receipt proves activation even if reload fails. */ }
+    } catch (error) {
+      if (String(workspaceRef.current) === String(origin)) setError(error.status === 404
+        ? ({uk:'Квитанції немає. Можна явно повторити тільки оригінальний UUID.',ru:'Квитанции нет. Можно повторить только исходный UUID.',de:'Noch kein Beleg. Nur ursprüngliche UUID erneut senden.',en:'No receipt yet. Only the original UUID can be explicitly retried.'})[language]
+        : (error.message || 'Reward activation is unresolved'))
+    } finally {
+      actionLock.current = false
+      setProcessing(false)
+    }
+  }
+
   const createCatalogReward = async (event) => {
     event.preventDefault()
-    if (rewardWriteUnknown || templateBusy || !rewardForm.title.trim() || !rewardForm.pointTypeId || rewardForm.priceAmount === '' || !Number.isSafeInteger(Number(rewardForm.priceAmount)) || Number(rewardForm.priceAmount) < 0 || (rewardForm.rewardKind === 'TIME_BASED' && (!Number.isSafeInteger(Number(rewardForm.defaultDurationMinutes)) || Number(rewardForm.defaultDurationMinutes) <= 0))) return
+    if (rewardWriteUnknown || pendingRewardActivation || templateBusy || !rewardForm.title.trim() || !rewardForm.pointTypeId || rewardForm.priceAmount === '' || !Number.isSafeInteger(Number(rewardForm.priceAmount)) || Number(rewardForm.priceAmount) < 0 || (rewardForm.rewardKind === 'TIME_BASED' && (!Number.isSafeInteger(Number(rewardForm.defaultDurationMinutes)) || Number(rewardForm.defaultDurationMinutes) <= 0))) return
 
     await run(async () => {
       const payload = {
@@ -422,15 +459,31 @@ function RewardsPage() {
           categoryIds: rewardForm.categoryIds,
           requirements: taskRequirements(rewardForm),
         }
-      // Once a write is sent, do not offer a blind second POST if its
-      // response is lost. A confirmed write clears the uncertain state.
-      setRewardWriteUnknown(true)
-      if (editingRewardId != null) {
-        await updateReward(getAccessToken(), currentUser.workspaceId, editingRewardId, payload)
+      // Existing definitions still use PUT. Private template activations use
+      // the V48 receipt API with one immutable request fingerprint and UUID.
+      if (editingRewardId == null && selectedRewardTemplateId && rewardActivationKey) {
+        const origin = currentUser.workspaceId
+        const existing = readActivation(sessionStorage, rewardActivationKey, origin, 'REWARD')
+        if (existing) { setPendingRewardActivation(existing); throw new Error('PENDING_ACTIVATION_RECOVERY_REQUIRED') }
+        const epoch = await observeWorkspaceEpoch(getAccessToken(), origin)
+        const operation = makeActivation(origin, 'REWARD', epoch, selectedRewardTemplateId, payload, crypto.randomUUID())
+        saveActivation(sessionStorage, rewardActivationKey, operation)
+        setPendingRewardActivation(operation)
+        setRewardWriteUnknown(true)
+        const receipt = await activateRewardTemplateIdempotent(getAccessToken(), origin, operation.templateId, operation.request, operation.operationId)
+        verifyActivationReceipt(receipt, operation)
+        if (String(workspaceRef.current) !== String(origin)) return
+        sessionStorage.removeItem(rewardActivationKey)
+        setPendingRewardActivation(null); setRewardWriteUnknown(false)
       } else {
-        await createReward(getAccessToken(), currentUser.workspaceId, payload)
+        setRewardWriteUnknown(true)
+        if (editingRewardId != null) {
+          await updateReward(getAccessToken(), currentUser.workspaceId, editingRewardId, payload)
+        } else {
+          await createReward(getAccessToken(), currentUser.workspaceId, payload)
+        }
+        setRewardWriteUnknown(false)
       }
-      setRewardWriteUnknown(false)
       setEditingRewardId(null)
 
       setRewardForm((current) => ({
@@ -739,7 +792,7 @@ function RewardsPage() {
                 placeholder={t("rewardsUi.commentOptional")}
                 onChange={(event) => setCustomRequestDescription(event.target.value)}
               />
-              <button type="submit" className="primary-button" disabled={processing || templateBusy || rewardWriteUnknown}>
+              <button type="submit" className="primary-button" disabled={processing || templateBusy || rewardWriteUnknown || !!pendingRewardActivation}>
                 {t('rewardsUi.send')}
               </button>
             </form>
@@ -951,6 +1004,11 @@ function RewardsPage() {
       {pageTab === 'manage' && canManage && (
         <div className="reward-manage-layout">
           <section className="reward-admin-panel">
+            {pendingRewardActivation && <div className="page-error" role="alert">
+              <p>{({uk:'Незавершена активація нагороди: спочатку перевірте квитанцію.',ru:'Активация награды не завершена: сначала проверьте квитанцию.',de:'Offene Belohnungsaktivierung: zuerst Beleg prüfen.',en:'Pending reward activation: check the receipt first.'})[language]}</p>
+              <button type="button" disabled={processing} onClick={() => recoverRewardActivation(false)}>Check receipt</button>
+              <button type="button" disabled={processing} onClick={() => recoverRewardActivation(true)}>Retry original UUID</button>
+            </div>}
             {rewardWriteUnknown && <p role="alert" className="page-error">{({uk:'Результат запису невідомий. Перевірте список нагород перед новою спробою; повторна відправка заблокована.',ru:'Результат записи неизвестен. Проверьте список наград перед новой попыткой; повторная отправка заблокирована.',de:'Speicherergebnis unklar. Vor erneutem Versuch die Belohnungsliste prüfen; erneutes Senden ist gesperrt.',en:'Save outcome unknown. Check the rewards list before trying again; resubmission is blocked.'})[language]}</p>}
             <h2>{t('rewardsUi.categories')}</h2>
             <div className="reward-tags">
