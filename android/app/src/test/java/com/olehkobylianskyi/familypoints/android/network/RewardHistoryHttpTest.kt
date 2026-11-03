@@ -46,6 +46,23 @@ class RewardHistoryHttpTest {
         assertEquals("Bearer session-a", a.getHeader("Authorization"))
         assertEquals(2, server.requestCount)
     }
+    @Test fun memberPickerReadsAuthenticatedWorkspaceWithoutMutations() = runBlocking {
+        server.enqueue(MockResponse().setHeader("Content-Type", "application/json")
+            .setBody("""[{"id":7,"name":"Child A"},{"id":8,"name":"Child B"}]"""))
+        val membersApi = Retrofit.Builder().baseUrl(server.url("/"))
+            .addConverterFactory(GsonConverterFactory.create())
+            .build().create(TaskApi::class.java)
+        val members = membersApi.getWorkspaceMembers("Bearer manager", 91L)
+        assertEquals(2, members.size)
+        assertEquals(7L, members[0].id)
+        assertEquals("Child B", members[1].name)
+        val request = server.takeRequest(2, TimeUnit.SECONDS)!!
+        assertEquals("GET", request.method)
+        assertEquals("/workspaces/91/members", request.path)
+        assertEquals("Bearer manager", request.getHeader("Authorization"))
+        assertEquals(1, server.requestCount)
+    }
+
     @Test fun forbiddenMemberHistoryDoesNotWriteOrFallbackToForeignFamily() = runBlocking {
         server.enqueue(MockResponse().setResponseCode(403)
             .setBody("""{"code":"FORBIDDEN"}"""))
