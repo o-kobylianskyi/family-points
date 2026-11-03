@@ -49,6 +49,7 @@ import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.data.RewardHistoryPurchase
 import com.olehkobylianskyi.familypoints.android.data.RewardsPageData
 import com.olehkobylianskyi.familypoints.android.data.RewardsRepository
+import com.olehkobylianskyi.familypoints.android.i18n.RewardPurchaseHistoryLabels
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.PointNameForms
 import com.olehkobylianskyi.familypoints.android.i18n.formatPointAmount
@@ -620,8 +621,8 @@ fun RewardsScreen(
                                     Text(purchase.rewardTitle, style = MaterialTheme.typography.titleMedium)
                                     Text((purchase.memberName ?: "") + " · " + (purchase.purchasedAt ?: ""))
                                     Text(purchase.priceAmount.toString() + " " + (purchase.pointTypeCode ?: ""))
-                                    Text(purchase.status)
-                                    purchase.durationMinutes?.let { Text("$it min") }
+                                    Text(RewardPurchaseHistoryLabels.status(language, purchase.status))
+                                    purchase.durationMinutes?.let { Text(RewardPurchaseHistoryLabels.duration(language, it)) }
                                 }
                             }
                         }
