@@ -25,11 +25,15 @@ class RewardsRepository(
         workspaceId: Long, memberId: Long?, cursor: String?, limit: Int = 30,
         status: String? = null
     ): RewardPurchaseHistoryPage {
+        require(workspaceId > 0L && limit in 1..100)
+        require(memberId == null || memberId > 0L)
+        require(RewardHistoryPagination.validStatus(status)) { "Invalid purchase status filter" }
         val token = tokenStore.getAccessToken() ?: error("Missing access token")
         val page = ApiClient.rewardsApi.getPurchaseHistory(
             "Bearer $token", workspaceId, memberId, cursor, limit, status
         )
         check(tokenStore.getAccessToken() == token) { "Account changed during reward history request" }
+        require(!page.hasMore || !page.nextCursor.isNullOrBlank()) { "Invalid purchase history cursor" }
         return page
     }
 
