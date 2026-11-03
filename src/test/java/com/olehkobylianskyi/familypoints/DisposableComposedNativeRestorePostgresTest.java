@@ -42,6 +42,18 @@ class DisposableComposedNativeRestorePostgresTest {
         db.update("INSERT INTO media_blobs(asset_id,variant,bytes) VALUES (?,'COVER',?)",srcAsset,bytes);
         db.update("INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,asset_id) VALUES (?,'MEMBER_GROUP',?,'COVER',?)",
                 source,srcGroup,srcAsset);
+        long srcFolder=db.queryForObject("""
+                INSERT INTO work_nodes(family_id,type,title,sort_order,active)
+                VALUES (?,'GROUP','Archived folder',0,true) RETURNING id
+                """,Long.class,source);
+        long srcNested=db.queryForObject("""
+                INSERT INTO work_nodes(family_id,parent_node_id,type,title,sort_order,active)
+                VALUES (?,?,'GROUP','Nested folder',3,true) RETURNING id
+                """,Long.class,source,srcFolder);
+        db.update("""
+                INSERT INTO work_nodes(family_id,type,title,sort_order,active)
+                VALUES (?,'GROUP','Neighbor folder',0,true)
+                """,neighbor);
         long srcTemplate=db.queryForObject("""
                 INSERT INTO workspace_private_templates(workspace_id,kind,title,definition_json)
                 VALUES (?,'TASK','Archived task draft',?) RETURNING id
@@ -64,19 +76,20 @@ class DisposableComposedNativeRestorePostgresTest {
                 UUID.randomUUID(),0L,List.of("MEDIA_ASSETS","MEDIA_BINDINGS"),"V50",key)).encryptedFile();
         byte[] unified=tx.execute(status->exporter.export(source,UUID.randomUUID(),
                 UUID.randomUUID(),0L,
-                List.of("MEMBER_GROUPS","MEDIA_ASSETS","MEDIA_BINDINGS","PRIVATE_TEMPLATES"),"V50",key))
+                List.of("MEMBER_GROUPS","MEDIA_ASSETS","MEDIA_BINDINGS","PRIVATE_TEMPLATES","WORK_NODES"),"V50",key))
                 .encryptedFile();
         var unifiedProof=inspector.inspect(unified,source,key);
         assertEquals(1,unifiedProof.counts().get("MEMBER_GROUPS"));
         assertEquals(1,unifiedProof.counts().get("MEDIA_ASSETS"));
         assertEquals(1,unifiedProof.counts().get("MEDIA_BINDINGS"));
         assertEquals(1,unifiedProof.counts().get("PRIVATE_TEMPLATES"));
+        assertEquals(2,unifiedProof.counts().get("WORK_NODES"));
         var decoded=portable.decode(unified);
         byte[] unifiedPlain=codec.open(decoded,decoded.manifest().snapshotId(),source,key);
         try {
             var categories=new com.fasterxml.jackson.databind.ObjectMapper()
                     .readTree(unifiedPlain).path("categories");
-            assertEquals(4,categories.size());
+            assertEquals(5,categories.size());
         } finally {Arrays.fill(unifiedPlain,(byte)0);}
         var groupEngine=new DisposableNativeRestoreExecutor(db,manager,portable,codec,inspector);
         var mediaEngine=new DisposablePrivateMediaRestoreExecutor(db,manager,inspector,portable,codec);
@@ -117,6 +130,11 @@ class DisposableComposedNativeRestorePostgresTest {
         assertEquals(1,unifiedResult.privateBindings());
         assertEquals(0,unifiedResult.catalogBindings());
         assertEquals(1,unifiedResult.templateIds().size());
+        assertEquals(2,unifiedResult.workNodeIds().size());
+        assertNotEquals(srcFolder,unifiedResult.workNodeIds().get(srcFolder));
+        assertEquals(unifiedResult.workNodeIds().get(srcFolder),db.queryForObject(
+                "SELECT parent_node_id FROM work_nodes WHERE id=?",Long.class,
+                unifiedResult.workNodeIds().get(srcNested)));
         assertNotEquals(srcTemplate,unifiedResult.templateIds().get(srcTemplate));
         assertEquals("Archived task draft",db.queryForObject(
                 "SELECT title FROM workspace_private_templates WHERE id=?",String.class,
@@ -147,6 +165,9 @@ class DisposableComposedNativeRestorePostgresTest {
         assertEquals(0L,db.queryForObject(
                 "SELECT count(*) FROM workspace_private_templates WHERE workspace_id=?",
                 Long.class,rejectedTarget));
+        assertEquals(0L,db.queryForObject(
+                "SELECT count(*) FROM work_nodes WHERE family_id=?",
+                Long.class,rejectedTarget));
         assertEquals(1L,db.queryForObject(
                 "SELECT count(*) FROM workspace_private_templates WHERE workspace_id=?",
                 Long.class,neighbor));
@@ -175,6 +196,9 @@ class DisposableComposedNativeRestorePostgresTest {
                 Long.class,conflictTarget));
         assertEquals(0L,db.queryForObject(
                 "SELECT count(*) FROM media_bindings WHERE workspace_id=?",
+                Long.class,conflictTarget));
+        assertEquals(0L,db.queryForObject(
+                "SELECT count(*) FROM work_nodes WHERE family_id=?",
                 Long.class,conflictTarget));
         assertEquals("Retained target draft",db.queryForObject(
                 "SELECT title FROM workspace_private_templates WHERE workspace_id=?",
