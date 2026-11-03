@@ -472,7 +472,13 @@ fun RewardsScreen(
                 item { Text(text.loading) }
             }
 
-            val current = data
+            // Purchase history is independent of the rewards catalog. It remains
+            // available even if an optional catalog request failed.
+            val current = data ?: if (tab == RewardsTab.HISTORY) RewardsPageData(
+                rewards = emptyList(), categories = emptyList(), requests = emptyList(),
+                purchases = emptyList(), obligations = emptyList(),
+                pointTypes = emptyList(), tasks = emptyList()
+            ) else null
             if (current != null) {
                 if (tab != RewardsTab.HISTORY && current.obligations.isNotEmpty()) {
                     item {
