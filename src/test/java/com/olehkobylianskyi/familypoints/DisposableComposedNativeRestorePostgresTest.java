@@ -150,6 +150,37 @@ class DisposableComposedNativeRestorePostgresTest {
         assertEquals(1L,db.queryForObject(
                 "SELECT count(*) FROM workspace_private_templates WHERE workspace_id=?",
                 Long.class,neighbor));
+        // A late private-template conflict happens after native group and
+        // private media insertion. The outer transaction must roll it all back.
+        long conflictTarget=db.queryForObject(
+                "INSERT INTO families(name) VALUES ('Conflict target') RETURNING id",Long.class);
+        long conflictRole=db.queryForObject(
+                "INSERT INTO family_roles(family_id,code,name,system_role) "
+                +"VALUES (?,'PARENT','Parent',true) RETURNING id",Long.class,conflictTarget);
+        long conflictMember=db.queryForObject(
+                "INSERT INTO family_members(family_id,family_role_id,name,active,member_type) "
+                +"VALUES (?,?,'Conflict parent',true,'PARENT') RETURNING id",
+                Long.class,conflictTarget,conflictRole);
+        db.update("""
+                INSERT INTO workspace_private_templates(workspace_id,kind,title,definition_json)
+                VALUES (?,'TASK','Retained target draft',?)
+                """,conflictTarget,"{\"kind\":\"TASK\",\"title\":\"Retained target draft\"}");
+        assertThrows(IllegalStateException.class,()->unifiedEngine.apply(
+                unified,source,conflictTarget,Map.of(srcMember,conflictMember),key));
+        assertEquals(0L,db.queryForObject(
+                "SELECT count(*) FROM member_groups WHERE family_id=?",
+                Long.class,conflictTarget));
+        assertEquals(0L,db.queryForObject(
+                "SELECT count(*) FROM media_assets WHERE workspace_id=?",
+                Long.class,conflictTarget));
+        assertEquals(0L,db.queryForObject(
+                "SELECT count(*) FROM media_bindings WHERE workspace_id=?",
+                Long.class,conflictTarget));
+        assertEquals("Retained target draft",db.queryForObject(
+                "SELECT title FROM workspace_private_templates WHERE workspace_id=?",
+                String.class,conflictTarget));
+        assertEquals(0L,db.queryForObject(
+                "SELECT data_epoch FROM families WHERE id=?",Long.class,conflictTarget));
         long freshTarget=db.queryForObject("INSERT INTO families(name) VALUES ('Invalid target') RETURNING id",Long.class);
         assertThrows(SecurityException.class,()->tx.execute(status->{
             var g=groupEngine.apply(groups,source,freshTarget,key);
