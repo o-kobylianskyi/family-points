@@ -42,6 +42,14 @@ class DisposableComposedNativeRestorePostgresTest {
         db.update("INSERT INTO media_blobs(asset_id,variant,bytes) VALUES (?,'COVER',?)",srcAsset,bytes);
         db.update("INSERT INTO media_bindings(workspace_id,target_type,target_id,slot,asset_id) VALUES (?,'MEMBER_GROUP',?,'COVER',?)",
                 source,srcGroup,srcAsset);
+        long srcTemplate=db.queryForObject("""
+                INSERT INTO workspace_private_templates(workspace_id,kind,title,definition_json)
+                VALUES (?,'TASK','Archived task draft',?) RETURNING id
+                """,Long.class,source,"{\"kind\":\"TASK\",\"title\":\"Archived task draft\"}");
+        db.update("""
+                INSERT INTO workspace_private_templates(workspace_id,kind,title,definition_json)
+                VALUES (?,'REWARD','Neighbor reward draft',?)
+                """,neighbor,"{\"kind\":\"REWARD\",\"title\":\"Untouched neighbor\"}");
         var codec=new ProtectiveBackupArtifactCodec();
         var portable=new ProtectiveBackupPortableFile();
         var inspector=new ProtectiveBackupImportInspector(portable,codec);
@@ -56,18 +64,19 @@ class DisposableComposedNativeRestorePostgresTest {
                 UUID.randomUUID(),0L,List.of("MEDIA_ASSETS","MEDIA_BINDINGS"),"V50",key)).encryptedFile();
         byte[] unified=tx.execute(status->exporter.export(source,UUID.randomUUID(),
                 UUID.randomUUID(),0L,
-                List.of("MEMBER_GROUPS","MEDIA_ASSETS","MEDIA_BINDINGS"),"V50",key))
+                List.of("MEMBER_GROUPS","MEDIA_ASSETS","MEDIA_BINDINGS","PRIVATE_TEMPLATES"),"V50",key))
                 .encryptedFile();
         var unifiedProof=inspector.inspect(unified,source,key);
         assertEquals(1,unifiedProof.counts().get("MEMBER_GROUPS"));
         assertEquals(1,unifiedProof.counts().get("MEDIA_ASSETS"));
         assertEquals(1,unifiedProof.counts().get("MEDIA_BINDINGS"));
+        assertEquals(1,unifiedProof.counts().get("PRIVATE_TEMPLATES"));
         var decoded=portable.decode(unified);
         byte[] unifiedPlain=codec.open(decoded,decoded.manifest().snapshotId(),source,key);
         try {
             var categories=new com.fasterxml.jackson.databind.ObjectMapper()
                     .readTree(unifiedPlain).path("categories");
-            assertEquals(3,categories.size());
+            assertEquals(4,categories.size());
         } finally {Arrays.fill(unifiedPlain,(byte)0);}
         var groupEngine=new DisposableNativeRestoreExecutor(db,manager,portable,codec,inspector);
         var mediaEngine=new DisposablePrivateMediaRestoreExecutor(db,manager,inspector,portable,codec);
@@ -107,6 +116,11 @@ class DisposableComposedNativeRestorePostgresTest {
         assertEquals(1,unifiedResult.blobs());
         assertEquals(1,unifiedResult.privateBindings());
         assertEquals(0,unifiedResult.catalogBindings());
+        assertEquals(1,unifiedResult.templateIds().size());
+        assertNotEquals(srcTemplate,unifiedResult.templateIds().get(srcTemplate));
+        assertEquals("Archived task draft",db.queryForObject(
+                "SELECT title FROM workspace_private_templates WHERE id=?",String.class,
+                unifiedResult.templateIds().get(srcTemplate)));
         assertArrayEquals(bytes,db.queryForObject(
                 "SELECT bytes FROM media_blobs WHERE asset_id=?",byte[].class,
                 unifiedResult.assetIds().get(srcAsset)));
@@ -130,6 +144,12 @@ class DisposableComposedNativeRestorePostgresTest {
         assertEquals(0L,db.queryForObject(
                 "SELECT data_epoch FROM families WHERE id=?",
                 Long.class,rejectedTarget));
+        assertEquals(0L,db.queryForObject(
+                "SELECT count(*) FROM workspace_private_templates WHERE workspace_id=?",
+                Long.class,rejectedTarget));
+        assertEquals(1L,db.queryForObject(
+                "SELECT count(*) FROM workspace_private_templates WHERE workspace_id=?",
+                Long.class,neighbor));
         long freshTarget=db.queryForObject("INSERT INTO families(name) VALUES ('Invalid target') RETURNING id",Long.class);
         assertThrows(SecurityException.class,()->tx.execute(status->{
             var g=groupEngine.apply(groups,source,freshTarget,key);
