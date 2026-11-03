@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getRewardPurchaseHistory } from '../api/rewardApi'
 import { getWorkspaceMembers } from '../api/workspaceApi'
+import { PURCHASE_STATUSES, validateRewardHistoryPage, appendRewardHistory } from '../utils/rewardHistoryPage'
 import './RewardPurchaseHistory.css'
 
 const wording = {
@@ -9,17 +10,13 @@ const wording = {
   de: {heading:'Belohnungskäufe',scope:'Käufe sind kein Nachweis für Übergabe oder Nutzung.',all:'Alle Mitglieder',member:'Mitglied',status:'Status',any:'Alle Status',from:'Von',to:'Bis',apply:'Anwenden',reset:'Zurücksetzen',loading:'Verlauf wird geladen…',empty:'Keine Käufe für diese Filter.',more:'Mehr laden',retry:'Erneut laden',error:'Verlauf konnte nicht geladen werden. Verbindung prüfen.',purchased:'Gekauft',resolved:'Aktualisiert',duration:'Dauer',minutes:'Min.',pending:'Genehmigung ausstehend',ready:'Bereit',redeemed:'Eingelöst',cancelled:'Storniert',unknown:'Serverstatus'},
   en: {heading:'Reward purchase history',scope:'Purchase records do not confirm delivery or use.',all:'All members',member:'Member',status:'Status',any:'All statuses',from:'From',to:'To',apply:'Apply',reset:'Reset',loading:'Loading history…',empty:'No purchases match these filters.',more:'Load more',retry:'Retry',error:'Could not load history. Check the connection.',purchased:'Purchased',resolved:'Updated',duration:'Duration',minutes:'min',pending:'Pending approval',ready:'Ready',redeemed:'Redeemed',cancelled:'Cancelled',unknown:'Server status'}
 }
-const statuses = ['PENDING_APPROVAL', 'READY', 'REDEEMED', 'CANCELLED']
+const statuses = PURCHASE_STATUSES
 const statusLabels = {PENDING_APPROVAL:'pending', READY:'ready', REDEEMED:'redeemed', CANCELLED:'cancelled'}
 const dateTime = (value, language) => {
   if (!value) return '—'
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? String(value) : new Intl.DateTimeFormat(language, {dateStyle:'medium',timeStyle:'short'}).format(date)
 }
-const validPage = result => result && Array.isArray(result.items) &&
-  typeof result.hasMore === 'boolean' &&
-  (result.nextCursor == null || typeof result.nextCursor === 'string') &&
-  (!result.hasMore || !!result.nextCursor)
 
 export default function RewardPurchaseHistory({workspaceId, memberId, accountId, canManage, getAccessToken, language = 'en'}) {
   const words = wording[language] || wording.en
@@ -71,7 +68,7 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
     getRewardPurchaseHistory(getAccessToken(), workspaceId, options)
       .then(result => {
         if (id !== requestId.current || identityRef.current !== observedKey) return
-        if (!validPage(result)) throw new Error('INVALID_PURCHASE_HISTORY_RESPONSE')
+        validateRewardHistoryPage(result)
         setItems(result.items); setCursor(result.nextCursor); setHasMore(result.hasMore)
       })
       .catch(() => { if (id === requestId.current && identityRef.current === observedKey) setError(words.error) })
@@ -93,10 +90,7 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
       const result = await getRewardPurchaseHistory(getAccessToken(), workspaceId, options)
       if (id !== requestId.current || identityRef.current !== observedKey) return
       if (!validPage(result)) throw new Error('INVALID_PURCHASE_HISTORY_RESPONSE')
-      setItems(current => {
-        const seen = new Set(current.map(item => String(item.id)))
-        return [...current, ...result.items.filter(item => !seen.has(String(item.id)))]
-      })
+      setItems(current => appendRewardHistory(current, result.items))
       setCursor(result.nextCursor); setHasMore(result.hasMore)
     } catch {
       if (id === requestId.current && identityRef.current === observedKey) setError(words.error)
