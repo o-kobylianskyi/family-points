@@ -114,6 +114,9 @@ function RewardsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const workspaceRef = useRef(currentUser.workspaceId)
   workspaceRef.current = currentUser.workspaceId
+  const identityRef = useRef('')
+  const identity = [currentUser.accountId ?? currentUser.userId ?? currentUser.id, currentUser.workspaceId, currentUser.memberId].join(':')
+  identityRef.current = identity
   const [currencyForms, setCurrencyForms] = useState({})
 
   const [balances, setBalances] = useState([])
@@ -228,6 +231,7 @@ function RewardsPage() {
     setCustomRequestDescription(typeof d.description === 'string' ? d.description : typeof d.description?.[language] === 'string' ? d.description[language] : '')
   }
   const loadAll = async () => {
+    const identityAtStart = identity
     try {
       setLoading(true)
       setError('')
@@ -257,7 +261,7 @@ function RewardsPage() {
         getMyReputation(token),
       ])
 
-      if (String(workspaceRef.current) !== String(workspaceId)) return
+      if (identityRef.current !== identityAtStart) return
       setBalances(balanceData.balances || [])
       setReputation(reputationData.balance)
       setRewards(rewardData)
@@ -270,11 +274,12 @@ function RewardsPage() {
         try { return [type.id, await getPointNameForms(token, workspaceId, type.id)] }
         catch { return [type.id, []] }
       }))
+      if (identityRef.current !== identityAtStart) return
       setCurrencyForms(Object.fromEntries(forms))
       setTasks(taskData.filter((task) => task.active !== false && String(task.workspaceId ?? workspaceId) === String(workspaceId)))
-      getTemplateCatalog(token).then(data => { if (String(workspaceRef.current) === String(workspaceId)) setGlobalRewardTemplates((data?.templates || []).filter(item => item.kind === 'REWARD')) }).catch(() => {})
+      getTemplateCatalog(token).then(data => { if (identityRef.current === identityAtStart) setGlobalRewardTemplates((data?.templates || []).filter(item => item.kind === 'REWARD')) }).catch(() => {})
       if (canManage) getPrivateTemplates(token, workspaceId).then(items => {
-        if (String(workspaceRef.current) === String(workspaceId)) { setRewardTemplates((Array.isArray(items) ? items : []).filter(item => item.kind === 'REWARD')); setPrivateTemplatesLoaded(true) }
+        if (identityRef.current === identityAtStart) { setRewardTemplates((Array.isArray(items) ? items : []).filter(item => item.kind === 'REWARD')); setPrivateTemplatesLoaded(true) }
       }).catch(() => { if (String(workspaceRef.current) === String(workspaceId)) { setRewardTemplates([]); setPrivateTemplatesLoaded(true) } })
 
       const defaultPointTypeId = pointTypeData[0]?.id ?? ''
@@ -287,9 +292,9 @@ function RewardsPage() {
         pointTypeId: current.pointTypeId || defaultPointTypeId,
       }))
     } catch (loadError) {
-      setError(loadError.message)
+      if (identityRef.current === identityAtStart) setError(loadError.message)
     } finally {
-      setLoading(false)
+      if (identityRef.current === identityAtStart) setLoading(false)
     }
   }
 
@@ -301,7 +306,7 @@ function RewardsPage() {
     setRewardTemplates([]); setPrivateTemplatesLoaded(false); setRewardWriteUnknown(false); setGlobalRewardTemplates([]); setSelectedRewardTemplateId(''); setSelectedRequestTemplateId(''); setRewardTemplateCategory('ALL'); setRequestTemplateCategory('ALL')
     setReviewForm(emptyReviewForm)
     loadAll()
-  }, [currentUser.workspaceId])
+  }, [identity])
 
   const run = async (action, successMessage = '') => {
     // Synchronous guard: React state updates alone cannot stop rapid double taps.
