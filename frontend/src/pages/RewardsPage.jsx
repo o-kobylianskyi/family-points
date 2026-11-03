@@ -1011,8 +1011,8 @@ function RewardsPage() {
           <section className="reward-admin-panel">
             {pendingRewardActivation && <div className="page-error" role="alert">
               <p>{({uk:'Незавершена активація нагороди: спочатку перевірте квитанцію.',ru:'Активация награды не завершена: сначала проверьте квитанцию.',de:'Offene Belohnungsaktivierung: zuerst Beleg prüfen.',en:'Pending reward activation: check the receipt first.'})[language]}</p>
-              <button type="button" disabled={processing} onClick={() => recoverRewardActivation(false)}>Check receipt</button>
-              <button type="button" disabled={processing} onClick={() => recoverRewardActivation(true)}>Retry original UUID</button>
+              <button type="button" disabled={processing} onClick={() => recoverRewardActivation(false)}>{({uk:'Перевірити квитанцію',ru:'Проверить квитанцию',de:'Beleg prüfen',en:'Check receipt'})[language] || 'Check receipt'}</button>
+              <button type="button" disabled={processing} onClick={() => recoverRewardActivation(true)}>{({uk:'Повторити ту саму операцію',ru:'Повторить ту же операцию',de:'Denselben Vorgang wiederholen',en:'Retry original UUID'})[language] || 'Retry original UUID'}</button>
             </div>}
             {rewardWriteUnknown && <p role="alert" className="page-error">{({uk:'Результат запису невідомий. Перевірте список нагород перед новою спробою; повторна відправка заблокована.',ru:'Результат записи неизвестен. Проверьте список наград перед новой попыткой; повторная отправка заблокирована.',de:'Speicherergebnis unklar. Vor erneutem Versuch die Belohnungsliste prüfen; erneutes Senden ist gesperrt.',en:'Save outcome unknown. Check the rewards list before trying again; resubmission is blocked.'})[language]}</p>}
             <h2>{t('rewardsUi.categories')}</h2>
