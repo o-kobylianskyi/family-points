@@ -10,6 +10,14 @@ const labels = {
   ru: {title:'Название',description:'Описание',mandatory:'Обязательно',recurrenceType:'Повторение',recurrenceDayOfWeek:'День недели',recurrenceDayOfMonth:'День месяца',dueTime:'Время',startDate:'Дата начала',assignedMemberId:'ID участника',rewardAmount:'Награда',penaltyAmount:'Штраф',rewardPointTypeId:'ID валюты награды',penaltyPointTypeId:'ID валюты штрафа',rewardKind:'Тип награды',defaultDurationMinutes:'Длительность, мин',priceAmount:'Цена',pointTypeId:'ID валюты',requiresApproval:'Нужно одобрение',acquisitionMode:'Способ получения',minimumReputation:'Минимальная репутация',cooldownSeconds:'Пауза, с'},
   de: {title:'Titel',description:'Beschreibung',mandatory:'Pflicht',recurrenceType:'Wiederholung',recurrenceDayOfWeek:'Wochentag',recurrenceDayOfMonth:'Monatstag',dueTime:'Zeit',startDate:'Startdatum',assignedMemberId:'Mitglied-ID',rewardAmount:'Belohnung',penaltyAmount:'Strafe',rewardPointTypeId:'Belohnungswährung-ID',penaltyPointTypeId:'Strafwährung-ID',rewardKind:'Belohnungsart',defaultDurationMinutes:'Dauer, Min.',priceAmount:'Preis',pointTypeId:'Währung-ID',requiresApproval:'Genehmigung',acquisitionMode:'Einlöseart',minimumReputation:'Mindest-Reputation',cooldownSeconds:'Wartezeit, Sek.'},
 }
+const priceGuidance = {
+  uk: { unset:'Не задано — рішення про кількість балів ще потрібне. Це не безкоштовно.', zero:'0 — задане явно значення.', set:'Кількість балів задана.' },
+  ru: { unset:'Не задано — количество баллов ещё нужно определить. Это не бесплатно.', zero:'0 — явно установленное значение.', set:'Количество баллов задано.' },
+  de: { unset:'Nicht festgelegt — Punkte müssen noch entschieden werden. Nicht kostenlos.', zero:'0 — ausdrücklich festgelegter Wert.', set:'Punktewert festgelegt.' },
+  en: { unset:'Not set — a points decision is still needed. Not free.', zero:'0 — explicitly set value.', set:'Points value set.' },
+}
+const ECONOMY_FIELDS = new Set(['rewardAmount','penaltyAmount','priceAmount'])
+
 export default function TemplateDraftFieldsEditor({kind, value, onChange, language='uk', disabled=false, members=[], pointTypes=[]}) {
   const draft = useMemo(() => { try {const v=JSON.parse(value); return v && typeof v==='object' && !Array.isArray(v)?v:null} catch {return null}}, [value])
   if (!draft || !config[kind]) return null
@@ -29,6 +37,9 @@ export default function TemplateDraftFieldsEditor({kind, value, onChange, langua
         </select> :
         <input type={type} disabled={disabled} value={draft[key]??''} min={type==='number' && /(Minutes|Seconds|TypeId|MemberId)$/.test(key)?0:undefined}
           onChange={e=>{const raw=e.target.value;if(type!=='number')return set(key,raw||null);if(!raw)return set(key,null);const number=Number(raw);if(Number.isFinite(number)&&(!/(Minutes|Seconds|TypeId|MemberId)$/.test(key)||number>=0))set(key,number)}}/>}
+      {ECONOMY_FIELDS.has(key) && <small role="status" style={{display:'block',marginTop:4}}>
+        {(priceGuidance[language] || priceGuidance.en)[draft[key] == null || draft[key] === '' ? 'unset' : Number(draft[key]) === 0 ? 'zero' : 'set']}
+      </small>}
     </label>)}
   </div>
 }
