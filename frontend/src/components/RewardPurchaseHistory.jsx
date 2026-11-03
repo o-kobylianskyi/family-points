@@ -33,6 +33,16 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [generation, setGeneration] = useState(0)
+  // Reset pagination after a family data generation change; never render an old cursor.
+  useEffect(() => {
+    const invalidate = event => {
+      if (String(event.detail?.workspaceId) !== String(workspaceId)) return
+      requestId.current += 1
+      setItems([]); setCursor(null); setHasMore(false); setGeneration(value => value + 1)
+    }
+    window.addEventListener('workspace:data-epoch-changed', invalidate)
+    return () => window.removeEventListener('workspace:data-epoch-changed', invalidate)
+  }, [workspaceId])
   const busy = useRef(false)
   const identityKey = [session, applied.memberId, applied.status, applied.from, applied.to].join('|')
   const identityRef = useRef(identityKey)
@@ -89,7 +99,7 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
     try {
       const result = await getRewardPurchaseHistory(getAccessToken(), workspaceId, options)
       if (id !== requestId.current || identityRef.current !== observedKey) return
-      if (!validPage(result)) throw new Error('INVALID_PURCHASE_HISTORY_RESPONSE')
+      validateRewardHistoryPage(result)
       setItems(current => appendRewardHistory(current, result.items))
       setCursor(result.nextCursor); setHasMore(result.hasMore)
     } catch {
