@@ -1,4 +1,5 @@
 import RewardAvailabilityEditor from '../components/RewardAvailabilityEditor'
+import RewardPurchaseHistory from '../components/RewardPurchaseHistory'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -662,6 +663,9 @@ function RewardsPage() {
         >
           {t('rewardsUi.requests', { count: requests.length })}
         </button>
+        <button type="button" className={pageTab === 'history' ? 'page-tab active' : 'page-tab'} onClick={() => setPageTab('history')}>
+          {({uk:'Історія нагород',ru:'История наград',de:'Belohnungsverlauf',en:'Reward history'})[language]}
+        </button>
         {canManage && (
           <button
             type="button"
@@ -672,6 +676,16 @@ function RewardsPage() {
           </button>
         )}
       </div>
+
+      {pageTab === 'history' && <RewardPurchaseHistory
+        key={identity}
+        accountId={currentUser.accountId ?? currentUser.userId ?? currentUser.id}
+        workspaceId={currentUser.workspaceId}
+        memberId={currentUser.memberId}
+        canManage={canManage}
+        getAccessToken={getAccessToken}
+        language={language}
+      />}
 
       {pageTab === 'catalog' && (
         <>
