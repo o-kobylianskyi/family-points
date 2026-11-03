@@ -9,7 +9,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "i18n:check": "node scripts/check-i18n.mjs",
-    "test:onboarding": "node --test tests/onboardingImportOperation.test.mjs tests/templateActivationOperation.test.mjs"
+    "test:onboarding": "node --test tests/onboardingImportOperation.test.mjs tests/templateActivationOperation.test.mjs",
+    "test:history": "node --test tests/rewardHistoryPage.test.mjs",
+    "test:regression": "node --test tests/onboardingImportOperation.test.mjs tests/templateActivationOperation.test.mjs tests/rewardHistoryPage.test.mjs"
   },
   "dependencies": {
     "i18next": "^26.4.2",
