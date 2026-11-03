@@ -693,8 +693,8 @@ function CreateTaskModal({
         >
           {pendingActivation && <div className="page-error" role="alert">
             <p>{({uk:'Є незавершена активація TASK. Перевірте квитанцію перш ніж створювати інше завдання.',ru:'Есть незавершённая активация TASK. Сначала проверьте квитанцию.',de:'Offene Aufgabenaktivierung. Zuerst Beleg prüfen.',en:'Pending task activation. Check the receipt before creating another task.'})[i18n.language.split('-')[0]]}</p>
-            <button type="button" disabled={loading} onClick={() => recoverActivation(false)}>Check receipt</button>
-            <button type="button" disabled={loading} onClick={() => recoverActivation(true)}>Retry original UUID</button>
+            <button type="button" disabled={loading} onClick={() => recoverActivation(false)}>{({uk:'Перевірити квитанцію',ru:'Проверить квитанцию',de:'Beleg prüfen',en:'Check receipt'})[i18n.language.split('-')[0]] || 'Check receipt'}</button>
+            <button type="button" disabled={loading} onClick={() => recoverActivation(true)}>{({uk:'Повторити ту саму операцію',ru:'Повторить ту же операцию',de:'Denselben Vorgang wiederholen',en:'Retry original UUID'})[i18n.language.split('-')[0]] || 'Retry original UUID'}</button>
           </div>}
           {error && (
             <div className="page-error">
