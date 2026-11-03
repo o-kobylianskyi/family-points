@@ -45,6 +45,7 @@ import com.olehkobylianskyi.familypoints.android.data.RewardRequestReviewRequest
 import com.olehkobylianskyi.familypoints.android.data.RewardRequirementRequest
 import com.olehkobylianskyi.familypoints.android.data.RewardRequestSummary
 import com.olehkobylianskyi.familypoints.android.data.RewardHistoryPagination
+import com.olehkobylianskyi.familypoints.android.data.WorkspaceMemberResponse
 import com.olehkobylianskyi.familypoints.android.data.RewardHistoryPurchase
 import com.olehkobylianskyi.familypoints.android.data.RewardsPageData
 import com.olehkobylianskyi.familypoints.android.data.RewardsRepository
@@ -97,7 +98,9 @@ fun RewardsScreen(
     var historyMemberId by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf<Long?>(null) }
     var historyStatus by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf<String?>(null) }
     var historyStatusMenu by remember { mutableStateOf(false) }
-    var historyFilterDraft by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf("") }
+    var historyMembers by remember(currentUser.workspaceId, currentUser.accountId) { mutableStateOf<List<WorkspaceMemberResponse>>(emptyList()) }
+    var historyMemberMenuOpen by remember { mutableStateOf(false) }
+    var historyMembersError by remember(currentUser.workspaceId, currentUser.accountId) { mutableStateOf("") }
     var historyGeneration by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf(0) }
     var data by remember { mutableStateOf<RewardsPageData?>(null) }
     var nameForms by remember { mutableStateOf<Map<Long, List<PointNameFormDto>>>(emptyMap()) }
@@ -148,6 +151,24 @@ fun RewardsScreen(
     var reviewPrice by remember { mutableStateOf("20") }
     var reviewMinReputation by remember { mutableStateOf("") }
     var reviewDuration by remember { mutableStateOf("") }
+
+    LaunchedEffect(tab, canManage, currentUser.workspaceId, currentUser.accountId, serverStatus) {
+        historyMembers = emptyList()
+        historyMembersError = ""
+        if (tab == RewardsTab.HISTORY && canManage && serverStatus == ServerStatus.ONLINE) {
+            try {
+                historyMembers = repository.historyMembers(currentUser.workspaceId)
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                historyMembersError = when (language) {
+                    AppLanguage.UK -> "Не вдалося завантажити учасників"
+                    AppLanguage.RU -> "Не удалось загрузить участников"
+                    AppLanguage.DE -> "Mitglieder konnten nicht geladen werden"
+                    AppLanguage.EN -> "Could not load members"
+                }
+            }
+        }
+    }
 
     LaunchedEffect(tab, historyMemberId, historyStatus, historyGeneration, currentUser.workspaceId, currentUser.memberId, currentUser.accountId, serverStatus) {
         if (tab != RewardsTab.HISTORY) return@LaunchedEffect
@@ -509,26 +530,45 @@ fun RewardsScreen(
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 if (canManage) {
-                                    OutlinedTextField(
-                                        value = historyFilterDraft,
-                                        onValueChange = { historyFilterDraft = it.filter(Char::isDigit).take(18) },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        label = { Text(when (language) {
-                                            AppLanguage.UK -> "ID учасника (порожньо — всі)"
-                                            AppLanguage.RU -> "ID участника (пусто — все)"
-                                            AppLanguage.DE -> "Mitglied-ID (leer = alle)"
-                                            AppLanguage.EN -> "Member ID (blank = all)"
-                                        }) }
-                                    )
-                                    OutlinedButton(onClick = {
-                                        historyMemberId = historyFilterDraft.toLongOrNull()
-                                        historyGeneration += 1
-                                    }) { Text(when (language) {
-                                        AppLanguage.UK -> "Застосувати фільтр"
-                                        AppLanguage.RU -> "Применить фильтр"
-                                        AppLanguage.DE -> "Filter anwenden"
-                                        AppLanguage.EN -> "Apply filter"
-                                    }) }
+                                    OutlinedButton(onClick = { historyMemberMenuOpen = true }) {
+                                        Text(historyMembers.firstOrNull { it.id == historyMemberId }?.name
+                                            ?: when (language) {
+                                                AppLanguage.UK -> "Усі учасники"
+                                                AppLanguage.RU -> "Все участники"
+                                                AppLanguage.DE -> "Alle Mitglieder"
+                                                AppLanguage.EN -> "All members"
+                                            })
+                                    }
+                                    DropdownMenu(
+                                        expanded = historyMemberMenuOpen,
+                                        onDismissRequest = { historyMemberMenuOpen = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(when (language) {
+                                                AppLanguage.UK -> "Усі учасники"
+                                                AppLanguage.RU -> "Все участники"
+                                                AppLanguage.DE -> "Alle Mitglieder"
+                                                AppLanguage.EN -> "All members"
+                                            }) },
+                                            onClick = {
+                                                historyMemberId = null
+                                                historyGeneration += 1
+                                                historyMemberMenuOpen = false
+                                            }
+                                        )
+                                        historyMembers.forEach { member ->
+                                            DropdownMenuItem(
+                                                text = { Text(member.name) },
+                                                onClick = {
+                                                    historyMemberId = member.id
+                                                    historyGeneration += 1
+                                                    historyMemberMenuOpen = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                    if (historyMembersError.isNotBlank())
+                                        Text(historyMembersError, color = MaterialTheme.colorScheme.error)
                                 }
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     OutlinedButton(onClick = { historyStatusMenu = true }) {
