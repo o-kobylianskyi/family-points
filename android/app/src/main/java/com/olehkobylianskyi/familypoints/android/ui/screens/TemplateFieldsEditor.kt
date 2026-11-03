@@ -24,6 +24,15 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 
+/** Presentation state: an absent amount must never be mistaken for a free reward. */
+internal enum class TemplateAmountState { UNSET, EXPLICIT_ZERO, SET }
+
+internal fun templateAmountState(value: String): TemplateAmountState = when {
+    value.isBlank() -> TemplateAmountState.UNSET
+    value == "0" -> TemplateAmountState.EXPLICIT_ZERO
+    else -> TemplateAmountState.SET
+}
+
 /** Edits only whitelisted portable definition properties; all other JSON fields are preserved. */
 @Composable
 internal fun TemplateFieldsEditor(
@@ -69,18 +78,18 @@ internal fun TemplateFieldsEditor(
             },
             label = { Text(title) },
             supportingText = if (key in setOf("rewardAmount", "penaltyAmount", "priceAmount")) {
-                val guidance = when {
-                    value.isBlank() -> label(
+                val guidance = when (templateAmountState(value)) {
+                    TemplateAmountState.UNSET -> label(
                         "Не задано — рішення про бали ще потрібне. Це не безкоштовно.",
                         "Nicht festgelegt — Punkte müssen noch entschieden werden. Nicht kostenlos.",
                         "Not set — points require a decision. Not free.",
                         "Не задано — баллы ещё нужно определить. Это не бесплатно."
                     )
-                    value == "0" -> label(
+                    TemplateAmountState.EXPLICIT_ZERO -> label(
                         "0 — явно задане значення.", "0 — ausdrücklich festgelegt.",
                         "0 — explicitly set.", "0 — явно установлено."
                     )
-                    else -> label(
+                    TemplateAmountState.SET -> label(
                         "Бали задано.", "Punkte festgelegt.",
                         "Points value set.", "Баллы установлены."
                     )
