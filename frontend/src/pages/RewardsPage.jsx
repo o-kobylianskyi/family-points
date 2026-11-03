@@ -792,7 +792,7 @@ function RewardsPage() {
                 placeholder={t("rewardsUi.commentOptional")}
                 onChange={(event) => setCustomRequestDescription(event.target.value)}
               />
-              <button type="submit" className="primary-button" disabled={processing || templateBusy || rewardWriteUnknown || !!pendingRewardActivation}>
+              <button type="submit" className="primary-button" disabled={processing}>
                 {t('rewardsUi.send')}
               </button>
             </form>
@@ -1271,7 +1271,7 @@ function RewardsPage() {
                 />
               )}
 
-              <button type="submit" className="primary-button" disabled={processing}>
+              <button type="submit" className="primary-button" disabled={processing || templateBusy || rewardWriteUnknown || !!pendingRewardActivation}>
                 {editingRewardId != null ? t('rewardsUi.saveChanges') : t('rewardsUi.createReward')}
               </button>
               {editingRewardId != null && (
