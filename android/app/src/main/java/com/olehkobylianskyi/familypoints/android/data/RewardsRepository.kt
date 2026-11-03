@@ -20,6 +20,15 @@ class RewardsRepository(
         return "Bearer $token"
     }
 
+    /** Member selection is fetched from the authenticated tenant only. */
+    suspend fun historyMembers(workspaceId: Long): List<WorkspaceMemberResponse> {
+        require(workspaceId > 0L)
+        val token = tokenStore.getAccessToken() ?: error("Missing access token")
+        val members = ApiClient.taskApi.getWorkspaceMembers("Bearer $token", workspaceId)
+        check(tokenStore.getAccessToken() == token) { "Account changed during members lookup" }
+        return members
+    }
+
     /** Read-only; never cache across accounts or infer receipt/delivery from purchase state. */
     suspend fun purchaseHistory(
         workspaceId: Long, memberId: Long?, cursor: String?, limit: Int = 30,
