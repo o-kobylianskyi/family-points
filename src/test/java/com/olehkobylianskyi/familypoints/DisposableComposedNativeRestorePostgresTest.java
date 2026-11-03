@@ -205,6 +205,55 @@ class DisposableComposedNativeRestorePostgresTest {
                 String.class,conflictTarget));
         assertEquals(0L,db.queryForObject(
                 "SELECT data_epoch FROM families WHERE id=?",Long.class,conflictTarget));
+        // Archive tampering is re-sealed with the test key here to exercise
+        // graph validation rather than merely an AES authentication failure.
+        var originalEnvelope=portable.decode(unified);
+        byte[] unsealed=codec.open(originalEnvelope,
+                originalEnvelope.manifest().snapshotId(),source,key);
+        try {
+            var mapper=new com.fasterxml.jackson.databind.ObjectMapper();
+            var originalRoot=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(unsealed);
+            for(int variant=0;variant<2;variant++) {
+                var edited=(com.fasterxml.jackson.databind.node.ObjectNode)originalRoot.deepCopy();
+                var archivedNodes=(com.fasterxml.jackson.databind.node.ArrayNode)
+                        edited.path("categories").path("WORK_NODES");
+                if(variant==0) {
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)archivedNodes.get(0))
+                            .put("parent_node_id",srcNested);
+                } else {
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)archivedNodes.get(0))
+                            .put("type","TASK");
+                }
+                byte[] changed=mapper.writeValueAsBytes(edited);
+                try {
+                    var forged=codec.seal(UUID.randomUUID(),source,UUID.randomUUID(),
+                            originalEnvelope.manifest().dataEpoch(),
+                            originalEnvelope.manifest().sourceDigest(),"V50",changed,key);
+                    long invalidTarget=db.queryForObject(
+                            "INSERT INTO families(name) VALUES (?) RETURNING id",Long.class,
+                            "Invalid graph "+variant);
+                    long invalidRole=db.queryForObject(
+                            "INSERT INTO family_roles(family_id,code,name,system_role) "
+                            +"VALUES (?,'PARENT','Parent',true) RETURNING id",Long.class,invalidTarget);
+                    long invalidMember=db.queryForObject(
+                            "INSERT INTO family_members(family_id,family_role_id,name,active,member_type) "
+                            +"VALUES (?,?,'Graph parent',true,'PARENT') RETURNING id",
+                            Long.class,invalidTarget,invalidRole);
+                    assertThrows(IllegalArgumentException.class,()->unifiedEngine.apply(
+                            portable.encode(forged),source,invalidTarget,
+                            Map.of(srcMember,invalidMember),key));
+                    assertEquals(0L,db.queryForObject(
+                            "SELECT count(*) FROM member_groups WHERE family_id=?",
+                            Long.class,invalidTarget));
+                    assertEquals(0L,db.queryForObject(
+                            "SELECT count(*) FROM work_nodes WHERE family_id=?",
+                            Long.class,invalidTarget));
+                    assertEquals(0L,db.queryForObject(
+                            "SELECT count(*) FROM media_assets WHERE workspace_id=?",
+                            Long.class,invalidTarget));
+                } finally {Arrays.fill(changed,(byte)0);}
+            }
+        } finally {Arrays.fill(unsealed,(byte)0);}
         long freshTarget=db.queryForObject("INSERT INTO families(name) VALUES ('Invalid target') RETURNING id",Long.class);
         assertThrows(SecurityException.class,()->tx.execute(status->{
             var g=groupEngine.apply(groups,source,freshTarget,key);
