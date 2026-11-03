@@ -128,3 +128,18 @@ export async function getOpenRewardObligations(token, workspaceId) {
   )
   return handleResponse(response, 'Failed to load reward obligations')
 }
+
+// Purchase-only history v1. Backend enforces own-member access and manager ACL.
+// Cursor is opaque; never derive it from client timestamps.
+export async function getRewardPurchaseHistory(token, workspaceId, filters = {}) {
+  const query = new URLSearchParams()
+  for (const key of ['memberId', 'status', 'from', 'to', 'cursor', 'limit']) {
+    const value = filters[key]
+    if (value !== undefined && value !== null && value !== '') query.set(key, String(value))
+  }
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/rewards/history?${query.toString()}`,
+    { token, cache: 'no-store' }
+  )
+  return handleResponse(response, 'Failed to load reward purchase history')
+}
