@@ -4,7 +4,9 @@ import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 
 import { useAuth } from '../context/AuthContext'
 import { getPointTypes } from '../api/economyApi'
-import { getPrivateTemplates, getTemplateCreationDraft } from '../api/templateApi'
+import { getPrivateTemplates, getTemplateCreationDraft, activateTaskTemplateIdempotent, getTemplateActivationReceipt } from '../api/templateApi'
+import { observeWorkspaceEpoch } from '../api/client'
+import { activationStorageKey, readActivation, makeActivation, saveActivation, verifyActivationReceipt } from '../utils/templateActivationOperation'
 import { createTaskDefinition, updateTaskDefinition, getNextDefaultTaskNumber } from '../api/taskApi'
 import { getMemberGroups } from '../api/memberGroupApi'
 
@@ -121,6 +123,14 @@ function CreateTaskModal({
   const { currentUser, getAccessToken } = useAuth()
 
   const editing = Boolean(initialTask)
+  const activationAccount = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id
+  const activationKey = activationAccount != null
+    ? activationStorageKey(activationAccount, currentUser.workspaceId, 'TASK')
+    : null
+  const [pendingActivation, setPendingActivation] = useState(() =>
+    activationKey ? readActivation(sessionStorage, activationKey, currentUser.workspaceId, 'TASK') : null
+  )
+
   const firstFreeTaskTitle = () => {
     // A provisional family-local name while the authoritative count loads.
     const number = existingTaskDefinitions.length + 1
@@ -204,6 +214,38 @@ function CreateTaskModal({
 
   const [loading, setLoading] = useState(false)
   const submitLock = useRef(false)
+  useEffect(() => {
+    setPendingActivation(activationKey
+      ? readActivation(sessionStorage, activationKey, currentUser.workspaceId, 'TASK')
+      : null)
+  }, [activationKey, currentUser.workspaceId])
+  const recoverActivation = async (retry = false) => {
+    if (submitLock.current || !pendingActivation || !activationKey) return
+    submitLock.current = true
+    setLoading(true); setError('')
+    const operation = pendingActivation, origin = currentUser.workspaceId
+    try {
+      const epoch = await observeWorkspaceEpoch(getAccessToken(), origin)
+      if (epoch !== operation.epoch) throw new Error('WORKSPACE_DATA_EPOCH_CHANGED')
+      const receipt = retry
+        ? await activateTaskTemplateIdempotent(getAccessToken(), origin, operation.templateId, operation.request, operation.operationId)
+        : await getTemplateActivationReceipt(getAccessToken(), origin, operation.operationId)
+      verifyActivationReceipt(receipt, operation)
+      if (String(templateWorkspaceRef.current) !== String(origin)) return
+      sessionStorage.removeItem(activationKey)
+      setPendingActivation(null); setUnknownWrite(false)
+      try { await onCreated?.({ id: receipt.createdDefinitionId }) } catch { /* Write already confirmed. */ }
+      onClose()
+    } catch (error) {
+      if (String(templateWorkspaceRef.current) === String(origin)) setError(error.status === 404
+        ? ({uk:'Квитанції поки немає. Доступне лише явне повторення тієї самої операції.',ru:'Квитанции пока нет. Можно повторить только ту же операцию.',de:'Noch kein Beleg. Nur denselben Vorgang explizit wiederholen.',en:'No receipt yet. Only the original operation may be retried explicitly.'})[i18n.language.split('-')[0]]
+        : (error.message || 'Activation outcome is unknown'))
+    } finally {
+      submitLock.current = false
+      setLoading(false)
+    }
+  }
+
   const [unknownWrite, setUnknownWrite] = useState(false)
 
   // Escape is safe while editing, but must not dismiss a save in progress.
@@ -436,7 +478,7 @@ function CreateTaskModal({
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (submitLock.current || loading || templateLoading || unknownWrite) return
+    if (submitLock.current || loading || templateLoading || unknownWrite || pendingActivation) return
 
     const trimmedTitle = title.trim()
 
@@ -580,7 +622,26 @@ function CreateTaskModal({
       const token = getAccessToken()
 
       const originWorkspace = currentUser.workspaceId
-      // A rejected response may mean the server committed but the reply was lost.
+      // Explicit creation from a verified private template uses V48 replayable
+      // receipts. Ordinary task creation and editing preserve their legacy APIs.
+      if (!editing && selectedTemplateId && activationKey) {
+        const existing = readActivation(sessionStorage, activationKey, originWorkspace, 'TASK')
+        if (existing) { setPendingActivation(existing); throw new Error('PENDING_ACTIVATION_RECOVERY_REQUIRED') }
+        const epoch = await observeWorkspaceEpoch(token, originWorkspace)
+        const operation = makeActivation(originWorkspace, 'TASK', epoch, selectedTemplateId, request, crypto.randomUUID())
+        saveActivation(sessionStorage, activationKey, operation)
+        setPendingActivation(operation)
+        setUnknownWrite(true)
+        const receipt = await activateTaskTemplateIdempotent(token, originWorkspace, operation.templateId, operation.request, operation.operationId)
+        verifyActivationReceipt(receipt, operation)
+        sessionStorage.removeItem(activationKey)
+        setPendingActivation(null)
+        setUnknownWrite(false)
+        try { await onCreated?.({ id: receipt.createdDefinitionId }) } catch { /* Already saved. */ }
+        onClose()
+        return
+      }
+      // Legacy direct creation has no V48 receipt without a private template.
       setUnknownWrite(true)
       const saved = editing
         ? await updateTaskDefinition(token, originWorkspace, initialTask.id, request)
@@ -630,6 +691,11 @@ function CreateTaskModal({
           className="create-task-form"
           onSubmit={handleSubmit}
         >
+          {pendingActivation && <div className="page-error" role="alert">
+            <p>{({uk:'Є незавершена активація TASK. Перевірте квитанцію перш ніж створювати інше завдання.',ru:'Есть незавершённая активация TASK. Сначала проверьте квитанцию.',de:'Offene Aufgabenaktivierung. Zuerst Beleg prüfen.',en:'Pending task activation. Check the receipt before creating another task.'})[i18n.language.split('-')[0]]}</p>
+            <button type="button" disabled={loading} onClick={() => recoverActivation(false)}>Check receipt</button>
+            <button type="button" disabled={loading} onClick={() => recoverActivation(true)}>Retry original UUID</button>
+          </div>}
           {error && (
             <div className="page-error">
               {error}
@@ -1050,6 +1116,7 @@ function CreateTaskModal({
                 loadingPointTypes ||
                 templateLoading ||
                 unknownWrite ||
+                !!pendingActivation ||
                 executors.length === 0
               }
             >
