@@ -89,19 +89,20 @@ fun RewardsScreen(
         "MANAGE_REWARDS" in currentUser.permissions ||
             "ADMIN_OVERRIDE" in currentUser.permissions
 
-    var tab by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(RewardsTab.CATALOG) }
-    var history by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf<List<RewardHistoryPurchase>>(emptyList()) }
-    var historyCursor by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf<String?>(null) }
-    var historyHasMore by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(false) }
-    var historyLoading by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(false) }
-    var historyError by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf("") }
+    var tab by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf(RewardsTab.CATALOG) }
+    var history by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf<List<RewardHistoryPurchase>>(emptyList()) }
+    var historyCursor by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf<String?>(null) }
+    var historyHasMore by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf(false) }
+    var historyLoading by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf(false) }
+    var historyError by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf("") }
     var historyMemberId by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf<Long?>(null) }
     var historyStatus by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf<String?>(null) }
-    var historyStatusMenu by remember { mutableStateOf(false) }
+    var historyStatusMenu by remember(currentUser.accountId) { mutableStateOf(false) }
     var historyMembers by remember(currentUser.workspaceId, currentUser.accountId) { mutableStateOf<List<WorkspaceMemberResponse>>(emptyList()) }
-    var historyMemberMenuOpen by remember { mutableStateOf(false) }
+    var historyMemberMenuOpen by remember(currentUser.accountId) { mutableStateOf(false) }
     var historyMembersError by remember(currentUser.workspaceId, currentUser.accountId) { mutableStateOf("") }
     var historyGeneration by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf(0) }
+    val historyScopeIdentity = Triple(currentUser.accountId, currentUser.workspaceId, currentUser.memberId)
     var data by remember { mutableStateOf<RewardsPageData?>(null) }
     var nameForms by remember { mutableStateOf<Map<Long, List<PointNameFormDto>>>(emptyMap()) }
     var loading by remember { mutableStateOf(true) }
@@ -635,7 +636,7 @@ fun RewardsScreen(
                                         val expectedMember = historyMemberId
                                         val expectedStatus = historyStatus
                                         val expectedWorkspace = currentUser.workspaceId
-                                        val expectedAccount = currentUser.accountId
+                                        val expectedIdentity = historyScopeIdentity
                                         historyLoading = true
                                         historyError = ""
                                         try {
@@ -647,7 +648,7 @@ fun RewardsScreen(
                                                 historyMemberId == expectedMember &&
                                                 historyStatus == expectedStatus &&
                                                 currentUser.workspaceId == expectedWorkspace &&
-                                                currentUser.accountId == expectedAccount &&
+                                                historyScopeIdentity == expectedIdentity &&
                                                 historyCursor == next) {
                                                 history = RewardHistoryPagination.append(history, page)
                                                 historyCursor = page.nextCursor
