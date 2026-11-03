@@ -44,6 +44,7 @@ import com.olehkobylianskyi.familypoints.android.data.RewardDefinitionSummary
 import com.olehkobylianskyi.familypoints.android.data.RewardRequestReviewRequest
 import com.olehkobylianskyi.familypoints.android.data.RewardRequirementRequest
 import com.olehkobylianskyi.familypoints.android.data.RewardRequestSummary
+import com.olehkobylianskyi.familypoints.android.data.RewardHistoryPagination
 import com.olehkobylianskyi.familypoints.android.data.RewardHistoryPurchase
 import com.olehkobylianskyi.familypoints.android.data.RewardsPageData
 import com.olehkobylianskyi.familypoints.android.data.RewardsRepository
@@ -93,9 +94,11 @@ fun RewardsScreen(
     var historyHasMore by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(false) }
     var historyLoading by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(false) }
     var historyError by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf("") }
-    var historyMemberId by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf<Long?>(null) }
+    var historyMemberId by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf<Long?>(null) }
+    var historyStatus by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf<String?>(null) }
+    var historyStatusMenu by remember { mutableStateOf(false) }
     var historyFilterDraft by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf("") }
-    var historyGeneration by remember(currentUser.workspaceId, currentUser.memberId) { mutableStateOf(0) }
+    var historyGeneration by remember(currentUser.workspaceId, currentUser.memberId, currentUser.accountId) { mutableStateOf(0) }
     var data by remember { mutableStateOf<RewardsPageData?>(null) }
     var nameForms by remember { mutableStateOf<Map<Long, List<PointNameFormDto>>>(emptyMap()) }
     var loading by remember { mutableStateOf(true) }
@@ -146,7 +149,7 @@ fun RewardsScreen(
     var reviewMinReputation by remember { mutableStateOf("") }
     var reviewDuration by remember { mutableStateOf("") }
 
-    LaunchedEffect(tab, historyMemberId, historyGeneration, currentUser.workspaceId, currentUser.memberId) {
+    LaunchedEffect(tab, historyMemberId, historyStatus, historyGeneration, currentUser.workspaceId, currentUser.memberId, currentUser.accountId, serverStatus) {
         if (tab != RewardsTab.HISTORY) return@LaunchedEffect
         history = emptyList()
         historyCursor = null
@@ -164,8 +167,8 @@ fun RewardsScreen(
         historyLoading = true
         try {
             val page = repository.purchaseHistory(currentUser.workspaceId,
-                if (canManage) historyMemberId else null, null)
-            history = page.items
+                if (canManage) historyMemberId else null, null, status = historyStatus)
+            history = RewardHistoryPagination.append(emptyList(), page)
             historyCursor = page.nextCursor
             historyHasMore = page.hasMore
         } catch (e: Exception) {
@@ -470,8 +473,8 @@ fun RewardsScreen(
             }
 
             val current = data
-            if (current != null) {
-                if (current.obligations.isNotEmpty()) {
+            if (current != null || tab == RewardsTab.HISTORY) {
+                if (tab != RewardsTab.HISTORY && current != null && current.obligations.isNotEmpty()) {
                     item {
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(
@@ -574,6 +577,7 @@ fun RewardsScreen(
                         }
                     }
                     RewardsTab.CATALOG -> {
+                        val current = current ?: return@LazyColumn
                         if (current.rewards.isEmpty()) {
                             item { Text(text.emptyRewards) }
                         } else {
