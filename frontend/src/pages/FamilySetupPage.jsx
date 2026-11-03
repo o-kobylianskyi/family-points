@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
-import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplates } from '../api/templateApi'
+import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplatesIdempotent, getTemplateImportReceipt } from '../api/templateApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { getMemberGroups, createMemberGroup } from '../api/memberGroupApi'
 import { getWorkNodeGroups, createWorkNodeGroup } from '../api/workNodeGroupApi'
+import { observeWorkspaceEpoch } from '../api/client'
+import { operationStorageKey, readImportOperation, storeImportOperation, makeImportOperation, assertImportReceipt } from '../utils/onboardingImportOperation'
 import './FamilySetupPage.css'
 
 // This is an explicit, non-destructive onboarding entry. It does not infer that an
@@ -45,7 +47,10 @@ export default function FamilySetupPage() {
   const workspaceId = currentUser?.workspaceId
   const accountId = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id
   const draftStorageKey = workspaceId && accountId != null ? draftKey(accountId, workspaceId) : null
+  const importStorageKey = workspaceId && accountId != null ? operationStorageKey(accountId, workspaceId) : null
   const [step, setStep] = useState(0)
+  const [pendingImport, setPendingImport] = useState(null)
+  const [importNotice, setImportNotice] = useState('')
   const [catalog, setCatalog] = useState({ templates: [], packs: [] })
   const [owned, setOwned] = useState([])
   const [groups, setGroups] = useState([])
@@ -98,7 +103,7 @@ export default function FamilySetupPage() {
     const request = ++generation.current
     setCatalogReady(false); setDraftReady(false); setStep(0); setGroupName(''); setGroupStatus(''); setGroups([]); setGroupsAvailable(false); setWorkGroups([]); setWorkGroupsAvailable(false); setWorkGroupName(''); setWorkGroupParent(''); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
     setPack('ALL'); setKind('TASK'); setCategory('ALL'); setSearch('')
-    setComplete(false); setPreview(null)
+    setComplete(false); setPreview(null); setPendingImport(importStorageKey ? readImportOperation(sessionStorage, importStorageKey, workspaceId) : null); setImportNotice('')
     if (workspaceId) load(workspaceId, request).finally(() => { if (generation.current === request) setDraftReady(true) })
     return () => { generation.current++ }
   }, [workspaceId, draftStorageKey])
@@ -145,46 +150,70 @@ export default function FamilySetupPage() {
       if (request === generation.current && id === workspaceRef.current) setBusy(false)
     }
   }
-  const confirm = async () => {
-    if (lock.current || !catalogReady || !preview || !preview.codes.length || !preview.result.toImport.length ||
-        preview.codes.join('|') !== selectedNew.join('|')) return
+  const finishImport = async (operation, receipt, id, request) => {
+    assertImportReceipt(receipt, operation)
+    const latest = await getPrivateTemplates(getAccessToken(), id)
+    if (!Array.isArray(latest) || !operation.codes.every(code => latest.some(item => item.catalogCode === code))) throw new Error('IMPORT_LIBRARY_MISMATCH')
+    if (request !== generation.current || workspaceRef.current !== id) return
+    setOwned(latest); setSelected([]); setPreview(null); setComplete(true); setStep(3)
+    setPendingImport(null); sessionStorage.removeItem(importStorageKey)
+  }
+  const recoverImport = async (retry) => {
+    if (lock.current || !pendingImport || !importStorageKey) return
     lock.current = true
-    const id = workspaceId, request = generation.current
-    setBusy(true); setError('')
+    const request = generation.current, id = workspaceId, operation = pendingImport
+    setBusy(true); setImportNotice(''); setError('')
     try {
-      // Refresh the authoritative import plan immediately before a write.
-      // Selection preview may be stale after another tab imports the same codes.
+      const epoch = await observeWorkspaceEpoch(getAccessToken(), id)
+      if (request !== generation.current || workspaceRef.current !== id) return
+      if (epoch !== operation.epoch) throw new Error('EPOCH_CHANGED')
+      const receipt = retry
+        ? await importTemplatesIdempotent(getAccessToken(), id, operation.codes, operation.operationId)
+        : await getTemplateImportReceipt(getAccessToken(), id, operation.operationId)
+      if (request !== generation.current || workspaceRef.current !== id) return
+      await finishImport(operation, receipt, id, request)
+    } catch (error) {
+      if (request === generation.current && workspaceRef.current === id) setImportNotice(error.status === 404
+        ? ({uk:'Квитанції поки немає. Можна вручну повторити оригінальний UUID.',ru:'Квитанции пока нет. Можно повторить исходный UUID.',de:'Noch kein Beleg. Ursprüngliche UUID manuell wiederholen.',en:'No receipt yet. The original UUID may be retried manually.'})[lang] : t[21])
+    } finally {
+      if (request === generation.current && workspaceRef.current === id) {lock.current = false; setBusy(false)}
+    }
+  }
+  const confirm = async () => {
+    if (lock.current || pendingImport || !importStorageKey || !catalogReady || !preview ||
+        !preview.result.toImport.length || preview.codes.join('|') !== selectedNew.join('|')) return
+    lock.current = true
+    const request = generation.current, id = workspaceId
+    setBusy(true); setError('')
+    let operation = null
+    try {
+      const epoch = await observeWorkspaceEpoch(getAccessToken(), id)
+      if (request !== generation.current || workspaceRef.current !== id) return
       const checked = await previewTemplateImport(getAccessToken(), id, preview.codes)
       if (request !== generation.current || workspaceRef.current !== id) return
-      const toImport = checked?.toImport
-      const alreadyImported = checked?.alreadyImported
-      if ((checked?.workspaceId != null && String(checked.workspaceId) !== String(id)) ||
-          !Array.isArray(toImport) || !Array.isArray(alreadyImported) ||
-          [...toImport, ...alreadyImported].length !== preview.codes.length ||
-          new Set([...toImport, ...alreadyImported]).size !== preview.codes.length ||
-          [...toImport, ...alreadyImported].some(code => !preview.codes.includes(code)))
-        throw new Error('STALE_IMPORT_PREVIEW')
-      if (toImport.length !== preview.result.toImport.length ||
-          toImport.some(code => !preview.result.toImport.includes(code))) {
-        setPreview(null); setStep(1); setError(t[29])
-        return // Explicit new review required; never issue a stale POST.
+      const merged = [...(checked?.toImport || []), ...(checked?.alreadyImported || [])]
+      if (!Array.isArray(checked?.toImport) || !Array.isArray(checked?.alreadyImported) ||
+          merged.length !== preview.codes.length || new Set(merged).size !== preview.codes.length ||
+          merged.some(code => !preview.codes.includes(code))) throw new Error('INVALID_PREVIEW')
+      if (checked.toImport.length !== preview.result.toImport.length ||
+          checked.toImport.some(code => !preview.result.toImport.includes(code))) {
+        setPreview(null); setStep(1); setError(t[29]); return
       }
-      await importTemplates(getAccessToken(), id, toImport)
+      const pending = readImportOperation(sessionStorage, importStorageKey, id)
+      if (pending) {setPendingImport(pending); setPreview(null); setStep(1); return}
+      operation = makeImportOperation(id, epoch, preview.codes, crypto.randomUUID())
+      storeImportOperation(sessionStorage, importStorageKey, operation)
+      setPendingImport(operation)
+      const receipt = await importTemplatesIdempotent(getAccessToken(), id, operation.codes, operation.operationId)
       if (request !== generation.current || workspaceRef.current !== id) return
-      // Re-read authoritative server state. Never infer imported records from a POST alone.
-      const latest = await getPrivateTemplates(getAccessToken(), id)
-      if (!Array.isArray(latest) || !preview.codes.every(code => latest.some(item => item.catalogCode === code))) throw new Error('INVALID_IMPORT_RESULT')
-      if (request !== generation.current || workspaceRef.current !== id) return
-      setOwned(latest); choose([]); setComplete(true); setStep(3)
+      await finishImport(operation, receipt, id, request)
     } catch {
       if (request === generation.current && workspaceRef.current === id) {
         setPreview(null); setStep(1); setError(t[21])
-        // An ambiguous network failure may have committed. Require fresh server reconciliation.
-        await load(id, request, true)
+        if (!operation) await load(id, request, true)
       }
     } finally {
-      lock.current = false
-      if (request === generation.current && workspaceRef.current === id) setBusy(false)
+      if (request === generation.current && workspaceRef.current === id) {lock.current = false; setBusy(false)}
     }
   }
   const canManageGroups = currentUser?.permissions?.includes('MANAGE_GROUPS') ||
@@ -268,6 +297,7 @@ export default function FamilySetupPage() {
       <span key={label} aria-current={step === index ? 'step' : undefined} className={step === index ? 'active' : ''}>{index + 1}. {label}</span>)}</nav>
     {error && <p role="alert" className="error-message">{error}</p>}
     {busy && <p role="status">{t[19]}</p>}
+    {pendingImport && <section className="family-setup-recovery"><p role="alert">{({uk:"Є незавершений імпорт. Спочатку перевірте квитанцію.",ru:"Импорт не завершён. Сначала проверьте квитанцию.",de:"Import offen. Zuerst Beleg prüfen.",en:"Import pending. Check receipt first."})[lang]}</p><code>{pendingImport.operationId}</code><button type="button" disabled={busy} onClick={() => recoverImport(false)}>{({uk:"Перевірити квитанцію",ru:"Проверить квитанцию",de:"Beleg prüfen",en:"Check receipt"})[lang]}</button><button type="button" disabled={busy} onClick={() => recoverImport(true)}>{({uk:"Повторити той самий UUID",ru:"Повторить тот же UUID",de:"Dieselbe UUID wiederholen",en:"Retry same UUID"})[lang]}</button>{importNotice && <p role="status">{importNotice}</p>}</section>}}
     {step === 0 && <section><h2>{t[1]}</h2><p>{t[5]}</p>
       <Link to="/members" className="secondary-button">{t[6]}</Link>
       <h3>{({uk:'Групи учасників',ru:'Группы участников',de:'Mitgliedergruppen',en:'Member groups'})[lang] || 'Member groups'}</h3>
@@ -326,7 +356,7 @@ export default function FamilySetupPage() {
       <ul>{preview?.codes.map(code => <li key={code}>{nameOf(catalog.templates.find(item => item.code === code), lang)}</li>)}</ul>
       {preview?.result?.warnings?.length > 0 && <ul>{preview.result.warnings.map((warning, index) => <li key={index}>{String(warning)}</li>)}</ul>}
       <div className="family-setup-actions"><button type="button" disabled={busy} onClick={() => {setPreview(null);setStep(1)}}>{t[17]}</button>
-        <button type="button" disabled={busy || !catalogReady || !preview?.result?.toImport?.length} onClick={confirm}>{t[14]}</button></div>
+        <button type="button" disabled={busy || !!pendingImport || !catalogReady || !preview?.result?.toImport?.length} onClick={confirm}>{t[14]}</button></div>
     </section>}
     {step === 3 && <section><h2>{t[4]}</h2><p role="status">{complete ? t[23] : t[15]}</p>
       <Link to="/templates">{t[16]}</Link>
