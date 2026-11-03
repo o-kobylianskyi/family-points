@@ -1,0 +1,13 @@
+.reward-history-panel {display:grid;gap:1rem;min-width:0}
+.reward-history-panel h2 {margin:0}
+.reward-history-panel > p {margin:0}
+.reward-history-filters {display:flex;flex-wrap:wrap;gap:.75rem;align-items:end}
+.reward-history-filters label {display:grid;gap:.3rem;min-width:8rem;flex:1 1 10rem}
+.reward-history-filters input,.reward-history-filters select {width:100%;max-width:100%;min-height:2.5rem;box-sizing:border-box}
+.reward-history-filters button {min-height:2.5rem}
+.reward-history-list {display:grid;gap:.65rem}
+.reward-history-item {padding:1rem;border:1px solid var(--border-color, #8885);border-radius:.75rem;display:grid;gap:.45rem;min-width:0}
+.reward-history-item > div {display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:.5rem}
+.reward-history-item strong {overflow-wrap:anywhere}
+.reward-history-item span {overflow-wrap:anywhere}
+@media(max-width:600px) {.reward-history-filters label {flex-basis:100%}.reward-history-item > div {align-items:flex-start;flex-direction:column;gap:.25rem}}
