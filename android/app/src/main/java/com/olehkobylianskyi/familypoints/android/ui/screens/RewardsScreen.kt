@@ -473,8 +473,8 @@ fun RewardsScreen(
             }
 
             val current = data
-            if (current != null || tab == RewardsTab.HISTORY) {
-                if (tab != RewardsTab.HISTORY && current != null && current.obligations.isNotEmpty()) {
+            if (current != null) {
+                if (tab != RewardsTab.HISTORY && current.obligations.isNotEmpty()) {
                     item {
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(
@@ -577,7 +577,6 @@ fun RewardsScreen(
                         }
                     }
                     RewardsTab.CATALOG -> {
-                        val current = current ?: return@LazyColumn
                         if (current.rewards.isEmpty()) {
                             item { Text(text.emptyRewards) }
                         } else {
