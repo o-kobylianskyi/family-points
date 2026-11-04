@@ -39,10 +39,19 @@ class RewardsRepository(
         require(memberId == null || memberId > 0L)
         require(RewardHistoryPagination.validStatus(status)) { "Invalid purchase status filter" }
         val token = tokenStore.getAccessToken() ?: error("Missing access token")
+        val auth = "Bearer $token"
+        val before = ApiClient.workspaceEpochApi.getEpoch(auth, workspaceId)
+        check(tokenStore.getAccessToken() == token) { "History session changed before GET" }
         val page = ApiClient.rewardsApi.getPurchaseHistory(
-            "Bearer $token", workspaceId, memberId, cursor, limit, status
+            auth, workspaceId, memberId, cursor, limit, status
         )
-        check(tokenStore.getAccessToken() == token) { "Account changed during reward history request" }
+        check(tokenStore.getAccessToken() == token) { "History session changed during GET" }
+        val after = ApiClient.workspaceEpochApi.getEpoch(auth, workspaceId)
+        check(tokenStore.getAccessToken() == token) { "History session changed after GET" }
+        check(RewardHistoryEpochGate.matches(
+            workspaceId, before.workspaceId, before.dataEpoch,
+            after.workspaceId, after.dataEpoch
+        )) { "Workspace epoch changed during history fetch" }
         return RewardHistoryPageGuard.validate(
             page, viewerMemberId, canManage, memberId, status
         )
