@@ -214,7 +214,7 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
           </select>
         </label>
         <div className="currency-forms-fields">
-          {['one', 'few', 'many'].map((key, i) => <label key={key}>
+          {['one', 'few', 'many'].map(key => <label key={key}>
             <span>{l[key]}</span>
             <input maxLength={100} required value={draft[key]} disabled={!canManage || !loaded || busy}
               onChange={e => { setDraft(prev => ({ ...prev, [key]: e.target.value })); setDirty(true); setNotice('') }} />
