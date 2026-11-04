@@ -78,7 +78,9 @@ internal fun TemplateFieldsEditor(
             },
             label = { Text(title) },
             supportingText = if (key in setOf("rewardAmount", "penaltyAmount", "priceAmount")) {
-                val guidance = when (templateAmountState(value)) {
+                // Material3 accepts a composable slot, not an eagerly evaluated Text().
+                {
+                    val guidance = when (templateAmountState(value)) {
                     TemplateAmountState.UNSET -> label(
                         "Не задано — рішення про бали ще потрібне. Це не безкоштовно.",
                         "Nicht festgelegt — Punkte müssen noch entschieden werden. Nicht kostenlos.",
@@ -94,7 +96,8 @@ internal fun TemplateFieldsEditor(
                         "Points value set.", "Баллы установлены."
                     )
                 }
-                Text(guidance)
+                    Text(guidance)
+                }
             } else null,
             enabled = enabled,
             minLines = if (multiline) 2 else 1,
