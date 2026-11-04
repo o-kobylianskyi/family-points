@@ -31,6 +31,10 @@ final class DisposableWorkNodeRestoreExecutor {
     }
 
     Result apply(byte[] file,long source,long target,SecretKey key) {
+        return apply(file,source,target,key,false);
+    }
+
+    Result apply(byte[] file,long source,long target,SecretKey key,boolean allowTaskNodes) {
         if(source<=0 || target<=0 || source==target)
             throw new IllegalArgumentException("DISPOSABLE_DISTINCT_FAMILIES_REQUIRED");
         var inspection=inspector.inspect(file,source,key);
@@ -60,7 +64,7 @@ final class DisposableWorkNodeRestoreExecutor {
         // A TASK WorkNode without its TaskDefinition is not a complete
         // recoverable unit. Never insert an orphan and call that FULL restore.
         for(JsonNode row:rows) {
-            if("TASK".equals(row.path("type").asText()))
+            if("TASK".equals(row.path("type").asText()) && !allowTaskNodes)
                 throw new IllegalArgumentException("WORK_NODE_TASK_DEFINITION_REQUIRED");
             var parent=row.path("parent_node_id");
             if(!parent.isNull() && !parent.isMissingNode()
