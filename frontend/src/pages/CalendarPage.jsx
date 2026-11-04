@@ -38,7 +38,6 @@ const add=(s,n)=>{const d=fromISO(s);d.setDate(d.getDate()+n);return iso(d)}
 const monday=s=>{const d=fromISO(s);d.setDate(d.getDate()-(d.getDay()+6)%7);return iso(d)}
 const firstMonth=s=>s.slice(0,7)+'-01'
 const lastMonth=s=>{const d=fromISO(firstMonth(s));d.setMonth(d.getMonth()+1);d.setDate(0);return iso(d)}
-const dateTime=(day,hour)=>new Date(day+'T'+hour+':00')
 const daysBetween=(start,end)=>Math.round((fromISO(end)-fromISO(start))/86400000)+1
 const dateLabel=(value,lang,options)=>new Intl.DateTimeFormat(lang,options).format(fromISO(value))
 const clock=value=>{if(!value)return null;const m=String(value).match(/(?:T|^)(\d{2}):(\d{2})/);return m?m[1]+':'+m[2]:null}
@@ -60,6 +59,7 @@ export default function CalendarPage(){
   const {currentUser,getAccessToken}=useAuth()
   const workspaceId=currentUser.workspaceId
   const canManage=currentUser.permissions?.some(p=>['MANAGE_WORKSPACE','ADMIN_OVERRIDE'].includes(p))
+  const [today,setToday]=useState(()=>iso(new Date()))
   const [focus,setFocus]=useState(()=>iso(new Date()))
   const [view,setView]=useState('week')
   const [type,setType]=useState('ALL')
@@ -125,14 +125,14 @@ export default function CalendarPage(){
     </form>}
     <section className="fp-cal-surface">
       <div className="fp-cal-toolbar">
-        <div className="fp-cal-controls"><button type="button" className="secondary-button" onClick={()=>setFocus(iso(new Date()))}>{t.today}</button><button type="button" className="fp-cal-arrow" aria-label="Previous" onClick={()=>go(-1)}>‹</button><button type="button" className="fp-cal-arrow" aria-label="Next" onClick={()=>go(1)}>›</button><strong className="fp-cal-period">{periodLabel}</strong></div>
+        <div className="fp-cal-controls"><button type="button" className="secondary-button" onClick={()=>{const now=iso(new Date());setToday(now);setFocus(now)}}>{t.today}</button><button type="button" className="fp-cal-arrow" aria-label="Previous" onClick={()=>go(-1)}>‹</button><button type="button" className="fp-cal-arrow" aria-label="Next" onClick={()=>go(1)}>›</button><strong className="fp-cal-period">{periodLabel}</strong></div>
         <div className="fp-cal-controls"><select aria-label={t.all} value={type} onChange={e=>setType(e.target.value)}><option value="ALL">{t.all}</option><option value="TASK">{t.tasks}</option><option value="REWARD">{t.rewards}</option></select><div className="fp-cal-segments">{['day','week','month'].map(x=><button type="button" key={x} className={view===x?'selected':''} onClick={()=>setView(x)}>{t[x]}</button>)}</div></div>
       </div>
       {error&&<div role="alert" className="fp-cal-error">{error}<button className="secondary-button" onClick={()=>setRefresh(x=>x+1)}>{t.retry}</button></div>}
       <div className={'fp-cal-content'+(loading?' is-loading':'')} aria-busy={loading}>
         {view==='month'&&<div className="fp-cal-month">
           {Array.from({length:7},(_,i)=><div key={i} className="fp-cal-weekday">{dateLabel(add(monday(focus),i),lang,{weekday:'short'})}</div>)}
-          {dates.map(day=><button type="button" key={day} className={'fp-cal-cell'+(day===iso(new Date())?' today':'')+(day.slice(0,7)!==focus.slice(0,7)?' outside':'')} onClick={()=>onDay(day)}>
+          {dates.map(day=><button type="button" key={day} className={'fp-cal-cell'+(day===today?' today':'')+(day.slice(0,7)!==focus.slice(0,7)?' outside':'')} onClick={()=>onDay(day)}>
             <span className="fp-cal-date">{Number(day.slice(-2))}</span><span className="fp-cal-cell-events">{(grouped.get(day)||[]).slice(0,3).map((e,i)=><span className={'fp-cal-mini '+(e.kind==='REWARD_WINDOW'?'reward':'task')} key={e.key||i}>{eventTime(e)||'•'} {e.title}</span>)}{(grouped.get(day)||[]).length>3&&<small>+{grouped.get(day).length-3}</small>}</span>
           </button>)}
         </div>}
