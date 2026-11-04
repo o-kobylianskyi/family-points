@@ -59,7 +59,11 @@ class RewardsRepository(
      * delay saving reward names, prices and purchase requirements.
      */
     suspend fun refreshCatalog(workspaceId: Long, memberId: Long): RewardsPageData {
-        val rewards = ApiClient.rewardsApi.getRewards(authorization(), workspaceId)
+        val auth = authorization()
+        val rewards = ApiClient.rewardsApi.getRewards(auth, workspaceId)
+        check(tokenStore.getAccessToken() == auth.removePrefix("Bearer ")) {
+            "Account changed during reward catalog refresh"
+        }
         val previous = cached(workspaceId, memberId)
         val catalog = RewardsPageData(
             rewards = rewards,
@@ -70,6 +74,9 @@ class RewardsRepository(
             pointTypes = previous?.pointTypes.orEmpty(),
             tasks = emptyList()
         )
+        check(tokenStore.getAccessToken() == auth.removePrefix("Bearer ")) {
+            "Account changed before reward catalog cache write"
+        }
         offlineStore.save(workspaceId, memberId, catalog)
         return catalog
     }
@@ -129,6 +136,9 @@ class RewardsRepository(
             obligations = obligations.await(),
             tasks = tasks.await().filter { it.active }
         )
+        check(tokenStore.getAccessToken() == auth.removePrefix("Bearer ")) {
+            "Account changed during supplementary rewards fetch"
+        }
         offlineStore.save(workspaceId, memberId, result)
         result
     }
