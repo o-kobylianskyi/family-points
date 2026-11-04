@@ -144,20 +144,6 @@ const refreshPoints = async () => {
     (member) => member.id === selectedMemberId
   )
 
-  const getInitials = (name) => {
-    if (!name) {
-      return '?'
-    }
-
-    return name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join('')
-      .toUpperCase()
-  }
-
   const formatDate = (value) => {
     if (!value) {
       return ''
