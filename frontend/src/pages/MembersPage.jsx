@@ -58,7 +58,7 @@ function MembersPage() {
     }
 
     loadData()
-  }, [currentUser.workspaceId])
+  }, [currentUser.workspaceId, getAccessToken])
 
   const refreshMembers = async () => {
     setMembers(await getWorkspaceMembers(getAccessToken(), currentUser.workspaceId))
