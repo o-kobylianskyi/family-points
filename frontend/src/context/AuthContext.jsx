@@ -351,11 +351,11 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const getAvailableWorkspaces = async () => {
+  const getAvailableWorkspaces = useCallback(async () => {
     const token = localStorage.getItem('accessToken')
     if (!token) throw new Error('Not authenticated')
     return listAccountWorkspaces(token)
-  }
+  }, [])
 
   const switchWorkspace = async (workspaceId) => {
     const token = localStorage.getItem('accessToken')
