@@ -568,7 +568,8 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
               checked={memberRoleEditor.roleIds.has(role.id)}
               onChange={() => {
                 const ids = new Set(memberRoleEditor.roleIds)
-                ids.has(role.id) ? ids.delete(role.id) : ids.add(role.id)
+                if (ids.has(role.id)) ids.delete(role.id)
+                else ids.add(role.id)
                 setMemberRoleEditor({ ...memberRoleEditor, roleIds: ids })
               }}
             />
