@@ -33,7 +33,7 @@ export default function ChooseFamilyPage() {
     getAvailableWorkspaces().then(value => { if (alive) { setChoices(value); setChoicesLoaded(true); setError('') } })
       .catch(e => { if (alive) { setChoicesLoaded(false); setError(familyErrorMessage(e, t, 'familyChoice.loadingError')) } })
     return () => { alive = false }
-  }, [needsWorkspace, retryKey])
+  }, [needsWorkspace, retryKey, t, getAvailableWorkspaces])
 
   if (loading) return <div className="app-loading">{t('common.loading')}</div>
   if (currentUser && !needsWorkspace) return <Navigate to="/" replace />
