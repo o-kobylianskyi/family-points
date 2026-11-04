@@ -31,10 +31,11 @@ class RewardsRepository(
 
     /** Read-only; never cache across accounts or infer receipt/delivery from purchase state. */
     suspend fun purchaseHistory(
-        workspaceId: Long, memberId: Long?, cursor: String?, limit: Int = 30,
+        workspaceId: Long, viewerMemberId: Long, canManage: Boolean,
+        memberId: Long?, cursor: String?, limit: Int = 30,
         status: String? = null
     ): RewardPurchaseHistoryPage {
-        require(workspaceId > 0L && limit in 1..100)
+        require(workspaceId > 0L && viewerMemberId > 0L && limit in 1..100)
         require(memberId == null || memberId > 0L)
         require(RewardHistoryPagination.validStatus(status)) { "Invalid purchase status filter" }
         val token = tokenStore.getAccessToken() ?: error("Missing access token")
@@ -42,8 +43,9 @@ class RewardsRepository(
             "Bearer $token", workspaceId, memberId, cursor, limit, status
         )
         check(tokenStore.getAccessToken() == token) { "Account changed during reward history request" }
-        require(!page.hasMore || !page.nextCursor.isNullOrBlank()) { "Invalid purchase history cursor" }
-        return page
+        return RewardHistoryPageGuard.validate(
+            page, viewerMemberId, canManage, memberId, status
+        )
     }
 
     suspend fun loadPointNameForms(workspaceId: Long, pointTypeId: Long): List<PointNameFormDto> =
