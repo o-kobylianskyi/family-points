@@ -1,7 +1,7 @@
 import RewardAvailabilityEditor from '../components/RewardAvailabilityEditor'
 import RewardPurchaseHistory from '../components/RewardPurchaseHistory'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import NumberInput from '../components/NumberInput'
 
@@ -109,6 +109,13 @@ function taskRequirements(form) {
 }
 
 function RewardsPage() {
+  const { currentUser } = useAuth()
+  const identityKey = [currentUser.accountId ?? currentUser.userId ?? currentUser.id,
+    currentUser.workspaceId, currentUser.memberId].join(':')
+  return <RewardsPageContent key={identityKey} />
+}
+
+function RewardsPageContent() {
   const { currentUser, getAccessToken } = useAuth()
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
@@ -181,13 +188,13 @@ function RewardsPage() {
   const requestTemplateCategories = [...new Set(requestTemplates.map(requestCategoryOf))].sort()
   const requestTemplateOptions = requestTemplates.filter(item => requestTemplateCategory === 'ALL' || requestCategoryOf(item) === requestTemplateCategory)
   const language = i18n.language.split('-')[0]
-  const labels = {
+  const labels = useMemo(() => ({
     uk: ['На основі шаблону', 'Без шаблону', 'Категорія шаблону', 'Усі категорії', 'Шаблон нагороди не завантажено', 'Значення необхідно перевірити перед створенням або надсиланням запиту'],
     ru: ['На основе шаблона', 'Без шаблона', 'Категория шаблона', 'Все категории', 'Не удалось загрузить шаблон награды', 'Проверьте значения перед созданием или отправкой запроса'],
     de: ['Aus Vorlage', 'Ohne Vorlage', 'Vorlagenkategorie', 'Alle Kategorien', 'Belohnungsvorlage konnte nicht geladen werden', 'Angaben vor dem Erstellen oder Anfragen prüfen'],
     en: ['From template', 'Without template', 'Template category', 'All categories', 'Could not load reward template', 'Review values before creating or requesting'],
-  }[language] || ['From template', 'Without template', 'Template category', 'All categories', 'Could not load reward template', 'Review values']
-  const chooseRewardTemplate = async id => {
+  }[language] || ['From template', 'Without template', 'Template category', 'All categories', 'Could not load reward template', 'Review values']), [language])
+  const chooseRewardTemplate = useCallback(async id => {
     const generation = ++rewardDraftGeneration.current
     setSelectedRewardTemplateId(id)
     if (!id) { setTemplateBusy(false); return }
@@ -203,7 +210,7 @@ function RewardsPage() {
         priceAmount: d.priceAmount ?? '', pointTypeId: d.pointTypeId ?? current.pointTypeId,
         acquisitionMode: d.acquisitionMode ?? current.acquisitionMode, requiresApproval: d.requiresApproval ?? current.requiresApproval }))
     } catch { if (String(workspaceRef.current) === String(origin) && rewardDraftGeneration.current === generation) setError(labels[4]) } finally { if (String(workspaceRef.current) === String(origin) && rewardDraftGeneration.current === generation) setTemplateBusy(false) }
-  }
+  }, [currentUser.workspaceId, getAccessToken, labels])
   // A deep link only selects a server-returned private template. It never
   // purchases, persists, or activates a reward on navigation.
   useEffect(() => {
@@ -221,7 +228,7 @@ function RewardsPage() {
       next.delete('createFromTemplate')
       return next
     }, { replace: true })
-  }, [searchParams, setSearchParams, rewardTemplates, canManage, loading, privateTemplatesLoaded])
+  }, [searchParams, setSearchParams, rewardTemplates, canManage, loading, privateTemplatesLoaded, chooseRewardTemplate])
   const chooseRequestTemplate = id => {
     const item = requestTemplates.find(x => String(x.id ?? x.code) === id)
     setSelectedRequestTemplateId(id)
@@ -231,7 +238,7 @@ function RewardsPage() {
     setCustomRequestTitle(typeof item.title === 'string' ? item.title : item.title?.[language] || item.title?.en || '')
     setCustomRequestDescription(typeof d.description === 'string' ? d.description : typeof d.description?.[language] === 'string' ? d.description[language] : '')
   }
-  const loadAll = async () => {
+  const loadAll = useCallback(async () => {
     const identityAtStart = identity
     try {
       setLoading(true)
@@ -297,17 +304,12 @@ function RewardsPage() {
     } finally {
       if (identityRef.current === identityAtStart) setLoading(false)
     }
-  }
+  }, [identity, getAccessToken, currentUser.workspaceId, currentUser.memberId, canManage])
 
   useEffect(() => {
-    setTasks([]); setRewards([]); setRequests([]); setPurchases([]); setObligations([]); setBalances([]); setCategories([]); setPointTypes([])
-    setPendingRewardActivation(rewardActivationKey ? readActivation(sessionStorage, rewardActivationKey, currentUser.workspaceId, 'REWARD') : null)
-    setRewardForm(emptyRewardForm)
-    rewardDraftGeneration.current += 1
-    setRewardTemplates([]); setPrivateTemplatesLoaded(false); setRewardWriteUnknown(false); setGlobalRewardTemplates([]); setSelectedRewardTemplateId(''); setSelectedRequestTemplateId(''); setRewardTemplateCategory('ALL'); setRequestTemplateCategory('ALL')
-    setReviewForm(emptyReviewForm)
-    loadAll()
-  }, [identity])
+    // The keyed remount initializes all family-scoped state. Fetch after mount.
+    void Promise.resolve().then(() => loadAll())
+  }, [loadAll])
 
   const run = async (action, successMessage = '') => {
     // Synchronous guard: React state updates alone cannot stop rapid double taps.
