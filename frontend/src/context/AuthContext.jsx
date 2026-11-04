@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -391,9 +392,7 @@ export function AuthProvider({ children }) {
     clearSession()
   }
 
-  const getAccessToken = () => {
-    return localStorage.getItem('accessToken')
-  }
+  const getAccessToken = useCallback(() => localStorage.getItem('accessToken'), [])
 
   return (
     <AuthContext.Provider
