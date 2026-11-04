@@ -31,6 +31,7 @@ import {
 } from '../api/taskApi'
 
 import CreateTaskModal from '../components/CreateTaskModal'
+import TaskRewardNegotiationModal from '../components/TaskRewardNegotiationModal'
 import TaskSuggestionPanel from '../components/TaskSuggestionPanel'
 
 function getToday() {
