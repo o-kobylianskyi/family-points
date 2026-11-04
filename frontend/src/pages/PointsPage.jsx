@@ -74,7 +74,7 @@ function PointsPage() {
     }
 
     loadMembers()
-  }, [currentUser.workspaceId, currentUser.memberId])
+  }, [currentUser.workspaceId, currentUser.memberId, getAccessToken])
 
   useEffect(() => {
     if (!selectedMemberId) {
@@ -112,7 +112,7 @@ function PointsPage() {
     }
 
     loadPoints()
-  }, [selectedMemberId, currentUser.workspaceId])
+  }, [selectedMemberId, currentUser.workspaceId, getAccessToken])
 
 
 const refreshPoints = async () => {
