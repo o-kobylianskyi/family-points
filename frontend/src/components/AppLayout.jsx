@@ -48,7 +48,7 @@ function AppLayout() {
       if (!cancelled) setWorkspaceChoices(choices)
     }).catch(() => {})
     return () => { cancelled = true }
-  }, [currentUser?.workspaceId])
+  }, [currentUser?.workspaceId, getAvailableWorkspaces])
 
   useEffect(() => {
     setMobileMenuOpen(false)
