@@ -1,5 +1,7 @@
 package com.olehkobylianskyi.familypoints.android.network
 
+import com.olehkobylianskyi.familypoints.android.data.RewardHistoryEpochGate
+import com.olehkobylianskyi.familypoints.android.data.RewardHistoryPageGuard
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -91,6 +93,44 @@ class RewardHistoryHttpTest {
         assertTrue(request.path!!.contains("cursor=cursor-2"))
         assertTrue(request.path!!.contains("status=CANCELLED"))
         assertTrue(request.path!!.contains("limit=20"))
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test fun changedEpochAcrossGetSequenceRejectsHistoryWithoutAnyWrite() = runBlocking {
+        server.enqueue(MockResponse().setHeader("Content-Type", "application/json")
+            .setBody("""{"workspaceId":91,"dataEpoch":17}"""))
+        server.enqueue(MockResponse().setHeader("Content-Type", "application/json")
+            .setBody("""{"items":[{"id":31,"memberId":7,"rewardTitle":"Snapshot","priceAmount":10,"status":"READY"}],"nextCursor":null,"hasMore":false}"""))
+        server.enqueue(MockResponse().setHeader("Content-Type", "application/json")
+            .setBody("""{"workspaceId":91,"dataEpoch":18}"""))
+        val epochApi = Retrofit.Builder().baseUrl(server.url("/"))
+            .addConverterFactory(GsonConverterFactory.create())
+            .build().create(WorkspaceEpochApi::class.java)
+        val before = epochApi.getEpoch("Bearer original", 91)
+        val page = api.getPurchaseHistory("Bearer original", 91, 7, null, 25)
+        val after = epochApi.getEpoch("Bearer original", 91)
+        assertFalse(RewardHistoryEpochGate.matches(91, before.workspaceId, before.dataEpoch,
+            after.workspaceId, after.dataEpoch))
+        assertEquals(1, page.items.size)
+        repeat(3) {
+            val request = server.takeRequest(2, TimeUnit.SECONDS)!!
+            assertEquals("GET", request.method)
+            assertEquals("Bearer original", request.getHeader("Authorization"))
+        }
+        assertEquals(3, server.requestCount)
+    }
+
+    @Test fun malformedSiblingPageCannotPassClientSideMemberVerification() = runBlocking {
+        server.enqueue(MockResponse().setHeader("Content-Type", "application/json")
+            .setBody("""{"items":[{"id":44,"memberId":8,"rewardTitle":"Sibling purchase","priceAmount":20,"status":"READY"}],"nextCursor":null,"hasMore":false}"""))
+        val page = api.getPurchaseHistory("Bearer child", 91, null, null, 25)
+        try {
+            RewardHistoryPageGuard.validate(page, viewerMemberId = 7, canManage = false,
+                requestedMemberId = null, requestedStatus = null)
+            fail("A child cannot render a sibling purchase")
+        } catch (_: IllegalArgumentException) { }
+        val request = server.takeRequest(2, TimeUnit.SECONDS)!!
+        assertEquals("GET", request.method)
         assertEquals(1, server.requestCount)
     }
 
