@@ -189,8 +189,10 @@ fun RewardsScreen(
         }
         historyLoading = true
         try {
-            val page = repository.purchaseHistory(currentUser.workspaceId,
-                if (canManage) historyMemberId else null, null, status = historyStatus)
+            val page = repository.purchaseHistory(
+                currentUser.workspaceId, currentUser.memberId, canManage,
+                if (canManage) historyMemberId else null, null, status = historyStatus
+            )
             history = RewardHistoryPagination.append(emptyList(), page)
             historyCursor = page.nextCursor
             historyHasMore = page.hasMore
@@ -642,7 +644,8 @@ fun RewardsScreen(
                                         historyError = ""
                                         try {
                                             val page = repository.purchaseHistory(
-                                                expectedWorkspace, if (canManage) expectedMember else null, next, status = expectedStatus
+                                                expectedWorkspace, currentUser.memberId, canManage,
+                                                if (canManage) expectedMember else null, next, status = expectedStatus
                                             )
                                             if (tab == RewardsTab.HISTORY &&
                                                 historyGeneration == expectedGeneration &&
