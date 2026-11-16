@@ -95,4 +95,19 @@ class DisposableLedgerSourceGraphVerifierTest {
         assertThrows(SecurityException.class,()->purchaseProof(4,5,3,-5,"EARN"));
     }
 
+    @Test void duplicateChargeOfSamePurchaseFailsClosed() throws Exception {
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","REWARD_PURCHASE",51L,4,4,
+                body->body.replace("\"amount\":5",
+                            "\"amount\":-5,\"type\":\"SPEND\"")
+                        .replace("\"POINT_LEDGER\":",
+                            "\"REWARD_PURCHASES\":[{\"id\":51,\"member_id\":4,"
+                            +"\"point_type_id\":3,\"price_amount\":5}],\"POINT_LEDGER\":")
+                        .replace("\"POINT_LEDGER\":[",
+                            "\"POINT_LEDGER\":[{\"id\":101,\"member_id\":4,"
+                            +"\"point_type_id\":3,\"amount\":-5,\"type\":\"SPEND\","
+                            +"\"source_type\":\"REWARD_PURCHASE\",\"source_id\":51},")
+        ));
+    }
+
 }
