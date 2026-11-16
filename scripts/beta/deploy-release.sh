@@ -4,13 +4,15 @@
 set -Eeuo pipefail
 cd "$(dirname "$0")/../.."
 tag="${1:-}"
-backup_mode="${2:-}"
-if [[ -n "$backup_mode" && "$backup_mode" != "--skip-backup" ]]; then
-  echo "Usage: bash scripts/beta/deploy-release.sh vX.Y.Z-beta.N [--skip-backup]" >&2
+# A standard BETA deployment never allows a missing database snapshot.
+# This guards against forward-only Flyway migrations and accidental rollback.
+if (( $# != 1 )); then
+  echo "Usage: bash scripts/beta/deploy-release.sh vX.Y.Z-beta.N" >&2
+  echo "A validated BETA database backup is mandatory; --skip-backup is forbidden." >&2
   exit 2
 fi
 if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
-  echo "Usage: bash scripts/beta/deploy-release.sh vX.Y.Z-beta.N [--skip-backup]" >&2
+  echo "Usage: bash scripts/beta/deploy-release.sh vX.Y.Z-beta.N" >&2
   exit 2
 fi
 [[ -f .env ]] || { echo "Missing private .env" >&2; exit 2; }
@@ -25,18 +27,28 @@ sudo docker compose --env-file .env -f compose.beta.yml config --quiet
 echo "Current: $prev"
 echo "Deploy:  $target"
 echo "NOTE: Flyway migrations are forward-only; reverting images does NOT revert a database migration."
-if [[ "$backup_mode" == "--skip-backup" ]]; then
-  echo "WARNING: Deploying WITHOUT a BETA database backup as explicitly requested."
-  echo "Flyway migrations may irreversibly change existing data; binary rollback cannot undo them."
-  read -r -p "Confirm no database backup and deploy pinned revision? Type DEPLOY-NO-BACKUP: " answer
-  [[ "$answer" == DEPLOY-NO-BACKUP ]] || exit 2
-else
-  read -r -p "Backup BETA database and deploy pinned revision? Type DEPLOY: " answer
-  [[ "$answer" == DEPLOY ]] || exit 2
-  sudo bash scripts/beta/backup.sh
-fi
+read -r -p "Backup BETA database and deploy pinned revision? Type DEPLOY: " answer
+[[ "$answer" == DEPLOY ]] || exit 2
+echo "Creating mandatory verified BETA database backup before any checkout or container changes."
+sudo bash scripts/beta/backup.sh
+echo "Backup command succeeded; this is NOT proof a complete restore rehearsal passed."
+deployment_stage="checkout"
+release_failure() {
+  code=$?
+  if (( code != 0 )); then
+    echo "BETA DEPLOY FAILED at stage: $deployment_stage (exit $code)" >&2
+    echo "Previous application revision: $prev" >&2
+    echo "Requested revision: $target" >&2
+    echo "Do not auto-rollback application or restore database: Flyway may have migrated forward." >&2
+    echo "Inspect container logs, Flyway schema history, backup and restore compatibility before recovery." >&2
+  fi
+}
+trap release_failure EXIT
+
 git switch --detach "$target"
+deployment_stage="compose-up"
 sudo docker compose --env-file .env -f compose.beta.yml up -d --build --no-deps backend web
+deployment_stage="localhost-health"
 echo "Waiting for localhost health status (no public port changes)"
 healthy=0
 for i in $(seq 1 30); do
@@ -52,9 +64,13 @@ if (( healthy != 1 )); then
   echo "Do not blindly roll back app binaries if migrations are incompatible." >&2
   exit 1
 fi
+deployment_stage="local-smoke"
 bash scripts/beta/smoke.sh http://127.0.0.1:18080
+deployment_stage="public-health"
 curl --fail --silent --show-error --max-time 12 https://family-point.com/api/client-health >/dev/null || {
   echo "Public HTTPS health failed; internal deployment works; check host Nginx / DNS / TLS" >&2; exit 1;
 }
+deployment_stage="complete"
+trap - EXIT
 echo "BETA RELEASE OK at $target"
 echo "Revision recorded in git HEAD. Android API origin: https://family-point.com/"
