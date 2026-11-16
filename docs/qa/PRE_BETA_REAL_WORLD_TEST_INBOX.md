@@ -159,3 +159,14 @@ All these cases are additional acceptance criteria in the **single planned final
 | REAL-REL-BACKUP-01 | Release/QA | Disposable BETA-style pg_dump atomic archive, failed-job cleanup, secret file permission, independent restore into disposable PG and data integrity | approved isolated env, release-candidate SHA, backup retention and rollback plan | BLOCKED_DEPENDENCY |
 
 **Important:** Release's pg_dump full-database operational backup is a distinct mechanism from BKL-002's tenant-scoped protected `.fpbackup` archive. Both must be independently accepted and must not be conflated.
+
+## Intake checkpoint — V49 two-tab finalize identity and cross-track new CI blockers
+
+- Web→QA handoff [WEB_TO_QA_V49_REAL_ACCEPTANCE_20261116.md](../coordination/requests/WEB_TO_QA_V49_REAL_ACCEPTANCE_20261116.md) updated in `bed509893f65`: `ownsSetupFinalizeMarkers` checks both session and shared marker identity immediately before finalize. Collect `REAL-V49-TABS-02`: two tabs with competing UUID; matching UUID but different account/family/epoch/revision/selected codes; marker missing/corrupt/storage denial; marker changed between staging and dispatch; success only one finalize POST on exact scope. Cross-tab storage coordination is best effort, Backend idempotency authoritative. New synthetic tests source `c731a06b`, not real server PASS.
+- Release/Android signed APK source integrity pipeline has confirmed source PowerShell parser failure at `scripts/android/build-release-apk.ps1:19` in runs `43953661904`/`43953986968`. Add `REAL-REL-APK-02` to future candidate evidence review: exact pinned SHA manifest, signing fingerprint and rejected invalid manifest, clean build; **only after Release fixes parser and verifies synthetic CI**, no publication now.
+- Backend latest two full Maven runs FAIL on test-only reward category native replay scope before null-map denial, 460/461 tests and one failure. This is an automatic P0 defect routed to Backend, not a reason to execute real backup/reset.
+
+| ID | Producer | Scenario / source | Dependencies | Status |
+|---|---|---|---|---|
+| REAL-V49-TABS-02 | Web/QA | Two-tab competing finalize UUID, staged/changed marker, same UUID foreign scope, missing markers, zero unsafe POST | approved isolated V49 environment and Backend receipt enforcement | BLOCKED_DEPENDENCY |
+| REAL-REL-APK-02 | Release/Android/QA | Signed APK fingerprint/sourceSha/manifest identity with parser and safety regression evidence, no live publication | repaired release scripts, pinned signed artifact and exact-SHA full CI | BLOCKED_DEPENDENCY |
