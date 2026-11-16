@@ -92,6 +92,19 @@ export function assertSetupReview(review, state, codes) {
   return review
 }
 
+/** Ensure a successful step PATCH did not cross a workspace reset/epoch boundary.
+ * The API layer already checks revision and target step; this guards epoch too. */
+export function assertSetupStepTransition(before, after, step, status) {
+  assertSetupState(before, before?.workspaceId)
+  assertSetupState(after, before.workspaceId)
+  if (!SETUP_STEP_CODES.includes(step) || !['COMPLETE', 'SKIPPED'].includes(status) ||
+      after.dataEpoch !== before.dataEpoch || after.revision !== before.revision + 1 ||
+      after.steps?.[step] !== status) {
+    throw new Error('SETUP_STEP_TRANSITION_MISMATCH')
+  }
+  return after
+}
+
 /**
  * A lost PATCH response is NOT permission to automatically replay the write.
  * The subsequent GET is authoritative only for visible progress: it cannot
