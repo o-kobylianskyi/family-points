@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getMemberGroups } from '../api/memberGroupApi'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import EntityMedia from '../components/EntityMedia'
 
 export default function GroupPage() {
