@@ -16,6 +16,7 @@ import org.junit.Test
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.net.InetAddress
 import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
@@ -25,7 +26,7 @@ class OfflinePointsReplayHttpTest {
     private lateinit var server: MockWebServer
     private lateinit var api: PointsApi
     @Before fun setUp() {
-        server = MockWebServer().apply { start() }
+        server = MockWebServer().apply { start(InetAddress.getByName("127.0.0.1"), 0) }
         api = Retrofit.Builder().baseUrl(server.url("/").newBuilder().host("127.0.0.1").build())
             .client(OkHttpClient.Builder().retryOnConnectionFailure(false)
                 .readTimeout(2, TimeUnit.SECONDS).build())
