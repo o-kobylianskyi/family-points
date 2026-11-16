@@ -23,7 +23,7 @@ async function login(page) {
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/, {timeout:12000})
   test.skip(new URL(page.url()).pathname === '/choose-family','Select isolated QA workspace explicitly')
 }
-for (const scenario of ['stale','completed']) test(`V49 lost finalize response, valid receipt, server state ${scenario}: original UUID only`,async({page})=>{
+for (const scenario of ['stale','completed','wrong-revision','wrong-epoch']) test(`V49 lost finalize response, valid receipt, server state ${scenario}: original UUID only`,async({page})=>{
   test.skip(!username || !password,'Disposable QA manager credentials required')
   await login(page)
   let workspaceId
@@ -47,10 +47,12 @@ for (const scenario of ['stale','completed']) test(`V49 lost finalize response, 
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({workspaceId:id,dataEpoch:0})})
     if(path.endsWith('/setup') && request.method()==='GET') {
       setupCount++
-      const completed=receiptObserved && scenario==='completed'
+      const finalized=receiptObserved && scenario!=='stale'
+      const serverRevision=finalized ? (scenario==='wrong-revision' ? revision+2 : revision+1) : revision
+      const serverEpoch=finalized && scenario==='wrong-epoch' ? 1 : 0
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-        workspaceId:id,dataEpoch:0,revision:completed?revision+1:revision,
-        status:completed?'COMPLETED':'IN_PROGRESS',steps:completeSteps
+        workspaceId:id,dataEpoch:serverEpoch,revision:serverRevision,
+        status:finalized?'COMPLETED':'IN_PROGRESS',steps:completeSteps
       })})
     }
     if(path.endsWith('/setup/review') && request.method()==='POST') {
@@ -102,7 +104,7 @@ for (const scenario of ['stale','completed']) test(`V49 lost finalize response, 
   await section.getByRole('button',{name:text.receipt}).click()
   await expect.poll(()=>receiptCount).toBe(1)
   await expect.poll(()=>setupCount).toBeGreaterThan(initialSetupGets)
-  if(scenario==='stale') {
+  if(scenario!=='completed') {
     await expect(section.getByText(text.unknown)).toBeVisible()
     await expect(section.getByText(text.finished)).toHaveCount(0)
   } else {
