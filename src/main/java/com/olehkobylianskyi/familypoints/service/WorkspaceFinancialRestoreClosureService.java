@@ -66,8 +66,8 @@ public final class WorkspaceFinancialRestoreClosureService {
                 history=true;
                 if(!included)
                     blockers.add("RESTORE_DEPENDENCY_NOT_SELECTED:"+spec.category());
-                if("GROUP_POINT_LEDGER_UNEXPORTED".equals(spec.category()))
-                    blockers.add("RESTORE_CATEGORY_NOT_EXPORTABLE:GROUP_POINT_LEDGER");
+                if("GROUP_POINT_LEDGER".equals(spec.category()))
+                    blockers.add("RESTORE_GROUP_LEDGER_REPLAY_UNIMPLEMENTED");
             }
         }
         // An all-zero history is not sufficient: the native restore must
