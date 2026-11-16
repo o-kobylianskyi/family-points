@@ -13,6 +13,14 @@
 - No parallel-work exception allows BKL-002 `VERIFIED` promotion, destructive Reset/Restore execute or release without independent QA/Release gate. HTTP 423 remains until all required safety constraints pass.
 - Canonical handoff: [BKL002_BACKEND_QA_ASYNC_TEST_PIPELINE_20261116.md](docs/coordination/requests/BKL002_BACKEND_QA_ASYNC_TEST_PIPELINE_20261116.md).
 
+## CRITICAL CORRECTION — HARD CONTEXT LIMIT WARNING FAILED (user evidence 2026-11-16)
+- A Web role chat reached ChatGPT's **maximum conversation length with no 50/75/85% warning**. The requested percentage warning plan is **not reliable** because chats are not given exact usage/remaining context counters; a hard cap can prevent any final handoff. **Do not present milestone alerts as a working guarantee.**
+- **Mandatory alternative for ALL tracks (Architecture, Backend, Web, Android, QA, Designer, Release):** after **every substantial work batch** or changes in committed SHA/tests/blockers, update a **self-contained rolling continuation file** in `docs/coordination/handoffs/<TRACK>_LATEST.md` (first create it if absent) and commit it. Each user-visible completion report should link the handoff and include its latest commit SHA. A role journal alone is not a substitute for the rolling entry.
+- At beginning of a newly started role chat, read and update `<TRACK>_LATEST.md`. If chat is approaching a practical length, recommend fresh chat **early, even without percentage**. Continue to issue percentage milestone notices **only if an explicitly stated defensible estimate is available**, never claim exact context capacity.
+- If no new code and this is only casual chat, a full handoff update isn't necessary; for technical work, do not postpone preparation until 75% or 85%. A generated handoff in GitHub survives even an abrupt block on a chat's next message.
+- If unable to commit, give a complete inline continuation snapshot immediately and state that GitHub persistence failed. Do not assume other chats receive updates automatically.
+- Recovery exemplar: [Web hard-limit handoff 2026-11-16](docs/coordination/handoffs/20261116_WEB_CONTINUE_AFTER_LIMIT.md).
+
 ## MANDATORY FOR ALL FAMILYPOINTS CHATS — CONTEXT CAPACITY WARNINGS AND EARLY HANDOFF (user decision 2026-11-16)
 
 **Applies to:** Architecture/Planning, Backend, Web, Android, QA/Testing, Release/DevOps, Designer and every future role/project chat using this repository. This is an operational rule, NOT a product feature, and takes priority over routine discussion convenience.
