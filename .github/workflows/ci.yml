@@ -10,11 +10,12 @@ on:
 permissions:
   contents: read
 
-# Pushes keep the fast superseding behavior. Explicit release-gate runs
-# are isolated by run ID and cannot be cancelled by unrelated main pushes.
+# Ordinary pushes supersede each other to save runner capacity.
+# A deliberate [full-ci] push receives an isolated run-ID group just like
+# workflow_dispatch, so unrelated concurrent main pushes cannot cancel it.
 concurrency:
-  group: ${{ github.event_name == 'workflow_dispatch' && format('family-points-manual-{0}', github.run_id) || format('family-points-ci-{0}-{1}', github.workflow, github.ref) }}
-  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+  group: ${{ (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[full-ci]'))) && format('family-points-pinned-{0}', github.run_id) || format('family-points-ci-{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' && !(github.event_name == 'push' && contains(github.event.head_commit.message, '[full-ci]')) }}
 
 jobs:
   changes:
@@ -34,11 +35,12 @@ jobs:
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
+          HEAD_MESSAGE: ${{ github.event.head_commit.message }}
           PUSH_BASE: ${{ github.event.before }}
           PR_BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           b=false; a=false; w=false; c=false; full=false
-          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_dispatch" || ( "$EVENT_NAME" == "push" && "$HEAD_MESSAGE" == *"[full-ci]"* ) ]]; then
             full=true
           else
             if [[ "$EVENT_NAME" == "pull_request" ]]; then base="$PR_BASE"; else base="$PUSH_BASE"; fi
