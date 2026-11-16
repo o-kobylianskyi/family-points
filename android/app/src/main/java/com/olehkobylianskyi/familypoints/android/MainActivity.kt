@@ -516,6 +516,7 @@ class MainActivity : ComponentActivity() {
 
                     needsWorkspaceSelection -> {
                         WorkspaceOnboardingScreen(
+                            language = language,
                             loadChoices = { authSessionManager.listWorkspaces() },
                             choose = { id -> authSessionManager.switchWorkspace(id) },
                             create = { family, owner -> authSessionManager.createFirstFamily(family, owner) },
