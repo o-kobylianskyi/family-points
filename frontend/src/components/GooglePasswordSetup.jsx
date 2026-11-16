@@ -1,7 +1,7 @@
 import UsernameAvailability from './UsernameAvailability'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import GoogleAuthButton from './GoogleAuthButton'
 import { getGoogleUsernameSuggestion, setPasswordWithGoogle } from '../api/accountApi'
 
