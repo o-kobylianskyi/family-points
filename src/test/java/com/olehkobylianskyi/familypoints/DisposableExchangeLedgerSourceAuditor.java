@@ -18,7 +18,7 @@ final class DisposableExchangeLedgerSourceAuditor {
             throw new IllegalArgumentException("EXCHANGE_AUDIT_INVALID_SCOPE");
         var requests=db.queryForList("""
                 SELECT r.member_id, r.from_point_type_id, r.to_point_type_id,
-                       r.from_amount, r.to_amount, r.status,
+                       r.from_amount, r.to_amount, r.rate_from_amount, r.rate_to_amount, r.status,
                        fm.family_id AS member_family, rate.family_id AS rate_family,
                        from_t.family_id AS from_family, to_t.family_id AS to_family
                   FROM point_exchange_requests r
@@ -36,6 +36,20 @@ final class DisposableExchangeLedgerSourceAuditor {
         long to=((Number)row.get("to_point_type_id")).longValue();
         int debit=((Number)row.get("from_amount")).intValue();
         int credit=((Number)row.get("to_amount")).intValue();
+        int historicalRateFrom=((Number)row.get("rate_from_amount")).intValue();
+        int historicalRateTo=((Number)row.get("rate_to_amount")).intValue();
+        boolean historicalRatioValid=false;
+        if(debit>0 && credit>0 && historicalRateFrom>0
+                && historicalRateTo>0 && debit%historicalRateFrom==0) {
+            try {
+                historicalRatioValid=Math.multiplyExact(debit/historicalRateFrom,
+                        historicalRateTo)==credit;
+            }catch(ArithmeticException overflow) {
+                throw new SecurityException("EXCHANGE_SOURCE_HISTORIC_RATE_OVERFLOW",overflow);
+            }
+        }
+        if(!historicalRatioValid)
+            throw new SecurityException("EXCHANGE_SOURCE_HISTORIC_RATE_MISMATCH");
         if(!Objects.equals("APPROVED",row.get("status"))
                 || from==to || debit<=0 || credit<=0
                 || ((Number)row.get("member_family")).longValue()!=family
