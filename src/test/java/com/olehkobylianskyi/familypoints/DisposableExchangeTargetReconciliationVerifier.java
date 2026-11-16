@@ -20,7 +20,7 @@ final class DisposableExchangeTargetReconciliationVerifier {
 
     Result verify(long sourceFamily,long targetFamily,long sourceRequest,long targetRequest,
             Map<Long,Long> memberIds,Map<Long,Long> pointTypeIds) {
-        if(sourceFamily<=0 || targetFamily<=0 || sourceFamily==targetFamily
+        if(sourceFamily<=0 || targetFamily<=0
                 || sourceRequest<=0 || targetRequest<=0
                 || memberIds==null || pointTypeIds==null)
             throw new IllegalArgumentException("EXCHANGE_RECONCILIATION_INVALID_REQUEST");
