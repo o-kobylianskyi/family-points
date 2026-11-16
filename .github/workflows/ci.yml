@@ -255,3 +255,68 @@ jobs:
           bash -n scripts/beta/smoke.sh
           bash -n scripts/beta/backup.sh
           test -f .env.beta.example
+
+  full-ci-attestation:
+    name: Full CI / exact-SHA evidence
+    if: ${{ always() && needs.changes.result == 'success' && needs.changes.outputs.backend == 'true' && needs.changes.outputs.android == 'true' && needs.changes.outputs.web == 'true' && needs.changes.outputs.compose == 'true' }}
+    needs: [changes, backend-tests, android-debug, frontend-build, beta-compose-validation]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      BACKEND_RESULT: ${{ needs.backend-tests.result }}
+      ANDROID_RESULT: ${{ needs.android-debug.result }}
+      WEB_RESULT: ${{ needs.frontend-build.result }}
+      COMPOSE_RESULT: ${{ needs.beta-compose-validation.result }}
+      CI_SHA: ${{ github.sha }}
+      CI_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Reject incomplete or failed four-component CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## Full CI / SHA evidence"
+            echo ""
+            echo "- Commit: $CI_SHA"
+            echo "- Run: $CI_RUN_URL"
+            echo "- Backend: $BACKEND_RESULT"
+            echo "- Android: $ANDROID_RESULT"
+            echo "- Web: $WEB_RESULT"
+            echo "- Compose: $COMPOSE_RESULT"
+          } >> "$GITHUB_STEP_SUMMARY"
+          for result in "$BACKEND_RESULT" "$ANDROID_RESULT" "$WEB_RESULT" "$COMPOSE_RESULT"; do
+            if [[ "$result" != "success" ]]; then
+              echo "::error::Full four-component CI was not successful for $CI_SHA"
+              exit 1
+            fi
+          done
+          echo "FULL FOUR-COMPONENT CI PASS: $CI_SHA"
+      - name: Write non-deployment CI evidence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os
+          report = {
+              "sourceSha": os.environ["CI_SHA"],
+              "runUrl": os.environ["CI_RUN_URL"],
+              "backend": os.environ["BACKEND_RESULT"],
+              "android": os.environ["ANDROID_RESULT"],
+              "web": os.environ["WEB_RESULT"],
+              "compose": os.environ["COMPOSE_RESULT"],
+              "fullCiVerified": True,
+              "qaAccepted": False,
+              "releaseApproved": False,
+              "deploymentExecuted": False
+          }
+          with open("full-ci-evidence.json", "w", encoding="utf-8") as out:
+              json.dump(report, out, indent=2)
+              out.write("\n")
+          PY
+      - name: Upload full CI evidence artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-ci-evidence
+          path: full-ci-evidence.json
+          if-no-files-found: error
+          retention-days: 30
