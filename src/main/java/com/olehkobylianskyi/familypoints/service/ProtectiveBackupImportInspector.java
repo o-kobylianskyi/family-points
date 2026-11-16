@@ -181,6 +181,46 @@ public final class ProtectiveBackupImportInspector {
             checkParent(categories,rowIds,blockers,"REWARD_PURCHASES","reward_definition_id","REWARD_DEFINITIONS");
             checkMemberParent(categories,blockers,"TASK_EXECUTIONS");
             checkMemberParent(categories,blockers,"REWARD_PURCHASES");
+            // Purchase history can be tied to either a reward definition or
+            // a request. These references are not interchangeable, and every
+            // historic price denomination must be explicitly rebound.
+            if(categories.has("REWARD_PURCHASES")) {
+                for(JsonNode row:categories.path("REWARD_PURCHASES")) {
+                    var requestId=row.path("reward_request_id");
+                    if(!requestId.isMissingNode() && !requestId.isNull()) {
+                        if(!requestId.isIntegralNumber() || requestId.asLong()<=0)
+                            blockers.add("INVALID_REFERENCE:REWARD_PURCHASES.reward_request_id");
+                        else if(!categories.has("REWARD_REQUESTS"))
+                            blockers.add("MISSING_CATEGORY:REWARD_REQUESTS");
+                        else if(!rowIds.getOrDefault("REWARD_REQUESTS",Set.of())
+                                .contains(requestId.asLong()))
+                            blockers.add("DANGLING_REFERENCE:REWARD_PURCHASES.reward_request_id");
+                    }
+                }
+            }
+            for(String category:List.of("REWARD_PURCHASES","REWARD_REQUESTS")) {
+                for(JsonNode row:categories.path(category)) {
+                    if("REWARD_REQUESTS".equals(category)) {
+                        var requestedBy=row.path("requested_by_member_id");
+                        if(!requestedBy.isIntegralNumber() || requestedBy.asLong()<=0)
+                            blockers.add("INVALID_REFERENCE:REWARD_REQUESTS.requested_by_member_id");
+                        else
+                            blockers.add("IDENTITY_REBIND_REQUIRED:REWARD_REQUESTS.requested_by_member_id");
+                    }
+                    String field="REWARD_PURCHASES".equals(category)
+                            ?"point_type_id":"approved_point_type_id";
+                    JsonNode pointType=row.path(field);
+                    if(pointType.isMissingNode() || pointType.isNull()) {
+                        if("REWARD_PURCHASES".equals(category))
+                            blockers.add("INVALID_REFERENCE:"+category+"."+field);
+                    } else if(!pointType.isIntegralNumber() || pointType.asLong()<=0) {
+                        blockers.add("INVALID_REFERENCE:"+category+"."+field);
+                    } else {
+                        blockers.add("CURRENCY_REBIND_REQUIRED:"+category+"."+field);
+                    }
+                }
+            }
+
             checkParent(categories,rowIds,blockers,"GROUP_POINT_LEDGER","group_id","MEMBER_GROUPS");
             if(categories.has("GROUP_POINT_LEDGER")) {
                 for(JsonNode row:categories.path("GROUP_POINT_LEDGER")) {
