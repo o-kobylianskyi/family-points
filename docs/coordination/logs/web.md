@@ -1157,3 +1157,11 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Web added `qa/e2e/tests/onboarding-v49-loading-retry-synthetic.spec.js` at `758dfe49894d5d06ac07c3a6cd7a23c5c4b7f49e`. It authenticates to the disposable QA account, mocks initial setup GET=503 (catalog GET still valid), asserts V49 unavailable/no step controls, clicks localized explicit Retry loading, mocks a valid V46 `NOT_STARTED steps:{}`, expects seven pending step controls and 0/7, exactly two state GET and catalog GET, no setup writes. This is a **synthetic browser test not yet executed**.
 - Previously queued `qa/e2e/tests/onboarding-v49-epoch-race-synthetic.spec.js` (`6890a41a`) catches PATCH success from wrong dataEpoch followed by GET epoch conflict; expects 0/7, error, no second PATCH. **Not yet run**, and real backend V49 remains separate QA-owned gate.
 - Designer concurrently changed V49 to disable repeat step decisions, allow explicit loading retry and tighten epoch transitions. Web reviewed updated component source; this package adds regression coverage only and does not alter Backend, production data or release gate. QA collects final real scenarios with operator; BKL-002 and BETA remain HOLD.
+
+
+## 2026-11-16 — WEB-02 resumed after hard chat limit
+- Recovered from emergency Web handoff, AGENTS, QA V49 real acceptance packet, issues #18/#20. At pickup HEAD `e51c0972` (other roles continue pushing).
+- Reviewed actual V49 safety module, source unit tests, setup selection and component. Confirmed step-epoch, repeated step request and partially-filtered deselect fixes already committed by earlier Web/Designer; did not duplicate them.
+- Source cleanup `e5b66b4`: removed obsolete `allMatchingSelected` calculation after new `hasSelectedSetupMatch` guard. No endpoint or mutation path changed. This is a source edit; Node/Vite/lint/Playwright same-SHA test results NOT_RUN / NOT_VERIFIED.
+- Self-contained rolling continuation `docs/coordination/handoffs/WEB_LATEST.md` initialized at `bc84f6e`, updated `85d18fb`; capacity pilot WEB-02 checkpoint `4650a47`.
+- QA owns real authorized disposable-V49 acceptance; BKL-002 HTTP423 / BETA HOLD. Next: audit remaining synthetic epoch/503/revision mismatch cases, add meaningful bounded regressions, validate on exact SHA, pass real scenarios to QA.
