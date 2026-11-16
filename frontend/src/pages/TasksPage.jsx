@@ -1,5 +1,5 @@
 import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 
@@ -74,6 +74,11 @@ function hierarchyRows(items, definitionOf) {
 }
 
 function TasksPage() {
+  const { currentUser } = useAuth()
+  const scope = [currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id, currentUser?.workspaceId, currentUser?.memberId].join(':')
+  return <TasksPageContent key={scope} />
+}
+function TasksPageContent() {
   const { t, i18n } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const { currentUser, getAccessToken } = useAuth()
@@ -171,21 +176,10 @@ function TasksPage() {
     currentUser.workspaceId,
     currentUser.memberId,
     getAccessToken,
+    canBrowseMembers,
   ])
 
-  useEffect(() => {
-    if (!selectedMemberId || !selectedDate) {
-      return
-    }
-
-    loadAllTasks()
-  }, [
-    selectedMemberId,
-    selectedDate,
-    currentUser.workspaceId,
-  ])
-
-  const loadAllTasks = async () => {
+  const loadAllTasks = useCallback(async () => {
     try {
       setLoadingTasks(true)
       setError('')
@@ -219,9 +213,13 @@ function TasksPage() {
     } finally {
       setLoadingTasks(false)
     }
-  }
+  }, [getAccessToken, currentUser.workspaceId, selectedMemberId, selectedDate])
 
-  const loadManagedTasks = async (force = false) => {
+  useEffect(() => {
+    if (selectedMemberId && selectedDate) void Promise.resolve().then(loadAllTasks)
+  }, [loadAllTasks, selectedMemberId, selectedDate])
+
+  const loadManagedTasks = useCallback(async (force = false) => {
     if (!force && pageTab !== 'management') {
       return
     }
@@ -243,13 +241,11 @@ function TasksPage() {
         setPendingRewardRequests([])
       }
     } catch (error) { setError(error.message) }
-  }
+  }, [pageTab, getAccessToken, currentUser.workspaceId, managementView, canManageRewardRequests])
 
   useEffect(() => {
-    if (pageTab === 'management') {
-      loadManagedTasks()
-    }
-  }, [managementView, pageTab, currentUser.workspaceId, getAccessToken])
+    if (pageTab === 'management') void Promise.resolve().then(() => loadManagedTasks())
+  }, [loadManagedTasks, pageTab])
 
   const handleDefinitionActive = async (task) => {
     try {
