@@ -1,6 +1,6 @@
 import { API_URL } from '../api/baseUrl'
 import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -31,11 +31,11 @@ function TaskDetailsPage() {
   const { t, i18n } = useTranslation()
   const { definitionId } = useParams()
   const [searchParams] = useSearchParams()
-  const localToday = () => {
+  const [today] = useState(() => {
     const now = new Date()
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-  }
-  const selectedDate = searchParams.get('date') || localToday()
+  })
+  const selectedDate = searchParams.get('date') || today
   const selectedSlotKey = searchParams.get('slotKey') || 'default'
   const { currentUser, getAccessToken } = useAuth()
   const currency = useCurrencyQuantity(getAccessToken(), currentUser.workspaceId)
@@ -55,9 +55,8 @@ function TaskDetailsPage() {
   const [processing, setProcessing] = useState(false)
   const [rewardNegotiationOpen, setRewardNegotiationOpen] = useState(false)
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
-      setError('')
       const token = getAccessToken()
       const [definition, definitions, memberList, participantList, audit, childTasks, execution, permissions] = await Promise.all([
         getTaskDefinition(token, currentUser.workspaceId, definitionId),
@@ -80,9 +79,9 @@ function TaskDetailsPage() {
     } catch (e) {
       setError(e.message)
     }
-  }
+  }, [definitionId, selectedDate, selectedSlotKey, currentUser.workspaceId, getAccessToken])
 
-  useEffect(() => { load() }, [definitionId, selectedDate, selectedSlotKey, currentUser.workspaceId])
+  useEffect(() => { void Promise.resolve().then(load) }, [load])
 
   if (error && !task) return <div className="page-error">{error}</div>
   if (!task) return <div className="page-loading">{t("common.loading")}</div>
