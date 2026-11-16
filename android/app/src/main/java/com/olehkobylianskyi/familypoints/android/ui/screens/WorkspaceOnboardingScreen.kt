@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.network.AccountWorkspaceChoice
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 
 private data class OnboardingLabels(
@@ -77,7 +78,8 @@ fun WorkspaceOnboardingScreen(
         choicesLoading = true
         error = ""
         try { choices = loadChoices() }
-        catch (e: Exception) { choices = null; error = labels.loadFailed }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { choices = null; error = labels.loadFailed }
         finally { choicesLoading = false }
     }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())
@@ -90,7 +92,8 @@ fun WorkspaceOnboardingScreen(
                     busy = true
                     error = ""
                     try { onReady(choose(choice.workspaceId)) }
-                    catch (e: Exception) { error = labels.chooseFailed }
+                    catch (cancelled: CancellationException) { throw cancelled }
+                    catch (_: Exception) { error = labels.chooseFailed }
                     finally { busy = false }
                 }
             }, enabled = !busy && !choicesLoading, modifier = Modifier.fillMaxWidth()) {
@@ -108,7 +111,8 @@ fun WorkspaceOnboardingScreen(
                     busy = true
                     error = ""
                     try { onCreated(create(familyName, ownerName)) }
-                    catch (e: Exception) { error = labels.createFailed }
+                    catch (cancelled: CancellationException) { throw cancelled }
+                    catch (_: Exception) { error = labels.createFailed }
                     finally { busy = false }
                 }
             }, enabled = !busy && familyName.isNotBlank() && ownerName.isNotBlank()) {
