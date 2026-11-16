@@ -46,10 +46,6 @@ public final class WorkspaceBackupRegistryStagingCoordinator {
         var artifact=staging.stage(workspaceId,entry.snapshotId(),
                 entry.operationId(),entry.dataEpoch(),entry.selectedCategories(),
                 request.schemaVersion(),key);
-        if(!entry.snapshotId().equals(artifact.snapshotId())
-                || !entry.sourceDigest().equals(artifact.sourceDigest())
-                || !"STORED_UNVERIFIED".equals(artifact.state()))
-            throw new SecurityException("BACKUP_REGISTRY_ARTIFACT_MISMATCH");
         // A physical artifact outlives a failed DB transaction. Register
         // compensation before returning so commit failures cannot leave an
         // apparently referenced backup behind. If physical cleanup fails,
@@ -65,6 +61,10 @@ public final class WorkspaceBackupRegistryStagingCoordinator {
                 }
             }
         });
+        if(!entry.snapshotId().equals(artifact.snapshotId())
+                || !entry.sourceDigest().equals(artifact.sourceDigest())
+                || !"STORED_UNVERIFIED".equals(artifact.state()))
+            throw new SecurityException("BACKUP_REGISTRY_ARTIFACT_MISMATCH");
         return new Result(entry,artifact,false);
     }
 }
