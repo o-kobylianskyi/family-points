@@ -1,7 +1,6 @@
 param(
   [ValidateSet('status','ci','prepare','qa','post-deploy')][string]$Action = 'status',
   [string]$Tag = '',
-  [switch]$DispatchFullCi,
   [string]$BaseUrl = '',
   [switch]$AllowPublicSmoke
 )
@@ -40,35 +39,12 @@ function Test-QaBase([string]$url) {
   Write-Host "Explicit isolated QA target: $($uri.GetLeftPart([UriPartial]::Authority))"
   return $uri.GetLeftPart([UriPartial]::Authority).TrimEnd('/')
 }
-function ExactShaFullCi([string]$sha) {
-  if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw 'GitHub CLI gh required for exact-SHA CI gate. Install/authenticate gh first.' }
-  $response = @(Run 'gh' @('api',("repos/{0}/actions/workflows/ci.yml/runs?head_sha={1}&per_page=50" -f $repo,$sha))) -join [Environment]::NewLine
-  # Accept workflow_dispatch or push runs ONLY if all four real build steps completed.
-  # A green scoped push with skipped jobs never qualifies.
-  $runs = @((ConvertFrom-Json -InputObject $response).workflow_runs | Where-Object {
-    $_.head_sha -eq $sha -and $_.event -in @('workflow_dispatch','push') -and
-    $_.status -eq 'completed' -and $_.conclusion -eq 'success'
-  } | Sort-Object run_number -Descending)
-  if ($runs.Count -eq 0) { throw "No successful completed CI run for exact SHA $sha" }
-  foreach ($run in $runs) {
-    $jobsResponse = @(Run 'gh' @('api',("repos/{0}/actions/runs/{1}/jobs?per_page=100" -f $repo,$run.id))) -join [Environment]::NewLine
-    $jobs = @((ConvertFrom-Json -InputObject $jobsResponse).jobs)
-    $required = @{
-      'Java 21 / Maven / PostgreSQL Testcontainers' = 'Run all backend tests'
-      'Android / Gradle debug build' = 'Compile Android and run unit tests'
-      'Web / Node / Vite production build' = 'Compile frontend'
-      'BETA / Docker Compose configuration' = 'Verify compose and secrets placeholders'
-    }
-    $valid = $true
-    foreach ($name in $required.Keys) {
-      $matches = @($jobs | Where-Object { $_.name -eq $name -and $_.conclusion -eq 'success' })
-      if ($matches.Count -ne 1) { $valid = $false; break }
-      $step = @($matches[0].steps | Where-Object { $_.name -eq $required[$name] -and $_.conclusion -eq 'success' })
-      if ($step.Count -ne 1) { $valid = $false; break }
-    }
-    if ($valid) { Write-Host "Exact-SHA FULL CI PASS: $($run.html_url)"; return $run.html_url }
-  }
-  throw "No CI run has all FOUR executed PASS steps for $sha. Scoped/skipped jobs never qualify."
+function Show-CiStatus([string]$sha) {
+  Write-Host "CI SHA: $sha"
+  Write-Host "GitHub Actions: https://github.com/$repo/actions/workflows/ci.yml"
+  Write-Host 'CI UNVERIFIED: read the actual jobs for this SHA in GitHub Actions.'
+  Write-Host 'Required: Backend Maven, Android Gradle, Web build and Compose validation all executed successfully.'
+  Write-Host 'No GitHub CLI or GitHub authentication is needed for this local command.'
 }
 $sha = (@(Run 'git' @('rev-parse','HEAD')) -join '').Trim()
 # CI dispatch and read-only CI verification operate on the immutable remote
@@ -80,15 +56,10 @@ if ($Action -eq 'prepare') {
   if ($dirty.Count -gt 0) { throw 'Dirty working tree. Preserve changes, never reset/clean automatically.' }
 }
 Write-Host "Local SHA: $sha"
-if ($Action -eq 'ci' -and $DispatchFullCi) {
-  if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw 'GitHub CLI gh is required.' }
-  $origin = (@(Run 'git' @('ls-remote','origin','refs/heads/main')) -join '').Split([char]9)[0]
-  if ($origin -ne $sha) { throw "Local $sha differs from origin/main $origin; refusing a mismatched CI dispatch." }
-  Run 'gh' @('workflow','run','ci.yml','--repo',$repo,'--ref','main') | Out-Null
-  Write-Host "Dispatched full CI. Results are pending. Run -Action ci later."
+if ($Action -eq 'ci') {
+  Show-CiStatus $sha
   exit 0
 }
-if ($Action -eq 'ci' -or $Action -eq 'prepare') { $ciUrl = ExactShaFullCi $sha }
 if ($Action -eq 'prepare') {
   if ($Tag -notmatch '^v[0-9]+[.][0-9]+[.][0-9]+-beta[.][0-9]+$') { throw 'Use -Tag vX.Y.Z-beta.N' }
   Run 'git' @('fetch','--no-tags','origin',("refs/tags/{0}:refs/tags/{0}" -f $Tag)) | Out-Null
@@ -116,6 +87,7 @@ if ($Action -eq 'post-deploy') {
   Write-Host 'PUBLIC POST-DEPLOY HTTP SMOKE PASS (read-only).'
 }
 if ($Action -eq 'prepare') {
+  Show-CiStatus $sha
   $dir = Join-Path (Get-Location).Path 'release-evidence'
   New-Item -ItemType Directory -Force -Path $dir | Out-Null
   $record = [ordered]@{
@@ -123,7 +95,8 @@ if ($Action -eq 'prepare') {
     sourceSha = $sha
     tag = $Tag
     tagSha = $tagSha
-    fullCiRun = $ciUrl
+    fullCiRun = $null
+    fullCiVerified = $false
     publicSmokePerformed = $false
     qaSmokePerformed = $false
     qaIntegrationAccepted = $false
@@ -135,5 +108,5 @@ if ($Action -eq 'prepare') {
   $file = Join-Path $dir ('release-gate-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'.json')
   $record | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $file -Encoding UTF8
   Write-Host "Gate record: $file"
-  Write-Host 'PREPARED ONLY. No PROD/BETA request, deployment, migration, DB operation, tag creation, or APK publication.'
+  Write-Host 'DRAFT ONLY: CI NOT VERIFIED. No release approval, PROD/BETA request, deployment, migration, DB operation, tag creation, or APK publication.'
 }
