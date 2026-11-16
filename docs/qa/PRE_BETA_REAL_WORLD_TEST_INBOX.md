@@ -179,3 +179,8 @@ All these cases are additional acceptance criteria in the **single planned final
 
 ## QA-016 intake — manual ledger reconciliation is not yet production evidence
 - New Backend **test-only** point ledger source→target replay: `DisposablePointLedgerRestoreExecutor` `1d9fb146`, `DisposablePointLedgerCrossDatabasePostgresTest` `39b699c3`. Collect `REAL-BKL002-POINT-LEDGER-01` after full native approved restore: original member/currency identity, point transaction historical source type/id binding, exact per-currency balances, no phantom/double posts and unchanged foreign family. Current source uses fixture currency codes not authenticated archive codes; this gap must be closed before manual acceptance. BLOCKED_DEPENDENCY, no real data touched.
+
+## QA-018 intake — authenticated denomination proof
+
+- Backend portable backup now includes `POINT_TYPES` in the encrypted source archive (source commits `e6f4bde`..`a567b4b`), and the test-only manual ledger replay validates expected and target point code against the authenticated source code. Keep `REAL-BKL002-POINT-LEDGER-01` blocked until full production native polymorphic ledger restore, member+currency mapping and independent durability/financial verification; *do not* repeat the old finding that source code has no archive currency metadata for the modified manual ledger scope.
+- Add future `REAL-BKL002-DENOMINATION-01`: approved disposable family only, multiple source point types with different numeric IDs, same-code target mapping and explicit mismatch; per-member/per-type balance integrity, reward purchase/request/group ledger denomination parent closure and foreign-family denial. This is a final campaign gate only, not permission to run now.
