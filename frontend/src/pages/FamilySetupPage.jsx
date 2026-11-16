@@ -300,6 +300,12 @@ function FamilySetupContent() {
   </main>
   return <main className="family-setup settings-section">
     <h1>{t[0]}</h1>
+    <p><Link to="/settings#initial-family-setup">{({
+      uk:'Семикроковий серверний процес налаштування (V49) — у налаштуваннях сім’ї; доступність визначає сервер.',
+      ru:'Семишаговая серверная настройка (V49) — в настройках семьи; доступность определяет сервер.',
+      de:'Siebenstufige servergesteuerte Einrichtung (V49) in den Familieneinstellungen; Verfügbarkeit wird vom Server festgelegt.',
+      en:'Seven-step server-managed setup (V49) in family settings; availability is controlled by the server.',
+    })[lang]}</Link></p>
     <nav className="family-setup-steps" aria-label={t[0]}>{[t[1], t[2], t[3], t[4]].map((label, index) =>
       <span key={label} aria-current={step === index ? 'step' : undefined} className={step === index ? 'active' : ''}>{index + 1}. {label}</span>)}</nav>
     {error && <p role="alert" className="error-message">{error}</p>}
