@@ -94,6 +94,23 @@ class DisposablePointLedgerCrossDatabasePostgresTest {
         assertEquals(0L,b.queryForObject("""
                 SELECT count(*) FROM point_transactions WHERE member_id=?
                 """,Long.class,target.member));
+        byte[] legacyArchive=new TransactionTemplate(new DataSourceTransactionManager(as))
+                .execute(s->exporter.export(src.id,UUID.randomUUID(),UUID.randomUUID(),0L,
+                        List.of("POINT_LEDGER"),"V50",key)).encryptedFile();
+        var legacyReport=inspector.inspect(legacyArchive,src.id,key);
+        assertTrue(legacyReport.blockers().contains("MISSING_CATEGORY:POINT_TYPES"));
+        assertThrows(IllegalArgumentException.class,()->replay.apply(
+                legacyArchive,src.id,target.id,members,currency,currencyCodes,key));
+        assertEquals(0L,b.queryForObject(
+                "SELECT count(*) FROM point_transactions WHERE member_id=?",
+                Long.class,target.member));
+        var corrupted=archive.clone();
+        corrupted[corrupted.length-1]^=1;
+        assertThrows(RuntimeException.class,()->replay.apply(
+                corrupted,src.id,target.id,members,currency,currencyCodes,key));
+        assertEquals(0L,b.queryForObject(
+                "SELECT count(*) FROM point_transactions WHERE member_id=?",
+                Long.class,target.member));
         var out=replay.apply(archive,src.id,target.id,members,currency,currencyCodes,key);
         assertEquals(2,out.count());
         assertEquals(2,out.transactionIds().size());
