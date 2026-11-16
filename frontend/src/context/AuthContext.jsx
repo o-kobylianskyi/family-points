@@ -1,12 +1,11 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
+import { AuthContext } from './authContextValue'
 
 import {
   getCurrentUser,
@@ -20,8 +19,6 @@ import {
 } from '../api/authApi'
 
 import { observeWorkspaceEpoch } from '../api/client'
-
-const AuthContext = createContext(null)
 
 const LAST_ACTIVITY_KEY = 'lastActivityAt'
 const IDLE_TIMEOUT_MS = 60 * 60 * 1000
@@ -416,14 +413,3 @@ export function AuthProvider({ children }) {
   )
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext)
-
-  if (!context) {
-    throw new Error(
-      'useAuth must be used inside AuthProvider'
-    )
-  }
-
-  return context
-}
