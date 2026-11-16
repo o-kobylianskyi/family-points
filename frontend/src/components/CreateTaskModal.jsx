@@ -107,7 +107,14 @@ function detectEconomyPreset(task) {
   return 'CUSTOM'
 }
 
-function CreateTaskModal({
+function CreateTaskModal(props) {
+  const { currentUser } = useAuth()
+  const identityKey = [currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id,
+    currentUser?.workspaceId, currentUser?.memberId, props.initialTask?.id ?? 'new'].join(':')
+  return <CreateTaskModalContent key={identityKey} {...props} />
+}
+
+function CreateTaskModalContent({
   members,
   existingTaskDefinitions = [],
   defaultMemberId,
@@ -144,10 +151,10 @@ function CreateTaskModal({
   const [templateLoading, setTemplateLoading] = useState(initialTemplateId != null)
   const templateRequestGeneration = useRef(0)
   const templateWorkspaceRef = useRef(currentUser?.workspaceId)
-  if (templateWorkspaceRef.current !== currentUser?.workspaceId) {
+  useEffect(() => {
     templateWorkspaceRef.current = currentUser?.workspaceId
-    templateRequestGeneration.current += 1
-  }
+    return () => { templateRequestGeneration.current += 1 }
+  }, [currentUser?.workspaceId])
   const participantKeys = (role) => initialParticipants
     .filter((p) => p.role === role)
     .map((p) => `${p.actorType}:${p.actorId}`)
@@ -214,11 +221,6 @@ function CreateTaskModal({
 
   const [loading, setLoading] = useState(false)
   const submitLock = useRef(false)
-  useEffect(() => {
-    setPendingActivation(activationKey
-      ? readActivation(sessionStorage, activationKey, currentUser.workspaceId, 'TASK')
-      : null)
-  }, [activationKey, currentUser.workspaceId])
   const recoverActivation = async (retry = false) => {
     if (submitLock.current || !pendingActivation || !activationKey) return
     submitLock.current = true
@@ -304,7 +306,7 @@ function CreateTaskModal({
     }
 
     loadPointTypes()
-  }, [currentUser.workspaceId, getAccessToken])
+  }, [currentUser.workspaceId, getAccessToken, editing])
 
   useEffect(() => {
     const loadGroups = async () => {
@@ -339,13 +341,13 @@ function CreateTaskModal({
       })
       .catch(() => { if (alive) { setTaskTemplates([]); setTemplateLoadError(true); setTemplateLoading(false) } })
     return () => { alive = false; templateRequestGeneration.current += 1 }
-  }, [currentUser.workspaceId, editing, initialTemplateId])
+  }, [currentUser.workspaceId, editing, initialTemplateId, getAccessToken, i18n.language])
 
   const templateCategory = item => { try { return JSON.parse(item.definitionJson || '{}')?.category || 'other' } catch { return 'other' } }
   const taskCategories = [...new Set(taskTemplates.map(templateCategory))].sort((a,b)=>a.localeCompare(b))
   const filteredTaskTemplates = taskTemplates.filter(item => taskTemplateCategory === 'ALL' || templateCategory(item) === taskTemplateCategory)
 
-  const applyTaskTemplate = async (templateId) => {
+  async function applyTaskTemplate(templateId) {
     const generation = ++templateRequestGeneration.current
     const origin = currentUser.workspaceId
     setSelectedTemplateId(templateId)
