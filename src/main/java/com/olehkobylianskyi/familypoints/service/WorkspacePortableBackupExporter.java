@@ -118,6 +118,20 @@ public class WorkspacePortableBackupExporter {
                     throw new SecurityException("BACKUP_TASK_EXECUTION_FOREIGN_DEFINITION");
             }
             if("REWARD_PURCHASES".equals(category)) {
+                // Reward obligations and their blocked-category/reward scopes
+                // are not portable categories yet. Exporting a purchase
+                // without this lifecycle history would silently lose its
+                // unresolved entitlement/requirement on later restoration.
+                Long unexported=db.queryForObject("""
+                        SELECT count(*) FROM reward_obligations o
+                        JOIN reward_purchases p ON p.id=o.reward_purchase_id
+                        JOIN family_members m ON m.id=p.member_id
+                        WHERE m.family_id=?
+                        """,Long.class,workspaceId);
+                if(unexported==null || unexported!=0L)
+                    throw new IllegalStateException("BACKUP_UNEXPORTED_REWARD_OBLIGATIONS");
+            }
+            if("REWARD_PURCHASES".equals(category)) {
                 Long invalid=db.queryForObject("""
                         SELECT count(*) FROM reward_purchases t
                         JOIN family_members m ON m.id=t.member_id
