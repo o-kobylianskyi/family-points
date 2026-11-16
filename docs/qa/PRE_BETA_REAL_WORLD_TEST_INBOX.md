@@ -133,3 +133,16 @@ All these cases are additional acceptance criteria in the **single planned final
 |---|---|---|---|---|
 | REAL-V49-FILTER-01 | Web/Designer | Partial filtered deselect, unrelated selected codes intact, zero-match feedback, 4 languages/narrow viewport | approved disposable V49 state | BLOCKED_DEPENDENCY |
 | REAL-V49-RETRY-01 | Web/Designer | Failed setup/catalog GET with explicit GET-only retry; zero implicit writes | approved isolated V49 UI and controlled read error | BLOCKED_DEPENDENCY |
+
+
+## Intake checkpoint — 2026-11-16: Backend QA #10 portable reward obligations / V49 bootstrap retry
+
+- Received [BKL002-QA-20261116-10](../coordination/requests/BKL002_QA_PACKET_20261116_REWARD_OBLIGATIONS_PORTABLE.md), source commit `266b8792`, **READY_FOR_QA / Backend developer NOT_RUN**. New optional encrypted categories `REWARD_OBLIGATIONS`, `REWARD_OBLIGATION_BLOCKED_CATEGORIES`, `REWARD_OBLIGATION_BLOCKED_REWARDS`; ownership scoped to family; purchase/optional requirement parent graph, category/reward blocked-target foreign FK, duplicate composite link rejection, source and neighbor preservation. Category source graph is exportable but **native replay remains unsupported**, inspector always `restorable=false`. QA automated scope #04–10 consolidated, exact-SHA still NOT_RUN.
+- Added manual-pre-BETA `REAL-BKL002-OBLIGATION-01` (future approved disposable replay): purchase, obligation, optional requirement, blocked category/reward associations and ledger conservation must persist together; archive missing any mandatory target must fail closed, foreign family unaffected. **No real test until Backend native replay and VERIFIED are independently accepted**.
+- Web new source `758dfe49` tests synthetic failed-bootstrap GET manual recovery to seven pending steps with zero writes. Add `REAL-V49-BOOTSTRAP-01` for single future enabled-server new-family read failure and explicit GET-only recovery, without implicit setup/activation/finalize POST. Automated new test is source committed, not independent Playwright PASS.
+- Release/architecture gates unchanged: four actually executed component jobs on pinned candidate SHA, guarded owner-authorized protected backup and rollback proof, manual execution only with QA in newly approved disposable family, BETA HOLD and HTTP423 reset/execute.
+
+| ID | Producer | Scenario / source | Dependencies | Status |
+|---|---|---|---|---|
+| REAL-BKL002-OBLIGATION-01 | Backend/QA | Obligation + blocked category/reward + optional requirement + purchase FK and ledger survive guarded encrypted replay; foreign graph denied | fully native disposable restore + independently evidenced VERIFIED and approval | BLOCKED_DEPENDENCY |
+| REAL-V49-BOOTSTRAP-01 | Web/QA | Failed initial setup/catalog GET then explicit read-only retry renders seven PENDING and causes no writes | enabled V49 disposable setup / controlled GET fault | BLOCKED_DEPENDENCY |
