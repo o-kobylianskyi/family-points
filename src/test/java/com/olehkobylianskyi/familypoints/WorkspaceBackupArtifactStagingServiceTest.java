@@ -38,14 +38,14 @@ class WorkspaceBackupArtifactStagingServiceTest {
     @Test void stagesAndAuthenticatesPortableFileButDoesNotPromoteVerified() throws Exception {
         var exporter=mock(WorkspacePortableBackupExporter.class);
         var storage=new WorkspaceBackupLocalArtifactStore(temp.resolve("storage").toString(),files);
-        var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector);
+        var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector,files);
         var key=key();
         UUID snapshot=UUID.randomUUID(),operation=UUID.randomUUID();
         byte[] encrypted=archive(31,snapshot,operation,0,key,"MEMBER_GROUPS");
         when(exporter.export(eq(31L),eq(snapshot),eq(operation),eq(0L),
                 eq(new TreeSet<>(Set.of("MEMBER_GROUPS"))),eq("V50"),same(key)))
                 .thenReturn(new WorkspacePortableBackupExporter.Result(
-                        encrypted.clone(),"a".repeat(64),31,snapshot,Map.of("MEMBER_GROUPS",0)));
+                        encrypted.clone(),"a".repeat(64),files.decode(encrypted).manifest().contentBytes(),snapshot,Map.of("MEMBER_GROUPS",0)));
         var result=staging.stage(31,snapshot,operation,0,
                 List.of("MEMBER_GROUPS"),"V50",key);
         assertEquals("STORED_UNVERIFIED",result.state());
@@ -60,22 +60,46 @@ class WorkspaceBackupArtifactStagingServiceTest {
     @Test void rejectsForgedExporterScopeBeforeWritingFile() throws Exception {
         var exporter=mock(WorkspacePortableBackupExporter.class);
         var storage=new WorkspaceBackupLocalArtifactStore(temp.resolve("storage").toString(),files);
-        var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector);
+        var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector,files);
         var key=key();
         UUID snapshot=UUID.randomUUID(),operation=UUID.randomUUID();
         byte[] encrypted=archive(32,snapshot,operation,0,key,"MEMBER_GROUPS");
         when(exporter.export(anyLong(),any(),any(),anyLong(),any(),any(),any()))
                 .thenReturn(new WorkspacePortableBackupExporter.Result(
-                        encrypted,"a".repeat(64),31,snapshot,Map.of("MEMBER_GROUPS",0)));
+                        encrypted,"a".repeat(64),files.decode(encrypted).manifest().contentBytes(),snapshot,Map.of("MEMBER_GROUPS",0)));
         assertThrows(SecurityException.class,()->staging.stage(31,snapshot,operation,0,
                 List.of("MEMBER_GROUPS"),"V50",key));
         assertThrows(IllegalStateException.class,()->storage.read(31,snapshot,"a".repeat(64)));
     }
 
+    @Test void rejectsDifferentOperationAndDifferentSourceDigestBeforeDiskPublication() throws Exception {
+        for(int variant=0;variant<3;variant++) {
+            var exporter=mock(WorkspacePortableBackupExporter.class);
+            var storage=new WorkspaceBackupLocalArtifactStore(
+                    temp.resolve("mismatch"+variant).toString(),files);
+            var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector,files);
+            var key=key();
+            UUID snapshot=UUID.randomUUID(),operation=UUID.randomUUID();
+            UUID encodedOperation=variant==0?UUID.randomUUID():operation;
+            byte[] encrypted=archive(41,snapshot,encodedOperation,0,key,"MEMBER_GROUPS");
+            String digest=variant==1?"b".repeat(64):"a".repeat(64);
+            long size=files.decode(encrypted).manifest().contentBytes();
+            if(variant==2)size++;
+            when(exporter.export(anyLong(),any(),any(),anyLong(),any(),any(),any()))
+                    .thenReturn(new WorkspacePortableBackupExporter.Result(
+                            encrypted,digest,size,snapshot,Map.of("MEMBER_GROUPS",0)));
+            assertThrows(SecurityException.class,()->staging.stage(41,snapshot,operation,0,
+                    List.of("MEMBER_GROUPS"),"V50",key));
+            assertFalse(java.nio.file.Files.exists(
+                    temp.resolve("mismatch"+variant).resolve("41")
+                            .resolve(snapshot+".fpbackup")));
+        }
+    }
+
     @Test void invalidDuplicateCategoriesNeverReachExporter() throws Exception {
         var exporter=mock(WorkspacePortableBackupExporter.class);
         var storage=new WorkspaceBackupLocalArtifactStore(temp.resolve("store").toString(),files);
-        var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector);
+        var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector,files);
         assertThrows(IllegalArgumentException.class,()->staging.stage(1,
                 UUID.randomUUID(),UUID.randomUUID(),0,
                 List.of("MEMBER_GROUPS","MEMBER_GROUPS"),"V50",key()));
