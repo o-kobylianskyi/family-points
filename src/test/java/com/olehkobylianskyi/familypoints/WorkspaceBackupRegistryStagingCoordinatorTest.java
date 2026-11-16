@@ -46,7 +46,8 @@ class WorkspaceBackupRegistryStagingCoordinatorTest {
     @Test void rejectedRegistryStateCannotStageAnyBytes() throws Exception {
         var registry=mock(WorkspaceProtectiveBackupService.class);
         var stage=mock(WorkspaceBackupArtifactStagingService.class);
-        var coordinator=new WorkspaceBackupRegistryStagingCoordinator(registry,stage);
+        var storage=mock(WorkspaceBackupLocalArtifactStore.class);
+        var coordinator=new WorkspaceBackupRegistryStagingCoordinator(registry,stage,storage);
         UUID operation=UUID.randomUUID(),snapshot=UUID.randomUUID();
         var request=new WorkspaceProtectiveBackupService.Request(operation,"SELECTIVE",
                 List.of("MEMBER_GROUPS"),"a".repeat(64),"V50");
