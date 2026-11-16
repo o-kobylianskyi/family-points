@@ -54,6 +54,13 @@
 - QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261116_LEDGER_SOURCE_GRAPH.md` `947c19c`, issue #15 comment 6931300460; queue seven-class exact-SHA regression with newest currency/replay and earlier red Native Category scenario. Backend detailed log `05d710e`.
 - Remaining blocking concerns: TASK source target-ID proof / financial type semantics, purchase/refund/exchange source producers, member and currency protected binding, ledger immutable reconciliation, actual VERIFIED backup and owner reauth; latest SHA CI not independently proven green. **Reset Execute HTTP423 / BETA HOLD.**
 
+## Latest Backend P0 package #18 — purchase ledger source proof
+- Read production enum `PointTransactionSourceType`, `RewardService` direct/request purchase handlers and `PointService.spend`: `REWARD_PURCHASE` writes source_id=purchase.getId(), negative amount and SPEND transaction. Other enum values (REFUND/POINT_EXCHANGE/...) not presumed remappable.
+- Test-only read-only `DisposableLedgerSourceGraphVerifier` `c99371a` now demands REWARD_PURCHASE ledger ↔ authenticated archived purchase ID/owner/point_type/price/sign/transaction type. TASK proof now needs task instance's TASK_DEFINITIONS family ancestry and bounded amount `79731d7`. Never replay financial rows from these proofs.
+- AES fixture `DisposableLedgerSourceGraphVerifierTest` `68bcae0`/Java syntax correction `b609809`/purchase positive+six negatives `87de74a`.
+- QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261116_LEDGER_PURCHASE_ANCESTRY.md` `c96f499`, Issue #15 comment 6931656040; seven-class exact-SHA run requested; developer Maven/Docker NOT_RUN. Backend journal `852db09`.
+- **Next P0:** check newest exact-SHA QA/CI source failures, inspect Refund/Point Exchange actual producer contracts before source ancestry extension. Then make isolated source→target purchase ID remap verifier and immutable balance reconciliation without production writes. No VERIFIED/Restore reset execution; HTTP423, BETA HOLD.
+
 ## Next action priority
 1. **First check #15 and current Actions jobs** for new results of patched regressions, ensure two previously red tests PASS. If FAIL, fix; do not weaken isolation or source closure assertions.
 2. **Next bounded code package:** test-only independent PostgreSQL native replay of `REWARD_REQUIREMENTS` then `REWARD_OBLIGATIONS` with explicit source→target ID maps for purchase, request, definition, task, member, currency, categories; reject unsupported historical dependency/source IDs. Include atomic rollback and cross-tenant proof; no production API.
