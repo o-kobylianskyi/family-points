@@ -24,6 +24,9 @@ class WorkspacePortableRestorePreviewPostgresTest {
         var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
         Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
         var db=new JdbcTemplate(ds);
+        // Match the archive to the migrated target schema; the deliberately old
+        // V49 artifact below must still be rejected as a schema mismatch.
+        final String currentSchema="V"+db.queryForObject("SELECT version FROM flyway_schema_history WHERE success=true AND version IS NOT NULL ORDER BY installed_rank DESC LIMIT 1",String.class);
         long a=db.queryForObject("INSERT INTO families(name) VALUES ('Family A') RETURNING id",Long.class);
         long b=db.queryForObject("INSERT INTO families(name) VALUES ('Family B') RETURNING id",Long.class);
         db.update("INSERT INTO member_groups(family_id,name,active,show_in_navigation) VALUES (?,'Kids',true,false)",a);
@@ -37,7 +40,7 @@ class WorkspacePortableRestorePreviewPostgresTest {
         var generator=KeyGenerator.getInstance("AES");generator.init(256);var key=generator.generateKey();
         var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
         byte[] archive=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
-                0L,List.of("MEMBER_GROUPS"),"V50",key)).encryptedFile();
+                0L,List.of("MEMBER_GROUPS"),currentSchema,key)).encryptedFile();
         var result=tx.execute(status->preview.preview(archive,a,0L,List.of("MEMBER_GROUPS"),key));
         assertFalse(result.executable());
         assertFalse(result.blockers().contains("RESTORE_SCHEMA_VERSION_MISMATCH"));
@@ -62,7 +65,7 @@ class WorkspacePortableRestorePreviewPostgresTest {
                 "TASK_EXECUTIONS","TASK_SCHEDULE_SLOTS","REWARD_PURCHASES",
                 "POINT_LEDGER","REPUTATION_LEDGER");
         byte[] fullSlice=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
-                0L,allSelected,"V50",key)).encryptedFile();
+                0L,allSelected,currentSchema,key)).encryptedFile();
         var previewSlice=tx.execute(status->preview.preview(fullSlice,a,0L,allSelected,key));
         assertEquals(12,previewSlice.categories().size());
         assertTrue(previewSlice.categories().stream().allMatch(row->row.targetRows()>=0));
@@ -81,6 +84,9 @@ class WorkspacePortableRestorePreviewPostgresTest {
         var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
         Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
         var db=new JdbcTemplate(ds);
+        // Match the archive to the migrated target schema; the deliberately old
+        // V49 artifact below must still be rejected as a schema mismatch.
+        final String currentSchema="V"+db.queryForObject("SELECT version FROM flyway_schema_history WHERE success=true AND version IS NOT NULL ORDER BY installed_rank DESC LIMIT 1",String.class);
         long a=db.queryForObject("INSERT INTO families(name) VALUES ('Preview source') RETURNING id",Long.class);
         long b=db.queryForObject("INSERT INTO families(name) VALUES ('Untouched second family') RETURNING id",Long.class);
         db.update("INSERT INTO member_groups(family_id,name,active,show_in_navigation) VALUES (?,'Export group',true,false)",a);
@@ -94,7 +100,7 @@ class WorkspacePortableRestorePreviewPostgresTest {
         var generator=KeyGenerator.getInstance("AES");generator.init(256);var key=generator.generateKey();
         var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
         byte[] archive=tx.execute(status->exporter.export(a,UUID.randomUUID(),UUID.randomUUID(),
-                0L,List.of("MEMBER_GROUPS","POINT_LEDGER"),"V50",key)).encryptedFile();
+                0L,List.of("MEMBER_GROUPS","POINT_LEDGER"),currentSchema,key)).encryptedFile();
 
         var noSelection=assertThrows(ResponseStatusException.class,
                 ()->tx.execute(status->preview.preview(archive,a,0L,List.of(),key)));
