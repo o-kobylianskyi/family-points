@@ -73,6 +73,17 @@ class DisposableExchangeLedgerSourceAuditorPostgresTest {
         assertEquals(10,pair.debited());
         assertEquals(2,pair.credited());
         assertThrows(SecurityException.class,()->auditor.audit(other,request));
+        // Source request snapshot, not mutable current rate, governs history.
+        db.update("UPDATE point_exchange_requests SET rate_to_amount=3 WHERE id=?",request);
+        assertThrows(SecurityException.class,()->auditor.audit(family,request));
+        db.update("UPDATE point_exchange_requests SET rate_to_amount=2 WHERE id=?",request);
+        db.update("UPDATE point_exchange_requests SET rate_from_amount=6 WHERE id=?",request);
+        assertThrows(SecurityException.class,()->auditor.audit(family,request));
+        db.update("UPDATE point_exchange_requests SET rate_from_amount=10 WHERE id=?",request);
+        db.update("UPDATE point_exchange_rates SET to_amount=5 WHERE id=?",rate);
+        // Current mutable rate does not rewrite the request's original snapshot.
+        assertEquals(2,auditor.audit(family,request).credited());
+        db.update("UPDATE point_exchange_rates SET to_amount=2 WHERE id=?",rate);
         // A ledger containing POINT_EXCHANGE is never exportable without
         // the complete source request, original rate and currency catalog.
         var codec=new ProtectiveBackupArtifactCodec();
