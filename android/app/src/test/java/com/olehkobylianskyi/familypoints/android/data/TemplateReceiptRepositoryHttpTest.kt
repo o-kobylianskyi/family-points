@@ -29,7 +29,7 @@ class TemplateReceiptRepositoryHttpTest {
         val client = OkHttpClient.Builder()
             .retryOnConnectionFailure(false)
             .readTimeout(250, TimeUnit.MILLISECONDS).build()
-        val api = Retrofit.Builder().baseUrl(server.url("/")).client(client)
+        val api = Retrofit.Builder().baseUrl(server.url("/").newBuilder().host("127.0.0.1").build()).client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build().create(TemplateReceiptApi::class.java)
         repository = TemplateReceiptRepository({ "synthetic-token" }, api)
@@ -96,7 +96,7 @@ class TemplateReceiptRepositoryHttpTest {
     @Test fun switchedLoginBeforeDispatchCannotSendPreparedActivation() = runBlocking {
         var token = "account-b"
         val client = OkHttpClient.Builder().retryOnConnectionFailure(false).build()
-        val api = Retrofit.Builder().baseUrl(server.url("/")).client(client)
+        val api = Retrofit.Builder().baseUrl(server.url("/").newBuilder().host("127.0.0.1").build()).client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build().create(TemplateReceiptApi::class.java)
         val guarded = TemplateReceiptRepository({ token }, api)
@@ -128,7 +128,7 @@ class TemplateReceiptRepositoryHttpTest {
 
 
     @Test fun switchedSessionBeforeRecoveryGetIssuesZeroRequests() = runBlocking {
-        val api = Retrofit.Builder().baseUrl(server.url("/"))
+        val api = Retrofit.Builder().baseUrl(server.url("/").newBuilder().host("127.0.0.1").build())
             .addConverterFactory(GsonConverterFactory.create())
             .build().create(TemplateReceiptApi::class.java)
         val switched = TemplateReceiptRepository({ "new-account-token" }, api)
