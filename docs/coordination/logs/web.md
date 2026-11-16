@@ -1171,3 +1171,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Reviewed actual existing synthetic Playwright epoch race, retry 503 and four finalize receipt state scenarios; all are already authored (not rerun here).
 - Detected that a successful step PATCH or lost-response GET could be considered matched when another previously recorded step changed, or setup was prematurely COMPLETED. Source commits `c36dacd`, `87d34f4` enforce IN_PROGRESS and unchanged other steps; allow new PENDING metadata. Unit regression commits `2b706f4`, `6d8f829` cover these cases.
 - End-of-package source SHA `6d8f8293a755e10be0833a65c848603b71d48cfd`; source/tests committed, runner and same-SHA CI NOT_VERIFIED. QA real E2E pending explicit approved disposable family; BETA HOLD.
+
+
+## 2026-11-16 — WEB-02 cross-tab pending ownership safeguard
+- Source inspected: Web V49 component, setup safety functions/tests and shared request client. Identified missing post-stage/pre-dispatch dual browser marker comparison in concurrent tabs.
+- Source commits `c60f6d3` and `2ab9791` require session and shared markers to exactly match staged UUID, account/family, epoch/revision and ordered codes before sending finalize; mismatches remain blocked without deleting competing markers. Unit tests in `c731a06`. QA adversarial browser packet `bed5098`.
+- No code runner used; Node/browser/CI evidence on packet SHA NOT_VERIFIED. Browser storage has no atomic compare-and-swap; Backend authority remains required. BKL-002 and BETA HOLD unchanged.
