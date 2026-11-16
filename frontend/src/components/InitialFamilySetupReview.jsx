@@ -5,7 +5,7 @@ import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { validateSetupCatalog, selectSetupMatching, hasSelectedSetupMatch } from '../utils/setupCatalogSelection'
-import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, assertSetupStepTransition, canChangeSetupStep, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt } from '../utils/setupFinalizeSafety'
+import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, assertSetupStepTransition, canChangeSetupStep, sameSetupFinalizeOperation, ownsSetupFinalizeMarkers, assertSetupCompletionAfterReceipt } from '../utils/setupFinalizeSafety'
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
 const words = {
@@ -84,6 +84,15 @@ function InitialFamilySetupReviewContent() {
       // A competing tab may have replaced the marker meanwhile. Never erase it.
       if (sameSetupFinalizeOperation(readShared(), value)) localStorage.removeItem(sharedKey)
       throw error
+    }
+    // Verify that another tab has not displaced the shared marker after
+    // staging it. Do not delete either marker on mismatch: fail closed.
+    let saved
+    try { saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null') }
+    catch { setPending({ blocked: true }); throw new Error('PENDING_SETUP_MARKER_INVALID') }
+    if (!ownsSetupFinalizeMarkers(saved, readShared(), value)) {
+      setPending({ blocked: true })
+      throw new Error('PENDING_SETUP_MARKER_CONFLICT')
     }
     setPending(value)
   }
@@ -234,6 +243,11 @@ function InitialFamilySetupReviewContent() {
     try { persist(operation) } catch { setError(true); return }
     setBusy(true); setError(false); setErrorStatus(null)
     try {
+      // React state and cross-tab storage notifications can lag. Re-read both
+      // markers immediately before dispatch instead of trusting pending state.
+      const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null')
+      if (!ownsSetupFinalizeMarkers(saved, readShared(), operation))
+        throw new Error('PENDING_SETUP_MARKER_CONFLICT')
       const result = await finalizeSetupImport(getAccessToken(), operation.workspaceId, operation.operationId, operation.revision, operation.codes)
       if (activeScope.current !== scope) return
       assertSetupFinalizeReceipt(result, operation)
