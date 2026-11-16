@@ -19,7 +19,7 @@ public class WorkspaceProtectiveBackupService {
     private final WorkspaceResetSnapshotService sourceSnapshots;
     private static final Set<String> VALID_CATEGORIES=Set.of(
         "PRIVATE_TEMPLATES","TASK_DEFINITIONS","TASK_EXECUTIONS",
-        "TASK_SCHEDULE_SLOTS","REWARD_DEFINITIONS","REWARD_REQUESTS",
+        "TASK_SCHEDULE_SLOTS","REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_REQUIREMENTS",
         "REWARD_PURCHASES","MEMBER_GROUPS","WORK_NODES","MEDIA_ASSETS",
         "MEDIA_BINDINGS","POINT_LEDGER","REPUTATION_LEDGER","GROUP_POINT_LEDGER");
     public WorkspaceProtectiveBackupService(JdbcTemplate db, WorkspaceEpochTransactionGuard epoch,
