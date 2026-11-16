@@ -10,5 +10,7 @@ See [all-track measurement protocol](../CHAT_CAPACITY_OBSERVABILITY_20261116.md)
 
 | 2026-11-16 ~23:13 CET | Designer | DESIGNER-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 32640753f0971f00d1da756edf302774eb5979a6 | CHECKPOINT | QA V49 issue review and two concrete red CI runs checked; no new Designer UX bug reported; true context consumption unavailable. |
 
+| 2026-11-16 (minute not measured; after QA-019) | Designer | DESIGNER-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | f41a2261dc33003aff65a1a0eda98c038844504c | CHECKPOINT | QA/issues and source reviewed; new Web cross-tab finalize marker guard found, no Designer-owned defect; CI current HEAD not verified. |
+
 ## Rules
 After each substantial Designer work batch append one fact-based row and refresh [Designer latest handoff](../handoffs/DESIGNER_LATEST.md). Report actual user-observed hard-limit events without saving private transcript/screenshot. Never claim 50/75/85% or later thresholds without trustworthy measurement.
