@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, sameSetupFinalizeOperation} from '../src/utils/setupFinalizeSafety.js'
+import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt} from '../src/utils/setupFinalizeSafety.js'
 
 const operation = () => ({
   accountId: 'account-A',workspaceId: 14,epoch: 3,revision: 7,
@@ -112,4 +112,21 @@ test('V49 verified receipt marker cleanup requires exact immutable operation ide
     {...original,codes:['TASK_A','TASK_A']}, {blocked:true}, null,
   ])assert.equal(sameSetupFinalizeOperation(original,forged),false)
   assert.deepEqual(reconcileSetupPending(original,{...original,codes:['TASK_A','FOREIGN']},14,'account-A'),{blocked:true})
+})
+
+test('V49 final receipt cannot clear pending while server state is stale or incomplete',()=>{
+  const op=operation()
+  const all=Object.fromEntries(SETUP_STEP_CODES.map(code=>[code,'COMPLETE']))
+  const completed={workspaceId:14,dataEpoch:op.epoch,revision:op.revision+1,
+    status:'COMPLETED',steps:all}
+  assert.deepEqual(assertSetupCompletionAfterReceipt(completed,op),completed)
+  for(const forged of [
+    {...completed,workspaceId:15}, {...completed,dataEpoch:op.epoch+1},
+    {...completed,revision:op.revision}, {...completed,revision:op.revision+2},
+    {...completed,status:'IN_PROGRESS'},
+    {...completed,steps:{...all,FINAL_REVIEW:'PENDING'}},
+    {...completed,steps:{...all,FINAL_REVIEW:undefined}},
+    {...completed,steps:{}},
+  ])assert.throws(()=>assertSetupCompletionAfterReceipt(forged,op))
+  assert.throws(()=>assertSetupCompletionAfterReceipt(completed,{...op,codes:[]}))
 })
