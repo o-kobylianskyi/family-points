@@ -142,3 +142,9 @@
 
 - Operator executed the previously assigned 8-class targeted Maven package covering `WorkspaceBackupRehearsalAssessmentServiceTest`, rollback-only disposable/portable relational PostgreSQL rehearsal, retention and V51 artifact registry/staging/store tests. Supplied console tail: **Tests run: 20, Failures: 0, Errors: 0, Skipped: 0; BUILD SUCCESS**; time **28.561 s**, finished **2026-11-16T19:23:07+01:00**. PowerShell exit-code guard did not throw, printed `BKL-002 rehearsal QA: PASS`.
 - Accept operator-reported local test packet only. No HEAD SHA included in this pasted log; do not attribute to latest `main` or imply same-SHA CI green. Existing implementation returns `ROLLBACK_ONLY_REHEARSED`, `verifiedForRestore=false`; successful tests cannot be used as independent full-schema restore proof, automatic VERIFIED promotion or authorization for reset execute. BETA HOLD.
+
+
+## 2026-11-16 — Operator post-rehearsal SHA
+
+- Immediately after `BKL-002 rehearsal QA: PASS` (20 tests, 0 failures/errors/skips, 28.561 s, 19:23:07 CET), operator supplied local `git rev-parse HEAD` = **`ba6cf9cbb4683e31d282b47d8b72526a7a35e214`**, verified on GitHub (`docs(coordination): include capacity thresholds and reusable continuation handoff checklist`). `git status --short` only `?? qa/e2e/package-lock.json`, no tracked modifications.
+- This is a **post-run SHA association**, not proof that test-start SHA was immutable; do not conflate with later main. At comparison `main` was **5 commits ahead**. Testable rollback-only rehearsal remains `verifiedForRestore=false`, BETA/production reset HOLD.
