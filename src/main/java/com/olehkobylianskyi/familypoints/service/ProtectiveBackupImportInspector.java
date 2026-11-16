@@ -21,7 +21,7 @@ public final class ProtectiveBackupImportInspector {
         "REWARD_OBLIGATIONS","REWARD_OBLIGATION_BLOCKED_CATEGORIES",
         "REWARD_OBLIGATION_BLOCKED_REWARDS","MEMBER_GROUPS",
         "WORK_NODES","MEDIA_ASSETS","MEDIA_BINDINGS","POINT_LEDGER","REPUTATION_LEDGER",
-        "GROUP_POINT_LEDGER");
+        "GROUP_POINT_LEDGER","POINT_TYPES");
     private final ProtectiveBackupPortableFile files;
     private final ProtectiveBackupArtifactCodec codec;
     private final ObjectMapper json=new ObjectMapper();
@@ -186,7 +186,7 @@ public final class ProtectiveBackupImportInspector {
                             || "MEDIA_BINDINGS".equals(name) || "MEDIA_ASSETS".equals(name)?"workspace_id":
                             java.util.Set.of("MEMBER_GROUPS","TASK_DEFINITIONS",
                                     "REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_REQUIREMENTS",
-                                    "REWARD_CATEGORIES","REWARD_OBLIGATIONS","WORK_NODES")
+                                    "REWARD_CATEGORIES","REWARD_OBLIGATIONS","POINT_TYPES","WORK_NODES")
                                     .contains(name)?"family_id":null;
                     if(ownerColumn!=null && (!item.path(ownerColumn).isIntegralNumber()
                             || item.path(ownerColumn).asLong()!=targetWorkspace))
@@ -327,6 +327,35 @@ public final class ProtectiveBackupImportInspector {
                         else
                             blockers.add("CURRENCY_REBIND_REQUIRED:POINT_LEDGER.point_type_id");
                     }
+                }
+            }
+            // A source currency is only provable when its code and metadata
+            // are included in the same authenticated envelope. Never infer
+            // denomination identity from a raw numeric ID.
+            if(categories.has("POINT_TYPES")) {
+                var usedCodes=new HashSet<String>();
+                for(JsonNode row:categories.path("POINT_TYPES")) {
+                    JsonNode code=row.path("code");
+                    if(!code.isTextual() || code.asText().isBlank()
+                            || !usedCodes.add(code.asText()))
+                        blockers.add("INVALID_POINT_TYPE_CODE");
+                }
+            }
+            for(String financeCategory:List.of("POINT_LEDGER","GROUP_POINT_LEDGER",
+                    "REWARD_PURCHASES","REWARD_DEFINITIONS","REWARD_REQUESTS")) {
+                if(!categories.has(financeCategory))continue;
+                String column="REWARD_REQUESTS".equals(financeCategory)
+                        ?"approved_point_type_id":"point_type_id";
+                for(JsonNode row:categories.path(financeCategory)) {
+                    JsonNode ref=row.path(column);
+                    if("REWARD_REQUESTS".equals(financeCategory)
+                            && (ref.isMissingNode() || ref.isNull()))continue;
+                    if(!ref.isIntegralNumber() || ref.asLong()<=0)
+                        blockers.add("INVALID_REFERENCE:"+financeCategory+"."+column);
+                    else if(!categories.has("POINT_TYPES"))
+                        blockers.add("MISSING_CATEGORY:POINT_TYPES");
+                    else if(!rowIds.getOrDefault("POINT_TYPES",Set.of()).contains(ref.asLong()))
+                        blockers.add("DANGLING_REFERENCE:"+financeCategory+"."+column);
                 }
             }
             checkMemberParent(categories,blockers,"POINT_LEDGER");
