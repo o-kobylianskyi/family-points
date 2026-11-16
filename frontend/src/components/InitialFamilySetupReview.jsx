@@ -110,7 +110,8 @@ function InitialFamilySetupReviewContent() {
     Promise.all([getSetupState(getAccessToken(), workspaceId), getTemplateCatalog(getAccessToken())])
       .then(([state, data]) => { if (seq.current === id) { setSetup(state); setCatalog(Array.isArray(data?.templates) ? data.templates : []); setPacks(Array.isArray(data?.packs) ? data.packs : []) } })
       .catch(() => { if (seq.current === id) setUnavailable(true) })
-    return () => { if (seq.current === id) seq.current = id + 1 }
+    const guard = seq
+    return () => { if (guard.current === id) guard.current = id + 1 }
   }, [workspaceId, getAccessToken, canManageSetup])
   // Catalog responses are portable localized DTOs. Invalid entries must never
   // become part of a finalize payload (no duplicate or blank catalog codes).
