@@ -22,9 +22,19 @@ function AppLayout() {
     currentUser?.permissions?.includes('ADMIN_OVERRIDE')
   const navigate = useNavigate()
   const location = useLocation()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileState, setMobileState] = useState({path:location.pathname, open:false})
+  const mobileMenuOpen = mobileState.path === location.pathname && mobileState.open
+  const setMobileMenuOpen = update => setMobileState(previous => ({
+    path:location.pathname,
+    open: typeof update === 'function' ? update(previous.path === location.pathname && previous.open) : update,
+  }))
   const profileMenuRef = useRef(null)
-  const [profileOpen, setProfileOpen] = useState(false)
+  const [profileState, setProfileState] = useState({path:location.pathname, workspaceId:currentUser?.workspaceId, open:false})
+  const profileOpen = profileState.open && profileState.path===location.pathname && profileState.workspaceId===currentUser?.workspaceId
+  const setProfileOpen = update => setProfileState(previous => ({
+    path:location.pathname, workspaceId:currentUser?.workspaceId,
+    open:typeof update==='function' ? update(previous.open && previous.path===location.pathname && previous.workspaceId===currentUser?.workspaceId) : update,
+  }))
 
   useEffect(() => {
     if (!profileOpen) return
@@ -40,7 +50,6 @@ function AppLayout() {
     }
   }, [profileOpen])
 
-  useEffect(() => { setProfileOpen(false) }, [location.pathname, currentUser?.workspaceId])
 
   useEffect(() => {
     let cancelled = false
@@ -50,9 +59,6 @@ function AppLayout() {
     return () => { cancelled = true }
   }, [currentUser?.workspaceId, getAvailableWorkspaces])
 
-  useEffect(() => {
-    setMobileMenuOpen(false)
-  }, [location.pathname])
 
   useEffect(() => {
     document.body.classList.toggle('mobile-menu-open', mobileMenuOpen)
