@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 
@@ -321,32 +321,7 @@ function CreateTaskModalContent({
     loadGroups()
   }, [currentUser.workspaceId, getAccessToken])
 
-  useEffect(() => {
-    if (editing) return
-    let alive = true
-    const workspace = currentUser.workspaceId
-    getPrivateTemplates(getAccessToken(), workspace)
-      .then(items => {
-        if (!alive || String(templateWorkspaceRef.current) !== String(workspace)) return
-        const ownTasks = (Array.isArray(items) ? items : []).filter(item => item.kind === 'TASK')
-        setTaskTemplates(ownTasks)
-        // A foreign, deleted, or stale template ID cannot prefill a task.
-        if (initialTemplateId != null && ownTasks.some(item => String(item.id) === String(initialTemplateId))) {
-          applyTaskTemplate(String(initialTemplateId))
-        } else if (initialTemplateId != null) {
-          setTemplateLoading(false)
-          setError(({uk:'Шаблон недоступний у цій сім’ї.',ru:'Шаблон недоступен в этой семье.',de:'Vorlage in dieser Familie nicht verfügbar.',en:'Template is unavailable in this family.'})[i18n.language.split('-')[0]])
-        }
-      })
-      .catch(() => { if (alive) { setTaskTemplates([]); setTemplateLoadError(true); setTemplateLoading(false) } })
-    return () => { alive = false; templateRequestGeneration.current += 1 }
-  }, [currentUser.workspaceId, editing, initialTemplateId, getAccessToken, i18n.language])
-
-  const templateCategory = item => { try { return JSON.parse(item.definitionJson || '{}')?.category || 'other' } catch { return 'other' } }
-  const taskCategories = [...new Set(taskTemplates.map(templateCategory))].sort((a,b)=>a.localeCompare(b))
-  const filteredTaskTemplates = taskTemplates.filter(item => taskTemplateCategory === 'ALL' || templateCategory(item) === taskTemplateCategory)
-
-  async function applyTaskTemplate(templateId) {
+  const applyTaskTemplate = useCallback(async (templateId) => {
     const generation = ++templateRequestGeneration.current
     const origin = currentUser.workspaceId
     setSelectedTemplateId(templateId)
@@ -376,7 +351,34 @@ function CreateTaskModalContent({
     } finally {
       if (templateRequestGeneration.current === generation && templateWorkspaceRef.current === origin) setTemplateLoading(false)
     }
-  }
+  }, [currentUser.workspaceId, getAccessToken, i18n.language])
+
+  useEffect(() => {
+    if (editing) return
+    let alive = true
+    const workspace = currentUser.workspaceId
+    getPrivateTemplates(getAccessToken(), workspace)
+      .then(items => {
+        if (!alive || String(templateWorkspaceRef.current) !== String(workspace)) return
+        const ownTasks = (Array.isArray(items) ? items : []).filter(item => item.kind === 'TASK')
+        setTaskTemplates(ownTasks)
+        // A foreign, deleted, or stale template ID cannot prefill a task.
+        if (initialTemplateId != null && ownTasks.some(item => String(item.id) === String(initialTemplateId))) {
+          applyTaskTemplate(String(initialTemplateId))
+        } else if (initialTemplateId != null) {
+          setTemplateLoading(false)
+          setError(({uk:'Шаблон недоступний у цій сім’ї.',ru:'Шаблон недоступен в этой семье.',de:'Vorlage in dieser Familie nicht verfügbar.',en:'Template is unavailable in this family.'})[i18n.language.split('-')[0]])
+        }
+      })
+      .catch(() => { if (alive) { setTaskTemplates([]); setTemplateLoadError(true); setTemplateLoading(false) } })
+    return () => { alive = false; templateRequestGeneration.current += 1 }
+  }, [currentUser.workspaceId, editing, initialTemplateId, getAccessToken, i18n.language, applyTaskTemplate])
+
+  const templateCategory = item => { try { return JSON.parse(item.definitionJson || '{}')?.category || 'other' } catch { return 'other' } }
+  const taskCategories = [...new Set(taskTemplates.map(templateCategory))].sort((a,b)=>a.localeCompare(b))
+  const filteredTaskTemplates = taskTemplates.filter(item => taskTemplateCategory === 'ALL' || templateCategory(item) === taskTemplateCategory)
+
+
 
   const actorKey = (actorType, actorId) => `${actorType}:${actorId}`
   const toggleActor = (setter, actorType, actorId) => {
