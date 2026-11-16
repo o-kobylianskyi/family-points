@@ -61,14 +61,14 @@ class DisposableLedgerSourceGraphVerifierTest {
             throws Exception {
         assertThrows(SecurityException.class,()->verifyEdited(
                 "","TASK",42L,4,4,
-                s->s.replace("\\"task_definition_id\\":77","\\"task_definition_id\\":999")));
+                s->s.replace("\"task_definition_id\":77","\"task_definition_id\":999")));
         assertThrows(SecurityException.class,()->verifyEdited(
                 "","TASK",42L,4,4,
-                s->s.replace("\\"id\\":77,\\"family_id\\":17",
-                        "\\"id\\":77,\\"family_id\\":18")));
+                s->s.replace("\"id\":77,\"family_id\":17",
+                        "\"id\":77,\"family_id\":18")));
         assertThrows(SecurityException.class,()->verifyEdited(
                 "","TASK",42L,4,4,
-                s->s.replace("\\"amount\\":5","\\"amount\\":2147483648")));
+                s->s.replace("\"amount\":5","\"amount\":2147483648")));
     }
 
 }
