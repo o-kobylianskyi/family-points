@@ -13,6 +13,7 @@ import org.junit.Test
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.net.InetAddress
 import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -24,7 +25,7 @@ class TemplateReceiptHttpFaultTest {
 
     @Before fun setup() {
         server = MockWebServer()
-        server.start()
+        server.start(InetAddress.getByName("127.0.0.1"), 0)
         val client = OkHttpClient.Builder()
             .retryOnConnectionFailure(false)
             .readTimeout(250, TimeUnit.MILLISECONDS)
