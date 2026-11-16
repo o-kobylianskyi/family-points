@@ -43,8 +43,8 @@ final class DisposableRewardCategoryRestoreExecutor {
         var inspection=inspector.inspect(file,source,key);
         if(!"V50".equals(inspection.schemaVersion())
                 || !inspection.availableCategories().equals(List.of(
-                    "REWARD_CATEGORIES","REWARD_DEFINITION_CATEGORIES",
-                    "REWARD_DEFINITIONS")))
+                    "REWARD_CATEGORIES","REWARD_DEFINITIONS",
+                    "REWARD_DEFINITION_CATEGORIES")))
             throw new IllegalArgumentException("CATEGORY_REPLAY_SCOPE_UNSUPPORTED");
 
         var envelope=portable.decode(file);
