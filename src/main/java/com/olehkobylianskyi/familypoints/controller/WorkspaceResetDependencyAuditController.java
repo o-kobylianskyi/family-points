@@ -27,6 +27,14 @@ public class WorkspaceResetDependencyAuditController {
                 .body(audit.inspectSelection(workspaceId,request.categories()));
     }
 
+    /** Read-only implementation gap and FK closure matrix, never an execute grant. */
+    @GetMapping("/restore-readiness")
+    public ResponseEntity<WorkspaceResetDependencyAuditService.RestoreReadiness> restoreReadiness(
+            @PathVariable Long workspaceId) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(audit.restoreReadiness(workspaceId));
+    }
+
     @GetMapping("/dependency-audit")
     public ResponseEntity<WorkspaceResetDependencyAuditService.Audit> dependencyAudit(
             @PathVariable Long workspaceId) {
