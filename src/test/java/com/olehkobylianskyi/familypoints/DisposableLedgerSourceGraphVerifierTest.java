@@ -71,4 +71,28 @@ class DisposableLedgerSourceGraphVerifierTest {
                 s->s.replace("\"amount\":5","\"amount\":2147483648")));
     }
 
+    private DisposableLedgerSourceGraphVerifier.Result purchaseProof(
+            long purchaseMember,long price,long currency,long ledgerAmount,
+            String operationType) throws Exception {
+        return verifyEdited("","REWARD_PURCHASE",51L,4,4,
+                body->body.replace("\"amount\":5",
+                            "\"amount\":"+ledgerAmount+",\"type\":\""+operationType+"\"")
+                        .replace("\"POINT_LEDGER\":",
+                            "\"REWARD_PURCHASES\":[{\"id\":51,\"member_id\":"
+                            +purchaseMember+",\"point_type_id\":"+currency
+                            +",\"price_amount\":"+price+"}],\"POINT_LEDGER\":"));
+    }
+
+    @Test void purchaseSpendMustMatchArchivedPurchaseOwnerCurrencyAndPrice()
+            throws Exception {
+        var valid=purchaseProof(4,5,3,-5,"SPEND");
+        assertEquals(1,valid.purchaseRows());
+        assertEquals(51L,valid.ledgerToPurchaseSource().get(100L));
+        assertThrows(SecurityException.class,()->purchaseProof(5,5,3,-5,"SPEND"));
+        assertThrows(SecurityException.class,()->purchaseProof(4,5,9,-5,"SPEND"));
+        assertThrows(SecurityException.class,()->purchaseProof(4,6,3,-5,"SPEND"));
+        assertThrows(SecurityException.class,()->purchaseProof(4,5,3,5,"SPEND"));
+        assertThrows(SecurityException.class,()->purchaseProof(4,5,3,-5,"EARN"));
+    }
+
 }
