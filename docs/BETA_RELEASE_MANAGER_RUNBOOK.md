@@ -6,7 +6,7 @@
 
 | Component | Command / file | Effect |
 | --- | --- | --- |
-| CI / release gate | `scripts/beta/release-gate.ps1` | Read-only public smoke, exact-SHA manual four-job CI gate and local evidence export |
+| CI / release gate | `scripts/beta/release-gate.ps1` | Local-only status, exact-SHA manual four-job CI gate, optional isolated QA HTTP smoke, and separate opt-in public post-deploy smoke |
 | CI workflow | `.github/workflows/ci.yml` | Manual dispatch runs all 4 jobs, isolated from push cancellation |
 | Android independent CI | `.github/workflows/android-p0.yml` | Android P0 targeted cases, independent concurrency, full suite optional |
 | Android manager | `scripts/android/release.bat` | status/build/install/logs/publish |
@@ -20,8 +20,11 @@ cd C:\Users\Oleh\IdeaProjects\family-points
 git status --short
 git pull --ff-only origin main
 
-# Public HTTP 200 Web + API + Android APK and manifest version/hash.
+# Local Git SHA only; no public network calls.
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-gate.ps1 -Action status
+
+# Optional: ONLY an explicitly approved, isolated/disposable QA endpoint:
+# powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-gate.ps1 -Action qa -BaseUrl https://YOUR-ISOLATED-QA-HOST
 
 # Require installed/authenticated GitHub CLI ("gh auth login").
 # Enqueue *manual full* four-job CI at current origin/main.
@@ -45,9 +48,27 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-g
 .\scripts\android\release.bat publish
 ```
 
-The gate requires **`gh`** for CI and uses `curl.exe` for public HTTP. Windows PowerShell 5.1 `Invoke-WebRequest` has previously misparsed valid JSON, therefore public verification intentionally uses curl. `release-evidence/` is ignored and contains NO credentials. It records source SHA, annotated tag, successful *manual full* CI run, public APK version and hash, and explicitly records unverified deployment/Flyway/BKL-002 readiness as `false`. The evidence is not proof of actual runtime Git revision.
+The gate requires **`gh`** only for CI, and uses `curl.exe` only for the separately selected QA or post-deploy HTTP smoke. `status`, `ci`, and `prepare` do **not** contact PROD/BETA. `release-evidence/` is ignored and contains NO credentials. It records source SHA, annotated tag and successful *manual full* CI run; QA acceptance, actual deployment, Flyway and BKL-002 readiness remain `false` until independently proven. The evidence is not proof of actual runtime Git revision.
 
 **Important CI nuance:** automated push CI uses changed-path routing. A GitHub Actions run with a green badge may have **skipped** one or more component test steps, so it is NOT an all-four-component release gate. Use the manual `workflow_dispatch` workflow; `release-gate.ps1` checks the run SHA AND the actual run steps for Maven, Android Gradle, Web build, Compose configuration. Android independent P0 reports are tracked separately; do not treat a pending or skipped job as PASS. An exact-SHA success can become stale when another chat updates main; rerun on the chosen final release SHA.
+
+## Environment isolation (mandatory)
+
+- `-Action status`: local checkout status only; does not call any hosted FamilyPoints instance.
+- `-Action ci [-DispatchFullCi]`: GitHub Actions only; tests run against the CI Testcontainers/docker instances. No application requests to production.
+- `-Action prepare -Tag <annotated-tag>`: exact-SHA all-four-job CI check + immutable tag + local evidence, **no** public or QA HTTP calls.
+- `-Action qa -BaseUrl https://YOUR-ISOLATED-QA-HOST`: explicit **GET-only** HTTP smoke of `/` and `/api/client-health` on an operator-authorized disposable test environment; refuses common public/BETA hosts. The script cannot establish data isolation merely from the hostname. Do not use real user/family data.
+- `-Action post-deploy -AllowPublicSmoke`: separate opt-in GET-only public HTTP smoke for `family-point.com` **only after an explicitly approved release**, never part of CI or release readiness. It checks Web/API/APK status, not full end-to-end functionality.
+
+```powershell
+# Explicit isolated QA test instance only (never family-point.com):
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-gate.ps1 -Action qa -BaseUrl https://YOUR-ISOLATED-QA-HOST
+
+# Explicit post-deployment production/BETA smoke, NOT a readiness test:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-gate.ps1 -Action post-deploy -AllowPublicSmoke
+```
+
+Android `release.bat status/build` still reads the public Android version manifest to enforce monotonically increasing release versions; this is a **separate Android publishing workflow**, not the CI/QA readiness gate. Never call Android `publish` without approved signed APK acceptance.
 
 ## Actual server deployment — separate step, no automatic execution
 
@@ -66,7 +87,7 @@ After authorized deployment record independently: exact tag+SHA; `docker compose
 
 The tested Android Manager automatically chooses public `versionCode+1`; locally saved, gitignored `release-config.local.json` holds non-password paths and the **Web application** Google OAuth Client ID. Build asks key passwords interactively. It verifies pinned release signing cert SHA-256 `167d63a05676a8fc9a1671be11a6d7c1246ff9d97286efca30cb5e104c152d4f`. Do not replace the existing `familypoints-release.jks`, silently uninstall Android or discard unsynced offline data. Public beta.9 used a different signing key.
 
-For the previous beta.11, operator reported local build+install+Google login PASS and Contabo server printed `APK published`. Postpublish Windows JSON verifier failed; helper source was fixed. **No independently supplied public-manifest verification was present in the release log at last checkpoint; obtain current public evidence before claiming published hash is confirmed.**
+For the previous beta.11, operator reported local build+install+Google login PASS and Contabo server printed `APK published`. Postpublish Windows JSON verifier failed; helper source was fixed. **Public beta.11 manifest and matching checksum were subsequently confirmed by the operator via `release-gate.ps1 -Action status` at source SHA `4d70145e`; this was a legacy GET-only postpublication check, since moved to explicit `post-deploy` mode.**
 
 ## Handoff and remaining gates
 
