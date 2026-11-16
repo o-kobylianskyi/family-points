@@ -155,6 +155,18 @@ class DisposableCrossDatabasePortableRestorePostgresTest {
                 "SELECT count(*) FROM workspace_private_templates WHERE workspace_id=?",
                 Long.class,targetFamily));
 
+        // Integrity: a single byte changed in transit must fail closed.
+        byte[] corrupted=file.clone();
+        corrupted[corrupted.length-1]^=1;
+        long corruptedTarget=dst.queryForObject(
+                "INSERT INTO families(name) VALUES ('Corrupted archive target') RETURNING id",
+                Long.class);
+        assertThrows(RuntimeException.class,()->nativeRestore.apply(
+                corrupted,srcFamily,corruptedTarget,Map.of(srcMember,targetMember),key));
+        assertEquals(0L,dst.queryForObject(
+                "SELECT count(*) FROM member_groups WHERE family_id=?",
+                Long.class,corruptedTarget));
+
         // Wrong AES key must fail authentication before any target mutations.
         var wrongKey=keyGen.generateKey();
         long reject=dst.queryForObject(
