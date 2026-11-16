@@ -124,7 +124,6 @@ function RewardsPageContent() {
   workspaceRef.current = currentUser.workspaceId
   const identityRef = useRef('')
   const identity = [currentUser.accountId ?? currentUser.userId ?? currentUser.id, currentUser.workspaceId, currentUser.memberId].join(':')
-  identityRef.current = identity
   const [currencyForms, setCurrencyForms] = useState({})
 
   const [balances, setBalances] = useState([])
@@ -307,9 +306,12 @@ function RewardsPageContent() {
   }, [identity, getAccessToken, currentUser.workspaceId, currentUser.memberId, canManage])
 
   useEffect(() => {
-    // The keyed remount initializes all family-scoped state. Fetch after mount.
+    // Refs are for effect/event lifecycles, not render. Keyed remount resets
+    // all account/workspace/member state; cleanup invalidates late responses.
+    identityRef.current = identity
     void Promise.resolve().then(() => loadAll())
-  }, [loadAll])
+    return () => { identityRef.current = '' }
+  }, [identity, loadAll])
 
   const run = async (action, successMessage = '') => {
     // Synchronous guard: React state updates alone cannot stop rapid double taps.
