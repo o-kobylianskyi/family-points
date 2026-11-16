@@ -72,9 +72,9 @@ class WorkspaceRewardObligationArchiveClosurePostgresTest {
                 .assess(family,List.of("REWARD_PURCHASES","REWARD_DEFINITIONS"));
         assertFalse(closure.replaySupported());
         assertTrue(closure.blockers().contains(
-                "RESTORE_CATEGORY_NOT_EXPORTABLE:REWARD_OBLIGATIONS_UNEXPORTED"));
+                "RESTORE_DEPENDENCY_NOT_SELECTED:REWARD_OBLIGATIONS"));
         assertTrue(closure.blockers().contains(
-                "RESTORE_DEPENDENCY_NOT_SELECTED:REWARD_OBLIGATIONS_UNEXPORTED"));
+                "RESTORE_DEPENDENCY_NOT_SELECTED:REWARD_OBLIGATIONS"));
         assertEquals(1L,db.queryForObject(
                 "SELECT count(*) FROM reward_obligations WHERE family_id=?",
                 Long.class,family).longValue());
