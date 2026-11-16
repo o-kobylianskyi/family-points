@@ -59,3 +59,10 @@ backups/
 
 # Local release gate snapshots (observational, not deployment approval)
 /release-evidence/
+
+# Playwright authenticated QA artifacts: may contain private browser state
+/qa/e2e/playwright-report/
+/qa/e2e/test-results/
+/qa/e2e/.playwright-artifacts-*/
+/qa/e2e/blob-report/
+/qa/e2e/playwright/.cache/
