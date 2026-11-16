@@ -90,3 +90,19 @@ For each incoming item preserve:
 | REAL-BKL002-REQUIREMENTS-01 | Backend/QA | Complete reward requirement parent/category/member/currency graph survives encrypted backup+restore with FK closure | production safe native complete replay + verified snapshot | BLOCKED_DEPENDENCY |
 
 **Ownership acknowledged**; no manual live acceptance has been executed.
+
+
+## Intake checkpoint — Web owner real V49 handoff + Backend QA #08
+
+- Read canonical [Web→QA V49 handoff](../coordination/requests/WEB_TO_QA_V49_REAL_ACCEPTANCE_20261116.md), commit `433855b`. It supplements Designer's three-phase V49 campaign, does **not** authorize execution. Preserve exact server empty `steps:{}`→7 visible PENDING, 142 templates/6 packs, four locales, one PATCH/action, same revision/epoch, review `toImport/alreadyImported`, confirmation/finalize original UUID, durable receipt, private template-only import and unchanged active rewards/tasks/ledger. Lost-PATCH and lost-finalize recovery GET-only, no hidden duplicate POST; cross-tab conflicting markers, wrong revision/epoch, repeated click and owner/child/foreign denial require fail-closed.
+- The Web synthetic `onboarding-v49-finalize-recovery-synthetic.spec.js` grew from two validated cases to **four**: valid receipt+stale, valid receipt+COMPLETED (prior 2 PASS) plus **wrong final revision** and **wrong epoch** (new cases NOT_RUN). Use latest pinned SHA when automation executes; keep synthetic vs enabled-backend distinction.
+- Read Backend [BKL002 QA #08](../coordination/requests/BKL002_QA_PACKET_20261116_REWARD_REQUIREMENTS_PORTABLE.md), commit `ec72d56`: `REWARD_REQUIREMENTS` now optionally authenticated/exportable with same-family one-of owning definition/request and optional task dependency, but `restorable=false`, native replay unsupported. All P0 runtime acceptance #04–#08 remains waiting current-SHA consolidated isolated Testcontainers. Existing `27/27 PASS @419efb1` does not cover #08.
+- **Manual campaign mapping:** `REAL-V49-FAULT-01` wrong final revision / epoch / conflicting second tab original-UUID receipt, `REAL-V49-REVIEW-01` toImport/alreadyImported split with zero unexpected activation/ledger writes, `REAL-BKL002-REQUIREMENTS-02` request-origin one-of owner with optional linked task and foreign-tenant denial after actual safe native implementation. All are COLLECTION ONLY; no operator instructions until readiness.
+
+| ID | Producer | Scenario / source | Dependencies | Status |
+|---|---|---|---|---|
+| REAL-V49-FAULT-01 | Web→QA | Lost PATCH/finalize response, wrong revision/epoch and conflicting tab markers; GET-only reconciliation, original UUID | approved isolated enabled-backend V49 | BLOCKED_DEPENDENCY |
+| REAL-V49-REVIEW-01 | Web→QA | Review subset, alreadyImported/toImport, explicit final import yields only private templates and unchanged financial rows | approved isolated enabled-backend V49 | BLOCKED_DEPENDENCY |
+| REAL-BKL002-REQUIREMENTS-02 | Backend→QA | Request-vs-definition requirement owner mapping, optional task parent and foreign-tenant safeguards on real restore | full safeguarded native restore and VERIFIED approval | BLOCKED_DEPENDENCY |
+
+All these cases are additional acceptance criteria in the **single planned final QA campaign**, not prompts to execute now.
