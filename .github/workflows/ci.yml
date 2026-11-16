@@ -388,7 +388,7 @@ jobs:
               out.write("\n")
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
               out.write("## CI per-commit outcome\n\n")
-              out.write(f"- SHA: \`{report['sourceSha']}\`\n")
+              out.write(f"- SHA: `{report['sourceSha']}`\n")
               out.write(f"- Event: {report['event']}\n")
               out.write(f"- Run: {report['runUrl']}\n")
               out.write(f"- Scope evaluation: {report['scopeResult']}\n\n")
