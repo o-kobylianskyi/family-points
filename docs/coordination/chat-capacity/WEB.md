@@ -8,3 +8,4 @@ See [pilot protocol](../CHAT_CAPACITY_OBSERVABILITY_20261116.md). Measurements a
 
 Next Web chat creates new generation and records measured checkpoints; this row is historical evidence only.
 | 2026-11-16 ~21:25 | Web | WEB-02 | 1 | unknown | PARTIAL_VISIBLE | unknown | USER_UI | 1 | bc84f6ef | NEW_CHAT | New role pickup from user screenshot; source audit and self-contained handoff committed. No authoritative token percentage. |
+| 2026-11-16 | Web | WEB-02 | 2 | unknown | PARTIAL_VISIBLE | unknown | NONE | 2 | 8c566da2 | CHECKPOINT | Source invariant test batch committed; accurate lifetime/context token count unavailable. |
