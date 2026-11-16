@@ -6,26 +6,26 @@ import { currencyQuantity } from './formatCurrencyAmount'
 /** Hook shared by pages with currency amounts; preserves built-in fallbacks when API is older. */
 export function useCurrencyQuantity(token, workspaceId) {
   const { i18n } = useTranslation()
-  const [types, setTypes] = useState([])
-  const [forms, setForms] = useState({})
+  const scope = `${token ? 'authenticated' : 'anonymous'}:${workspaceId}`
+  const [snapshot, setSnapshot] = useState({scope:null,types:[],forms:{}})
 
   useEffect(() => {
     let active = true
-    setTypes([])
-    setForms({})
     if (!workspaceId || !token) return () => { active = false }
     getPointTypes(token, workspaceId).then(async result => {
       if (!active) return
       if (!Array.isArray(result)) return
-      setTypes(result)
+      setSnapshot({scope,types:result,forms:{}})
       const entries = await Promise.all(result.map(async type => {
         try { return [type.id, await getPointNameForms(token, workspaceId, type.id)] }
         catch { return [type.id, []] }
       }))
-      if (active) setForms(Object.fromEntries(entries))
+      if (active) setSnapshot({scope,types:result,forms:Object.fromEntries(entries)})
     }).catch(() => {})
     return () => { active = false }
-  }, [token, workspaceId])
+  }, [token, workspaceId, scope])
+  const types = snapshot.scope === scope ? snapshot.types : []
+  const forms = snapshot.scope === scope ? snapshot.forms : {}
 
   return (amount, code, id = null, fallback = null) => {
     const type = types.find(item => (id != null && String(item.id) === String(id)) ||
