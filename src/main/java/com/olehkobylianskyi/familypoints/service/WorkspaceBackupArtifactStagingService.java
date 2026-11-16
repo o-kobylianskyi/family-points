@@ -24,13 +24,16 @@ public class WorkspaceBackupArtifactStagingService {
     private final WorkspacePortableBackupExporter exporter;
     private final WorkspaceBackupLocalArtifactStore storage;
     private final ProtectiveBackupImportInspector inspector;
+    private final ProtectiveBackupPortableFile portable;
 
     public WorkspaceBackupArtifactStagingService(WorkspacePortableBackupExporter exporter,
             WorkspaceBackupLocalArtifactStore storage,
-            ProtectiveBackupImportInspector inspector) {
+            ProtectiveBackupImportInspector inspector,
+            ProtectiveBackupPortableFile portable) {
         this.exporter=exporter;
         this.storage=storage;
         this.inspector=inspector;
+        this.portable=portable;
     }
 
     public record Staged(UUID snapshotId,long workspaceId,String sourceDigest,
@@ -54,6 +57,10 @@ public class WorkspaceBackupArtifactStagingService {
         if(file==null || file.length==0)
             throw new IllegalStateException("EMPTY_ENCRYPTED_EXPORT");
         try {
+            // Reject any exporter/manifest disagreement before publishing the file.
+            // A stored SHA alone is not authoritative provenance.
+            verifyEnvelope(file,workspaceId,snapshotId,operationId,expectedEpoch,
+                    schemaVersion,exported);
             // Verify the export against the authenticated schema BEFORE storing.
             var proof=inspector.inspect(file,workspaceId,key);
             ensureExactExport(proof,snapshotId,expectedEpoch,schemaVersion,
@@ -63,6 +70,8 @@ public class WorkspaceBackupArtifactStagingService {
             try {
                 if(!Arrays.equals(file,reread))
                     throw new SecurityException("BACKUP_LOCAL_ROUNDTRIP_MISMATCH");
+                verifyEnvelope(reread,workspaceId,snapshotId,operationId,expectedEpoch,
+                        schemaVersion,exported);
                 var checked=inspector.inspect(reread,workspaceId,key);
                 ensureExactExport(checked,snapshotId,expectedEpoch,schemaVersion,
                         ordered,exported.recordCounts());
@@ -73,6 +82,22 @@ public class WorkspaceBackupArtifactStagingService {
                     stored.sha256(),stored.byteCount(),
                     Map.copyOf(exported.recordCounts()),"STORED_UNVERIFIED");
         } finally {Arrays.fill(file,(byte)0);}
+    }
+
+    private void verifyEnvelope(byte[] encrypted,long workspaceId,UUID snapshotId,
+            UUID operationId,long expectedEpoch,String schemaVersion,
+            WorkspacePortableBackupExporter.Result export) {
+        var manifest=portable.decode(encrypted).manifest();
+        if(!snapshotId.equals(export.snapshotId())
+                || !manifest.snapshotId().equals(snapshotId)
+                || manifest.workspaceId()!=workspaceId
+                || !manifest.operationId().equals(operationId)
+                || manifest.dataEpoch()!=expectedEpoch
+                || !schemaVersion.equals(manifest.schemaVersion())
+                || export.contentDigest()==null
+                || !export.contentDigest().equals(manifest.sourceDigest())
+                || export.byteCount()!=manifest.contentBytes())
+            throw new SecurityException("BACKUP_EXPORT_MANIFEST_MISMATCH");
     }
 
     private static void ensureExactExport(
