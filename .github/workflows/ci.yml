@@ -17,6 +17,59 @@ concurrency:
   cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
+  changes:
+    name: CI / determine affected components
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.scope.outputs.backend }}
+      android: ${{ steps.scope.outputs.android }}
+      web: ${{ steps.scope.outputs.web }}
+      compose: ${{ steps.scope.outputs.compose }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        name: Safe changed-file routing (full on unknown/shared)
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_BASE: ${{ github.event.before }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          b=false; a=false; w=false; c=false; full=false
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            full=true
+          else
+            if [[ "$EVENT_NAME" == "pull_request" ]]; then base="$PR_BASE"; else base="$PUSH_BASE"; fi
+            if [[ -z "$base" || "$base" =~ ^0+$ ]]; then
+              full=true
+            elif ! git diff --name-only "$base" "$GITHUB_SHA" > "$RUNNER_TEMP/fp-changed-files"; then
+              full=true
+            else
+              while IFS= read -r file; do
+                case "$file" in
+                  frontend/*|qa/*) w=true ;;
+                  android/*) a=true ;;
+                  scripts/beta/*|compose.beta.yml|Dockerfile.beta) c=true ;;
+                  docs/*|README.md|LICENSE) ;;
+                  *) full=true ;;
+                esac
+              done < "$RUNNER_TEMP/fp-changed-files"
+            fi
+          fi
+          if [[ "$full" == true ]]; then b=true; a=true; w=true; c=true; fi
+          for name in backend android web compose; do
+            case "$name" in
+              backend) value="$b" ;;
+              android) value="$a" ;;
+              web) value="$w" ;;
+              compose) value="$c" ;;
+            esac
+            echo "$name=$value" >> "$GITHUB_OUTPUT"
+            echo "$name=$value" >> "$GITHUB_STEP_SUMMARY"
+          done
+
   backend-tests:
     name: Java 21 / Maven / PostgreSQL Testcontainers
     runs-on: ubuntu-latest
