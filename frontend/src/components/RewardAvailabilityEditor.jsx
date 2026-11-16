@@ -37,7 +37,6 @@ export default function RewardAvailabilityEditor({ rewardId }) {
 
   useEffect(()=>{
     let active=true
-    setData(null);setError('');setNotice('')
     getRewardAvailability(getAccessToken(),workspaceId,rewardId).then(result=>{
       if(!active)return
       setData(result);setMode(result.mode||'ALWAYS')
