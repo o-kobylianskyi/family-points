@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure} from '../src/utils/setupFinalizeSafety.js'
+import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, sameSetupFinalizeOperation} from '../src/utils/setupFinalizeSafety.js'
 
 const operation = () => ({
   accountId: 'account-A',workspaceId: 14,epoch: 3,revision: 7,
@@ -98,4 +98,18 @@ test('V49 step PATCH lost-response reconciliation never implies a write replay',
   for(const foreign of [{...committed,workspaceId:15},{...committed,dataEpoch:4},{...committed,revision:1}])
     assert.throws(()=>reconcileSetupStepAfterFailure(before,foreign,'WORK_NODE_GROUPS','COMPLETE'))
   assert.throws(()=>reconcileSetupStepAfterFailure(before,committed,'UNKNOWN','COMPLETE'))
+})
+
+test('V49 verified receipt marker cleanup requires exact immutable operation identity',()=>{
+  const original=operation()
+  assert.equal(sameSetupFinalizeOperation(original,{...original}),true)
+  for(const forged of [
+    {...original,operationId:'b489ea25-4e10-48ee-b8ea-7a9f4b2e3456'},
+    {...original,accountId:'other-account'}, {...original,workspaceId:15},
+    {...original,epoch:4}, {...original,revision:8},
+    {...original,codes:[...original.codes].reverse()},
+    {...original,codes:['TASK_A','FOREIGN']},
+    {...original,codes:['TASK_A','TASK_A']}, {blocked:true}, null,
+  ])assert.equal(sameSetupFinalizeOperation(original,forged),false)
+  assert.deepEqual(reconcileSetupPending(original,{...original,codes:['TASK_A','FOREIGN']},14,'account-A'),{blocked:true})
 })
