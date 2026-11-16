@@ -5,7 +5,7 @@ import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { validateSetupCatalog, selectSetupMatching } from '../utils/setupCatalogSelection'
-import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, sameSetupFinalizeOperation } from '../utils/setupFinalizeSafety'
+import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt } from '../utils/setupFinalizeSafety'
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
 const words = {
@@ -204,8 +204,8 @@ function InitialFamilySetupReviewContent() {
       const result = await getSetupFinalizeReceipt(getAccessToken(), operation.workspaceId, operation.operationId)
       if (activeScope.current !== scope) return
       assertSetupFinalizeReceipt(result, operation)
-      const refreshed = assertSetupState(await getSetupState(getAccessToken(), operation.workspaceId), operation.workspaceId)
-      if (activeScope.current !== scope || refreshed.dataEpoch !== operation.epoch) return
+      const refreshed = assertSetupCompletionAfterReceipt(await getSetupState(getAccessToken(), operation.workspaceId), operation)
+      if (activeScope.current !== scope) return
       if (!clear(operation)) { setError(true); return }
       setFinished(result); setSetup(refreshed)
     } catch (e) { if (activeScope.current === scope) { setError(true); setErrorStatus(e?.status) } }
@@ -230,8 +230,8 @@ function InitialFamilySetupReviewContent() {
       const result = await finalizeSetupImport(getAccessToken(), operation.workspaceId, operation.operationId, operation.revision, operation.codes)
       if (activeScope.current !== scope) return
       assertSetupFinalizeReceipt(result, operation)
-      const refreshed = await getSetupState(getAccessToken(), operation.workspaceId)
-      if (activeScope.current !== scope || refreshed.dataEpoch !== operation.epoch) return
+      const refreshed = assertSetupCompletionAfterReceipt(await getSetupState(getAccessToken(), operation.workspaceId), operation)
+      if (activeScope.current !== scope) return
       if (!clear(operation)) { setError(true); return }
       setFinished(result); setSetup(refreshed)
     } catch { if (activeScope.current === scope) setError(true) }
