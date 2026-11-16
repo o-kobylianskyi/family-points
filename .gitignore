@@ -56,3 +56,6 @@ backups/
 
 # Local Android release settings (contains public OAuth ID, device and SSH paths; never commit)
 /scripts/android/release-config.local.json
+
+# Local release gate snapshots (observational, not deployment approval)
+/release-evidence/
