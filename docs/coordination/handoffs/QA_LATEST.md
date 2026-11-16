@@ -24,3 +24,11 @@ Check Backend remediation of both confirmed P0 failures, independent pinned reru
 - Backend acknowledged both historical red cases and delivered [CI_RED_REPAIR #12](../requests/BKL002_QA_PACKET_20261116_CI_RED_REPAIR.md): two fixture categories rather than one (839e9f8), no immutable-map null NPE + sorted archive category order (e1e4e2b), null-target-map negative regression (9ccfe2e). No newer same-SHA PASS observed.
 - QA control recorded specific retest requirements commit `7b9eca5`: focus previously failing methods and scope/tenant/map/rollback safeguards; eight-class packet #12 then deduplicated 17-class neighboring suite, then actual four-component non-skipped full CI.
 - User still wants all real/manual tests collected and deferred. New automation must not become real-data execution. Follow up with Backend on Issue #15 only once there is independent run evidence.
+
+
+## QA-013 — latest checkpoint (2026-11-16 evening)
+- Backend code-repair #12 remains `NEEDS_RETEST` despite source fixes `839e9f8/e1e4e2b/9ccfe2e`; no newer independently confirmed same-SHA CI run/Job PASS. Previous verified red `43947907960` at `19adfe1b7` stands.
+- Exact Java source read for newest `DisposableRewardRequirementRestoreExecutor` + `DisposableRewardRequirementCrossDatabasePostgresTest` (commits `e825afe0`, `4088b5e5`): test-only two-PG AES restore of requirements with explicit owner remap, source/target tenant checks, null map, second replay, tampered archive negative. **Source only: new Testcontainers test not run.**
+- Control [QA_BKL002_ASYNC_CONTROL_20261116.md](../QA_BKL002_ASYNC_CONTROL_20261116.md) updated at `ab8268a`; latest deduplicated target **18 distinct classes** (prior 17 plus requirements cross-DB). Await Backend fixes/tests and actual workflow run ID; do not accept by visual source audit alone.
+- PRE-BETA operator manual campaign remains COLLECTION ONLY; final real test scripts tracked in [QA inbox](../../qa/PRE_BETA_REAL_WORLD_TEST_INBOX.md). Production HTTP423 reset / no VERIFIED / BETA HOLD.
+- Next: verify newly reported GitHub Actions run on exact patched SHA (all four actual jobs, zero skipped), isolate two formerly red regression tests and requirement test. If failures, feedback to Issue #15 with exact repro; if pass, accept bounded packet only, not release gate.
