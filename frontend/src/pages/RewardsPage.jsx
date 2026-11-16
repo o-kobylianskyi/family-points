@@ -311,7 +311,7 @@ function RewardsPageContent() {
     identityRef.current = identity
     void Promise.resolve().then(() => loadAll())
     return () => { identityRef.current = '' }
-  }, [identity, loadAll])
+  }, [identity, loadAll, currentUser.workspaceId])
 
   const run = async (action, successMessage = '') => {
     // Synchronous guard: React state updates alone cannot stop rapid double taps.
