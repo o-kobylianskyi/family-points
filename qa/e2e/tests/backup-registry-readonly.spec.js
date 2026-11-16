@@ -119,4 +119,57 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
     expect(writes).toEqual([])
   })
 
+  test('stale detail response cannot appear under a different selected backup', async ({ page }) => {
+    await login(page)
+    const writes = []
+    page.on('request', request => {
+      const path = new URL(request.url()).pathname
+      if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method()) &&
+          /\/workspaces\/\d+\/(?:protective-backups|data-reset|restores)(?:\/|$)/.test(path)) {
+        writes.push(request.method() + ' ' + path)
+      }
+    })
+    const first = '55555555-5555-4555-8555-555555555555'
+    const second = '66666666-6666-4666-8666-666666666666'
+    await page.route(registry, route => {
+      const workspaceId = Number(new URL(route.request().url()).pathname.match(/\/workspaces\/(\d+)\//)[1])
+      return route.fulfill({status: 200, contentType: 'application/json',
+        body: JSON.stringify([backupRow(workspaceId, first), backupRow(workspaceId, second)])})
+    })
+    let releaseFirst
+    const firstRequest = new Promise(resolve => {
+      releaseFirst = resolve
+    })
+    let firstStarted
+    const firstArrived = new Promise(resolve => { firstStarted = resolve })
+    await page.route(/\/workspaces\/\d+\/protective-backups\/(?:55555555|66666666)-/, async route => {
+      const url = new URL(route.request().url())
+      const workspaceId = Number(url.pathname.match(/\/workspaces\/(\d+)\//)[1])
+      const id = url.pathname.split('/').at(-1)
+      if (id === first) {
+        firstStarted()
+        await firstRequest
+      }
+      await route.fulfill({status: 200, contentType: 'application/json',
+        body: JSON.stringify(backupRow(workspaceId, id, {selectedCategories: [id === first ? 'TASK_DEFINITIONS' : 'PRIVATE_TEMPLATES']}))})
+    })
+    await page.goto('/settings')
+    const panel = page.locator('[aria-label="Family data safety planning"]')
+    await expect(panel.getByText('55555555', {exact:false})).toBeVisible()
+    await expect(panel.getByText('66666666', {exact:false})).toBeVisible()
+    const firstRow = panel.locator('div').filter({has:panel.getByText('55555555', {exact:false})})
+      .filter({has:panel.getByRole('button', {name:/View metadata|Переглянути запис|Просмотреть запись|Eintrag ansehen/})}).last()
+    // Prefer the per-row buttons in DOM order: list order comes from the mocked server.
+    const viewButtons = panel.getByRole('button', {name:/View metadata|Переглянути запис|Просмотреть запись|Eintrag ansehen/})
+    await viewButtons.nth(0).click()
+    await firstArrived
+    await viewButtons.nth(1).click()
+    const secondDetail = panel.locator('div[role="region"]').last()
+    await expect(secondDetail.getByText('PRIVATE_TEMPLATES')).toBeVisible()
+    releaseFirst()
+    await expect(secondDetail.getByText('PRIVATE_TEMPLATES')).toBeVisible()
+    await expect(secondDetail.getByText('TASK_DEFINITIONS')).toHaveCount(0)
+    expect(writes).toEqual([])
+  })
+
 })
