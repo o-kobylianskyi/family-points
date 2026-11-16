@@ -107,6 +107,49 @@ public class WorkspacePortableBackupExporter {
                 if(invalid==null || invalid!=0L)
                     throw new SecurityException("BACKUP_POINT_LEDGER_FOREIGN_CURRENCY");
             }
+            if("TASK_EXECUTIONS".equals(category)) {
+                Long invalid=db.queryForObject("""
+                        SELECT count(*) FROM task_instances t
+                        JOIN family_members m ON m.id=t.member_id
+                        LEFT JOIN task_definitions d ON d.id=t.task_definition_id
+                        WHERE m.family_id=? AND (d.id IS NULL OR d.family_id<>m.family_id)
+                        """,Long.class,workspaceId);
+                if(invalid==null || invalid!=0L)
+                    throw new SecurityException("BACKUP_TASK_EXECUTION_FOREIGN_DEFINITION");
+            }
+            if("REWARD_PURCHASES".equals(category)) {
+                Long invalid=db.queryForObject("""
+                        SELECT count(*) FROM reward_purchases t
+                        JOIN family_members m ON m.id=t.member_id
+                        LEFT JOIN reward_definitions d ON d.id=t.reward_definition_id
+                        LEFT JOIN reward_requests q ON q.id=t.reward_request_id
+                        LEFT JOIN point_types p ON p.id=t.point_type_id
+                        WHERE m.family_id=? AND
+                          (p.id IS NULL OR p.family_id<>m.family_id
+                           OR (t.reward_definition_id IS NOT NULL
+                               AND (d.id IS NULL OR d.family_id<>m.family_id))
+                           OR (t.reward_request_id IS NOT NULL
+                               AND (q.id IS NULL OR q.family_id<>m.family_id)))
+                        """,Long.class,workspaceId);
+                if(invalid==null || invalid!=0L)
+                    throw new SecurityException("BACKUP_REWARD_PURCHASE_FOREIGN_RELATION");
+            }
+            if("REWARD_REQUESTS".equals(category)) {
+                Long invalid=db.queryForObject("""
+                        SELECT count(*) FROM reward_requests t
+                        LEFT JOIN family_members m ON m.id=t.requested_by_member_id
+                        LEFT JOIN reward_definitions d ON d.id=t.reward_definition_id
+                        LEFT JOIN point_types p ON p.id=t.approved_point_type_id
+                        WHERE t.family_id=?
+                          AND (m.id IS NULL OR m.family_id<>t.family_id
+                               OR (t.reward_definition_id IS NOT NULL
+                                   AND (d.id IS NULL OR d.family_id<>t.family_id))
+                               OR (t.approved_point_type_id IS NOT NULL
+                                   AND (p.id IS NULL OR p.family_id<>t.family_id)))
+                        """,Long.class,workspaceId);
+                if(invalid==null || invalid!=0L)
+                    throw new SecurityException("BACKUP_REWARD_REQUEST_FOREIGN_RELATION");
+            }
             Scope scope=SCOPED_TABLES.get(category);
             String filter=" FROM public."+scope.table()+" t WHERE "+scope.condition();
             Integer count=db.queryForObject("SELECT count(*)"+filter,Integer.class,workspaceId);
