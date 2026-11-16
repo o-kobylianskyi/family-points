@@ -1177,3 +1177,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Source inspected: Web V49 component, setup safety functions/tests and shared request client. Identified missing post-stage/pre-dispatch dual browser marker comparison in concurrent tabs.
 - Source commits `c60f6d3` and `2ab9791` require session and shared markers to exactly match staged UUID, account/family, epoch/revision and ordered codes before sending finalize; mismatches remain blocked without deleting competing markers. Unit tests in `c731a06`. QA adversarial browser packet `bed5098`.
 - No code runner used; Node/browser/CI evidence on packet SHA NOT_VERIFIED. Browser storage has no atomic compare-and-swap; Backend authority remains required. BKL-002 and BETA HOLD unchanged.
+
+
+## 2026-11-16 — WEB-02 synthetic two-tab race cases
+- New Playwright spec `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` commit `381f3f4`; corrected in-flight receipt marker-injection ordering `fe64edb`. Two fixtures verify blocked second finalize after lost first response and preserve a competing UUID marker during receipt GET, with setup APIs intercepted and no real family mutation.
+- Browser runs, Node source regression and current exact-SHA CI are NOT_VERIFIED. QA owns execution and consolidation. BKL-002/BETA HOLD remains.
