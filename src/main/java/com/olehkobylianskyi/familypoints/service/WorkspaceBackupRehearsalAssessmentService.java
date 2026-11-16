@@ -2,7 +2,6 @@ package com.olehkobylianskyi.familypoints.service;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.util.*;
@@ -38,7 +37,6 @@ public final class WorkspaceBackupRehearsalAssessmentService {
             int groups,int assets,int bindings,int mediaVariants,
             String evidenceState,boolean verifiedForRestore) {}
 
-    @Transactional(readOnly=true)
     public Assessment assess(long workspaceId,UUID snapshotId,SecretKey key) {
         if(workspaceId<=0 || snapshotId==null || key==null)
             throw new IllegalArgumentException("INVALID_BACKUP_REHEARSAL_REQUEST");
