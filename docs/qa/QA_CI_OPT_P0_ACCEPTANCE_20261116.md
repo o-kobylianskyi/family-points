@@ -41,3 +41,12 @@
 5. Only after the Backend safe API and explicit scoped authorization: disposable family end-to-end backup → reset → restore → onboarding with proofs of owner authentication, verified protective snapshot, financial/ledger invariants, epoch concurrency and isolation.
 
 **Status:** QA Web 47/47 operator PASS; CI-OPT routing acceptance and same-SHA full green NOT YET VERIFIED; Android #19 CI and BKL-002 #15 release gates remain OPEN. **BETA HOLD.**
+
+
+## Addendum — 2026-11-16 current P0 evidence and new V49 Playwright gate
+
+- Verified **GitHub Actions FamilyPoints CI run [43888684640](https://github.com/o-kobylianskyi/family-points/actions/runs/43888684640)** using actual run-job conclusions: `changes` SUCCESS, Java/PostgreSQL SUCCESS, Web/Vite SUCCESS, Android/Gradle SUCCESS, BETA Compose SUCCESS. Web owner journal independently records tested SHA `6a5e1adf876ada8dccf143f1a8439793b6781a5b`, Node regression 16/16 and lint 0 warnings/errors for that run. This **closes the evidence gap for one completed all-success main CI run**; it does not prove every component's heavy steps ran (scope routing may skip them) nor C01-C04 routing matrix, Android independent P0 XML proof or BETA release tag.
+- Operator local `git rev-parse HEAD`: `081d670cfdd9be9aef96664371c87ab3262d09a3`. Local `npm run i18n:check` PASS (untranslated candidates nonblocking), `test:regression` **16/16 PASS**, `lint` **0 warnings/errors**, `build` PASS; earlier browser suite **47/47 PASS**. Later source changes cannot be called tested at this old SHA.
+- Web added `qa/e2e/tests/onboarding-v49-authorization-readonly.spec.js` (source commit `e5bd54eb`), three new safety checks: manager V47→V49 link and reload without writes; server V49 seven steps only when Backend actually exposes them (otherwise explicit **SKIP**); child cannot access manager setup. This file postdates the operator's 47-test run, therefore the new checkout's expected collected count is **50** (47 existing + 3 new), assuming no other test additions. Do not claim 50 PASS or an enabled V49 when server is unavailable.
+- Safe local new-head check: record `git rev-parse HEAD`, run `npm run test:regression` in `frontend`, run `npx playwright test --reporter=list` in `qa/e2e`; report exact pass/fail/skip and allow disabled server V49 check to SKIP honestly. Do not run real restore/reset/finalize/import against existing families.
+- P0 #19 Android exact three lost-response JUnit XML and #15 complete owner-authenticated verified protective backup + recovery remain pending independent acceptance. **BETA HOLD**.
