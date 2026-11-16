@@ -24,3 +24,5 @@ Audit note: QA must inspect the other six tracks' chat-capacity logs and rolling
 2026-11-16 late CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 76acb61987b2c63ac99d5bdeaaafebcecc4114df | CHECKPOINT | QA-015 two P0 defects still present in source; accepted Backend #14 into 19-class automatic queue and Web two-tab synthetic test, no manual live tests; context percentage unknown
 
 2026-11-16 late CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | eb52be667ed6d643a564f8a362a39765d25c64dc | CHECKPOINT | QA-017: packet 15 reviewed; release SHA PowerShell parser still red in source; no post-fix all-component CI; real tests deferred; capacity unknown
+
+2026-11-16 late CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 0adf386e7e1e08358e787ccb7c322c660b6309aa | CHECKPOINT | QA-018: authenticated POINT_TYPES archive reviewed in code; Backend #16 requested; no newest exact SHA Maven/Compose PASS verified; manual tests deferred; context percentage unknown
