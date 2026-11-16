@@ -8,10 +8,10 @@ import { validSetupFinalizeOperation, assertSetupFinalizeReceipt } from '../util
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
 const words = {
-  uk: ['Початкове налаштування сім’ї', 'Налаштування недоступне або вимкнене.', 'Тип', 'Категорія', 'Завдання', 'Нагороди', 'Усі категорії', 'Переглянути вибране', 'Вибрано', 'Буде імпортовано', 'Уже імпортовано', 'Це лише перегляд; імпорт та активація не виконуються.', 'Не вдалося перевірити вибір. Оновіть сторінку.'],
-  ru: ['Первоначальная настройка семьи', 'Настройка недоступна или отключена.', 'Тип', 'Категория', 'Задачи', 'Награды', 'Все категории', 'Просмотреть выбранное', 'Выбрано', 'Будет импортировано', 'Уже импортировано', 'Это только просмотр, без импорта и активации.', 'Не удалось проверить выбор. Обновите страницу.'],
-  de: ['Ersteinrichtung der Familie', 'Einrichtung nicht verfügbar oder deaktiviert.', 'Typ', 'Kategorie', 'Aufgaben', 'Belohnungen', 'Alle Kategorien', 'Auswahl prüfen', 'Ausgewählt', 'Zu importieren', 'Bereits importiert', 'Nur Vorschau, kein Import und keine Aktivierung.', 'Auswahl konnte nicht geprüft werden. Seite aktualisieren.'],
-  en: ['Initial family setup', 'Setup is unavailable or disabled.', 'Type', 'Category', 'Tasks', 'Rewards', 'All categories', 'Review selection', 'Selected', 'To import', 'Already imported', 'Read-only preview: no import or activation.', 'Could not review selection. Refresh the page.'],
+  uk: ['Початкове налаштування сім’ї', 'Налаштування недоступне або вимкнене.', 'Тип', 'Категорія', 'Завдання', 'Нагороди', 'Усі категорії', 'Переглянути вибране', 'Вибрано', 'Буде імпортовано', 'Уже імпортовано', 'Перегляд не змінює дані. Лише після окремого підтвердження імпортуються приватні шаблони та завершується налаштування; завдання й нагороди не активуються.', 'Не вдалося перевірити вибір. Оновіть сторінку.'],
+  ru: ['Первоначальная настройка семьи', 'Настройка недоступна или отключена.', 'Тип', 'Категория', 'Задачи', 'Награды', 'Все категории', 'Просмотреть выбранное', 'Выбрано', 'Будет импортировано', 'Уже импортировано', 'Просмотр не изменяет данные. Только после отдельного подтверждения импортируются частные шаблоны и завершается настройка; задачи и награды не активируются.', 'Не удалось проверить выбор. Обновите страницу.'],
+  de: ['Ersteinrichtung der Familie', 'Einrichtung nicht verfügbar oder deaktiviert.', 'Typ', 'Kategorie', 'Aufgaben', 'Belohnungen', 'Alle Kategorien', 'Auswahl prüfen', 'Ausgewählt', 'Zu importieren', 'Bereits importiert', 'Die Vorschau ändert nichts. Erst nach ausdrücklicher Bestätigung werden private Vorlagen importiert und die Einrichtung abgeschlossen; Aufgaben und Belohnungen bleiben inaktiv.', 'Auswahl konnte nicht geprüft werden. Seite aktualisieren.'],
+  en: ['Initial family setup', 'Setup is unavailable or disabled.', 'Type', 'Category', 'Tasks', 'Rewards', 'All categories', 'Review selection', 'Selected', 'To import', 'Already imported', 'Preview does not change data. Explicit confirmation imports private templates and completes setup without activating tasks or rewards.', 'Could not review selection. Refresh the page.'],
 }
 const setupSteps = {
   uk: { MEMBERS:'Учасники',MEMBER_GROUPS:'Групи учасників',WORK_NODE_GROUPS:'Папки завдань',CATALOG_SELECTION:'Вибір шаблонів',TASK_REVIEW:'Перевірка завдань',REWARD_REVIEW:'Перевірка нагород',FINAL_REVIEW:'Підсумкова перевірка' },
@@ -26,6 +26,12 @@ const setupStates = {
   en: { COMPLETE:'Complete',COMPLETED:'Completed',SKIPPED:'Skipped',PENDING:'Pending',IN_PROGRESS:'In progress' }
 }
 export default function InitialFamilySetupReview() {
+  const { currentUser } = useAuth()
+  const owner = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.username
+  return <InitialFamilySetupReviewContent key={`${owner}:${currentUser?.workspaceId}:${currentUser?.memberId}`} />
+}
+
+function InitialFamilySetupReviewContent() {
   const { i18n } = useTranslation()
   const lang = i18n.language.split('-')[0]
   const w = words[lang] || words.en
