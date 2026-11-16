@@ -28,6 +28,11 @@ class BackupSafetyTests(unittest.TestCase):
             "esac\n"
         )
         binary.chmod(0o755)
+        # Freeze the timestamp in this isolated fixture. The collision test must
+        # not pass by accidentally rolling over to the next wall-clock second.
+        date = fake / "date"
+        date.write_text("#!/bin/sh\\nprintf '20261116T120000Z\\\\n'\\n")
+        date.chmod(0o755)
         self.env = dict(os.environ, PATH=str(fake) + os.pathsep + os.environ.get("PATH", ""))
 
     def run_backup(self, **env):
