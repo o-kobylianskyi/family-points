@@ -100,6 +100,11 @@ const iconKeyForTemplate = item => {
 }
 
 export default function TemplatesPage() {
+  const { currentUser } = useAuth()
+  const key = [currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id, currentUser?.workspaceId, currentUser?.memberId].join(':')
+  return <TemplatesPageContent key={key} />
+}
+function TemplatesPageContent() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { i18n } = useTranslation()
   const lang = i18n.language.split('-')[0]
@@ -132,30 +137,23 @@ export default function TemplatesPage() {
   const requestGeneration = useRef(0)
   const editingRef = useRef(null)
   const workspaceRef = useRef(workspaceId)
-  if (workspaceRef.current !== workspaceId) { requestGeneration.current += 1; actionLock.current = false }
-  workspaceRef.current = workspaceId
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   useEffect(() => {
+    workspaceRef.current = workspaceId
     let alive = true
     const generation = requestGeneration.current
-    setBusy(false)
-    editingRef.current = null
-    setEconomySuggestions(null); setCatalog({ templates: [], packs: [] }); setPrivateItems([]); setSelected([]); setPackFilter('ALL'); setKindFilter('TASK'); setCategoryFilter('ALL'); setTemplateSearch(''); setShowAllTemplates(false); setPreview(null); setPreviewSelection(null); setEditing(null); setCreationDraft(null); setDraftText(''); setDraftMembers([]); setDraftPointTypes([]); setError(''); setNotice('')
     if (!workspaceId) return () => { alive = false }
     getEconomySuggestions(getAccessToken()).then(data => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) setEconomySuggestions(data) }).catch(() => { /* Suggestions optional; never block catalog browsing. */ })
     Promise.all([getTemplateCatalog(getAccessToken()), getPrivateTemplates(getAccessToken(), workspaceId)])
       .then(([a,b]) => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) { setCatalog(a || { templates: [], packs: [] }); setPrivateItems(Array.isArray(b) ? b : []) } })
       .catch(e => { if (alive && requestGeneration.current === generation && workspaceRef.current === workspaceId) setError(e) })
     return () => { alive = false }
-  // getAccessToken reads the current token at invocation; its function identity is
-  // not a workspace change and must not reset filters or reload media on locale renders.
-  }, [workspaceId])
+  }, [workspaceId, getAccessToken])
 
   useEffect(() => {
     let active = true
     const urls = []
-    setIconUrls({})
     if (!workspaceId) return () => { active = false }
     const token = getAccessToken()
     getMediaCatalog(token, workspaceId).then(async entries => {
@@ -173,9 +171,7 @@ export default function TemplatesPage() {
         }))
     }).catch(() => {})
     return () => { active = false; urls.forEach(url => URL.revokeObjectURL(url)) }
-  // getAccessToken reads the current token at invocation; its function identity is
-  // not a workspace change and must not reset filters or reload media on locale renders.
-  }, [workspaceId])
+  }, [workspaceId, getAccessToken])
 
   const suggestedByCode = new Map([...(economySuggestions?.tasks || []), ...(economySuggestions?.rewards || [])].map(entry => [entry.code, entry]))
   const importedCodes = new Set(privateItems.map(item => item.catalogCode).filter(Boolean))
@@ -194,13 +190,6 @@ export default function TemplatesPage() {
   const visibleNewCount = packItems.filter(item => !importedCodes.has(item.code)).length
   const selectedNewCodes = selected.filter(code => !importedCodes.has(code))
   const visibleSelectedCount = packItems.filter(item => selected.includes(item.code) && !importedCodes.has(item.code)).length
-  const selectVisible = checked => {
-    selectionRevision.current += 1
-    const codes = packItems.filter(item => !importedCodes.has(item.code)).map(item => item.code)
-    setSelected(current => checked ? [...new Set([...current, ...codes])] : current.filter(code => !codes.includes(code)))
-    setPreview(null)
-    setPreviewSelection(null)
-  }
   const toggle = code => { if (importedCodes.has(code)) return; selectionRevision.current += 1; setSelected(v => v.includes(code) ? v.filter(x=>x!==code) : [...v,code]); setPreview(null); setPreviewSelection(null) }
   const execute = async action => {
     if (actionLock.current) return
