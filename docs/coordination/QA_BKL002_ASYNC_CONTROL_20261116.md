@@ -67,3 +67,11 @@ QA posts receipt of four packets and one consolidated run matrix; Backend posts 
 - **QA → Backend P0 notification:** [Issue #15 comment 6928302234](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-6928302234). Backend source fix and independent retest required. #04–#11 now NEEDS_RETEST/FAILED_CI at 19adfe1b7; no current-source PASS. Historical #01–#03 27/27 PASS @419efb1 remains bounded, not same-SHA.
 - New [packet #11](requests/BKL002_QA_PACKET_20261116_CATEGORY_NATIVE_REPLAY.md) test-only two-independent-PostgreSQL native reward-category/link replay, mapped definition IDs, duplicate/foreign/tamper negatives; source committed, **not accepted**, current CI failure explicitly overlaps this case.
 - Do not execute real/manual tests until Backend and approved isolated environment; hold production Reset Execute HTTP423 / durable VERIFIED / BETA.
+
+
+## QA-012 retest pickup — Backend CI RED repair packet #12 (2026-11-16)
+
+- Received and read [BKL002-QA-20261116-12](requests/BKL002_QA_PACKET_20261116_CI_RED_REPAIR.md), `d5b1e85`. Source repairs `839e9f8` (two same-family source categories in fixture), `e1e4e2b` (avoid `Map.of.containsValue(null)` NPE and correct alphabetical authenticated category order), `9ccfe2e` (null target map explicitly denied with zero writes).
+- Verified historical failed Actions run [43947907960](https://github.com/o-kobylianskyi/family-points/actions/runs/43947907960): Java FAIL; full exact-SHA FAIL; report FAIL; Android/Web/Compose PASS. **No post-fix pinned Java/full CI PASS observed by QA**; #04–12 remain NEEDS_RETEST.
+- Prioritize the two formerly red tests in `DisposableRewardCategoryCrossDatabasePostgresTest` and `WorkspaceRewardObligationArchiveClosurePostgresTest`; assert two source categories, target null map security denial/no target writes, canonical sorted categories and correct category link replay without neighbor tenant changes. Then run packet #12 eight-class plus other 17-class #04–11 regression on exact SHA; full 4-component CI must independently execute before Release acceptance.
+- User-operated manual real tests deferred. All tests must use synthetic isolated PG; no `VERIFIED`, Reset Execute HTTP423, BETA HOLD.
