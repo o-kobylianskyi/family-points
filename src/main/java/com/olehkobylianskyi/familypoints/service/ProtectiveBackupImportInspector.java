@@ -21,7 +21,8 @@ public final class ProtectiveBackupImportInspector {
         "REWARD_OBLIGATIONS","REWARD_OBLIGATION_BLOCKED_CATEGORIES",
         "REWARD_OBLIGATION_BLOCKED_REWARDS","MEMBER_GROUPS",
         "WORK_NODES","MEDIA_ASSETS","MEDIA_BINDINGS","POINT_LEDGER","REPUTATION_LEDGER",
-        "GROUP_POINT_LEDGER","POINT_TYPES");
+        "GROUP_POINT_LEDGER","POINT_TYPES",
+        "POINT_EXCHANGE_RATES","POINT_EXCHANGE_REQUESTS");
     private final ProtectiveBackupPortableFile files;
     private final ProtectiveBackupArtifactCodec codec;
     private final ObjectMapper json=new ObjectMapper();
@@ -186,7 +187,8 @@ public final class ProtectiveBackupImportInspector {
                             || "MEDIA_BINDINGS".equals(name) || "MEDIA_ASSETS".equals(name)?"workspace_id":
                             java.util.Set.of("MEMBER_GROUPS","TASK_DEFINITIONS",
                                     "REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_REQUIREMENTS",
-                                    "REWARD_CATEGORIES","REWARD_OBLIGATIONS","POINT_TYPES","WORK_NODES")
+                                    "REWARD_CATEGORIES","REWARD_OBLIGATIONS","POINT_TYPES",
+                                    "POINT_EXCHANGE_RATES","WORK_NODES")
                                     .contains(name)?"family_id":null;
                     if(ownerColumn!=null && (!item.path(ownerColumn).isIntegralNumber()
                             || item.path(ownerColumn).asLong()!=targetWorkspace))
@@ -356,6 +358,105 @@ public final class ProtectiveBackupImportInspector {
                         blockers.add("MISSING_CATEGORY:POINT_TYPES");
                     else if(!rowIds.getOrDefault("POINT_TYPES",Set.of()).contains(ref.asLong()))
                         blockers.add("DANGLING_REFERENCE:"+financeCategory+"."+column);
+                }
+            }
+            checkParent(categories,rowIds,blockers,
+                    "POINT_EXCHANGE_RATES","from_point_type_id","POINT_TYPES");
+            checkParent(categories,rowIds,blockers,
+                    "POINT_EXCHANGE_RATES","to_point_type_id","POINT_TYPES");
+            checkParent(categories,rowIds,blockers,
+                    "POINT_EXCHANGE_REQUESTS","exchange_rate_id","POINT_EXCHANGE_RATES");
+            checkParent(categories,rowIds,blockers,
+                    "POINT_EXCHANGE_REQUESTS","from_point_type_id","POINT_TYPES");
+            checkParent(categories,rowIds,blockers,
+                    "POINT_EXCHANGE_REQUESTS","to_point_type_id","POINT_TYPES");
+            checkMemberParent(categories,blockers,"POINT_EXCHANGE_REQUESTS");
+            if(categories.has("POINT_EXCHANGE_RATES")) {
+                for(JsonNode rate:categories.path("POINT_EXCHANGE_RATES")) {
+                    long from=rate.path("from_point_type_id").asLong();
+                    long to=rate.path("to_point_type_id").asLong();
+                    if(from<=0 || to<=0 || from==to
+                            || !rate.path("from_amount").isIntegralNumber()
+                            || rate.path("from_amount").asLong()<=0
+                            || !rate.path("to_amount").isIntegralNumber()
+                            || rate.path("to_amount").asLong()<=0)
+                        blockers.add("INVALID_EXCHANGE_RATE");
+                }
+            }
+            if(categories.has("POINT_EXCHANGE_REQUESTS")) {
+                var rateById=new HashMap<Long,JsonNode>();
+                for(JsonNode rate:categories.path("POINT_EXCHANGE_RATES"))
+                    rateById.put(rate.path("id").asLong(),rate);
+                for(JsonNode request:categories.path("POINT_EXCHANGE_REQUESTS")) {
+                    var rate=rateById.get(request.path("exchange_rate_id").asLong());
+                    if(!request.path("status").isTextual()
+                            || !Set.of("PENDING","APPROVED","REJECTED","CANCELLED")
+                                .contains(request.path("status").asText())
+                            || !request.path("from_amount").isIntegralNumber()
+                            || request.path("from_amount").asLong()<=0
+                            || !request.path("to_amount").isIntegralNumber()
+                            || request.path("to_amount").asLong()<=0
+                            || !request.path("rate_from_amount").isIntegralNumber()
+                            || request.path("rate_from_amount").asLong()<=0
+                            || !request.path("rate_to_amount").isIntegralNumber()
+                            || request.path("rate_to_amount").asLong()<=0)
+                        blockers.add("INVALID_EXCHANGE_REQUEST");
+                    if(rate!=null
+                            && (rate.path("from_point_type_id").asLong()!=request.path("from_point_type_id").asLong()
+                                || rate.path("to_point_type_id").asLong()!=request.path("to_point_type_id").asLong()))
+                        blockers.add("EXCHANGE_REQUEST_RATE_CURRENCY_MISMATCH");
+                    // Original request snapshots, NOT current mutable rate
+                    // amounts, are the authoritative historical economic terms.
+                }
+            }
+            if(categories.has("POINT_LEDGER")) {
+                var pairs=new HashMap<Long,List<JsonNode>>();
+                for(JsonNode operation:categories.path("POINT_LEDGER")) {
+                    if(!"POINT_EXCHANGE".equals(operation.path("source_type").asText()))continue;
+                    long id=operation.path("source_id").asLong();
+                    if(!operation.path("source_id").isIntegralNumber() || id<=0)
+                        blockers.add("INVALID_EXCHANGE_LEDGER_SOURCE_ID");
+                    else pairs.computeIfAbsent(id,ignored->new ArrayList<>()).add(operation);
+                }
+                if(!pairs.isEmpty()) {
+                    if(!categories.has("POINT_EXCHANGE_REQUESTS"))
+                        blockers.add("MISSING_CATEGORY:POINT_EXCHANGE_REQUESTS");
+                    else {
+                        var requestById=new HashMap<Long,JsonNode>();
+                        for(JsonNode request:categories.path("POINT_EXCHANGE_REQUESTS"))
+                            requestById.put(request.path("id").asLong(),request);
+                        for(var entry:pairs.entrySet()) {
+                            var request=requestById.get(entry.getKey());
+                            if(request==null) {
+                                blockers.add("DANGLING_REFERENCE:POINT_LEDGER.source_id");
+                                continue;
+                            }
+                            var legs=entry.getValue();
+                            if(!"APPROVED".equals(request.path("status").asText()) || legs.size()!=2) {
+                                blockers.add("INVALID_EXCHANGE_LEDGER_PAIR");
+                                continue;
+                            }
+                            boolean spend=false,earn=false;
+                            for(JsonNode leg:legs) {
+                                long owner=leg.path("member_id").asLong();
+                                long pointType=leg.path("point_type_id").asLong();
+                                long amount=leg.path("amount").asLong();
+                                String kind=leg.path("type").asText();
+                                if(owner!=request.path("member_id").asLong()) {
+                                    blockers.add("EXCHANGE_LEDGER_OWNER_MISMATCH");
+                                    continue;
+                                }
+                                if(pointType==request.path("from_point_type_id").asLong()
+                                        && amount==-request.path("from_amount").asLong()
+                                        && "SPEND".equals(kind) && !spend)spend=true;
+                                else if(pointType==request.path("to_point_type_id").asLong()
+                                        && amount==request.path("to_amount").asLong()
+                                        && "EARN".equals(kind) && !earn)earn=true;
+                                else blockers.add("EXCHANGE_LEDGER_ECONOMICS_MISMATCH");
+                            }
+                            if(!spend || !earn)blockers.add("INVALID_EXCHANGE_LEDGER_PAIR");
+                        }
+                    }
                 }
             }
             checkMemberParent(categories,blockers,"POINT_LEDGER");
