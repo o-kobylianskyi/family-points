@@ -22,7 +22,7 @@ public class WorkspaceProtectiveBackupService {
         "TASK_SCHEDULE_SLOTS","REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_REQUIREMENTS","REWARD_CATEGORIES","REWARD_DEFINITION_CATEGORIES","REWARD_OBLIGATIONS",
         "REWARD_OBLIGATION_BLOCKED_CATEGORIES","REWARD_OBLIGATION_BLOCKED_REWARDS",
         "REWARD_PURCHASES","MEMBER_GROUPS","WORK_NODES","MEDIA_ASSETS",
-        "MEDIA_BINDINGS","POINT_LEDGER","REPUTATION_LEDGER","GROUP_POINT_LEDGER");
+        "MEDIA_BINDINGS","POINT_TYPES","POINT_LEDGER","REPUTATION_LEDGER","GROUP_POINT_LEDGER");
     public WorkspaceProtectiveBackupService(JdbcTemplate db, WorkspaceEpochTransactionGuard epoch,
             WorkspaceResetSnapshotService sourceSnapshots) {
         this.db=db; this.epoch=epoch; this.sourceSnapshots=sourceSnapshots;
