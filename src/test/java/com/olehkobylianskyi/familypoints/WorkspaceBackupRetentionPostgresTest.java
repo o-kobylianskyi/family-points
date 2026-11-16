@@ -79,5 +79,25 @@ class WorkspaceBackupRetentionPostgresTest {
         assertThrows(ResponseStatusException.class,()->tx.execute(s->
                 service.acquireVerifiedLease(a,snapshot,Duration.ofMinutes(5))));
         assertEquals(0L,db.queryForObject("SELECT count(*) FROM workspace_backup_restore_leases WHERE snapshot_id=?",Long.class,snapshot));
+        // Simulate a separate, independently verified rehearsal result inside
+        // disposable PostgreSQL, not a production verification code path.
+        db.update("""
+            UPDATE workspace_protective_backups
+            SET state='VERIFIED',encrypted=TRUE,storage_key=?,
+                manifest_sha256=?,restore_verified_at=NOW(),verified_at=NOW(),
+                artifact_sha256=?,artifact_bytes=120,artifact_stored_at=NOW()
+            WHERE snapshot_id=? AND workspace_id=?
+            ""","local:v1:"+a+"/"+snapshot+".fpbackup",
+                "c".repeat(64),"b".repeat(64),snapshot,a);
+        UUID lease=tx.execute(s->service.acquireVerifiedLease(a,snapshot,Duration.ofMinutes(5)));
+        assertNotNull(lease);
+        assertEquals(1L,db.queryForObject("""
+                SELECT count(*) FROM workspace_backup_restore_leases
+                WHERE snapshot_id=? AND workspace_id=? AND expires_at>NOW()
+                """,Long.class,snapshot,a));
+        assertTrue(tx.execute(s->service.release(a,snapshot,lease)));
+        assertFalse(tx.execute(s->service.release(a,snapshot,lease)));
+        assertThrows(IllegalArgumentException.class,()->tx.execute(s->
+                service.acquireVerifiedLease(a,snapshot,Duration.ofMinutes(16))));
     }
 }
