@@ -43,8 +43,8 @@ final class DisposableRewardCategoryRestoreExecutor {
         var inspection=inspector.inspect(file,source,key);
         if(!"V50".equals(inspection.schemaVersion())
                 || !inspection.availableCategories().equals(List.of(
-                    "REWARD_CATEGORIES","REWARD_DEFINITIONS",
-                    "REWARD_DEFINITION_CATEGORIES")))
+                    "REWARD_CATEGORIES","REWARD_DEFINITION_CATEGORIES",
+                    "REWARD_DEFINITIONS")))
             throw new IllegalArgumentException("CATEGORY_REPLAY_SCOPE_UNSUPPORTED");
 
         var envelope=portable.decode(file);
@@ -77,7 +77,7 @@ final class DisposableRewardCategoryRestoreExecutor {
                 throw new SecurityException("CATEGORY_DEFINITION_SOURCE_INVALID");
         }
         if(!definitionIds.keySet().equals(sourceDefinitionIds)
-                || definitionIds.containsValue(null)
+                || definitionIds.values().stream().anyMatch(Objects::isNull)
                 || new HashSet<>(definitionIds.values()).size()!=definitionIds.size())
             throw new SecurityException("CATEGORY_DEFINITION_REMAP_INCOMPLETE");
         var linkKeys=new HashSet<String>();
