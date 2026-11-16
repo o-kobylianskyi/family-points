@@ -67,6 +67,35 @@ jobs:
             --tests 'com.olehkobylianskyi.familypoints.android.network.OfflinePointsReplayHttpTest.lostResponseKeepsOriginalIdForExplicitIdempotentReconciliation' \
             --tests 'com.olehkobylianskyi.familypoints.android.network.TemplateReceiptHttpFaultTest.lostActivationPostResponseRecoveredOnlyByGetWithSameUuid'
 
+      - name: Require exact three regression test XML results
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib, sys, xml.etree.ElementTree as ET
+          root = pathlib.Path("app/build/test-results/testDebugUnitTest")
+          cases = {
+              "lostActivationResponseRecoversWithOriginalIdAndNoRepost",
+              "lostResponseKeepsOriginalIdForExplicitIdempotentReconciliation",
+              "lostActivationPostResponseRecoveredOnlyByGetWithSameUuid",
+          }
+          seen = {}
+          for path in root.glob("TEST-*.xml"):
+              suite = ET.parse(path).getroot()
+              for case in suite.iter("testcase"):
+                  name = case.get("name", "")
+                  if name in cases:
+                      seen.setdefault(name, []).append((case.get("classname"), len(case.findall("failure")), len(case.findall("error")), len(case.findall("skipped"))))
+          print("Android P0 exact regressions on source SHA:")
+          failed = False
+          for name in sorted(cases):
+              matches = seen.get(name, [])
+              ok = len(matches) == 1 and all(v == 0 for v in matches[0][1:])
+              print(f"  {name}: {'PASS' if ok else 'MISSING, DUPLICATED OR FAILED'}")
+              failed |= not ok
+          if failed:
+              sys.exit("Missing or failed Android P0 regression in generated test XML")
+          PY
+
       - name: Run optional full Android JVM suite and build both debug APKs
         if: github.event_name == 'workflow_dispatch' && inputs.full_suite
         run: |
