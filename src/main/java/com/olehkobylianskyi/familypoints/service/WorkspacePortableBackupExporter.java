@@ -37,6 +37,11 @@ public class WorkspacePortableBackupExporter {
         Map.entry("REWARD_REQUESTS",new Scope("reward_requests","t.family_id=?")),
         Map.entry("REWARD_REQUIREMENTS",new Scope("reward_requirements","t.family_id=?")),
         Map.entry("REWARD_CATEGORIES",new Scope("reward_categories","t.family_id=?")),
+        Map.entry("REWARD_OBLIGATIONS",new Scope("reward_obligations","t.family_id=?")),
+        Map.entry("REWARD_OBLIGATION_BLOCKED_CATEGORIES",new Scope("reward_obligation_blocked_categories",
+            "EXISTS (SELECT 1 FROM reward_obligations o WHERE o.id=t.obligation_id AND o.family_id=?)")),
+        Map.entry("REWARD_OBLIGATION_BLOCKED_REWARDS",new Scope("reward_obligation_blocked_rewards",
+            "EXISTS (SELECT 1 FROM reward_obligations o WHERE o.id=t.obligation_id AND o.family_id=?)")),
         Map.entry("REWARD_DEFINITION_CATEGORIES",new Scope("reward_definition_categories",
             "EXISTS (SELECT 1 FROM reward_definitions d WHERE d.id=t.reward_definition_id AND d.family_id=?)")),
         Map.entry("WORK_NODES",new Scope("work_nodes","t.family_id=?")),
@@ -154,6 +159,68 @@ public class WorkspacePortableBackupExporter {
                          || !selected.contains("REWARD_CATEGORIES"))))
                     throw new IllegalStateException("BACKUP_REWARD_CATEGORY_PARENT_MISSING");
             }
+            if("REWARD_OBLIGATIONS".equals(category)) {
+                Long invalid=db.queryForObject("""
+                        SELECT count(*) FROM reward_obligations t
+                        LEFT JOIN family_members m ON m.id=t.member_id
+                        LEFT JOIN reward_purchases p ON p.id=t.reward_purchase_id
+                        LEFT JOIN family_members buyer ON buyer.id=p.member_id
+                        LEFT JOIN reward_requirements req ON req.id=t.requirement_id
+                        WHERE t.family_id=? AND
+                          (m.id IS NULL OR m.family_id<>t.family_id
+                           OR p.id IS NULL OR buyer.family_id<>t.family_id
+                           OR (t.requirement_id IS NOT NULL
+                               AND (req.id IS NULL OR req.family_id<>t.family_id)))
+                        """,Long.class,workspaceId);
+                if(invalid==null || invalid!=0L)
+                    throw new SecurityException("BACKUP_REWARD_OBLIGATION_FOREIGN_RELATION");
+                Long linked=db.queryForObject("""
+                        SELECT count(*) FROM reward_obligations WHERE family_id=?
+                        """,Long.class,workspaceId);
+                Long required=db.queryForObject("""
+                        SELECT count(*) FROM reward_obligations
+                        WHERE family_id=? AND requirement_id IS NOT NULL
+                        """,Long.class,workspaceId);
+                if(linked==null || required==null
+                        || (linked>0 && !selected.contains("REWARD_PURCHASES"))
+                        || (required>0 && !selected.contains("REWARD_REQUIREMENTS")))
+                    throw new IllegalStateException("BACKUP_REWARD_OBLIGATION_PARENT_MISSING");
+                Long blockedCats=db.queryForObject("""
+                        SELECT count(*) FROM reward_obligation_blocked_categories b
+                        JOIN reward_obligations o ON o.id=b.obligation_id
+                        WHERE o.family_id=?
+                        """,Long.class,workspaceId);
+                Long blockedRewards=db.queryForObject("""
+                        SELECT count(*) FROM reward_obligation_blocked_rewards b
+                        JOIN reward_obligations o ON o.id=b.obligation_id
+                        WHERE o.family_id=?
+                        """,Long.class,workspaceId);
+                if(blockedCats==null || blockedRewards==null
+                        || (blockedCats>0 && !selected.contains("REWARD_OBLIGATION_BLOCKED_CATEGORIES"))
+                        || (blockedRewards>0 && !selected.contains("REWARD_OBLIGATION_BLOCKED_REWARDS")))
+                    throw new IllegalStateException("BACKUP_REWARD_OBLIGATION_BLOCKS_MISSING");
+            }
+            if("REWARD_OBLIGATION_BLOCKED_CATEGORIES".equals(category)
+                    || "REWARD_OBLIGATION_BLOCKED_REWARDS".equals(category)) {
+                boolean categoryLink="REWARD_OBLIGATION_BLOCKED_CATEGORIES".equals(category);
+                String table=categoryLink?"reward_obligation_blocked_categories":"reward_obligation_blocked_rewards";
+                String parent=categoryLink?"reward_categories":"reward_definitions";
+                String fk=categoryLink?"category_id":"reward_definition_id";
+                Long invalid=db.queryForObject(
+                        "SELECT count(*) FROM "+table+" b JOIN reward_obligations o ON o.id=b.obligation_id "
+                        +"LEFT JOIN "+parent+" x ON x.id=b."+fk
+                        +" WHERE o.family_id=? AND (x.id IS NULL OR x.family_id<>o.family_id)",
+                        Long.class,workspaceId);
+                if(invalid==null || invalid!=0L)
+                    throw new SecurityException("BACKUP_REWARD_OBLIGATION_BLOCK_FOREIGN_RELATION");
+                Long links=db.queryForObject(
+                        "SELECT count(*) FROM "+table+" b JOIN reward_obligations o ON o.id=b.obligation_id "
+                        +"WHERE o.family_id=?",Long.class,workspaceId);
+                String requiredCategory=categoryLink?"REWARD_CATEGORIES":"REWARD_DEFINITIONS";
+                if(links==null || (links>0 && (!selected.contains("REWARD_OBLIGATIONS")
+                        || !selected.contains(requiredCategory))))
+                    throw new IllegalStateException("BACKUP_REWARD_OBLIGATION_BLOCK_PARENT_MISSING");
+            }
             if("REWARD_REQUIREMENTS".equals(category)) {
                 Long foreign=db.queryForObject("""
                         SELECT count(*) FROM reward_requirements t
@@ -209,7 +276,7 @@ public class WorkspacePortableBackupExporter {
                         JOIN family_members m ON m.id=p.member_id
                         WHERE m.family_id=?
                         """,Long.class,workspaceId);
-                if(unexported==null || unexported!=0L)
+                if(unexported==null || (unexported!=0L && !selected.contains("REWARD_OBLIGATIONS")))
                     throw new IllegalStateException("BACKUP_UNEXPORTED_REWARD_OBLIGATIONS");
             }
             if("REWARD_PURCHASES".equals(category)) {
