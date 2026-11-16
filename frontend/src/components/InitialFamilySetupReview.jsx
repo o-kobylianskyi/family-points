@@ -184,7 +184,7 @@ function InitialFamilySetupReviewContent() {
     } catch { if (activeScope.current === scope) setError(true) }
     finally { if (activeScope.current === scope) setBusy(false) }
   }
-  return <section className="settings-section" aria-label="Initial family setup">
+  return <section id="initial-family-setup" className="settings-section" aria-label="Initial family setup">
     <h2>{w[0]}</h2>
     <p>{w[11]}</p>
     {unavailable && <p role="status">{w[1]}</p>}
