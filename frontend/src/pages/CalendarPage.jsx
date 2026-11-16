@@ -77,12 +77,12 @@ export default function CalendarPage(){
     const end=lastMonth(focus)
     return {from,to:add(end,6-(fromISO(end).getDay()+6)%7)}
   },[focus,view])
-  useEffect(()=>{let active=true;setZone('')
+  useEffect(()=>{let active=true;Promise.resolve().then(()=>{if(active)setZone('')})
     getCalendarTimeZone(getAccessToken(),workspaceId).then(r=>{if(active)setZone(typeof r==='string'?r:r.timeZone||r.workspaceTimeZone||'UTC')}).catch(()=>{})
     return()=>{active=false}
   },[workspaceId,getAccessToken])
   useEffect(()=>{
-    let active=true;setLoading(true);setError('')
+    let active=true;Promise.resolve().then(()=>{if(active){setLoading(true);setError('')}})
     if(daysBetween(interval.from,interval.to)>62){setError('Range exceeds 62 days');setLoading(false);return}
     getCalendar(getAccessToken(),workspaceId,{...interval,type}).then(data=>{
       if(active){setEvents(Array.isArray(data)?data:[]);setLoading(false)}
