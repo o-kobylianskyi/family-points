@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending} from '../src/utils/setupFinalizeSafety.js'
+import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES} from '../src/utils/setupFinalizeSafety.js'
 
 const operation = () => ({
   accountId: 'account-A',workspaceId: 14,epoch: 3,revision: 7,
@@ -45,4 +45,37 @@ test('V49 cross-tab marker reconciliation rejects foreign or conflicting operati
   assert.deepEqual(reconcileSetupPending(first,{...first, epoch:4},14,'account-A'),{blocked:true})
   assert.deepEqual(reconcileSetupPending(null,{...first,workspaceId:15},14,'account-A'),{blocked:true})
   assert.deepEqual(reconcileSetupPending(null,{blocked:true},14,'account-A'),{blocked:true})
+})
+
+test('V49 state honors empty V46 steps but rejects malformed and prematurely completed wizard',()=>{
+  const initial={workspaceId:14,dataEpoch:0,revision:0,status:'NOT_STARTED',steps:{}}
+  assert.deepEqual(assertSetupState(initial,14),initial)
+  const full=Object.fromEntries(SETUP_STEP_CODES.map(code=>[code,'COMPLETE']))
+  const complete={...initial,revision:7,status:'COMPLETED',steps:full}
+  assert.deepEqual(assertSetupState(complete,14),complete)
+  for(const bad of [
+    {...initial,workspaceId:15}, {...initial,dataEpoch:-1},
+    {...initial,revision:1.5},{...initial,steps:null},
+    {...initial,steps:{OTHER:'COMPLETE'}}, {...initial,steps:{MEMBERS:'BAD'}},
+    {...initial,status:'COMPLETED',steps:{}},
+    {...complete,steps:{...full,FINAL_REVIEW:'PENDING'}},
+    {...initial,status:'IN_PROGRESS',steps:[]},
+  ])assert.throws(()=>assertSetupState(bad,14))
+})
+test('V49 review verifies immutable epoch/revision/code ordering and complete counts',()=>{
+  const state={workspaceId:14,dataEpoch:3,revision:7,status:'IN_PROGRESS',steps:{}}
+  const codes=['TASK_A','REWARD_B']
+  const review={workspaceId:14,dataEpoch:3,revision:7,setupStatus:'IN_PROGRESS',
+    selectedCount:2,toImportCount:1,alreadyImportedCount:1,
+    selectedCodes:codes,toImport:['TASK_A'],alreadyImported:['REWARD_B'],
+    requiresExplicitConfirmation:true,createsActiveDefinitions:false}
+  assert.deepEqual(assertSetupReview(review,state,codes),review)
+  for(const invalid of [
+    {workspaceId:15},{dataEpoch:4},{revision:8},{setupStatus:'COMPLETED'},
+    {selectedCount:3},{toImportCount:0},{alreadyImportedCount:0},
+    {requiresExplicitConfirmation:false},{createsActiveDefinitions:true},
+    {selectedCodes:[...codes].reverse()},{toImport:['REWARD_B']},
+    {alreadyImported:['FOREIGN']},{toImport:['TASK_A','TASK_A'],toImportCount:2},
+  ])assert.throws(()=>assertSetupReview({...review,...invalid},state,codes))
+  assert.throws(()=>assertSetupReview(review,state,['TASK_A','TASK_A']))
 })
