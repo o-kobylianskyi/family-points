@@ -12,8 +12,9 @@ import java.util.*;
  * grant points, infer an unsupported source_type or modify a database.
  */
 final class DisposableLedgerSourceGraphVerifier {
-    record Result(int manualRows,int taskRows,Map<Long,Long> ledgerToTaskSource,
-                  UUID snapshotId) {}
+    record Result(int manualRows,int taskRows,int purchaseRows,
+                  Map<Long,Long> ledgerToTaskSource,
+                  Map<Long,Long> ledgerToPurchaseSource,UUID snapshotId) {}
     private final ProtectiveBackupImportInspector inspector;
     private final ProtectiveBackupPortableFile file;
     private final ProtectiveBackupArtifactCodec codec;
@@ -55,6 +56,16 @@ final class DisposableLedgerSourceGraphVerifier {
                     || taskRows.putIfAbsent(task.path("id").asLong(),task)!=null)
                 throw new SecurityException("LEDGER_SOURCE_TASK_INVALID");
         }
+        var purchaseRows=new HashMap<Long,JsonNode>();
+        for(JsonNode original:root.path("REWARD_PURCHASES")) {
+            long id=original.path("id").asLong();
+            if(!original.path("id").isIntegralNumber() || id<=0
+                    || !original.path("member_id").isIntegralNumber()
+                    || !original.path("point_type_id").isIntegralNumber()
+                    || !original.path("price_amount").isIntegralNumber()
+                    || purchaseRows.putIfAbsent(id,original)!=null)
+                throw new SecurityException("LEDGER_SOURCE_PURCHASE_INVALID");
+        }
         var typeIds=new HashSet<Long>();
         for(JsonNode pointType:root.path("POINT_TYPES")) {
             if(pointType.path("family_id").asLong()!=source
@@ -64,8 +75,9 @@ final class DisposableLedgerSourceGraphVerifier {
                     || pointType.path("code").asText().isBlank())
                 throw new SecurityException("LEDGER_SOURCE_CURRENCY_INVALID");
         }
-        int manual=0,task=0;
+        int manual=0,task=0,purchaseCount=0;
         var relationships=new TreeMap<Long,Long>();
+        var purchaseRelationships=new TreeMap<Long,Long>();
         var ledgerIds=new HashSet<Long>();
         for(JsonNode row:root.path("POINT_LEDGER")) {
             long id=row.path("id").asLong();
@@ -93,12 +105,30 @@ final class DisposableLedgerSourceGraphVerifier {
                     throw new SecurityException("LEDGER_TASK_SOURCE_MEMBER_MISMATCH");
                 relationships.put(id,taskId);
                 task++;
+            } else if("REWARD_PURCHASE".equals(sourceType)) {
+                if(!row.path("source_id").isIntegralNumber()
+                        || row.path("source_id").asLong()<=0)
+                    throw new SecurityException("LEDGER_PURCHASE_SOURCE_ID_INVALID");
+                long purchaseId=row.path("source_id").asLong();
+                JsonNode original=purchaseRows.get(purchaseId);
+                if(original==null)
+                    throw new SecurityException("LEDGER_PURCHASE_SOURCE_NOT_ARCHIVED");
+                long price=original.path("price_amount").asLong();
+                if(original.path("member_id").asLong()!=member
+                        || original.path("point_type_id").asLong()!=currency
+                        || price<=0 || price>Integer.MAX_VALUE
+                        || row.path("amount").asLong()!=-price
+                        || !"SPEND".equals(row.path("type").asText()))
+                    throw new SecurityException("LEDGER_PURCHASE_ECONOMICS_MISMATCH");
+                purchaseRelationships.put(id,purchaseId);
+                purchaseCount++;
             } else {
                 // No source_type guessing. REWARD_PURCHASE, EXCHANGE, REFUND,
                 // ADJUSTMENT and unknown legacy types need dedicated proof.
                 throw new SecurityException("LEDGER_SOURCE_TYPE_UNSUPPORTED:"+sourceType);
             }
         }
-        return new Result(manual,task,Map.copyOf(relationships),inspected.snapshotId());
+        return new Result(manual,task,purchaseCount,
+                Map.copyOf(relationships),Map.copyOf(purchaseRelationships),inspected.snapshotId());
     }
 }
