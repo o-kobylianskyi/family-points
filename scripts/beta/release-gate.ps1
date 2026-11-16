@@ -31,8 +31,9 @@ function Test-QaBase([string]$url) {
       -not $uri.Host -or $uri.UserInfo -or $uri.Query -or $uri.Fragment) {
     throw 'Invalid QA URL. Use an explicit http(s) origin without credentials, query or fragment.'
   }
-  if ($uri.Host -in @('family-point.com','www.family-point.com','api.family-point.com',
-      '184.174.37.206') -or $uri.Host.EndsWith('.family-point.com') -and $uri.Host -notmatch '^(dev|qa|staging)[.]family-point[.]com
+  $hostName = $uri.Host.ToLowerInvariant()
+  $blockedHosts = @('family-point.com','www.family-point.com','api.family-point.com','184.174.37.206')
+  if (($hostName -in $blockedHosts) -or $hostName.EndsWith('.family-point.com')) {
     throw 'Production/BETA host is forbidden for QA. Use an isolated QA endpoint.'
   }
   # The domain alone is not proof of isolation; operator must choose an authorized disposable QA instance.
