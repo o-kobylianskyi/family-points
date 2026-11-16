@@ -20,6 +20,12 @@
 - `WorkspaceFinancialRestoreClosureService` read-only inventories twelve economic categories, with always `replaySupported=false`; no `VERIFIED` promotion. Previous source/test commits chronologically in `docs/coordination/logs/backend.md`.
 - Tests `DisposableCrossDatabasePortableRestorePostgresTest`, `DisposableGroupLedgerCrossDatabasePostgresTest`, `DisposableRewardCategoryCrossDatabasePostgresTest`; specialized executors are in `src/test` ONLY. Actual production full restore not implemented.
 
+## Latest completed source-only Backend package #13 (2026-11-16)
+- Test-only native REWARD_REQUIREMENTS replay: `DisposableRewardRequirementRestoreExecutor.java` commit `e825afe0`, and two independent PostgreSQL 18 cross-DB test `DisposableRewardRequirementCrossDatabasePostgresTest.java` commit `4088b5e`. Authenticated V50 archive, explicit complete/injective source→target definition, request, task mappings, source parent FK checks, target tenant/epoch/empty history, transactional remap and source/neighbor invariance. NULL/foreign mappings, duplicate replay and tampered file denied; **NOT_RUN** at source-only connector, no production endpoint.
+- QA packet #13: `docs/coordination/requests/BKL002_QA_PACKET_20261116_REQUIREMENT_NATIVE_REPLAY.md` commit `15c0c62`; issue #15 comment `6928967238`. Prior CI repair QA #12 also awaiting latest-SHA retest; never infer PASS from previous 27/27.
+- **Next bounded P0:** test-only native REWARD_OBLIGATIONS plus blocked category/reward associations; explicit member, purchase, requirement, reward definition, category ID maps, target FK/epoch/rollback/no neighbor writes. Production VERIFIED, financial ledger closure, owner reauth and Reset Execute HTTP423 remain blocked.
+- Backend journal update: `491a1aaf`.
+
 ## Next action priority
 1. **First check #15 and current Actions jobs** for new results of patched regressions, ensure two previously red tests PASS. If FAIL, fix; do not weaken isolation or source closure assertions.
 2. **Next bounded code package:** test-only independent PostgreSQL native replay of `REWARD_REQUIREMENTS` then `REWARD_OBLIGATIONS` with explicit source→target ID maps for purchase, request, definition, task, member, currency, categories; reject unsupported historical dependency/source IDs. Include atomic rollback and cross-tenant proof; no production API.
