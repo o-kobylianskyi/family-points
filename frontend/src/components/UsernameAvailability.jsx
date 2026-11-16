@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { API_URL } from '../api/baseUrl'
 
-export default function UsernameAvailability({ username, currentUsername = '', onResult }) {
+export default function UsernameAvailability(props) {
+  return <UsernameAvailabilityContent key={`${props.username}:${props.currentUsername || ''}`} {...props} />
+}
+function UsernameAvailabilityContent({ username, currentUsername = '', onResult }) {
   const { t } = useTranslation()
   const [result, setResult] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -10,10 +13,9 @@ export default function UsernameAvailability({ username, currentUsername = '', o
   const unchanged = currentUsername && normalized.toLowerCase() === currentUsername.trim().toLowerCase()
   const valid = /^[A-Za-z0-9._-]{3,64}$/.test(normalized)
 
-  useEffect(() => {
-    setResult(null)
-    onResult?.(null)
-  }, [username, currentUsername])
+  const notifyRef = useRef(onResult)
+  useEffect(() => { notifyRef.current = onResult }, [onResult])
+  useEffect(() => { notifyRef.current?.(null) }, [username, currentUsername])
 
   const check = async () => {
     if (!valid) { setResult('invalid'); onResult?.(false); return }
