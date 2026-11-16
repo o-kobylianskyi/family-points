@@ -28,3 +28,17 @@ npx playwright test tests/onboarding-v49-synthetic-readonly.spec.js tests/onboar
 ```
 
 This is synthetic UI coverage only. **No manual live-test request to operator from Web**; QA is the sole operator-facing coordinator.
+
+
+## WEB-02 incremental cross-tab regression handoff (2026-11-16; code `c731a06`)
+
+**New source hardening:** `ownsSetupFinalizeMarkers()` checks that session and shared browser markers both match the entire immutable operation. After staging and immediately before invoking `finalizeSetupImport`, Web re-reads markers and fails closed on missing/foreign/competing values. This is best-effort local browser defense, NOT a cross-tab atomic transaction: Backend expectedRevision/dataEpoch/idempotency enforcement remains mandatory.
+
+QA synthetic/browser checks (intercept all V49 writes, do not touch any real family):
+1. **Two-tabs competing UUID:** stage tab A original UUID, then overwrite shared marker from tab B with another valid UUID before A dispatch. Expected: A attempts **zero** finalize POST after mismatch, UI remains pending/blocked; never creates a replacement UUID.
+2. **Foreign marker fields:** change one of workspaceId/accountId/epoch/revision/ordered codes, keeping UUID equal. Expected: zero finalize POST, no cleanup of competing shared marker.
+3. **Same identity:** session and shared values match exact staged operation, single finalize POST allowed; lost response remains pending and GET receipt+completed state required before clearing.
+4. **Cross-tab receipt cleanup:** valid completion in tab A may clear only matching markers; a foreign marker inserted before cleanup is preserved/blocked. No second POST in either tab.
+5. **Missing marker or storage failure:** missing shared/session, corrupted JSON, or storage access denied must fail closed with no newly generated finalize POST. Backend reconciliation remains required after an uncertain sent request.
+
+Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separately; real feature-enabled workflow remains only in independently authorized disposable QA workspace. No BKL-002 execute/restore, PROD or BETA.
