@@ -11,7 +11,7 @@ import java.util.*;
  * SQL rollback does not roll back file creation: orphan reconciliation is required.
  */
 @Service
-public final class WorkspaceBackupRegistryStagingCoordinator {
+public class WorkspaceBackupRegistryStagingCoordinator {
     private final WorkspaceProtectiveBackupService registry;
     private final WorkspaceBackupArtifactStagingService staging;
     private final WorkspaceBackupLocalArtifactStore storage;
