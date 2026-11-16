@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
@@ -84,7 +84,7 @@ function FamilySetupContent() {
   const revision = useRef(0)
   const lock = useRef(false)
   const workspaceRef = useRef(workspaceId)
-  const load = async (id, request, preserveError = false) => {
+  const load = useCallback(async (id, request, preserveError = false) => {
     setBusy(true); if (!preserveError) setError(''); setPreview(null)
     try {
       const [nextCatalog, nextOwned, groupResult, workResult] = await Promise.all([
@@ -101,12 +101,16 @@ function FamilySetupContent() {
     } finally {
       if (generation.current === request && workspaceRef.current === id) setBusy(false)
     }
-  }
+  }, [getAccessToken, t])
   useEffect(() => {
     const request = ++generation.current
-    if (workspaceId && canManageSetup) load(workspaceId, request).finally(() => { if (generation.current === request) setDraftReady(true) })
-    return () => { generation.current++ }
-  }, [workspaceId, draftStorageKey, importStorageKey, canManageSetup])
+    const guard = generation
+    if (workspaceId && canManageSetup) {
+      void Promise.resolve().then(() => load(workspaceId, request))
+        .finally(() => { if (guard.current === request) setDraftReady(true) })
+    }
+    return () => { guard.current += 1 }
+  }, [workspaceId, canManageSetup, load])
   const ownedCodes = new Set(owned.map(item => item.catalogCode).filter(Boolean))
   const available = catalog.templates.filter(item => !ownedCodes.has(item.code))
   const filtered = catalog.templates.filter(item =>
