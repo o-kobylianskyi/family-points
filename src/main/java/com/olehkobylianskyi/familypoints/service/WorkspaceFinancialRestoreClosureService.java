@@ -43,6 +43,8 @@ public final class WorkspaceFinancialRestoreClosureService {
                     "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)"),
                 new Scope("GROUP_POINT_LEDGER","group_point_transactions",
                     "EXISTS (SELECT 1 FROM member_groups g WHERE g.id=t.group_id AND g.family_id=?)"),
+                new Scope("REWARD_OBLIGATIONS_UNEXPORTED","reward_obligations","t.family_id=?"),
+                new Scope("REWARD_REQUIREMENTS_UNEXPORTED","reward_requirements","t.family_id=?"),
                 new Scope("REWARD_PURCHASES","reward_purchases",
                     "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)"),
                 new Scope("REWARD_REQUESTS","reward_requests","t.family_id=?"),
@@ -68,6 +70,8 @@ public final class WorkspaceFinancialRestoreClosureService {
                     blockers.add("RESTORE_DEPENDENCY_NOT_SELECTED:"+spec.category());
                 if("GROUP_POINT_LEDGER".equals(spec.category()))
                     blockers.add("RESTORE_GROUP_LEDGER_REPLAY_UNIMPLEMENTED");
+                if(spec.category().endsWith("_UNEXPORTED"))
+                    blockers.add("RESTORE_CATEGORY_NOT_EXPORTABLE:"+spec.category());
             }
         }
         // An all-zero history is not sufficient: the native restore must
