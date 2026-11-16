@@ -48,8 +48,7 @@ public final class WorkspaceBackupRetentionService {
         if(rows.size()!=1 || !"VERIFIED".equals(rows.get(0).get("state"))
                 || rows.get(0).get("restore_verified_at")==null
                 || rows.get(0).get("artifact_sha256")==null
-                || !((OffsetDateTime)rows.get(0).get("expires_at"))
-                    .isAfter(OffsetDateTime.now()))
+                || !unexpired(rows.get(0).get("expires_at")))
             throw new ResponseStatusException(HttpStatus.LOCKED,"BACKUP_NOT_RESTORABLE");
         UUID leaseId=UUID.randomUUID();
         int count=db.update("""
@@ -59,6 +58,14 @@ public final class WorkspaceBackupRetentionService {
             """,leaseId,snapshotId,workspaceId,duration.toSeconds());
         if(count!=1)throw new IllegalStateException("BACKUP_LEASE_INSERT_FAILED");
         return leaseId;
+    }
+
+    private static boolean unexpired(Object expires) {
+        if(expires instanceof OffsetDateTime value)
+            return value.toInstant().isAfter(java.time.Instant.now());
+        if(expires instanceof java.sql.Timestamp value)
+            return value.toInstant().isAfter(java.time.Instant.now());
+        throw new SecurityException("BACKUP_EXPIRY_TYPE_UNEXPECTED");
     }
 
     @Transactional
