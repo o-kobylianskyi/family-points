@@ -1,5 +1,23 @@
 # FamilyPoints — mandatory rules for every project chat/agent
 
+## MANDATORY FOR ALL FAMILYPOINTS CHATS — CONTEXT CAPACITY WARNINGS AND EARLY HANDOFF (user decision 2026-11-16)
+
+**Applies to:** Architecture/Planning, Backend, Web, Android, QA/Testing, Release/DevOps, Designer and every future role/project chat using this repository. This is an operational rule, NOT a product feature, and takes priority over routine discussion convenience.
+
+- **Warning milestones:** notify the user at estimated context utilization **50%, 75%, 85%, 90%, 95%, then every further 5 percentage points while possible**. Do not wait until the model can no longer generate a handoff.
+- **Honesty about measurement:** chats/agents generally have **no authoritative token-usage percentage, remaining-context counter, or reliable cross-turn real-time measurement**. Never display invented exact usage percentages or assert a threshold was crossed without supporting evidence. If only a heuristic is possible, explicitly label it "**орієнтовна оцінка, не системний лічильник**", and prefer an early warning over false precision. If estimation is not credible, proactively warn that context is long and prepare a handoff without percentages.
+- **When to check:** review capacity risk **at each meaningful user turn and before a large code/file/log/tool batch**. A chat cannot monitor silently or notify between user turns without a supported scheduled mechanism; do not promise automatic background alerts or messages to other chats.
+- **At 50% (estimated):** brief warning; ensure current decisions, task ownership, source SHA and blockers are in durable repository docs.
+- **At 75% (estimated):** warn; create/update **a real continuation handoff draft** for the current track under `docs/coordination/handoffs/` (or a track journal + HANDOFF_TEMPLATE if directory is unavailable). Include tested vs untested, latest GitHub SHA, outstanding tasks and references; link it to the user.
+- **At 85% (estimated):** **finalize and commit** the self-contained handoff, verify the exact file/commit is available on `main`, and proactively recommend starting a fresh conversation. Do not postpone this until 95%.
+- **At 90%, 95% and every further 5% (estimated):** short repeated warning only while this chat remains active; make sure handoff has been refreshed with any new work. If a safe handoff is not yet committed, prioritize it **immediately over optional work**.
+- **Immediately on danger signs**, independent of percentage (loss of older context, repeated truncation or summaries, very long source dumps, inability to retrieve recent history): produce and commit handoff at the next possible turn; say if the handoff could not be committed.
+- **Handoff must contain:** exact track and intended new-chat name, repo/branch and verified SHA/date, goal and current priorities, completed vs partially implemented vs only planned work, changed files/commits, commands and real PASS/FAIL/SKIP evidence, CI run IDs, security/release holds, issues/ADR/IMP links, current blockers, next safe actions, and a ready-to-paste **new-chat opening message**. No credentials, private family data, or tokens.
+- **A new chat must begin by reading** `AGENTS.md`, this handoff and current GitHub HEAD, and reconcile drift since saved SHA. Creating a file **does not notify or automatically initialize other existing chats**: user or each role chat must explicitly retrieve the shared rule at their next pickup.
+- Do not turn rough conversation length or model token estimates into claimed percentages. The milestones are **requested advisory triggers**, not a guaranteed automatic alerting service.
+
+[Handoff template](docs/coordination/HANDOFF_TEMPLATE.md) · [Coordination hub](docs/coordination/README.md)
+
 ## TEMPORARY MANDATORY PRIORITY — INTERIM BETA FEATURE FREEZE (user decision 2026-10-24)
 - **Goal:** stabilize and release the CURRENT FamilyPoints functionality as an interim BETA before any new global product initiatives.
 - **Continue:** in-progress accepted Backend PR #4 calendar and PR #5 media as feasible for a safely qualified release, existing Web/Android integration, auth/offline/data integrity, regression fixes, testing, migrations, backups, signed APK and BETA smoke. Release decides what is actually ready; never equate committed, CI-passing, or planned with deployed.
