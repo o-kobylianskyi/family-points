@@ -24,6 +24,12 @@ const entries = [
 ]
 const indexes = {uk:0,ru:1,de:2,en:3}
 export default function FamilyDataSafetyPlan() {
+  const { currentUser } = useAuth()
+  const key = [currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id, currentUser?.workspaceId].join(':')
+  return <FamilyDataSafetyPlanContent key={key} />
+}
+
+function FamilyDataSafetyPlanContent() {
   const { i18n } = useTranslation()
   const language = i18n.language.split('-')[0]
   const w = dictionary[language] || dictionary.en
@@ -42,35 +48,26 @@ export default function FamilyDataSafetyPlan() {
   const [reload,setReload] = useState(0)
   const [detailReload,setDetailReload] = useState(0)
   useEffect(() => {
-    setBackups([]); setDetails(null); setSelectedSnapshot(null); setBackupError(false); setBackupLoading(false); setDetailBusy(false); setDetailError(false)
     if (!workspaceId || !canManage) return
     let alive = true
-    setBackupLoading(true); setBackupError(false); setBackups([]); setDetails(null); setSelectedSnapshot(null); setDetailError(false)
     listProtectiveBackups(getAccessToken(), workspaceId).then(result => {
       if (alive) setBackups(result)
     }).catch(() => { if (alive) setBackupError(true) })
       .finally(() => { if (alive) setBackupLoading(false) })
     return () => { alive = false }
-  // AuthProvider supplies a new getAccessToken function on render; do not refetch forever.
-  }, [workspaceId, accountScope, canManage, reload])
+  }, [workspaceId, accountScope, canManage, reload, getAccessToken])
   useEffect(() => {
     if (!canManage || !workspaceId || !selectedSnapshot) return
     let active = true
-    setDetailBusy(true); setDetailError(false); setDetails(null)
     getProtectiveBackup(getAccessToken(),workspaceId,selectedSnapshot)
       .then(result => { if (active) setDetails(result) })
       .catch(() => { if (active) setDetailError(true) })
       .finally(() => { if (active) setDetailBusy(false) })
     return () => { active = false }
-  }, [canManage,workspaceId,accountScope,selectedSnapshot,detailReload,reload])
+  }, [canManage,workspaceId,accountScope,selectedSnapshot,detailReload,reload,getAccessToken])
   const [tab,setTab] = useState('backup')
   const [mode,setMode] = useState('selective')
   const [chosen,setChosen] = useState(() => entries.filter(x=>x[1]).map(x=>x[0]))
-  // Selection is only a provisional local proposal: never carry it between families.
-  useEffect(() => {
-    setTab('backup'); setMode('selective')
-    setChosen(entries.filter(x => x[1]).map(x => x[0]))
-  }, [workspaceId, accountScope])
   const [restoreMode,setRestoreMode] = useState('selective')
   const [restoreChosen,setRestoreChosen] = useState([])
   // FULL is not "delete every checkbox": some categories reset to defaults,
@@ -94,7 +91,6 @@ export default function FamilyDataSafetyPlan() {
   }
   // No upload endpoint currently exists. Categories below are planning-only;
   // archive manifest and compatibility MUST come from validated server preview.
-  useEffect(() => { setRestoreChosen([]); setRestoreMode('selective') }, [workspaceId, accountScope])
   if (!canManage || !workspaceId) return null
   return <section className="settings-section" aria-label="Family data safety planning">
     <h2>{w[0]}</h2>
@@ -110,7 +106,7 @@ export default function FamilyDataSafetyPlan() {
         <label><input type="radio" name="safety-reset-mode" checked={mode==='selective'} onChange={()=>setMode('selective')}/>{w[4]}</label>
       </fieldset>
       <div style={{maxHeight:340,overflowY:'auto'}}>
-        {entries.map(([code,initial,label])=><label key={code} style={{display:'flex',gap:10,padding:'5px 0',alignItems:'center'}}>
+        {entries.map(([code,,label])=><label key={code} style={{display:'flex',gap:10,padding:'5px 0',alignItems:'center'}}>
           <input type="checkbox" checked={mode==='full' ? fullAction(code)==='DELETE' : chosen.includes(code)} disabled={mode==='full'} onChange={()=>setChosen(v=>v.includes(code)?v.filter(c=>c!==code):[...v,code])}/>
           <span>{label[index]} — {(actionLabels[language] || actionLabels.en)[mode==='full'?fullAction(code):(chosen.includes(code)?'DELETE':'RETAIN')]}</span>
         </label>)}
@@ -129,7 +125,7 @@ export default function FamilyDataSafetyPlan() {
       </fieldset>
       <p>{({uk:'Ці категорії не підтверджені складом архіву. Після завантаження файлу Backend має перевірити фактичний вміст, сумісність, залежності й конфлікти.',ru:'Категории не подтверждены содержимым архива. Backend должен проверить состав, совместимость, зависимости и конфликты.',de:'Kategorien sind nicht aus einer Archivdatei verifiziert. Backend muss Inhalt, Kompatibilität, Abhängigkeiten und Konflikte prüfen.',en:'Categories are not verified against an archive. Backend must validate actual contents, compatibility, dependencies and conflicts.'})[language]}</p>
       <div style={{maxHeight:280,overflowY:'auto'}}>
-        {entries.map(([code,initial,label])=><label key={code} style={{display:'flex',gap:10,padding:'5px 0'}}>
+        {entries.map(([code,,label])=><label key={code} style={{display:'flex',gap:10,padding:'5px 0'}}>
           <input type="checkbox" checked={restoreMode==='selective' && restoreChosen.includes(code)} disabled={restoreMode==='full'} onChange={()=>setRestoreChosen(v=>v.includes(code)?v.filter(c=>c!==code):[...v,code])}/>
           <span>{label[index]} — {restoreMode==='full' ? ({uk:'Невідомо без перевіреного архіву',ru:'Неизвестно без проверенного архива',de:'Ohne geprüftes Archiv unbekannt',en:'Unknown without verified archive'})[language] : restoreChosen.includes(code) ? ({uk:'Намір, не перевірено',ru:'Намерение, не проверено',de:'Absicht, nicht geprüft',en:'Intent, not verified'})[language] : w[6]}</span>
         </label>)}
