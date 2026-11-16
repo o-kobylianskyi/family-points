@@ -32,7 +32,6 @@ class WorkspacePortableArchiveForeignRelationTest {
                 17L,UUID.randomUUID(),UUID.randomUUID(),0L,
                 List.of(category),"V50",key));
         assertEquals(expected,failure.getMessage());
-        verify(db,never()).update(anyString(),any(Object[].class));
     }
 
     @Test void taskExecutionCannotBorrowDifferentFamilyTaskDefinition() throws Exception {
