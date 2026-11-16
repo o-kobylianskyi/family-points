@@ -1,5 +1,9 @@
 # FamilyPoints — Git coordination hub
 
+## Mandatory chat-capacity protocol (all role chats, 2026-11-16)
+
+The user requests advance context-limit warnings at **estimated 50%, 75%, 85%, 90%, 95% and every subsequent 5%**. This is **not** an exact token counter: no system percentage is available to ordinary chats, and no automatic messages are possible between turns. Every role must inspect conversation/context risk during active work and report estimates explicitly as estimates, or warn without a number if evidence is insufficient. **Start a GitHub handoff at approximately 75%; finalize and commit by approximately 85%; transfer earlier on context-loss risk.** The handoff must preserve task state, source SHA, real test/CI evidence, next work and new-chat opener. See [AGENTS.md](../../AGENTS.md) and [HANDOFF_TEMPLATE.md](HANDOFF_TEMPLATE.md).
+
 ## Current priority — finish INTERIM BETA; new global features frozen (2026-10-24)
 The user prioritizes stabilization of existing FamilyPoints tasks and an actual interim BETA release **before any new global initiatives begin**. Existing active calendar/media PRs, currently approved UI fixes, auth/offline consistency, security, tests, migration/backup and signed APK work remain in the cycle. New large ideas go **only** to [post-interim-BETA backlog](POST_INTERIM_BETA_BACKLOG.md), not XTR/IMP implementation. Minor corrections and genuine release-blocking defects are exceptions. **IMP-0008 family templates and IMP-0009 destructive family reset, XTR-20261024-P-01..08, are parked AFTER_INTERIM_BETA**. See ADR-COORD-006 / AGENTS.md; no automatic deployment.
 
