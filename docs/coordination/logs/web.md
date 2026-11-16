@@ -1108,3 +1108,10 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Fix `frontend/src/components/InitialFamilySetupReview.jsx`: render canonical `SETUP_STEP_CODES` seven rows unconditionally for an available non-completed setup, interpret absent values as `PENDING`, and show deterministic `0/7` progress until decisions are recorded. The Backend remains authoritative and no writes happen on initial load.
 - The synthetic lost-PATCH browser case was restored to the **real empty V46 state**, so it now verifies both initial seven visible buttons and GET-only recovery after one committed-but-response-dropped PATCH. It must still be rerun; never convert earlier 2/1 into PASS.
 - Commits `53fa9e36d35a`, `7360aaa42676`. No production BKL-002 actions; full V49 enabled-backend acceptance remains OPEN and BETA HOLD.
+
+## 2026-11-16 — Operator confirms V49 synthetic three-case browser recovery
+
+- Operator supplied Playwright Chromium stdout for `qa/e2e/tests/onboarding-v49-synthetic-readonly.spec.js`: **3 PASS / 0 FAIL / 0 SKIPPED**, total **6.1s** (`1.7s + 1.6s + 1.9s` per case). This follows the prior **2 PASS / 1 FAIL** and V46 empty-step UI correction (`53fa9e36`, `7360aaa4`).
+- Covered: canonical seven-step UI and real 142/6 catalog with read-only search/pack selection; malformed setup state fail-closed; V46 empty steps bootstrapping followed by a simulated committed-but-lost PATCH response reconciled through **GET only**, with no duplicate step PATCH.
+- Exact local `git rev-parse HEAD` was not included in this latest console output. Treat this as operator's validated checkout context, not proof that current moving main ran browser E2E at the same SHA.
+- **Synthetic Web V49 UI gate GREEN**. Real feature-enabled disposable-workspace V49 end-to-end (review, explicit finalize/import, idempotent receipt, lost-response), BKL-002 execute/restore safety and overall BETA release remain **OPEN / HOLD**.
