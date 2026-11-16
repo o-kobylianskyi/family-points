@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.ui.components.WorkspaceSwitcher
 import com.olehkobylianskyi.familypoints.android.auth.WorkspaceSelectionRequiredException
 import com.olehkobylianskyi.familypoints.android.ui.screens.WorkspaceOnboardingScreen
+import com.olehkobylianskyi.familypoints.android.ui.screens.WorkspaceSetupStatusScreen
 import com.olehkobylianskyi.familypoints.android.auth.AuthSessionManager
 import com.olehkobylianskyi.familypoints.android.data.CurrentUserResponse
 import com.olehkobylianskyi.familypoints.android.data.CreateTaskRepository
@@ -103,7 +104,8 @@ private enum class AppDestination {
     MEMBERS,
     POINTS,
     REWARDS,
-    SETTINGS
+    SETTINGS,
+    INITIAL_SETUP
 }
 
 class MainActivity : ComponentActivity() {
@@ -525,6 +527,11 @@ class MainActivity : ComponentActivity() {
                                 currentUser = user
                                 destination = AppDestination.DASHBOARD
                             },
+                            onCreated = { user ->
+                                needsWorkspaceSelection = false
+                                currentUser = user
+                                destination = AppDestination.INITIAL_SETUP
+                            },
                             onLogout = {
                                 authSessionManager.clearSession()
                                 needsWorkspaceSelection = false
@@ -617,6 +624,19 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
+                    }
+
+                    destination == AppDestination.INITIAL_SETUP -> {
+                        WorkspaceSetupStatusScreen(
+                            language = language,
+                            workspaceId = currentUser!!.workspaceId,
+                            loadState = { workspace ->
+                                val token = tokenStore.getAccessToken()
+                                    ?: throw IllegalStateException("Authentication required")
+                                ApiClient.workspaceSetupApi.state("Bearer $token", workspace)
+                            },
+                            onContinue = { destination = AppDestination.DASHBOARD }
+                        )
                     }
 
                     destination == AppDestination.DASHBOARD -> {
