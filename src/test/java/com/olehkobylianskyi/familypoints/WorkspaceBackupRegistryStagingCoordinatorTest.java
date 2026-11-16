@@ -62,6 +62,34 @@ class WorkspaceBackupRegistryStagingCoordinatorTest {
             verifyNoInteractions(stage,storage);
         } finally {endSynchronization();}
     }
+    @Test void committedStagingDoesNotDeleteEncryptedArtifact() throws Exception {
+        var registry=mock(WorkspaceProtectiveBackupService.class);
+        var stage=mock(WorkspaceBackupArtifactStagingService.class);
+        var storage=mock(WorkspaceBackupLocalArtifactStore.class);
+        var coordinator=new WorkspaceBackupRegistryStagingCoordinator(registry,stage,storage);
+        UUID operation=UUID.randomUUID(),snapshot=UUID.randomUUID();
+        var request=new WorkspaceProtectiveBackupService.Request(operation,"SELECTIVE",
+                List.of("MEMBER_GROUPS"),"a".repeat(64),"V50");
+        var backup=new WorkspaceProtectiveBackupService.Backup(snapshot,7L,operation,0L,
+                "SELECTIVE",List.of("MEMBER_GROUPS"),"a".repeat(64),"REQUESTED",
+                OffsetDateTime.now(),OffsetDateTime.now().plusDays(30),false,false);
+        var staged=new WorkspaceBackupArtifactStagingService.Staged(
+                snapshot,7L,"a".repeat(64),"b".repeat(64),198,
+                Map.of("MEMBER_GROUPS",0),"STORED_UNVERIFIED");
+        when(registry.request(7,3,request)).thenReturn(backup);
+        var generator=KeyGenerator.getInstance("AES");generator.init(256);
+        var key=generator.generateKey();
+        when(stage.stage(7L,snapshot,operation,0L,List.of("MEMBER_GROUPS"),"V50",key))
+                .thenReturn(staged);
+        beginSynchronization();
+        try {
+            coordinator.registerAndStage(7,3,request,0,key);
+            TransactionSynchronizationManager.getSynchronizations().forEach(
+                    sync->sync.afterCompletion(TransactionSynchronization.STATUS_COMMITTED));
+            verifyNoInteractions(storage);
+        } finally {endSynchronization();}
+    }
+
     @Test void stagingMustRunInsideActiveTransaction() throws Exception {
         var registry=mock(WorkspaceProtectiveBackupService.class);
         var stage=mock(WorkspaceBackupArtifactStagingService.class);
