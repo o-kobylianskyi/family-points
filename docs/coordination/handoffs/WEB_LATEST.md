@@ -8,6 +8,11 @@
 - Latest Web/Designer commits after prior screenshot: `2717222` and `442a458` guard step PATCH epoch/revision/step; `cb5c44f` centralizes repeated-step guard; `5c969dc` covers filtered partial deselect. **Do not duplicate these.**
 - CI optimization issue #20 adds `npm run test:regression` and lint to main CI. Full same-SHA jobs should be confirmed through Release with exact run ID and executed steps.
 
+## WEB-02 package 1 (2026-11-16)
+- **Source commit:** `e5b66b4df4dda057c40316fc0abfbcf4cb5eff25` removes dead `allMatchingSelected` derivation from `InitialFamilySetupReview.jsx`, now that the actual Deselect matching button correctly uses `hasSelectedSetupMatch`. No API, UX or security semantics intentionally changed. This cleans an obsolete computed state in the regression area.
+- **Validation:** source-only inspection, CI/Node/Vite/lint NOT_RUN in this chat; same-SHA CI awaits observed jobs. Review commit on current HEAD before additional edits.
+- **Continuity:** rolling handoff originally created `bc84f6ef`; capacity checkpoint `4650a470`. This revision reflects new source SHA.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
