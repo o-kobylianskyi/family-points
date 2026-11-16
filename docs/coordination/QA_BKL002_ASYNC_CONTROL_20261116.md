@@ -57,3 +57,13 @@ QA posts receipt of four packets and one consolidated run matrix; Backend posts 
 - #04–#10 are best handled as **one updated pinned-SHA synthetic regression**. Reuse the 16-class inventory from the preceding control entry; it already contains all eight classes requested in #10, so no extra duplicate full execution is required. Current code changed the expected status of OBLIGATIONS from unexported to exportable-but-not-replayable: validate revised archive category graph rather than stale old blocker assumptions.
 - Preserve actual test counts, zero skipped if targeting full acceptance, SHA before/after, and a single QA→Backend #15 consolidated outcome. No user-operated *real* tests until Backend readiness and the pre-BETA unified campaign; synthetic tests are permitted independently.
 - Future real obligation/blocked target and Web bootstrap GET recovery instructions were collected in [PRE_BETA_REAL_WORLD_TEST_INBOX.md](../qa/PRE_BETA_REAL_WORLD_TEST_INBOX.md), commit `d6a3f93`. Production reset HTTP423 / no VERIFIED / BETA HOLD.
+
+
+## P0 QA regression observed — run 43947907960 / commit 19adfe1b7 (2026-11-16)
+
+- QA independently checked Actions jobs: Maven/PostgreSQL **FAILURE**, full exact-SHA proof **FAILURE**, per-commit result **FAILURE**; Android/Web/Compose SUCCESS. Architect read JUnit count **460 tests, 1 failure, 1 error, 0 skipped**.
+- Fail 1: `WorkspaceRewardObligationArchiveClosurePostgresTest.unexportedPurchaseObligationsPreventAuthenticatedIncompleteArchive:189`, expected 1 / actual 2. Inspect actual obligations/category graph inventory before fixture change.
+- Error 2: `DisposableRewardCategoryCrossDatabasePostgresTest.independentlyMigratedDatabasesRebindCategoryLinksAndPreserveOtherFamily:105`, null receiver for Object.equals; inspect target mapping/PK and transactional replay before test change.
+- **QA → Backend P0 notification:** [Issue #15 comment 6928302234](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-6928302234). Backend source fix and independent retest required. #04–#11 now NEEDS_RETEST/FAILED_CI at 19adfe1b7; no current-source PASS. Historical #01–#03 27/27 PASS @419efb1 remains bounded, not same-SHA.
+- New [packet #11](requests/BKL002_QA_PACKET_20261116_CATEGORY_NATIVE_REPLAY.md) test-only two-independent-PostgreSQL native reward-category/link replay, mapped definition IDs, duplicate/foreign/tamper negatives; source committed, **not accepted**, current CI failure explicitly overlaps this case.
+- Do not execute real/manual tests until Backend and approved isolated environment; hold production Reset Execute HTTP423 / durable VERIFIED / BETA.
