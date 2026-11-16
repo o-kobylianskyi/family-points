@@ -52,9 +52,9 @@ class WorkspaceBackupArtifactStagingServiceTest {
         assertEquals(31,result.workspaceId());
         assertEquals(Map.of("MEMBER_GROUPS",0),result.counts());
         assertEquals(result.storedBytes(),storage.read(31,snapshot,result.storageSha256()).length);
-        assertThrows(IllegalStateException.class,()->staging.stage(31,snapshot,operation,0,
-                List.of("MEMBER_GROUPS"),"V50",key));
-        verify(exporter,times(2)).export(anyLong(),any(),any(),anyLong(),any(),any(),any());
+        assertThrows(IllegalStateException.class,()->storage.store(31,snapshot,
+                archive(31,snapshot,operation,0,key,"MEMBER_GROUPS")));
+        verify(exporter,times(1)).export(anyLong(),any(),any(),anyLong(),any(),any(),any());
     }
 
     @Test void rejectsForgedExporterScopeBeforeWritingFile() throws Exception {
