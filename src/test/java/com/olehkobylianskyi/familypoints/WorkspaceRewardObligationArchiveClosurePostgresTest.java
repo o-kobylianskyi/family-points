@@ -98,5 +98,30 @@ class WorkspaceRewardObligationArchiveClosurePostgresTest {
                 .assess(family,List.of("REWARD_DEFINITIONS"));
         assertTrue(requiresClosure.blockers().contains(
                 "RESTORE_CATEGORY_NOT_EXPORTABLE:REWARD_REQUIREMENTS_UNEXPORTED"));
+
+        // Third independent failure: reward-category associations are not yet
+        // part of the portable archive even when reward definitions are.
+        db.update("DELETE FROM reward_requirements WHERE family_id=?",family);
+        long category=db.queryForObject("""
+                INSERT INTO reward_categories(family_id,name,active,sort_order)
+                VALUES (?,'Media rewards',true,0) RETURNING id
+                """,Long.class,family);
+        db.update("""
+                INSERT INTO reward_definition_categories(reward_definition_id,category_id)
+                VALUES (?,?)
+                """,reward,category);
+        var categoryError=assertThrows(IllegalStateException.class,
+                ()->tx.execute(s->exporter.export(
+                        family,UUID.randomUUID(),UUID.randomUUID(),0L,
+                        List.of("REWARD_DEFINITIONS"),"V50",key)));
+        assertEquals("BACKUP_UNEXPORTED_REWARD_CATEGORY_LINKS",
+                categoryError.getMessage());
+        var categoryClosure=new WorkspaceFinancialRestoreClosureService(db)
+                .assess(family,List.of("REWARD_DEFINITIONS"));
+        assertTrue(categoryClosure.blockers().contains(
+                "RESTORE_CATEGORY_NOT_EXPORTABLE:REWARD_CATEGORY_LINKS_UNEXPORTED"));
+        assertEquals(1L,db.queryForObject("""
+                SELECT count(*) FROM reward_definition_categories WHERE reward_definition_id=?
+                """,Long.class,reward).longValue());
     }
 }
