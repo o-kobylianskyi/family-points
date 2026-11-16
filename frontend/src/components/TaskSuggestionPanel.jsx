@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { API_URL } from '../api/baseUrl'
@@ -19,12 +19,12 @@ export default function TaskSuggestionPanel({ onClose }) {
   const api = `${API_URL}/workspaces/${currentUser.workspaceId}/task-suggestions`
   const headers = () => ({ 'Authorization': `Bearer ${getAccessToken()}`, 'Content-Type': 'application/json' })
 
-  const load = async () => {
-    const response = await fetch(api, { headers: headers() })
+  const load = useCallback(async () => {
+    const response = await fetch(api, { headers: { 'Authorization': `Bearer ${getAccessToken()}`, 'Content-Type': 'application/json' } })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     setItems(await response.json())
-  }
-  useEffect(() => { load().catch(e => setError(e.message)) }, [currentUser.workspaceId])
+  }, [api, getAccessToken])
+  useEffect(() => { let active = true; Promise.resolve().then(load).catch(e => { if (active) setError(e.message) }); return () => { active = false } }, [load])
 
   const submit = async event => {
     event.preventDefault()
