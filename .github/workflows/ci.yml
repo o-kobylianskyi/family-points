@@ -10,9 +10,11 @@ on:
 permissions:
   contents: read
 
+# Pushes keep the fast superseding behavior. Explicit release-gate runs
+# are isolated by run ID and cannot be cancelled by unrelated main pushes.
 concurrency:
-  group: family-points-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.event_name == 'workflow_dispatch' && format('family-points-manual-{0}', github.run_id) || format('family-points-ci-{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   backend-tests:
