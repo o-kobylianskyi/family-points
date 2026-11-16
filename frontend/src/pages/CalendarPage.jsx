@@ -83,7 +83,7 @@ export default function CalendarPage(){
   },[workspaceId,getAccessToken])
   useEffect(()=>{
     let active=true;Promise.resolve().then(()=>{if(active){setLoading(true);setError('')}})
-    if(daysBetween(interval.from,interval.to)>62){setError('Range exceeds 62 days');setLoading(false);return}
+    if(daysBetween(interval.from,interval.to)>62){Promise.resolve().then(()=>{if(active){setError('Range exceeds 62 days');setLoading(false)}});return()=>{active=false}}
     getCalendar(getAccessToken(),workspaceId,{...interval,type}).then(data=>{
       if(active){setEvents(Array.isArray(data)?data:[]);setLoading(false)}
     }).catch(e=>{if(active){setError(e.message);setLoading(false)}})
