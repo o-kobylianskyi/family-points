@@ -199,6 +199,8 @@ public final class ProtectiveBackupImportInspector {
                     var sourceType=row.path("source_type");
                     if(!sourceType.isTextual() || sourceType.asText().isBlank())
                         blockers.add("INVALID_REFERENCE:"+category+".source_type");
+                    else if(sourceType.asText().length()>40)
+                        blockers.add("INVALID_REFERENCE:"+category+".source_type");
                     else if(!"MANUAL".equals(sourceType.asText()))
                         blockers.add("HISTORICAL_SOURCE_REMAP_REQUIRED:"+category+":"+sourceType.asText());
                     var sourceId=row.path("source_id");
