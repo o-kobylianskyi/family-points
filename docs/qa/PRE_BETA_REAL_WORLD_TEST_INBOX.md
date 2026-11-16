@@ -170,3 +170,9 @@ All these cases are additional acceptance criteria in the **single planned final
 |---|---|---|---|---|
 | REAL-V49-TABS-02 | Web/QA | Two-tab competing finalize UUID, staged/changed marker, same UUID foreign scope, missing markers, zero unsafe POST | approved isolated V49 environment and Backend receipt enforcement | BLOCKED_DEPENDENCY |
 | REAL-REL-APK-02 | Release/Android/QA | Signed APK fingerprint/sourceSha/manifest identity with parser and safety regression evidence, no live publication | repaired release scripts, pinned signed artifact and exact-SHA full CI | BLOCKED_DEPENDENCY |
+
+## QA-015 intake — obligation transaction rollback and two-tab V49 synthetic coverage
+
+- Backend formal #14 [OBLIGATION_NATIVE_REPLAY](../coordination/requests/BKL002_QA_PACKET_20261116_OBLIGATION_NATIVE_REPLAY.md) adds test-only two-independent-PostgreSQL obligations and blocked category/reward replay. Record extra real-campaign prerequisite `REAL-BKL002-OBLIGATION-ROLLBACK-01`: when full production-safe restore and disposable authorization exist, prove failure at row 2 rolls back row 1 and composite blocked target links, while preserving neighbor family, currency and ledger identity. **BLOCKED** by production native replay, identity/financial closure and VERIFIED.
+- Web source `fe64edb` adds two synthetic browser scenarios for cross-tab V49 original UUID preservation and competing receipt marker. Maintain queued `REAL-V49-TABS-02`; synthetic test not yet independently executed, cannot substitute for actual enabled-backend finalization test. Await exact-SHA browser PASS/FAIL.
+- Release `build-release-apk.ps1:19` source still syntactically broken as inspected at QA-015. Do not attempt APK publish or BETA deploy. CI newer than 43953986968 not verified green.
