@@ -6,69 +6,39 @@
 
 | Component | Command / file | Effect |
 | --- | --- | --- |
-| CI / release gate | `scripts/beta/release-gate.ps1` | Local-only status, exact-SHA four-job CI gate (full push or manual dispatch), optional isolated QA HTTP smoke, and separate opt-in public post-deploy smoke |
-| CI workflow | `.github/workflows/ci.yml` | Manual dispatch runs all 4 jobs, isolated from push cancellation |
-| Android independent CI | `.github/workflows/android-p0.yml` | Android P0 targeted cases, independent concurrency, full suite optional |
+| Local Release Gate | `scripts/beta/release-gate.ps1` | Local SHA/status, optional isolated QA smoke, *unverified* tagged evidence draft, opt-in post-deploy smoke |
+| GitHub CI | `.github/workflows/ci.yml` | Push CI (scoped) or full CI on `[full-ci]` push / manual Actions workflow dispatch |
+| Android independent CI | `.github/workflows/android-p0.yml` | P0 Android tests |
 | Android manager | `scripts/android/release.bat` | status/build/install/logs/publish |
-| Backend+Web deployment | `scripts/beta/deploy-release.sh` on Contabo | **Explicitly authorized only** annotated-tag deployment; potential Flyway migrations |
-| Postdeployment internal smoke | `scripts/beta/smoke.sh` | Local Web+backend HTTP checks |
+| Backend/Web deploy | `scripts/beta/deploy-release.sh` on Contabo | **Explicit approval required**; deploy can perform Flyway migrations |
 
-### Recommended Windows sequence (non-destructive until explicitly choosing publish/deploy)
+### Normal IntelliJ workflow — no GitHub CLI required
+
+Use IntelliJ Git to pull/push as usual. CI runs automatically on push; a `[full-ci]` commit or a manual run started from GitHub Actions executes all four jobs. **A scoped green push is not full release acceptance.** The Release coordinator can inspect GitHub Actions through the connected repository access and record the *exact SHA, run URL, job names, and executed steps* in `docs/coordination/logs/release.md`.
 
 ```powershell
-cd C:\Users\Oleh\IdeaProjects\family-points
-git status --short
-git pull --ff-only origin main
-
-# Local Git SHA only; no public network calls.
+# Local SHA only, no GitHub authentication or PROD/BETA request
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-gate.ps1 -Action status
 
-# Optional: ONLY an explicitly approved, isolated/disposable QA endpoint:
-# powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-gate.ps1 -Action qa -BaseUrl https://YOUR-ISOLATED-QA-HOST
-
-# Require installed/authenticated GitHub CLI ("gh auth login").
-# Enqueue *manual full* four-job CI at current origin/main.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-gate.ps1 -Action ci -DispatchFullCi
-
-# After manual CI has completed GREEN, verify four *executed*, not skipped, jobs
-# for the exact local SHA.
+# Show the exact SHA and Actions link; CI remains explicitly UNVERIFIED here
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-gate.ps1 -Action ci
 
-# ONLY after Architecture/Backend/QA permit a release:
-# Requires a real annotated tag pointing to the EXACT local SHA.
-# Produces an ignored JSON evidence file; no deploy.
+# Only once Architecture + QA explicitly approve and an annotated tag exists:
+# Writes an evidence DRAFT; fullCiVerified=false, never a release approval
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-gate.ps1 -Action prepare -Tag vX.Y.Z-beta.N
-
-# Android path (separate; signature and installed app tests required):
-.\scripts\android\release.bat status
-.\scripts\android\release.bat build
-.\scripts\android\release.bat install
-.\scripts\android\release.bat logs
-# Publish ONLY after device, OAuth and Backend API compatibility smoke.
-.\scripts\android\release.bat publish
 ```
 
-The gate requires **`gh`** only for CI, and uses `curl.exe` only for the separately selected QA or post-deploy HTTP smoke. `status`, `ci`, and `prepare` do **not** contact PROD/BETA. `release-evidence/` is ignored and contains NO credentials. It records source SHA, annotated tag and successful full CI run (manual dispatch or full push); QA acceptance, actual deployment, Flyway and BKL-002 readiness remain `false` until independently proven. The evidence is not proof of actual runtime Git revision.
+**No `gh` installation or login is needed.** The Release Gate intentionally never reports CI PASS from local `ci`/ `prepare`; it cannot independently authenticate private repository CI results from a local checkout. A release is **HOLD** until verified exact-SHA GitHub Actions evidence and BKL-002/Web/QA/Android acceptance are recorded. Never equate a `prepare` draft with release approval.
 
-**Important CI nuance:** automated push CI uses changed-path routing. A GitHub Actions run with a green badge may have **skipped** one or more component test steps, so it is NOT an all-four-component release gate. Use a manual `workflow_dispatch` or a `[full-ci]` push. `release-gate.ps1` accepts either only when the run is on the exact SHA and all four actual test/build steps have succeeded: Maven, Android Gradle, Web build, Compose configuration. Android independent P0 reports are tracked separately; do not treat a pending or skipped job as PASS. An exact-SHA success can become stale when another chat updates main; rerun on the chosen final release SHA.
+### Environment isolation
 
-## Environment isolation (mandatory)
+- `-Action status`: local git only.
+- `-Action ci`: displays exact SHA and GitHub Actions link; **does not run or verify CI**.
+- `-Action prepare -Tag …`: checks clean git and annotated tag at exact SHA and writes a local *unverified* evidence JSON; **no** CI pass claim.
+- `-Action qa -BaseUrl https://YOUR-ISOLATED-QA-HOST`: explicit read-only GET smoke for an operator-approved disposable QA host, with public FamilyPoints domains blocked and redirects disabled. Hostname alone does not prove data isolation.
+- `-Action post-deploy -AllowPublicSmoke`: **only after a separately authorized publication**, read-only public Web/API/APK smoke. Never part of readiness.
 
-- `-Action status`: local checkout status only; does not call any hosted FamilyPoints instance.
-- `-Action ci [-DispatchFullCi]`: GitHub Actions only; tests run against the CI Testcontainers/docker instances. No application requests to production.
-- `-Action prepare -Tag <annotated-tag>`: exact-SHA all-four-job CI check + immutable tag + local evidence, **no** public or QA HTTP calls.
-- `-Action qa -BaseUrl https://YOUR-ISOLATED-QA-HOST`: explicit **GET-only** HTTP smoke of `/` and `/api/client-health` on an operator-authorized disposable test environment; refuses common public/BETA hosts. The script cannot establish data isolation merely from the hostname. Do not use real user/family data.
-- `-Action post-deploy -AllowPublicSmoke`: separate opt-in GET-only public HTTP smoke for `family-point.com` **only after an explicitly approved release**, never part of CI or release readiness. It checks Web/API/APK status, not full end-to-end functionality.
-
-```powershell
-# Explicit isolated QA test instance only (never family-point.com):
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-gate.ps1 -Action qa -BaseUrl https://YOUR-ISOLATED-QA-HOST
-
-# Explicit post-deployment production/BETA smoke, NOT a readiness test:
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-gate.ps1 -Action post-deploy -AllowPublicSmoke
-```
-
-Android `release.bat status/build` still reads the public Android version manifest to enforce monotonically increasing release versions; this is a **separate Android publishing workflow**, not the CI/QA readiness gate. Never call Android `publish` without approved signed APK acceptance.
+The public Android version manifest is still read by the separate signed Android release manager to enforce monotonically increasing version codes, and is not part of CI.
 
 ## Actual server deployment — separate step, no automatic execution
 
