@@ -1083,3 +1083,12 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Most recently supplied local HEAD before this run: `54565d4fcc6e72fc778b656d077f0004a28f478a`; it was not repeated in the same console block. Do not assert immutable same-SHA proof beyond operator context.
 - Test verifies browser UI with **mocked GET-only V49 server metadata** and actual 142-template/six-pack catalog, seven steps, pack selection, search, bulk selection, and no unintended writes. It does not test real Backend-enabled V49 state, real finalization receipt or owner-reauthenticated BKL-002.
 - Previous full operator E2E: **49 PASS, 2 SKIPPED, 0 FAIL**, trace disabled. The two real V49 feature-gated scenarios remain SKIPPED until disposable enabled Backend acceptance. Keep BETA HOLD.
+
+## 2026-11-16 — Issue #18 V49 strict setup state and preview contracts
+
+- Earlier operator synthetic V49 Playwright with the real 142/6 catalog: 1 PASS / 0 FAIL / 0 SKIPPED. This does not prove Backend feature-enabled flow.
+- Added `assertSetupState` to shared V49 safety module: exact own-workspace state, nonnegative integral epoch/revision, allowed setup statuses and known step codes. A brand-new V46 wizard legitimately has `NOT_STARTED` with **empty steps**; `COMPLETED` requires all seven explicitly COMPLETE/SKIPPED. Foreign, forged or malformed states fail closed.
+- Added `assertSetupReview`: reviewed selection must be an exact ordered code match, same family/epoch/revision/status, explicit-confirmation=true, no active definitions, complete disjoint counts/partition. No partial/malformed preview can enable finalize.
+- Wired checks into seven-step Web UI for initial GET, step PATCH response, preview, restore GET and final confirmation; disabled filter/search changes during in-flight calls to avoid stale async state. Extended Node regressions with malformed/foreign/stale scenarios.
+- Added synthetic read-only Playwright negative case where mocked Backend claims COMPLETED but supplies only one step: controls must remain unavailable and no setup/economic writes are issued.
+- New source tests / full CI on latest moving main **not accepted yet**; prior green CI does not cover all of these commits. Real enabled-server V49 and BKL-002 remain **OPEN / BETA HOLD**.
