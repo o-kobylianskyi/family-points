@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import { getTemplateCatalog, getPrivateTemplates, previewTemplateImport, importTemplatesIdempotent, getTemplateImportReceipt } from '../api/templateApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { getMemberGroups, createMemberGroup } from '../api/memberGroupApi'
