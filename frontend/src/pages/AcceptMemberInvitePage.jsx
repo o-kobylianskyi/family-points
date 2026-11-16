@@ -17,10 +17,10 @@ export default function AcceptMemberInvitePage() {
   const [done, setDone] = useState(false)
   const [completedViaGoogle, setCompletedViaGoogle] = useState(false)
   const [error, setError] = useState('')
-  const [inviteStatus, setInviteStatus] = useState('CHECKING')
+  const [inviteStatus, setInviteStatus] = useState(token ? 'CHECKING' : 'INVALID')
 
   useEffect(() => {
-    if (!token) { setInviteStatus('INVALID'); return }
+    if (!token) return
     let alive = true
     fetch(`${API_URL}/auth/member-invitations/check`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
