@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getMemberGroups } from '../api/memberGroupApi'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import SoftFamilyIcon from './SoftFamilyIcon'
 
 function Sidebar() {
