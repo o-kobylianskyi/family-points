@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import { linkGoogleAccount } from '../api/authApi'
 import GoogleAuthButton from './GoogleAuthButton'
 import { useTranslation } from 'react-i18next'
