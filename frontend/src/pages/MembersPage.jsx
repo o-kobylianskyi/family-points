@@ -12,7 +12,7 @@ import {
   createMemberGroup,
 } from '../api/memberGroupApi'
 import GroupEditor from '../components/GroupEditor'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import { uploadMedia, putMediaBinding, deleteMediaBinding } from '../api/mediaApi'
 
 function MembersPage() {
