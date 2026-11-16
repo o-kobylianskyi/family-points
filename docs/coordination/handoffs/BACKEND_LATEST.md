@@ -26,6 +26,13 @@
 - **Next bounded P0:** test-only native REWARD_OBLIGATIONS plus blocked category/reward associations; explicit member, purchase, requirement, reward definition, category ID maps, target FK/epoch/rollback/no neighbor writes. Production VERIFIED, financial ledger closure, owner reauth and Reset Execute HTTP423 remain blocked.
 - Backend journal update: `491a1aaf`.
 
+## Latest Backend P0 package #14 — 2026-11-16 night
+- Added test-only `DisposableRewardObligationRestoreExecutor.java` commits `e4110bb`, `c4ca790` for authenticated reward obligations and blocked-category/reward graph. Explicit complete injective maps for member, purchase, optional requirement, category, reward; source and target family and parent FK; fresh target epoch; purchase owner and historical title/amount/status; atomic insert and counts. `src/test` ONLY, no API.
+- Added 2 independent PostgreSQL 18/Flyway cross-DB test `DisposableRewardObligationCrossDatabasePostgresTest.java` commits `dee123c`, `d4f1b21`: one obligation, each blocked target; wrong-family and wrong purchase price rejection, authenticated crafted second SQL-invalid row causes **actual rollback**, duplicate/tamper rejection, source and neighbor unchanged.
+- QA #14 file `docs/coordination/requests/BKL002_QA_PACKET_20261116_OBLIGATION_NATIVE_REPLAY.md` commit `4a3fbe7`; issue #15 comment 6930349243, eight-class target command. Developer Maven/Docker NOT_RUN, do not report new PASS until independent exact-SHA QA.
+- Previous CI failure #12 had source fixes, no newest exact-SHA green proof in latest issue comments. #13 requirements native replay also pending independent QA. Older QA 27/27 @419efb1 limited to #01–03.
+- Next P0: inspect new QA results/CI and correct any actual regressions; further work must prove currency and immutable individual/group ledger source graph, member binding and fully reconstructable financial history before real Restore. Production `VERIFIED` false, `reset/execute` HTTP423, BETA HOLD. Track journal `docs/coordination/logs/backend.md` commit `2b976c7`.
+
 ## Next action priority
 1. **First check #15 and current Actions jobs** for new results of patched regressions, ensure two previously red tests PASS. If FAIL, fix; do not weaken isolation or source closure assertions.
 2. **Next bounded code package:** test-only independent PostgreSQL native replay of `REWARD_REQUIREMENTS` then `REWARD_OBLIGATIONS` with explicit source→target ID maps for purchase, request, definition, task, member, currency, categories; reject unsupported historical dependency/source IDs. Include atomic rollback and cross-tenant proof; no production API.
