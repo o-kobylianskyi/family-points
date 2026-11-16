@@ -214,18 +214,23 @@ function RewardsPageContent() {
   useEffect(() => {
     const requested = searchParams.get('createFromTemplate')
     if (!requested || !/^[0-9]+$/.test(requested) || !canManage || loading || !privateTemplatesLoaded) return
-    const item = rewardTemplates.find(entry => String(entry.id) === requested)
-    if (item) {
-      setPageTab('manage')
-      setEditingRewardId(null)
-      setRewardTemplateCategory('ALL')
-      chooseRewardTemplate(String(item.id))
-    }
-    setSearchParams(previous => {
-      const next = new URLSearchParams(previous)
-      next.delete('createFromTemplate')
-      return next
-    }, { replace: true })
+    let active = true
+    void Promise.resolve().then(() => {
+      if (!active) return
+      const item = rewardTemplates.find(entry => String(entry.id) === requested)
+      if (item) {
+        setPageTab('manage')
+        setEditingRewardId(null)
+        setRewardTemplateCategory('ALL')
+        void chooseRewardTemplate(String(item.id))
+      }
+      setSearchParams(previous => {
+        const next = new URLSearchParams(previous)
+        next.delete('createFromTemplate')
+        return next
+      }, { replace: true })
+    })
+    return () => { active = false }
   }, [searchParams, setSearchParams, rewardTemplates, canManage, loading, privateTemplatesLoaded, chooseRewardTemplate])
   const chooseRequestTemplate = id => {
     const item = requestTemplates.find(x => String(x.id ?? x.code) === id)
