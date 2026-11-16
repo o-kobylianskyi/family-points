@@ -30,6 +30,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-g
 
 **No `gh` installation or login is needed.** The Release Gate intentionally never reports CI PASS from local `ci`/ `prepare`; it cannot independently authenticate private repository CI results from a local checkout. A release is **HOLD** until verified exact-SHA GitHub Actions evidence and BKL-002/Web/QA/Android acceptance are recorded. Never equate a `prepare` draft with release approval.
 
+### Reliable per-push GitHub Actions reports
+
+`FamilyPoints CI` now uses a **unique concurrency group per Actions run** and `cancel-in-progress: false`. A new push no longer automatically cancels or replaces the previous push CI, including runs from simultaneous Backend/Web/Android chats. Trade-off: back-to-back pushes may queue more CI work; runner capacity and GitHub limits still apply, so this does not guarantee immediate completion.
+
+The `CI / per-commit outcome report` job runs with `always()` after component jobs, even when any component failed or was skipped. Its run summary and 14-day `ci-push-result` JSON artifact record exact SHA, event, changed-file scope, selected components, actual job conclusions, and whether it is **scoped CI PASS** versus **full CI verified**. For docs-only pushes the summary explicitly states **no component tests selected / NOT FULL CI**, instead of misleadingly implying all four builds passed. If the scope evaluation fails or a selected job fails/cancels, the report job fails. This report cannot prevent pre-job GitHub infrastructure / workflow-parse failures; those must be diagnosed separately in Actions.
+
 ### Automated exact-SHA full CI evidence (no local `gh`)
 
 The `FamilyPoints CI` GitHub workflow now includes job **`Full CI / exact-SHA evidence`**. On runs where change routing selects all four components, it checks the **job conclusions** for Backend, Android, Web, and Compose. A non-success job makes the evidence job fail; only four successes produce a JSON `full-ci-evidence` artifact (30-day retention), and the run summary records the exact tested commit SHA and run URL. For scoped runs where any component is intentionally unselected, the attestation job is skipped — **this is not full-CI acceptance**.
