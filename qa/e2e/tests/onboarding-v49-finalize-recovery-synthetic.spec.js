@@ -23,13 +23,14 @@ async function login(page) {
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/, {timeout:12000})
   test.skip(new URL(page.url()).pathname === '/choose-family','Select isolated QA workspace explicitly')
 }
-test('V49 lost finalize response keeps original UUID when receipt is valid but setup state stale',async({page})=>{
+for (const scenario of ['stale','completed']) test(`V49 lost finalize response, valid receipt, server state ${scenario}: original UUID only`,async({page})=>{
   test.skip(!username || !password,'Disposable QA manager credentials required')
   await login(page)
   let workspaceId
   let finalizeCount=0
   let receiptCount=0
   let setupCount=0
+  let receiptObserved=false
   let operation
   let codes
   const blockedWrites=[]
@@ -46,9 +47,10 @@ test('V49 lost finalize response keeps original UUID when receipt is valid but s
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({workspaceId:id,dataEpoch:0})})
     if(path.endsWith('/setup') && request.method()==='GET') {
       setupCount++
-      // Intentionally stale: even valid receipt cannot unblock before completed state.
+      const completed=receiptObserved && scenario==='completed'
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-        workspaceId:id,dataEpoch:0,revision,status:'IN_PROGRESS',steps:completeSteps
+        workspaceId:id,dataEpoch:0,revision:completed?revision+1:revision,
+        status:completed?'COMPLETED':'IN_PROGRESS',steps:completeSteps
       })})
     }
     if(path.endsWith('/setup/review') && request.method()==='POST') {
@@ -70,6 +72,7 @@ test('V49 lost finalize response keeps original UUID when receipt is valid but s
     }
     if(path.includes('/setup/finalize-import/receipts/') && request.method()==='GET') {
       receiptCount++
+      receiptObserved=true
       const idFromPath=path.split('/').pop()
       if(idFromPath!==operation?.id) return route.fulfill({status:404,body:'{}'})
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
@@ -99,8 +102,13 @@ test('V49 lost finalize response keeps original UUID when receipt is valid but s
   await section.getByRole('button',{name:text.receipt}).click()
   await expect.poll(()=>receiptCount).toBe(1)
   await expect.poll(()=>setupCount).toBeGreaterThan(initialSetupGets)
-  await expect(section.getByText(text.unknown)).toBeVisible()
-  await expect(section.getByText(text.finished)).toHaveCount(0)
+  if(scenario==='stale') {
+    await expect(section.getByText(text.unknown)).toBeVisible()
+    await expect(section.getByText(text.finished)).toHaveCount(0)
+  } else {
+    await expect(section.getByText(text.finished)).toBeVisible()
+    await expect(section.getByText(text.unknown)).toHaveCount(0)
+  }
   expect(finalizeCount,'receipt lookup must never replay finalize POST').toBe(1)
   expect(blockedWrites,'No unknown scoped setup writes should be attempted').toEqual([])
 })
