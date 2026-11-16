@@ -48,6 +48,12 @@
 - Backend log `docs/coordination/logs/backend.md` commit `83f15a1`. Last known Java-red issue (run 43953986968, category scope) corrected in `2539bf9` but no verified latest-SHA QA green yet.
 - Next P0: check QA/CI evidence first; expand cryptographically anchored source-code financial metadata into non-MANUAL polymorphic source graph only with explicit source→target ledger/object remaps and reconciliation; no production VERIFIED, owner authorization, reset execute (HTTP423), BETA HOLD.
 
+## Latest Backend P0 package #17 — signed financial source graph
+- TEST ONLY `src/test/java/com/olehkobylianskyi/familypoints/DisposableLedgerSourceGraphVerifier.java` `5928292`: V50 AES archive read-only source ancestry for POINT_LEDGER/POINT_TYPES; supported MANUAL null-source_id and TASK positive source_id attached to archived TASK_EXECUTIONS of same member; unsupported purchase/refund/exchange source types fail closed. **This does not replay TASK ledger to any target**.
+- AES regression fixtures `DisposableLedgerSourceGraphVerifierTest.java` `b6cf1c3` validate valid MANUAL/TASK and orphan/foreign-member/missing TASK, MANUAL invalid source_id and unsupported reward/refund. Developer Maven/Docker NOT_RUN.
+- QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261116_LEDGER_SOURCE_GRAPH.md` `947c19c`, issue #15 comment 6931300460; queue seven-class exact-SHA regression with newest currency/replay and earlier red Native Category scenario. Backend detailed log `05d710e`.
+- Remaining blocking concerns: TASK source target-ID proof / financial type semantics, purchase/refund/exchange source producers, member and currency protected binding, ledger immutable reconciliation, actual VERIFIED backup and owner reauth; latest SHA CI not independently proven green. **Reset Execute HTTP423 / BETA HOLD.**
+
 ## Next action priority
 1. **First check #15 and current Actions jobs** for new results of patched regressions, ensure two previously red tests PASS. If FAIL, fix; do not weaken isolation or source closure assertions.
 2. **Next bounded code package:** test-only independent PostgreSQL native replay of `REWARD_REQUIREMENTS` then `REWARD_OBLIGATIONS` with explicit source→target ID maps for purchase, request, definition, task, member, currency, categories; reject unsupported historical dependency/source IDs. Include atomic rollback and cross-tenant proof; no production API.
