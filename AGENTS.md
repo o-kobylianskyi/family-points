@@ -1,5 +1,11 @@
 # FamilyPoints — mandatory rules for every project chat/agent
 
+## MANDATORY ALL-TRACK CI EVIDENCE LOOKUP — 2026-11-16
+- Read [CI_EVIDENCE_LOOKUP_PROTOCOL_20261116.md](docs/coordination/CI_EVIDENCE_LOOKUP_PROTOCOL_20261116.md) before deciding CI PASS/FAIL or claiming GitHub Actions unavailable. Designer independently verified historic full four-component `push` run `43934619348` on SHA `3c0cf014`; Android P0 `43893026715` 98/98 on SHA `09da723`.
+- GitHub connector commit-run lookup may **only include PR-triggered runs**; empty array or empty combined statuses is *not* evidence that a `push` Actions run did not exist. Use repository branch-run listing / existing run URL and `fetch_workflow_run_jobs` with exact ID, then inspect actual executed steps. If unavailable report LOOKUP_BLOCKED, not FAIL or fabricated PASS.
+- A job displayed green with its Maven/Android/Web/Compose test steps **SKIPPED** is **SCOPED**, not a full release PASS. Record candidate SHA separately from latest HEAD, run ID, event, all four component step results, CI gate type and any QA/Release holds. Historical green never automatically applies to current HEAD.
+- Release must publish real push-run evidence; other tracks consume it. No `gh` requirement for the user, no routine PROD probes. CI green does not approve BKL-002 reset/restore or real V49 onboarding.
+
 ## BKL-002 P0 — Backend/QA parallel execution (user decision 2026-11-16)
 - Backend owns developer-side compile and fast affected regression tests, but **hands off substantial/full integration and acceptance test packets to independent QA** rather than repeatedly requesting their execution from the operator.
 - Backend commits bounded tested changes with SHA, source/test instructions, expected/negative cases; then continues the next safe independent development package while QA tests on isolated PostgreSQL and reports consolidated failures. Review QA findings each pickup; fix P0 data loss, auth, tenant or financial correctness defects immediately.
