@@ -14,7 +14,7 @@ export default function GoogleAuthButton({ onCredential, disabled = false }) {
   const container = useRef(null)
   const callback = useRef(onCredential)
   const [error, setError] = useState('')
-  callback.current = onCredential
+  useEffect(() => { callback.current = onCredential }, [onCredential])
 
   useEffect(() => {
     if (!clientId || !isSecureOrigin || !container.current) return
