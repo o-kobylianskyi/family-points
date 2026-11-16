@@ -48,3 +48,42 @@ export function reconcileSetupPending(session, shared, workspaceId, accountId) {
   )) return {blocked: true}
   return shared || session || null
 }
+
+export const SETUP_STEP_CODES = Object.freeze(['MEMBERS','MEMBER_GROUPS','WORK_NODE_GROUPS','CATALOG_SELECTION','TASK_REVIEW','REWARD_REVIEW','FINAL_REVIEW'])
+
+// New V46 families legitimately have empty steps until parents select them.
+export function assertSetupState(state, workspaceId) {
+  const steps = state?.steps
+  if (!state || String(state.workspaceId) !== String(workspaceId) ||
+      !Number.isSafeInteger(state.dataEpoch) || state.dataEpoch < 0 ||
+      !Number.isSafeInteger(state.revision) || state.revision < 0 ||
+      !['NOT_STARTED','IN_PROGRESS','COMPLETED'].includes(state.status) ||
+      !steps || Array.isArray(steps) || typeof steps !== 'object' ||
+      Object.entries(steps).some(([code,status]) =>
+        !SETUP_STEP_CODES.includes(code) || !['PENDING','COMPLETE','SKIPPED'].includes(status)) ||
+      (state.status === 'COMPLETED' && (Object.keys(steps).length !== SETUP_STEP_CODES.length ||
+        Object.values(steps).some(value => !['COMPLETE','SKIPPED'].includes(value)))))
+    throw new Error('SETUP_STATE_MISMATCH')
+  return state
+}
+export function assertSetupReview(review, state, codes) {
+  if (!Array.isArray(codes) || !codes.length ||
+      codes.some(code => typeof code !== 'string' || !code.trim()) ||
+      new Set(codes).size !== codes.length || !review ||
+      String(review.workspaceId) !== String(state?.workspaceId) ||
+      review.dataEpoch !== state?.dataEpoch || review.revision !== state?.revision ||
+      review.setupStatus !== state?.status ||
+      review.requiresExplicitConfirmation !== true || review.createsActiveDefinitions !== false ||
+      !Array.isArray(review.selectedCodes) ||
+      JSON.stringify(review.selectedCodes) !== JSON.stringify(codes) ||
+      !Array.isArray(review.toImport) || !Array.isArray(review.alreadyImported) ||
+      !Number.isSafeInteger(review.selectedCount) || review.selectedCount !== codes.length ||
+      !Number.isSafeInteger(review.toImportCount) || review.toImportCount !== review.toImport.length ||
+      !Number.isSafeInteger(review.alreadyImportedCount) ||
+      review.alreadyImportedCount !== review.alreadyImported.length ||
+      review.toImport.length + review.alreadyImported.length !== codes.length ||
+      new Set([...review.toImport,...review.alreadyImported]).size !== codes.length ||
+      [...review.toImport,...review.alreadyImported].some(code => !codes.includes(code)))
+    throw new Error('SETUP_REVIEW_MISMATCH')
+  return review
+}
