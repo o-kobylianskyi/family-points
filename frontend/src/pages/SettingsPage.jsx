@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
@@ -52,7 +52,7 @@ function SettingsPage() {
     || currentUser?.permissions?.includes('ADMIN_OVERRIDE')
   const accountByMember = useMemo(() => new Map(accounts.map(a => [a.workspaceMemberId, a])), [accounts])
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!currentUser?.workspaceId) return
     setError('')
     try {
@@ -61,8 +61,8 @@ function SettingsPage() {
       setMembers(memberData)
       if (canManage) setAccounts(await getWorkspaceAccounts(token, currentUser.workspaceId))
     } catch (e) { setError(e) }
-  }
-  useEffect(() => { load() }, [currentUser?.workspaceId, canManage])
+  }, [currentUser?.workspaceId, getAccessToken, canManage])
+  useEffect(() => { void Promise.resolve().then(load) }, [load])
 
   function startCreate(member) {
     setEditingError('')
