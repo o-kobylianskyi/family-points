@@ -122,4 +122,17 @@ class ProtectiveBackupExchangeSourceGraphTest {
             return root;
         }));
     }
+    @Test void historicalPerRequestRateSnapshotMustMatchActualAmount() throws Exception {
+        var changedSnapshot=inspect(root->{
+            first(root,"POINT_EXCHANGE_REQUESTS").put("rate_to_amount",3);
+            return root;
+        });
+        assertTrue(changedSnapshot.blockers().contains("EXCHANGE_REQUEST_HISTORIC_RATE_MISMATCH"));
+        var forbiddenFraction=inspect(root->{
+            first(root,"POINT_EXCHANGE_REQUESTS").put("rate_from_amount",6);
+            return root;
+        });
+        assertTrue(forbiddenFraction.blockers().contains("EXCHANGE_REQUEST_HISTORIC_RATE_MISMATCH"));
+    }
+
 }
