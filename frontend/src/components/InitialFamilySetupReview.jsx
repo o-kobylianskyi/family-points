@@ -161,7 +161,6 @@ function InitialFamilySetupReviewContent() {
       .filter(Boolean).join(' ').toLocaleLowerCase().includes(term)
   })
   const matchingCodes = items.map(item => item.code)
-  const allMatchingSelected = matchingCodes.length > 0 && matchingCodes.every(code => selected.includes(code))
   const anyMatchingSelected = hasSelectedSetupMatch(selected, matchingCodes)
   const updateSelection = checked => {
     setSelected(previous => selectSetupMatching(previous, matchingCodes, checked, catalogCodes))
