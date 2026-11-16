@@ -50,6 +50,9 @@ public class WorkspacePortableBackupExporter {
         Map.entry("GROUP_POINT_LEDGER",new Scope("group_point_transactions",
             "EXISTS (SELECT 1 FROM member_groups g WHERE g.id=t.group_id AND g.family_id=?)")),
         Map.entry("POINT_TYPES",new Scope("point_types","t.family_id=?")),
+        Map.entry("POINT_EXCHANGE_RATES",new Scope("point_exchange_rates","t.family_id=?")),
+        Map.entry("POINT_EXCHANGE_REQUESTS",new Scope("point_exchange_requests",
+            "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)")),
         Map.entry("POINT_LEDGER",new Scope("point_transactions",
             "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)")),
         Map.entry("REPUTATION_LEDGER",new Scope("reputation_transactions",
@@ -103,6 +106,61 @@ public class WorkspacePortableBackupExporter {
                         """,Long.class,workspaceId);
                 if(invalid==null || invalid!=0L)
                     throw new SecurityException("BACKUP_GROUP_LEDGER_FOREIGN_CURRENCY");
+            }
+            if("POINT_EXCHANGE_RATES".equals(category)) {
+                Long invalid=db.queryForObject("""
+                        SELECT count(*) FROM point_exchange_rates t
+                        LEFT JOIN point_types f ON f.id=t.from_point_type_id
+                        LEFT JOIN point_types v ON v.id=t.to_point_type_id
+                        WHERE t.family_id=?
+                          AND (f.id IS NULL OR f.family_id<>t.family_id
+                            OR v.id IS NULL OR v.family_id<>t.family_id)
+                        """,Long.class,workspaceId);
+                if(invalid==null || invalid!=0L)
+                    throw new SecurityException("BACKUP_EXCHANGE_RATE_FOREIGN_CURRENCY");
+                Long rates=db.queryForObject(
+                        "SELECT count(*) FROM point_exchange_rates WHERE family_id=?",
+                        Long.class,workspaceId);
+                if(rates==null || (rates>0 && !selected.contains("POINT_TYPES")))
+                    throw new IllegalStateException("BACKUP_EXCHANGE_RATE_CURRENCY_CATEGORY_MISSING");
+            }
+            if("POINT_EXCHANGE_REQUESTS".equals(category)) {
+                Long invalid=db.queryForObject("""
+                        SELECT count(*) FROM point_exchange_requests t
+                        JOIN family_members m ON m.id=t.member_id
+                        LEFT JOIN point_exchange_rates r ON r.id=t.exchange_rate_id
+                        LEFT JOIN point_types f ON f.id=t.from_point_type_id
+                        LEFT JOIN point_types v ON v.id=t.to_point_type_id
+                        LEFT JOIN family_members reviewer ON reviewer.id=t.processed_by_member_id
+                        WHERE m.family_id=?
+                          AND (r.id IS NULL OR r.family_id<>m.family_id
+                            OR f.id IS NULL OR f.family_id<>m.family_id
+                            OR v.id IS NULL OR v.family_id<>m.family_id
+                            OR (t.processed_by_member_id IS NOT NULL
+                              AND (reviewer.id IS NULL OR reviewer.family_id<>m.family_id)))
+                        """,Long.class,workspaceId);
+                if(invalid==null || invalid!=0L)
+                    throw new SecurityException("BACKUP_EXCHANGE_REQUEST_FOREIGN_RELATION");
+                Long requests=db.queryForObject("""
+                        SELECT count(*) FROM point_exchange_requests t
+                        JOIN family_members m ON m.id=t.member_id
+                        WHERE m.family_id=?
+                        """,Long.class,workspaceId);
+                if(requests==null || (requests>0 && (!selected.contains("POINT_TYPES")
+                        || !selected.contains("POINT_EXCHANGE_RATES"))))
+                    throw new IllegalStateException("BACKUP_EXCHANGE_REQUEST_PARENT_MISSING");
+            }
+            if("POINT_LEDGER".equals(category)) {
+                Long exchanges=db.queryForObject("""
+                        SELECT count(*) FROM point_transactions t
+                        JOIN family_members m ON m.id=t.member_id
+                        WHERE m.family_id=? AND t.source_type='POINT_EXCHANGE'
+                        """,Long.class,workspaceId);
+                if(exchanges==null || (exchanges>0 &&
+                        (!selected.contains("POINT_EXCHANGE_REQUESTS")
+                         || !selected.contains("POINT_EXCHANGE_RATES")
+                         || !selected.contains("POINT_TYPES"))))
+                    throw new IllegalStateException("BACKUP_EXCHANGE_LEDGER_GRAPH_INCOMPLETE");
             }
             if("POINT_LEDGER".equals(category)) {
                 // The member FK alone is insufficient to prove a compatible
