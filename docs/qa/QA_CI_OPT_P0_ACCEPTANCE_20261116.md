@@ -81,3 +81,10 @@
 - Accepted as successful run of **all 49 executed scenarios**: BKL002 readonly preview/plan failures and recovery, backup metadata tenant fencing, four-locale UI smoke, epoch write-verb quarantine, child and cross-tenant 401/403 ACL, purchase-only Reward History GET-only, task/reward non-implicit writes, and Settings runtime.
 - Two V49 manager workflow scenarios SKIPPED due to unavailable server-side feature for this QA workspace: (1) seven-step status; (2) catalog six-pack search/bulk selection until explicit confirmation. Do not count skipped cases as feature acceptance.
 - This is **not 51/51 PASS** and does not prove full V49 onboarding or executable BKL002 backup/reset/restore. Trace tooling reliability remains open. Exact local HEAD in this execution not supplied (no SHA in pasted terminal output). Android exact three XML tests and same-SHA full required CI remain independently gated; BETA HOLD.
+
+
+## Operator post-run SHA evidence — 2026-11-16
+
+- Operator supplied `git rev-parse HEAD` immediately after successful full authenticated browser run: **`c00d81418c84ce66e897890e4ec2e9c072ada057`**; `git status --short` contains **only untracked** `qa/e2e/package-lock.json`, `qa/e2e/playwright-report/`, `qa/e2e/test-results/` (no tracked modifications shown).
+- Nearby submitted `npx playwright test --reporter=list --workers=1 --trace=off` completed **51 collected / 49 PASS / 0 FAIL / 2 SKIPPED**. Associate run with reported post-run checkout SHA; absent test-time SHA print means no cryptographic proof HEAD did not move during run. Do not mislabel as `51 PASS`.
+- GitHub commit `c00d814` confirmed. At verification, `main` was 4 commits ahead; new `onboarding-v49-synthetic-readonly.spec.js` means later main has expanded browser scenarios not covered by the 51 collected tests. Revalidate on an exact release candidate; never reset or activate a real family.
