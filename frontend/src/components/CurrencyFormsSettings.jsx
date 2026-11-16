@@ -40,7 +40,10 @@ const currencyNames = {
 }
 const localizedCurrency = (type, lang) => currencyNames[type.code?.toUpperCase()]?.[lang] || type.name
 
-export default function CurrencyFormsSettings({ token, workspaceId, canManage }) {
+export default function CurrencyFormsSettings(props) {
+  return <CurrencyFormsSettingsContent key={`${props.workspaceId}:${props.token}`} {...props} />
+}
+function CurrencyFormsSettingsContent({ token, workspaceId, canManage }) {
   const { i18n } = useTranslation()
   const uiLang = i18n.language.split('-')[0]
   const l = labels[uiLang] || labels.uk
@@ -68,42 +71,31 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
 
   useEffect(() => {
     let alive = true
-    setSelectedId('');
     (canManage ? getAllPointTypes(token, workspaceId) : getPointTypes(token, workspaceId))
-      .then(data => { if (alive) { setTypes(data); if (data.length) setSelectedId(String(data[0].id)) } })
+      .then(data => { if (alive) { setTypes(data); if (data.length) {
+        setSelectedId(String(data[0].id)); setEditName(data[0].name || ''); setEditActive(data[0].active ?? true)
+      } } })
       .catch(e => { if (alive) setError(e.message) })
     return () => { alive = false }
   }, [token, workspaceId, canManage])
 
   useEffect(() => {
     let alive = true
-    setForms([])
-    setLoaded(false)
-    setLoading(Boolean(selectedId))
-    setError('')
-    setNotice('')
-    setDirty(false)
     if (selectedId) {
       getPointNameForms(token, workspaceId, selectedId)
-        .then(data => { if (alive) { setForms(data); setLoaded(true) } })
+        .then(data => { if (alive) {
+          setForms(data); setLoaded(true)
+          const saved = data.find(form => form.language === language)
+          const preset = defaults[selected?.code?.toUpperCase()]?.[language]
+          setDraft(saved ? { one:saved.one, few:saved.few, many:saved.many } :
+            preset ? { one:preset[0], few:preset[1], many:preset[2] } : blank)
+          setDirty(false)
+        } })
         .catch(e => { if (alive) setError(e.message || l.retry) })
         .finally(() => { if (alive) setLoading(false) })
     }
     return () => { alive = false }
-  }, [token, workspaceId, selectedId])
-
-  useEffect(() => {
-    const saved = forms.find(form => form.language === language)
-    const preset = defaults[selected?.code?.toUpperCase()]?.[language]
-    setDraft(saved ? { one: saved.one, few: saved.few, many: saved.many }
-      : preset ? { one: preset[0], few: preset[1], many: preset[2] } : blank)
-    setDirty(false)
-  }, [forms, selectedId, language])
-
-  useEffect(() => {
-    setEditName(selected?.name || '')
-    setEditActive(selected?.active ?? true)
-  }, [selected?.id, selected?.name, selected?.active])
+  }, [token, workspaceId, selectedId, language, selected?.code, l.retry])
 
   async function saveCurrency(event) {
     event.preventDefault()
@@ -136,7 +128,7 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
       })
       const refreshed = await getAllPointTypes(token, workspaceId)
       setTypes(refreshed)
-      setSelectedId(String(created.id))
+      setSelectedId(String(created.id)); setLoaded(false); setLoading(true); setEditName(created.name || ''); setEditActive(created.active ?? true)
       setNewCurrencyCode('')
       setNewCurrencyName('')
       setNotice(({ uk: 'Валюту створено. Тепер налаштуйте її відмінювання.', ru: 'Валюта создана. Теперь настройте её склонение.', de: 'Währung erstellt. Legen Sie nun die Wortformen fest.', en: 'Currency created. Now configure its word forms.' })[uiLang] || 'Currency created')
@@ -182,7 +174,12 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
     <div className="currency-forms-layout">
       <div className="currency-forms-picker">
         <label htmlFor="currency-type">{l.currency}</label>
-        <select id="currency-type" value={selectedId} onChange={e => setSelectedId(e.target.value)}>
+        <select id="currency-type" value={selectedId} onChange={e => {
+          const item = types.find(type => String(type.id) === e.target.value)
+          setSelectedId(e.target.value); setForms([]); setLoaded(false); setLoading(true)
+          setError(''); setNotice(''); setDirty(false)
+          setEditName(item?.name || ''); setEditActive(item?.active ?? true)
+        }}>
           {types.length === 0 && <option value="">{l.choose}</option>}
           {types.map(type => <option key={type.id} value={type.id}>
             {localizedCurrency(type, uiLang)} ({type.code})
@@ -209,7 +206,15 @@ export default function CurrencyFormsSettings({ token, workspaceId, canManage })
       </form>}
       {selected && <form className="currency-forms-editor" onSubmit={save}>
         <label className="currency-forms-language" htmlFor="currency-language">{l.language}
-          <select id="currency-language" value={language} onChange={e => setLanguage(e.target.value)} disabled={busy}>
+          <select id="currency-language" value={language} onChange={e => {
+          const next = e.target.value
+          const saved = forms.find(form => form.language === next)
+          const preset = defaults[selected?.code?.toUpperCase()]?.[next]
+          setLanguage(next)
+          setDraft(saved ? { one:saved.one, few:saved.few, many:saved.many } :
+            preset ? { one:preset[0], few:preset[1], many:preset[2] } : blank)
+          setDirty(false)
+        }} disabled={busy}>
             {languages.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
           </select>
         </label>
