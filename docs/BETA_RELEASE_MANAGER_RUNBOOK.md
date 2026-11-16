@@ -6,7 +6,7 @@
 
 | Component | Command / file | Effect |
 | --- | --- | --- |
-| CI / release gate | `scripts/beta/release-gate.ps1` | Local-only status, exact-SHA manual four-job CI gate, optional isolated QA HTTP smoke, and separate opt-in public post-deploy smoke |
+| CI / release gate | `scripts/beta/release-gate.ps1` | Local-only status, exact-SHA four-job CI gate (full push or manual dispatch), optional isolated QA HTTP smoke, and separate opt-in public post-deploy smoke |
 | CI workflow | `.github/workflows/ci.yml` | Manual dispatch runs all 4 jobs, isolated from push cancellation |
 | Android independent CI | `.github/workflows/android-p0.yml` | Android P0 targeted cases, independent concurrency, full suite optional |
 | Android manager | `scripts/android/release.bat` | status/build/install/logs/publish |
@@ -48,9 +48,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-g
 .\scripts\android\release.bat publish
 ```
 
-The gate requires **`gh`** only for CI, and uses `curl.exe` only for the separately selected QA or post-deploy HTTP smoke. `status`, `ci`, and `prepare` do **not** contact PROD/BETA. `release-evidence/` is ignored and contains NO credentials. It records source SHA, annotated tag and successful *manual full* CI run; QA acceptance, actual deployment, Flyway and BKL-002 readiness remain `false` until independently proven. The evidence is not proof of actual runtime Git revision.
+The gate requires **`gh`** only for CI, and uses `curl.exe` only for the separately selected QA or post-deploy HTTP smoke. `status`, `ci`, and `prepare` do **not** contact PROD/BETA. `release-evidence/` is ignored and contains NO credentials. It records source SHA, annotated tag and successful full CI run (manual dispatch or full push); QA acceptance, actual deployment, Flyway and BKL-002 readiness remain `false` until independently proven. The evidence is not proof of actual runtime Git revision.
 
-**Important CI nuance:** automated push CI uses changed-path routing. A GitHub Actions run with a green badge may have **skipped** one or more component test steps, so it is NOT an all-four-component release gate. Use the manual `workflow_dispatch` workflow; `release-gate.ps1` checks the run SHA AND the actual run steps for Maven, Android Gradle, Web build, Compose configuration. Android independent P0 reports are tracked separately; do not treat a pending or skipped job as PASS. An exact-SHA success can become stale when another chat updates main; rerun on the chosen final release SHA.
+**Important CI nuance:** automated push CI uses changed-path routing. A GitHub Actions run with a green badge may have **skipped** one or more component test steps, so it is NOT an all-four-component release gate. Use a manual `workflow_dispatch` or a `[full-ci]` push. `release-gate.ps1` accepts either only when the run is on the exact SHA and all four actual test/build steps have succeeded: Maven, Android Gradle, Web build, Compose configuration. Android independent P0 reports are tracked separately; do not treat a pending or skipped job as PASS. An exact-SHA success can become stale when another chat updates main; rerun on the chosen final release SHA.
 
 ## Environment isolation (mandatory)
 
