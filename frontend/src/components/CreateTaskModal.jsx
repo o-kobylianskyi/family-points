@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import { getPointTypes } from '../api/economyApi'
 import { getPrivateTemplates, getTemplateCreationDraft, activateTaskTemplateIdempotent, getTemplateActivationReceipt } from '../api/templateApi'
 import { observeWorkspaceEpoch } from '../api/client'
