@@ -136,7 +136,7 @@ class WorkspaceRewardObligationArchiveClosurePostgresTest {
         var categoryClosure=new WorkspaceFinancialRestoreClosureService(db)
                 .assess(family,List.of("REWARD_DEFINITIONS"));
         assertTrue(categoryClosure.blockers().contains(
-                "RESTORE_CATEGORY_NOT_EXPORTABLE:REWARD_CATEGORY_LINKS_UNEXPORTED"));
+                "RESTORE_DEPENDENCY_NOT_SELECTED:REWARD_DEFINITION_CATEGORIES"));
         assertEquals(1L,db.queryForObject("""
                 SELECT count(*) FROM reward_definition_categories WHERE reward_definition_id=?
                 """,Long.class,reward).longValue());
