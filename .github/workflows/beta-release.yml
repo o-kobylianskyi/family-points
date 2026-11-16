@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate annotated beta tag
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Validate annotated beta tag (manual branch run is not release approval)
         shell: bash
         run: |
+          [[ "$GITHUB_REF" == refs/tags/* ]] || { echo 'BETA gate requires annotated tag. Use FamilyPoints CI for branch diagnostics.'; exit 1; }
           [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]] || exit 1
           git fetch --force --tags
           [[ "$(git cat-file -t "refs/tags/$GITHUB_REF_NAME")" == "tag" ]] || {
@@ -33,6 +33,7 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      - run: docker info
       - run: chmod +x ./mvnw && ./mvnw -B -ntp clean verify
 
   web:
@@ -50,6 +51,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run i18n:check
+      - run: npm run test:regression
+      - run: npm run lint
       - run: npm run build
 
   android:
@@ -69,7 +72,7 @@ jobs:
           packages: "platform-tools build-tools;36.0.0"
       - run: sdkmanager "platforms;android-36"
       - uses: gradle/actions/setup-gradle@v4
-      - run: chmod +x ./gradlew && ./gradlew --no-daemon -PfamilyPointsCiAndroidSdk=36 :app:assembleDebug :app:testDebugUnitTest
+      - run: chmod +x ./gradlew && ./gradlew --no-daemon -PfamilyPointsCiAndroidSdk=36 :app:assembleDebug :app:testDebugUnitTest :app:assembleDebugAndroidTest
 
   compose:
     needs: validate-tag
@@ -85,3 +88,33 @@ jobs:
           bash -n scripts/beta/deploy-release.sh
           bash -n scripts/beta/backup.sh
           bash -n scripts/beta/smoke.sh
+          test -f Dockerfile.beta
+          test -f frontend/Dockerfile.beta
+          test -f frontend/deploy/nginx.beta.conf
+          test -f .env.beta.example
+
+  release-gate:
+    name: BETA / required checks summary
+    if: always()
+    needs: [validate-tag, backend, web, android, compose]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require annotated tag and all successful checks
+        env:
+          TAG_RESULT: ${{ needs.validate-tag.result }}
+          BACKEND_RESULT: ${{ needs.backend.result }}
+          WEB_RESULT: ${{ needs.web.result }}
+          ANDROID_RESULT: ${{ needs.android.result }}
+          COMPOSE_RESULT: ${{ needs.compose.result }}
+        shell: bash
+        run: |
+          failed=0
+          for item in TAG_RESULT BACKEND_RESULT WEB_RESULT ANDROID_RESULT COMPOSE_RESULT; do
+            echo "${item}=${!item}" >> "$GITHUB_STEP_SUMMARY"
+            if [[ "${!item}" != "success" ]]; then
+              echo "::error::BETA check ${item} did not pass: ${!item}"
+              failed=1
+            fi
+          done
+          if [[ "$failed" != "0" ]]; then exit 1; fi
+          echo "All tag checks passed. QA sign-off for BKL-002/onboarding and deployment authorization remain SEPARATE." >> "$GITHUB_STEP_SUMMARY"
