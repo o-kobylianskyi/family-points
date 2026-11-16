@@ -47,21 +47,22 @@ function SettingsPage() {
   const [own, setOwn] = useState({ currentPassword: '', newPassword: '', confirm: '' })
   const [googleAction, setGoogleAction] = useState('password')
 
+  const workspaceId = currentUser?.workspaceId
   const canManage = currentUser?.permissions?.includes('MANAGE_MEMBERS')
   const canManageRoles = currentUser?.permissions?.includes('MANAGE_ROLES')
     || currentUser?.permissions?.includes('ADMIN_OVERRIDE')
   const accountByMember = useMemo(() => new Map(accounts.map(a => [a.workspaceMemberId, a])), [accounts])
 
   const load = useCallback(async () => {
-    if (!currentUser?.workspaceId) return
+    if (!workspaceId) return
     setError('')
     try {
       const token = getAccessToken()
-      const memberData = await getWorkspaceMembers(token, currentUser.workspaceId)
+      const memberData = await getWorkspaceMembers(token, workspaceId)
       setMembers(memberData)
-      if (canManage) setAccounts(await getWorkspaceAccounts(token, currentUser.workspaceId))
+      if (canManage) setAccounts(await getWorkspaceAccounts(token, workspaceId))
     } catch (e) { setError(e) }
-  }, [currentUser?.workspaceId, getAccessToken, canManage])
+  }, [workspaceId, getAccessToken, canManage])
   useEffect(() => { void Promise.resolve().then(load) }, [load])
 
   function startCreate(member) {
