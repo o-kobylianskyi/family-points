@@ -53,6 +53,9 @@ public final class WorkspaceFinancialRestoreClosureService {
                 new Scope("REWARD_OBLIGATION_BLOCKED_REWARDS",
                     "reward_obligation_blocked_rewards",
                     "EXISTS (SELECT 1 FROM reward_obligations o WHERE o.id=t.obligation_id AND o.family_id=?)"),
+                new Scope("POINT_EXCHANGE_RATES","point_exchange_rates","t.family_id=?"),
+                new Scope("POINT_EXCHANGE_REQUESTS","point_exchange_requests",
+                    "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)"),
                 new Scope("REWARD_PURCHASES","reward_purchases",
                     "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)"),
                 new Scope("REWARD_REQUESTS","reward_requests","t.family_id=?"),
@@ -88,7 +91,8 @@ public final class WorkspaceFinancialRestoreClosureService {
         if(!selected.isEmpty()) {
             var financialRequested=Set.of("POINT_LEDGER","REPUTATION_LEDGER",
                     "REWARD_PURCHASES","REWARD_REQUESTS","TASK_EXECUTIONS",
-                    "TASK_SCHEDULE_SLOTS","GROUP_POINT_LEDGER","REWARD_REQUIREMENTS");
+                    "TASK_SCHEDULE_SLOTS","GROUP_POINT_LEDGER","REWARD_REQUIREMENTS",
+                    "POINT_EXCHANGE_RATES","POINT_EXCHANGE_REQUESTS");
             for(var category:selected) {
                 if(financialRequested.contains(category))
                     blockers.add("RESTORE_FINANCIAL_NATIVE_REPLAY_UNIMPLEMENTED:"+category);
