@@ -44,6 +44,8 @@ function InitialFamilySetupReviewContent() {
   const [packs, setPacks] = useState([])
   const [pack, setPack] = useState('ALL')
   const [unavailable, setUnavailable] = useState(false)
+  const [loadingSetup, setLoadingSetup] = useState(false)
+  const [loadAttempt, setLoadAttempt] = useState(0)
   const [kind, setKind] = useState('TASK')
   const [category, setCategory] = useState('ALL')
   const [search, setSearch] = useState('')
@@ -127,16 +129,21 @@ function InitialFamilySetupReviewContent() {
   useEffect(() => {
     const id = ++seq.current
     if (!workspaceId || !canManageSetup) return
+    setLoadingSetup(true)
+    setUnavailable(false)
     Promise.all([getSetupState(getAccessToken(), workspaceId), getTemplateCatalog(getAccessToken())])
       .then(([state, data]) => {
         const checked = validateSetupCatalog(data)
         const safeState = assertSetupState(state, workspaceId)
-        if (seq.current === id) { setSetup(safeState); setCatalog(checked.templates); setPacks(checked.packs) }
+        if (seq.current === id) {
+          setSetup(safeState); setCatalog(checked.templates); setPacks(checked.packs)
+          setLoadingSetup(false)
+        }
       })
-      .catch(() => { if (seq.current === id) setUnavailable(true) })
+      .catch(() => { if (seq.current === id) { setUnavailable(true); setLoadingSetup(false) } })
     const guard = seq
     return () => { if (guard.current === id) guard.current = id + 1 }
-  }, [workspaceId, getAccessToken, canManageSetup])
+  }, [workspaceId, getAccessToken, canManageSetup, loadAttempt])
   // Catalog responses are portable localized DTOs. Invalid entries must never
   // become part of a finalize payload (no duplicate or blank catalog codes).
   const validCatalog = catalog.filter(item => item && typeof item.code === 'string' &&
@@ -240,7 +247,14 @@ function InitialFamilySetupReviewContent() {
   return <section id="initial-family-setup" className="settings-section" aria-label={w[0]}>
     <h2>{w[0]}</h2>
     <p>{w[11]}</p>
-    {unavailable && <p role="status">{w[1]}</p>}
+    {loadingSetup && <p role="status">{({uk:'Завантаження стану та каталогу…',ru:'Загрузка состояния и каталога…',de:'Einrichtung und Katalog werden geladen…',en:'Loading setup and catalog…'})[lang] || 'Loading setup and catalog…'}</p>}
+    {unavailable && <div role="status">
+      <p>{w[1]}</p>
+      <button type="button" className="secondary-button" disabled={loadingSetup || busy}
+        onClick={() => { setError(false); setErrorStatus(null); setLoadAttempt(value => value + 1) }}>
+        {({uk:'Повторити завантаження',ru:'Повторить загрузку',de:'Erneut laden',en:'Retry loading'})[lang] || 'Retry loading'}
+      </button>
+    </div>}
     {error && <p role="alert">{errorStatus === 409 ? ({uk:'Дані налаштування змінилися. Оновіть сторінку та перевірте стан операції.',ru:'Данные изменились. Обновите страницу и проверьте операцию.',de:'Einrichtungsdaten geändert. Seite aktualisieren und Vorgang prüfen.',en:'Setup changed. Refresh and check operation status.'})[lang] : errorStatus === 403 ? ({uk:'Недостатньо прав для налаштування.',ru:'Недостаточно прав для настройки.',de:'Keine Berechtigung für die Einrichtung.',en:'Not authorized to manage setup.'})[lang] : w[12]}</p>}
     {setup && <>
       {setup.status === 'COMPLETED' && <p role="status">{({uk:'Початкове налаштування завершено. Новий імпорт недоступний.',ru:'Первоначальная настройка завершена. Повторный импорт недоступен.',de:'Ersteinrichtung abgeschlossen. Erneuter Import nicht verfügbar.',en:'Initial setup completed. New import is unavailable.'})[lang]}</p>}
