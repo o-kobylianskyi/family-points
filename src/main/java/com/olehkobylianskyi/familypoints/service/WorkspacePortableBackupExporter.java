@@ -36,6 +36,9 @@ public class WorkspacePortableBackupExporter {
             "EXISTS (SELECT 1 FROM task_definitions d WHERE d.id=t.task_definition_id AND d.family_id=?)")),
         Map.entry("REWARD_REQUESTS",new Scope("reward_requests","t.family_id=?")),
         Map.entry("REWARD_REQUIREMENTS",new Scope("reward_requirements","t.family_id=?")),
+        Map.entry("REWARD_CATEGORIES",new Scope("reward_categories","t.family_id=?")),
+        Map.entry("REWARD_DEFINITION_CATEGORIES",new Scope("reward_definition_categories",
+            "EXISTS (SELECT 1 FROM reward_definitions d WHERE d.id=t.reward_definition_id AND d.family_id=?)")),
         Map.entry("WORK_NODES",new Scope("work_nodes","t.family_id=?")),
         Map.entry("MEDIA_BINDINGS",new Scope("media_bindings","t.workspace_id=?")),
         Map.entry("MEDIA_ASSETS",new Scope("media_assets","t.workspace_id=?")),
@@ -117,7 +120,7 @@ public class WorkspacePortableBackupExporter {
                         JOIN reward_definitions d ON d.id=a.reward_definition_id
                         WHERE d.family_id=?
                         """,Long.class,workspaceId);
-                if(associations==null || associations!=0L)
+                if(associations==null || (associations!=0L && !selected.contains("REWARD_DEFINITION_CATEGORIES")))
                     throw new IllegalStateException("BACKUP_UNEXPORTED_REWARD_CATEGORY_LINKS");
             }
             if("REWARD_DEFINITIONS".equals(category)
@@ -131,6 +134,25 @@ public class WorkspacePortableBackupExporter {
                         """,Long.class,workspaceId);
                 if(notPortable==null || (notPortable!=0L && !selected.contains("REWARD_REQUIREMENTS")))
                     throw new IllegalStateException("BACKUP_UNEXPORTED_REWARD_REQUIREMENTS");
+            }
+            if("REWARD_DEFINITION_CATEGORIES".equals(category)) {
+                Long foreign=db.queryForObject("""
+                        SELECT count(*) FROM reward_definition_categories a
+                        JOIN reward_definitions d ON d.id=a.reward_definition_id
+                        LEFT JOIN reward_categories c ON c.id=a.category_id
+                        WHERE d.family_id=? AND (c.id IS NULL OR c.family_id<>d.family_id)
+                        """,Long.class,workspaceId);
+                if(foreign==null || foreign!=0L)
+                    throw new SecurityException("BACKUP_REWARD_CATEGORY_FOREIGN_RELATION");
+                Long links=db.queryForObject("""
+                        SELECT count(*) FROM reward_definition_categories a
+                        JOIN reward_definitions d ON d.id=a.reward_definition_id
+                        WHERE d.family_id=?
+                        """,Long.class,workspaceId);
+                if(links==null || (links>0 &&
+                        (!selected.contains("REWARD_DEFINITIONS")
+                         || !selected.contains("REWARD_CATEGORIES"))))
+                    throw new IllegalStateException("BACKUP_REWARD_CATEGORY_PARENT_MISSING");
             }
             if("REWARD_REQUIREMENTS".equals(category)) {
                 Long foreign=db.queryForObject("""
