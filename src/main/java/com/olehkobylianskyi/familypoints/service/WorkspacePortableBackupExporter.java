@@ -107,6 +107,18 @@ public class WorkspacePortableBackupExporter {
                 if(invalid==null || invalid!=0L)
                     throw new SecurityException("BACKUP_POINT_LEDGER_FOREIGN_CURRENCY");
             }
+            if("REWARD_DEFINITIONS".equals(category)
+                    || "REWARD_REQUESTS".equals(category)) {
+                // Reward requirements are not exported/restored yet; a
+                // definition or request may carry fulfilment conditions that
+                // must survive any FULL or SELECTIVE replacement.
+                Long notPortable=db.queryForObject("""
+                        SELECT count(*) FROM reward_requirements r
+                        WHERE r.family_id=?
+                        """,Long.class,workspaceId);
+                if(notPortable==null || notPortable!=0L)
+                    throw new IllegalStateException("BACKUP_UNEXPORTED_REWARD_REQUIREMENTS");
+            }
             if("TASK_EXECUTIONS".equals(category)) {
                 Long invalid=db.queryForObject("""
                         SELECT count(*) FROM task_instances t
