@@ -13,6 +13,12 @@
 - No parallel-work exception allows BKL-002 `VERIFIED` promotion, destructive Reset/Restore execute or release without independent QA/Release gate. HTTP 423 remains until all required safety constraints pass.
 - Canonical handoff: [BKL002_BACKEND_QA_ASYNC_TEST_PIPELINE_20261116.md](docs/coordination/requests/BKL002_BACKEND_QA_ASYNC_TEST_PIPELINE_20261116.md).
 
+## TEMPORARY ALL-TRACK TASK — MEASURE CHAT LENGTH FROM OBSERVABLE EVIDENCE (2026-11-16)
+- User requires a measurement pilot after Web chat hard-stopped without warning: [CHAT_CAPACITY_OBSERVABILITY_20261116.md](docs/coordination/CHAT_CAPACITY_OBSERVABILITY_20261116.md). Applies to Architecture, Backend, Web, Android, QA, Designer and Release.
+- **Each substantial batch:** append a compact checkpoint to `docs/coordination/chat-capacity/<TRACK>.md`: timestamp, chat generation label, *actually visible* user/assistant turn counts or `unknown`, coverage (partial/full), real measured characters only if accessible, handoff SHA and hard-limit/warning events. Do not store conversation content or user-identifying data.
+- Every track updates `docs/coordination/handoffs/<TRACK>_LATEST.md` alongside the checkpoint. The handoff is the safety mechanism; the metrics are exploratory. No assistant can reliably know the hidden remaining context % or access other chats, and no observations may be fabricated to fill the table.
+- QA audits that logs and handoffs exist; Architecture compares real observed data when enough evidence is collected; no change to BETA implementation priorities or release safety.
+
 ## CRITICAL CORRECTION — HARD CONTEXT LIMIT WARNING FAILED (user evidence 2026-11-16)
 - A Web role chat reached ChatGPT's **maximum conversation length with no 50/75/85% warning**. The requested percentage warning plan is **not reliable** because chats are not given exact usage/remaining context counters; a hard cap can prevent any final handoff. **Do not present milestone alerts as a working guarantee.**
 - **Mandatory alternative for ALL tracks (Architecture, Backend, Web, Android, QA, Designer, Release):** after **every substantial work batch** or changes in committed SHA/tests/blockers, update a **self-contained rolling continuation file** in `docs/coordination/handoffs/<TRACK>_LATEST.md` (first create it if absent) and commit it. Each user-visible completion report should link the handoff and include its latest commit SHA. A role journal alone is not a substitute for the rolling entry.
