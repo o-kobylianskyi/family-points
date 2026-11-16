@@ -18,7 +18,7 @@ export default function EntityMedia(props) {
     currentUser?.workspaceId, props.type, props.targetId, props.slot ?? 'ICON'].join(':')
   return <EntityMediaContent key={key} {...props} />
 }
-function EntityMediaContent({ type: targetId, slot='ICON', canEdit=false, compact=false, inlineEditor=false, staged=false, draft=null, onDraftChange=null, children=null }) {
+function EntityMediaContent({ type, targetId, slot='ICON', canEdit=false, compact=false, inlineEditor=false, staged=false, draft=null, onDraftChange=null, children=null }) {
   const {currentUser,getAccessToken}=useAuth()
   const {i18n}=useTranslation()
   const words=dictionary[i18n.language.split('-')[0]]||dictionary.en
