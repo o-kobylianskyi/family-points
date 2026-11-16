@@ -46,6 +46,15 @@ export function reconcileSetupPending(session, shared, workspaceId, accountId) {
 
 export const SETUP_STEP_CODES = Object.freeze(['MEMBERS','MEMBER_GROUPS','WORK_NODE_GROUPS','CATALOG_SELECTION','TASK_REVIEW','REWARD_REVIEW','FINAL_REVIEW'])
 
+/** Avoid redundant step PATCH requests when the requested decision already exists.
+ * This is a UI guard only; server revision and permission checks remain authoritative. */
+export function canChangeSetupStep(state, code, desiredStatus) {
+  return !!state && state.status !== 'COMPLETED' &&
+    SETUP_STEP_CODES.includes(code) &&
+    ['COMPLETE', 'SKIPPED'].includes(desiredStatus) &&
+    state.steps?.[code] !== desiredStatus
+}
+
 // New V46 families legitimately have empty steps until parents select them.
 export function assertSetupState(state, workspaceId) {
   const steps = state?.steps
