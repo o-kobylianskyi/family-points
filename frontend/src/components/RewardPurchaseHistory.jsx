@@ -29,7 +29,7 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
   const [items, setItems] = useState([])
   const [cursor, setCursor] = useState(null)
   const [hasMore, setHasMore] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [generation, setGeneration] = useState(0)
   // Reset pagination after a family data generation change; never render an old cursor.
@@ -37,7 +37,7 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
     const invalidate = event => {
       if (String(event.detail?.workspaceId) !== String(workspaceId)) return
       requestId.current += 1
-      setItems([]); setCursor(null); setHasMore(false); setGeneration(value => value + 1)
+      setItems([]); setCursor(null); setHasMore(false); setLoading(true); setGeneration(value => value + 1)
     }
     window.addEventListener('workspace:data-epoch-changed', invalidate)
     return () => window.removeEventListener('workspace:data-epoch-changed', invalidate)
@@ -65,7 +65,7 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
     busy.current = false
     const observedKey = identityKey
     const id = ++requestId.current
-    setLoading(true); busy.current = true
+    busy.current = true
     const options = { limit:25 }
     if (canManage && applied.memberId) options.memberId = applied.memberId
     if (applied.status) options.status = applied.status
@@ -108,14 +108,14 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
     event.preventDefault()
     if (filters.from && filters.to && filters.from > filters.to) return
     requestId.current += 1
-    setItems([]); setCursor(null); setHasMore(false); setError('')
+    setItems([]); setCursor(null); setHasMore(false); setError(''); setLoading(true)
     setApplied({...filters, memberId:canManage ? filters.memberId : ''})
     setGeneration(value => value + 1)
   }
   const reset = () => {
     const fresh = {memberId:'',status:'',from:'',to:''}
     requestId.current += 1
-    setItems([]); setCursor(null); setHasMore(false); setError('')
+    setItems([]); setCursor(null); setHasMore(false); setError(''); setLoading(true)
     setFilters(fresh);setApplied(fresh);setGeneration(value=>value+1)
   }
   return <section className="reward-history-panel">
@@ -139,7 +139,7 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
       <button type="submit" disabled={loading || !!(filters.from && filters.to && filters.from>filters.to)}>{words.apply}</button>
       <button type="button" disabled={loading} onClick={reset}>{words.reset}</button>
     </form>
-    {error && <p className="page-error" role="alert">{error} <button type="button" onClick={()=>setGeneration(value=>value+1)}>{words.retry}</button></p>}
+    {error && <p className="page-error" role="alert">{error} <button type="button" onClick={()=>{setLoading(true);setError('');setGeneration(value=>value+1)}}>{words.retry}</button></p>}
     {loading && <p role="status">{words.loading}</p>}
     {!loading && !error && items.length===0 && <p className="empty-state">{words.empty}</p>}
     <div className="reward-history-list">
