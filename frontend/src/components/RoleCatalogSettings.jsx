@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   getRoleSets, createRoleSet, updateRoleSet, deleteRoleSet,
@@ -14,7 +14,7 @@ export default function RoleCatalogSettings({ token, workspaceId, canManage }) {
   const [editingSet, setEditingSet] = useState(null)
   const [editingRole, setEditingRole] = useState(null)
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setError('')
     try {
       const [setData, roleData] = await Promise.all([
@@ -26,11 +26,11 @@ export default function RoleCatalogSettings({ token, workspaceId, canManage }) {
     } catch (e) {
       setError(e.message)
     }
-  }
+  }, [token, workspaceId])
 
   useEffect(() => {
-    if (workspaceId) load()
-  }, [workspaceId])
+    if (workspaceId) void Promise.resolve().then(load)
+  }, [workspaceId, load])
 
   const rolesBySet = useMemo(() => {
     const map = new Map()
