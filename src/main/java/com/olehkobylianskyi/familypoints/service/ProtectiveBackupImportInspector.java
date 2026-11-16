@@ -17,7 +17,8 @@ public final class ProtectiveBackupImportInspector {
     private static final Set<String> CATEGORIES=Set.of(
         "PRIVATE_TEMPLATES","TASK_DEFINITIONS","TASK_EXECUTIONS","TASK_SCHEDULE_SLOTS",
         "REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_PURCHASES","MEMBER_GROUPS",
-        "WORK_NODES","MEDIA_ASSETS","MEDIA_BINDINGS","POINT_LEDGER","REPUTATION_LEDGER");
+        "WORK_NODES","MEDIA_ASSETS","MEDIA_BINDINGS","POINT_LEDGER","REPUTATION_LEDGER",
+        "GROUP_POINT_LEDGER");
     private final ProtectiveBackupPortableFile files;
     private final ProtectiveBackupArtifactCodec codec;
     private final ObjectMapper json=new ObjectMapper();
@@ -180,6 +181,15 @@ public final class ProtectiveBackupImportInspector {
             checkParent(categories,rowIds,blockers,"REWARD_PURCHASES","reward_definition_id","REWARD_DEFINITIONS");
             checkMemberParent(categories,blockers,"TASK_EXECUTIONS");
             checkMemberParent(categories,blockers,"REWARD_PURCHASES");
+            checkParent(categories,rowIds,blockers,"GROUP_POINT_LEDGER","group_id","MEMBER_GROUPS");
+            if(categories.has("GROUP_POINT_LEDGER")) {
+                for(JsonNode row:categories.path("GROUP_POINT_LEDGER")) {
+                    if(!row.path("point_type_id").isIntegralNumber()
+                            || row.path("point_type_id").asLong()<=0)
+                        blockers.add("INVALID_REFERENCE:GROUP_POINT_LEDGER.point_type_id");
+                    else blockers.add("CURRENCY_REBIND_REQUIRED:GROUP_POINT_LEDGER.point_type_id");
+                }
+            }
             checkMemberParent(categories,blockers,"POINT_LEDGER");
             checkMemberParent(categories,blockers,"REPUTATION_LEDGER");
 
