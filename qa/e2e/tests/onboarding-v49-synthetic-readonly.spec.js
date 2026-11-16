@@ -95,9 +95,9 @@ test('V49 lost step PATCH response reconciles using GET only without hidden repl
   await signIn(page)
   let patchCount=0, setupGetCount=0
   let serverRevision=0
-  // Seed all seven step rows just as the first successful mock does; an
-  // empty V46 state is valid but renders no per-step buttons by design.
-  const updatedSteps=Object.fromEntries(steps.map(step=>[step,'PENDING']))
+  // V46 creates a new family with EMPTY steps. The Web must present all seven
+  // pending choices before any PATCH, then reconcile the lost response via GET.
+  const updatedSteps={}
   await page.route(/\/workspaces\/\d+\/setup(?:\/steps\/[^/?]+)?(?:\?.*)?$/,route=>{
     const url=new URL(route.request().url())
     const path=url.pathname
