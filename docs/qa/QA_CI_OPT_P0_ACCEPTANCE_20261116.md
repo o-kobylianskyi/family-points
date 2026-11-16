@@ -66,3 +66,10 @@
 - Single failing case `reset-failure-recovery.spec.js` (preview 503 → reload 200): console shows expected read-only fail-closed UI and 200 recovery, but Playwright **browserContext.close** failed with `ENOENT` for missing `.playwright-artifacts-0/traces/...recording57.trace`. Do not claim functional acceptance solely from 503/200; test officially FAIL. Isolate rerun with `--trace=off` to distinguish Playwright trace artifact lifecycle from product failure, preserving assertions.
 - Two V49 tests legitimately SKIP because seven-step server status and catalog bulk selection are not enabled/available for this QA workspace. A disabled backend is not accepted V49 feature parity. Role/tenant authorization and catalog/read-only tests passed.
 - No assertion weakening or reset/restore execution authorized. Exact local HEAD of this 51-case run was not included. Retain BETA HOLD for Backend BKL002 and full onboarding as separate gates; Web E2E candidate is not yet all-pass.
+
+
+## 2026-11-16 — Operator targeted Reset Recovery rerun PASS (trace-disabled)
+
+- Operator reran `npx playwright test tests/reset-failure-recovery.spec.js --reporter=list --workers=1 --trace=off`: **4 PASS, 0 FAIL**, 10.6 s. Scenarios: preview HTTP 503 / Reload recovery 200, malformed Plan fail-closed, late Plan after navigation, late Preview after leaving Settings. No destructive execute.
+- This distinguishes the earlier `browserContext.close ENOENT ... .playwright-artifacts-0/traces/recording57.trace` from a reproducible Reset Recovery assertion failure under trace-disabled conditions; underlying trace artifact lifecycle still needs investigation. It does not retroactively convert prior 51-case Playwright full run (48 PASS / 1 FAIL / 2 SKIP) into all-green.
+- Next verify one full 51+-case E2E with `--trace=off` and pinned HEAD. Two server-disabled V49 cases remain legitimate SKIP until disposable Backend V49 enabled; do not count those as PASS. Keep BKL002 production execute and BETA HOLD.
