@@ -325,7 +325,6 @@ function CreateTaskModalContent({
     if (editing) return
     let alive = true
     const workspace = currentUser.workspaceId
-    setTemplateLoadError(false)
     getPrivateTemplates(getAccessToken(), workspace)
       .then(items => {
         if (!alive || String(templateWorkspaceRef.current) !== String(workspace)) return
@@ -410,7 +409,6 @@ function CreateTaskModalContent({
     value,
     setter,
     options,
-    step,
     ariaLabel,
     controlId,
   }) => {
