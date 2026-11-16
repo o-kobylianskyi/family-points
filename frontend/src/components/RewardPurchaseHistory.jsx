@@ -22,7 +22,6 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
   const words = wording[language] || wording.en
   const session = [accountId, workspaceId, memberId, canManage].join(':')
   const sessionRef = useRef(session)
-  sessionRef.current = session
   const requestId = useRef(0)
   const [filters, setFilters] = useState({memberId:'',status:'',from:'',to:''})
   const [applied, setApplied] = useState({memberId:'',status:'',from:'',to:''})
@@ -46,14 +45,11 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
   const busy = useRef(false)
   const identityKey = [session, applied.memberId, applied.status, applied.from, applied.to].join('|')
   const identityRef = useRef(identityKey)
-  identityRef.current = identityKey
 
   useEffect(() => {
+    sessionRef.current = session
     requestId.current += 1
     busy.current = false
-    setFilters({memberId:'',status:'',from:'',to:''})
-    setApplied({memberId:'',status:'',from:'',to:''})
-    setMembers([]); setItems([]); setCursor(null); setHasMore(false); setError(''); setLoading(false)
     if (!canManage) return
     const observedSession = session
     getWorkspaceMembers(getAccessToken(), workspaceId)
@@ -61,12 +57,12 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
         if (sessionRef.current === observedSession && Array.isArray(data)) setMembers(data)
       })
       .catch(() => { if (sessionRef.current === observedSession) setMembers([]) })
-  }, [session])
+  }, [session, canManage, getAccessToken, workspaceId])
 
   useEffect(() => {
+    identityRef.current = identityKey
     requestId.current += 1
     busy.current = false
-    setItems([]); setCursor(null); setHasMore(false); setError('')
     const observedKey = identityKey
     const id = ++requestId.current
     setLoading(true); busy.current = true
@@ -85,7 +81,7 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
       .finally(() => {
         if (id === requestId.current && identityRef.current === observedKey) { setLoading(false); busy.current = false }
       })
-  }, [identityKey, generation])
+  }, [identityKey, generation, canManage, applied.memberId, applied.status, applied.from, applied.to, getAccessToken, workspaceId, memberId, words.error])
 
   const loadMore = async () => {
     if (busy.current || !hasMore || !cursor) return
@@ -111,11 +107,15 @@ export default function RewardPurchaseHistory({workspaceId, memberId, accountId,
   const apply = event => {
     event.preventDefault()
     if (filters.from && filters.to && filters.from > filters.to) return
+    requestId.current += 1
+    setItems([]); setCursor(null); setHasMore(false); setError('')
     setApplied({...filters, memberId:canManage ? filters.memberId : ''})
     setGeneration(value => value + 1)
   }
   const reset = () => {
     const fresh = {memberId:'',status:'',from:'',to:''}
+    requestId.current += 1
+    setItems([]); setCursor(null); setHasMore(false); setError('')
     setFilters(fresh);setApplied(fresh);setGeneration(value=>value+1)
   }
   return <section className="reward-history-panel">
