@@ -28,14 +28,17 @@ private val setupStepCodes = listOf(
     "TASK_REVIEW", "REWARD_REVIEW", "FINAL_REVIEW"
 )
 
-/** Reject incomplete, foreign-workspace or malformed server setup metadata before rendering. */
+/** Same V49 metadata contract as Web: new families may have empty/partial steps.
+ * A COMPLETED setup, however, must have seven explicit terminal decisions. */
 internal fun validWorkspaceSetupState(state: WorkspaceSetupStateDto, workspaceId: Long): Boolean {
     val steps = state.steps ?: return false
-    return state.workspaceId == workspaceId &&
-        state.dataEpoch >= 0 && state.revision >= 0 &&
-        state.status in setOf("NOT_STARTED", "IN_PROGRESS", "COMPLETED") &&
-        steps.keys == setupStepCodes.toSet() &&
-        steps.values.all { it in setOf("PENDING", "IN_PROGRESS", "COMPLETE", "SKIPPED") }
+    if (state.workspaceId != workspaceId || state.dataEpoch < 0 || state.revision < 0 ||
+        state.status !in setOf("NOT_STARTED", "IN_PROGRESS", "COMPLETED") ||
+        !steps.keys.all { it in setupStepCodes } ||
+        !steps.values.all { it in setOf("PENDING", "COMPLETE", "SKIPPED") }
+    ) return false
+    return state.status != "COMPLETED" ||
+        (steps.keys == setupStepCodes.toSet() && steps.values.all { it in setOf("COMPLETE", "SKIPPED") })
 }
 
 private fun setupText(language: AppLanguage, uk: String, ru: String, de: String, en: String) =
