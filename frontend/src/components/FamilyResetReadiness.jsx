@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './FamilyResetReadiness.css'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import { getResetPreview, planReset, getResetDependencyAudit, inspectResetSelection } from '../api/resetApi'
 
 const categories = {
