@@ -6,7 +6,7 @@ const password = process.env.FP_QA_PASSWORD
 test('settings renders without build-info ReferenceError after repository restore', async ({ page }) => {
   test.skip(!username || !password, 'Requires isolated QA credentials')
   const errors = []
-  page.on('pageerror', error => errors.push(error.message))
+  page.on('pageerror', error => errors.push(error.stack || error.message))
   await page.goto('/login')
   await page.locator('form input[type="text"]').fill(username)
   await page.locator('form input[type="password"]').fill(password)
@@ -16,5 +16,5 @@ test('settings renders without build-info ReferenceError after repository restor
   await page.goto('/settings')
   await expect(page.locator('section[aria-label="Build information"]')).toBeVisible()
   await expect(page.locator('section[aria-label="Build information"] dd')).toHaveCount(4)
-  expect(errors.filter(message => /__FP_BUILD_INFO__|SettingsPage/.test(message))).toEqual([])
+  expect(errors, `Uncaught Settings errors:\n${errors.join('\n')}`).toEqual([])
 })
