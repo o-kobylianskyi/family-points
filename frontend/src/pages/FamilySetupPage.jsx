@@ -45,6 +45,7 @@ export default function FamilySetupPage() {
   const t = copy[lang] || copy.en
   const { currentUser, getAccessToken } = useAuth()
   const workspaceId = currentUser?.workspaceId
+  const canManageSetup = currentUser?.permissions?.includes('MANAGE_WORKSPACE') || currentUser?.permissions?.includes('ADMIN_OVERRIDE')
   const accountId = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id
   const draftStorageKey = workspaceId && accountId != null ? draftKey(accountId, workspaceId) : null
   const importStorageKey = workspaceId && accountId != null ? operationStorageKey(accountId, workspaceId) : null
@@ -104,9 +105,9 @@ export default function FamilySetupPage() {
     setCatalogReady(false); setDraftReady(false); setStep(0); setGroupName(''); setGroupStatus(''); setGroups([]); setGroupsAvailable(false); setWorkGroups([]); setWorkGroupsAvailable(false); setWorkGroupName(''); setWorkGroupParent(''); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
     setPack('ALL'); setKind('TASK'); setCategory('ALL'); setSearch('')
     setComplete(false); setPreview(null); setPendingImport(importStorageKey ? readImportOperation(sessionStorage, importStorageKey, workspaceId) : null); setImportNotice('')
-    if (workspaceId) load(workspaceId, request).finally(() => { if (generation.current === request) setDraftReady(true) })
+    if (workspaceId && canManageSetup) load(workspaceId, request).finally(() => { if (generation.current === request) setDraftReady(true) })
     return () => { generation.current++ }
-  }, [workspaceId, draftStorageKey])
+  }, [workspaceId, draftStorageKey, importStorageKey, canManageSetup])
   const ownedCodes = new Set(owned.map(item => item.catalogCode).filter(Boolean))
   const available = catalog.templates.filter(item => !ownedCodes.has(item.code))
   const filtered = catalog.templates.filter(item =>
@@ -180,7 +181,7 @@ export default function FamilySetupPage() {
     }
   }
   const confirm = async () => {
-    if (lock.current || pendingImport || !importStorageKey || !catalogReady || !preview ||
+    if (!canManageSetup || lock.current || pendingImport || !importStorageKey || !catalogReady || !preview ||
         !preview.result.toImport.length || preview.codes.join('|') !== selectedNew.join('|')) return
     lock.current = true
     const request = generation.current, id = workspaceId
@@ -291,6 +292,9 @@ export default function FamilySetupPage() {
     }
   }
   if (!workspaceId) return null
+  if (!canManageSetup) return <main className="family-setup settings-section">
+    <h1>{t[0]}</h1><p role="alert">{({uk:'Керування налаштуванням сім’ї доступне тільки уповноваженому адміністратору.',ru:'Настройка семьи доступна только уполномоченному администратору.',de:'Nur autorisierte Administratoren dürfen die Familie einrichten.',en:'Only authorized administrators can manage family setup.'})[lang]}</p>
+  </main>
   return <main className="family-setup settings-section">
     <h1>{t[0]}</h1>
     <nav className="family-setup-steps" aria-label={t[0]}>{[t[1], t[2], t[3], t[4]].map((label, index) =>
