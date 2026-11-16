@@ -5,7 +5,7 @@ import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { validateSetupCatalog, selectSetupMatching } from '../utils/setupCatalogSelection'
-import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt } from '../utils/setupFinalizeSafety'
+import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, canChangeSetupStep, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt } from '../utils/setupFinalizeSafety'
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
 const words = {
@@ -160,7 +160,7 @@ function InitialFamilySetupReviewContent() {
     setReview(null); setConfirmed(false); seq.current++
   }
   const setStep = async (step, status) => {
-    if (!canManageSetup || !setup || busy || pending || readShared() || setup.status === 'COMPLETED') return
+    if (!canManageSetup || !setup || busy || pending || readShared() || !canChangeSetupStep(setup, step, status)) return
     const id = ++seq.current
     const origin = workspaceId
     const before = setup
@@ -284,8 +284,8 @@ function InitialFamilySetupReviewContent() {
         {SETUP_STEP_CODES.map(step => <div key={step} style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',padding:'5px 0'}}>
           <span>{(setupSteps[lang] || setupSteps.en)[step] || step} — {(setupStates[lang] || setupStates.en)[setup.steps?.[step] || 'PENDING'] || (setup.steps?.[step] || 'PENDING')}</span>
           {setup.status !== 'COMPLETED' && <>
-            <button className="secondary-button" type="button" disabled={busy || !!pending} onClick={()=>setStep(step,'COMPLETE')}>{({uk:'Позначити виконаним',ru:'Отметить выполненным',de:'Als erledigt markieren',en:'Mark complete'})[lang]}</button>
-            <button className="secondary-button" type="button" disabled={busy || !!pending} onClick={()=>setStep(step,'SKIPPED')}>{({uk:'Пропустити',ru:'Пропустить',de:'Überspringen',en:'Skip'})[lang]}</button>
+            <button className="secondary-button" type="button" disabled={busy || !!pending || !canManageSetup || !canChangeSetupStep(setup, step,'COMPLETE')} onClick={()=>setStep(step,'COMPLETE')}>{({uk:'Позначити виконаним',ru:'Отметить выполненным',de:'Als erledigt markieren',en:'Mark complete'})[lang]}</button>
+            <button className="secondary-button" type="button" disabled={busy || !!pending || !canManageSetup || !canChangeSetupStep(setup, step,'SKIPPED')} onClick={()=>setStep(step,'SKIPPED')}>{({uk:'Пропустити',ru:'Пропустить',de:'Überspringen',en:'Skip'})[lang]}</button>
           </>}
         </div>)}
       </div>
