@@ -164,7 +164,7 @@ function InitialFamilySetupReviewContent() {
     const id = ++seq.current
     const origin = workspaceId
     const before = setup
-    setBusy(true); setError(false); setReview(null); setConfirmed(false)
+    setBusy(true); setError(false); setErrorStatus(null); setReview(null); setConfirmed(false)
     try {
       const result = await setSetupStep(getAccessToken(), origin, step, status, before.revision)
       if (id === seq.current) setSetup(assertSetupState(result, origin))
@@ -188,18 +188,18 @@ function InitialFamilySetupReviewContent() {
     const id = ++seq.current
     const workspace = workspaceId
     const codes = [...new Set(validCatalog.filter(item => selected.includes(item.code)).map(item => item.code))]
-    setBusy(true); setReview(null); setConfirmed(false); setError(false)
+    setBusy(true); setReview(null); setConfirmed(false); setError(false); setErrorStatus(null)
     try {
       const result = await reviewSetupCatalog(getAccessToken(), workspace, setup.revision, codes)
       if (seq.current === id) setReview(assertSetupReview(result, setup, codes))
-    } catch { if (seq.current === id) setError(true) }
+    } catch (e) { if (seq.current === id) { setError(true); setErrorStatus(e?.status ?? null) } }
     finally { if (seq.current === id) setBusy(false) }
   }
   const recover = async () => {
     if (!canManageSetup || !pending?.operationId || !Number.isSafeInteger(pending.epoch) || busy) return
     const scope = storageKey
     const operation = pending
-    setBusy(true); setError(false)
+    setBusy(true); setError(false); setErrorStatus(null)
     try {
       const result = await getSetupFinalizeReceipt(getAccessToken(), operation.workspaceId, operation.operationId)
       if (activeScope.current !== scope) return
@@ -225,7 +225,7 @@ function InitialFamilySetupReviewContent() {
     const operation = { accountId, workspaceId, epoch: setup.dataEpoch, revision: setup.revision,
       codes, operationId: window.crypto.randomUUID() }
     try { persist(operation) } catch { setError(true); return }
-    setBusy(true); setError(false)
+    setBusy(true); setError(false); setErrorStatus(null)
     try {
       const result = await finalizeSetupImport(getAccessToken(), operation.workspaceId, operation.operationId, operation.revision, operation.codes)
       if (activeScope.current !== scope) return
