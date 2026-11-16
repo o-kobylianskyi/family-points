@@ -146,3 +146,16 @@ All these cases are additional acceptance criteria in the **single planned final
 |---|---|---|---|---|
 | REAL-BKL002-OBLIGATION-01 | Backend/QA | Obligation + blocked category/reward + optional requirement + purchase FK and ledger survive guarded encrypted replay; foreign graph denied | fully native disposable restore + independently evidenced VERIFIED and approval | BLOCKED_DEPENDENCY |
 | REAL-V49-BOOTSTRAP-01 | Web/QA | Failed initial setup/catalog GET then explicit read-only retry renders seven PENDING and causes no writes | enabled V49 disposable setup / controlled GET fault | BLOCKED_DEPENDENCY |
+
+
+## Intake checkpoint — 2026-11-16: Release BETA backup atomicity and isolated QA
+
+- Release `8a16916d8e06` changed `scripts/beta/backup.sh`: `umask 077` and file 0600, same-directory hidden `.partial` artifact, cleanup trap on failure, `pg_dump -Fc` must succeed and be nonempty, `pg_restore --list` must read archive TOC, final backup published by atomic no-overwrite hard link `ln`. Explicitly **TOC check ≠ successful data restore**, and backup does not prove off-host protected copy or BKL-002's family-scoped `VERIFIED`.
+- Release `b64c2619abd0` added five fake-Docker, disposable-fixture tests (`scripts/beta/test_backup_safety.py`): success/private mode, partial dump failing, invalid archive, existing final filename, absent `.env`. These are committed SOURCE tests; **not claimed independently run** by QA. They must run in Release automation and have exact SHA/test counts.
+- Capture `REAL-REL-BACKUP-01` for later authorized disposable infrastructure: actual produced backup readable, separately restored into isolated DB and row-count/FK/ledger checked; private permissions, retention/off-host encryption, no overwrite or partial leftover on simulated failure. No public BETA/PROD database action now.
+
+| ID | Producer | Scenario / source | Dependencies | Status |
+|---|---|---|---|---|
+| REAL-REL-BACKUP-01 | Release/QA | Disposable BETA-style pg_dump atomic archive, failed-job cleanup, secret file permission, independent restore into disposable PG and data integrity | approved isolated env, release-candidate SHA, backup retention and rollback plan | BLOCKED_DEPENDENCY |
+
+**Important:** Release's pg_dump full-database operational backup is a distinct mechanism from BKL-002's tenant-scoped protected `.fpbackup` archive. Both must be independently accepted and must not be conflated.
