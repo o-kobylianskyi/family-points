@@ -23,6 +23,7 @@ class WorkspacePortableArchiveForeignRelationTest {
         when(db.queryForObject(eq("SELECT data_epoch FROM families WHERE id=?"),
                 eq(Long.class),eq(17L))).thenReturn(0L);
         when(db.queryForObject(contains("FROM reward_obligations o"),eq(Long.class),eq(17L))).thenReturn(0L);
+        when(db.queryForObject(contains("FROM reward_requirements r"),eq(Long.class),eq(17L))).thenReturn(0L);
         when(db.queryForObject(contains(SQL),eq(Long.class),eq(17L))).thenReturn(1L);
         var exporter=new WorkspacePortableBackupExporter(db,snapshots,
                 new ProtectiveBackupArtifactCodec(),new ProtectiveBackupPortableFile());
