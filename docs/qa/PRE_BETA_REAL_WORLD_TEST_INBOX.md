@@ -72,3 +72,21 @@ For each incoming item preserve:
 | REAL-BKL002-LEDGER-01 | Backend/QA | Full replay across purchases, obligations, requirements, category links, historical source IDs and currencies, including exclusion/rollback | supported actual native restore engine and durable VERIFIED | BLOCKED_DEPENDENCY |
 
 **Do not mistake acceptance of automatic synthetic V49 finalize 2/2 or bounded group ledger 27/27 for real campaign PASS.**
+
+
+## Intake checkpoint — Release final QA ownership and subsequent development deltas (2026-11-16)
+
+- **Release→QA handoff accepted:** [RELEASE_TO_QA_FINAL_ACCEPTANCE_20261116.md](../coordination/requests/RELEASE_TO_QA_FINAL_ACCEPTANCE_20261116.md) (commit `aeec43d4`). Release explicitly delegates ALL final manual/real testing to QA+operator, including true V49 on an authorized new disposable family, BKL002 owner-protected backup/reset/restore only after independent gates and separate approval, Android physical-handset final acceptance, browser smoke, role/tenant evidence. Release retains CI/artifact signing/deploy readiness, NOT authority to execute real tests.
+- Expected operator instructions will be **one coordinated campaign** after Backend readiness, not ad hoc test requests from Release/Android/Web/Designer. Required evidence includes case ID, separately pinned backend/server and web/APK SHAs, APK signature, workspace masked ID, epoch/revision, HTTP UUID/method counts, balances/FK verification, actual vs expected and redacted artifacts.
+- **New Web V49 step decision safety:** `cb5c44f`, `f0ea9b8`, `abe645a` prevent duplicate `PATCH /setup/steps` on repeated button presses/previously decided step; append manual cross-tab rapid-click/reload case `REAL-V49-DECISION-01`, require one request only, no hidden retry, revision exact +1 on verified decision. Not run with real server; collect for campaign.
+- **Backend newer graph coverage:** `GROUP_POINT_LEDGER`, reward obligations, requirements and category associations remain explicit source/restore dependencies. Latest source `e7572ad..7ede590..687a1df` adds guarded portable reward requirements and an encrypted source-archive test. This **does not** prove production native requirements restore; add case `REAL-BKL002-REQUIREMENTS-01` to confirm complete parent/tenant association and exact restored graph once supported; no real test now.
+- **Pending auto QA:** BKL002 #04–#07 and new reward requirements portable regression require new pinned-SHA isolated PostgreSQL runs, separate from real campaign. Last accepted `27/27 PASS @419efb1` is not current-HEAD proof.
+
+| ID | Producer | Scenario / source | Dependencies | Status |
+|---|---|---|---|---|
+| REAL-REL-001 | Release/QA | Device signed APK install/upgrade, matching server & Web source, SHA/signature parity, safe rollback & observability | release-candidate artifacts, full non-skipped CI, QA-only operator campaign | BLOCKED_DEPENDENCY |
+| REAL-REL-002 | Release/QA | Safe isolated DEV post-deploy smoke, no production writes and evidence bundle handoff | approved disposable environment and separately authorized staging deploy | BLOCKED_DEPENDENCY |
+| REAL-V49-DECISION-01 | Web/Designer/QA | Rapid double-click, repeated and cross-tab step decisions: no duplicate PATCH or implicit repeat | feature-enabled disposable V49 server | BLOCKED_DEPENDENCY |
+| REAL-BKL002-REQUIREMENTS-01 | Backend/QA | Complete reward requirement parent/category/member/currency graph survives encrypted backup+restore with FK closure | production safe native complete replay + verified snapshot | BLOCKED_DEPENDENCY |
+
+**Ownership acknowledged**; no manual live acceptance has been executed.
