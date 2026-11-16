@@ -50,14 +50,14 @@ class WorkspaceBackupRetentionPostgresTest {
               (lease_id,snapshot_id,workspace_id,expires_at)
             VALUES (?,?,?,NOW()+INTERVAL '5 minutes')
             """,lease,snapshot,a);
-        assertEquals(0,tx.execute(s->service.expireEligible(10)));
+        assertEquals(0,tx.execute(s->service.expireEligible(10)).intValue());
         verifyNoInteractions(store);
-        assertFalse(tx.execute(s->service.release(b,snapshot,lease)));
-        assertTrue(tx.execute(s->service.release(a,snapshot,lease)));
-        assertEquals(1,tx.execute(s->service.expireEligible(10)));
+        assertFalse(tx.execute(s->service.release(b,snapshot,lease)).booleanValue());
+        assertTrue(tx.execute(s->service.release(a,snapshot,lease)).booleanValue());
+        assertEquals(1,tx.execute(s->service.expireEligible(10)).intValue());
         verify(store).deleteAuthorizedExpired(a,snapshot);
         assertEquals("EXPIRED",db.queryForObject("SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",String.class,snapshot));
-        assertEquals(0,tx.execute(s->service.expireEligible(10)));
+        assertEquals(0,tx.execute(s->service.expireEligible(10)).intValue());
     }
 
     @Test void unverifiedBackupCannotAcquireRestoreLease() {
@@ -95,8 +95,8 @@ class WorkspaceBackupRetentionPostgresTest {
                 SELECT count(*) FROM workspace_backup_restore_leases
                 WHERE snapshot_id=? AND workspace_id=? AND expires_at>NOW()
                 """,Long.class,snapshot,a));
-        assertTrue(tx.execute(s->service.release(a,snapshot,lease)));
-        assertFalse(tx.execute(s->service.release(a,snapshot,lease)));
+        assertTrue(tx.execute(s->service.release(a,snapshot,lease)).booleanValue());
+        assertFalse(tx.execute(s->service.release(a,snapshot,lease)).booleanValue());
         assertThrows(IllegalArgumentException.class,()->tx.execute(s->
                 service.acquireVerifiedLease(a,snapshot,Duration.ofMinutes(16))));
     }
