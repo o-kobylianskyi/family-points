@@ -36,6 +36,16 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-g
 
 The `CI / per-commit outcome report` job runs with `always()` after component jobs, even when any component failed or was skipped. Its run summary and 14-day `ci-push-result` JSON artifact record exact SHA, event, changed-file scope, selected components, actual job conclusions, and whether it is **scoped CI PASS** versus **full CI verified**. For docs-only pushes the summary explicitly states **no component tests selected / NOT FULL CI**, instead of misleadingly implying all four builds passed. If the scope evaluation fails or a selected job fails/cancels, the report job fails. This report cannot prevent pre-job GitHub infrastructure / workflow-parse failures; those must be diagnosed separately in Actions.
 
+### Read-only cross-check of a pinned CI candidate
+
+After independently downloading both JSON artifacts from the **same verified GitHub Actions run**, the Release coordinator can cross-check their internal consistency without GitHub CLI or any server access:
+
+```powershell
+python scripts/beta/verify_release_evidence.py --candidate-sha <full-40-character-sha> --push-report ci-push-result.json --full-evidence full-ci-evidence.json
+```
+
+This checker rejects different SHA/run ID, scoped-only PASS, missing/skipped/failed component jobs, missing full attestation, malformed values, and release/QA/deployment claims asserted by CI. It is **not** an authenticated artifact download or a release approval: independently verify GitHub Actions jobs, actual non-skipped build/test steps, and provenance of both downloaded files. QA acceptance, BKL-002 verified restoration, source/tag matching, APK signing identity, recovery preparation and the user's explicit deployment approval remain distinct manual gates. Treat failure or missing artifacts as **HOLD**, not as authorization to bypass the check.
+
 ### Automated exact-SHA full CI evidence (no local `gh`)
 
 The `FamilyPoints CI` GitHub workflow now includes job **`Full CI / exact-SHA evidence`**. On runs where change routing selects all four components, it checks the **job conclusions** for Backend, Android, Web, and Compose. A non-success job makes the evidence job fail; only four successes produce a JSON `full-ci-evidence` artifact (30-day retention), and the run summary records the exact tested commit SHA and run URL. For scoped runs where any component is intentionally unselected, the attestation job is skipped — **this is not full-CI acceptance**.
