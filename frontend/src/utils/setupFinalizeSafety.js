@@ -40,12 +40,7 @@ export function assertSetupFinalizeReceipt(receipt, operation) {
 export function reconcileSetupPending(session, shared, workspaceId, accountId) {
   if (session && !validSetupFinalizeOperation(session, workspaceId, accountId)) return {blocked: true}
   if (shared && !validSetupFinalizeOperation(shared, workspaceId, accountId)) return {blocked: true}
-  if (session && shared && (
-    session.operationId !== shared.operationId ||
-    session.revision !== shared.revision ||
-    session.epoch !== shared.epoch ||
-    JSON.stringify(session.codes) !== JSON.stringify(shared.codes)
-  )) return {blocked: true}
+  if (session && shared && !sameSetupFinalizeOperation(session, shared)) return {blocked: true}
   return shared || session || null
 }
 
@@ -102,4 +97,13 @@ export function reconcileSetupStepAfterFailure(before, observed, step, desiredSt
     throw new Error('SETUP_STEP_SCOPE_CHANGED')
   return observed.revision === before.revision + 1 &&
     observed.steps?.[step] === desiredStatus ? 'MATCHED' : 'UNCONFIRMED'
+}
+
+/** UUID alone is not an operation identity: all scoped immutable fields must match. */
+export function sameSetupFinalizeOperation(a, b) {
+  return validSetupFinalizeOperation(a, a?.workspaceId, a?.accountId) &&
+    validSetupFinalizeOperation(b, a.workspaceId, a.accountId) &&
+    a.operationId === b.operationId &&
+    a.epoch === b.epoch && a.revision === b.revision &&
+    JSON.stringify(a.codes) === JSON.stringify(b.codes)
 }
