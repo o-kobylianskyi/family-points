@@ -18,6 +18,11 @@ class DisposableLedgerSourceGraphVerifierTest {
 
     private DisposableLedgerSourceGraphVerifier.Result verify(String extraRows,String sourceType,
             Long sourceId,long ledgerMember,long taskMember) throws Exception {
+        return verifyEdited(extraRows,sourceType,sourceId,ledgerMember,taskMember,x->x);
+    }
+    private DisposableLedgerSourceGraphVerifier.Result verifyEdited(String extraRows,
+            String sourceType,Long sourceId,long ledgerMember,long taskMember,
+            java.util.function.UnaryOperator<String> edit) throws Exception {
         var pointLedger="{\"id\":100,\"member_id\":"+ledgerMember+
                 ",\"point_type_id\":3,\"amount\":5,\"source_type\":\""+sourceType+"\""+
                 (sourceId==null?",\"source_id\":null":",\"source_id\":"+sourceId)+"}";
@@ -27,6 +32,7 @@ class DisposableLedgerSourceGraphVerifierTest {
                 ",\"task_definition_id\":77}],"+
                 "\"TASK_DEFINITIONS\":[{\"id\":77,\"family_id\":17}],"+
                 "\"POINT_LEDGER\":["+pointLedger+extraRows+"]}}";
+        body=edit.apply(body);
         var generator=KeyGenerator.getInstance("AES");generator.init(256);
         var key=generator.generateKey();
         var encrypted=codec.seal(UUID.randomUUID(),17,UUID.randomUUID(),0,
@@ -51,4 +57,18 @@ class DisposableLedgerSourceGraphVerifierTest {
         assertThrows(SecurityException.class,()->verify("","REWARD_PURCHASE",42L,4,4));
         assertThrows(SecurityException.class,()->verify("","REFUND",42L,4,4));
     }
+    @Test void taskDefinitionMustBePresentInSameFamilyAndAmountsAreBounded()
+            throws Exception {
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                s->s.replace("\\"task_definition_id\\":77","\\"task_definition_id\\":999")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                s->s.replace("\\"id\\":77,\\"family_id\\":17",
+                        "\\"id\\":77,\\"family_id\\":18")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                s->s.replace("\\"amount\\":5","\\"amount\\":2147483648")));
+    }
+
 }
