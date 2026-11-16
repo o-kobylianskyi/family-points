@@ -85,7 +85,6 @@ class DisposableRewardCategoryCrossDatabasePostgresTest {
                 VALUES (?,'Reward',?,10) RETURNING id
                 """,Long.class,target,targetCurrency);
         assertNotEquals(family,target);
-        assertNotEquals(category,neighborCategory+1L==category ? neighborCategory: -1L);
 
         var codec=new ProtectiveBackupArtifactCodec();
         var portable=new ProtectiveBackupPortableFile();
