@@ -43,10 +43,13 @@ function Test-QaBase([string]$url) {
 function ExactShaFullCi([string]$sha) {
   if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw 'GitHub CLI gh required for exact-SHA CI gate. Install/authenticate gh first.' }
   $response = @(Run 'gh' @('api',("repos/{0}/actions/workflows/ci.yml/runs?head_sha={1}&per_page=50" -f $repo,$sha))) -join [Environment]::NewLine
+  # Accept workflow_dispatch or push runs ONLY if all four real build steps completed.
+  # A green scoped push with skipped jobs never qualifies.
   $runs = @((ConvertFrom-Json -InputObject $response).workflow_runs | Where-Object {
-    $_.head_sha -eq $sha -and $_.event -eq 'workflow_dispatch' -and $_.status -eq 'completed' -and $_.conclusion -eq 'success'
+    $_.head_sha -eq $sha -and $_.event -in @('workflow_dispatch','push') -and
+    $_.status -eq 'completed' -and $_.conclusion -eq 'success'
   } | Sort-Object run_number -Descending)
-  if ($runs.Count -eq 0) { throw "No successful complete manually dispatched CI for exact SHA $sha" }
+  if ($runs.Count -eq 0) { throw "No successful completed CI run for exact SHA $sha" }
   foreach ($run in $runs) {
     $jobsResponse = @(Run 'gh' @('api',("repos/{0}/actions/runs/{1}/jobs?per_page=100" -f $repo,$run.id))) -join [Environment]::NewLine
     $jobs = @((ConvertFrom-Json -InputObject $jobsResponse).jobs)
@@ -65,7 +68,7 @@ function ExactShaFullCi([string]$sha) {
     }
     if ($valid) { Write-Host "Exact-SHA FULL CI PASS: $($run.html_url)"; return $run.html_url }
   }
-  throw "No CI run has all FOUR required executed PASS jobs for $sha. Skips do not qualify."
+  throw "No CI run has all FOUR executed PASS steps for $sha. Scoped/skipped jobs never qualify."
 }
 $sha = (@(Run 'git' @('rev-parse','HEAD')) -join '').Trim()
 # CI dispatch and read-only CI verification operate on the immutable remote
