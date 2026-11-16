@@ -26,9 +26,9 @@ class WorkspaceFinancialRestoreClosureServiceTest {
         assertFalse(result.replaySupported());
         assertEquals(7,result.categories().size());
         assertTrue(result.blockers().contains(
-                "RESTORE_DEPENDENCY_NOT_SELECTED:GROUP_POINT_LEDGER_UNEXPORTED"));
+                "RESTORE_DEPENDENCY_NOT_SELECTED:GROUP_POINT_LEDGER"));
         assertTrue(result.blockers().contains(
-                "RESTORE_CATEGORY_NOT_EXPORTABLE:GROUP_POINT_LEDGER"));
+                "RESTORE_GROUP_LEDGER_REPLAY_UNIMPLEMENTED"));
         assertTrue(result.blockers().contains(
                 "RESTORE_FINANCIAL_NATIVE_REPLAY_UNIMPLEMENTED:POINT_LEDGER"));
         assertTrue(result.blockers().contains(
