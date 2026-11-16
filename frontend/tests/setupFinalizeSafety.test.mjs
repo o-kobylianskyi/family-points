@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, canChangeSetupStep, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt} from '../src/utils/setupFinalizeSafety.js'
+import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, assertSetupStepTransition, canChangeSetupStep, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt} from '../src/utils/setupFinalizeSafety.js'
 
 const operation = () => ({
   accountId: 'account-A',workspaceId: 14,epoch: 3,revision: 7,
@@ -144,4 +144,21 @@ test('V49 step controls avoid duplicate decisions and retain explicit status cha
   assert.equal(canChangeSetupStep(state, 'MEMBERS', 'PENDING'), false)
   assert.equal(canChangeSetupStep({ ...state, status: 'COMPLETED' }, 'MEMBERS', 'SKIPPED'), false)
   assert.equal(canChangeSetupStep(null, 'MEMBERS', 'COMPLETE'), false)
+})
+
+test('V49 step PATCH response is rejected if epoch or revision scope changed', () => {
+  const before = { workspaceId: 14, dataEpoch: 4, revision: 10,
+    status: 'IN_PROGRESS', steps: { MEMBERS: 'COMPLETE' } }
+  const after = { ...before, revision: 11,
+    steps: { ...before.steps, MEMBER_GROUPS: 'SKIPPED' } }
+  assert.deepEqual(assertSetupStepTransition(before, after, 'MEMBER_GROUPS', 'SKIPPED'), after)
+  for (const changed of [
+    { ...after, workspaceId: 15 },
+    { ...after, dataEpoch: 5 },
+    { ...after, revision: 12 },
+    { ...after, steps: { ...after.steps, MEMBER_GROUPS: 'COMPLETE' } },
+    { ...after, steps: { ...after.steps, MEMBER_GROUPS: 'PENDING' } },
+  ]) assert.throws(() => assertSetupStepTransition(before, changed, 'MEMBER_GROUPS', 'SKIPPED'))
+  assert.throws(() => assertSetupStepTransition(before, after, 'UNRECOGNIZED', 'SKIPPED'))
+  assert.throws(() => assertSetupStepTransition(before, after, 'MEMBER_GROUPS', 'PENDING'))
 })
