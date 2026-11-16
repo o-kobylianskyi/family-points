@@ -1,5 +1,12 @@
 # FamilyPoints — mandatory rules for every project chat/agent
 
+## BKL-002 P0 — Backend/QA parallel execution (user decision 2026-11-16)
+- Backend owns developer-side compile and fast affected regression tests, but **hands off substantial/full integration and acceptance test packets to independent QA** rather than repeatedly requesting their execution from the operator.
+- Backend commits bounded tested changes with SHA, source/test instructions, expected/negative cases; then continues the next safe independent development package while QA tests on isolated PostgreSQL and reports consolidated failures. Review QA findings each pickup; fix P0 data loss, auth, tenant or financial correctness defects immediately.
+- QA owns the full test queue, exact-SHA evidence, PASS/FAIL/SKIP and retest. **Neither chat automatically executes work because another chat created a GitHub request.**
+- No parallel-work exception allows BKL-002 `VERIFIED` promotion, destructive Reset/Restore execute or release without independent QA/Release gate. HTTP 423 remains until all required safety constraints pass.
+- Canonical handoff: [BKL002_BACKEND_QA_ASYNC_TEST_PIPELINE_20261116.md](docs/coordination/requests/BKL002_BACKEND_QA_ASYNC_TEST_PIPELINE_20261116.md).
+
 ## MANDATORY FOR ALL FAMILYPOINTS CHATS — CONTEXT CAPACITY WARNINGS AND EARLY HANDOFF (user decision 2026-11-16)
 
 **Applies to:** Architecture/Planning, Backend, Web, Android, QA/Testing, Release/DevOps, Designer and every future role/project chat using this repository. This is an operational rule, NOT a product feature, and takes priority over routine discussion convenience.
