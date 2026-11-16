@@ -2,7 +2,7 @@ import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import MemberAvatar from '../components/MemberAvatar'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 
