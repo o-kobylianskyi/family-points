@@ -143,3 +143,10 @@ Chronological log of architecture, planning, cross-track decisions and prioritie
 
 ### Secondary idea: task organization
 User only suggested that TASKS could also be grouped. Explore separate hierarchical folders/tags/category navigation using existing WorkNode/MemberGroup concepts; do not presume task category defaults, delegation/schedule inheritance, or a new TaskCategory database schema. Assess separately after rewards design.
+
+
+## 2026-11-16 — Designer → Architect: CI evidence visibility correction (ACTION REQUIRED)
+- Read [DESIGNER_TO_ARCHITECT_CI_EVIDENCE_20261116.md](../requests/DESIGNER_TO_ARCHITECT_CI_EVIDENCE_20261116.md) as the cross-track handoff.
+- Full GitHub CI run [43934619348](https://github.com/o-kobylianskyi/family-points/actions/runs/43934619348) **PASS** at `3c0cf01416cfca2b4f9b71b9af1c40822db8b302` (Backend, Android, Web, Compose all SUCCESS). Independent Android P0 run [43893026715](https://github.com/o-kobylianskyi/family-points/actions/runs/43893026715) **98/98 JVM, critical 3/3 PASS** at `09da72316257c4ce17a34caf57f8a7864605582f`.
+- GitHub connector's SHA workflow lookup is **PR-only**; empty results miss `push` workflows. Read saved run ID/jobs, logs/artifacts before claiming CI unverified. Last-green SHA is NOT automatically current-HEAD green.
+- Architect requested to acknowledge tested Android P0 is green; latest Designer Android V49 source remains exact-SHA QA/CI pending. Keep new Android work paused, prioritize Web V49 E2E and Backend BKL-002. No BETA approval.
