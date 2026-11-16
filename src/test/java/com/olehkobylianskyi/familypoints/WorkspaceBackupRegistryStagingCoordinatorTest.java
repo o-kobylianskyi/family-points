@@ -37,6 +37,7 @@ class WorkspaceBackupRegistryStagingCoordinatorTest {
             assertFalse(result.recoveryVerified());
             assertFalse(result.registryEntry().restoreVerified());
             verify(stage,times(1)).stage(7L,snapshot,operation,0L,List.of("MEMBER_GROUPS"),"V50",key);
+            verify(registry).recordStaged(7L,snapshot,operation,"a".repeat(64),"b".repeat(64),198);
             TransactionSynchronizationManager.getSynchronizations().forEach(
                     sync->sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
             verify(storage).deleteAuthorizedExpired(7L,snapshot);
@@ -61,6 +62,7 @@ class WorkspaceBackupRegistryStagingCoordinatorTest {
             assertThrows(IllegalStateException.class,()->coordinator.registerAndStage(
                     7,3,request,0,generator.generateKey()));
             verifyNoInteractions(stage,storage);
+            verify(registry,never()).recordStaged(anyLong(),any(),any(),any(),any(),anyInt());
         } finally {endSynchronization();}
     }
     @Test void committedStagingDoesNotDeleteEncryptedArtifact() throws Exception {
@@ -85,6 +87,7 @@ class WorkspaceBackupRegistryStagingCoordinatorTest {
         beginSynchronization();
         try {
             coordinator.registerAndStage(7,3,request,0,key);
+            verify(registry).recordStaged(7L,snapshot,operation,"a".repeat(64),"b".repeat(64),198);
             TransactionSynchronizationManager.getSynchronizations().forEach(
                     sync->sync.afterCompletion(TransactionSynchronization.STATUS_COMMITTED));
             verifyNoInteractions(storage);
