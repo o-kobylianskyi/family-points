@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt} from '../src/utils/setupFinalizeSafety.js'
+import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, canChangeSetupStep, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt} from '../src/utils/setupFinalizeSafety.js'
 
 const operation = () => ({
   accountId: 'account-A',workspaceId: 14,epoch: 3,revision: 7,
@@ -129,4 +129,19 @@ test('V49 final receipt cannot clear pending while server state is stale or inco
     {...completed,steps:{}},
   ])assert.throws(()=>assertSetupCompletionAfterReceipt(forged,op))
   assert.throws(()=>assertSetupCompletionAfterReceipt(completed,{...op,codes:[]}))
+})
+
+test('V49 step controls avoid duplicate decisions and retain explicit status changes', () => {
+  const state = {
+    workspaceId: 14, dataEpoch: 2, revision: 3, status: 'IN_PROGRESS',
+    steps: { MEMBERS: 'COMPLETE', MEMBER_GROUPS: 'SKIPPED' }
+  }
+  assert.equal(canChangeSetupStep(state, 'MEMBERS', 'COMPLETE'), false)
+  assert.equal(canChangeSetupStep(state, 'MEMBER_GROUPS', 'SKIPPED'), false)
+  assert.equal(canChangeSetupStep(state, 'MEMBERS', 'SKIPPED'), true)
+  assert.equal(canChangeSetupStep(state, 'CATALOG_SELECTION', 'COMPLETE'), true)
+  assert.equal(canChangeSetupStep(state, 'INVALID_STEP', 'COMPLETE'), false)
+  assert.equal(canChangeSetupStep(state, 'MEMBERS', 'PENDING'), false)
+  assert.equal(canChangeSetupStep({ ...state, status: 'COMPLETED' }, 'MEMBERS', 'SKIPPED'), false)
+  assert.equal(canChangeSetupStep(null, 'MEMBERS', 'COMPLETE'), false)
 })
