@@ -7,9 +7,13 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 Set-Location (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $repo = 'o-kobylianskyi/family-points'
-function Run([string]$exe,[string[]]$args) {
-  $out = @(& $exe @args)
-  if ($LASTEXITCODE -ne 0) { throw "$exe failed with code $LASTEXITCODE" }
+function Run([string]$exe,[string[]]$commandArgs) {
+  # $args is an automatic PowerShell variable; do not use it as a parameter.
+  $out = @(& $exe @commandArgs)
+  $exitCode = $LASTEXITCODE
+  if ($exitCode -ne 0) {
+    throw ("External command failed: {0} {1}; exit code {2}" -f $exe,($commandArgs -join ' '),$exitCode)
+  }
   return $out
 }
 function Read-Public {
