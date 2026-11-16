@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, assertSetupStepTransition, canChangeSetupStep, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt} from '../src/utils/setupFinalizeSafety.js'
+import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, assertSetupStepTransition, canChangeSetupStep, sameSetupFinalizeOperation, ownsSetupFinalizeMarkers, assertSetupCompletionAfterReceipt} from '../src/utils/setupFinalizeSafety.js'
 
 const operation = () => ({
   accountId: 'account-A',workspaceId: 14,epoch: 3,revision: 7,
@@ -45,6 +45,25 @@ test('V49 cross-tab marker reconciliation rejects foreign or conflicting operati
   assert.deepEqual(reconcileSetupPending(first,{...first, epoch:4},14,'account-A'),{blocked:true})
   assert.deepEqual(reconcileSetupPending(null,{...first,workspaceId:15},14,'account-A'),{blocked:true})
   assert.deepEqual(reconcileSetupPending(null,{blocked:true},14,'account-A'),{blocked:true})
+})
+
+test('V49 staged finalize requires both exact tab and shared markers before POST', () => {
+  const op = operation()
+  assert.equal(ownsSetupFinalizeMarkers(op, {...op}, op), true)
+  assert.equal(ownsSetupFinalizeMarkers(null, op, op), false)
+  assert.equal(ownsSetupFinalizeMarkers(op, null, op), false)
+  for (const competing of [
+    {...op, operationId:'b489ea25-4e10-48ee-b8ea-7a9f4b2e3456'},
+    {...op, accountId:'account-B'}, {...op, workspaceId:15},
+    {...op, epoch:4}, {...op, revision:8},
+    {...op, codes:['REWARD_B','TASK_A']},
+    {...op, codes:['TASK_A','FOREIGN']},
+    {blocked:true},
+  ]) {
+    assert.equal(ownsSetupFinalizeMarkers(op, competing, op), false)
+    assert.equal(ownsSetupFinalizeMarkers(competing, op, op), false)
+  }
+  assert.equal(ownsSetupFinalizeMarkers(op, op, {...op, codes:[]}), false)
 })
 
 test('V49 state honors empty V46 steps but rejects malformed and prematurely completed wizard',()=>{
