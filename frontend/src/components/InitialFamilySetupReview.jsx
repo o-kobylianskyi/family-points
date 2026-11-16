@@ -4,7 +4,7 @@ import { useAuth } from '../context/authContextValue'
 import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
-import { validSetupFinalizeOperation, assertSetupFinalizeReceipt } from '../utils/setupFinalizeSafety'
+import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending } from '../utils/setupFinalizeSafety'
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
 const words = {
@@ -66,10 +66,7 @@ function InitialFamilySetupReviewContent() {
     try {
       const session = JSON.parse(sessionStorage.getItem(storageKey) || 'null')
       const shared = readShared()
-      if (session && !validSetupFinalizeOperation(session, workspaceId, accountId)) return { blocked: true }
-      if (shared && !validSetupFinalizeOperation(shared, workspaceId, accountId)) return { blocked: true }
-      if (session && shared && session.operationId !== shared.operationId) return { blocked: true }
-      return shared || session || null
+      return reconcileSetupPending(session, shared, workspaceId, accountId)
     } catch { return { blocked: true } }
   })
   useEffect(() => { activeScope.current = storageKey }, [storageKey])
@@ -97,13 +94,15 @@ function InitialFamilySetupReviewContent() {
     const sync = event => {
       if (event.key !== sharedKey) return
       setConfirmed(false)
-      if (event.newValue) {
-        try { setPending(JSON.parse(event.newValue)) } catch { setPending({ blocked: true }) }
-      } else setPending(null)
+      try {
+        const session = JSON.parse(sessionStorage.getItem(storageKey) || 'null')
+        const shared = event.newValue ? JSON.parse(event.newValue) : null
+        setPending(reconcileSetupPending(session, shared, workspaceId, accountId))
+      } catch { setPending({ blocked: true }) }
     }
     window.addEventListener('storage', sync)
     return () => window.removeEventListener('storage', sync)
-  }, [sharedKey])
+  }, [sharedKey, storageKey, workspaceId, accountId])
   useEffect(() => {
     const id = ++seq.current
     if (!workspaceId || !canManageSetup) return
@@ -189,7 +188,7 @@ function InitialFamilySetupReviewContent() {
     <h2>{w[0]}</h2>
     <p>{w[11]}</p>
     {unavailable && <p role="status">{w[1]}</p>}
-    {error && <p role="alert">{errorStatus === 409 ? ({uk:'Дані налаштування змінилися. Оновіть сторінку та перевірте стан операції.',ru:'Данные изменились. Обновите страницу и проверьте операцию.',de:'Einrichtungsdaten geändert. Seite aktualisieren und Vorgang prüfen.',en:'Setup changed. Refresh and check operation status.'})[lang] : errorStatus === 403 ? ({uk:'Недостатньо прав для налаштування.',ru:'Недостаточно прав для настройки.',de:'Keine Berechtigung für die Einrichtung.',en:'Not authorized to manage setup.'})[lang] : w[12]}</p>}
+    {error && <p role="alert">{errorStatus === 409 ? ({uk:'Дані налаштування змінилися. Оновіть сторінку та перевірте стан операції.',ru:'Данные изменились. Обновите страницу и проверьте операцию.',de:'Einrichtungsdaten geändert. Seite aktualisieren und Vorgang prüfen.',en:'Setup changed. Refresh and check operation status.'})[lang] : errorStatus === 403 ? ({uk:'Недостатньо прав для налаштування.',ru:'Недостаточно прав для настройки.',de:'Keine Berechtigung für die Einrichtung.',en:'Not authorized to manage setup.'})[lang] : w[11]}</p>}
     {setup && <>
       {setup.status === 'COMPLETED' && <p role="status">{({uk:'Початкове налаштування завершено. Новий імпорт недоступний.',ru:'Первоначальная настройка завершена. Повторный импорт недоступен.',de:'Ersteinrichtung abgeschlossen. Erneuter Import nicht verfügbar.',en:'Initial setup completed. New import is unavailable.'})[lang]}</p>}
       <p>{(setupStates[lang] || setupStates.en)[setup.status] || setup.status} · {Object.values(setup.steps || {}).filter(x => x === 'COMPLETE' || x === 'SKIPPED').length}/{Object.keys(setup.steps || {}).length}</p>
