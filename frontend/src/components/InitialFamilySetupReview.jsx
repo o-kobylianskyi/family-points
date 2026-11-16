@@ -50,7 +50,6 @@ function InitialFamilySetupReviewContent() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(false)
   const [errorStatus, setErrorStatus] = useState(null)
-  const [pending, setPending] = useState(null)
   const [confirmed, setConfirmed] = useState(false)
   const [finished, setFinished] = useState(null)
   const seq = useRef(0)
@@ -62,19 +61,18 @@ function InitialFamilySetupReviewContent() {
     try { return sharedKey ? JSON.parse(localStorage.getItem(sharedKey) || 'null') : null }
     catch { return { blocked: true } }
   }
-  useEffect(() => { activeScope.current = storageKey }, [storageKey])
-  useEffect(() => {
-    setPending(null); setConfirmed(false); setFinished(null)
-    if (!storageKey) return
+  const [pending, setPending] = useState(() => {
+    if (!storageKey) return null
     try {
-      const value = JSON.parse(sessionStorage.getItem(storageKey) || 'null')
-      if (validSetupFinalizeOperation(value, workspaceId, accountId)) setPending(value)
-      else if (value) setPending({ blocked: true })
+      const session = JSON.parse(sessionStorage.getItem(storageKey) || 'null')
       const shared = readShared()
-      if (validSetupFinalizeOperation(shared, workspaceId, accountId)) setPending(shared)
-      else if (shared) setPending({ blocked: true })
-    } catch { setPending({ blocked: true }) }
-  }, [storageKey])
+      if (session && !validSetupFinalizeOperation(session, workspaceId, accountId)) return { blocked: true }
+      if (shared && !validSetupFinalizeOperation(shared, workspaceId, accountId)) return { blocked: true }
+      if (session && shared && session.operationId !== shared.operationId) return { blocked: true }
+      return shared || session || null
+    } catch { return { blocked: true } }
+  })
+  useEffect(() => { activeScope.current = storageKey }, [storageKey])
   // Shared marker coordinates tabs; backend revision/epoch remain authoritative.
   const persist = value => {
     if (!validSetupFinalizeOperation(value, workspaceId, accountId)) throw new Error('INVALID_SETUP_FINALIZE_OPERATION')
@@ -108,7 +106,6 @@ function InitialFamilySetupReviewContent() {
   }, [sharedKey])
   useEffect(() => {
     const id = ++seq.current
-    setSetup(null); setCatalog([]); setPacks([]); setPack('ALL'); setSelected([]); setReview(null); setConfirmed(false); setError(false); setUnavailable(false); setBusy(false); setFinished(null)
     if (!workspaceId || !canManageSetup) return
     Promise.all([getSetupState(getAccessToken(), workspaceId), getTemplateCatalog(getAccessToken())])
       .then(([state, data]) => { if (seq.current === id) { setSetup(state); setCatalog(Array.isArray(data?.templates) ? data.templates : []); setPacks(Array.isArray(data?.packs) ? data.packs : []) } })
