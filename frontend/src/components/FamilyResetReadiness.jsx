@@ -152,6 +152,13 @@ const serverMessages = {
 const localizedServerMessage = (message, language) => serverMessages[message]?.[localeIndex[language] ?? 3] || ({uk:'Додаткова умова безпеки сервера. Очищення недоступне.',ru:'Дополнительное ограничение безопасности сервера. Очистка недоступна.',de:'Zusätzliche Sicherheitsbeschränkung des Servers. Zurücksetzen nicht verfügbar.',en:'Additional server safety restriction. Reset unavailable.'})[language] || 'Reset unavailable.'
 
 export default function FamilyResetReadiness() {
+  const { currentUser } = useAuth()
+  const key = [currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id,
+    currentUser?.workspaceId].join(':')
+  return <FamilyResetReadinessContent key={key} />
+}
+
+function FamilyResetReadinessContent() {
   const { i18n } = useTranslation()
   const { currentUser, getAccessToken } = useAuth()
   const language = i18n.language.split('-')[0]
@@ -171,7 +178,7 @@ export default function FamilyResetReadiness() {
   const auditGeneration = useRef(0)
   const selectionAuditGeneration = useRef(0)
   const workspaceRef = useRef(workspaceId)
-  if (workspaceRef.current !== workspaceId) { workspaceRef.current = workspaceId; generation.current += 1 }
+  useEffect(() => { workspaceRef.current = workspaceId }, [workspaceId])
 
   const load = async (id, requestId) => {
     selectionRevision.current += 1
@@ -195,7 +202,6 @@ export default function FamilyResetReadiness() {
     const requestId = ++generation.current
     load(workspaceId, requestId)
     return () => { generation.current += 1 }
-  // AuthProvider recreates getAccessToken on render; do not refetch on its identity.
   }, [workspaceId])
 
   const check = async () => {
