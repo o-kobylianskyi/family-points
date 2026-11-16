@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES} from '../src/utils/setupFinalizeSafety.js'
+import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure} from '../src/utils/setupFinalizeSafety.js'
 
 const operation = () => ({
   accountId: 'account-A',workspaceId: 14,epoch: 3,revision: 7,
@@ -85,4 +85,17 @@ test('V49 accepts a partially progressed seven-step Backend state before finaliz
     steps:{MEMBERS:'COMPLETE',MEMBER_GROUPS:'SKIPPED'}}
   assert.deepEqual(assertSetupState(partial,14),partial)
   assert.deepEqual(assertSetupState({...partial,steps:{...partial.steps,WORK_NODE_GROUPS:'PENDING'}},14).steps.WORK_NODE_GROUPS,'PENDING')
+})
+
+test('V49 step PATCH lost-response reconciliation never implies a write replay',()=>{
+  const before={workspaceId:14,dataEpoch:3,revision:2,status:'IN_PROGRESS',
+    steps:{MEMBERS:'COMPLETE',MEMBER_GROUPS:'SKIPPED'}}
+  const committed={...before,revision:3,steps:{...before.steps,WORK_NODE_GROUPS:'COMPLETE'}}
+  assert.equal(reconcileSetupStepAfterFailure(before,committed,'WORK_NODE_GROUPS','COMPLETE'),'MATCHED')
+  assert.equal(reconcileSetupStepAfterFailure(before,before,'WORK_NODE_GROUPS','COMPLETE'),'UNCONFIRMED')
+  assert.equal(reconcileSetupStepAfterFailure(before,{...committed,steps:{...committed.steps,WORK_NODE_GROUPS:'SKIPPED'}},'WORK_NODE_GROUPS','COMPLETE'),'UNCONFIRMED')
+  assert.equal(reconcileSetupStepAfterFailure(before,{...committed,revision:4},'WORK_NODE_GROUPS','COMPLETE'),'UNCONFIRMED')
+  for(const foreign of [{...committed,workspaceId:15},{...committed,dataEpoch:4},{...committed,revision:1}])
+    assert.throws(()=>reconcileSetupStepAfterFailure(before,foreign,'WORK_NODE_GROUPS','COMPLETE'))
+  assert.throws(()=>reconcileSetupStepAfterFailure(before,committed,'UNKNOWN','COMPLETE'))
 })
