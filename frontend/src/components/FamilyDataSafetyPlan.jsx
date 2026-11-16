@@ -78,14 +78,14 @@ function FamilyDataSafetyPlanContent() {
   const [restoreMode,setRestoreMode] = useState('selective')
   const [restoreChosen,setRestoreChosen] = useState([])
   // FULL is not "delete every checkbox": some categories reset to defaults,
-  // while identity/ledger-dependent operations remain blocked pending policy.
+  // while identity/ledger-dependent operations remain unavailable pending verified executor support.
   const fullAction = code => code === 'currencies' || code === 'settings' ? 'RESET_DEFAULT'
     : code === 'members' || code === 'economy' ? 'BLOCKED' : 'DELETE'
   const actionLabels = {
-    uk: {DELETE:'Видалити після перевірки', RETAIN:'Залишити', RESET_DEFAULT:'Скинути до стандартних значень після перевірки', BLOCKED:'Заблоковано до узгодження'},
-    ru: {DELETE:'Удалить после проверки', RETAIN:'Сохранить', RESET_DEFAULT:'Сбросить настройки после проверки', BLOCKED:'Заблокировано до согласования'},
-    de: {DELETE:'Nach Prüfung löschen', RETAIN:'Behalten', RESET_DEFAULT:'Nach Prüfung zurücksetzen', BLOCKED:'Bis zur Freigabe gesperrt'},
-    en: {DELETE:'Delete after validation', RETAIN:'Retain', RESET_DEFAULT:'Reset to defaults after validation', BLOCKED:'Blocked pending approval'}
+    uk: {DELETE:'Видалити після перевірки', RETAIN:'Залишити', RESET_DEFAULT:'Скинути до стандартних значень після перевірки', BLOCKED:'Недоступно до перевіреної реалізації'},
+    ru: {DELETE:'Удалить после проверки', RETAIN:'Сохранить', RESET_DEFAULT:'Сбросить настройки после проверки', BLOCKED:'Недоступно до проверенной реализации'},
+    de: {DELETE:'Nach Prüfung löschen', RETAIN:'Behalten', RESET_DEFAULT:'Nach Prüfung zurücksetzen', BLOCKED:'Bis zur geprüften Umsetzung gesperrt'},
+    en: {DELETE:'Delete after validation', RETAIN:'Retain', RESET_DEFAULT:'Reset to defaults after validation', BLOCKED:'Unavailable until verified implementation'}
   }
   const resetCount = mode === 'full' ? entries.filter(([code]) => fullAction(code) === 'DELETE').length : chosen.length
   const fullBlockedCount = entries.filter(([code]) => fullAction(code) === 'BLOCKED').length
@@ -137,7 +137,7 @@ function FamilyDataSafetyPlanContent() {
           <span>{label[index]} — {restoreMode==='full' ? ({uk:'Невідомо без перевіреного архіву',ru:'Неизвестно без проверенного архива',de:'Ohne geprüftes Archiv unbekannt',en:'Unknown without verified archive'})[language] : restoreChosen.includes(code) ? ({uk:'Намір, не перевірено',ru:'Намерение, не проверено',de:'Absicht, nicht geprüft',en:'Intent, not verified'})[language] : w[6]}</span>
         </label>)}
       </div>
-      <p>{({uk:'Конфлікти, що блокують застосування: стан невідомий до серверного аналізу файлу. Заміна чи об’єднання даних не дозволяються за замовчуванням.',ru:'Блокирующие конфликты неизвестны до проверки файла сервером. Замена или объединение по умолчанию запрещены.',de:'Blockierende Konflikte sind bis zur serverseitigen Archivprüfung unbekannt. Kein implizites Ersetzen oder Zusammenführen.',en:'Blocking conflicts are unknown until server-side archive inspection. Replacement or merge is forbidden by default.'})[language]}</p>
+      <p>{({uk:'Конфлікти невідомі до серверної перевірки архіву. Для SELECTIVE погоджено лише явну заміну вибраних категорій (REPLACE_SELECTED), не об’єднання (MERGE). Виконання наразі недоступне.',ru:'Конфликты неизвестны до проверки архива сервером. Для SELECTIVE разрешена только явная замена выбранных категорий (REPLACE_SELECTED), не объединение (MERGE). Выполнение пока недоступно.',de:'Konflikte sind bis zur serverseitigen Archivprüfung unbekannt. Bei SELECTIVE ist nur das ausdrückliche Ersetzen gewählter Kategorien (REPLACE_SELECTED) vorgesehen, kein Zusammenführen (MERGE). Ausführung bleibt gesperrt.',en:'Conflicts are unknown until server-side archive verification. SELECTIVE permits only explicit replacement of selected categories (REPLACE_SELECTED), never merge (MERGE). Execution remains disabled.'})[language]}</p>
       <p role="status">{({uk:'Заплановано категорій',ru:'Запланировано категорий',de:'Vorgesehene Kategorien',en:'Planned categories'})[language]}: {restoreCount} / {entries.length}</p>
       <p>{w[11]}</p>
     </> : null}
