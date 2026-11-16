@@ -85,6 +85,14 @@ class DisposableCrossDatabasePortableRestorePostgresTest {
                 INSERT INTO member_groups(family_id,name,active,show_in_navigation)
                 VALUES (?,'Neighbor group',true,false)
                 """,neighbor);
+        // Independent PostgreSQL sequences both start at 1. Seed a
+        // NEIGHBOR-owned private template so the target allocation differs
+        // from the archive ID; otherwise the test-only executor correctly
+        // rejects the accidental oldId==newId identity collision.
+        dst.update("""
+                INSERT INTO workspace_private_templates(workspace_id,kind,title,definition_json)
+                VALUES (?,'REWARD','Neighbor retained template',?)
+                """,neighbor,"{\"kind\":\"REWARD\",\"title\":\"Neighbor retained template\"}");
         long targetFamily=dst.queryForObject(
                 "INSERT INTO families(name) VALUES ('Isolated restored family') RETURNING id",
                 Long.class);
@@ -142,6 +150,9 @@ class DisposableCrossDatabasePortableRestorePostgresTest {
         assertEquals("Neighbor group",dst.queryForObject(
                 "SELECT name FROM member_groups WHERE family_id=?",
                 String.class,neighbor));
+        assertEquals("Neighbor retained template",dst.queryForObject("""
+                SELECT title FROM workspace_private_templates WHERE workspace_id=?
+                """,String.class,neighbor));
         assertEquals(0L,dst.queryForObject(
                 "SELECT data_epoch FROM families WHERE id=?",Long.class,targetFamily));
 
