@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   updateMemberGroup, addGroupMember, removeGroupMember, addChildGroup, removeChildGroup,
@@ -90,14 +90,14 @@ export default function GroupEditor({ group, groups, members, token, workspaceId
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const reloadAux = async () => {
+  const reloadAux = useCallback(async () => {
     const grants = await getGroupPermissions(token, workspaceId, group.id)
     setPermissionGrants(grants)
-  }
+  }, [token, workspaceId, group.id])
 
   useEffect(() => {
-    reloadAux().catch(e => setError(e.message))
-  }, [token, workspaceId, group.id])
+    Promise.resolve().then(reloadAux).catch(e => setError(e.message))
+  }, [reloadAux])
 
   useEffect(() => {
     const handler = e => {
