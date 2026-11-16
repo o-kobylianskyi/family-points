@@ -148,3 +148,10 @@
 
 - Immediately after `BKL-002 rehearsal QA: PASS` (20 tests, 0 failures/errors/skips, 28.561 s, 19:23:07 CET), operator supplied local `git rev-parse HEAD` = **`ba6cf9cbb4683e31d282b47d8b72526a7a35e214`**, verified on GitHub (`docs(coordination): include capacity thresholds and reusable continuation handoff checklist`). `git status --short` only `?? qa/e2e/package-lock.json`, no tracked modifications.
 - This is a **post-run SHA association**, not proof that test-start SHA was immutable; do not conflate with later main. At comparison `main` was **5 commits ahead**. Testable rollback-only rehearsal remains `verifiedForRestore=false`, BETA/production reset HOLD.
+
+
+## 2026-11-16 — QA next gate: genuine cross-instance PostgreSQL archive replay
+
+- Backend delivered `DisposableCrossDatabasePortableRestorePostgresTest`: two independent PostgreSQL 18 Testcontainers, independently migrated Flyway schemas; encrypted export of source family groups/media binary/private TASK template; target native remap/import with FK and byte checks, neighbor-tenant protection, epoch unchanged, duplicate replay refusal and damaged-ciphertext/wrong-key denial. **Test-only** and bounded supported slice; no persisted VERIFIED promotion or production HTTP execute.
+- Initial operator six-class run had **10 collected / 9 PASS / 1 ERROR** due to `TEMPLATE_ID_REMAP_FAILED` when both fresh DB identity sequences selected ID=1. Backend corrected fixture via `5ed18c0`: seed retained neighbor-owned target template, preserve identity-remap invariant and assert neighbor unchanged. Fix remains **unverified by rerun**.
+- QA operator next command: `git pull --ff-only origin main`; capture `git rev-parse HEAD`; `.\\mvnw.cmd "-Dtest=DisposableCrossDatabasePortableRestorePostgresTest,DisposableComposedNativeRestorePostgresTest,WorkspaceBackupRehearsalAssessmentServiceTest,WorkspaceDisposableRestoreRehearsalPostgresTest,WorkspaceBackupRetentionPostgresTest,WorkspaceBackupArtifactRegistryPostgresTest" test`. Record test counts and exact SHA. No real family changes, no reset execute. Keep BETA HOLD, exact-head full CI outstanding.
