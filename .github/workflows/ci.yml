@@ -257,6 +257,9 @@ jobs:
       - name: Verify backup is atomic and rejects incomplete archives (fake Docker)
         if: ${{ always() && needs.changes.outputs.compose == 'true' }}
         run: python3 -m unittest discover -s scripts/beta -p test_backup_safety.py -v
+      - name: Verify strict same-SHA release evidence gate (18 isolated cases)
+        if: ${{ always() && needs.changes.outputs.compose == 'true' }}
+        run: python3 -m unittest discover -s scripts/beta -p test_verify_release_evidence.py -v
       - name: Verify deployment safety via fake git, Docker and HTTP
         if: ${{ always() && needs.changes.outputs.compose == 'true' }}
         run: python3 -m unittest discover -s scripts/beta -p test_deploy_safety.py -v
