@@ -27,6 +27,11 @@ function StatCard({ icon, tone, label, value, note, destination }) {
 }
 
 export default function DashboardPage() {
+  const { currentUser } = useAuth()
+  const key = [currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id, currentUser?.workspaceId, currentUser?.memberId].join(':')
+  return <DashboardPageContent key={key} />
+}
+function DashboardPageContent() {
   const { currentUser, getAccessToken } = useAuth()
   const { t } = useTranslation()
   const currency = useCurrencyQuantity(getAccessToken(), currentUser.workspaceId)
@@ -37,8 +42,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
-    setError('')
     ;(async () => {
       try {
         const token = getAccessToken()
@@ -69,7 +72,6 @@ export default function DashboardPage() {
     let active = true
     let objectUrl = ''
     const workspaceId = currentUser.workspaceId
-    setCustomCover(null)
     getMediaManifest(getAccessToken(), workspaceId).then(async manifest => {
       // DEFAULT must render the original approved static hero without any override.
       if (!active || !manifest.cover?.path || manifest.cover.source === 'DEFAULT') return
