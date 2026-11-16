@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import { useTranslation } from 'react-i18next'
 import { getPointTypes } from '../api/economyApi'
 import { getRewards } from '../api/rewardApi'
