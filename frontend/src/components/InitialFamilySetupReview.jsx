@@ -46,6 +46,7 @@ function InitialFamilySetupReviewContent() {
   const [unavailable, setUnavailable] = useState(false)
   const [kind, setKind] = useState('TASK')
   const [category, setCategory] = useState('ALL')
+  const [search, setSearch] = useState('')
   const [selected, setSelected] = useState([])
   const [review, setReview] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -125,7 +126,13 @@ function InitialFamilySetupReviewContent() {
   const typed = validCatalog.filter(item => item.kind === kind &&
     (pack === 'ALL' || packs.find(p => p.code === pack)?.templateCodes?.includes(item.code)))
   const categories = [...new Set(typed.map(cat))].sort()
-  const items = typed.filter(item => category === 'ALL' || cat(item) === category)
+  const items = typed.filter(item => {
+    if (category !== 'ALL' && cat(item) !== category) return false
+    const term = search.trim().toLocaleLowerCase()
+    if (!term) return true
+    return [item.code, item.title?.[lang], item.title?.en, item.description?.[lang]]
+      .filter(Boolean).join(' ').toLocaleLowerCase().includes(term)
+  })
   const matchingCodes = items.map(item => item.code)
   const allMatchingSelected = matchingCodes.length > 0 && matchingCodes.every(code => selected.includes(code))
   const updateSelection = checked => {
@@ -206,6 +213,15 @@ function InitialFamilySetupReviewContent() {
         <label>{w[2]}<select value={kind} onChange={e=>{setKind(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="TASK">{w[4]}</option><option value="REWARD">{w[5]}</option></select></label>
         <label>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}<select value={pack} onChange={e=>{setPack(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{packs.map(p=><option value={p.code} key={p.code}>{p.title?.[lang] || p.title?.en || p.code}</option>)}</select></label>
         <label>{w[3]}<select value={category} onChange={e=>{setCategory(e.target.value);setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{categories.map(c=><option key={c} value={c}>{templateCategoryLabel(c, lang)}</option>)}</select></label>
+      </div>}
+      {setup.status !== 'COMPLETED' && <div className="template-toolbar">
+        <label>{({
+          uk:'Пошук шаблонів',ru:'Поиск шаблонов',de:'Vorlagen suchen',en:'Search templates',
+        })[lang]}
+          <input type="search" value={search} maxLength={120}
+            onChange={e=>{setSearch(e.target.value);setReview(null);setConfirmed(false);seq.current++}}
+            placeholder={({uk:'Назва або код',ru:'Название или код',de:'Titel oder Code',en:'Title or code'})[lang]}/>
+        </label>
       </div>}
       {setup.status !== 'COMPLETED' && <div className="template-toolbar">
         <button type="button" className="secondary-button"
