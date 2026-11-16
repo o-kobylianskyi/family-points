@@ -21,11 +21,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.network.WorkspaceSetupStateDto
+import kotlinx.coroutines.CancellationException
 
 private val setupStepCodes = listOf(
     "MEMBERS", "MEMBER_GROUPS", "WORK_NODE_GROUPS", "CATALOG_SELECTION",
     "TASK_REVIEW", "REWARD_REVIEW", "FINAL_REVIEW"
 )
+
+/** Reject incomplete, foreign-workspace or malformed server setup metadata before rendering. */
+internal fun validWorkspaceSetupState(state: WorkspaceSetupStateDto, workspaceId: Long): Boolean {
+    val steps = state.steps ?: return false
+    return state.workspaceId == workspaceId &&
+        state.dataEpoch >= 0 && state.revision >= 0 &&
+        state.status in setOf("NOT_STARTED", "IN_PROGRESS", "COMPLETED") &&
+        steps.keys == setupStepCodes.toSet() &&
+        steps.values.all { it in setOf("PENDING", "IN_PROGRESS", "COMPLETE", "SKIPPED") }
+}
 
 private fun setupText(language: AppLanguage, uk: String, ru: String, de: String, en: String) =
     when (language) {
@@ -71,16 +82,13 @@ fun WorkspaceSetupStatusScreen(
         state = null
         try {
             val response = loadState(workspaceId)
-            val steps = response.steps
-            if (response.workspaceId != workspaceId || response.dataEpoch < 0 ||
-                response.revision < 0 || response.status !in setOf("NOT_STARTED", "IN_PROGRESS", "COMPLETED") ||
-                steps == null || steps.keys != setupStepCodes.toSet() ||
-                steps.values.any { it !in setOf("PENDING", "IN_PROGRESS", "COMPLETE", "SKIPPED") }
-            ) {
+            if (!validWorkspaceSetupState(response, workspaceId)) {
                 unavailable = true
             } else {
                 state = response
             }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (_: Exception) {
             unavailable = true
         } finally {
