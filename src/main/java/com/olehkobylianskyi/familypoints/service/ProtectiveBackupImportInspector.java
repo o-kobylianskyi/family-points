@@ -401,6 +401,26 @@ public final class ProtectiveBackupImportInspector {
                             || !request.path("rate_to_amount").isIntegralNumber()
                             || request.path("rate_to_amount").asLong()<=0)
                         blockers.add("INVALID_EXCHANGE_REQUEST");
+                    // The approved exchange is valued at the immutable
+                    // per-request ratio snapshot, not the current mutable rate.
+                    long fromAmount=request.path("from_amount").asLong();
+                    long toAmount=request.path("to_amount").asLong();
+                    long rateFrom=request.path("rate_from_amount").asLong();
+                    long rateTo=request.path("rate_to_amount").asLong();
+                    if(fromAmount<=0 || toAmount<=0 || rateFrom<=0 || rateTo<=0
+                            || fromAmount>Integer.MAX_VALUE
+                            || toAmount>Integer.MAX_VALUE
+                            || rateFrom>Integer.MAX_VALUE
+                            || rateTo>Integer.MAX_VALUE
+                            || fromAmount%rateFrom!=0
+                            || (fromAmount/rateFrom)*rateTo!=toAmount)
+                        blockers.add("EXCHANGE_REQUEST_HISTORIC_RATE_MISMATCH");
+                    if(request.hasNonNull("processed_by_member_id")) {
+                        var reviewer=request.path("processed_by_member_id");
+                        if(!reviewer.isIntegralNumber() || reviewer.asLong()<=0)
+                            blockers.add("INVALID_REFERENCE:POINT_EXCHANGE_REQUESTS.processed_by_member_id");
+                        else blockers.add("IDENTITY_REBIND_REQUIRED:POINT_EXCHANGE_REQUESTS.processed_by_member_id");
+                    }
                     if(rate!=null
                             && (rate.path("from_point_type_id").asLong()!=request.path("from_point_type_id").asLong()
                                 || rate.path("to_point_type_id").asLong()!=request.path("to_point_type_id").asLong()))
