@@ -19,6 +19,15 @@
 - **Latest new source/test SHA:** `6d8f8293a755e10be0833a65c848603b71d48cfd`. All four commits on `main`. Validation **NOT_RUN** (GitHub connector writes only, no repo runner attached to this chat); CI same-SHA **NOT_VERIFIED**, no PASS claims. QA can run automated synthetic Playwright alongside broader suite; QA owns real disposable workspace E2E.
 - Next: inspect feedback from actual same-SHA CI/source tests, resolve any detected failures, then check cross-tab localStorage race and existing source readiness. No real-family changes, BETA HOLD.
 
+## WEB-02 package 3 — cross-tab finalize marker ownership (2026-11-16)
+- HEAD checked at pickup: `15c0c62e801aac7e22af12d01445230c2821468b` (other tracks may have newer commits).
+- Examined `frontend/src/components/InitialFamilySetupReview.jsx`, `setupFinalizeSafety.js`, safety unit tests, shared `api/client.js`. Found that staged finalize markers were not rechecked immediately before the one POST after competing tab changes.
+- Source: `c60f6d3` defines `ownsSetupFinalizeMarkers(session, shared, operation)` requiring both markers to match all immutable fields; `2ab9791` validates immediately after staging and before finalize dispatch. On mismatch fail closed, preserve markers rather than deleting a competing tab's operation.
+- Regression `c731a06b8ae518daf8f87e91d17c65ff60f1f931`: tests same/foreign UUID, account, workspace, epoch, revision, ordered codes, absent and blocked markers. QA synthetic browser adversarial scenarios appended to `WEB_TO_QA_V49_REAL_ACCEPTANCE_20261116.md` commit `bed5098`.
+- **Status:** source/test committed, no Node/Playwright/browser execution or same-SHA Actions evidence in this chat (**NOT_RUN / NOT_VERIFIED**). Frontend browser marker check is non-atomic across tabs; Backend revision/idempotency/dataEpoch remains final authority. No real-family activity, BKL-002/BETA HOLD.
+- Next: obtain actual test/CI evidence, fix failures as found, add an automated synthetic two-tab browser test if QA coverage missing, review mark-clearing races conservatively.
+- Rolling handoff updated in this batch; last inspected HEAD after source packet: `bed509893f65e0a13699594f0599b44e238beda2`. Re-read main on next pickup.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
