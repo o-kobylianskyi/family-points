@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {readFileSync} from 'node:fs'
-import {validateSetupCatalog, selectSetupMatching} from '../src/utils/setupCatalogSelection.js'
+import {validateSetupCatalog, selectSetupMatching, hasSelectedSetupMatch} from '../src/utils/setupCatalogSelection.js'
 
 // The same bundled source that Backend imports. No speculative or duplicated
 // 142-entry fixture in frontend. This is a pure, non-destructive contract test.
@@ -38,4 +38,17 @@ test('V49 never accepts invalid or foreign codes from malformed catalog or selec
     {...catalog,packs:[{...catalog.packs[0],templateCodes:['x','x']},...catalog.packs.slice(1)]},
   ]) assert.throws(()=>validateSetupCatalog(invalid))
   assert.throws(()=>selectSetupMatching([],['FOREIGN'],true,catalog.templates.map(t=>t.code)))
+})
+
+test('V49 filtered bulk deselect works when only some results are selected', () => {
+  const matching = ['TASK_A','TASK_B','REWARD_C']
+  assert.equal(hasSelectedSetupMatch([], matching), false)
+  assert.equal(hasSelectedSetupMatch(['OTHER'], matching), false)
+  assert.equal(hasSelectedSetupMatch(['TASK_B'], matching), true)
+  assert.equal(hasSelectedSetupMatch(['TASK_A','TASK_B','REWARD_C'], matching), true)
+  assert.equal(hasSelectedSetupMatch(['TASK_A'], []), false)
+  assert.deepEqual(
+    selectSetupMatching(['TASK_B','OTHER'], matching, false, ['TASK_A','TASK_B','REWARD_C','OTHER']),
+    ['OTHER']
+  )
 })
