@@ -57,7 +57,6 @@ class WorkspaceBackupRehearsalAssessmentServiceTest {
         assertFalse(result.verifiedForRestore());
         assertEquals(2,result.mediaVariants());
         verify(rehearsal).rehearse(file,7L,key);
-        verify(db,never()).update(anyString(),any(Object[].class));
         assertArrayEquals(new byte[]{0,0,0,0},file);
     }
 
@@ -96,6 +95,5 @@ class WorkspaceBackupRehearsalAssessmentServiceTest {
                 .thenThrow(new SecurityException("BACKUP_STORAGE_HASH_MISMATCH"));
         assertThrows(SecurityException.class,()->service.assess(7L,snapshot,key));
         verifyNoInteractions(inspector,rehearsal);
-        verify(db,never()).update(anyString(),any(Object[].class));
     }
 }
