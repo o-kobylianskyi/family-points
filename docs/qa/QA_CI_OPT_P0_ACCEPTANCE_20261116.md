@@ -104,3 +104,10 @@
 - All 49 previously accepted executed browser checks also PASS: BKL002 preview/plan errors, security, tenancy, stale epoch and Rewards History. Two real server-dependent V49 scenarios still **SKIPPED**, not acceptance of actual server-enabled full onboarding.
 - `--trace=off` avoids the earlier Playwright teardown ENOENT; trace artifact issue is unresolved. Do not publish browser trace/media or QA credentials.
 - No tested SHA was printed inside this newly submitted execution log; latest known prior operator HEAD `c00d814...` predates synthetic test addition and cannot be attributed to this new 52-case run. Confirm exact operator HEAD and status before same-SHA signoff. BKL002 execute and BETA remain HOLD.
+
+
+## Operator SHA after 50-pass Playwright — 2026-11-16
+
+- User supplied root `git rev-parse HEAD` **`4d70145e00fdf8ed070c0e75af687b7ab6d2ffff`** after the immediately preceding full E2E `52 collected / 50 PASS / 2 SKIPPED / 0 FAIL` run (`--trace=off`). GitHub confirms this commit exists, message `fix(backup): accept JDBC PostgreSQL timestamptz timestamp representation in lease expiry check`.
+- Operator `git status --short` reported only `?? qa/e2e/package-lock.json` (untracked; no modified tracked files). Do not commit it unintentionally. Prior E2E run itself did not print HEAD at test invocation; associate evidence with post-run checkout without claiming a guaranteed immutable tested SHA.
+- GitHub comparison at acceptance time: `main` **4 commits ahead** of `4d70145e`; new Backend test, QA, release journal updates not covered by this checkout. This browser test does not accept Backend durable verified restore, full live V49, Android on device, or all-jobs exact-head CI. **BETA / production reset HOLD**.
