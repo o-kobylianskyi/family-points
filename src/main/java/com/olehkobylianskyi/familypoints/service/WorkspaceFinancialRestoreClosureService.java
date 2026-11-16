@@ -25,8 +25,8 @@ public final class WorkspaceFinancialRestoreClosureService {
 
     /**
      * Counts deliberately include both catalog and historical data that the
-     * current portable exporter cannot faithfully reconstruct. The group
-     * ledger is explicitly checked although not yet an export category.
+     * current native restore executor cannot faithfully reconstruct. The group
+     * ledger is exportable but not yet replayable or currency-reconciled.
      */
     public Closure assess(long workspaceId,Collection<String> selectedCategories) {
         if(workspaceId<=0 || selectedCategories==null
@@ -41,7 +41,7 @@ public final class WorkspaceFinancialRestoreClosureService {
                     "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)"),
                 new Scope("REPUTATION_LEDGER","reputation_transactions",
                     "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)"),
-                new Scope("GROUP_POINT_LEDGER_UNEXPORTED","group_point_transactions",
+                new Scope("GROUP_POINT_LEDGER","group_point_transactions",
                     "EXISTS (SELECT 1 FROM member_groups g WHERE g.id=t.group_id AND g.family_id=?)"),
                 new Scope("REWARD_PURCHASES","reward_purchases",
                     "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)"),
@@ -76,7 +76,7 @@ public final class WorkspaceFinancialRestoreClosureService {
         if(!selected.isEmpty()) {
             var financialRequested=Set.of("POINT_LEDGER","REPUTATION_LEDGER",
                     "REWARD_PURCHASES","REWARD_REQUESTS","TASK_EXECUTIONS",
-                    "TASK_SCHEDULE_SLOTS","GROUP_POINT_LEDGER_UNEXPORTED");
+                    "TASK_SCHEDULE_SLOTS","GROUP_POINT_LEDGER");
             for(var category:selected) {
                 if(financialRequested.contains(category))
                     blockers.add("RESTORE_FINANCIAL_NATIVE_REPLAY_UNIMPLEMENTED:"+category);
