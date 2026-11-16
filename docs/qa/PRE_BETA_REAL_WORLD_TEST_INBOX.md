@@ -120,3 +120,16 @@ All these cases are additional acceptance criteria in the **single planned final
 | REAL-BKL002-CATEGORY-01 | Backend→QA | Reward-category mapping + association FK preserved on secure disposable archive/restore; foreign-family/category/missing-parent negative | completed production-safe native restore, VERIFIED + explicit disposable workspace approval | BLOCKED_DEPENDENCY |
 | REAL-V49-EPOCH-01 | Web→QA | Reject stale epoch/revision step-PATCH results during workspace change; no duplicate PATCH | enabled V49 isolated server and operator approval | BLOCKED_DEPENDENCY |
 | REAL-REL-EVIDENCE-01 | Release→QA | Verify genuine all-component executed exact-SHA CI and artifact/API/APK integrity, not scoped-green substitute | release candidate, run IDs, signing evidence | BLOCKED_DEPENDENCY |
+
+
+## Intake checkpoint — 2026-11-16: Backend QA #09 and Web V49 UX/race additions
+
+- Received formal [BKL002-QA-20261116-09](../coordination/requests/BKL002_QA_PACKET_20261116_REWARD_CATEGORY_PORTABLE.md), source `b461d516`. Encrypted portable `REWARD_CATEGORIES` and `REWARD_DEFINITION_CATEGORIES` with composite PK, mandatory definition/category parents when linked, cross-family association denial, duplicate pair inspector denial; `restorable=false`, no native replay. Automated Testcontainers cases CAT-ARC-01..06 **NOT_RUN by producer**, pending consolidated QA #04–#09.
+- Read latest Web `99a3741`: new synthetic `qa/e2e/tests/onboarding-v49-epoch-race-synthetic.spec.js` protects a one-time PATCH followed by cross-epoch response and GET-only reconciliation, not executed yet. `4c1cda5`, `025fe58`, `5c969dc` fix/check partial filtered deselection: selecting a few matching TASK/REWARD codes then pressing deselect must remove only selected matches without wiping choices outside the filter; an empty-result filter shows clear zero-results UX. Add real acceptance `REAL-V49-FILTER-01` to inspect filtered partial deselect, reload persistence, multi-pack and four-locale mobile rendering; no user execution now.
+- Web `46148d8` adds a read-only retry when setup/catalog fetch unavailable; add `REAL-V49-RETRY-01`: failed GET may be manually retried with GET only, no setup/selection/finalize mutation. Remains separate from lost-PATCH response scenario.
+- Architecture safety: older `27/27 PASS@419efb1` still valid only at prior SHA; newest #09 category graph and Web UI changes do not inherit it. Keep manual campaign `COLLECT_ONLY` and do not activate production BKL002.
+
+| ID | Producer | Scenario / source | Dependencies | Status |
+|---|---|---|---|---|
+| REAL-V49-FILTER-01 | Web/Designer | Partial filtered deselect, unrelated selected codes intact, zero-match feedback, 4 languages/narrow viewport | approved disposable V49 state | BLOCKED_DEPENDENCY |
+| REAL-V49-RETRY-01 | Web/Designer | Failed setup/catalog GET with explicit GET-only retry; zero implicit writes | approved isolated V49 UI and controlled read error | BLOCKED_DEPENDENCY |
