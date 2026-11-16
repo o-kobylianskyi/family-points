@@ -5,7 +5,7 @@ import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { validateSetupCatalog, selectSetupMatching } from '../utils/setupCatalogSelection'
-import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure } from '../utils/setupFinalizeSafety'
+import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, sameSetupFinalizeOperation } from '../utils/setupFinalizeSafety'
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
 const words = {
@@ -78,18 +78,37 @@ function InitialFamilySetupReviewContent() {
     if (sessionStorage.getItem(storageKey) || readShared()) throw new Error('PENDING_SETUP_ALREADY_EXISTS')
     localStorage.setItem(sharedKey, JSON.stringify(value))
     try { sessionStorage.setItem(storageKey, JSON.stringify(value)) }
-    catch (error) { localStorage.removeItem(sharedKey); throw error }
+    catch (error) {
+      // A competing tab may have replaced the marker meanwhile. Never erase it.
+      if (sameSetupFinalizeOperation(readShared(), value)) localStorage.removeItem(sharedKey)
+      throw error
+    }
     setPending(value)
   }
   const clear = operation => {
-    // Clear only the exact completed operation. Never erase another tab's marker.
+    // A receipt can clear only its exact account/family/epoch/revision/ordered codes.
+    // UUID equality alone is insufficient when browser storage conflicts.
+    let saved
+    try { saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null') }
+    catch { setPending({ blocked: true }); return false }
     const shared = readShared()
-    if (shared?.operationId === operation.operationId) localStorage.removeItem(sharedKey)
+    if ((saved && !sameSetupFinalizeOperation(saved, operation)) ||
+        (shared && !sameSetupFinalizeOperation(shared, operation))) {
+      setPending({ blocked: true })
+      return false
+    }
+    if (saved) sessionStorage.removeItem(storageKey)
+    if (shared) localStorage.removeItem(sharedKey)
+    // Storage is shared between tabs; a new marker must keep all writes blocked.
+    let remaining
     try {
-      const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null')
-      if (saved?.operationId === operation.operationId) sessionStorage.removeItem(storageKey)
-    } catch { /* Malformed data remains blocked, never silently replaced. */ }
-    setPending(null)
+      remaining = reconcileSetupPending(
+        JSON.parse(sessionStorage.getItem(storageKey) || 'null'),
+        readShared(), workspaceId, accountId
+      )
+    } catch { remaining = { blocked: true } }
+    setPending(remaining)
+    return !remaining
   }
   useEffect(() => {
     if (!sharedKey) return
@@ -187,7 +206,8 @@ function InitialFamilySetupReviewContent() {
       assertSetupFinalizeReceipt(result, operation)
       const refreshed = assertSetupState(await getSetupState(getAccessToken(), operation.workspaceId), operation.workspaceId)
       if (activeScope.current !== scope || refreshed.dataEpoch !== operation.epoch) return
-      clear(operation); setFinished(result); setSetup(refreshed)
+      if (!clear(operation)) { setError(true); return }
+      setFinished(result); setSetup(refreshed)
     } catch (e) { if (activeScope.current === scope) { setError(true); setErrorStatus(e?.status) } }
     finally { if (activeScope.current === scope) setBusy(false) }
   }
@@ -212,7 +232,8 @@ function InitialFamilySetupReviewContent() {
       assertSetupFinalizeReceipt(result, operation)
       const refreshed = await getSetupState(getAccessToken(), operation.workspaceId)
       if (activeScope.current !== scope || refreshed.dataEpoch !== operation.epoch) return
-      clear(operation); setFinished(result); setSetup(refreshed)
+      if (!clear(operation)) { setError(true); return }
+      setFinished(result); setSetup(refreshed)
     } catch { if (activeScope.current === scope) setError(true) }
     finally { if (activeScope.current === scope) setBusy(false) }
   }
