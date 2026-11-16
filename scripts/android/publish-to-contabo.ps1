@@ -3,6 +3,7 @@ param(
     [string]$UserName = "adminfp",
     [string]$SshKey = (Join-Path $env:USERPROFILE ".ssh\contabo_admin_ed25519"),
     [string]$ReleaseDirectory = "",
+    [Parameter(Mandatory=$true)][string]$ExpectedCertificateSha256,
     [switch]$SkipPublicVerification
 )
 $ErrorActionPreference = 'Stop'
@@ -14,19 +15,35 @@ $jsonFile = Join-Path $ReleaseDirectory "familypoints-beta.json"
 foreach ($item in @($apk, $jsonFile, $SshKey)) {
     if (-not (Test-Path -LiteralPath $item -PathType Leaf)) { throw "Missing file: $item" }
 }
+$gitSha = ((& git -C $root rev-parse HEAD) | Out-String).Trim().ToLowerInvariant()
+if ($LASTEXITCODE -ne 0 -or $gitSha -notmatch '^[0-9a-f]{40}$') { throw 'Cannot identify Git source revision.' }
+$changes = @(& git -C $root status --porcelain --untracked-files=normal)
+if ($LASTEXITCODE -ne 0 -or $changes.Count -ne 0) {
+    throw 'Publication requires a clean Git checkout.'
+}
+& python scripts/android/verify_release_manifest.py $apk $jsonFile --expected-source-sha $gitSha
+if ($LASTEXITCODE -ne 0) { throw 'Release manifest integrity/source SHA verification failed.' }
 $metadata = Get-Content -LiteralPath $jsonFile -Raw -Encoding UTF8 | ConvertFrom-Json
-if ($metadata.applicationId -ne "com.olehkobylianskyi.familypoints.android" -or
-    $metadata.file -ne "familypoints-beta.apk" -or
-    $metadata.downloadUrl -ne "https://family-point.com/downloads/familypoints-beta.apk" -or
-    $metadata.versionCode -lt 1 -or
-    $metadata.versionName -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$') {
-    throw "Release manifest is invalid"
-}
 $hash = (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLowerInvariant()
-$size = (Get-Item -LiteralPath $apk).Length
-if ($hash -ne $metadata.sha256 -or $size -ne $metadata.sizeBytes) {
-    throw "APK does not match JSON (hash or size). Rebuild before publishing."
+
+# Mandatory even when publisher is invoked directly, bypassing release.ps1.
+$androidHome = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { $env:ANDROID_SDK_ROOT }
+if (-not $androidHome) { throw 'Set ANDROID_HOME/ANDROID_SDK_ROOT to verify APK signature.' }
+$buildTools = Join-Path $androidHome 'build-tools'
+$signers = @(Get-ChildItem $buildTools -Directory -ErrorAction Stop |
+    Sort-Object { try { [version]($_.Name -replace '-.*$','') } catch { [version]'0.0' } } -Descending |
+    ForEach-Object { Join-Path $_.FullName 'apksigner.bat' } |
+    Where-Object { Test-Path -LiteralPath $_ })
+if ($signers.Count -eq 0) { throw 'apksigner.bat unavailable; cannot publish without verifying signing identity.' }
+$verified = @(& $signers[0] verify --print-certs $apk)
+if ($LASTEXITCODE -ne 0) { throw 'APK signature verification failed.' }
+$match = [regex]::Match(($verified -join [Environment]::NewLine), 'certificate SHA-256 digest:\s*([0-9A-Fa-f]+)')
+$expected = ($ExpectedCertificateSha256 -replace '[^0-9A-Fa-f]', '').ToLowerInvariant()
+if (-not $match.Success -or $expected.Length -ne 64 -or
+    $match.Groups[1].Value.ToLowerInvariant() -ne $expected) {
+    throw 'APK signing certificate does not match approved fingerprint.'
 }
+Write-Host "APK signing identity VERIFIED; source SHA: $gitSha"
 Write-Host "Local release VERIFIED: $($metadata.versionName) (code $($metadata.versionCode))"
 Write-Host "SHA-256: $hash"
 $answer = Read-Host "Upload this release to Contabo? Type UPLOAD"
