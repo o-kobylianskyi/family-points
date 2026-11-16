@@ -27,7 +27,8 @@ public class WorkspaceResetSnapshotService {
             "account_email_tokens", "workspace_reset_operations", "workspace_reset_challenges",
             "workspace_reset_reauth_limits", "workspace_protective_backups", "media_blobs", "flyway_schema_history");
     private static final Set<String> CATEGORIES = Set.of("PRIVATE_TEMPLATES","TASK_DEFINITIONS",
-            "TASK_EXECUTIONS","REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_REQUIREMENTS","REWARD_CATEGORIES","REWARD_DEFINITION_CATEGORIES","REWARD_PURCHASES",
+            "TASK_EXECUTIONS","REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_REQUIREMENTS","REWARD_CATEGORIES","REWARD_DEFINITION_CATEGORIES","REWARD_OBLIGATIONS",
+            "REWARD_OBLIGATION_BLOCKED_CATEGORIES","REWARD_OBLIGATION_BLOCKED_REWARDS","REWARD_PURCHASES",
             "POINT_LEDGER","REPUTATION_LEDGER","GROUP_POINT_LEDGER","MEMBER_GROUPS","WORK_NODES","TASK_SCHEDULE_SLOTS",
             "MEDIA_ASSETS","MEDIA_BINDINGS");
 
