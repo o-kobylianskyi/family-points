@@ -28,7 +28,7 @@ public class WorkspaceResetSnapshotService {
             "workspace_reset_reauth_limits", "workspace_protective_backups", "media_blobs", "flyway_schema_history");
     private static final Set<String> CATEGORIES = Set.of("PRIVATE_TEMPLATES","TASK_DEFINITIONS",
             "TASK_EXECUTIONS","REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_PURCHASES",
-            "POINT_LEDGER","REPUTATION_LEDGER","MEMBER_GROUPS","WORK_NODES","TASK_SCHEDULE_SLOTS",
+            "POINT_LEDGER","REPUTATION_LEDGER","GROUP_POINT_LEDGER","MEMBER_GROUPS","WORK_NODES","TASK_SCHEDULE_SLOTS",
             "MEDIA_ASSETS","MEDIA_BINDINGS");
 
     public WorkspaceResetSnapshotService(JdbcTemplate db, WorkspaceEpochTransactionGuard guard) {
