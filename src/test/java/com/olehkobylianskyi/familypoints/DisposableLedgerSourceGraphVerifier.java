@@ -78,6 +78,7 @@ final class DisposableLedgerSourceGraphVerifier {
         int manual=0,task=0,purchaseCount=0;
         var relationships=new TreeMap<Long,Long>();
         var purchaseRelationships=new TreeMap<Long,Long>();
+        var purchaseCharged=new HashSet<Long>();
         var ledgerIds=new HashSet<Long>();
         for(JsonNode row:root.path("POINT_LEDGER")) {
             long id=row.path("id").asLong();
@@ -120,6 +121,8 @@ final class DisposableLedgerSourceGraphVerifier {
                         || row.path("amount").asLong()!=-price
                         || !"SPEND".equals(row.path("type").asText()))
                     throw new SecurityException("LEDGER_PURCHASE_ECONOMICS_MISMATCH");
+                if(!purchaseCharged.add(purchaseId))
+                    throw new SecurityException("LEDGER_DUPLICATE_PURCHASE_CHARGE");
                 purchaseRelationships.put(id,purchaseId);
                 purchaseCount++;
             } else {
