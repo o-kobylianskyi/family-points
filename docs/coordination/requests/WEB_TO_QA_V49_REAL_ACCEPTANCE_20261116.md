@@ -42,3 +42,10 @@ QA synthetic/browser checks (intercept all V49 writes, do not touch any real fam
 5. **Missing marker or storage failure:** missing shared/session, corrupted JSON, or storage access denied must fail closed with no newly generated finalize POST. Backend reconciliation remains required after an uncertain sent request.
 
 Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separately; real feature-enabled workflow remains only in independently authorized disposable QA workspace. No BKL-002 execute/restore, PROD or BETA.
+
+
+## WEB-02 automated two-tab suite committed (2026-11-16)
+- Spec: `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js`, latest test SHA `fe64edb351ea5c30fce080c8385129ca6c99452e`.
+- QA synthetic run (not a real V49 acceptance): `cd qa/e2e && npx playwright test tests/onboarding-v49-two-tab-synthetic.spec.js --reporter=list --workers=1 --trace=off`. Run only in configured QA environment with disposable QA manager credentials and selected isolated workspace; test intercepts scoped setup/data-epoch endpoints.
+- Verify two tests individually: lost-response A retains UUID and tab B never POSTs; competing UUID injected during receipt GET remains in storage despite original receipt. Record exact source SHA, request counts, PASS/FAIL/SKIP and failure trace.
+- **NOT_RUN** by Web; failures route back to Web. No operator request outside consolidated QA campaign, no destructive BKL-002 execute/restore.
