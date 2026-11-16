@@ -107,6 +107,18 @@ public class WorkspacePortableBackupExporter {
                 if(invalid==null || invalid!=0L)
                     throw new SecurityException("BACKUP_POINT_LEDGER_FOREIGN_CURRENCY");
             }
+            if("REWARD_DEFINITIONS".equals(category)) {
+                // Reward category membership is a separate FK association not
+                // yet portable. Losing tags and behavior presets would make a
+                // seemingly complete reward definition archive misleading.
+                Long associations=db.queryForObject("""
+                        SELECT count(*) FROM reward_definition_categories a
+                        JOIN reward_definitions d ON d.id=a.reward_definition_id
+                        WHERE d.family_id=?
+                        """,Long.class,workspaceId);
+                if(associations==null || associations!=0L)
+                    throw new IllegalStateException("BACKUP_UNEXPORTED_REWARD_CATEGORY_LINKS");
+            }
             if("REWARD_DEFINITIONS".equals(category)
                     || "REWARD_REQUESTS".equals(category)) {
                 // Reward requirements are not exported/restored yet; a
