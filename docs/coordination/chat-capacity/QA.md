@@ -30,3 +30,5 @@ Audit note: QA must inspect the other six tracks' chat-capacity logs and rolling
 2026-11-16 night CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 04deda45e8914ab0a89ff7ffa08d10e89e1ec328 | CHECKPOINT | QA-019 formally read backend packet #16 and negative inspector test, source only no CI PASS; Release PS1 parser still incomplete; live PRE-BETA deferred; true context percentage unknown
 
 2026-11-16 late CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | QA-020 rolling handoff | CHECKPOINT | Confirmed release PowerShell parser malformed, mandatory compose CI step, latest source CI lookup blocked; context percentage unknown
+
+2026-11-16 late CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 69f63a512c73a2d0253aa10856c8e871b982d1f0 | CHECKPOINT | QA-021 source audited BKL002 #17 TASK ancestry read-only verifier, 21 unique tests queued, no post-fix exact SHA CI run, release PS1 parser still malformed; actual chat percent unknown
