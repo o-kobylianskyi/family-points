@@ -26,7 +26,7 @@ class OfflinePointsReplayHttpTest {
     private lateinit var api: PointsApi
     @Before fun setUp() {
         server = MockWebServer().apply { start() }
-        api = Retrofit.Builder().baseUrl(server.url("/"))
+        api = Retrofit.Builder().baseUrl(server.url("/").newBuilder().host("127.0.0.1").build())
             .client(OkHttpClient.Builder().retryOnConnectionFailure(false)
                 .readTimeout(2, TimeUnit.SECONDS).build())
             .addConverterFactory(GsonConverterFactory.create())
