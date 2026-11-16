@@ -38,10 +38,20 @@ final class DisposableLedgerSourceGraphVerifier {
         catch(java.io.IOException error) {
             throw new IllegalArgumentException("LEDGER_SOURCE_GRAPH_BAD_ARCHIVE",error);
         }finally {Arrays.fill(raw,(byte)0);}
+        var definitions=new HashSet<Long>();
+        for(JsonNode def:root.path("TASK_DEFINITIONS")) {
+            long id=def.path("id").asLong();
+            if(!def.path("id").isIntegralNumber() || id<=0
+                    || def.path("family_id").asLong()!=source
+                    || !definitions.add(id))
+                throw new SecurityException("LEDGER_SOURCE_DEFINITION_INVALID");
+        }
         var taskRows=new HashMap<Long,JsonNode>();
         for(JsonNode task:root.path("TASK_EXECUTIONS")) {
             if(!task.path("id").isIntegralNumber() || task.path("id").asLong()<=0
                     || !task.path("member_id").isIntegralNumber()
+                    || !task.path("task_definition_id").isIntegralNumber()
+                    || !definitions.contains(task.path("task_definition_id").asLong())
                     || taskRows.putIfAbsent(task.path("id").asLong(),task)!=null)
                 throw new SecurityException("LEDGER_SOURCE_TASK_INVALID");
         }
@@ -62,7 +72,9 @@ final class DisposableLedgerSourceGraphVerifier {
             long member=row.path("member_id").asLong();
             long currency=row.path("point_type_id").asLong();
             if(id<=0 || !ledgerIds.add(id) || member<=0 || !typeIds.contains(currency)
-                    || !row.path("amount").isIntegralNumber())
+                    || !row.path("amount").isIntegralNumber()
+                    || row.path("amount").asLong()>Integer.MAX_VALUE
+                    || row.path("amount").asLong()<Integer.MIN_VALUE)
                 throw new SecurityException("LEDGER_SOURCE_ROW_INVALID");
             String sourceType=row.path("source_type").asText();
             if("MANUAL".equals(sourceType)) {
