@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { applyTheme } from '../utils/theme'
 
 const KEY = 'familypoints.theme.preference'
 const MODES = ['system', 'light', 'dark']
@@ -8,13 +9,6 @@ function savedMode() {
     const value = localStorage.getItem(KEY)
     return MODES.includes(value) ? value : 'system'
   } catch { return 'system' }
-}
-
-export function applyTheme(mode) {
-  const systemDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
-  document.documentElement.dataset.theme = mode === 'system'
-    ? (systemDark ? 'dark' : 'light')
-    : mode
 }
 
 export function ThemeInitializer() {
