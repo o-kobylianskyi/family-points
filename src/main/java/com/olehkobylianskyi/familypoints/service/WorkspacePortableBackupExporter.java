@@ -81,6 +81,19 @@ public class WorkspacePortableBackupExporter {
         ObjectNode data=root.putObject("categories");
         var counts=new TreeMap<String,Integer>();
         for(String category:selected) {
+            // Group ledger is only portable when each denomination belongs to
+            // the same family as its group. A legacy/corrupt cross-tenant FK
+            // must not be silently copied into an authenticated archive.
+            if("GROUP_POINT_LEDGER".equals(category)) {
+                Long invalid=db.queryForObject("""
+                        SELECT count(*) FROM group_point_transactions t
+                        JOIN member_groups g ON g.id=t.group_id
+                        LEFT JOIN point_types p ON p.id=t.point_type_id
+                        WHERE g.family_id=? AND (p.id IS NULL OR p.family_id<>g.family_id)
+                        """,Long.class,workspaceId);
+                if(invalid==null || invalid!=0L)
+                    throw new SecurityException("BACKUP_GROUP_LEDGER_FOREIGN_CURRENCY");
+            }
             Scope scope=SCOPED_TABLES.get(category);
             String filter=" FROM public."+scope.table()+" t WHERE "+scope.condition();
             Integer count=db.queryForObject("SELECT count(*)"+filter,Integer.class,workspaceId);
