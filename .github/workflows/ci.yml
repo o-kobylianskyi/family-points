@@ -255,13 +255,13 @@ jobs:
           }
           if ($hasErrors) { exit 1 }
       - name: Verify backup is atomic and rejects incomplete archives (fake Docker)
-        if: needs.changes.outputs.compose == 'true'
+        if: ${{ always() && needs.changes.outputs.compose == 'true' }}
         run: python3 -m unittest discover -s scripts/beta -p test_backup_safety.py -v
       - name: Verify deployment safety via fake git, Docker and HTTP
-        if: needs.changes.outputs.compose == 'true'
+        if: ${{ always() && needs.changes.outputs.compose == 'true' }}
         run: python3 -m unittest discover -s scripts/beta -p test_deploy_safety.py -v
       - name: Verify compose and secrets placeholders
-        if: needs.changes.outputs.compose == 'true'
+        if: ${{ always() && needs.changes.outputs.compose == 'true' }}
         env:
           DB_PASSWORD: ci-placeholder-not-a-real-secret
           JWT_SECRET: ci-placeholder-jwt-secret-not-real
