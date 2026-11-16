@@ -29,7 +29,7 @@ class TemplateReceiptHttpFaultTest {
             .retryOnConnectionFailure(false)
             .readTimeout(250, TimeUnit.MILLISECONDS)
             .build()
-        api = Retrofit.Builder().baseUrl(server.url("/"))
+        api = Retrofit.Builder().baseUrl(server.url("/").newBuilder().host("127.0.0.1").build())
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build().create(TemplateReceiptApi::class.java)
