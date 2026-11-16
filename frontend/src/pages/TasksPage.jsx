@@ -14,18 +14,15 @@ import {
   resumeTask,
   cancelTask,
   releaseTask,
-  delegateTask,
   getMemberTasks,
   getMemberSchedule,
   getOpenTasks,
   getTaskDefinitionsByView,
   getTaskDefinitions,
   getTaskParticipants,
-  getTaskInstanceHistory,
   getTaskDefinitionHistory,
   getPendingTaskRewardRequests,
   rejectTaskRewardRequest,
-  setTaskDefinitionActive,
   startTask,
   startScheduledTask,
 } from '../api/taskApi'
@@ -104,12 +101,7 @@ function TasksPageContent() {
   const [loadingMembers, setLoadingMembers] = useState(true)
   const [loadingTasks, setLoadingTasks] = useState(false)
   const [processingTaskId, setProcessingTaskId] = useState(null)
-  const [delegatingTaskId, setDelegatingTaskId] = useState(null)
-  const [delegateToMemberId, setDelegateToMemberId] = useState('')
   const [error, setError] = useState('')
-  const [historyTaskId, setHistoryTaskId] = useState(null)
-  const [historyByTaskId, setHistoryByTaskId] = useState({})
-  const [loadingHistoryTaskId, setLoadingHistoryTaskId] = useState(null)
   const [definitionHistoryId, setDefinitionHistoryId] = useState(null)
   const [historyByDefinitionId, setHistoryByDefinitionId] = useState({})
   const [loadingDefinitionHistoryId, setLoadingDefinitionHistoryId] = useState(null)
@@ -247,20 +239,6 @@ function TasksPageContent() {
     if (pageTab === 'management') void Promise.resolve().then(() => loadManagedTasks())
   }, [loadManagedTasks, pageTab])
 
-  const handleDefinitionActive = async (task) => {
-    try {
-      setProcessingTaskId(`definition-${task.id}`)
-      setError('')
-      await setTaskDefinitionActive(getAccessToken(), currentUser.workspaceId, task.id, !task.active)
-      await loadManagedTasks()
-      await loadAllTasks()
-    } catch (error) {
-      setError(error.message)
-    } finally {
-      setProcessingTaskId(null)
-    }
-  }
-
   const handleTaskAction = async (task, action) => {
     try {
       setProcessingTaskId(task.id)
@@ -351,76 +329,6 @@ function TasksPageContent() {
     }
   }
 
-  const handleDelegate = async (task) => {
-    if (!delegateToMemberId) {
-      return
-    }
-
-    try {
-      setProcessingTaskId(task.id)
-      setError('')
-
-      await delegateTask(
-        getAccessToken(),
-        currentUser.workspaceId,
-        task.id,
-        Number(delegateToMemberId)
-      )
-
-      setDelegatingTaskId(null)
-      setDelegateToMemberId('')
-      await loadAllTasks()
-    } catch (error) {
-      setError(error.message)
-    } finally {
-      setProcessingTaskId(null)
-    }
-  }
-
-  const beginDelegation = (task) => {
-    setDelegatingTaskId(task.id)
-
-    const firstOtherMember = members.find(
-      (member) => member.id !== task.memberId
-    )
-
-    setDelegateToMemberId(
-      firstOtherMember
-        ? String(firstOtherMember.id)
-        : ''
-    )
-  }
-
-  const toggleTaskHistory = async (task) => {
-    if (historyTaskId === task.id) {
-      setHistoryTaskId(null)
-      return
-    }
-
-    setHistoryTaskId(task.id)
-
-    if (historyByTaskId[task.id]) {
-      return
-    }
-
-    try {
-      setLoadingHistoryTaskId(task.id)
-      const history = await getTaskInstanceHistory(
-        getAccessToken(),
-        currentUser.workspaceId,
-        task.id
-      )
-      setHistoryByTaskId((current) => ({
-        ...current,
-        [task.id]: history,
-      }))
-    } catch (error) {
-      setError(error.message)
-    } finally {
-      setLoadingHistoryTaskId(null)
-    }
-  }
-
   const toggleDefinitionHistory = async (definition) => {
     if (definitionHistoryId === definition.id) {
       setDefinitionHistoryId(null)
@@ -478,20 +386,6 @@ function TasksPageContent() {
   const memberName = (memberId) =>
     members.find((member) => member.id === memberId)?.name
       ?? `#${memberId}`
-
-  const getInitials = (name) => {
-    if (!name) {
-      return '?'
-    }
-
-    return name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join('')
-      .toUpperCase()
-  }
 
   const formatDateTime = (value) => {
     if (!value) {
