@@ -38,3 +38,5 @@ Audit note: QA must inspect the other six tracks' chat-capacity logs and rolling
 2026-11-16 23:47 CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 5a188c41182949f21dd83c1829040df89c30a53f | CHECKPOINT | QA-023 Backend purchase ancestry #18 source reviewed; 21 classes, new-source Maven/CI not independently verified; Release diagnostics improved, real PREBETA deferred; actual context percent unknown
 
 2026-11-16 23:47+ CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 80d9b51e26c3f26aeafdd7c235da15aade8aeee3 | CHECKPOINT | QA-024 exchange two-leg read-only PG proof source reviewed, one new regression class 22 total, new run exact SHA not verified, real PRE-BETA deferred; capacity percentage unavailable
+
+2026-11-16 late CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 07473888c47f0246975609854e8bba37bd3cdd82 | CHECKPOINT | QA-025 found exchange request snapshot ratio gap in source auditor, routed issue15; release strict SHA JSON checker sources reviewed 18 tests NOT_RUN, latest full CI unverified; actual chat percentage unavailable
