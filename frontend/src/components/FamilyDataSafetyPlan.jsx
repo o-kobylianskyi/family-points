@@ -50,18 +50,25 @@ function FamilyDataSafetyPlanContent() {
   useEffect(() => {
     if (!workspaceId || !canManage) return
     let alive = true
+    setBackupLoading(true)
+    setBackupError(false)
+    // Never show older metadata as current while a refresh/identity change is pending.
+    setBackups([])
     listProtectiveBackups(getAccessToken(), workspaceId).then(result => {
       if (alive) setBackups(result)
-    }).catch(() => { if (alive) setBackupError(true) })
+    }).catch(() => { if (alive) { setBackups([]); setBackupError(true) } })
       .finally(() => { if (alive) setBackupLoading(false) })
     return () => { alive = false }
   }, [workspaceId, accountScope, canManage, reload, getAccessToken])
   useEffect(() => {
     if (!canManage || !workspaceId || !selectedSnapshot) return
     let active = true
+    setDetailBusy(true)
+    setDetailError(false)
+    setDetails(null)
     getProtectiveBackup(getAccessToken(),workspaceId,selectedSnapshot)
       .then(result => { if (active) setDetails(result) })
-      .catch(() => { if (active) setDetailError(true) })
+      .catch(() => { if (active) { setDetails(null); setDetailError(true) } })
       .finally(() => { if (active) setDetailBusy(false) })
     return () => { active = false }
   }, [canManage,workspaceId,accountScope,selectedSnapshot,detailReload,reload,getAccessToken])
