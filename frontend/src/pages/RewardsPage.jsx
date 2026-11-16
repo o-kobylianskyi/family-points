@@ -121,7 +121,6 @@ function RewardsPageContent() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const workspaceRef = useRef(currentUser.workspaceId)
-  workspaceRef.current = currentUser.workspaceId
   const identityRef = useRef('')
   const identity = [currentUser.accountId ?? currentUser.userId ?? currentUser.id, currentUser.workspaceId, currentUser.memberId].join(':')
   const [currencyForms, setCurrencyForms] = useState({})
@@ -308,6 +307,7 @@ function RewardsPageContent() {
   useEffect(() => {
     // Refs are for effect/event lifecycles, not render. Keyed remount resets
     // all account/workspace/member state; cleanup invalidates late responses.
+    workspaceRef.current = currentUser.workspaceId
     identityRef.current = identity
     void Promise.resolve().then(() => loadAll())
     return () => { identityRef.current = '' }
