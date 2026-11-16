@@ -768,6 +768,10 @@ function TasksPageContent() {
                   </button>
                 </div>
 
+                <button type="button" className="task-action-button"
+                  onClick={() => toggleDefinitionHistory(task)}>
+                  {t('tasksUi.historyDefinition', { id: task.id })}
+                </button>
                 {definitionHistoryId === task.id && (
                   <div className="task-history-panel">
                     <strong>{t('tasksUi.historyDefinition', { id: task.id })}</strong>
