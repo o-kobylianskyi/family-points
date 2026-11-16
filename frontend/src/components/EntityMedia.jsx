@@ -12,7 +12,13 @@ const dictionary = {
   en: ['Image','Choose','Upload JPEG/PNG','Reset','Saving…','No image'],
   ru: ['Изображение','Выбрать','Загрузить JPEG/PNG','Сбросить','Сохранение…','Нет изображения'],
 }
-export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false, compact=false, inlineEditor=false, staged=false, draft=null, onDraftChange=null, children=null }) {
+export default function EntityMedia(props) {
+  const { currentUser } = useAuth()
+  const key = [currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id,
+    currentUser?.workspaceId, props.type, props.targetId, props.slot ?? 'ICON'].join(':')
+  return <EntityMediaContent key={key} {...props} />
+}
+function EntityMediaContent({ type: targetId, slot='ICON', canEdit=false, compact=false, inlineEditor=false, staged=false, draft=null, onDraftChange=null, children=null }) {
   const {currentUser,getAccessToken}=useAuth()
   const {i18n}=useTranslation()
   const words=dictionary[i18n.language.split('-')[0]]||dictionary.en
@@ -30,13 +36,12 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
   useEffect(()=>{
     if(!staged || draft?.kind!=='upload' || !draft.file)return
     const preview=URL.createObjectURL(draft.file)
-    setDraftPreview(preview)
-    return ()=>{URL.revokeObjectURL(preview);setDraftPreview('')}
+    Promise.resolve().then(()=>{if(staged && draft?.kind==='upload')setDraftPreview(preview)})
+    return ()=>{URL.revokeObjectURL(preview)}
   },[staged,draft])
   useEffect(()=>{
     let active=true
     let objectUrl=''
-    setCatalogDraftPreview('')
     if(!staged || draft?.kind!=='catalog' || !workspaceId) return ()=>{active=false}
     const item=catalog.find(entry=>entry.key===draft.key)
     const path=item?.previewPath?.replaceAll('{workspaceId}',String(workspaceId))
@@ -50,12 +55,11 @@ export default function EntityMedia({ type, targetId, slot='ICON', canEdit=false
   },[staged,draft,catalog,workspaceId,getAccessToken])
   const lock=useRef(false)
   const activeTarget=useRef('')
-  activeTarget.current=`${workspaceId}:${type}:${targetId}:${slot}`
+  useEffect(()=>{ activeTarget.current=`${workspaceId}:${type}:${targetId}:${slot}` },[workspaceId,type,targetId,slot])
   useEffect(()=>{
     if(!targetId)return
     let alive=true
     let objectUrl=''
-    setReference(null);setUrl('');setError('');setCatalog([]);setBusy(false)
     Promise.all([getMediaBinding(getAccessToken(),workspaceId,type,targetId,slot),
       canEdit?getMediaCatalog(getAccessToken(),workspaceId):Promise.resolve([])])
       .then(async ([ref,items])=>{
