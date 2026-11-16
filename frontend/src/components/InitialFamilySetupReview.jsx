@@ -4,7 +4,7 @@ import { useAuth } from '../context/authContextValue'
 import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
-import { validateSetupCatalog, selectSetupMatching } from '../utils/setupCatalogSelection'
+import { validateSetupCatalog, selectSetupMatching, hasSelectedSetupMatch } from '../utils/setupCatalogSelection'
 import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, assertSetupStepTransition, canChangeSetupStep, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt } from '../utils/setupFinalizeSafety'
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
@@ -162,6 +162,7 @@ function InitialFamilySetupReviewContent() {
   })
   const matchingCodes = items.map(item => item.code)
   const allMatchingSelected = matchingCodes.length > 0 && matchingCodes.every(code => selected.includes(code))
+  const anyMatchingSelected = hasSelectedSetupMatch(selected, matchingCodes)
   const updateSelection = checked => {
     setSelected(previous => selectSetupMatching(previous, matchingCodes, checked, catalogCodes))
     setReview(null); setConfirmed(false); seq.current++
@@ -280,12 +281,15 @@ function InitialFamilySetupReviewContent() {
             uk:'Вибрати всі знайдені',ru:'Выбрать все найденные',de:'Alle Treffer auswählen',en:'Select all matching',
           })[lang]}</button>
         <button type="button" className="secondary-button"
-          disabled={busy || !!pending || !allMatchingSelected}
+          disabled={busy || !!pending || !anyMatchingSelected}
           onClick={() => updateSelection(false)}>{({
             uk:'Зняти вибір із знайдених',ru:'Снять выбор с найденных',de:'Trefferauswahl entfernen',en:'Deselect matching',
           })[lang]}</button>
         <span>{matchingCodes.length} / {catalog.length}</span>
       </div>}
+      {setup.status !== 'COMPLETED' && matchingCodes.length === 0 && <p role="status">
+        {({uk:'За поточними фільтрами шаблонів не знайдено.',ru:'По текущим фильтрам шаблоны не найдены.',de:'Keine Vorlagen mit diesen Filtern gefunden.',en:'No templates match these filters.'})[lang] || 'No templates match these filters.'}
+      </p>}
       {setup.status !== 'COMPLETED' && <div className="initial-setup-template-list" role="group" aria-label={({uk:'Шаблони для вибору',ru:'Шаблоны для выбора',de:'Vorlagen zur Auswahl',en:'Templates to select'})[lang] || 'Templates to select'}>
         {items.map(item=><label key={item.code} className="initial-setup-template-option">
           <input type="checkbox" disabled={busy || !!pending || setup.status === 'COMPLETED'} checked={selected.includes(item.code)} onChange={()=>{setSelected(v=>selectSetupMatching(v,[item.code],!v.includes(item.code),catalogCodes));setReview(null);setConfirmed(false);seq.current++}}/>
