@@ -32,3 +32,5 @@ Audit note: QA must inspect the other six tracks' chat-capacity logs and rolling
 2026-11-16 late CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | QA-020 rolling handoff | CHECKPOINT | Confirmed release PowerShell parser malformed, mandatory compose CI step, latest source CI lookup blocked; context percentage unknown
 
 2026-11-16 late CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 69f63a512c73a2d0253aa10856c8e871b982d1f0 | CHECKPOINT | QA-021 source audited BKL002 #17 TASK ancestry read-only verifier, 21 unique tests queued, no post-fix exact SHA CI run, release PS1 parser still malformed; actual chat percent unknown
+
+2026-11-16 late CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | dd7acf62e006ade3dbc32869f4120d471cf87e63 | CHECKPOINT | QA-022 verified Release PowerShell SHA regex, clean-worktree fences and removal duplicated block in source; post-repair CI not independently observed; 21 BKL002 synthetic classes pending, manual campaign deferred; actual chat percentage unknown
