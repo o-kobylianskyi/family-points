@@ -99,7 +99,7 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
   test.skip(!username || !password,'Disposable QA manager credentials required')
   await signIn(page)
   let op=null, finalizeCount=0, receiptCount=0, injectionDone=false
-  let sharedKey
+  let sharedKey, competing, secondPage
   const blocked=[]
   await context.route(/\\/workspaces\\/\\d+\\/(?:data-epoch|setup(?:\\/.*)?)(?:\\?.*)?$/,async route=>{
     const req=route.request(),path=new URL(req.url()).pathname
@@ -127,6 +127,18 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
     }
     if(path.includes('/setup/finalize-import/receipts/') && req.method()==='GET'){
       receiptCount++
+      // The foreign tab replaces the marker AFTER recovery begins but BEFORE
+      // the receipt is returned. The original tab must not delete it.
+      competing=await secondPage.evaluate(()=>{
+        const key=Object.keys(localStorage).find(k=>k.startsWith('fp:setup:pending:') && k.endsWith(':shared'))
+        if(!key) return null
+        const original=JSON.parse(localStorage.getItem(key))
+        const foreign={...original,operationId:'b489ea25-4e10-48ee-b8ea-7a9f4b2e3456'}
+        localStorage.setItem(key,JSON.stringify(foreign))
+        return {key,foreign}
+      })
+      sharedKey=competing?.key
+      injectionDone=!!competing
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
         workspaceId,operationId:op.id,replayed:true,dataEpoch:0,revision:8,
         setupStatus:'COMPLETED',
@@ -139,24 +151,14 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
   await context.route(/\\/template-catalog(?:\\?.*)?$/,route =>
     route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(catalog)}))
   const first=await prepare(page)
-  const secondPage=await context.newPage()
+  secondPage=await context.newPage()
   await secondPage.goto('/settings#initial-family-setup')
   await expect(secondPage.locator('#initial-family-setup').getByText(/7\\/7/)).toBeVisible()
   await first.getByRole('button',{name:ui.finalize}).click()
   await expect(first.getByText(ui.unknown)).toBeVisible()
   expect(finalizeCount).toBe(1)
-  const competing=await secondPage.evaluate(()=>{
-    const key=Object.keys(localStorage).find(k=>k.startsWith('fp:setup:pending:') && k.endsWith(':shared'))
-    if(!key) return null
-    const original=JSON.parse(localStorage.getItem(key))
-    const foreign={...original,operationId:'b489ea25-4e10-48ee-b8ea-7a9f4b2e3456'}
-    localStorage.setItem(key,JSON.stringify(foreign))
-    return {key,foreign}
-  })
-  sharedKey=competing?.key
-  injectionDone=!!competing
-  expect(injectionDone).toBe(true)
   await first.getByRole('button',{name:ui.receipt}).click()
+  await expect.poll(()=>injectionDone).toBe(true)
   await expect.poll(()=>receiptCount).toBe(1)
   await expect(first.getByText(ui.unknown)).toBeVisible()
   await expect(first.getByText(ui.finished)).toHaveCount(0)
