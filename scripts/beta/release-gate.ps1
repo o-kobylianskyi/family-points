@@ -60,7 +60,11 @@ function ExactShaFullCi([string]$sha) {
   throw "No CI run has all FOUR required executed PASS jobs for $sha. Skips do not qualify."
 }
 $sha = (@(Run 'git' @('rev-parse','HEAD')) -join '').Trim()
-if ($Action -ne 'status') {
+# CI dispatch and read-only CI verification operate on the immutable remote
+# commit SHA, not on the local worktree contents. Local QA reports and untracked
+# files must not block those safe operations. Only release preparation, which
+# records local release evidence, requires a completely clean worktree.
+if ($Action -eq 'prepare') {
   $dirty = @(Run 'git' @('status','--porcelain'))
   if ($dirty.Count -gt 0) { throw 'Dirty working tree. Preserve changes, never reset/clean automatically.' }
 }
