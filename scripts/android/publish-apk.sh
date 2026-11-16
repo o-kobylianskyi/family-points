@@ -11,21 +11,9 @@ metadata="${2:-}"
 command -v python3 >/dev/null
 command -v sha256sum >/dev/null
 command -v flock >/dev/null
-# Strict manifest validation and integrity enforcement before any public replacement.
-python3 - "$input" "$metadata" <<'PY'
-import hashlib, json, pathlib, sys
-apk, manifest = map(pathlib.Path, sys.argv[1:])
-data = json.loads(manifest.read_text(encoding='utf-8-sig'))
-assert data.get('file') == 'familypoints-beta.apk', 'Invalid filename'
-assert data.get('applicationId') == 'com.olehkobylianskyi.familypoints.android', 'Wrong application ID'
-assert isinstance(data.get('versionCode'), int) and data['versionCode'] > 0, 'Invalid versionCode'
-assert isinstance(data.get('versionName'), str) and data['versionName'], 'Invalid versionName'
-assert data.get('downloadUrl') == 'https://family-point.com/downloads/familypoints-beta.apk', 'Invalid URL'
-digest = hashlib.sha256(apk.read_bytes()).hexdigest()
-assert digest == data.get('sha256'), 'SHA-256 mismatch'
-assert apk.stat().st_size == data.get('sizeBytes'), 'APK size mismatch'
-print('Integrity verified:', digest)
-PY
+# Source identity, application metadata, size and SHA-256 verified before public changes.
+# Signing certificate is independently checked on the operator workstation.
+python3 scripts/android/verify_release_manifest.py "$input" "$metadata"
 exec 9>downloads/.apk-publish.lock
 flock -x 9
 if [[ -f downloads/familypoints-beta.json ]]; then
