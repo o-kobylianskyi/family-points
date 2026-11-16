@@ -46,3 +46,29 @@ For each incoming item preserve:
 | REAL-INIT-004 | QA/Release | Cross-client regression across all tracks on pinned release SHA | release-candidate CI and representative fixture | BLOCKED_DEPENDENCY |
 
 **Intake is additive:** append incoming owner instructions and new scenarios here or link them, without converting COLLECTED into PASS. Campaign will be assembled, deduplicated, safety-reviewed, then separately scheduled by user approval.
+
+
+## Intake checkpoint — 2026-11-16: Designer real V49 handoff and Backend QA #06–07
+
+### Verified new manual-test source
+- Designer's authoritative [operator-assisted V49 acceptance instructions](../coordination/requests/DESIGNER_TO_QA_REAL_V49_ACCEPTANCE_20261116.md), published in commit `d7c811575`, **collected in full by reference**, without executing Phase B/C. Source requires three phases:
+  - **A read-only:** exact SHA, V49 capability/GET seven-step state (empty/partial allowed), catalog 142 entries and six packs, 4 languages/theme/mobile, navigation does not write, Android parity, family/role denial, epoch/logout cleanup.
+  - **B explicit mutating onboarding:** only after separate operator approval of a *new disposable* workspace: seven PATCH step decisions, two-pack TASK/REWARD draft selection, side-effect-free review, exactly one original-UUID finalize private import, persisted server COMPLETED/revision, reload/two-tab/recovery, separate explicit activation. Setup/import must not alter ledger or auto-create active definitions.
+  - **C isolation and persistence:** two family scopes, owner/child/foreign credentials, invalid revision/epoch, malformed receipt, concurrency, lost response without repeat POST; unchanged pre-existing family state and balance.
+- Evidence fields: candidate SHA/build, masked workspace, setup epoch/revision, browser/device, HTTP methods/count/UUID, expected/actual, PASS/FAIL/SKIP, sanitized proof. **No data-reset/execute or existing family writes authorized by this handoff.**
+- Mapping: existing `REAL-INIT-002` is now `COLLECTED + BLOCKED_DEPENDENCY`; add child case IDs `REAL-V49-A01..A06`, `REAL-V49-B01..B08`, `REAL-V49-C01..C03` preserving full instructions at source path.
+- Subsequent Web `cb5c44f47c` step-decision double-submit guard and stale error/preview corrections should receive independent synthetic regression; not a reason to trigger real tests now.
+
+### Additional Backend source gaps requiring future real campaign coverage
+- `BKL002-QA-20261116-06`: reward obligations + requirements currently not exported with linked purchase/definition: exporter must fail closed, native replay unsupported. See [packet](../coordination/requests/BKL002_QA_PACKET_20261116_REWARD_OBLIGATION_CLOSURE.md).
+- `BKL002-QA-20261116-07`: `reward_definition_categories` linking graph cannot silently disappear; archive source should reject unexportable category links and inventory unsupported category. See [packet](../coordination/requests/BKL002_QA_PACKET_20261116_REWARD_CATEGORY_LINK_CLOSURE.md).
+- New P0 source tests #04–#07 are **not** automatically covered by prior `27/27 PASS @ 419efb1`; retain async QA execution queue. Real campaign will require complete rewards history/obligation/category/currency/ledger mapping and no silent loss on backup→restore once full supported production API exists.
+
+| ID | Producer | Scenario / source | Dependencies | Status |
+|---|---|---|---|---|
+| REAL-V49-A01..A06 | Designer/Web/Android | Authenticated read-only preflight, states, permissions, catalog, locales/themes and zero implicit writes | selected safe environment and recent SHA | COLLECTED |
+| REAL-V49-B01..B08 | Designer/Web/Backend | Approved isolated fresh-family 7-step write/review/finalize/private import/activation and receipt recovery | enabled V49 Backend, explicit operator approval and isolated family | BLOCKED_DEPENDENCY |
+| REAL-V49-C01..C03 | QA/Web/Backend | Two-family ACL, conflicting epoch/revision/tabs, no ledger change or duplicate writes | isolated multi-role fixture | BLOCKED_DEPENDENCY |
+| REAL-BKL002-LEDGER-01 | Backend/QA | Full replay across purchases, obligations, requirements, category links, historical source IDs and currencies, including exclusion/rollback | supported actual native restore engine and durable VERIFIED | BLOCKED_DEPENDENCY |
+
+**Do not mistake acceptance of automatic synthetic V49 finalize 2/2 or bounded group ledger 27/27 for real campaign PASS.**
