@@ -20,3 +20,5 @@ Audit note: QA must inspect the other six tracks' chat-capacity logs and rolling
 2026-11-16 evening CET | QA | QA-current (number unknown) | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | cf1590183a372bb073d373f63b637ac15693db0b | CHECKPOINT | QA-013: packet 12 exact-SHA CI unconfirmed; inspected requirement cross-DB source and updated automated QA inventory to 18 classes; true context percentage unknown
 
 2026-11-16 ~22:41 CET | QA | QA-current (generation unknown) | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | e4c5ecf44bc17daa982727efc7bb5533c7a33c45 | CHECKPOINT | QA-014: real CI 43953661904 and 43953986968 FAIL; Java actual 460/461 cases with one failure, Compose parser red; operator manual tests deferred; actual context percentage unavailable
+
+2026-11-16 late CET | QA | QA-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 76acb61987b2c63ac99d5bdeaaafebcecc4114df | CHECKPOINT | QA-015 two P0 defects still present in source; accepted Backend #14 into 19-class automatic queue and Web two-tab synthetic test, no manual live tests; context percentage unknown
