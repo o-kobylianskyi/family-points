@@ -55,7 +55,10 @@ public final class WorkspaceBackupLocalArtifactStore {
             chmod(temp,FILE_MODE);
             Files.write(temp,encryptedFile,StandardOpenOption.WRITE,StandardOpenOption.TRUNCATE_EXISTING);
             // Atomic publication; never overwrite a previously stored archive.
-            Files.move(temp,destination,StandardCopyOption.ATOMIC_MOVE);
+            // Same-directory hard-link publication is atomic and no-overwrite:
+            // it cannot replace an existing snapshot from another writer.
+            Files.createLink(destination,temp);
+            Files.delete(temp);
             temp=null;
             chmod(destination,FILE_MODE);
             return new Stored(snapshotId,workspaceId,ProtectiveBackupArtifactCodec.sha(encryptedFile),
