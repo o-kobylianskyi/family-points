@@ -40,6 +40,14 @@
 - QA packet #15 `docs/coordination/requests/BKL002_QA_PACKET_20261116_MANUAL_POINT_LEDGER_REPLAY.md` commit `a07ce64`, Issue #15 comment 6930586327; QA requested pinned 10-class run covering prior red and obligations.
 - Backend journal `docs/coordination/logs/backend.md` commit `a3ff5e6`. Next implement cryptographically authenticated currency catalog, source-type graph closure and independent current-SHA CI acceptance before moving financial restoration closer to production. FULL/SELECTIVE reset HTTP423 and BETA HOLD unchanged.
 
+## Latest Backend P0 package #16 — 2026-11-16 late
+- Source encrypted V50 `POINT_TYPES` category, directly scoped family_id, full point_types rows plus SHA/epoch protected digest: exporter `e6f4bde`, snapshot whitelist `ceef29c`, backup registry `95d8b69`.
+- Offline inspector `15c8717`: archived point type direct tenant, nonblank unique currency code, denomination FK checks for point/group ledgers and reward definitions/purchases/requests; missing or dangling POINT_TYPES never silently restorable. New AES fixture `0657099` tests complete/missing/dangling/duplicate code/cross-family.
+- Test-only `DisposablePointLedgerRestoreExecutor` `09024dc` now requires encrypted `POINT_LEDGER + POINT_TYPES`, source family+code from sealed metadata; caller mapping expected code AND target point_type active code must match signed source code. Still MANUAL only, no polymorphic source_id, per member×currency sum reconciled. Two-PG test changes `a567b4b`, `9d946ac` cover valid 10 balance, legacy currency-less archive reject, tampered file reject, source/neighbor no writes.
+- QA packet #16 `docs/coordination/requests/BKL002_QA_PACKET_20261116_POINT_TYPES_CURRENCY_CLOSURE.md` commit `b662d04`, Issue #15 comments 6930878958 and addendum 6930897477. **New Java tests NOT_RUN** by Backend; exact SHA independent QA needed.
+- Backend log `docs/coordination/logs/backend.md` commit `83f15a1`. Last known Java-red issue (run 43953986968, category scope) corrected in `2539bf9` but no verified latest-SHA QA green yet.
+- Next P0: check QA/CI evidence first; expand cryptographically anchored source-code financial metadata into non-MANUAL polymorphic source graph only with explicit source→target ledger/object remaps and reconciliation; no production VERIFIED, owner authorization, reset execute (HTTP423), BETA HOLD.
+
 ## Next action priority
 1. **First check #15 and current Actions jobs** for new results of patched regressions, ensure two previously red tests PASS. If FAIL, fix; do not weaken isolation or source closure assertions.
 2. **Next bounded code package:** test-only independent PostgreSQL native replay of `REWARD_REQUIREMENTS` then `REWARD_OBLIGATIONS` with explicit source→target ID maps for purchase, request, definition, task, member, currency, categories; reject unsupported historical dependency/source IDs. Include atomic rollback and cross-tenant proof; no production API.
