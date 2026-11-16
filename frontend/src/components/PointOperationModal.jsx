@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import NumberInput from './NumberInput'
 
-function PointOperationModal({
+function PointOperationModal(props) {
+  const scope = [props.operation, props.member?.id].join(':')
+  return <PointOperationContent key={scope} {...props} />
+}
+function PointOperationContent({
   operation,
   member,
   onClose,
@@ -30,11 +34,6 @@ function PointOperationModal({
     return () => window.removeEventListener('keydown', onEscape)
   }, [operation, member, submitting, onClose])
 
-  useEffect(() => {
-    setAmount('')
-    setDescription('')
-    setError('')
-  }, [operation, member?.id])
 
   if (!operation || !member) {
     return null
