@@ -38,6 +38,8 @@ public class WorkspacePortableBackupExporter {
         Map.entry("WORK_NODES",new Scope("work_nodes","t.family_id=?")),
         Map.entry("MEDIA_BINDINGS",new Scope("media_bindings","t.workspace_id=?")),
         Map.entry("MEDIA_ASSETS",new Scope("media_assets","t.workspace_id=?")),
+        Map.entry("GROUP_POINT_LEDGER",new Scope("group_point_transactions",
+            "EXISTS (SELECT 1 FROM member_groups g WHERE g.id=t.group_id AND g.family_id=?)")),
         Map.entry("POINT_LEDGER",new Scope("point_transactions",
             "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)")),
         Map.entry("REPUTATION_LEDGER",new Scope("reputation_transactions",
