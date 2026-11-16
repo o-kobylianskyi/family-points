@@ -28,6 +28,13 @@
 - Next: obtain actual test/CI evidence, fix failures as found, add an automated synthetic two-tab browser test if QA coverage missing, review mark-clearing races conservatively.
 - Rolling handoff updated in this batch; last inspected HEAD after source packet: `bed509893f65e0a13699594f0599b44e238beda2`. Re-read main on next pickup.
 
+## WEB-02 package 4 — two-tab synthetic Playwright (2026-11-16)
+- Startup HEAD `09a7a9e6b556545c6d5454f10f49563125f3b0ec`; source/test at `fe64edb351ea5c30fce080c8385129ca6c99452e`.
+- Added `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js`: two real browser tabs in one Playwright context, mocked all setup/data-epoch/catalog requests after QA login. Case A: tab A loses finalize response; tab B sees shared pending, cannot dispatch another finalize, GET receipt 404 keeps same UUID. Case B: tab B changes shared UUID during tab A's receipt lookup; tab A must preserve competing marker and remain blocked. No actual setup writes.
+- Initial commit `381f3f4`, test injection ordering corrected `fe64edb` so foreign marker is inserted **during in-flight receipt recovery**, before cleanup (not before clicking a now-disabled receipt button).
+- **Execution:** NOT_RUN; browser runner unavailable in this GitHub connector-only session. CI actual same-SHA jobs NOT_VERIFIED; no PASS claim. Needs QA to run on a pinned SHA in the consolidated synthetic campaign. Avoid assuming authenticated second tab shares sessionStorage; this is one browser context with shared localStorage, so auth/selected workspace precondition is checked.
+- Next: inspect QA test output for selectors/auth and race timing, fix failures, then inspect CI complete/scoped job evidence and remaining Web release defects. BKL-002/BETA HOLD remains.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
