@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
@@ -31,10 +31,10 @@ function AppLayout() {
   const profileMenuRef = useRef(null)
   const [profileState, setProfileState] = useState({path:location.pathname, workspaceId:currentUser?.workspaceId, open:false})
   const profileOpen = profileState.open && profileState.path===location.pathname && profileState.workspaceId===currentUser?.workspaceId
-  const setProfileOpen = update => setProfileState(previous => ({
+  const setProfileOpen = useCallback(update => setProfileState(previous => ({
     path:location.pathname, workspaceId:currentUser?.workspaceId,
     open:typeof update==='function' ? update(previous.open && previous.path===location.pathname && previous.workspaceId===currentUser?.workspaceId) : update,
-  }))
+  })), [location.pathname, currentUser?.workspaceId])
 
   useEffect(() => {
     if (!profileOpen) return
@@ -48,7 +48,7 @@ function AppLayout() {
       document.removeEventListener('pointerdown', closeOutside)
       document.removeEventListener('keydown', closeEscape)
     }
-  }, [profileOpen])
+  }, [profileOpen, setProfileOpen])
 
 
   useEffect(() => {
