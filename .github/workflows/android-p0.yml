@@ -1,0 +1,77 @@
+name: Android P0 / Independent CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'android/**'
+      - '.github/workflows/android-p0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# This workflow is isolated from FamilyPoints CI's cancel-in-progress main/ref
+# group. An unrelated Web/Backend push cannot cancel an Android P0 run.
+# One run per source SHA also prevents later Android commits from cancelling
+# earlier failure evidence. No real family data or device is accessed.
+concurrency:
+  group: android-p0-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  android-p0:
+    name: Android P0 / targeted regressions + full JVM + APKs
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - name: Checkout exact source revision
+        uses: actions/checkout@v4
+
+      - name: Print evidence SHA
+        run: git rev-parse HEAD
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools build-tools;36.0.0'
+
+      - name: Install stable Android SDK 36
+        run: sdkmanager 'platforms;android-36'
+
+      - name: Cache Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify three Android P0 lost-response regressions first
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --stacktrace -PfamilyPointsCiAndroidSdk=36 \
+            :app:testDebugUnitTest --tests 'com.olehkobylianskyi.familypoints.android.data.TemplateReceiptRepositoryHttpTest.lostActivationResponseRecoversWithOriginalIdAndNoRepost' \
+            --tests 'com.olehkobylianskyi.familypoints.android.network.OfflinePointsReplayHttpTest.lostResponseKeepsOriginalIdForExplicitIdempotentReconciliation' \
+            --tests 'com.olehkobylianskyi.familypoints.android.network.TemplateReceiptHttpFaultTest.lostActivationPostResponseRecoveredOnlyByGetWithSameUuid'
+
+      - name: Run full Android JVM suite and build both debug APKs
+        run: |
+          ./gradlew --no-daemon --stacktrace -PfamilyPointsCiAndroidSdk=36 \
+            :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest
+
+      - name: Publish targeted and full Android test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-p0-test-reports
+          path: |
+            android/app/build/reports/tests/**
+            android/app/build/test-results/**
+          if-no-files-found: ignore
+          retention-days: 14
