@@ -81,5 +81,22 @@ class WorkspaceRewardObligationArchiveClosurePostgresTest {
         assertEquals(1L,db.queryForObject(
                 "SELECT count(*) FROM reward_purchases WHERE member_id=?",
                 Long.class,member).longValue());
+
+        db.update("DELETE FROM reward_obligations WHERE reward_purchase_id=?",purchase);
+        db.update("""
+                INSERT INTO reward_requirements(
+                  family_id,reward_definition_id,phase,requirement_type)
+                VALUES (?,?,'BEFORE_PURCHASE','TASK_COMPLETION')
+                """,family,reward);
+        var requirementsError=assertThrows(IllegalStateException.class,
+                ()->tx.execute(s->exporter.export(
+                        family,UUID.randomUUID(),UUID.randomUUID(),0L,
+                        List.of("REWARD_DEFINITIONS"),"V50",key)));
+        assertEquals("BACKUP_UNEXPORTED_REWARD_REQUIREMENTS",
+                requirementsError.getMessage());
+        var requiresClosure=new WorkspaceFinancialRestoreClosureService(db)
+                .assess(family,List.of("REWARD_DEFINITIONS"));
+        assertTrue(requiresClosure.blockers().contains(
+                "RESTORE_CATEGORY_NOT_EXPORTABLE:REWARD_REQUIREMENTS_UNEXPORTED"));
     }
 }
