@@ -6,7 +6,7 @@
 - Actions [43947907960](https://github.com/o-kobylianskyi/family-points/actions/runs/43947907960) SHA 19adfe1b7: Java Maven PG Testcontainers 460 tests, 1 assertion failure, 1 error, 0 skipped; Backend/full-evidence/per-commit job FAILURE, Web/Android/Compose SUCCESS.
 - WorkspaceRewardObligationArchiveClosurePostgresTest.unexportedPurchaseObligationsPreventAuthenticatedIncompleteArchive:189 expected 1 got 2.
 - DisposableRewardCategoryCrossDatabasePostgresTest.independentlyMigratedDatabasesRebindCategoryLinksAndPreserveOtherFamily:105 NullPointerException (null Object.equals).
-- QA→Backend defect [Issue #15 comment 6928302234](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-6928302234); control doc update 2f770147. No source fix verified yet.
+- QA→Backend defect [Issue #15 comment 6928302234](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-6928302234); control doc update 2f770147. Backend now has source fixes 839e9f8, e1e4e2b, 9ccfe2e and formal QA packet #12 at d5b1e85; independent retest NOT_RUN / NOT ACCEPTED.
 - BKL002 packet #11 docs/coordination/requests/BKL002_QA_PACKET_20261116_CATEGORY_NATIVE_REPLAY.md is test-only two-independent-PG reward-category FK remap; its new test is failing. #04–11 current SHA NOT_ACCEPTED; old 27/27 does not supersede failures.
 ## Deferred real PRE-BETA
 - User wants QA to COLLECT real/manual/device test instructions from every track, execute one operator+QA campaign after Backend and Release gates only. [Shared inbox](../../qa/PRE_BETA_REAL_WORLD_TEST_INBOX.md) covers seven-step V49, 142 templates/6 packs, UUID replay, child/tenant ACL, Android device/offline, rewards+ledger, Release APK signature and safe operational backup.
@@ -18,3 +18,9 @@
 - Chat capacity protocol docs/coordination/requests/CHAT_CAPACITY_ALL_TRACKS_20261116.md: true context token percent inaccessible; do not guess 50/75/85%. Create/update QA measurement log and this handoff every substantive batch, audit role handoffs P1 without delaying P0.
 ## Next task
 Check Backend remediation of both confirmed P0 failures, independent pinned rerun and Issue #15 response. Collect new real test handoffs; NO manual live tests.
+
+
+## Latest QA-012 pickup — update
+- Backend acknowledged both historical red cases and delivered [CI_RED_REPAIR #12](../requests/BKL002_QA_PACKET_20261116_CI_RED_REPAIR.md): two fixture categories rather than one (839e9f8), no immutable-map null NPE + sorted archive category order (e1e4e2b), null-target-map negative regression (9ccfe2e). No newer same-SHA PASS observed.
+- QA control recorded specific retest requirements commit `7b9eca5`: focus previously failing methods and scope/tenant/map/rollback safeguards; eight-class packet #12 then deduplicated 17-class neighboring suite, then actual four-component non-skipped full CI.
+- User still wants all real/manual tests collected and deferred. New automation must not become real-data execution. Follow up with Backend on Issue #15 only once there is independent run evidence.
