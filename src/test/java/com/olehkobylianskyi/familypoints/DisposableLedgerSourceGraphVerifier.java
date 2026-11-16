@@ -1,0 +1,92 @@
+package com.olehkobylianskyi.familypoints;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.olehkobylianskyi.familypoints.service.*;
+
+import javax.crypto.SecretKey;
+import java.util.*;
+
+/**
+ * TEST ONLY, read-only financial source graph preflight. Does not replay money,
+ * grant points, infer an unsupported source_type or modify a database.
+ */
+final class DisposableLedgerSourceGraphVerifier {
+    record Result(int manualRows,int taskRows,Map<Long,Long> ledgerToTaskSource,
+                  UUID snapshotId) {}
+    private final ProtectiveBackupImportInspector inspector;
+    private final ProtectiveBackupPortableFile file;
+    private final ProtectiveBackupArtifactCodec codec;
+    private final ObjectMapper mapper=new ObjectMapper();
+
+    DisposableLedgerSourceGraphVerifier(ProtectiveBackupImportInspector inspector,
+            ProtectiveBackupPortableFile file,ProtectiveBackupArtifactCodec codec) {
+        this.inspector=inspector;this.file=file;this.codec=codec;
+    }
+
+    Result inspect(byte[] archive,long source,SecretKey key) {
+        if(archive==null || source<=0 || key==null)
+            throw new IllegalArgumentException("LEDGER_SOURCE_GRAPH_INVALID_REQUEST");
+        var inspected=inspector.inspect(archive,source,key);
+        if(!"V50".equals(inspected.schemaVersion())
+                || !inspected.availableCategories().contains("POINT_LEDGER")
+                || !inspected.availableCategories().contains("POINT_TYPES"))
+            throw new SecurityException("LEDGER_SOURCE_GRAPH_SCOPE_INCOMPLETE");
+        byte[] raw=codec.open(file.decode(archive),inspected.snapshotId(),source,key);
+        final JsonNode root;
+        try {root=mapper.readTree(raw).path("categories");}
+        catch(java.io.IOException error) {
+            throw new IllegalArgumentException("LEDGER_SOURCE_GRAPH_BAD_ARCHIVE",error);
+        }finally {Arrays.fill(raw,(byte)0);}
+        var taskRows=new HashMap<Long,JsonNode>();
+        for(JsonNode task:root.path("TASK_EXECUTIONS")) {
+            if(!task.path("id").isIntegralNumber() || task.path("id").asLong()<=0
+                    || !task.path("member_id").isIntegralNumber()
+                    || taskRows.putIfAbsent(task.path("id").asLong(),task)!=null)
+                throw new SecurityException("LEDGER_SOURCE_TASK_INVALID");
+        }
+        var typeIds=new HashSet<Long>();
+        for(JsonNode pointType:root.path("POINT_TYPES")) {
+            if(pointType.path("family_id").asLong()!=source
+                    || !pointType.path("id").isIntegralNumber()
+                    || !typeIds.add(pointType.path("id").asLong())
+                    || !pointType.path("code").isTextual()
+                    || pointType.path("code").asText().isBlank())
+                throw new SecurityException("LEDGER_SOURCE_CURRENCY_INVALID");
+        }
+        int manual=0,task=0;
+        var relationships=new TreeMap<Long,Long>();
+        var ledgerIds=new HashSet<Long>();
+        for(JsonNode row:root.path("POINT_LEDGER")) {
+            long id=row.path("id").asLong();
+            long member=row.path("member_id").asLong();
+            long currency=row.path("point_type_id").asLong();
+            if(id<=0 || !ledgerIds.add(id) || member<=0 || !typeIds.contains(currency)
+                    || !row.path("amount").isIntegralNumber())
+                throw new SecurityException("LEDGER_SOURCE_ROW_INVALID");
+            String sourceType=row.path("source_type").asText();
+            if("MANUAL".equals(sourceType)) {
+                if(row.hasNonNull("source_id"))
+                    throw new SecurityException("LEDGER_MANUAL_SOURCE_ID_FORBIDDEN");
+                manual++;
+            } else if("TASK".equals(sourceType)) {
+                if(!row.path("source_id").isIntegralNumber()
+                        || row.path("source_id").asLong()<=0)
+                    throw new SecurityException("LEDGER_TASK_SOURCE_ID_INVALID");
+                long taskId=row.path("source_id").asLong();
+                var taskInstance=taskRows.get(taskId);
+                if(taskInstance==null)
+                    throw new SecurityException("LEDGER_TASK_SOURCE_NOT_ARCHIVED");
+                if(taskInstance.path("member_id").asLong()!=member)
+                    throw new SecurityException("LEDGER_TASK_SOURCE_MEMBER_MISMATCH");
+                relationships.put(id,taskId);
+                task++;
+            } else {
+                // No source_type guessing. REWARD_PURCHASE, EXCHANGE, REFUND,
+                // ADJUSTMENT and unknown legacy types need dedicated proof.
+                throw new SecurityException("LEDGER_SOURCE_TYPE_UNSUPPORTED:"+sourceType);
+            }
+        }
+        return new Result(manual,task,Map.copyOf(relationships),inspected.snapshotId());
+    }
+}
