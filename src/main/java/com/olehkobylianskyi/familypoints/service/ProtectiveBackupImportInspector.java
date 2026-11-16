@@ -16,7 +16,7 @@ import java.util.*;
 public final class ProtectiveBackupImportInspector {
     private static final Set<String> CATEGORIES=Set.of(
         "PRIVATE_TEMPLATES","TASK_DEFINITIONS","TASK_EXECUTIONS","TASK_SCHEDULE_SLOTS",
-        "REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_PURCHASES","MEMBER_GROUPS",
+        "REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_REQUIREMENTS","REWARD_PURCHASES","MEMBER_GROUPS",
         "WORK_NODES","MEDIA_ASSETS","MEDIA_BINDINGS","POINT_LEDGER","REPUTATION_LEDGER",
         "GROUP_POINT_LEDGER");
     private final ProtectiveBackupPortableFile files;
@@ -165,7 +165,7 @@ public final class ProtectiveBackupImportInspector {
                     String ownerColumn="PRIVATE_TEMPLATES".equals(name)
                             || "MEDIA_BINDINGS".equals(name) || "MEDIA_ASSETS".equals(name)?"workspace_id":
                             java.util.Set.of("MEMBER_GROUPS","TASK_DEFINITIONS",
-                                    "REWARD_DEFINITIONS","REWARD_REQUESTS","WORK_NODES")
+                                    "REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_REQUIREMENTS","WORK_NODES")
                                     .contains(name)?"family_id":null;
                     if(ownerColumn!=null && (!item.path(ownerColumn).isIntegralNumber()
                             || item.path(ownerColumn).asLong()!=targetWorkspace))
@@ -194,6 +194,20 @@ public final class ProtectiveBackupImportInspector {
             checkParent(categories,rowIds,blockers,"TASK_EXECUTIONS","task_definition_id","TASK_DEFINITIONS");
             checkOptionalParent(categories,rowIds,blockers,"REWARD_REQUESTS","reward_definition_id","REWARD_DEFINITIONS");
             checkOptionalParent(categories,rowIds,blockers,"REWARD_PURCHASES","reward_definition_id","REWARD_DEFINITIONS");
+            if(categories.has("REWARD_REQUIREMENTS")) {
+                for(JsonNode row:categories.path("REWARD_REQUIREMENTS")) {
+                    boolean byDefinition=row.hasNonNull("reward_definition_id");
+                    boolean byRequest=row.hasNonNull("reward_request_id");
+                    if(byDefinition==byRequest)
+                        blockers.add("INVALID_REWARD_REQUIREMENT_OWNER");
+                }
+            }
+            checkOptionalParent(categories,rowIds,blockers,
+                    "REWARD_REQUIREMENTS","reward_definition_id","REWARD_DEFINITIONS");
+            checkOptionalParent(categories,rowIds,blockers,
+                    "REWARD_REQUIREMENTS","reward_request_id","REWARD_REQUESTS");
+            checkOptionalParent(categories,rowIds,blockers,
+                    "REWARD_REQUIREMENTS","task_definition_id","TASK_DEFINITIONS");
             checkMemberParent(categories,blockers,"TASK_EXECUTIONS");
             checkMemberParent(categories,blockers,"REWARD_PURCHASES");
             // Purchase history can be tied to either a reward definition or
