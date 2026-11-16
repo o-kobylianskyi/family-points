@@ -33,6 +33,10 @@ test('family data has one protected entry point with three read-only modes', asy
   await tabs.nth(2).click()
   await expect(panel.locator('section.family-reset-readiness')).toHaveCount(0)
   await expect(panel.locator('section[aria-label="Safety gates"]')).toBeVisible()
+  // Accepted ADR-FAMILY-RESET-002: SELECTIVE is replace-selected only;
+  // no implicit MERGE and no executable control prior to Backend approval.
+  await expect(panel.getByText(/REPLACE_SELECTED.*MERGE/)).toBeVisible()
+  await expect(panel.locator('input[type="file"]')).toHaveCount(0)
   await tabs.nth(0).click()
   await expect(panel.locator('section.family-reset-readiness')).toHaveCount(0)
   await expect(panel.getByText(/30 days|30 днів|30 дней|30 Tage/i)).toBeVisible()
