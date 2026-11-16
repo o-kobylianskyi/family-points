@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import Sidebar from './Sidebar'
 import LanguageSwitcher from './LanguageSwitcher'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import { workspaceRoleLabel } from '../utils/workspaceRoleLabel'
 import SoftFamilyIcon from './SoftFamilyIcon'
 import MemberAvatar from './MemberAvatar'
