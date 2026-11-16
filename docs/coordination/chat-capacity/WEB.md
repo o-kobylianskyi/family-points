@@ -12,3 +12,4 @@ Next Web chat creates new generation and records measured checkpoints; this row 
 | 2026-11-16 | Web | WEB-02 | 3 | unknown | PARTIAL_VISIBLE | unknown | NONE | 3 | 4c6277ba | CHECKPOINT | Cross-tab source and test handoff batch; context capacity unknown. |
 | 2026-11-16 | Web | WEB-02 | 4 | unknown | PARTIAL_VISIBLE | unknown | NONE | 4 | 581ba39f | CHECKPOINT | Two-tab synthetic suite committed; hidden context utilization unknown. |
 | 2026-11-16 | Web | WEB-02 | 5 | unknown | PARTIAL_VISIBLE | unknown | NONE | 5 | 2b7601ac | CHECKPOINT | Historical CI steps checked for three known runs; exact latest Playwright status unknown. |
+| 2026-11-16 | Web | WEB-02 | 6 | unknown | PARTIAL_VISIBLE | unknown | NONE | 6 | cb2e2067 | CHECKPOINT | Readiness evidence audit committed; no exact context usage measurement. |
