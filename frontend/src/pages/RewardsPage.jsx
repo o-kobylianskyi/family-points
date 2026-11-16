@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import NumberInput from '../components/NumberInput'
 
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import { getPointTypes, getPointNameForms } from '../api/economyApi'
 import { getMemberBalances } from '../api/pointsApi'
 import { getMyReputation } from '../api/reputationApi'
