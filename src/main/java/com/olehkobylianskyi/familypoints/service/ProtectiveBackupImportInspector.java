@@ -190,6 +190,33 @@ public final class ProtectiveBackupImportInspector {
                     else blockers.add("CURRENCY_REBIND_REQUIRED:GROUP_POINT_LEDGER.point_type_id");
                 }
             }
+            // Historical ledger source_id is polymorphic, NOT a database FK.
+            // A cryptographically valid archive does not prove that the task,
+            // purchase, exchange or adjustment referenced by an operation can
+            // be reconstructed in the target workspace. No guessing IDs.
+            for(String category:List.of("POINT_LEDGER","GROUP_POINT_LEDGER")) {
+                for(JsonNode row:categories.path(category)) {
+                    var sourceType=row.path("source_type");
+                    if(!sourceType.isTextual() || sourceType.asText().isBlank())
+                        blockers.add("INVALID_REFERENCE:"+category+".source_type");
+                    else if(!"MANUAL".equals(sourceType.asText()))
+                        blockers.add("HISTORICAL_SOURCE_REMAP_REQUIRED:"+category+":"+sourceType.asText());
+                    var sourceId=row.path("source_id");
+                    if(!sourceId.isMissingNode() && !sourceId.isNull()) {
+                        if(!sourceId.isIntegralNumber() || sourceId.asLong()<=0)
+                            blockers.add("INVALID_REFERENCE:"+category+".source_id");
+                        else
+                            blockers.add("HISTORICAL_SOURCE_ID_REMAP_REQUIRED:"+category);
+                    }
+                    if("POINT_LEDGER".equals(category)) {
+                        var pointType=row.path("point_type_id");
+                        if(!pointType.isIntegralNumber() || pointType.asLong()<=0)
+                            blockers.add("INVALID_REFERENCE:POINT_LEDGER.point_type_id");
+                        else
+                            blockers.add("CURRENCY_REBIND_REQUIRED:POINT_LEDGER.point_type_id");
+                    }
+                }
+            }
             checkMemberParent(categories,blockers,"POINT_LEDGER");
             checkMemberParent(categories,blockers,"REPUTATION_LEDGER");
 
