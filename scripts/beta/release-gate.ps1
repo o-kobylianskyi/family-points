@@ -1,7 +1,9 @@
 param(
-  [ValidateSet('status','ci','prepare')][string]$Action = 'status',
+  [ValidateSet('status','ci','prepare','qa','post-deploy')][string]$Action = 'status',
   [string]$Tag = '',
-  [switch]$DispatchFullCi
+  [switch]$DispatchFullCi,
+  [string]$BaseUrl = '',
+  [switch]$AllowPublicSmoke
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -16,21 +18,26 @@ function Run([string]$exe,[string[]]$commandArgs) {
   }
   return $out
 }
-function Read-Public {
-  $url = 'https://family-point.com/downloads/familypoints-beta.json'
-  $result = @(Run 'curl.exe' @('--fail','--silent','--show-error','--location','--max-time','20','--',$url))
-  $raw = ($result -join [Environment]::NewLine).Trim().TrimStart([char]0xFEFF)
-  if (-not $raw.StartsWith('{')) { throw 'Public manifest is not JSON.' }
-  $json = ConvertFrom-Json -InputObject $raw
-  if ([int]$json.versionCode -le 0 -or [string]$json.sha256 -notmatch '^[a-fA-F0-9]{64}$') {
-    throw 'Public manifest has invalid version or digest.'
-  }
-  return $json
-}
 function Http200([string]$url) {
   $status = ( @(Run 'curl.exe' @('--silent','--show-error','--location','--max-time','20','--output','NUL','--write-out','%{http_code}','--',$url)) -join '' ).Trim()
   if ($status -ne '200') { throw "Unexpected HTTP $status at $url" }
   Write-Host "HTTP 200 $url"
+}
+function Test-QaBase([string]$url) {
+  if (-not $url) { throw 'QA check requires explicit -BaseUrl https://<isolated-test-host>; no production default.' }
+  $uri = $null
+  if (-not [Uri]::TryCreate($url,[UriKind]::Absolute,[ref]$uri) -or
+      $uri.Scheme -notin @('http','https') -or
+      -not $uri.Host -or $uri.UserInfo -or $uri.Query -or $uri.Fragment) {
+    throw 'Invalid QA URL. Use an explicit http(s) origin without credentials, query or fragment.'
+  }
+  if ($uri.Host -in @('family-point.com','www.family-point.com','api.family-point.com',
+      '184.174.37.206')) {
+    throw 'Production/BETA host is forbidden for QA. Use an isolated QA endpoint.'
+  }
+  # The domain alone is not proof of isolation; operator must choose an authorized disposable QA instance.
+  Write-Host "Explicit isolated QA target: $($uri.GetLeftPart([UriPartial]::Authority))"
+  return $uri.GetLeftPart([UriPartial]::Authority).TrimEnd('/')
 }
 function ExactShaFullCi([string]$sha) {
   if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw 'GitHub CLI gh required for exact-SHA CI gate. Install/authenticate gh first.' }
@@ -86,11 +93,24 @@ if ($Action -eq 'prepare') {
   $tagSha = (@(Run 'git' @('rev-parse',("refs/tags/{0}^{{commit}}" -f $Tag))) -join '').Trim()
   if ($sha -ne $tagSha) { throw "Tag target $tagSha differs from local $sha" }
 }
-Http200 'https://family-point.com/'
-Http200 'https://family-point.com/api/client-health'
-Http200 'https://family-point.com/downloads/familypoints-beta.apk'
-$manifest = Read-Public
-Write-Host "Public Android: $($manifest.versionName), code $($manifest.versionCode), SHA-256 $($manifest.sha256)"
+if ($Action -eq 'status') {
+  Write-Host 'LOCAL STATUS ONLY: no network request to PROD/BETA.'
+  Write-Host 'Use -Action qa -BaseUrl https://<isolated-QA-host> for explicitly authorized QA checks.'
+}
+if ($Action -eq 'qa') {
+  $qaOrigin = Test-QaBase $BaseUrl
+  Http200 ($qaOrigin + '/')
+  Http200 ($qaOrigin + '/api/client-health')
+  Write-Host 'QA HTTP SMOKE PASS. This is not proof of functional or restore acceptance.'
+}
+if ($Action -eq 'post-deploy') {
+  if (-not $AllowPublicSmoke) { throw 'Post-deploy production/BETA smoke is opt-in: specify -AllowPublicSmoke after an approved deployment.' }
+  if ($BaseUrl) { throw 'post-deploy uses pinned public host; -BaseUrl is not accepted.' }
+  Http200 'https://family-point.com/'
+  Http200 'https://family-point.com/api/client-health'
+  Http200 'https://family-point.com/downloads/familypoints-beta.apk'
+  Write-Host 'PUBLIC POST-DEPLOY HTTP SMOKE PASS (read-only).'
+}
 if ($Action -eq 'prepare') {
   $dir = Join-Path (Get-Location).Path 'release-evidence'
   New-Item -ItemType Directory -Force -Path $dir | Out-Null
@@ -100,9 +120,9 @@ if ($Action -eq 'prepare') {
     tag = $Tag
     tagSha = $tagSha
     fullCiRun = $ciUrl
-    publicAndroidVersionCode = [int]$manifest.versionCode
-    publicAndroidVersionName = [string]$manifest.versionName
-    publicAndroidSha256 = [string]$manifest.sha256
+    publicSmokePerformed = $false
+    qaSmokePerformed = $false
+    qaIntegrationAccepted = $false
     deploymentExecuted = $false
     backendWebRuntimeShaVerified = $false
     flywayVerified = $false
@@ -111,5 +131,5 @@ if ($Action -eq 'prepare') {
   $file = Join-Path $dir ('release-gate-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'.json')
   $record | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $file -Encoding UTF8
   Write-Host "Gate record: $file"
-  Write-Host 'PREPARED ONLY. No deployment, migration, DB operation, tag creation, or APK publication.'
+  Write-Host 'PREPARED ONLY. No PROD/BETA request, deployment, migration, DB operation, tag creation, or APK publication.'
 }
