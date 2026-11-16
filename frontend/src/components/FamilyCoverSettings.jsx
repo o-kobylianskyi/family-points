@@ -12,6 +12,13 @@ const labels = {
 }
 
 export default function FamilyCoverSettings() {
+  const { currentUser } = useAuth()
+  const identity = [currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id,
+    currentUser?.workspaceId].join(':')
+  return <FamilyCoverSettingsContent key={identity} />
+}
+
+function FamilyCoverSettingsContent() {
   const { i18n } = useTranslation()
   const t = labels[i18n.language.split('-')[0]] || labels.en
   const { currentUser, getAccessToken } = useAuth()
@@ -24,15 +31,12 @@ export default function FamilyCoverSettings() {
   const [revision,setRevision] = useState(0)
   const requestLock = useRef(false)
   const currentWorkspace = useRef(workspaceId)
-  currentWorkspace.current = workspaceId
+  useEffect(() => { currentWorkspace.current = workspaceId }, [workspaceId])
 
   useEffect(() => {
     if (!workspaceId) return
     let active=true
     let objectUrl=''
-    setManifest(null)
-    setCoverUrl('')
-    setError('')
     getMediaManifest(getAccessToken(),workspaceId).then(async data => {
       if (!active) return
       setManifest(data)
