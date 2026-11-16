@@ -159,6 +159,25 @@ class WorkspaceRewardObligationArchiveClosurePostgresTest {
                         UUID.randomUUID(),0L,
                         List.of("REWARD_DEFINITION_CATEGORIES"),"V50",key)));
         assertEquals("BACKUP_REWARD_CATEGORY_PARENT_MISSING",missingParents.getMessage());
+        long neighbor=db.queryForObject(
+                "INSERT INTO families(name) VALUES ('Foreign category family') RETURNING id",
+                Long.class);
+        long foreignCategory=db.queryForObject("""
+                INSERT INTO reward_categories(family_id,name,active,sort_order)
+                VALUES (?,'External',true,0) RETURNING id
+                """,Long.class,neighbor);
+        db.update("""
+                INSERT INTO reward_definition_categories(reward_definition_id,category_id)
+                VALUES (?,?)
+                """,reward,foreignCategory);
+        assertThrows(SecurityException.class,()->tx.execute(s->exporter.export(
+                family,UUID.randomUUID(),UUID.randomUUID(),0L,
+                List.of("REWARD_DEFINITIONS","REWARD_CATEGORIES",
+                        "REWARD_DEFINITION_CATEGORIES"),"V50",key)));
+        assertEquals(1L,db.queryForObject(
+                "SELECT count(*) FROM reward_definition_categories WHERE category_id=?",
+                Long.class,foreignCategory).longValue());
+
 
     }
 }
