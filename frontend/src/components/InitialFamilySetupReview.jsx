@@ -5,7 +5,7 @@ import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { validateSetupCatalog, selectSetupMatching } from '../utils/setupCatalogSelection'
-import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES } from '../utils/setupFinalizeSafety'
+import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure } from '../utils/setupFinalizeSafety'
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
 const words = {
@@ -144,12 +144,25 @@ function InitialFamilySetupReviewContent() {
     if (!canManageSetup || !setup || busy || pending || readShared() || setup.status === 'COMPLETED') return
     const id = ++seq.current
     const origin = workspaceId
+    const before = setup
     setBusy(true); setError(false); setReview(null); setConfirmed(false)
     try {
-      const result = await setSetupStep(getAccessToken(), origin, step, status, setup.revision)
+      const result = await setSetupStep(getAccessToken(), origin, step, status, before.revision)
       if (id === seq.current) setSetup(assertSetupState(result, origin))
-    } catch (e) { if (id === seq.current) { setError(true); setErrorStatus(e?.status) } }
-    finally { if (id === seq.current) setBusy(false) }
+    } catch (e) {
+      if (id !== seq.current) return
+      // A PATCH may have committed before the response was lost. Read once,
+      // never issue a second PATCH or silently advance a new revision.
+      try {
+        const observed = assertSetupState(await getSetupState(getAccessToken(), origin), origin)
+        if (id !== seq.current) return
+        const outcome = reconcileSetupStepAfterFailure(before, observed, step, status)
+        setSetup(observed)
+        if (outcome !== 'MATCHED') { setError(true); setErrorStatus(409) }
+      } catch {
+        if (id === seq.current) { setError(true); setErrorStatus(e?.status) }
+      }
+    } finally { if (id === seq.current) setBusy(false) }
   }
   const preview = async () => {
     if (!canManageSetup || !setup || busy || pending || readShared() || !selected.length || selected.some(code => !catalogCodes.has(code))) return
