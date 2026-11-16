@@ -44,6 +44,16 @@ export function reconcileSetupPending(session, shared, workspaceId, accountId) {
   return shared || session || null
 }
 
+/** A newly staged finalize may write only while BOTH tab-local and shared
+ * markers still identify its exact immutable operation. This is a best-effort
+ * browser race guard, not an atomic inter-tab lock; Backend revision fencing
+ * and Idempotency-Key remain the final concurrency authority. */
+export function ownsSetupFinalizeMarkers(session, shared, operation) {
+  return validSetupFinalizeOperation(operation, operation?.workspaceId, operation?.accountId) &&
+    sameSetupFinalizeOperation(session, operation) &&
+    sameSetupFinalizeOperation(shared, operation)
+}
+
 export const SETUP_STEP_CODES = Object.freeze(['MEMBERS','MEMBER_GROUPS','WORK_NODE_GROUPS','CATALOG_SELECTION','TASK_REVIEW','REWARD_REVIEW','FINAL_REVIEW'])
 
 /** Avoid redundant step PATCH requests when the requested decision already exists.
