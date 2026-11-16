@@ -106,3 +106,17 @@ For each incoming item preserve:
 | REAL-BKL002-REQUIREMENTS-02 | Backend→QA | Request-vs-definition requirement owner mapping, optional task parent and foreign-tenant safeguards on real restore | full safeguarded native restore and VERIFIED approval | BLOCKED_DEPENDENCY |
 
 All these cases are additional acceptance criteria in the **single planned final QA campaign**, not prompts to execute now.
+
+
+## Intake checkpoint — 2026-11-16: Reward category graph, V49 epoch fencing, CI report tests
+
+- Backend source commits `e6a91fbd` and `7ff21788` now add optional encrypted `REWARD_CATEGORIES` + `REWARD_DEFINITION_CATEGORIES` association graph to scoped portable export, category whitelist and financial closure classification. An association requires same-family category plus archived owning reward definition and category; nonportable relations must **fail closed**. This is source-level progress, **not** native replay/VERIFIED or accepted test run. Preserve future manual case `REAL-BKL002-CATEGORY-01`: after a fully approved disposable restore, verify reward definition↔category associations and no cross-family leakage, missing-parent rejection, exact before/after counts. Await Backend formal QA packet and independent automated regression.
+- Web code `2717222f`, `442a4581`, `c583c598`: step PATCH responses must keep the original family/epoch and expected revision transition; stale epoch/revision responses must be rejected, not used to mutate UI state. Add `REAL-V49-EPOCH-01`: safe new disposable family session switch/epoch change during setup; verify no stale step decision appears committed or hidden repeat PATCH. This joins already collected V49 multi-tab and lost-response scenarios. No real execution now.
+- Release source `753f9293`, `19ecc693`, `0d8244a4` includes a fail-closed CI outcome classifier with 12 automated local regressions, and source claims **12/12 local PASS** as recorded in Release journal. This is CI-tooling verification, **not** a four-job latest-SHA cloud CI run, nor a human-real QA gate. Add `REAL-REL-EVIDENCE-01` final evidence check: ensure true all-four non-SKIPPED jobs + same candidate SHA + signed APK and server version, distinguish docs-only scoped green from full green; Release owns automation.
+- Pending Backend automated QA previously #04–#08; source additions since `419efb1` are not included in historical 27/27. Continue async exact-SHA synthetic Testcontainers acceptance; do not request live operator testing or claim package #09 until formal handoff is found.
+
+| ID | Producer | Scenario / source | Dependencies | Status |
+|---|---|---|---|---|
+| REAL-BKL002-CATEGORY-01 | Backend→QA | Reward-category mapping + association FK preserved on secure disposable archive/restore; foreign-family/category/missing-parent negative | completed production-safe native restore, VERIFIED + explicit disposable workspace approval | BLOCKED_DEPENDENCY |
+| REAL-V49-EPOCH-01 | Web→QA | Reject stale epoch/revision step-PATCH results during workspace change; no duplicate PATCH | enabled V49 isolated server and operator approval | BLOCKED_DEPENDENCY |
+| REAL-REL-EVIDENCE-01 | Release→QA | Verify genuine all-component executed exact-SHA CI and artifact/API/APK integrity, not scoped-green substitute | release candidate, run IDs, signing evidence | BLOCKED_DEPENDENCY |
