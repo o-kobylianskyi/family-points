@@ -40,6 +40,13 @@ function saveDraft(key, codes) {
 const validCatalog = value => value && Array.isArray(value.templates) && Array.isArray(value.packs) &&
   value.templates.every(item => typeof item?.code === 'string' && ['TASK', 'REWARD'].includes(item.kind))
 export default function FamilySetupPage() {
+  const { currentUser } = useAuth()
+  const owner = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id
+  const scope = [owner, currentUser?.workspaceId, currentUser?.memberId].join(':')
+  return <FamilySetupContent key={scope} />
+}
+
+function FamilySetupContent() {
   const { i18n } = useTranslation()
   const lang = i18n.language.split('-')[0]
   const t = copy[lang] || copy.en
@@ -50,7 +57,7 @@ export default function FamilySetupPage() {
   const draftStorageKey = workspaceId && accountId != null ? draftKey(accountId, workspaceId) : null
   const importStorageKey = workspaceId && accountId != null ? operationStorageKey(accountId, workspaceId) : null
   const [step, setStep] = useState(0)
-  const [pendingImport, setPendingImport] = useState(null)
+  const [pendingImport, setPendingImport] = useState(() => importStorageKey ? readImportOperation(sessionStorage, importStorageKey, workspaceId) : null)
   const [importNotice, setImportNotice] = useState('')
   const [catalog, setCatalog] = useState({ templates: [], packs: [] })
   const [owned, setOwned] = useState([])
@@ -62,7 +69,7 @@ export default function FamilySetupPage() {
   const [workGroupParent, setWorkGroupParent] = useState('')
   const [groupName, setGroupName] = useState('')
   const [groupStatus, setGroupStatus] = useState('')
-  const [selected, setSelected] = useState([])
+  const [selected, setSelected] = useState(() => draftStorageKey ? readDraft(draftStorageKey) : [])
   const [kind, setKind] = useState('TASK')
   const [pack, setPack] = useState('ALL')
   const [category, setCategory] = useState('ALL')
@@ -77,11 +84,6 @@ export default function FamilySetupPage() {
   const revision = useRef(0)
   const lock = useRef(false)
   const workspaceRef = useRef(workspaceId)
-  const identityRef = useRef(draftStorageKey)
-  if (workspaceRef.current !== workspaceId || identityRef.current !== draftStorageKey) {
-    workspaceRef.current = workspaceId; identityRef.current = draftStorageKey
-    generation.current++; revision.current++; lock.current = false
-  }
   const load = async (id, request, preserveError = false) => {
     setBusy(true); if (!preserveError) setError(''); setPreview(null)
     try {
@@ -102,9 +104,6 @@ export default function FamilySetupPage() {
   }
   useEffect(() => {
     const request = ++generation.current
-    setCatalogReady(false); setDraftReady(false); setStep(0); setGroupName(''); setGroupStatus(''); setGroups([]); setGroupsAvailable(false); setWorkGroups([]); setWorkGroupsAvailable(false); setWorkGroupName(''); setWorkGroupParent(''); setSelected(draftStorageKey ? readDraft(draftStorageKey) : []); setOwned([]); setCatalog({ templates: [], packs: [] })
-    setPack('ALL'); setKind('TASK'); setCategory('ALL'); setSearch('')
-    setComplete(false); setPreview(null); setPendingImport(importStorageKey ? readImportOperation(sessionStorage, importStorageKey, workspaceId) : null); setImportNotice('')
     if (workspaceId && canManageSetup) load(workspaceId, request).finally(() => { if (generation.current === request) setDraftReady(true) })
     return () => { generation.current++ }
   }, [workspaceId, draftStorageKey, importStorageKey, canManageSetup])
