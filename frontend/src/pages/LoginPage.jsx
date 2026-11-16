@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import GoogleAuthButton from '../components/GoogleAuthButton'
 import '../components/AndroidDownloadLink.css'
