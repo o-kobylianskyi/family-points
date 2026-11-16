@@ -89,3 +89,43 @@ test('V49 invalid server setup metadata fails closed without offering step write
   await expect(section.getByRole('button',{name:/Mark complete|Позначити виконаним|Отметить выполненным|Als erledigt markieren/})).toHaveCount(0)
   expect(writes).toEqual([])
 })
+
+test('V49 lost step PATCH response reconciles using GET only without hidden replay',async({page})=>{
+  test.skip(!manager || !password,'Disposable QA manager credentials required')
+  await signIn(page)
+  let patchCount=0, setupGetCount=0
+  let serverRevision=0
+  const updatedSteps={}
+  await page.route(/\/workspaces\/\d+\/setup(?:\/steps\/[^/?]+)?(?:\?.*)?$/,route=>{
+    const url=new URL(route.request().url())
+    const path=url.pathname
+    if(route.request().method()==='PATCH' && path.includes('/steps/')){
+      patchCount++
+      const step=path.split('/').pop()
+      const body=route.request().postDataJSON()
+      if(patchCount===1 && step==='MEMBERS' && body.expectedRevision===0){
+        updatedSteps.MEMBERS='COMPLETE'
+        serverRevision=1
+      }
+      // Simulate successful server commit but response never delivered.
+      return route.abort('failed')
+    }
+    if(route.request().method()!=='GET' || !path.endsWith('/setup'))return route.abort()
+    setupGetCount++
+    const workspaceId=Number(path.match(/\/workspaces\/(\d+)\/setup/)[1])
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+      workspaceId,dataEpoch:0,revision:serverRevision,
+      status:serverRevision?'IN_PROGRESS':'NOT_STARTED',steps:updatedSteps,
+    })})
+  })
+  await page.route(/\/template-catalog(?:\?.*)?$/,route=>
+    route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(catalog)}))
+  await page.goto('/settings#initial-family-setup')
+  const section=page.locator('#initial-family-setup')
+  await expect(section.getByRole('button',{name:/Mark complete|Позначити виконаним|Отметить выполненным|Als erledigt markieren/})).toHaveCount(7)
+  const initialGetCount=setupGetCount
+  await section.getByRole('button',{name:/Mark complete|Позначити виконаним|Отметить выполненным|Als erledigt markieren/}).first().click()
+  await expect(section.getByText(/1\/7/)).toBeVisible()
+  expect(patchCount,'lost response must never trigger a second PATCH').toBe(1)
+  expect(setupGetCount,'unknown PATCH outcome must be reconciled by a fresh GET').toBeGreaterThan(initialGetCount)
+})
