@@ -1165,3 +1165,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Source cleanup `e5b66b4`: removed obsolete `allMatchingSelected` calculation after new `hasSelectedSetupMatch` guard. No endpoint or mutation path changed. This is a source edit; Node/Vite/lint/Playwright same-SHA test results NOT_RUN / NOT_VERIFIED.
 - Self-contained rolling continuation `docs/coordination/handoffs/WEB_LATEST.md` initialized at `bc84f6e`, updated `85d18fb`; capacity pilot WEB-02 checkpoint `4650a47`.
 - QA owns real authorized disposable-V49 acceptance; BKL-002 HTTP423 / BETA HOLD. Next: audit remaining synthetic epoch/503/revision mismatch cases, add meaningful bounded regressions, validate on exact SHA, pass real scenarios to QA.
+
+
+## 2026-11-16 — WEB-02 V49 PATCH invariant package
+- Reviewed actual existing synthetic Playwright epoch race, retry 503 and four finalize receipt state scenarios; all are already authored (not rerun here).
+- Detected that a successful step PATCH or lost-response GET could be considered matched when another previously recorded step changed, or setup was prematurely COMPLETED. Source commits `c36dacd`, `87d34f4` enforce IN_PROGRESS and unchanged other steps; allow new PENDING metadata. Unit regression commits `2b706f4`, `6d8f829` cover these cases.
+- End-of-package source SHA `6d8f8293a755e10be0833a65c848603b71d48cfd`; source/tests committed, runner and same-SHA CI NOT_VERIFIED. QA real E2E pending explicit approved disposable family; BETA HOLD.
