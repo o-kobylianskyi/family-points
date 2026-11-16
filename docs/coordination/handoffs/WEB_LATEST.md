@@ -35,6 +35,15 @@
 - **Execution:** NOT_RUN; browser runner unavailable in this GitHub connector-only session. CI actual same-SHA jobs NOT_VERIFIED; no PASS claim. Needs QA to run on a pinned SHA in the consolidated synthetic campaign. Avoid assuming authenticated second tab shares sessionStorage; this is one browser context with shared localStorage, so auth/selected workspace precondition is checked.
 - Next: inspect QA test output for selectors/auth and race timing, fix failures, then inspect CI complete/scoped job evidence and remaining Web release defects. BKL-002/BETA HOLD remains.
 
+## WEB-02 package 5 — GitHub Actions evidence audit (2026-11-16)
+- Current `main` at audit entry: `b415039a84517d602dbbf089f13ba89de42b70ca`. Four-component run IDs obtained from Release journal and verified directly using actual GitHub Actions **job step** results:
+  - [43947907960](https://github.com/o-kobylianskyi/family-points/actions/runs/43947907960): Web regression/lint/i18n/build executed SUCCESS, Android executed SUCCESS, Compose executed SUCCESS; Backend FAILED, full attestation FAILED.
+  - [43953661904](https://github.com/o-kobylianskyi/family-points/actions/runs/43953661904): Web regression/lint/i18n/build executed SUCCESS, Android SUCCESS; Backend FAILED; Compose PowerShell parser FAILED, subsequent Compose tests SKIPPED; attestation FAILED.
+  - [43953986968](https://github.com/o-kobylianskyi/family-points/actions/runs/43953986968): same Web/Android executed SUCCESS; Backend FAILED, Compose parser FAILED, attestation FAILED.
+- These runs **predate the later two-tab browser spec `fe64edb` and are not a current HEAD proof**. Playwright test is not covered by the Web Node regression job: V49 two-tab synthetic remains **NOT_RUN**. No new Web runtime defect has been confirmed from these runs, therefore no speculative source rewrite.
+- Release owns Compose parser and CI gate; Backend owns PG test failures. QA owns actual browser synthetic run with pinned SHA and real disposable V49 acceptance. BKL-002/BETA HOLD remains.
+- Next Web priority: reconcile actual two-tab Playwright trace/results when available; preserve single-POST and pending markers, fix only reproduced defects; verify a newer exact-SHA CI run with real executed steps.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
