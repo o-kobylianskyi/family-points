@@ -107,3 +107,15 @@ export function sameSetupFinalizeOperation(a, b) {
     a.epoch === b.epoch && a.revision === b.revision &&
     JSON.stringify(a.codes) === JSON.stringify(b.codes)
 }
+
+/** A durable receipt alone does not permit the UI to unblock stale server state. */
+export function assertSetupCompletionAfterReceipt(state, operation) {
+  assertSetupState(state, operation?.workspaceId)
+  if (!validSetupFinalizeOperation(operation, operation.workspaceId, operation.accountId) ||
+      state.dataEpoch !== operation.epoch ||
+      state.revision !== operation.revision + 1 ||
+      state.status !== 'COMPLETED' ||
+      !SETUP_STEP_CODES.every(code => ['COMPLETE','SKIPPED'].includes(state.steps?.[code])))
+    throw new Error('SETUP_COMPLETION_STATE_MISMATCH')
+  return state
+}
