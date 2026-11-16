@@ -223,7 +223,7 @@ function InitialFamilySetupReviewContent() {
     {error && <p role="alert">{errorStatus === 409 ? ({uk:'Дані налаштування змінилися. Оновіть сторінку та перевірте стан операції.',ru:'Данные изменились. Обновите страницу и проверьте операцию.',de:'Einrichtungsdaten geändert. Seite aktualisieren und Vorgang prüfen.',en:'Setup changed. Refresh and check operation status.'})[lang] : errorStatus === 403 ? ({uk:'Недостатньо прав для налаштування.',ru:'Недостаточно прав для настройки.',de:'Keine Berechtigung für die Einrichtung.',en:'Not authorized to manage setup.'})[lang] : w[11]}</p>}
     {setup && <>
       {setup.status === 'COMPLETED' && <p role="status">{({uk:'Початкове налаштування завершено. Новий імпорт недоступний.',ru:'Первоначальная настройка завершена. Повторный импорт недоступен.',de:'Ersteinrichtung abgeschlossen. Erneuter Import nicht verfügbar.',en:'Initial setup completed. New import is unavailable.'})[lang]}</p>}
-      <p>{(setupStates[lang] || setupStates.en)[setup.status] || setup.status} · {Object.values(setup.steps || {}).filter(x => x === 'COMPLETE' || x === 'SKIPPED').length}/{Object.keys(setup.steps || {}).length}</p>
+      <p>{(setupStates[lang] || setupStates.en)[setup.status] || setup.status} · {SETUP_STEP_CODES.filter(code => ['COMPLETE','SKIPPED'].includes(setup.steps?.[code])).length}/{SETUP_STEP_CODES.length}</p>
       {setup.status !== 'COMPLETED' && <div className="template-toolbar">
         <label>{w[2]}<select value={kind} disabled={busy || !!pending} onChange={e=>{setKind(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="TASK">{w[4]}</option><option value="REWARD">{w[5]}</option></select></label>
         <label>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}<select value={pack} disabled={busy || !!pending} onChange={e=>{setPack(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{packs.map(p=><option value={p.code} key={p.code}>{p.title?.[lang] || p.title?.en || p.code}</option>)}</select></label>
@@ -260,8 +260,8 @@ function InitialFamilySetupReviewContent() {
       {setup.status !== 'COMPLETED' && <p>{w[8]}: {selected.length}</p>}
       <div>
         <strong>{({uk:'Кроки налаштування',ru:'Шаги настройки',de:'Einrichtungsschritte',en:'Setup steps'})[lang] || 'Setup steps'}</strong>
-        {Object.entries(setup.steps || {}).map(([step, value]) => <div key={step} style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',padding:'5px 0'}}>
-          <span>{(setupSteps[lang] || setupSteps.en)[step] || step} — {(setupStates[lang] || setupStates.en)[value] || value}</span>
+        {SETUP_STEP_CODES.map(step => <div key={step} style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',padding:'5px 0'}}>
+          <span>{(setupSteps[lang] || setupSteps.en)[step] || step} — {(setupStates[lang] || setupStates.en)[setup.steps?.[step] || 'PENDING'] || (setup.steps?.[step] || 'PENDING')}</span>
           {setup.status !== 'COMPLETED' && <>
             <button className="secondary-button" type="button" disabled={busy || !!pending} onClick={()=>setStep(step,'COMPLETE')}>{({uk:'Позначити виконаним',ru:'Отметить выполненным',de:'Als erledigt markieren',en:'Mark complete'})[lang]}</button>
             <button className="secondary-button" type="button" disabled={busy || !!pending} onClick={()=>setStep(step,'SKIPPED')}>{({uk:'Пропустити',ru:'Пропустить',de:'Überspringen',en:'Skip'})[lang]}</button>
