@@ -102,6 +102,13 @@ class DisposableRewardCategoryCrossDatabasePostgresTest {
                         "REWARD_DEFINITION_CATEGORIES"),"V50",key)).encryptedFile();
         var replayer=new DisposableRewardCategoryRestoreExecutor(dst,
                 new DataSourceTransactionManager(tds),inspector,portable,codec);
+        var nullMapping=new HashMap<Long,Long>();
+        nullMapping.put(definition,null);
+        assertThrows(SecurityException.class,()->replayer.apply(
+                archive,family,target,nullMapping,key));
+        assertEquals(0L,dst.queryForObject(
+                "SELECT count(*) FROM reward_categories WHERE family_id=?",
+                Long.class,target));
         var replay=replayer.apply(archive,family,target,Map.of(definition,targetDefinition),key);
         assertEquals(1,replay.categoryIds().size());
         assertEquals(1,replay.links());
