@@ -65,6 +65,11 @@ public final class WorkspaceBackupRegistryStagingCoordinator {
                 || !entry.sourceDigest().equals(artifact.sourceDigest())
                 || !"STORED_UNVERIFIED".equals(artifact.state()))
             throw new SecurityException("BACKUP_REGISTRY_ARTIFACT_MISMATCH");
+        // Commit the evidence with the registry transaction, after the
+        // compensation callback is installed. A conflict rolls back SQL and
+        // attempts removal of the just-published encrypted file.
+        registry.recordStaged(workspaceId,entry.snapshotId(),entry.operationId(),
+                entry.sourceDigest(),artifact.storageSha256(),artifact.storedBytes());
         return new Result(entry,artifact,false);
     }
 }
