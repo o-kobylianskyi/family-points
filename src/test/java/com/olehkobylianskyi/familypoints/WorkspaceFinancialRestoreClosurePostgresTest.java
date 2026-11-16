@@ -56,12 +56,12 @@ class WorkspaceFinancialRestoreClosurePostgresTest {
         assertTrue(result.financialHistoryPresent());
         assertFalse(result.replaySupported());
         var groupResult=result.categories().stream()
-                .filter(x->x.category().equals("GROUP_POINT_LEDGER_UNEXPORTED"))
+                .filter(x->x.category().equals("GROUP_POINT_LEDGER"))
                 .findFirst().orElseThrow();
         assertEquals(1L,groupResult.sourceRows());
         assertFalse(groupResult.selected());
         assertTrue(result.blockers().contains(
-                "RESTORE_CATEGORY_NOT_EXPORTABLE:GROUP_POINT_LEDGER"));
+                "RESTORE_GROUP_LEDGER_REPLAY_UNIMPLEMENTED"));
         assertEquals(10,db.queryForObject("""
                 SELECT amount FROM group_point_transactions WHERE group_id=?
                 """,Integer.class,group).intValue());
