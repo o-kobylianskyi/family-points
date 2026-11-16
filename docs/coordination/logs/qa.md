@@ -760,3 +760,11 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Full Web-specific real acceptance handoff at `docs/coordination/requests/WEB_TO_QA_V49_REAL_ACCEPTANCE_20261116.md`. Merge with Designer's existing handoff `DESIGNER_TO_QA_REAL_V49_ACCEPTANCE_20261116.md`. **QA owns all real tests with operator**, manages one consolidated campaign and routes defect evidence to Web/Backend.
 - Web independently extended mocked finalize receipt browser suite to 4 cases: valid receipt + stale setup, valid+completed, valid+wrong revision, valid+wrong epoch. **New 2 cases NOT yet executed**; may be included in QA's next consolidated automated suite after pulling. No real family changes.
 - Real server-enabled V49 remains OPEN until approved disposable family, role/tenant isolation, seven steps, review, exactly once final import, receipt consistency, persistence and ledger-before/after prove. BKL-002 real reset/restore and BETA remain separate HOLD.
+
+
+## 2026-11-16 — QA accepted new Web→QA V49 handoff and Backend packet #08 into queue
+
+- Web's formal `docs/coordination/requests/WEB_TO_QA_V49_REAL_ACCEPTANCE_20261116.md` received: operator-assisted real V49 campaign is exclusively QA-owned with Designer's detailed pack, no independent Web manual-test requests. Real actions remain BLOCKED until approved new disposable QA family. Existing synthetic finalize recovery 2/2 operator PASS; newly extended wrong final revision/wrong epoch scenarios are NOT_RUN.
+- Backend `BKL002-QA-20261116-08` `docs/coordination/requests/BKL002_QA_PACKET_20261116_REWARD_REQUIREMENTS_PORTABLE.md` received. REWARD_REQUIREMENTS authenticated encrypted source category + fail-closed parent/foreign relation, updated financial preflight and new PG fixtures. State `IN_QA/NOT_RUN` at current SHA, consolidate with #04–#07 in next pinned synthetic Testcontainers bundle. Never treat source export as native restore/VERIFIED.
+- New manual scenario IDs and complete original handoff references stored in [PRE_BETA_REAL_WORLD_TEST_INBOX.md](../../qa/PRE_BETA_REAL_WORLD_TEST_INBOX.md), commit `9c75e523`: REAL-V49-FAULT-01 / REVIEW-01 and REAL-BKL002-REQUIREMENTS-02. Campaign is COLLECTION ONLY until Backend/Release readiness and separate user consent; no real data touched.
+- BETA HOLD; production reset execute HTTP423; no production release approval.
