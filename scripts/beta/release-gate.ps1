@@ -47,10 +47,9 @@ function Show-CiStatus([string]$sha) {
   Write-Host 'No GitHub CLI or GitHub authentication is needed for this local command.'
 }
 $sha = (@(Run 'git' @('rev-parse','HEAD')) -join '').Trim()
-# CI dispatch and read-only CI verification operate on the immutable remote
-# commit SHA, not on the local worktree contents. Local QA reports and untracked
-# files must not block those safe operations. Only release preparation, which
-# records local release evidence, requires a completely clean worktree.
+# Local CI status reports the checkout SHA without querying GitHub.
+# Verification is performed independently in GitHub Actions and release logs.
+# Only tag preparation requires a clean working tree; it creates UNVERIFIED evidence.
 if ($Action -eq 'prepare') {
   $dirty = @(Run 'git' @('status','--porcelain'))
   if ($dirty.Count -gt 0) { throw 'Dirty working tree. Preserve changes, never reset/clean automatically.' }
