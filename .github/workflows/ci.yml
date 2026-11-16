@@ -245,6 +245,9 @@ jobs:
             }
           }
           if ($hasErrors) { exit 1 }
+      - name: Verify backup is atomic and rejects incomplete archives (fake Docker)
+        if: needs.changes.outputs.compose == 'true'
+        run: python3 -m unittest discover -s scripts/beta -p test_backup_safety.py -v
       - name: Verify compose and secrets placeholders
         if: needs.changes.outputs.compose == 'true'
         env:
