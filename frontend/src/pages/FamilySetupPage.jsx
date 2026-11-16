@@ -50,6 +50,7 @@ function FamilySetupContent() {
   const { i18n } = useTranslation()
   const lang = i18n.language.split('-')[0]
   const t = copy[lang] || copy.en
+  const loadErrorText = t[21]
   const { currentUser, getAccessToken } = useAuth()
   const workspaceId = currentUser?.workspaceId
   const canManageSetup = currentUser?.permissions?.includes('MANAGE_WORKSPACE') || currentUser?.permissions?.includes('ADMIN_OVERRIDE')
@@ -97,11 +98,11 @@ function FamilySetupContent() {
         setCatalog(nextCatalog); setOwned(nextOwned); setGroups(groupResult.data); setGroupsAvailable(groupResult.ok); setWorkGroups(workResult.data); setWorkGroupsAvailable(workResult.ok); setCatalogReady(true)
       }
     } catch {
-      if (generation.current === request && workspaceRef.current === id) setError(t[21])
+      if (generation.current === request && workspaceRef.current === id) setError(loadErrorText)
     } finally {
       if (generation.current === request && workspaceRef.current === id) setBusy(false)
     }
-  }, [getAccessToken, t])
+  }, [getAccessToken, loadErrorText])
   useEffect(() => {
     const request = ++generation.current
     const guard = generation
