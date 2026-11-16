@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {validSetupFinalizeOperation, assertSetupFinalizeReceipt} from '../src/utils/setupFinalizeSafety.js'
+import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending} from '../src/utils/setupFinalizeSafety.js'
 
 const operation = () => ({
   accountId: 'account-A',workspaceId: 14,epoch: 3,revision: 7,
@@ -30,4 +30,19 @@ test('V49 validates complete, ordered and scoped receipt',()=>{
 test('V49 does not accept a foreign selection even when counts agree',()=>{
   const forged={...receipt(),importResult:{selectedCodes:['TASK_A','REWARD_B'],toImport:['TASK_A'],alreadyImported:['FOREIGN']}}
   assert.throws(()=>assertSetupFinalizeReceipt(forged,operation()))
+})
+
+test('V49 cross-tab marker reconciliation rejects foreign or conflicting operations', () => {
+  const first = operation()
+  const second = {...first, operationId:'b489ea25-4e10-48ee-b8ea-7a9f4b2e3456'}
+  assert.equal(reconcileSetupPending(null,null,14,'account-A'),null)
+  assert.deepEqual(reconcileSetupPending(first,null,14,'account-A'),first)
+  assert.deepEqual(reconcileSetupPending(null,first,14,'account-A'),first)
+  assert.deepEqual(reconcileSetupPending(first,{...first},14,'account-A'),first)
+  assert.deepEqual(reconcileSetupPending(first,second,14,'account-A'),{blocked:true})
+  assert.deepEqual(reconcileSetupPending(first,{...first, codes:['REWARD_B','TASK_A']},14,'account-A'),{blocked:true})
+  assert.deepEqual(reconcileSetupPending(first,{...first, revision:8},14,'account-A'),{blocked:true})
+  assert.deepEqual(reconcileSetupPending(first,{...first, epoch:4},14,'account-A'),{blocked:true})
+  assert.deepEqual(reconcileSetupPending(null,{...first,workspaceId:15},14,'account-A'),{blocked:true})
+  assert.deepEqual(reconcileSetupPending(null,{blocked:true},14,'account-A'),{blocked:true})
 })
