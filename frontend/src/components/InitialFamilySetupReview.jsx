@@ -4,8 +4,9 @@ import { useAuth } from '../context/AuthContext'
 import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
+import { validSetupFinalizeOperation, assertSetupFinalizeReceipt } from '../utils/setupFinalizeSafety'
 
-// Read-only setup review. Do not enable finalize/activation until full saga UX is approved.
+// Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
 const words = {
   uk: ['Початкове налаштування сім’ї', 'Налаштування недоступне або вимкнене.', 'Тип', 'Категорія', 'Завдання', 'Нагороди', 'Усі категорії', 'Переглянути вибране', 'Вибрано', 'Буде імпортовано', 'Уже імпортовано', 'Це лише перегляд; імпорт та активація не виконуються.', 'Не вдалося перевірити вибір. Оновіть сторінку.'],
   ru: ['Первоначальная настройка семьи', 'Настройка недоступна или отключена.', 'Тип', 'Категория', 'Задачи', 'Награды', 'Все категории', 'Просмотреть выбранное', 'Выбрано', 'Будет импортировано', 'Уже импортировано', 'Это только просмотр, без импорта и активации.', 'Не удалось проверить выбор. Обновите страницу.'],
@@ -50,27 +51,27 @@ export default function InitialFamilySetupReview() {
   const activeScope = useRef(null)
   const accountId = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.workspaceMemberId ?? currentUser?.username
   const storageKey = accountId && workspaceId ? `fp:setup:pending:${accountId}:${workspaceId}` : null
-  activeScope.current = storageKey
+  const sharedKey = storageKey ? storageKey + ':shared' : null
+  const readShared = () => {
+    try { return sharedKey ? JSON.parse(localStorage.getItem(sharedKey) || 'null') : null }
+    catch { return { blocked: true } }
+  }
+  useEffect(() => { activeScope.current = storageKey }, [storageKey])
   useEffect(() => {
     setPending(null); setConfirmed(false); setFinished(null)
     if (!storageKey) return
     try {
       const value = JSON.parse(sessionStorage.getItem(storageKey) || 'null')
-      if (value && String(value.workspaceId) === String(workspaceId) && String(value.accountId) === String(accountId) &&
-          Number.isSafeInteger(value.epoch) && Number.isSafeInteger(value.revision) &&
-          typeof value.operationId === 'string' && Array.isArray(value.codes)) setPending(value)
+      if (validSetupFinalizeOperation(value, workspaceId, accountId)) setPending(value)
+      else if (value) setPending({ blocked: true })
       const shared = readShared()
-      if (shared && String(shared.workspaceId) === String(workspaceId) && String(shared.accountId) === String(accountId)) setPending(shared)
+      if (validSetupFinalizeOperation(shared, workspaceId, accountId)) setPending(shared)
       else if (shared) setPending({ blocked: true })
     } catch { setPending({ blocked: true }) }
   }, [storageKey])
-  // Shared pending receipt marker coordinates tabs. Backend revision/epoch remain authoritative.
-  const sharedKey = storageKey ? storageKey + ':shared' : null
-  const readShared = () => {
-    try { return sharedKey ? JSON.parse(localStorage.getItem(sharedKey) || 'null') : null }
-    catch { return { blocked: true } } // fail closed on malformed shared state
-  }
+  // Shared marker coordinates tabs; backend revision/epoch remain authoritative.
   const persist = value => {
+    if (!validSetupFinalizeOperation(value, workspaceId, accountId)) throw new Error('INVALID_SETUP_FINALIZE_OPERATION')
     if (sessionStorage.getItem(storageKey) || readShared()) throw new Error('PENDING_SETUP_ALREADY_EXISTS')
     localStorage.setItem(sharedKey, JSON.stringify(value))
     try { sessionStorage.setItem(storageKey, JSON.stringify(value)) }
@@ -149,7 +150,7 @@ export default function InitialFamilySetupReview() {
     try {
       const result = await getSetupFinalizeReceipt(getAccessToken(), operation.workspaceId, operation.operationId)
       if (activeScope.current !== scope) return
-      if (result.dataEpoch !== operation.epoch) throw new Error('EPOCH_MISMATCH')
+      assertSetupFinalizeReceipt(result, operation)
       const refreshed = await getSetupState(getAccessToken(), operation.workspaceId)
       if (activeScope.current !== scope || refreshed.dataEpoch !== operation.epoch) return
       clear(operation); setFinished(result); setSetup(refreshed)
@@ -173,7 +174,7 @@ export default function InitialFamilySetupReview() {
     try {
       const result = await finalizeSetupImport(getAccessToken(), operation.workspaceId, operation.operationId, operation.revision, operation.codes)
       if (activeScope.current !== scope) return
-      if (result.dataEpoch !== operation.epoch) throw new Error('EPOCH_MISMATCH')
+      assertSetupFinalizeReceipt(result, operation)
       const refreshed = await getSetupState(getAccessToken(), operation.workspaceId)
       if (activeScope.current !== scope || refreshed.dataEpoch !== operation.epoch) return
       clear(operation); setFinished(result); setSetup(refreshed)
