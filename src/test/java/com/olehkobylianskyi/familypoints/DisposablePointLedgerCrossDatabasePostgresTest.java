@@ -75,7 +75,11 @@ class DisposablePointLedgerCrossDatabasePostgresTest {
         var key=generator.generateKey();
         byte[] archive=new TransactionTemplate(new DataSourceTransactionManager(as))
                 .execute(s->exporter.export(src.id,UUID.randomUUID(),UUID.randomUUID(),0L,
-                        List.of("POINT_LEDGER"),"V50",key)).encryptedFile();
+                        List.of("POINT_LEDGER","POINT_TYPES"),"V50",key)).encryptedFile();
+        var catalog=inspector.inspect(archive,src.id,key);
+        assertEquals(1,catalog.counts().get("POINT_TYPES").intValue());
+        assertFalse(catalog.blockers().contains("MISSING_CATEGORY:POINT_TYPES"));
+        assertFalse(catalog.blockers().contains("DANGLING_REFERENCE:POINT_LEDGER.point_type_id"));
         var replay=new DisposablePointLedgerRestoreExecutor(b,
                 new DataSourceTransactionManager(bs),files,codec,inspector);
         var members=Map.of(src.member,target.member);
@@ -118,7 +122,7 @@ class DisposablePointLedgerCrossDatabasePostgresTest {
                 """,src.member,src.points);
         byte[] nonmanual=new TransactionTemplate(new DataSourceTransactionManager(as))
                 .execute(s->exporter.export(src.id,UUID.randomUUID(),UUID.randomUUID(),0L,
-                        List.of("POINT_LEDGER"),"V50",key)).encryptedFile();
+                        List.of("POINT_LEDGER","POINT_TYPES"),"V50",key)).encryptedFile();
         var fresh=create(b,"Blocked polymorphic target");
         assertThrows(SecurityException.class,()->replay.apply(
                 nonmanual,src.id,fresh.id,Map.of(src.member,fresh.member),
