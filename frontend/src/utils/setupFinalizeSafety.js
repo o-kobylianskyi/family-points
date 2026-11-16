@@ -30,3 +30,21 @@ export function assertSetupFinalizeReceipt(receipt, operation) {
   }
   return receipt
 }
+
+/**
+ * One reconciliation policy for page startup and cross-tab storage events.
+ * A missing shared marker does not invalidate this tab's original operation.
+ * A malformed or competing operation fails closed until manually resolved.
+ * Storage is treated as untrusted and cannot authorize a new POST.
+ */
+export function reconcileSetupPending(session, shared, workspaceId, accountId) {
+  if (session && !validSetupFinalizeOperation(session, workspaceId, accountId)) return {blocked: true}
+  if (shared && !validSetupFinalizeOperation(shared, workspaceId, accountId)) return {blocked: true}
+  if (session && shared && (
+    session.operationId !== shared.operationId ||
+    session.revision !== shared.revision ||
+    session.epoch !== shared.epoch ||
+    JSON.stringify(session.codes) !== JSON.stringify(shared.codes)
+  )) return {blocked: true}
+  return shared || session || null
+}
