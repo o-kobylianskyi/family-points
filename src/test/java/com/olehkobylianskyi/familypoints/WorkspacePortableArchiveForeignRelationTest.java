@@ -24,6 +24,7 @@ class WorkspacePortableArchiveForeignRelationTest {
                 eq(Long.class),eq(17L))).thenReturn(0L);
         when(db.queryForObject(contains("FROM reward_obligations o"),eq(Long.class),eq(17L))).thenReturn(0L);
         when(db.queryForObject(contains("FROM reward_requirements r"),eq(Long.class),eq(17L))).thenReturn(0L);
+        when(db.queryForObject(contains("FROM reward_definition_categories a"),eq(Long.class),eq(17L))).thenReturn(0L);
         when(db.queryForObject(contains(SQL),eq(Long.class),eq(17L))).thenReturn(1L);
         var exporter=new WorkspacePortableBackupExporter(db,snapshots,
                 new ProtectiveBackupArtifactCodec(),new ProtectiveBackupPortableFile());
