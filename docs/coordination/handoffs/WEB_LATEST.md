@@ -44,6 +44,12 @@
 - Release owns Compose parser and CI gate; Backend owns PG test failures. QA owns actual browser synthetic run with pinned SHA and real disposable V49 acceptance. BKL-002/BETA HOLD remains.
 - Next Web priority: reconcile actual two-tab Playwright trace/results when available; preserve single-POST and pending markers, fix only reproduced defects; verify a newer exact-SHA CI run with real executed steps.
 
+## WEB-02 package 6 — V49 readiness evidence audit (2026-11-16)
+- Source intake HEAD `03a9de2a1788b18c2434312783efc68e7d6332d6`. Read latest QA Web historical 47/47 output and QA handoff QA-025. The 47/47 operator result is not immutable same-SHA with later V49 and two-tab code; no real current-head acceptance evidence.
+- Published [WEB_V49_READINESS_AUDIT_20261116.md](../requests/WEB_V49_READINESS_AUDIT_20261116.md) `75ed5265`, evidence matrix and exact follow-up automated QA procedure; Web source/tests remain COMMITTED but two-tab Playwright NOT_RUN. Historical Actions Web/i18n/lint/build 3 runs PASS; no newer same-SHA current evidence.
+- **No verified Web defect was reported in QA.** Therefore no speculative behavior refactor in this batch. QA owns pinned Node+Playwright and operator-only real disposable family acceptance; Web fixes reproducible defects when received. Backend/Release BKL002 and exact full-gate separate; BETA HOLD.
+- Next: consume QA exact-SHA outcomes/Playwright traces, fix confirmed Web regressions and rerun targeted tests; keep handoff current.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
