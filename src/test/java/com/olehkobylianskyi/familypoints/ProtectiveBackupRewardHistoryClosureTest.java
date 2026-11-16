@@ -171,4 +171,55 @@ class ProtectiveBackupRewardHistoryClosureTest {
                 """));
     }
 
+    @Test void obligationCompositeBlocksRequireBothParentsAndRejectDuplicates() throws Exception {
+        var valid=inspect("""
+                {
+                  "REWARD_DEFINITIONS":[{"id":9,"family_id":17}],
+                  "REWARD_CATEGORIES":[{"id":6,"family_id":17}],
+                  "REWARD_PURCHASES":[{
+                    "id":21,"reward_definition_id":9,"member_id":4,"point_type_id":3
+                  }],
+                  "REWARD_OBLIGATIONS":[{
+                    "id":31,"family_id":17,"member_id":4,
+                    "reward_purchase_id":21,"requirement_id":null
+                  }],
+                  "REWARD_OBLIGATION_BLOCKED_CATEGORIES":[{
+                    "obligation_id":31,"category_id":6
+                  }],
+                  "REWARD_OBLIGATION_BLOCKED_REWARDS":[{
+                    "obligation_id":31,"reward_definition_id":9
+                  }]
+                }
+                """);
+        assertEquals(1,valid.counts().get("REWARD_OBLIGATION_BLOCKED_CATEGORIES").intValue());
+        assertEquals(1,valid.counts().get("REWARD_OBLIGATION_BLOCKED_REWARDS").intValue());
+        assertFalse(valid.blockers().contains("MISSING_CATEGORY:REWARD_OBLIGATIONS"));
+        assertFalse(valid.blockers().contains("DANGLING_REFERENCE:REWARD_OBLIGATION_BLOCKED_REWARDS.reward_definition_id"));
+        assertFalse(valid.restorable());
+        var orphan=inspect("""
+                {
+                  "REWARD_OBLIGATION_BLOCKED_CATEGORIES":[{
+                    "obligation_id":31,"category_id":6
+                  }]
+                }
+                """);
+        assertTrue(orphan.blockers().contains("MISSING_CATEGORY:REWARD_OBLIGATIONS"));
+        assertTrue(orphan.blockers().contains("MISSING_CATEGORY:REWARD_CATEGORIES"));
+        assertThrows(IllegalArgumentException.class,()->inspect("""
+                {
+                  "REWARD_OBLIGATION_BLOCKED_REWARDS":[
+                    {"obligation_id":31,"reward_definition_id":9},
+                    {"obligation_id":31,"reward_definition_id":9}
+                  ]
+                }
+                """));
+        assertThrows(SecurityException.class,()->inspect("""
+                {
+                  "REWARD_OBLIGATIONS":[{
+                    "id":31,"family_id":18,"member_id":4,"reward_purchase_id":21
+                  }]
+                }
+                """));
+    }
+
 }
