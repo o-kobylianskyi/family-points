@@ -45,7 +45,7 @@ public final class WorkspaceFinancialRestoreClosureService {
                     "EXISTS (SELECT 1 FROM member_groups g WHERE g.id=t.group_id AND g.family_id=?)"),
                 new Scope("REWARD_OBLIGATIONS_UNEXPORTED","reward_obligations","t.family_id=?"),
                 new Scope("REWARD_REQUIREMENTS","reward_requirements","t.family_id=?"),
-                new Scope("REWARD_CATEGORY_LINKS_UNEXPORTED","reward_definition_categories",
+                new Scope("REWARD_DEFINITION_CATEGORIES","reward_definition_categories",
                     "EXISTS (SELECT 1 FROM reward_definitions d WHERE d.id=t.reward_definition_id AND d.family_id=?)"),
                 new Scope("REWARD_PURCHASES","reward_purchases",
                     "EXISTS (SELECT 1 FROM family_members m WHERE m.id=t.member_id AND m.family_id=?)"),
