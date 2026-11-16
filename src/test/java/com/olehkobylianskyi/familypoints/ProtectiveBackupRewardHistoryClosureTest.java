@@ -125,4 +125,50 @@ class ProtectiveBackupRewardHistoryClosureTest {
                 """));
     }
 
+    @Test void rewardCategoryCompositeKeysAndParentGraphAreExplicitlyVerified() throws Exception {
+        var good=inspect("""
+                {
+                  "REWARD_DEFINITIONS":[{"id":9,"family_id":17}],
+                  "REWARD_CATEGORIES":[{"id":6,"family_id":17}],
+                  "REWARD_DEFINITION_CATEGORIES":[{
+                    "reward_definition_id":9,"category_id":6
+                  }]
+                }
+                """);
+        assertEquals(1,good.counts().get("REWARD_DEFINITION_CATEGORIES").intValue());
+        assertFalse(good.blockers().contains("MISSING_CATEGORY:REWARD_CATEGORIES"));
+        assertFalse(good.blockers().contains("MISSING_CATEGORY:REWARD_DEFINITIONS"));
+        assertFalse(good.restorable());
+
+        var orphan=inspect("""
+                {
+                  "REWARD_DEFINITIONS":[{"id":9,"family_id":17}],
+                  "REWARD_DEFINITION_CATEGORIES":[{
+                    "reward_definition_id":9,"category_id":6
+                  }]
+                }
+                """);
+        assertTrue(orphan.blockers().contains("MISSING_CATEGORY:REWARD_CATEGORIES"));
+
+        assertThrows(IllegalArgumentException.class,()->inspect("""
+                {
+                  "REWARD_DEFINITIONS":[{"id":9,"family_id":17}],
+                  "REWARD_CATEGORIES":[{"id":6,"family_id":17}],
+                  "REWARD_DEFINITION_CATEGORIES":[
+                    {"reward_definition_id":9,"category_id":6},
+                    {"reward_definition_id":9,"category_id":6}
+                  ]
+                }
+                """));
+        assertThrows(SecurityException.class,()->inspect("""
+                {
+                  "REWARD_DEFINITIONS":[{"id":9,"family_id":17}],
+                  "REWARD_CATEGORIES":[{"id":6,"family_id":18}],
+                  "REWARD_DEFINITION_CATEGORIES":[{
+                    "reward_definition_id":9,"category_id":6
+                  }]
+                }
+                """));
+    }
+
 }
