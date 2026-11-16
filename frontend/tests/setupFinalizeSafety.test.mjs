@@ -79,3 +79,10 @@ test('V49 review verifies immutable epoch/revision/code ordering and complete co
   ])assert.throws(()=>assertSetupReview({...review,...invalid},state,codes))
   assert.throws(()=>assertSetupReview(review,state,['TASK_A','TASK_A']))
 })
+
+test('V49 accepts a partially progressed seven-step Backend state before finalize',()=>{
+  const partial={workspaceId:14,dataEpoch:2,revision:2,status:'IN_PROGRESS',
+    steps:{MEMBERS:'COMPLETE',MEMBER_GROUPS:'SKIPPED'}}
+  assert.deepEqual(assertSetupState(partial,14),partial)
+  assert.deepEqual(assertSetupState({...partial,steps:{...partial.steps,WORK_NODE_GROUPS:'PENDING'}},14).steps.WORK_NODE_GROUPS,'PENDING')
+})
