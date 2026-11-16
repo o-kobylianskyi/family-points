@@ -97,7 +97,24 @@ class WorkspaceRewardObligationArchiveClosurePostgresTest {
         var requiresClosure=new WorkspaceFinancialRestoreClosureService(db)
                 .assess(family,List.of("REWARD_DEFINITIONS"));
         assertTrue(requiresClosure.blockers().contains(
-                "RESTORE_CATEGORY_NOT_EXPORTABLE:REWARD_REQUIREMENTS_UNEXPORTED"));
+                "RESTORE_DEPENDENCY_NOT_SELECTED:REWARD_REQUIREMENTS"));
+
+        // The newly supported requirement category exports its own source row
+        // only with the owning reward definition. It is still not restorable.
+        var requirementsFile=tx.execute(s->exporter.export(
+                family,UUID.randomUUID(),UUID.randomUUID(),0L,
+                List.of("REWARD_DEFINITIONS","REWARD_REQUIREMENTS"),"V50",key));
+        var inspector=new ProtectiveBackupImportInspector(portable,codec);
+        var inspected=inspector.inspect(requirementsFile.encryptedFile(),family,key);
+        assertEquals(1,inspected.counts().get("REWARD_REQUIREMENTS").intValue());
+        assertEquals(1,inspected.counts().get("REWARD_DEFINITIONS").intValue());
+        assertFalse(inspected.restorable());
+        assertFalse(inspected.blockers().contains("MISSING_CATEGORY:REWARD_DEFINITIONS"));
+        var omission=assertThrows(IllegalStateException.class,
+                ()->tx.execute(s->exporter.export(
+                        family,UUID.randomUUID(),UUID.randomUUID(),0L,
+                        List.of("REWARD_REQUIREMENTS"),"V50",key)));
+        assertEquals("BACKUP_REWARD_REQUIREMENT_PARENT_MISSING",omission.getMessage());
 
         // Third independent failure: reward-category associations are not yet
         // part of the portable archive even when reward definitions are.
