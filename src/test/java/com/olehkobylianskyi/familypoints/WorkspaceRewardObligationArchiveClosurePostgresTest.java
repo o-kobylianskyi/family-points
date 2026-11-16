@@ -140,5 +140,25 @@ class WorkspaceRewardObligationArchiveClosurePostgresTest {
         assertEquals(1L,db.queryForObject("""
                 SELECT count(*) FROM reward_definition_categories WHERE reward_definition_id=?
                 """,Long.class,reward).longValue());
+        // Positive portable graph: definition, category and association must
+        // all be present in the authenticated file, never only the link.
+        var complete=tx.execute(s->exporter.export(family,UUID.randomUUID(),
+                UUID.randomUUID(),0L,
+                List.of("REWARD_DEFINITIONS","REWARD_CATEGORIES",
+                        "REWARD_DEFINITION_CATEGORIES"),"V50",key));
+        var graph=new ProtectiveBackupImportInspector(portable,codec)
+                .inspect(complete.encryptedFile(),family,key);
+        assertEquals(1,graph.counts().get("REWARD_DEFINITION_CATEGORIES").intValue());
+        assertEquals(1,graph.counts().get("REWARD_CATEGORIES").intValue());
+        assertEquals(1,graph.counts().get("REWARD_DEFINITIONS").intValue());
+        assertFalse(graph.restorable());
+        assertFalse(graph.blockers().contains("MISSING_CATEGORY:REWARD_CATEGORIES"));
+
+        var missingParents=assertThrows(IllegalStateException.class,
+                ()->tx.execute(s->exporter.export(family,UUID.randomUUID(),
+                        UUID.randomUUID(),0L,
+                        List.of("REWARD_DEFINITION_CATEGORIES"),"V50",key)));
+        assertEquals("BACKUP_REWARD_CATEGORY_PARENT_MISSING",missingParents.getMessage());
+
     }
 }
