@@ -35,3 +35,11 @@ User explicitly requires all **real** acceptance testing be conducted together w
 - QA Issue #18: no newly reported confirmed Designer-owned UX failure after handoff. Continue support/bug-fix only; user performs live E2E with QA.
 - Backend Issue #15: two red cases from run #43947907960 have source repairs in `839e9f8`, `e1e4e2b`, `9ccfe2e`; QA retest remains requested, newer exact-SHA full CI not yet confirmed. Do not approve BETA or BKL-002 execute.
 - Source review only in this checkpoint, no Designer code mutation or direct test execution. Latest verified Web CI remains #43947907960 @ `19adfe1b7` (all Web steps green; Backend/full gate red).
+
+## 2026-11-16 ~23:13 CET — Designer QA/CI audit
+- Latest observed `main` at audit: `ff044623ab518ee75bb74935b4e706c7f073b3fc` (Backend capacity checkpoint; moving main may advance).
+- Verified GitHub Actions run [#43953986968](https://github.com/o-kobylianskyi/family-points/actions/runs/43953986968) completed: Web SUCCESS, Android SUCCESS, Backend FAIL, Compose FAIL, full exact-SHA gate FAIL. Earlier [#43953661904](https://github.com/o-kobylianskyi/family-points/actions/runs/43953661904) same component statuses. Those are real job-level checks, not assumed from missing commit statuses. Run #43953986968 was on older SHA `4088b5e5` per coordination issue #15; not the latest moving main.
+- QA issue #18 has no newer confirmed Designer-owned UX failure. QA real V49 approval remains pending isolated user-assisted campaign; no Designer-owned real test performed.
+- Backend issue #15 has new #16 authenticated point-type/currency catalog and manual ledger test-only replay code and negative tests; owner reports new exact-SHA Testcontainers execution NOT_RUN, so neither financial VERIFIED nor BETA readiness can be inferred.
+- Release/Android issue #19 reported a source-level PowerShell parser error in Android APK publication script; Release owns it and new SHA validation. Designer must not modify release scripts.
+- **Designer status:** no new code tasks; remain QA support and avoid speculative feature churn. Next concrete task: react to a new QA V49 UX finding or verify newest pinned full CI once Backend+Release fixes have independent run evidence.
