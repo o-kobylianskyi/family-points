@@ -5,7 +5,7 @@ import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { validateSetupCatalog, selectSetupMatching } from '../utils/setupCatalogSelection'
-import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, canChangeSetupStep, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt } from '../utils/setupFinalizeSafety'
+import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, assertSetupStepTransition, canChangeSetupStep, sameSetupFinalizeOperation, assertSetupCompletionAfterReceipt } from '../utils/setupFinalizeSafety'
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
 const words = {
@@ -167,7 +167,7 @@ function InitialFamilySetupReviewContent() {
     setBusy(true); setError(false); setErrorStatus(null); setReview(null); setConfirmed(false)
     try {
       const result = await setSetupStep(getAccessToken(), origin, step, status, before.revision)
-      if (id === seq.current) setSetup(assertSetupState(result, origin))
+      if (id === seq.current) setSetup(assertSetupStepTransition(before, result, step, status))
     } catch (e) {
       if (id !== seq.current) return
       // A PATCH may have committed before the response was lost. Read once,
