@@ -54,3 +54,8 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 ## WEB-02 CI audit coverage note (2026-11-16)
 - Directly observed actual Web job steps on runs `43947907960`, `43953661904`, `43953986968`: i18n, Node regression, lint and Vite build all SUCCESS. These runs do **not** execute newly added `onboarding-v49-two-tab-synthetic.spec.js`; overall full CI FAIL from Backend and (in later runs) Compose, unrelated to observed Web steps. No newest-HEAD or Playwright PASS claim.
 - QA still owns pinned-SHA two-tab synthetic browser execution and independent disposable-family real acceptance. Record exact SHA, environment, request counts and PASS/FAIL/SKIP.
+
+
+## WEB-V49-READINESS audit pickup (2026-11-16)
+- Web published source-vs-execution matrix `docs/coordination/requests/WEB_V49_READINESS_AUDIT_20261116.md` at `75ed5265`. Do not carry historical operator 47/47 or Actions Web job PASS forward to newest two-tab SHA as VERIFIED. Run pinned node source + mocked Playwright V49 scenarios in the QA consolidated campaign, record HTTP counts and traces, report failures to Web.
+- Full real V49 and BKL-002 remain separately gated; no operator request from Web and no real data changes.
