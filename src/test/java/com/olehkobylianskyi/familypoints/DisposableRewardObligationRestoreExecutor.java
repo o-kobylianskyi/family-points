@@ -100,6 +100,24 @@ final class DisposableRewardObligationRestoreExecutor {
         requireExactMap(requirements,oldRequirements,"REQUIREMENTS");
         requireExactMap(categories,oldCategories,"CATEGORIES");
         requireExactMap(rewards,oldRewards,"REWARDS");
+        // Source purchase and owner must agree with the obligation. A plain
+        // same-family FK cannot prove financial linkage to the correct buyer.
+        var purchaseRows=new HashMap<Long,JsonNode>();
+        for(JsonNode row:root.path("REWARD_PURCHASES")) {
+            if(!row.path("id").isIntegralNumber()
+                    || purchaseRows.put(row.path("id").asLong(),row)!=null)
+                throw new SecurityException("OBLIGATION_SOURCE_PURCHASE_INVALID");
+        }
+        for(JsonNode row:obligations) {
+            var purchase=purchaseRows.get(row.path("reward_purchase_id").asLong());
+            if(purchase==null
+                    || !purchase.path("member_id").isIntegralNumber()
+                    || purchase.path("member_id").asLong()!=row.path("member_id").asLong()
+                    || !purchase.path("reward_title").isTextual()
+                    || !purchase.path("price_amount").isIntegralNumber()
+                    || !purchase.path("status").isTextual())
+                throw new SecurityException("OBLIGATION_SOURCE_PURCHASE_MISMATCH");
+        }
         requireParents(root,"REWARD_PURCHASES",oldPurchases);
         requireParents(root,"REWARD_REQUIREMENTS",oldRequirements);
         requireParents(root,"REWARD_CATEGORIES",oldCategories);
@@ -132,6 +150,21 @@ final class DisposableRewardObligationRestoreExecutor {
                         """,Long.class,purchase,target);
                 if(!Objects.equals(1L,count))
                     throw new SecurityException("OBLIGATION_TARGET_FOREIGN_PURCHASE");
+            }
+            for(JsonNode row:obligations) {
+                JsonNode purchase=purchaseRows.get(row.path("reward_purchase_id").asLong());
+                Long matched=db.queryForObject("""
+                        SELECT count(*) FROM reward_purchases p
+                        WHERE p.id=? AND p.member_id=? AND p.reward_title=?
+                            AND p.price_amount=? AND p.status=?
+                        """,Long.class,
+                        purchases.get(row.path("reward_purchase_id").asLong()),
+                        members.get(row.path("member_id").asLong()),
+                        purchase.path("reward_title").asText(),
+                        purchase.path("price_amount").asInt(),
+                        purchase.path("status").asText());
+                if(!Objects.equals(1L,matched))
+                    throw new SecurityException("OBLIGATION_TARGET_PURCHASE_MISMATCH");
             }
             validateParents(requirements,"reward_requirements",target);
             validateParents(categories,"reward_categories",target);
