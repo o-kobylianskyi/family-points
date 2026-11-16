@@ -95,6 +95,15 @@ test('V49 step PATCH lost-response reconciliation never implies a write replay',
   assert.equal(reconcileSetupStepAfterFailure(before,before,'WORK_NODE_GROUPS','COMPLETE'),'UNCONFIRMED')
   assert.equal(reconcileSetupStepAfterFailure(before,{...committed,steps:{...committed.steps,WORK_NODE_GROUPS:'SKIPPED'}},'WORK_NODE_GROUPS','COMPLETE'),'UNCONFIRMED')
   assert.equal(reconcileSetupStepAfterFailure(before,{...committed,revision:4},'WORK_NODE_GROUPS','COMPLETE'),'UNCONFIRMED')
+  assert.equal(reconcileSetupStepAfterFailure(before,{
+    ...committed,status:'COMPLETED',steps:Object.fromEntries(SETUP_STEP_CODES.map(code=>[code,'COMPLETE']))
+  },'WORK_NODE_GROUPS','COMPLETE'),'UNCONFIRMED')
+  assert.equal(reconcileSetupStepAfterFailure(before,{
+    ...committed,steps:{...committed.steps,MEMBER_GROUPS:'COMPLETE'}
+  },'WORK_NODE_GROUPS','COMPLETE'),'UNCONFIRMED')
+  assert.equal(reconcileSetupStepAfterFailure(before,{
+    ...committed,steps:{WORK_NODE_GROUPS:'COMPLETE'}
+  },'WORK_NODE_GROUPS','COMPLETE'),'UNCONFIRMED')
   for(const foreign of [{...committed,workspaceId:15},{...committed,dataEpoch:4},{...committed,revision:1}])
     assert.throws(()=>reconcileSetupStepAfterFailure(before,foreign,'WORK_NODE_GROUPS','COMPLETE'))
   assert.throws(()=>reconcileSetupStepAfterFailure(before,committed,'UNKNOWN','COMPLETE'))
