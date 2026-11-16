@@ -80,6 +80,29 @@ class WorkspaceBackupRehearsalAssessmentServiceTest {
         verifyNoInteractions(storage,inspector,rehearsal);
     }
 
+    @Test void wrongRehearsalCountsNeverProduceRecoveryEvidence() throws Exception {
+        var db=mock(JdbcTemplate.class);
+        var storage=mock(WorkspaceBackupLocalArtifactStore.class);
+        var inspector=mock(ProtectiveBackupImportInspector.class);
+        var rehearsal=mock(WorkspaceDisposableRestoreRehearsal.class);
+        var service=new WorkspaceBackupRehearsalAssessmentService(db,storage,inspector,rehearsal);
+        UUID snapshot=UUID.randomUUID();
+        when(db.queryForList(anyString(),eq(7L),eq(snapshot)))
+                .thenReturn(List.of(registry(7L,snapshot,"BACKING_UP")));
+        byte[] file=new byte[]{1,2,3,4};
+        when(storage.read(7L,snapshot,"b".repeat(64))).thenReturn(file);
+        var keyGen=KeyGenerator.getInstance("AES");keyGen.init(256);
+        var key=keyGen.generateKey();
+        when(inspector.inspect(file,7L,key)).thenReturn(
+                new ProtectiveBackupImportInspector.Inspection(snapshot,7L,0L,
+                        "V51",SCOPE,Map.of("MEMBER_GROUPS",1,
+                        "MEDIA_ASSETS",1,"MEDIA_BINDINGS",1),false,List.of()));
+        when(rehearsal.rehearse(file,7L,key)).thenReturn(
+                new WorkspaceDisposableRestoreRehearsal.Report(7L,snapshot,1,2,1,2,true));
+        assertThrows(SecurityException.class,()->service.assess(7L,snapshot,key));
+        assertArrayEquals(new byte[]{0,0,0,0},file);
+    }
+
     @Test void mismatchCountsAndMissingFileFailClosedWithoutPromotion() throws Exception {
         var db=mock(JdbcTemplate.class);
         var storage=mock(WorkspaceBackupLocalArtifactStore.class);
