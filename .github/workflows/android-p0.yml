@@ -8,6 +8,12 @@ on:
       - 'android/**'
       - '.github/workflows/android-p0.yml'
   workflow_dispatch:
+    inputs:
+      full_suite:
+        description: 'Also run full JVM suite and build both debug APKs (main CI already does this)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -15,14 +21,15 @@ permissions:
 # This workflow is isolated from FamilyPoints CI's cancel-in-progress main/ref
 # group. An unrelated Web/Backend push cannot cancel an Android P0 run.
 # One run per source SHA also prevents later Android commits from cancelling
-# earlier failure evidence. No real family data or device is accessed.
+# earlier failure evidence. Push CI runs the 3 targeted tests only; full suite
+# remains in main CI and can be requested manually. No family/device data used.
 concurrency:
   group: android-p0-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
   android-p0:
-    name: Android P0 / targeted regressions + full JVM + APKs
+    name: Android P0 / targeted lost-response regressions
     runs-on: ubuntu-latest
     timeout-minutes: 35
     defaults:
@@ -60,12 +67,13 @@ jobs:
             --tests 'com.olehkobylianskyi.familypoints.android.network.OfflinePointsReplayHttpTest.lostResponseKeepsOriginalIdForExplicitIdempotentReconciliation' \
             --tests 'com.olehkobylianskyi.familypoints.android.network.TemplateReceiptHttpFaultTest.lostActivationPostResponseRecoveredOnlyByGetWithSameUuid'
 
-      - name: Run full Android JVM suite and build both debug APKs
+      - name: Run optional full Android JVM suite and build both debug APKs
+        if: github.event_name == 'workflow_dispatch' && inputs.full_suite
         run: |
           ./gradlew --no-daemon --stacktrace -PfamilyPointsCiAndroidSdk=36 \
             :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest
 
-      - name: Publish targeted and full Android test evidence
+      - name: Publish Android regression test evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
