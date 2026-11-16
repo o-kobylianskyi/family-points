@@ -82,7 +82,7 @@ jobs:
           for path in root.glob("TEST-*.xml"):
               suite = ET.parse(path).getroot()
               for case in suite.iter("testcase"):
-                  name = case.get("name", "")
+                  name = case.get("name", "").removesuffix("()")
                   if name in cases:
                       seen.setdefault(name, []).append((case.get("classname"), len(case.findall("failure")), len(case.findall("error")), len(case.findall("skipped"))))
           print("Android P0 exact regressions on source SHA:")
