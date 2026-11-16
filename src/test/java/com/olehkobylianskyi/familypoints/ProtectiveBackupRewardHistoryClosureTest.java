@@ -222,4 +222,52 @@ class ProtectiveBackupRewardHistoryClosureTest {
                 """));
     }
 
+    @Test void pointTypeCatalogMustBindFinanceFksAndHaveUniqueTenantCodes() throws Exception {
+        var valid=inspect("""
+                {
+                  "POINT_TYPES":[{"id":3,"family_id":17,"code":"POINTS",
+                                  "name":"Points","active":true}],
+                  "POINT_LEDGER":[{"id":9,"member_id":4,"point_type_id":3,
+                                   "amount":8,"type":"EARN","source_type":"MANUAL"}]
+                }
+                """);
+        assertEquals(1,valid.counts().get("POINT_TYPES").intValue());
+        assertFalse(valid.blockers().contains("MISSING_CATEGORY:POINT_TYPES"));
+        assertFalse(valid.blockers().contains("DANGLING_REFERENCE:POINT_LEDGER.point_type_id"));
+        assertFalse(valid.restorable());
+
+        var dangling=inspect("""
+                {
+                  "POINT_TYPES":[{"id":3,"family_id":17,"code":"POINTS"}],
+                  "POINT_LEDGER":[{"id":9,"member_id":4,"point_type_id":5,
+                                   "amount":8,"type":"EARN","source_type":"MANUAL"}]
+                }
+                """);
+        assertTrue(dangling.blockers().contains(
+                "DANGLING_REFERENCE:POINT_LEDGER.point_type_id"));
+
+        var missing=inspect("""
+                {
+                  "POINT_LEDGER":[{"id":9,"member_id":4,"point_type_id":3,
+                                   "amount":8,"type":"EARN","source_type":"MANUAL"}]
+                }
+                """);
+        assertTrue(missing.blockers().contains("MISSING_CATEGORY:POINT_TYPES"));
+
+        var duplicateCodes=inspect("""
+                {
+                  "POINT_TYPES":[
+                    {"id":3,"family_id":17,"code":"POINTS"},
+                    {"id":4,"family_id":17,"code":"POINTS"}
+                  ]
+                }
+                """);
+        assertTrue(duplicateCodes.blockers().contains("INVALID_POINT_TYPE_CODE"));
+        assertThrows(SecurityException.class,()->inspect("""
+                {
+                  "POINT_TYPES":[{"id":3,"family_id":18,"code":"POINTS"}]
+                }
+                """));
+    }
+
 }
