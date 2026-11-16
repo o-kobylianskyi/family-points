@@ -217,6 +217,14 @@ jobs:
       - name: Run fail-closed CI report classifier regression tests
         if: needs.changes.outputs.compose == 'true'
         run: python3 -m unittest discover -s scripts/ci -p test_report_outcome.py -v
+      - name: Validate signed APK manifest and source-SHA guard regressions
+        if: needs.changes.outputs.compose == 'true'
+        run: python3 -m unittest discover -s scripts/android -p test_verify_release_manifest.py -v
+      - name: Parse Android publish and backup shell scripts
+        if: needs.changes.outputs.compose == 'true'
+        run: |
+          bash -n scripts/android/publish-apk.sh
+          bash -n scripts/beta/backup.sh
       - name: Parse Windows release tooling PowerShell scripts
         if: needs.changes.outputs.compose == 'true'
         shell: pwsh
