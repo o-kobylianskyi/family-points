@@ -30,6 +30,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\beta\release-g
 
 **No `gh` installation or login is needed.** The Release Gate intentionally never reports CI PASS from local `ci`/ `prepare`; it cannot independently authenticate private repository CI results from a local checkout. A release is **HOLD** until verified exact-SHA GitHub Actions evidence and BKL-002/Web/QA/Android acceptance are recorded. Never equate a `prepare` draft with release approval.
 
+### Automated exact-SHA full CI evidence (no local `gh`)
+
+The `FamilyPoints CI` GitHub workflow now includes job **`Full CI / exact-SHA evidence`**. On runs where change routing selects all four components, it checks the **job conclusions** for Backend, Android, Web, and Compose. A non-success job makes the evidence job fail; only four successes produce a JSON `full-ci-evidence` artifact (30-day retention), and the run summary records the exact tested commit SHA and run URL. For scoped runs where any component is intentionally unselected, the attestation job is skipped — **this is not full-CI acceptance**.
+
+Inspect the workflow directly in the GitHub Actions UI from IntelliJ/browser; no GitHub CLI login is needed. The Release coordinator must still confirm that the evidence job and all four build/test steps ran on the same SHA, then record that evidence in the Release log. The artifact explicitly contains `qaAccepted=false`, `releaseApproved=false`, and `deploymentExecuted=false`; it cannot authorize a production/BETA deployment or replace BKL-002/QA acceptance.
+
 ### Environment isolation
 
 - `-Action status`: local git only.
