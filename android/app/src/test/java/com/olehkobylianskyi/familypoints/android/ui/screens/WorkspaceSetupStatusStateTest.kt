@@ -40,15 +40,37 @@ class WorkspaceSetupStatusStateTest {
         assertFalse(validWorkspaceSetupState(state(revision = -1), 17))
     }
 
+    @Test fun acceptsNewAndPartiallyConfiguredFamilies() {
+        assertTrue(validWorkspaceSetupState(state(steps = emptyMap()), 17))
+        assertTrue(validWorkspaceSetupState(state(steps = mapOf("MEMBERS" to "COMPLETE")), 17))
+        assertTrue(validWorkspaceSetupState(state(
+            status = "IN_PROGRESS", steps = mapOf("MEMBERS" to "COMPLETE", "MEMBER_GROUPS" to "SKIPPED")
+        ), 17))
+    }
+
     @Test fun rejectsMissingExtraAndUnknownSteps() {
         assertFalse(validWorkspaceSetupState(state(steps = null), 17))
-        assertFalse(validWorkspaceSetupState(state(steps = mapOf("MEMBERS" to "COMPLETE")), 17))
         assertFalse(validWorkspaceSetupState(
             state(steps = codes.associateWith { "PENDING" } + ("UNEXPECTED" to "COMPLETE")), 17
         ))
         assertFalse(validWorkspaceSetupState(
             state(steps = codes.associateWith { if (it == "TASK_REVIEW") "UNKNOWN" else "PENDING" }), 17
         ))
+    }
+
+    @Test fun completedFamiliesRequireAllSevenTerminalDecisions() {
+        assertFalse(validWorkspaceSetupState(state(status = "COMPLETED", steps = emptyMap()), 17))
+        assertFalse(validWorkspaceSetupState(state(
+            status = "COMPLETED", steps = mapOf("MEMBERS" to "COMPLETE")
+        ), 17))
+        assertFalse(validWorkspaceSetupState(state(
+            status = "COMPLETED", steps = codes.associateWith { "PENDING" }
+        ), 17))
+        assertTrue(validWorkspaceSetupState(state(
+            status = "COMPLETED", steps = codes.associateWith {
+                if (it == "MEMBER_GROUPS") "SKIPPED" else "COMPLETE"
+            }
+        ), 17))
     }
 
     @Test fun rejectsUnknownOverallStatus() {
