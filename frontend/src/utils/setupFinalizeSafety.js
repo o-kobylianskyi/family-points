@@ -97,9 +97,15 @@ export function assertSetupReview(review, state, codes) {
 export function assertSetupStepTransition(before, after, step, status) {
   assertSetupState(before, before?.workspaceId)
   assertSetupState(after, before.workspaceId)
+  // A step PATCH cannot finalize setup or rewrite decisions for other steps.
+  // The server may add explicit PENDING entries, but pre-existing decisions
+  // must remain unchanged unless this is the step the parent selected.
   if (!SETUP_STEP_CODES.includes(step) || !['COMPLETE', 'SKIPPED'].includes(status) ||
+      before.status === 'COMPLETED' || after.status !== 'IN_PROGRESS' ||
       after.dataEpoch !== before.dataEpoch || after.revision !== before.revision + 1 ||
-      after.steps?.[step] !== status) {
+      after.steps?.[step] !== status ||
+      Object.entries(before.steps).some(([code, value]) =>
+        code !== step && after.steps?.[code] !== value)) {
     throw new Error('SETUP_STEP_TRANSITION_MISMATCH')
   }
   return after
