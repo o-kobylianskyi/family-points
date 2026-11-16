@@ -1,6 +1,11 @@
 package com.olehkobylianskyi.familypoints;
 
 import org.flywaydb.core.Flyway;
+import com.olehkobylianskyi.familypoints.service.*;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+import javax.crypto.KeyGenerator;
+import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -68,6 +73,35 @@ class DisposableExchangeLedgerSourceAuditorPostgresTest {
         assertEquals(10,pair.debited());
         assertEquals(2,pair.credited());
         assertThrows(SecurityException.class,()->auditor.audit(other,request));
+        // A ledger containing POINT_EXCHANGE is never exportable without
+        // the complete source request, original rate and currency catalog.
+        var codec=new ProtectiveBackupArtifactCodec();
+        var portable=new ProtectiveBackupPortableFile();
+        var exporter=new WorkspacePortableBackupExporter(db,
+                new WorkspaceResetSnapshotService(db,new WorkspaceEpochTransactionGuard(db)),
+                codec,portable);
+        var inspector=new ProtectiveBackupImportInspector(portable,codec);
+        var generator=KeyGenerator.getInstance("AES");generator.init(256);
+        var key=generator.generateKey();
+        var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
+        var incomplete=assertThrows(IllegalStateException.class,
+                ()->tx.execute(status->exporter.export(family,UUID.randomUUID(),
+                        UUID.randomUUID(),0L,List.of("POINT_LEDGER"),"V50",key)));
+        assertEquals("BACKUP_EXCHANGE_LEDGER_GRAPH_INCOMPLETE",incomplete.getMessage());
+        var complete=tx.execute(status->exporter.export(family,UUID.randomUUID(),
+                UUID.randomUUID(),0L,List.of("POINT_LEDGER","POINT_TYPES",
+                        "POINT_EXCHANGE_REQUESTS","POINT_EXCHANGE_RATES"),"V50",key));
+        var inspected=inspector.inspect(complete.encryptedFile(),family,key);
+        assertEquals(2,inspected.counts().get("POINT_LEDGER").intValue());
+        assertEquals(2,inspected.counts().get("POINT_TYPES").intValue());
+        assertEquals(1,inspected.counts().get("POINT_EXCHANGE_REQUESTS").intValue());
+        assertEquals(1,inspected.counts().get("POINT_EXCHANGE_RATES").intValue());
+        assertFalse(inspected.blockers().contains("INVALID_EXCHANGE_LEDGER_PAIR"));
+        assertFalse(inspected.blockers().contains("EXCHANGE_LEDGER_ECONOMICS_MISMATCH"));
+        assertFalse(inspected.blockers().contains("MISSING_CATEGORY:POINT_EXCHANGE_RATES"));
+        assertFalse(inspected.restorable());
+        var copy=complete.encryptedFile().clone();copy[copy.length-1]^=1;
+        assertThrows(RuntimeException.class,()->inspector.inspect(copy,family,key));
         db.update("UPDATE point_transactions SET amount=3 WHERE id=?",creditId);
         assertThrows(SecurityException.class,()->auditor.audit(family,request));
         db.update("UPDATE point_transactions SET amount=2 WHERE id=?",creditId);
