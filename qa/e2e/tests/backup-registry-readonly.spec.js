@@ -157,8 +157,6 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
     const panel = page.locator('[aria-label="Family data safety planning"]')
     await expect(panel.getByText('55555555', {exact:false})).toBeVisible()
     await expect(panel.getByText('66666666', {exact:false})).toBeVisible()
-    const firstRow = panel.locator('div').filter({has:panel.getByText('55555555', {exact:false})})
-      .filter({has:panel.getByRole('button', {name:/View metadata|Переглянути запис|Просмотреть запись|Eintrag ansehen/})}).last()
     // Prefer the per-row buttons in DOM order: list order comes from the mocked server.
     const viewButtons = panel.getByRole('button', {name:/View metadata|Переглянути запис|Просмотреть запись|Eintrag ansehen/})
     await viewButtons.nth(0).click()
@@ -166,7 +164,10 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
     await viewButtons.nth(1).click()
     const secondDetail = panel.locator('div[role="region"]').last()
     await expect(secondDetail.getByText('PRIVATE_TEMPLATES')).toBeVisible()
+    const lateResponse = page.waitForResponse(response =>
+      response.url().includes('/protective-backups/' + first) && response.status() === 200)
     releaseFirst()
+    await lateResponse
     await expect(secondDetail.getByText('PRIVATE_TEMPLATES')).toBeVisible()
     await expect(secondDetail.getByText('TASK_DEFINITIONS')).toHaveCount(0)
     expect(writes).toEqual([])
