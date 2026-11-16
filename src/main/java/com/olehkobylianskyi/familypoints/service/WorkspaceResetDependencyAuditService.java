@@ -97,6 +97,51 @@ public class WorkspaceResetDependencyAuditService {
         return new SelectionAudit(workspaceId,selected,false,java.util.List.copyOf(blockers),java.util.List.copyOf(edges));
     }
 
+    /**
+     * Production read-only support matrix for BKL-002. This is a capability
+     * inventory, NOT a claim that a category can be safely reset or restored.
+     * FK edges are real live PostgreSQL constraints, never a static guessed
+     * deletion order. Protected identity, finance and audit stay fail-closed.
+     */
+    public record CategoryReadiness(String category, String table, boolean supportedForExecute,
+            java.util.List<String> blockers, java.util.List<ForeignKey> incomingForeignKeys,
+            java.util.List<ForeignKey> outgoingForeignKeys) {}
+    public record RestoreReadiness(long workspaceId, boolean fullSupported,
+            boolean selectiveExecuteEnabled, java.util.List<CategoryReadiness> categories,
+            java.util.List<String> globalBlockers) {}
+
+    @Transactional(readOnly=true)
+    public RestoreReadiness restoreReadiness(long workspaceId) {
+        var report=audit(workspaceId);
+        var results=new java.util.ArrayList<CategoryReadiness>();
+        for(var category:new java.util.TreeSet<>(CATEGORY_TABLES.keySet())) {
+            String table=CATEGORY_TABLES.get(category).iterator().next();
+            var incoming=report.foreignKeys().stream()
+                    .filter(fk->table.equals(fk.referencedTable())).toList();
+            var outgoing=report.foreignKeys().stream()
+                    .filter(fk->table.equals(fk.dependentTable())).toList();
+            var blockers=new java.util.TreeSet<String>();
+            blockers.add("PRODUCTION_RESTORE_EXECUTOR_NOT_VERIFIED");
+            blockers.add("OWNER_REAUTH_PROTECTIVE_BACKUP_NOT_VERIFIED");
+            blockers.add("TRANSACTIONAL_REPLACE_RECEIPT_NOT_VERIFIED");
+            if(category.endsWith("_LEDGER"))
+                blockers.add("FINANCIAL_INTEGRITY_AND_HISTORY_POLICY_REQUIRED");
+            if(!incoming.isEmpty())
+                blockers.add("INBOUND_FK_DEPENDENCY_CLOSURE_UNVERIFIED");
+            if(!outgoing.isEmpty())
+                blockers.add("OUTBOUND_FK_IDENTITY_REMAP_UNVERIFIED");
+            results.add(new CategoryReadiness(category,table,false,
+                    java.util.List.copyOf(blockers),incoming,outgoing));
+        }
+        var global=new java.util.TreeSet<>(report.blockers());
+        global.add("FULL_RESTORE_UNSUPPORTED");
+        global.add("SELECTIVE_RESTORE_EXECUTE_DISABLED");
+        global.add("PORTABLE_FILE_HTTP_NOT_VERIFIED");
+        global.add("SERVER_LOCAL_VERIFIED_BACKUP_RETENTION_NOT_VERIFIED");
+        return new RestoreReadiness(workspaceId,false,false,
+                java.util.List.copyOf(results),java.util.List.copyOf(global));
+    }
+
     @Transactional(readOnly=true)
     public Audit audit(long workspaceId) {
         Integer exists=db.queryForObject("SELECT count(*) FROM families WHERE id=?",
