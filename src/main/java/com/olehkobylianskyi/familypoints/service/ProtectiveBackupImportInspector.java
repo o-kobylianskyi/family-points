@@ -43,6 +43,21 @@ public final class ProtectiveBackupImportInspector {
         }
     }
 
+    private static void checkOptionalParent(JsonNode categories,Map<String,Set<Long>> ids,
+            Set<String> blockers,String child,String column,String parent) {
+        if(!categories.has(child))return;
+        for(JsonNode row:categories.path(child)) {
+            JsonNode reference=row.path(column);
+            if(reference.isMissingNode() || reference.isNull())continue;
+            if(!reference.isIntegralNumber() || reference.asLong()<=0)
+                blockers.add("INVALID_REFERENCE:"+child+"."+column);
+            else if(!categories.has(parent))
+                blockers.add("MISSING_CATEGORY:"+parent);
+            else if(!ids.getOrDefault(parent,Set.of()).contains(reference.asLong()))
+                blockers.add("DANGLING_REFERENCE:"+child+"."+column);
+        }
+    }
+
     private static void checkMemberParent(JsonNode categories,Set<String> blockers,String child) {
         if(!categories.has(child))return;
         for(JsonNode row:categories.path(child)) {
@@ -177,8 +192,8 @@ public final class ProtectiveBackupImportInspector {
             // Portable archives cannot assume that a parent omitted by the
             // selected subset will be present in the target workspace.
             checkParent(categories,rowIds,blockers,"TASK_EXECUTIONS","task_definition_id","TASK_DEFINITIONS");
-            checkParent(categories,rowIds,blockers,"REWARD_REQUESTS","reward_definition_id","REWARD_DEFINITIONS");
-            checkParent(categories,rowIds,blockers,"REWARD_PURCHASES","reward_definition_id","REWARD_DEFINITIONS");
+            checkOptionalParent(categories,rowIds,blockers,"REWARD_REQUESTS","reward_definition_id","REWARD_DEFINITIONS");
+            checkOptionalParent(categories,rowIds,blockers,"REWARD_PURCHASES","reward_definition_id","REWARD_DEFINITIONS");
             checkMemberParent(categories,blockers,"TASK_EXECUTIONS");
             checkMemberParent(categories,blockers,"REWARD_PURCHASES");
             // Purchase history can be tied to either a reward definition or
