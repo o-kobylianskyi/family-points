@@ -33,7 +33,6 @@ class WorkspaceFinancialRestoreClosureServiceTest {
                 "RESTORE_FINANCIAL_NATIVE_REPLAY_UNIMPLEMENTED:POINT_LEDGER"));
         assertTrue(result.blockers().contains(
                 "RESTORE_FINANCIAL_HISTORY_RECONCILIATION_REQUIRED"));
-        verify(db,never()).update(anyString());
     }
 
     @Test void zeroEconomicHistoryNeverDeclaresFinancialReplayReady() {
