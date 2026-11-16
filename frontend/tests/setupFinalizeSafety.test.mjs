@@ -158,7 +158,23 @@ test('V49 step PATCH response is rejected if epoch or revision scope changed', (
     { ...after, revision: 12 },
     { ...after, steps: { ...after.steps, MEMBER_GROUPS: 'COMPLETE' } },
     { ...after, steps: { ...after.steps, MEMBER_GROUPS: 'PENDING' } },
+    { ...after, status: 'COMPLETED', steps: Object.fromEntries(SETUP_STEP_CODES.map(code => [code, 'COMPLETE'])) },
+    { ...after, steps: { ...after.steps, MEMBERS: 'SKIPPED' } },
+    { ...after, steps: { MEMBER_GROUPS: 'SKIPPED' } },
   ]) assert.throws(() => assertSetupStepTransition(before, changed, 'MEMBER_GROUPS', 'SKIPPED'))
   assert.throws(() => assertSetupStepTransition(before, after, 'UNRECOGNIZED', 'SKIPPED'))
   assert.throws(() => assertSetupStepTransition(before, after, 'MEMBER_GROUPS', 'PENDING'))
+})
+
+test('V49 step PATCH may add pending metadata but cannot finalize or overwrite other steps', () => {
+  const before = { workspaceId: 14, dataEpoch: 4, revision: 10,
+    status: 'NOT_STARTED', steps: {} }
+  const after = { ...before, revision: 11, status: 'IN_PROGRESS',
+    steps: { MEMBERS: 'COMPLETE', MEMBER_GROUPS: 'PENDING' } }
+  assert.deepEqual(assertSetupStepTransition(before, after, 'MEMBERS', 'COMPLETE'), after)
+  const alreadyDone = { ...after, status: 'COMPLETED',
+    steps: Object.fromEntries(SETUP_STEP_CODES.map(code => [code, 'COMPLETE'])) }
+  assert.throws(() => assertSetupStepTransition(alreadyDone, {
+    ...alreadyDone, revision: 12
+  }, 'MEMBERS', 'COMPLETE'))
 })
