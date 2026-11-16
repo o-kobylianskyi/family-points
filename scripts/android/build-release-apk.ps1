@@ -14,6 +14,70 @@ if ($GoogleWebClientId -notmatch '^[0-9]+-[a-zA-Z0-9_-]+\.apps\.googleuserconten
 Set-StrictMode -Version Latest
 $root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $android = Join-Path $root 'android'
+# Pin a clean immutable source revision for the signed APK manifest.
+$sourceSha = ((& git -C $root rev-parse HEAD) | Out-String).Trim().ToLowerInvariant()
+if ($LASTEXITCODE -ne 0 -or $sourceSha -notmatch '^[0-9a-f]{40}
+if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'android-release-output' }
+foreach ($name in @('FP_ANDROID_KEYSTORE_FILE','FP_ANDROID_KEYSTORE_PASSWORD','FP_ANDROID_KEY_ALIAS','FP_ANDROID_KEY_PASSWORD')) {
+    if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
+        throw "Missing $name. Configure release signing outside Git; never publish secrets."
+    }
+}
+$store = [Environment]::GetEnvironmentVariable('FP_ANDROID_KEYSTORE_FILE')
+if (-not (Test-Path -LiteralPath $store -PathType Leaf)) { throw "Keystore not found: $store" }
+$wrapper = Join-Path $android 'gradlew.bat'
+if (-not (Test-Path $wrapper)) { throw 'Gradle wrapper not found' }
+Push-Location $android
+try {
+    $args = @(':app:assembleRelease', "--console=plain", "-PfamilyPointsVersionCode=$VersionCode",
+        "-PfamilyPointsVersionName=$VersionName", '-PfamilyPointsReleaseApiUrl=https://family-point.com/')
+    if ($GoogleWebClientId) { $args += "-PfamilyPointsGoogleWebClientId=$GoogleWebClientId" }
+    & $wrapper @args
+    if ($LASTEXITCODE -ne 0) { throw "Gradle failed ($LASTEXITCODE)" }
+} finally { Pop-Location }
+$apk = Join-Path $android 'app/build/outputs/apk/release/app-release.apk'
+if (-not (Test-Path $apk -PathType Leaf)) { throw 'Signed APK missing: app-release.apk (check signing)' }
+$androidHome = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { $env:ANDROID_SDK_ROOT }
+if (-not $androidHome) { throw 'ANDROID_HOME or ANDROID_SDK_ROOT required to verify the release signature' }
+$verifier = Get-ChildItem (Join-Path $androidHome 'build-tools') -Directory |
+    Sort-Object { [version]($_.Name -replace '-.*$','') } -Descending |
+    ForEach-Object { Join-Path $_.FullName 'apksigner.bat' } |
+    Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $verifier) { throw 'apksigner.bat not found in Android build-tools' }
+& $verifier verify --verbose --print-certs $apk
+if ($LASTEXITCODE -ne 0) { throw 'APK signature verification failed' }
+$afterSha = ((& git -C $root rev-parse HEAD) | Out-String).Trim().ToLowerInvariant()
+$afterChanges = @(& git -C $root status --porcelain --untracked-files=normal)
+if ($LASTEXITCODE -ne 0 -or $afterSha -ne $sourceSha -or $afterChanges.Count -ne 0) {
+    throw 'Git source changed during release build. Aborting before manifest publication.'
+}
+New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
+$dest = Join-Path $OutputDirectory 'familypoints-beta.apk'
+Copy-Item -LiteralPath $apk -Destination $dest -Force
+$sha = (Get-FileHash -Algorithm SHA256 -LiteralPath $dest).Hash.ToLowerInvariant()
+$size = (Get-Item -LiteralPath $dest).Length
+$manifest = [ordered]@{
+    versionCode = $VersionCode
+    versionName = $VersionName
+    file = 'familypoints-beta.apk'
+    sha256 = $sha
+    sizeBytes = $size
+    applicationId = 'com.olehkobylianskyi.familypoints.android'
+    minSdk = 26
+    sourceSha = $sourceSha
+    downloadUrl = 'https://family-point.com/downloads/familypoints-beta.apk'
+}
+$manifest | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $OutputDirectory 'familypoints-beta.json') -Encoding utf8
+"$sha  familypoints-beta.apk" | Set-Content -LiteralPath (Join-Path $OutputDirectory 'familypoints-beta.apk.sha256') -Encoding ascii
+Write-Host "SIGNED APK: $dest"
+Write-Host "SHA256: $sha"
+Write-Host "MANIFEST: $(Join-Path $OutputDirectory 'familypoints-beta.json')"
+Write-Host 'IMPORTANT: retain the keystore forever for future in-place upgrades.'
+) { throw 'Could not read source Git SHA.' }
+$worktreeChanges = @(& git -C $root status --porcelain --untracked-files=normal)
+if ($LASTEXITCODE -ne 0 -or $worktreeChanges.Count -ne 0) {
+    throw 'Signed release requires a clean Git checkout; commit changes before building.'
+}
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'android-release-output' }
 foreach ($name in @('FP_ANDROID_KEYSTORE_FILE','FP_ANDROID_KEYSTORE_PASSWORD','FP_ANDROID_KEY_ALIAS','FP_ANDROID_KEY_PASSWORD')) {
     if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
