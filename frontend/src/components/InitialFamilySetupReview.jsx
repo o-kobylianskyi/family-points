@@ -237,7 +237,7 @@ function InitialFamilySetupReviewContent() {
     } catch { if (activeScope.current === scope) setError(true) }
     finally { if (activeScope.current === scope) setBusy(false) }
   }
-  return <section id="initial-family-setup" className="settings-section" aria-label="Initial family setup">
+  return <section id="initial-family-setup" className="settings-section" aria-label={w[0]}>
     <h2>{w[0]}</h2>
     <p>{w[11]}</p>
     {unavailable && <p role="status">{w[1]}</p>}
@@ -272,16 +272,16 @@ function InitialFamilySetupReviewContent() {
           })[lang]}</button>
         <span>{matchingCodes.length} / {catalog.length}</span>
       </div>}
-      {setup.status !== 'COMPLETED' && <div style={{maxHeight:260,overflowY:'auto'}}>
-        {items.map(item=><label key={item.code} style={{display:'flex',gap:8,padding:'4px 0'}}>
+      {setup.status !== 'COMPLETED' && <div className="initial-setup-template-list" role="group" aria-label={({uk:'Шаблони для вибору',ru:'Шаблоны для выбора',de:'Vorlagen zur Auswahl',en:'Templates to select'})[lang] || 'Templates to select'}>
+        {items.map(item=><label key={item.code} className="initial-setup-template-option">
           <input type="checkbox" disabled={busy || !!pending || setup.status === 'COMPLETED'} checked={selected.includes(item.code)} onChange={()=>{setSelected(v=>selectSetupMatching(v,[item.code],!v.includes(item.code),catalogCodes));setReview(null);setConfirmed(false);seq.current++}}/>
           <span>{item.title?.[lang] || item.title?.en || item.code}</span>
         </label>)}
       </div>}
-      {setup.status !== 'COMPLETED' && <p>{w[8]}: {selected.length}</p>}
+      {setup.status !== 'COMPLETED' && <p role="status" aria-live="polite" aria-atomic="true">{w[8]}: {selected.length}</p>}
       <div>
         <strong>{({uk:'Кроки налаштування',ru:'Шаги настройки',de:'Einrichtungsschritte',en:'Setup steps'})[lang] || 'Setup steps'}</strong>
-        {SETUP_STEP_CODES.map(step => <div key={step} style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',padding:'5px 0'}}>
+        {SETUP_STEP_CODES.map(step => <div key={step} className="initial-setup-step">
           <span>{(setupSteps[lang] || setupSteps.en)[step] || step} — {(setupStates[lang] || setupStates.en)[setup.steps?.[step] || 'PENDING'] || (setup.steps?.[step] || 'PENDING')}</span>
           {setup.status !== 'COMPLETED' && <>
             <button className="secondary-button" type="button" disabled={busy || !!pending || !canManageSetup || !canChangeSetupStep(setup, step,'COMPLETE')} onClick={()=>setStep(step,'COMPLETE')}>{({uk:'Позначити виконаним',ru:'Отметить выполненным',de:'Als erledigt markieren',en:'Mark complete'})[lang]}</button>
