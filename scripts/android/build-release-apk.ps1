@@ -16,7 +16,13 @@ $root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $android = Join-Path $root 'android'
 # Pin a clean immutable source revision for the signed APK manifest.
 $sourceSha = ((& git -C $root rev-parse HEAD) | Out-String).Trim().ToLowerInvariant()
-if ($LASTEXITCODE -ne 0 -or $sourceSha -notmatch '^[0-9a-f]{40}
+if ($LASTEXITCODE -ne 0 -or $sourceSha -notmatch '^[0-9a-f]{40}$') {
+    throw 'Could not read source Git SHA.'
+}
+$worktreeChanges = @(& git -C $root status --porcelain --untracked-files=normal)
+if ($LASTEXITCODE -ne 0 -or $worktreeChanges.Count -ne 0) {
+    throw 'Signed release requires a clean Git checkout; commit changes before building.'
+}
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'android-release-output' }
 foreach ($name in @('FP_ANDROID_KEYSTORE_FILE','FP_ANDROID_KEYSTORE_PASSWORD','FP_ANDROID_KEY_ALIAS','FP_ANDROID_KEY_PASSWORD')) {
     if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
