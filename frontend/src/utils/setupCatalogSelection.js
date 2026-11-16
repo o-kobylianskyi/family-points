@@ -27,3 +27,9 @@ export function selectSetupMatching(previous, matchingCodes, checked, catalogCod
   if (!checked) return retained
   return [...new Set([...retained, ...previous.filter(code => selectable.has(code) && matches.has(code)), ...matches])]
 }
+
+/** Deselect-matching is available for any selected result, not only when all match. */
+export function hasSelectedSetupMatch(selected, matchingCodes) {
+  const active = new Set(selected)
+  return matchingCodes.some(code => active.has(code))
+}
