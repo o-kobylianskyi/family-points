@@ -96,3 +96,11 @@
 - New source `qa/e2e/tests/onboarding-v49-synthetic-readonly.spec.js` added **one** Playwright case after operator's `c00d814` 51-case run. It mocks enabled V49 seven-step server state and reads the actual 142-entry/six-pack catalog to exercise selection/search/reload safety without writes. This is a synthetic UI contract, **not** actual Backend V49 enablement. On a checkout including this commit, collected E2E count should be at least **52**, if no other cases are introduced.
 - **Next user acceptance:** pull main after checking local changes, pin SHA, `cd qa/e2e; npx playwright test tests/onboarding-v49-synthetic-readonly.spec.js --reporter=list --workers=1 --trace=off`; then full suite with `--trace=off`. Maintain truthful 2+ V49 server-disabled SKIPS and never authorize real family reset/activation.
 - Release still HOLD: BKL002 full owner-bound VERIFIED restore and production guarded execute not accepted; CI-OPT file-scope acceptance separate.
+
+
+## Operator full V49 synthetic + Web browser acceptance — 2026-11-16
+
+- Attached operator terminal: `npx playwright test --reporter=list --workers=1 --trace=off` **52 collected / 50 PASS / 0 FAIL / 2 SKIPPED**, 1.5 minutes, exit 0. New `onboarding-v49-synthetic-readonly.spec.js` case PASS, demonstrating synthetic enabled seven-step server state with real catalog 142 suggestions / 6 packs; search, bulk-selection and non-writing navigation.
+- All 49 previously accepted executed browser checks also PASS: BKL002 preview/plan errors, security, tenancy, stale epoch and Rewards History. Two real server-dependent V49 scenarios still **SKIPPED**, not acceptance of actual server-enabled full onboarding.
+- `--trace=off` avoids the earlier Playwright teardown ENOENT; trace artifact issue is unresolved. Do not publish browser trace/media or QA credentials.
+- No tested SHA was printed inside this newly submitted execution log; latest known prior operator HEAD `c00d814...` predates synthetic test addition and cannot be attributed to this new 52-case run. Confirm exact operator HEAD and status before same-SHA signoff. BKL002 execute and BETA remain HOLD.
