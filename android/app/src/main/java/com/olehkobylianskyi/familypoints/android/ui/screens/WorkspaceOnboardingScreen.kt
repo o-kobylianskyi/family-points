@@ -59,6 +59,7 @@ fun WorkspaceOnboardingScreen(
     choose: suspend (Long) -> CurrentUserResponse,
     create: suspend (String, String) -> CurrentUserResponse,
     onReady: (CurrentUserResponse) -> Unit,
+    onCreated: (CurrentUserResponse) -> Unit,
     onLogout: () -> Unit
 ) {
     var choices by remember { mutableStateOf<List<AccountWorkspaceChoice>?>(null) }
@@ -106,7 +107,7 @@ fun WorkspaceOnboardingScreen(
                 scope.launch {
                     busy = true
                     error = ""
-                    try { onReady(create(familyName, ownerName)) }
+                    try { onCreated(create(familyName, ownerName)) }
                     catch (e: Exception) { error = labels.createFailed }
                     finally { busy = false }
                 }
