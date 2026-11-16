@@ -61,6 +61,13 @@
 - QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261116_LEDGER_PURCHASE_ANCESTRY.md` `c96f499`, Issue #15 comment 6931656040; seven-class exact-SHA run requested; developer Maven/Docker NOT_RUN. Backend journal `852db09`.
 - **Next P0:** check newest exact-SHA QA/CI source failures, inspect Refund/Point Exchange actual producer contracts before source ancestry extension. Then make isolated source→target purchase ID remap verifier and immutable balance reconciliation without production writes. No VERIFIED/Restore reset execution; HTTP423, BETA HOLD.
 
+## Latest Backend P0 package #19 — 2026-11-16 late
+- Actual production source: `PointExchangeService.executeExchange` uses PointService.spend and earn for same `point_exchange_requests.id`, source_type POINT_EXCHANGE, precise -fromAmount/SPEND from point currency and +toAmount/EARN to point currency; `PointService.refund(...,sourceType,sourceId,...)` receives caller-specified identity, so generic REFUND mapping remains unsupported.
+- Test-only read-only `DisposableExchangeLedgerSourceAuditor` commit `b603b1e`: audit APPROVED exchange request ownership/rate/from-to currencies and exactly 2 ledger legs with one debit and one credit. Disposable Flyway PG18 test `17e6b15` covers valid and other-family/wrong-credit/missing-leg/wrong-debit negatives. No production writes by auditor and no portable exchange archive or target replay.
+- Hardened authenticated `REWARD_PURCHASE` source verifier against duplicate debits to same purchase ID `f5e8ace` with AES fixture `0696744`. No refunds or exchange source-type newly authorized in portable verifier.
+- QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261116_FINANCIAL_SOURCE_EXCHANGE_AUDIT.md` `7f8c33b`; issue #15 comment 6931778184; seven-class pinned Maven command. **Tests NOT_RUN** by GitHub source connector, QA acceptance pending.
+- Backend journal `docs/coordination/logs/backend.md` commit `c88a9a1`. Next P0: QA/CI actual defect triage, add tenant-safe historical point exchange request/rate source catalog to authenticated archive, preserving rate semantics, then explicit remap; do not enable VERIFIED or reset/execute. BETA HOLD HTTP423.
+
 ## Next action priority
 1. **First check #15 and current Actions jobs** for new results of patched regressions, ensure two previously red tests PASS. If FAIL, fix; do not weaken isolation or source closure assertions.
 2. **Next bounded code package:** test-only independent PostgreSQL native replay of `REWARD_REQUIREMENTS` then `REWARD_OBLIGATIONS` with explicit source→target ID maps for purchase, request, definition, task, member, currency, categories; reject unsupported historical dependency/source IDs. Include atomic rollback and cross-tenant proof; no production API.
