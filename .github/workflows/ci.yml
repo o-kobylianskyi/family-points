@@ -79,10 +79,10 @@ jobs:
     env:
       TESTCONTAINERS_RYUK_DISABLED: "false"
     steps:
-      - name: Report backend scope selection
-        run: echo 'backend selected = ${{ needs.changes.outputs.backend }}' >> "$GITHUB_STEP_SUMMARY"
       - name: Checkout source
         uses: actions/checkout@v4
+      - name: Report backend scope selection
+        run: echo 'backend selected = ${{ needs.changes.outputs.backend }}' >> "$GITHUB_STEP_SUMMARY"
       - name: Set up Java 21
         if: needs.changes.outputs.backend == 'true'
         uses: actions/setup-java@v4
@@ -121,10 +121,10 @@ jobs:
       run:
         working-directory: android
     steps:
-      - name: Report android scope selection
-        run: echo 'android selected = ${{ needs.changes.outputs.android }}' >> "$GITHUB_STEP_SUMMARY"
       - name: Checkout source
         uses: actions/checkout@v4
+      - name: Report android scope selection
+        run: echo 'android selected = ${{ needs.changes.outputs.android }}' >> "$GITHUB_STEP_SUMMARY"
       - name: Set up Java 21
         if: needs.changes.outputs.android == 'true'
         uses: actions/setup-java@v4
@@ -171,10 +171,10 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - name: Report web scope selection
-        run: echo 'web selected = ${{ needs.changes.outputs.web }}' >> "$GITHUB_STEP_SUMMARY"
       - name: Checkout source
         uses: actions/checkout@v4
+      - name: Report web scope selection
+        run: echo 'web selected = ${{ needs.changes.outputs.web }}' >> "$GITHUB_STEP_SUMMARY"
       - name: Setup Node
         if: needs.changes.outputs.web == 'true'
         uses: actions/setup-node@v4
@@ -207,9 +207,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - uses: actions/checkout@v4
       - name: Report compose scope selection
         run: echo 'compose selected = ${{ needs.changes.outputs.compose }}' >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/checkout@v4
       - name: Verify compose and secrets placeholders
         if: needs.changes.outputs.compose == 'true'
         env:
