@@ -53,6 +53,8 @@ jobs:
                   frontend/*|qa/*) w=true ;;
                   android/*) a=true ;;
                   scripts/beta/*|compose.beta.yml|Dockerfile.beta) c=true ;;
+                  # Any CI workflow change must validate all build families.
+                  .github/workflows/*) full=true ;;
                   docs/*|README.md|LICENSE) ;;
                   *) full=true ;;
                 esac
