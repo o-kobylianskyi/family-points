@@ -54,3 +54,16 @@ For complete cross-family and child checks, supply only **verified, disposable**
 - `FP_QA_CHILD_USERNAME`, `FP_QA_CHILD_PASSWORD`
 
 Never publish the environment values or browser traces. A zero-failure run with skipped tests is **partial acceptance**, not full V49/BKL-002 release approval.
+
+## V49 finalize receipt — synthetic, isolated browser acceptance
+
+`onboarding-v49-finalize-recovery-synthetic.spec.js` intercepts **all scoped setup and epoch requests** in the browser after signing into the disposable QA family. Both scenarios simulate exactly one explicit `POST /setup/finalize-import` with a lost response, then recover by `GET /setup/finalize-import/receipts/{originalUUID}`:
+
+- **Stale Backend:** a valid durable receipt but `GET /setup` still says `IN_PROGRESS` at the old revision. UI must remain blocked, preserve the original marker, and never send a second finalize POST.
+- **Completed Backend:** the receipt and `GET /setup` both prove `COMPLETED`, seven completed steps and revision+1. UI may clear that exact pending marker and show success, without reposting.
+
+No setup/import traffic reaches the Backend for these synthetic scenarios. Read-only login is still against the configured isolated QA server. **Do not use a real-family admin account.** Do not interpret synthetic PASS as server-feature-enabled end-to-end acceptance.
+
+```powershell
+npx playwright test tests/onboarding-v49-finalize-recovery-synthetic.spec.js --workers=1 --reporter=list --trace=off
+```
