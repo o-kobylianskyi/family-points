@@ -1076,3 +1076,10 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - \`qa/e2e/README.md\` now documents safe repeatable PowerShell commands, \`--trace=off\` work-around, credentials/tenant ID requirements and strict separation of skipped real V49 versus synthetic UI.
 - GitHub Actions main CI [43896634507](https://github.com/o-kobylianskyi/family-points/actions/runs/43896634507) at SHA \`b83548f8c0\` green across five jobs, Web 22/22 Node tests PASS, lint 0 warnings/errors, build PASS 267ms. **This workflow does NOT execute authenticated Playwright**; therefore synthetic test added at this SHA has NOT been proven to pass in a browser. Newer docs/current source require fresh exact-SHA checks.
 - Remaining: run synthetic Playwright in isolated QA; enable real V49 only after Backend authorization in disposable tenant and rerun real acceptance; preserve BKL-002 execute HOLD and full release HOLD.
+
+## 2026-11-16 — Operator verified synthetic V49 Playwright PASS
+
+- Operator ran `npx playwright test tests/onboarding-v49-synthetic-readonly.spec.js --reporter=list --workers=1 --trace=off` from `qa/e2e`: **1 PASS, 0 FAIL, 0 SKIPPED**, test 2.3s, total 4.9s.
+- Most recently supplied local HEAD before this run: `54565d4fcc6e72fc778b656d077f0004a28f478a`; it was not repeated in the same console block. Do not assert immutable same-SHA proof beyond operator context.
+- Test verifies browser UI with **mocked GET-only V49 server metadata** and actual 142-template/six-pack catalog, seven steps, pack selection, search, bulk selection, and no unintended writes. It does not test real Backend-enabled V49 state, real finalization receipt or owner-reauthenticated BKL-002.
+- Previous full operator E2E: **49 PASS, 2 SKIPPED, 0 FAIL**, trace disabled. The two real V49 feature-gated scenarios remain SKIPPED until disposable enabled Backend acceptance. Keep BETA HOLD.
