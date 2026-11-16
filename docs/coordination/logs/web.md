@@ -1182,3 +1182,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-11-16 — WEB-02 synthetic two-tab race cases
 - New Playwright spec `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` commit `381f3f4`; corrected in-flight receipt marker-injection ordering `fe64edb`. Two fixtures verify blocked second finalize after lost first response and preserve a competing UUID marker during receipt GET, with setup APIs intercepted and no real family mutation.
 - Browser runs, Node source regression and current exact-SHA CI are NOT_VERIFIED. QA owns execution and consolidation. BKL-002/BETA HOLD remains.
+
+
+## 2026-11-16 — WEB-02 GitHub Actions actual-job audit
+- Verified directly workflow-run jobs for 43947907960, 43953661904, 43953986968: all three have actual SUCCESS for Web locale check, Node regression, lint and Vite production build. At least one overall fail derives from Backend; latter two also Compose parser failure. Full CI attestation failed as intended. These are historical runs and do NOT verify latest two-tab Playwright spec or latest HEAD. No new Web source modification justified by this evidence.
+- QA handoff remains synthetic two-tab `fe64edb`; BKL-002/BETA HOLD; next consume real browser/CI evidence for exact updated SHA.
