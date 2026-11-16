@@ -63,3 +63,29 @@ test('V49 mocked seven-step state and real 142/6 catalog: selection, search and 
   expect(catalogReads).toBeGreaterThan(0)
   expect(writes,'UI-only mock must not authorize or dispatch setup/ledger mutations').toEqual([])
 })
+
+test('V49 invalid server setup metadata fails closed without offering step writes',async({page})=>{
+  test.skip(!manager || !password,'Disposable manager QA credentials required')
+  await signIn(page)
+  const writes=[]
+  page.on('request',request=>{
+    if(!['GET','HEAD','OPTIONS'].includes(request.method()) &&
+        forbidden.test(new URL(request.url()).pathname))
+      writes.push(request.method()+' '+new URL(request.url()).pathname)
+  })
+  await page.route(/\/workspaces\/\d+\/setup(?:\?.*)?$/,route=>{
+    if(route.request().method()!=='GET') return route.abort()
+    const id=Number(new URL(route.request().url()).pathname.match(/\/workspaces\/(\d+)\/setup/)[1])
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+      workspaceId:id,dataEpoch:0,revision:0,status:'COMPLETED',steps:{MEMBERS:'COMPLETE'},
+    })})
+  })
+  await page.route(/\/template-catalog(?:\?.*)?$/,route=>
+    route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(catalog)}))
+  await page.goto('/settings#initial-family-setup')
+  const section=page.locator('#initial-family-setup')
+  await expect(section).toBeVisible()
+  await expect(section.getByText(/Setup is unavailable or disabled|Налаштування недоступне|Настройка недоступна|Einrichtung ist nicht verfügbar/)).toBeVisible()
+  await expect(section.getByRole('button',{name:/Mark complete|Позначити виконаним|Отметить выполненным|Als erledigt markieren/})).toHaveCount(0)
+  expect(writes).toEqual([])
+})
