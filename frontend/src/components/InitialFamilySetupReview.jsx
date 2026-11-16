@@ -5,7 +5,7 @@ import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { validateSetupCatalog, selectSetupMatching } from '../utils/setupCatalogSelection'
-import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending } from '../utils/setupFinalizeSafety'
+import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES } from '../utils/setupFinalizeSafety'
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
 const words = {
@@ -111,7 +111,8 @@ function InitialFamilySetupReviewContent() {
     Promise.all([getSetupState(getAccessToken(), workspaceId), getTemplateCatalog(getAccessToken())])
       .then(([state, data]) => {
         const checked = validateSetupCatalog(data)
-        if (seq.current === id) { setSetup(state); setCatalog(checked.templates); setPacks(checked.packs) }
+        const safeState = assertSetupState(state, workspaceId)
+        if (seq.current === id) { setSetup(safeState); setCatalog(checked.templates); setPacks(checked.packs) }
       })
       .catch(() => { if (seq.current === id) setUnavailable(true) })
     const guard = seq
@@ -146,7 +147,7 @@ function InitialFamilySetupReviewContent() {
     setBusy(true); setError(false); setReview(null); setConfirmed(false)
     try {
       const result = await setSetupStep(getAccessToken(), origin, step, status, setup.revision)
-      if (id === seq.current) setSetup(result)
+      if (id === seq.current) setSetup(assertSetupState(result, origin))
     } catch (e) { if (id === seq.current) { setError(true); setErrorStatus(e?.status) } }
     finally { if (id === seq.current) setBusy(false) }
   }
@@ -158,7 +159,7 @@ function InitialFamilySetupReviewContent() {
     setBusy(true); setReview(null); setConfirmed(false); setError(false)
     try {
       const result = await reviewSetupCatalog(getAccessToken(), workspace, setup.revision, codes)
-      if (seq.current === id) setReview(result)
+      if (seq.current === id) setReview(assertSetupReview(result, setup, codes))
     } catch { if (seq.current === id) setError(true) }
     finally { if (seq.current === id) setBusy(false) }
   }
@@ -171,7 +172,7 @@ function InitialFamilySetupReviewContent() {
       const result = await getSetupFinalizeReceipt(getAccessToken(), operation.workspaceId, operation.operationId)
       if (activeScope.current !== scope) return
       assertSetupFinalizeReceipt(result, operation)
-      const refreshed = await getSetupState(getAccessToken(), operation.workspaceId)
+      const refreshed = assertSetupState(await getSetupState(getAccessToken(), operation.workspaceId), operation.workspaceId)
       if (activeScope.current !== scope || refreshed.dataEpoch !== operation.epoch) return
       clear(operation); setFinished(result); setSetup(refreshed)
     } catch (e) { if (activeScope.current === scope) { setError(true); setErrorStatus(e?.status) } }
@@ -182,8 +183,9 @@ function InitialFamilySetupReviewContent() {
         sessionStorage.getItem(storageKey) || readShared() ||
         review.revision !== setup.revision || review.dataEpoch !== setup.dataEpoch ||
         setup.status === 'COMPLETED' || !window.crypto?.randomUUID ||
-        !Object.values(setup.steps || {}).every(v => v === 'COMPLETE' || v === 'SKIPPED')) return
+        !SETUP_STEP_CODES.every(code => ['COMPLETE','SKIPPED'].includes(setup.steps?.[code]))) return
     const codes = [...new Set(validCatalog.filter(item => selected.includes(item.code)).map(item => item.code))]
+    try { assertSetupReview(review, setup, codes) } catch { setError(true); return }
     if (!codes.length || selected.some(code => !catalogCodes.has(code)) ||
         JSON.stringify(codes) !== JSON.stringify(review.selectedCodes)) return
     const scope = storageKey
@@ -210,15 +212,15 @@ function InitialFamilySetupReviewContent() {
       {setup.status === 'COMPLETED' && <p role="status">{({uk:'Початкове налаштування завершено. Новий імпорт недоступний.',ru:'Первоначальная настройка завершена. Повторный импорт недоступен.',de:'Ersteinrichtung abgeschlossen. Erneuter Import nicht verfügbar.',en:'Initial setup completed. New import is unavailable.'})[lang]}</p>}
       <p>{(setupStates[lang] || setupStates.en)[setup.status] || setup.status} · {Object.values(setup.steps || {}).filter(x => x === 'COMPLETE' || x === 'SKIPPED').length}/{Object.keys(setup.steps || {}).length}</p>
       {setup.status !== 'COMPLETED' && <div className="template-toolbar">
-        <label>{w[2]}<select value={kind} onChange={e=>{setKind(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="TASK">{w[4]}</option><option value="REWARD">{w[5]}</option></select></label>
-        <label>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}<select value={pack} onChange={e=>{setPack(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{packs.map(p=><option value={p.code} key={p.code}>{p.title?.[lang] || p.title?.en || p.code}</option>)}</select></label>
-        <label>{w[3]}<select value={category} onChange={e=>{setCategory(e.target.value);setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{categories.map(c=><option key={c} value={c}>{templateCategoryLabel(c, lang)}</option>)}</select></label>
+        <label>{w[2]}<select value={kind} disabled={busy || !!pending} onChange={e=>{setKind(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="TASK">{w[4]}</option><option value="REWARD">{w[5]}</option></select></label>
+        <label>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}<select value={pack} disabled={busy || !!pending} onChange={e=>{setPack(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{packs.map(p=><option value={p.code} key={p.code}>{p.title?.[lang] || p.title?.en || p.code}</option>)}</select></label>
+        <label>{w[3]}<select value={category} disabled={busy || !!pending} onChange={e=>{setCategory(e.target.value);setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{categories.map(c=><option key={c} value={c}>{templateCategoryLabel(c, lang)}</option>)}</select></label>
       </div>}
       {setup.status !== 'COMPLETED' && <div className="template-toolbar">
         <label>{({
           uk:'Пошук шаблонів',ru:'Поиск шаблонов',de:'Vorlagen suchen',en:'Search templates',
         })[lang]}
-          <input type="search" value={search} maxLength={120}
+          <input type="search" value={search} maxLength={120} disabled={busy || !!pending}
             onChange={e=>{setSearch(e.target.value);setReview(null);setConfirmed(false);seq.current++}}
             placeholder={({uk:'Назва або код',ru:'Название или код',de:'Titel oder Code',en:'Title or code'})[lang]}/>
         </label>
@@ -258,7 +260,7 @@ function InitialFamilySetupReviewContent() {
       {pending && <div role="status"><p>{({uk:'Результат попередньої операції невідомий. Новий імпорт заблоковано.',ru:'Результат предыдущей операции неизвестен. Новый импорт заблокирован.',de:'Vorheriger Vorgang unklar. Neuer Import gesperrt.',en:'Previous result unknown. New import blocked.'})[lang]}</p><button type="button" className="secondary-button" disabled={busy || !pending?.operationId} onClick={recover}>{({uk:'Перевірити квитанцію',ru:'Проверить квитанцию',de:'Beleg prüfen',en:'Check receipt'})[lang]}</button></div>}
       {review && !pending && setup.status !== 'COMPLETED' && <div>
         <label><input type="checkbox" checked={confirmed} disabled={busy} onChange={e=>setConfirmed(e.target.checked)} />{({uk:'Підтверджую імпорт приватних шаблонів і завершення налаштування без активації.',ru:'Подтверждаю импорт и завершение без активации.',de:'Import und Abschluss ohne Aktivierung bestätigen.',en:'Confirm private template import and setup completion without activation.'})[lang]}</label>
-        <button type="button" className="secondary-button" disabled={busy || !confirmed || !storageKey || !Object.values(setup.steps || {}).every(v=>v==='COMPLETE'||v==='SKIPPED')} onClick={finalize}>{({uk:'Завершити й імпортувати',ru:'Завершить и импортировать',de:'Abschließen und importieren',en:'Finalize and import'})[lang]}</button>
+        <button type="button" className="secondary-button" disabled={busy || !confirmed || !storageKey || !SETUP_STEP_CODES.every(code => ['COMPLETE','SKIPPED'].includes(setup.steps?.[code]))} onClick={finalize}>{({uk:'Завершити й імпортувати',ru:'Завершить и импортировать',de:'Abschließen und importieren',en:'Finalize and import'})[lang]}</button>
       </div>}
       {finished && <p role="status">{({uk:'Імпорт завершено',ru:'Импорт завершён',de:'Import abgeschlossen',en:'Import completed'})[lang]}</p>}
     </>}
