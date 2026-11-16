@@ -81,4 +81,48 @@ class ProtectiveBackupRewardHistoryClosureTest {
         assertTrue(report.blockers().contains("MISSING_CATEGORY:REWARD_DEFINITIONS"));
         assertFalse(report.restorable());
     }
+    @Test void requirementArchiveEnforcesParentGraphAndFamilyScope() throws Exception {
+        var valid=inspect("""
+                {
+                  "REWARD_DEFINITIONS":[{"id":4,"family_id":17}],
+                  "REWARD_REQUIREMENTS":[{
+                    "id":5,"family_id":17,"reward_definition_id":4,
+                    "reward_request_id":null,"task_definition_id":null
+                  }]
+                }
+                """);
+        assertEquals(1,valid.counts().get("REWARD_REQUIREMENTS").intValue());
+        assertFalse(valid.blockers().contains("MISSING_CATEGORY:REWARD_DEFINITIONS"));
+        assertFalse(valid.restorable());
+
+        var missingParent=inspect("""
+                {
+                  "REWARD_REQUIREMENTS":[{
+                    "id":5,"family_id":17,"reward_definition_id":4,
+                    "reward_request_id":null,"task_definition_id":null
+                  }]
+                }
+                """);
+        assertTrue(missingParent.blockers().contains("MISSING_CATEGORY:REWARD_DEFINITIONS"));
+
+        var invalidOwner=inspect("""
+                {
+                  "REWARD_REQUIREMENTS":[{
+                    "id":5,"family_id":17,"reward_definition_id":null,
+                    "reward_request_id":null,"task_definition_id":null
+                  }]
+                }
+                """);
+        assertTrue(invalidOwner.blockers().contains("INVALID_REWARD_REQUIREMENT_OWNER"));
+
+        assertThrows(SecurityException.class,()->inspect("""
+                {
+                  "REWARD_REQUIREMENTS":[{
+                    "id":5,"family_id":18,"reward_definition_id":4,
+                    "reward_request_id":null
+                  }]
+                }
+                """));
+    }
+
 }
