@@ -40,14 +40,27 @@ final class DisposablePointLedgerRestoreExecutor {
             throw new IllegalArgumentException("POINT_LEDGER_REPLAY_INVALID_REQUEST");
         var checked=inspector.inspect(archive,source,key);
         if(!"V50".equals(checked.schemaVersion())
-                || !checked.availableCategories().equals(List.of("POINT_LEDGER")))
+                || !checked.availableCategories().equals(List.of("POINT_LEDGER","POINT_TYPES")))
             throw new IllegalArgumentException("POINT_LEDGER_REPLAY_UNSUPPORTED_SCOPE");
         byte[] raw=codec.open(files.decode(archive),checked.snapshotId(),source,key);
-        final JsonNode rows;
-        try {rows=mapper.readTree(raw).path("categories").path("POINT_LEDGER");}
+        final JsonNode rows,pointTypes;
+        try {
+            var archiveCategories=mapper.readTree(raw).path("categories");
+            rows=archiveCategories.path("POINT_LEDGER");
+            pointTypes=archiveCategories.path("POINT_TYPES");
+        }
         catch(java.io.IOException ex) {throw new IllegalArgumentException("POINT_LEDGER_BAD_ARCHIVE",ex);}
         finally {Arrays.fill(raw,(byte)0);}
-        if(!rows.isArray())throw new IllegalArgumentException("POINT_LEDGER_MISSING_ROWS");
+        if(!rows.isArray() || !pointTypes.isArray())
+            throw new IllegalArgumentException("POINT_LEDGER_MISSING_ROWS");
+        var authenticatedCodes=new HashMap<Long,String>();
+        for(JsonNode pointType:pointTypes) {
+            long id=pointType.path("id").asLong();
+            String code=pointType.path("code").asText();
+            if(id<=0 || pointType.path("family_id").asLong()!=source
+                    || code.isBlank() || authenticatedCodes.putIfAbsent(id,code)!=null)
+                throw new SecurityException("POINT_LEDGER_SOURCE_CURRENCY_INVALID");
+        }
         var memberIds=new HashSet<Long>();var currencyIds=new HashSet<Long>();
         var rowIds=new HashSet<Long>();
         var expected=new TreeMap<String,Long>();
@@ -71,6 +84,8 @@ final class DisposablePointLedgerRestoreExecutor {
         }
         if(!members.keySet().equals(memberIds) || !currencies.keySet().equals(currencyIds)
                 || !expectedCurrencyCodes.keySet().equals(currencyIds)
+                || !authenticatedCodes.keySet().containsAll(currencyIds)
+                || currencyIds.stream().anyMatch(id->!Objects.equals(authenticatedCodes.get(id),expectedCurrencyCodes.get(id)))
                 || members.values().stream().anyMatch(x->x==null || x<=0)
                 || currencies.values().stream().anyMatch(x->x==null || x<=0)
                 || expectedCurrencyCodes.values().stream().anyMatch(x->x==null || x.isBlank())
@@ -96,7 +111,7 @@ final class DisposablePointLedgerRestoreExecutor {
                 String code=db.queryForObject(
                         "SELECT code FROM point_types WHERE id=? AND family_id=? AND active=true",
                         String.class,entry.getValue(),target);
-                if(!Objects.equals(expectedCurrencyCodes.get(entry.getKey()),code))
+                if(!Objects.equals(authenticatedCodes.get(entry.getKey()),code))
                     throw new SecurityException("POINT_LEDGER_CURRENCY_CODE_MISMATCH");
             }
             Long existing=db.queryForObject("""
