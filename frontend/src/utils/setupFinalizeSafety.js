@@ -87,3 +87,19 @@ export function assertSetupReview(review, state, codes) {
     throw new Error('SETUP_REVIEW_MISMATCH')
   return review
 }
+
+/**
+ * A lost PATCH response is NOT permission to automatically replay the write.
+ * The subsequent GET is authoritative only for visible progress: it cannot
+ * prove which browser tab made an otherwise identical change.
+ */
+export function reconcileSetupStepAfterFailure(before, observed, step, desiredStatus) {
+  assertSetupState(before, before?.workspaceId)
+  assertSetupState(observed, before.workspaceId)
+  if (!SETUP_STEP_CODES.includes(step) || !['COMPLETE','SKIPPED'].includes(desiredStatus))
+    throw new Error('SETUP_STEP_RECONCILIATION_INVALID')
+  if (observed.dataEpoch !== before.dataEpoch || observed.revision < before.revision)
+    throw new Error('SETUP_STEP_SCOPE_CHANGED')
+  return observed.revision === before.revision + 1 &&
+    observed.steps?.[step] === desiredStatus ? 'MATCHED' : 'UNCONFIRMED'
+}
