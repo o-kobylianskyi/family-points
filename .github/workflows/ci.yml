@@ -34,6 +34,8 @@ jobs:
           cache: maven
       - name: Confirm Docker
         run: docker info
+      - name: Print tested commit
+        run: git rev-parse HEAD
       - name: Run all backend tests
         run: |
           chmod +x ./mvnw
@@ -72,6 +74,8 @@ jobs:
         run: sdkmanager "platforms;android-36"
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v4
+      - name: Print tested commit
+        run: git rev-parse HEAD
       - name: Compile Android and run unit tests
         run: |
           chmod +x ./gradlew
@@ -104,10 +108,16 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      - name: Print tested commit
+        run: git rev-parse HEAD
       - name: Install dependencies
         run: npm ci
       - name: Check locale completeness
         run: npm run i18n:check
+      - name: Run source-backed Web regression suite
+        run: npm run test:regression
+      - name: Lint Web source
+        run: npm run lint
       - name: Compile frontend
         run: npm run build
 
