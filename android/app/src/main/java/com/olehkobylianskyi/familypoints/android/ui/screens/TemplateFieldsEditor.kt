@@ -81,11 +81,16 @@ internal fun TemplateFieldsEditor(
                 // Material3 accepts a composable slot, not an eagerly evaluated Text().
                 {
                     val guidance = when (templateAmountState(value)) {
-                    TemplateAmountState.UNSET -> label(
-                        "Не задано — рішення про бали ще потрібне. Це не безкоштовно.",
-                        "Nicht festgelegt — Punkte müssen noch entschieden werden. Nicht kostenlos.",
-                        "Not set — points require a decision. Not free.",
-                        "Не задано — баллы ещё нужно определить. Это не бесплатно."
+                    TemplateAmountState.UNSET -> if (key == "priceAmount") label(
+                        "Ціну не задано — це не означає, що нагорода безкоштовна.",
+                        "Preis nicht festgelegt — die Belohnung ist nicht automatisch kostenlos.",
+                        "Price not set — the reward is not automatically free.",
+                        "Цена не задана — это не означает, что награда бесплатна."
+                    ) else label(
+                        "Кількість балів не задано — потрібне рішення.",
+                        "Punktzahl nicht festgelegt — Entscheidung erforderlich.",
+                        "Points not set — a decision is required.",
+                        "Количество баллов не задано — требуется решение."
                     )
                     TemplateAmountState.EXPLICIT_ZERO -> label(
                         "0 — явно задане значення.", "0 — ausdrücklich festgelegt.",
