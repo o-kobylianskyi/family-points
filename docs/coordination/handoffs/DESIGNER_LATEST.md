@@ -29,3 +29,9 @@ User explicitly requires all **real** acceptance testing be conducted together w
 
 ## New-chat bootstrap
 "Continue FamilyPoints as Designer. First read `docs/coordination/handoffs/DESIGNER_LATEST.md`, `docs/coordination/chat-capacity/DESIGNER.md`, issues #18/#15/#20; refresh main and CI evidence. User runs all real E2E tests with QA. Designer source is Web CI green at `19adfe1b7` but overall run #43947907960 is red Backend. Remain in UX defect-fix mode, no real data operations, maintain rolling handoff."
+
+## Latest verification checkpoint — 2026-11-16, ~21:47 CET
+- Observed moving main SHA `a6171d1283c5934274681f4d3545f06c0356dca2`. Compare against tested `19adfe1b7`: 34 commits ahead, one frontend file changed (`InitialFamilySetupReview.jsx`): removal of the unused `allMatchingSelected` declaration only; no known behavior changes. This later SHA is NOT independently certified by the older run.
+- QA Issue #18: no newly reported confirmed Designer-owned UX failure after handoff. Continue support/bug-fix only; user performs live E2E with QA.
+- Backend Issue #15: two red cases from run #43947907960 have source repairs in `839e9f8`, `e1e4e2b`, `9ccfe2e`; QA retest remains requested, newer exact-SHA full CI not yet confirmed. Do not approve BETA or BKL-002 execute.
+- Source review only in this checkpoint, no Designer code mutation or direct test execution. Latest verified Web CI remains #43947907960 @ `19adfe1b7` (all Web steps green; Backend/full gate red).
