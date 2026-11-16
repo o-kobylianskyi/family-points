@@ -68,6 +68,13 @@
 - QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261116_FINANCIAL_SOURCE_EXCHANGE_AUDIT.md` `7f8c33b`; issue #15 comment 6931778184; seven-class pinned Maven command. **Tests NOT_RUN** by GitHub source connector, QA acceptance pending.
 - Backend journal `docs/coordination/logs/backend.md` commit `c88a9a1`. Next P0: QA/CI actual defect triage, add tenant-safe historical point exchange request/rate source catalog to authenticated archive, preserving rate semantics, then explicit remap; do not enable VERIFIED or reset/execute. BETA HOLD HTTP423.
 
+## Latest Backend P0 package #20 — portable authenticated exchange source graph
+- `POINT_EXCHANGE_RATES` and `POINT_EXCHANGE_REQUESTS` added to family-scoped source exporter `efaa597`, digest `59eac35`, backup metadata registry `8d1e21b`. If source POINT_LEDGER contains POINT_EXCHANGE, exporter requires both plus POINT_TYPES; request/rate/currency/reviewer foreign family denied.
+- `ProtectiveBackupImportInspector` `b99ca55` and `f15bb4e`: two new category FK/tenant/owner validators; immutable per-request rate snapshot multiplier checked independently of mutable current rate; signed ledger exactly one SPEND(-fromAmount) and EARN(+toAmount) referencing same original request ID, approved status and same member. `restorable=false` always; no native target replay.
+- Economic closure `1988200` now reports 14 categories including both exchange scopes; test counts updated `f049607`, `86206fa`. PG18 AES export `9fda117` and Jackson ObjectNode structural cases `b6fa9d9`, snapshot mismatch negatives `f7d1db3` all authored **NOT_RUN**.
+- Independent QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261116_PORTABLE_EXCHANGE_GRAPH.md` `09984d0`, issue #15 comment 6932004395; ten-class pinned Java/PG18 suite; no current SHA green proof. Full financial replay, REFUND source semantics, protected VERIFIED, owner reauth, reset Execute **HTTP423 / BETA HOLD**.
+- Backend detailed journal `4545c10`. Next P0: read QA #20 failure logs first, fix actual regressions; then test-only source→target exchange member/currency/rate and 2-leg ledger remapping with conservation proof; no production financial mutation.
+
 ## Next action priority
 1. **First check #15 and current Actions jobs** for new results of patched regressions, ensure two previously red tests PASS. If FAIL, fix; do not weaken isolation or source closure assertions.
 2. **Next bounded code package:** test-only independent PostgreSQL native replay of `REWARD_REQUIREMENTS` then `REWARD_OBLIGATIONS` with explicit source→target ID maps for purchase, request, definition, task, member, currency, categories; reject unsupported historical dependency/source IDs. Include atomic rollback and cross-tenant proof; no production API.
