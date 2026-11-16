@@ -17,7 +17,9 @@ public final class ProtectiveBackupImportInspector {
     private static final Set<String> CATEGORIES=Set.of(
         "PRIVATE_TEMPLATES","TASK_DEFINITIONS","TASK_EXECUTIONS","TASK_SCHEDULE_SLOTS",
         "REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_REQUIREMENTS","REWARD_PURCHASES",
-        "REWARD_CATEGORIES","REWARD_DEFINITION_CATEGORIES","MEMBER_GROUPS",
+        "REWARD_CATEGORIES","REWARD_DEFINITION_CATEGORIES",
+        "REWARD_OBLIGATIONS","REWARD_OBLIGATION_BLOCKED_CATEGORIES",
+        "REWARD_OBLIGATION_BLOCKED_REWARDS","MEMBER_GROUPS",
         "WORK_NODES","MEDIA_ASSETS","MEDIA_BINDINGS","POINT_LEDGER","REPUTATION_LEDGER",
         "GROUP_POINT_LEDGER");
     private final ProtectiveBackupPortableFile files;
@@ -121,6 +123,16 @@ public final class ProtectiveBackupImportInspector {
                         rowKey=Long.toString(item.path("workspace_id").asLong())+":"+
                                 item.path("target_type").asText()+":"+
                                 item.path("target_id").asLong()+":"+item.path("slot").asText();
+                    } else if("REWARD_OBLIGATION_BLOCKED_CATEGORIES".equals(name)
+                            || "REWARD_OBLIGATION_BLOCKED_REWARDS".equals(name)) {
+                        String target="REWARD_OBLIGATION_BLOCKED_CATEGORIES".equals(name)
+                                ?"category_id":"reward_definition_id";
+                        JsonNode obligation=item.path("obligation_id");
+                        JsonNode parent=item.path(target);
+                        if(!obligation.isIntegralNumber() || obligation.asLong()<=0
+                                || !parent.isIntegralNumber() || parent.asLong()<=0)
+                            throw new IllegalArgumentException("Invalid reward obligation block composite PK");
+                        rowKey=obligation.asLong()+":"+parent.asLong();
                     } else if("REWARD_DEFINITION_CATEGORIES".equals(name)) {
                         JsonNode definition=item.path("reward_definition_id");
                         JsonNode category=item.path("category_id");
@@ -174,7 +186,7 @@ public final class ProtectiveBackupImportInspector {
                             || "MEDIA_BINDINGS".equals(name) || "MEDIA_ASSETS".equals(name)?"workspace_id":
                             java.util.Set.of("MEMBER_GROUPS","TASK_DEFINITIONS",
                                     "REWARD_DEFINITIONS","REWARD_REQUESTS","REWARD_REQUIREMENTS",
-                                    "REWARD_CATEGORIES","WORK_NODES")
+                                    "REWARD_CATEGORIES","REWARD_OBLIGATIONS","WORK_NODES")
                                     .contains(name)?"family_id":null;
                     if(ownerColumn!=null && (!item.path(ownerColumn).isIntegralNumber()
                             || item.path(ownerColumn).asLong()!=targetWorkspace))
@@ -191,7 +203,9 @@ public final class ProtectiveBackupImportInspector {
             for(var entry=categories.fields();entry.hasNext();) {
                 var cat=entry.next();
                 if("MEDIA_BINDINGS".equals(cat.getKey())
-                        || "REWARD_DEFINITION_CATEGORIES".equals(cat.getKey()))continue;
+                        || "REWARD_DEFINITION_CATEGORIES".equals(cat.getKey())
+                        || "REWARD_OBLIGATION_BLOCKED_CATEGORIES".equals(cat.getKey())
+                        || "REWARD_OBLIGATION_BLOCKED_REWARDS".equals(cat.getKey()))continue;
                 var idsForCategory=new HashSet<Long>();
                 for(JsonNode row:cat.getValue()) {
                     if(row.path("id").isIntegralNumber())idsForCategory.add(row.path("id").asLong());
@@ -202,6 +216,19 @@ public final class ProtectiveBackupImportInspector {
                     "REWARD_DEFINITION_CATEGORIES","reward_definition_id","REWARD_DEFINITIONS");
             checkParent(categories,rowIds,blockers,
                     "REWARD_DEFINITION_CATEGORIES","category_id","REWARD_CATEGORIES");
+            checkParent(categories,rowIds,blockers,
+                    "REWARD_OBLIGATIONS","reward_purchase_id","REWARD_PURCHASES");
+            checkOptionalParent(categories,rowIds,blockers,
+                    "REWARD_OBLIGATIONS","requirement_id","REWARD_REQUIREMENTS");
+            checkMemberParent(categories,blockers,"REWARD_OBLIGATIONS");
+            checkParent(categories,rowIds,blockers,
+                    "REWARD_OBLIGATION_BLOCKED_CATEGORIES","obligation_id","REWARD_OBLIGATIONS");
+            checkParent(categories,rowIds,blockers,
+                    "REWARD_OBLIGATION_BLOCKED_CATEGORIES","category_id","REWARD_CATEGORIES");
+            checkParent(categories,rowIds,blockers,
+                    "REWARD_OBLIGATION_BLOCKED_REWARDS","obligation_id","REWARD_OBLIGATIONS");
+            checkParent(categories,rowIds,blockers,
+                    "REWARD_OBLIGATION_BLOCKED_REWARDS","reward_definition_id","REWARD_DEFINITIONS");
             checkParent(categories,rowIds,blockers,"TASK_SCHEDULE_SLOTS","task_definition_id","TASK_DEFINITIONS");
             // Portable archives cannot assume that a parent omitted by the
             // selected subset will be present in the target workspace.
