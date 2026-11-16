@@ -4,6 +4,7 @@ import { useAuth } from '../context/authContextValue'
 import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
+import { validateSetupCatalog, selectSetupMatching } from '../utils/setupCatalogSelection'
 import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending } from '../utils/setupFinalizeSafety'
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
@@ -107,7 +108,10 @@ function InitialFamilySetupReviewContent() {
     const id = ++seq.current
     if (!workspaceId || !canManageSetup) return
     Promise.all([getSetupState(getAccessToken(), workspaceId), getTemplateCatalog(getAccessToken())])
-      .then(([state, data]) => { if (seq.current === id) { setSetup(state); setCatalog(Array.isArray(data?.templates) ? data.templates : []); setPacks(Array.isArray(data?.packs) ? data.packs : []) } })
+      .then(([state, data]) => {
+        const checked = validateSetupCatalog(data)
+        if (seq.current === id) { setSetup(state); setCatalog(checked.templates); setPacks(checked.packs) }
+      })
       .catch(() => { if (seq.current === id) setUnavailable(true) })
     const guard = seq
     return () => { if (guard.current === id) guard.current = id + 1 }
@@ -122,6 +126,12 @@ function InitialFamilySetupReviewContent() {
     (pack === 'ALL' || packs.find(p => p.code === pack)?.templateCodes?.includes(item.code)))
   const categories = [...new Set(typed.map(cat))].sort()
   const items = typed.filter(item => category === 'ALL' || cat(item) === category)
+  const matchingCodes = items.map(item => item.code)
+  const allMatchingSelected = matchingCodes.length > 0 && matchingCodes.every(code => selected.includes(code))
+  const updateSelection = checked => {
+    setSelected(previous => selectSetupMatching(previous, matchingCodes, checked, catalogCodes))
+    setReview(null); setConfirmed(false); seq.current++
+  }
   const setStep = async (step, status) => {
     if (!canManageSetup || !setup || busy || pending || readShared() || setup.status === 'COMPLETED') return
     const id = ++seq.current
@@ -197,9 +207,22 @@ function InitialFamilySetupReviewContent() {
         <label>{({uk:'Набір',ru:'Набор',de:'Paket',en:'Pack'})[lang] || 'Pack'}<select value={pack} onChange={e=>{setPack(e.target.value);setCategory('ALL');setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{packs.map(p=><option value={p.code} key={p.code}>{p.title?.[lang] || p.title?.en || p.code}</option>)}</select></label>
         <label>{w[3]}<select value={category} onChange={e=>{setCategory(e.target.value);setReview(null);setConfirmed(false);seq.current++}}><option value="ALL">{w[6]}</option>{categories.map(c=><option key={c} value={c}>{templateCategoryLabel(c, lang)}</option>)}</select></label>
       </div>}
+      {setup.status !== 'COMPLETED' && <div className="template-toolbar">
+        <button type="button" className="secondary-button"
+          disabled={busy || !!pending || matchingCodes.length === 0}
+          onClick={() => updateSelection(true)}>{({
+            uk:'Вибрати всі знайдені',ru:'Выбрать все найденные',de:'Alle Treffer auswählen',en:'Select all matching',
+          })[lang]}</button>
+        <button type="button" className="secondary-button"
+          disabled={busy || !!pending || !allMatchingSelected}
+          onClick={() => updateSelection(false)}>{({
+            uk:'Зняти вибір із знайдених',ru:'Снять выбор с найденных',de:'Trefferauswahl entfernen',en:'Deselect matching',
+          })[lang]}</button>
+        <span>{matchingCodes.length} / {catalog.length}</span>
+      </div>}
       {setup.status !== 'COMPLETED' && <div style={{maxHeight:260,overflowY:'auto'}}>
         {items.map(item=><label key={item.code} style={{display:'flex',gap:8,padding:'4px 0'}}>
-          <input type="checkbox" disabled={busy || setup.status === 'COMPLETED'} checked={selected.includes(item.code)} onChange={()=>{setSelected(v=>v.includes(item.code)?v.filter(c=>c!==item.code):[...v,item.code]);setReview(null);setConfirmed(false);seq.current++}}/>
+          <input type="checkbox" disabled={busy || !!pending || setup.status === 'COMPLETED'} checked={selected.includes(item.code)} onChange={()=>{setSelected(v=>selectSetupMatching(v,[item.code],!v.includes(item.code),catalogCodes));setReview(null);setConfirmed(false);seq.current++}}/>
           <span>{item.title?.[lang] || item.title?.en || item.code}</span>
         </label>)}
       </div>}
