@@ -6,7 +6,7 @@ import { currencyQuantity } from './formatCurrencyAmount'
 /** Hook shared by pages with currency amounts; preserves built-in fallbacks when API is older. */
 export function useCurrencyQuantity(token, workspaceId) {
   const { i18n } = useTranslation()
-  const scope = `${token ? 'authenticated' : 'anonymous'}:${workspaceId}`
+  const scope = `${token ?? 'anonymous'}:${workspaceId}`
   const [snapshot, setSnapshot] = useState({scope:null,types:[],forms:{}})
 
   useEffect(() => {
