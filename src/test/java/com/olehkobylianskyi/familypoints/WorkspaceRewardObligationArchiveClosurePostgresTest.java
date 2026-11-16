@@ -186,7 +186,10 @@ class WorkspaceRewardObligationArchiveClosurePostgresTest {
         var graph=new ProtectiveBackupImportInspector(portable,codec)
                 .inspect(complete.encryptedFile(),family,key);
         assertEquals(1,graph.counts().get("REWARD_DEFINITION_CATEGORIES").intValue());
-        assertEquals(1,graph.counts().get("REWARD_CATEGORIES").intValue());
+        assertEquals(2,graph.counts().get("REWARD_CATEGORIES").intValue());
+        assertEquals(2L,db.queryForObject(
+                "SELECT count(*) FROM reward_categories WHERE family_id=?",
+                Long.class,family).longValue());
         assertEquals(1,graph.counts().get("REWARD_DEFINITIONS").intValue());
         assertFalse(graph.restorable());
         assertFalse(graph.blockers().contains("MISSING_CATEGORY:REWARD_CATEGORIES"));
