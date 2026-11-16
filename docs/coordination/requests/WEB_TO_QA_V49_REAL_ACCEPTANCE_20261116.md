@@ -49,3 +49,8 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 - QA synthetic run (not a real V49 acceptance): `cd qa/e2e && npx playwright test tests/onboarding-v49-two-tab-synthetic.spec.js --reporter=list --workers=1 --trace=off`. Run only in configured QA environment with disposable QA manager credentials and selected isolated workspace; test intercepts scoped setup/data-epoch endpoints.
 - Verify two tests individually: lost-response A retains UUID and tab B never POSTs; competing UUID injected during receipt GET remains in storage despite original receipt. Record exact source SHA, request counts, PASS/FAIL/SKIP and failure trace.
 - **NOT_RUN** by Web; failures route back to Web. No operator request outside consolidated QA campaign, no destructive BKL-002 execute/restore.
+
+
+## WEB-02 CI audit coverage note (2026-11-16)
+- Directly observed actual Web job steps on runs `43947907960`, `43953661904`, `43953986968`: i18n, Node regression, lint and Vite build all SUCCESS. These runs do **not** execute newly added `onboarding-v49-two-tab-synthetic.spec.js`; overall full CI FAIL from Backend and (in later runs) Compose, unrelated to observed Web steps. No newest-HEAD or Playwright PASS claim.
+- QA still owns pinned-SHA two-tab synthetic browser execution and independent disposable-family real acceptance. Record exact SHA, environment, request counts and PASS/FAIL/SKIP.
