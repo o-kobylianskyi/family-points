@@ -72,4 +72,51 @@ test.describe('V50 backup registry: metadata only, never executable', () => {
     await expect(panel.locator('input[type="file"]')).toHaveCount(0)
     expect(writes).toEqual([])
   })
+  test('failed registry/detail reads recover after explicit retry without stale backup claims', async ({ page }) => {
+    await login(page)
+    const writes = []
+    page.on('request', request => {
+      const path = new URL(request.url()).pathname
+      if (!['GET','HEAD','OPTIONS'].includes(request.method()) &&
+          /\/workspaces\/\d+\/(?:protective-backups|data-reset|restore)(?:\/|$)/.test(path))
+        writes.push(request.method() + ' ' + path)
+    })
+    const snapshot = '44444444-4444-4444-8444-444444444444'
+    let registryReads = 0
+    await page.route(registry, route => {
+      registryReads++
+      if (registryReads === 1) return route.fulfill({status:503,contentType:'application/json',body:'{}'})
+      const id = Number(new URL(route.request().url()).pathname.match(/\/workspaces\/(\d+)\//)[1])
+      return route.fulfill({
+        status:200,contentType:'application/json',
+        body:JSON.stringify([backupRow(id,snapshot,{state:'VERIFIED',restoreVerified:true,executable:true,selectedCategories:['PRIVATE_TEMPLATES']})])
+      })
+    })
+    let detailReads = 0
+    await page.route(/\/workspaces\/\d+\/protective-backups\/44444444-4444-4444-8444-444444444444(?:\?.*)?$/, route => {
+      detailReads++
+      if (detailReads === 1) return route.fulfill({status:503,contentType:'application/json',body:'{}'})
+      const id = Number(new URL(route.request().url()).pathname.match(/\/workspaces\/(\d+)\//)[1])
+      return route.fulfill({status:200,contentType:'application/json',
+        body:JSON.stringify(backupRow(id,snapshot,{state:'VERIFIED',restoreVerified:true,executable:true,selectedCategories:['PRIVATE_TEMPLATES']}))
+      })
+    })
+    await page.goto('/settings')
+    const panel = page.locator('[aria-label="Family data safety planning"]')
+    await expect(panel.getByRole('alert')).toBeVisible()
+    await expect(panel.getByText('44444444', {exact:false})).toHaveCount(0)
+    await panel.getByRole('button',{name:/Refresh list|Оновити список|Обновить список|Liste aktualisieren/}).click()
+    await expect(panel.getByRole('alert')).toHaveCount(0)
+    await expect(panel.getByText('44444444', {exact:false})).toBeVisible()
+    await panel.getByRole('button',{name:/View metadata|Переглянути запис|Просмотреть запись|Eintrag ansehen/}).click()
+    await expect(panel.getByRole('alert')).toBeVisible()
+    await expect(panel.getByText(/This record does not prove recoverability|Цей запис не підтверджує можливість відновлення|Запись не подтверждает возможность восстановления|Dieser Eintrag bestätigt keine Wiederherstellbarkeit/)).toHaveCount(0)
+    await panel.getByRole('button',{name:/Refresh details|Оновити деталі|Обновить детали|Details aktualisieren/}).click()
+    await expect(panel.getByRole('alert')).toHaveCount(0)
+    await expect(panel.getByText(/This record does not prove recoverability|Цей запис не підтверджує можливість відновлення|Запись не подтверждает возможность восстановления|Dieser Eintrag bestätigt keine Wiederherstellbarkeit/)).toBeVisible()
+    expect(registryReads).toBe(2)
+    expect(detailReads).toBe(2)
+    expect(writes).toEqual([])
+  })
+
 })
