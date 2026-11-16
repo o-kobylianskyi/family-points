@@ -137,7 +137,7 @@ export default function CalendarPage(){
           </button>)}
         </div>}
         {view==='week'&&<div className="fp-cal-week">
-          {dates.map(day=><section key={day} className={'fp-cal-day-column'+(day===iso(new Date())?' today':'')}>
+          {dates.map(day=><section key={day} className={'fp-cal-day-column'+(day===today?' today':'')}>
             <button className="fp-cal-day-title" onClick={()=>onDay(day)}><small>{dateLabel(day,lang,{weekday:'short'})}</small><strong>{Number(day.slice(-2))}</strong></button>
             <div className="fp-cal-day-items">{(grouped.get(day)||[]).map((e,i)=><EventCard key={e.key||i} event={e} t={t}/>)}</div>
           </section>)}
