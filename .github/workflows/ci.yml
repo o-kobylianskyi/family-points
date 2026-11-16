@@ -225,6 +225,7 @@ jobs:
         run: |
           bash -n scripts/android/publish-apk.sh
           bash -n scripts/beta/backup.sh
+          bash -n scripts/beta/deploy-release.sh
       - name: Parse Windows release tooling PowerShell scripts
         if: needs.changes.outputs.compose == 'true'
         shell: pwsh
@@ -256,6 +257,9 @@ jobs:
       - name: Verify backup is atomic and rejects incomplete archives (fake Docker)
         if: needs.changes.outputs.compose == 'true'
         run: python3 -m unittest discover -s scripts/beta -p test_backup_safety.py -v
+      - name: Verify deployment safety via fake git, Docker and HTTP
+        if: needs.changes.outputs.compose == 'true'
+        run: python3 -m unittest discover -s scripts/beta -p test_deploy_safety.py -v
       - name: Verify compose and secrets placeholders
         if: needs.changes.outputs.compose == 'true'
         env:
