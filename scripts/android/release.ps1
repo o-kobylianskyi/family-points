@@ -128,7 +128,7 @@ function Publish-Release($config) {
     if ([int]$local.versionCode -le $published) { throw 'APK is not newer than public version; publication blocked.' }
     $answer = Read-Host "Publish $($local.versionName) to public BETA? Type PUBLISH"
     if ($answer -cne 'PUBLISH') { throw 'Cancelled.' }
-    & (Join-Path $PSScriptRoot 'publish-to-contabo.ps1') -HostName $config.contaboHost -UserName $config.contaboUser -SshKey (Expand-Setting $config.sshKey)
+    & (Join-Path $PSScriptRoot 'publish-to-contabo.ps1') -HostName $config.contaboHost -UserName $config.contaboUser -SshKey (Expand-Setting $config.sshKey) -ExpectedCertificateSha256 $config.expectedCertificateSha256
     if (-not $?) { throw 'Publisher error. Inspect public manifest before retrying; APK may already be published.' }
 }
 $config = Read-Config
