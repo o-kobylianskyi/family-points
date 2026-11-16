@@ -110,10 +110,10 @@ fun WorkspaceSetupStatusScreen(
         if (unavailable) {
             Text(
                 setupText(language,
-                    "Серверне налаштування недоступне. Жодних змін не виконано.",
-                    "Серверная настройка недоступна. Изменений не внесено.",
-                    "Servereinrichtung nicht verfügbar. Es wurden keine Änderungen vorgenommen.",
-                    "Server setup unavailable. No changes were made."),
+                    "Сім'ю створено, але стан початкового налаштування зараз недоступний. На цьому екрані нічого не змінено.",
+                    "Семья создана, но состояние первоначальной настройки сейчас недоступно. На этом экране ничего не изменено.",
+                    "Die Familie wurde erstellt, aber der Einrichtungsstatus ist derzeit nicht verfügbar. Auf diesem Bildschirm wurde nichts geändert.",
+                    "The family was created, but setup status is currently unavailable. This screen made no changes."),
                 color = MaterialTheme.colorScheme.error
             )
             OutlinedButton(onClick = { attempt++ }) {
