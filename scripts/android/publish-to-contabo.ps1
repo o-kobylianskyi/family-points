@@ -21,7 +21,7 @@ $changes = @(& git -C $root status --porcelain --untracked-files=normal)
 if ($LASTEXITCODE -ne 0 -or $changes.Count -ne 0) {
     throw 'Publication requires a clean Git checkout.'
 }
-& python scripts/android/verify_release_manifest.py $apk $jsonFile --expected-source-sha $gitSha
+& python (Join-Path $PSScriptRoot 'verify_release_manifest.py') $apk $jsonFile --expected-source-sha $gitSha
 if ($LASTEXITCODE -ne 0) { throw 'Release manifest integrity/source SHA verification failed.' }
 $metadata = Get-Content -LiteralPath $jsonFile -Raw -Encoding UTF8 | ConvertFrom-Json
 $hash = (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLowerInvariant()
