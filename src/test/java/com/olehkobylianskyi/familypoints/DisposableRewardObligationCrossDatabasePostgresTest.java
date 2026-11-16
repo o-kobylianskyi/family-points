@@ -12,6 +12,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import javax.crypto.KeyGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -106,6 +108,41 @@ class DisposableRewardObligationCrossDatabasePostgresTest {
         var wrongMembers=Map.of(src.member(),neighbor.member());
         assertThrows(SecurityException.class,()->replay.apply(
                 archive,src.family(),dst.family(),wrongMembers,purchases,
+                Map.of(),categories,rewards,key));
+        assertEquals(0L,target.queryForObject(
+                "SELECT count(*) FROM reward_obligations WHERE family_id=?",
+                Long.class,dst.family()));
+
+        // A purchase of the same family but changed historic terms is not an
+        // acceptable substitute for the original obligation's purchase.
+        target.update("UPDATE reward_purchases SET price_amount=6 WHERE id=?",dst.purchase());
+        assertThrows(SecurityException.class,()->replay.apply(
+                archive,src.family(),dst.family(),members,purchases,
+                Map.of(),categories,rewards,key));
+        assertEquals(0L,target.queryForObject(
+                "SELECT count(*) FROM reward_obligations WHERE family_id=?",
+                Long.class,dst.family()));
+        target.update("UPDATE reward_purchases SET price_amount=5 WHERE id=?",dst.purchase());
+
+        // Authenticated but invalid second obligation must roll back the
+        // successful first INSERT atomically (title exceeds varchar(255)).
+        var mapper=new ObjectMapper();
+        var decoded=portable.decode(archive);
+        byte[] raw=codec.open(decoded,decoded.manifest().snapshotId(),src.family(),key);
+        var modified=(ObjectNode)mapper.readTree(raw);
+        Arrays.fill(raw,(byte)0);
+        var obligationRows=(com.fasterxml.jackson.databind.node.ArrayNode)
+                modified.path("categories").path("REWARD_OBLIGATIONS");
+        var oversized=(ObjectNode)obligationRows.get(0).deepCopy();
+        oversized.put("id",obligation+10000);
+        oversized.put("title","A".repeat(300));
+        obligationRows.add(oversized);
+        var invalidSealed=codec.seal(UUID.randomUUID(),src.family(),
+                UUID.randomUUID(),0L,"a".repeat(64),"V50",
+                mapper.writeValueAsBytes(modified),key);
+        var invalidFile=portable.encode(invalidSealed);
+        assertThrows(RuntimeException.class,()->replay.apply(
+                invalidFile,src.family(),dst.family(),members,purchases,
                 Map.of(),categories,rewards,key));
         assertEquals(0L,target.queryForObject(
                 "SELECT count(*) FROM reward_obligations WHERE family_id=?",
