@@ -124,7 +124,11 @@ export function reconcileSetupStepAfterFailure(before, observed, step, desiredSt
   if (observed.dataEpoch !== before.dataEpoch || observed.revision < before.revision)
     throw new Error('SETUP_STEP_SCOPE_CHANGED')
   return observed.revision === before.revision + 1 &&
-    observed.steps?.[step] === desiredStatus ? 'MATCHED' : 'UNCONFIRMED'
+    observed.status === 'IN_PROGRESS' &&
+    observed.steps?.[step] === desiredStatus &&
+    !Object.entries(before.steps).some(([code, value]) =>
+      code !== step && observed.steps?.[code] !== value)
+    ? 'MATCHED' : 'UNCONFIRMED'
 }
 
 /** UUID alone is not an operation identity: all scoped immutable fields must match. */
