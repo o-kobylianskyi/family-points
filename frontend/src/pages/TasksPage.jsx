@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/authContextValue'
 import MemberAvatar from '../components/MemberAvatar'
 import EntityMedia from '../components/EntityMedia'
 import { getWorkspaceMembers } from '../api/workspaceApi'
