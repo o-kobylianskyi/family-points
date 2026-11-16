@@ -113,7 +113,11 @@ function TasksPageContent() {
   const canCreateTasks = !isChild && (currentUser.permissions?.includes('CREATE_TASKS') || currentUser.permissions?.includes('ADMIN_OVERRIDE'))
 
   useEffect(() => {
-    if (searchParams.get('create') === '1') {
+    let active = true
+    // A URL navigation is an external event: reconcile after commit, not
+    // by synchronously cascading state updates during the effect.
+    void Promise.resolve().then(() => {
+      if (!active || searchParams.get('create') !== '1') return
       if (canCreateTasks) {
         const requested = searchParams.get('template')
         setInitialCreateTemplateId(requested && /^[0-9]+$/.test(requested) ? requested : null)
@@ -125,7 +129,8 @@ function TasksPageContent() {
         next.delete('template')
         return next
       }, { replace: true })
-    }
+    })
+    return () => { active = false }
   }, [searchParams, canCreateTasks, setSearchParams])
 
   const canManageRewardRequests =
