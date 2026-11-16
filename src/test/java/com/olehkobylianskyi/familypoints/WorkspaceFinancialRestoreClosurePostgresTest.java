@@ -54,7 +54,7 @@ class WorkspaceFinancialRestoreClosurePostgresTest {
         var result=new WorkspaceFinancialRestoreClosureService(db).assess(source,
                 List.of("POINT_LEDGER","REPUTATION_LEDGER","MEMBER_GROUPS"));
         assertTrue(result.financialHistoryPresent());
-        assertEquals(12,result.categories().size());
+        assertEquals(14,result.categories().size());
         assertFalse(result.replaySupported());
         var groupResult=result.categories().stream()
                 .filter(x->x.category().equals("GROUP_POINT_LEDGER"))
