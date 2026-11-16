@@ -94,6 +94,19 @@ public class WorkspacePortableBackupExporter {
                 if(invalid==null || invalid!=0L)
                     throw new SecurityException("BACKUP_GROUP_LEDGER_FOREIGN_CURRENCY");
             }
+            if("POINT_LEDGER".equals(category)) {
+                // The member FK alone is insufficient to prove a compatible
+                // denomination. Block corrupted legacy cross-family point
+                // types rather than producing a plausible encrypted archive.
+                Long invalid=db.queryForObject("""
+                        SELECT count(*) FROM point_transactions t
+                        JOIN family_members m ON m.id=t.member_id
+                        LEFT JOIN point_types p ON p.id=t.point_type_id
+                        WHERE m.family_id=? AND (p.id IS NULL OR p.family_id<>m.family_id)
+                        """,Long.class,workspaceId);
+                if(invalid==null || invalid!=0L)
+                    throw new SecurityException("BACKUP_POINT_LEDGER_FOREIGN_CURRENCY");
+            }
             Scope scope=SCOPED_TABLES.get(category);
             String filter=" FROM public."+scope.table()+" t WHERE "+scope.condition();
             Integer count=db.queryForObject("SELECT count(*)"+filter,Integer.class,workspaceId);
