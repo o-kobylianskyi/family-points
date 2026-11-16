@@ -24,7 +24,6 @@ export default function MemberAvatar({ memberId, name = '', className = '', size
   useEffect(() => {
     let active = true
     let createdUrl = null
-    setImageUrl(null)
     if (!workspaceId || !memberId) return () => { active = false }
     const token = getAccessToken()
     getMediaBinding(token, workspaceId, 'MEMBER', memberId, 'AVATAR')
