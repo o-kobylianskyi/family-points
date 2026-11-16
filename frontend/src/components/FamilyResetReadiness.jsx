@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './FamilyResetReadiness.css'
 import { useAuth } from '../context/AuthContext'
@@ -180,7 +180,7 @@ function FamilyResetReadinessContent() {
   const workspaceRef = useRef(workspaceId)
   useEffect(() => { workspaceRef.current = workspaceId }, [workspaceId])
 
-  const load = async (id, requestId) => {
+  const load = useCallback(async (id, requestId) => {
     selectionRevision.current += 1
     auditGeneration.current += 1; selectionAuditGeneration.current += 1
     setAudit(null); setSelectionAudit(null); setAuditError(false); setAuditBusy(false)
@@ -196,13 +196,14 @@ function FamilyResetReadinessContent() {
     } finally {
       if (generation.current === requestId && workspaceRef.current === id) setBusy(false)
     }
-  }
+  }, [getAccessToken])
   useEffect(() => {
     if (!workspaceId) return
-    const requestId = ++generation.current
-    load(workspaceId, requestId)
-    return () => { generation.current += 1 }
-  }, [workspaceId])
+    const guard = generation
+    const requestId = ++guard.current
+    void Promise.resolve().then(() => load(workspaceId, requestId))
+    return () => { guard.current += 1 }
+  }, [workspaceId, load])
 
   const check = async () => {
     const id = workspaceId, requestId = ++generation.current, selectionId = selectionRevision.current
