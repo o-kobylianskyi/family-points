@@ -73,3 +73,11 @@
 - Operator reran `npx playwright test tests/reset-failure-recovery.spec.js --reporter=list --workers=1 --trace=off`: **4 PASS, 0 FAIL**, 10.6 s. Scenarios: preview HTTP 503 / Reload recovery 200, malformed Plan fail-closed, late Plan after navigation, late Preview after leaving Settings. No destructive execute.
 - This distinguishes the earlier `browserContext.close ENOENT ... .playwright-artifacts-0/traces/recording57.trace` from a reproducible Reset Recovery assertion failure under trace-disabled conditions; underlying trace artifact lifecycle still needs investigation. It does not retroactively convert prior 51-case Playwright full run (48 PASS / 1 FAIL / 2 SKIP) into all-green.
 - Next verify one full 51+-case E2E with `--trace=off` and pinned HEAD. Two server-disabled V49 cases remain legitimate SKIP until disposable Backend V49 enabled; do not count those as PASS. Keep BKL002 production execute and BETA HOLD.
+
+
+## Operator full Playwright rerun — 2026-11-16, trace disabled
+
+- Operator attached complete console output: `npx playwright test --reporter=list --workers=1 --trace=off`, **51 collected / 49 PASS / 0 FAIL / 2 SKIPPED, 1.3 minutes**, no command failure. Previous one-off trace teardown ENOENT did not recur when trace capture was disabled.
+- Accepted as successful run of **all 49 executed scenarios**: BKL002 readonly preview/plan failures and recovery, backup metadata tenant fencing, four-locale UI smoke, epoch write-verb quarantine, child and cross-tenant 401/403 ACL, purchase-only Reward History GET-only, task/reward non-implicit writes, and Settings runtime.
+- Two V49 manager workflow scenarios SKIPPED due to unavailable server-side feature for this QA workspace: (1) seven-step status; (2) catalog six-pack search/bulk selection until explicit confirmation. Do not count skipped cases as feature acceptance.
+- This is **not 51/51 PASS** and does not prove full V49 onboarding or executable BKL002 backup/reset/restore. Trace tooling reliability remains open. Exact local HEAD in this execution not supplied (no SHA in pasted terminal output). Android exact three XML tests and same-SHA full required CI remain independently gated; BETA HOLD.
