@@ -10,12 +10,12 @@ on:
 permissions:
   contents: read
 
-# Ordinary pushes supersede each other to save runner capacity.
-# A deliberate [full-ci] push receives an isolated run-ID group just like
-# workflow_dispatch, so unrelated concurrent main pushes cannot cancel it.
+# Preserve one result for every push SHA, even when parallel role chats push quickly.
+# Distinct run IDs avoid GitHub's concurrency pending-run replacement for older pushes.
+# Runner capacity controls queueing; no run is cancelled solely by a later push.
 concurrency:
-  group: ${{ (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[full-ci]'))) && format('family-points-pinned-{0}', github.run_id) || format('family-points-ci-{0}-{1}', github.workflow, github.ref) }}
-  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' && !(github.event_name == 'push' && contains(github.event.head_commit.message, '[full-ci]')) }}
+  group: family-points-ci-run-${{ github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   changes:
@@ -320,3 +320,94 @@ jobs:
           path: full-ci-evidence.json
           if-no-files-found: error
           retention-days: 30
+
+  push-ci-report:
+    name: CI / per-commit outcome report
+    if: ${{ always() }}
+    needs: [changes, backend-tests, android-debug, frontend-build, beta-compose-validation, full-ci-attestation]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SOURCE_SHA: ${{ github.sha }}
+      EVENT_NAME: ${{ github.event_name }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      SCOPE_RESULT: ${{ needs.changes.result }}
+      BACKEND_SELECTED: ${{ needs.changes.outputs.backend }}
+      ANDROID_SELECTED: ${{ needs.changes.outputs.android }}
+      WEB_SELECTED: ${{ needs.changes.outputs.web }}
+      COMPOSE_SELECTED: ${{ needs.changes.outputs.compose }}
+      BACKEND_RESULT: ${{ needs['backend-tests'].result }}
+      ANDROID_RESULT: ${{ needs['android-debug'].result }}
+      WEB_RESULT: ${{ needs['frontend-build'].result }}
+      COMPOSE_RESULT: ${{ needs['beta-compose-validation'].result }}
+      FULL_ATTESTATION_RESULT: ${{ needs['full-ci-attestation'].result }}
+    steps:
+      - name: Report exact per-push CI selection and outcome
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          names = ("backend", "android", "web", "compose")
+          selected = {
+              "backend": os.environ["BACKEND_SELECTED"],
+              "android": os.environ["ANDROID_SELECTED"],
+              "web": os.environ["WEB_SELECTED"],
+              "compose": os.environ["COMPOSE_SELECTED"]
+          }
+          results = {
+              "backend": os.environ["BACKEND_RESULT"],
+              "android": os.environ["ANDROID_RESULT"],
+              "web": os.environ["WEB_RESULT"],
+              "compose": os.environ["COMPOSE_RESULT"]
+          }
+          scope_ok = os.environ["SCOPE_RESULT"] == "success"
+          all_selected = scope_ok and all(selected[k] == "true" for k in names)
+          scoped_ok = scope_ok and all(
+              results[k] == "success" if selected[k] == "true" else results[k] in ("success", "skipped")
+              for k in names
+          )
+          full_pass = all_selected and all(results[k] == "success" for k in names) and os.environ["FULL_ATTESTATION_RESULT"] == "success"
+          report = {
+              "sourceSha": os.environ["SOURCE_SHA"],
+              "event": os.environ["EVENT_NAME"],
+              "runUrl": os.environ["RUN_URL"],
+              "scopeResult": os.environ["SCOPE_RESULT"],
+              "selected": selected,
+              "results": results,
+              "fullAttestationResult": os.environ["FULL_ATTESTATION_RESULT"],
+              "scopedCiPassed": scoped_ok,
+              "fullCiVerified": full_pass,
+              "qaAccepted": False,
+              "releaseApproved": False,
+              "deploymentExecuted": False
+          }
+          with open("ci-push-result.json", "w", encoding="utf-8") as out:
+              json.dump(report, out, indent=2)
+              out.write("\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
+              out.write("## CI per-commit outcome\n\n")
+              out.write(f"- SHA: \`{report['sourceSha']}\`\n")
+              out.write(f"- Event: {report['event']}\n")
+              out.write(f"- Run: {report['runUrl']}\n")
+              out.write(f"- Scope evaluation: {report['scopeResult']}\n\n")
+              out.write("| Component | Selected | Job result |\n|---|---|---|\n")
+              for k in names:
+                  out.write(f"| {k} | {selected[k]} | {results[k]} |\n")
+              out.write(f"\n- Scoped CI PASS: {scoped_ok}\n")
+              out.write(f"- Full CI accepted: {full_pass}\n")
+              if not any(selected[k] == "true" for k in names):
+                  out.write("- No component tests selected (for example docs-only push); NOT FULL CI.\n")
+          print(f"CI REPORT SHA {report['sourceSha']}: scoped={scoped_ok}, full={full_pass}")
+          if not scoped_ok:
+              raise SystemExit("Push CI scope or one or more selected jobs failed")
+          PY
+      - name: Upload per-commit CI outcome JSON
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-push-result
+          path: ci-push-result.json
+          if-no-files-found: warn
+          retention-days: 14
