@@ -86,6 +86,40 @@ public class WorkspaceProtectiveBackupService {
     }
 
     /**
+     * Persist immutable-looking proof that encrypted bytes reached local storage.
+     * This transitions REQUESTED to BACKING_UP, never VERIFIED; actual database
+     * restore rehearsal and source dependency closure remain mandatory.
+     *
+     * Must be called inside the same transaction as registerAndStage. We store
+     * a logical storage key, never an absolute path or a client-supplied path.
+     */
+    @Transactional
+    public void recordStaged(long workspaceId, UUID snapshotId, UUID operationId,
+            String sourceDigest, String storageSha256, int storedBytes) {
+        if(workspaceId<=0 || snapshotId==null || operationId==null
+                || sourceDigest==null || !sourceDigest.matches("[0-9a-f]{64}")
+                || storageSha256==null || !storageSha256.matches("[0-9a-f]{64}")
+                || storedBytes<=0 || storedBytes>67140864)
+            throw new IllegalArgumentException("INVALID_BACKUP_ARTIFACT_EVIDENCE");
+        String logicalKey="local:v1:"+workspaceId+"/"+snapshotId+".fpbackup";
+        int changed=db.update("""
+            UPDATE workspace_protective_backups
+               SET state='BACKING_UP', storage_key=?, encrypted=TRUE,
+                   artifact_sha256=?, artifact_bytes=?,
+                   artifact_stored_at=CURRENT_TIMESTAMP
+             WHERE workspace_id=? AND snapshot_id=? AND operation_id=?
+               AND source_digest=? AND state='REQUESTED'
+               AND artifact_sha256 IS NULL AND artifact_bytes IS NULL
+               AND artifact_stored_at IS NULL
+               AND expires_at>CURRENT_TIMESTAMP
+            """,logicalKey,storageSha256,storedBytes,
+                workspaceId,snapshotId,operationId,sourceDigest);
+        if(changed!=1)
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "BACKUP_ARTIFACT_REGISTRY_CONFLICT");
+    }
+
+    /**
      * Family-scoped metadata listing, never exposes storage keys, encryption
      * secrets or backup bytes. Expired REQUESTED backups are not usable.
      */
