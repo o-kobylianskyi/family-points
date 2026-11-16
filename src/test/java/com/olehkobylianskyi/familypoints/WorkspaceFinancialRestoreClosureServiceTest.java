@@ -24,7 +24,7 @@ class WorkspaceFinancialRestoreClosureServiceTest {
                 List.of("POINT_LEDGER","REWARD_PURCHASES"));
         assertTrue(result.financialHistoryPresent());
         assertFalse(result.replaySupported());
-        assertEquals(9,result.categories().size());
+        assertEquals(10,result.categories().size());
         assertTrue(result.blockers().contains(
                 "RESTORE_DEPENDENCY_NOT_SELECTED:GROUP_POINT_LEDGER"));
         assertTrue(result.blockers().contains(
