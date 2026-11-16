@@ -7,7 +7,6 @@ export default function AvatarCatalogTile({ item, workspaceId, token, selected, 
   useEffect(() => {
     let active = true
     let localUrl = ''
-    setPreview('')
     const rawPath = item.previewPath?.replaceAll('{workspaceId}', String(workspaceId))
     if (!rawPath || !token) return () => { active = false }
     fetchAuthorizedMediaObjectUrl(token, rawPath, workspaceId).then(url => {
