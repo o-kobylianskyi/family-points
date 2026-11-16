@@ -73,8 +73,6 @@ class WorkspaceRewardObligationArchiveClosurePostgresTest {
         assertFalse(closure.replaySupported());
         assertTrue(closure.blockers().contains(
                 "RESTORE_DEPENDENCY_NOT_SELECTED:REWARD_OBLIGATIONS"));
-        assertTrue(closure.blockers().contains(
-                "RESTORE_DEPENDENCY_NOT_SELECTED:REWARD_OBLIGATIONS"));
         assertEquals(1L,db.queryForObject(
                 "SELECT count(*) FROM reward_obligations WHERE family_id=?",
                 Long.class,family).longValue());
@@ -82,6 +80,45 @@ class WorkspaceRewardObligationArchiveClosurePostgresTest {
                 "SELECT count(*) FROM reward_purchases WHERE member_id=?",
                 Long.class,member).longValue());
 
+        long obligation=db.queryForObject(
+                "SELECT id FROM reward_obligations WHERE reward_purchase_id=?",
+                Long.class,purchase);
+        long guardedCategory=db.queryForObject("""
+                INSERT INTO reward_categories(family_id,name,active,sort_order)
+                VALUES (?,'Blocked media',true,0) RETURNING id
+                """,Long.class,family);
+        db.update("""
+                INSERT INTO reward_obligation_blocked_categories(obligation_id,category_id)
+                VALUES (?,?)
+                """,obligation,guardedCategory);
+        db.update("""
+                INSERT INTO reward_obligation_blocked_rewards(obligation_id,reward_definition_id)
+                VALUES (?,?)
+                """,obligation,reward);
+        var obligationMissingBlocks=assertThrows(IllegalStateException.class,
+                ()->tx.execute(s->exporter.export(family,UUID.randomUUID(),
+                        UUID.randomUUID(),0L,
+                        List.of("REWARD_PURCHASES","REWARD_DEFINITIONS",
+                                "REWARD_OBLIGATIONS"),"V50",key)));
+        assertEquals("BACKUP_REWARD_OBLIGATION_BLOCKS_MISSING",
+                obligationMissingBlocks.getMessage());
+        var obligationArchive=tx.execute(s->exporter.export(family,
+                UUID.randomUUID(),UUID.randomUUID(),0L,
+                List.of("REWARD_PURCHASES","REWARD_DEFINITIONS","REWARD_CATEGORIES",
+                        "REWARD_OBLIGATIONS","REWARD_OBLIGATION_BLOCKED_CATEGORIES",
+                        "REWARD_OBLIGATION_BLOCKED_REWARDS"),"V50",key));
+        var obligationInspection=new ProtectiveBackupImportInspector(portable,codec)
+                .inspect(obligationArchive.encryptedFile(),family,key);
+        assertEquals(1,obligationInspection.counts().get("REWARD_OBLIGATIONS").intValue());
+        assertEquals(1,obligationInspection.counts()
+                .get("REWARD_OBLIGATION_BLOCKED_CATEGORIES").intValue());
+        assertEquals(1,obligationInspection.counts()
+                .get("REWARD_OBLIGATION_BLOCKED_REWARDS").intValue());
+        assertFalse(obligationInspection.restorable());
+        assertFalse(obligationInspection.blockers().contains("MISSING_CATEGORY:REWARD_PURCHASES"));
+        assertFalse(obligationInspection.blockers().contains("MISSING_CATEGORY:REWARD_CATEGORIES"));
+        db.update("DELETE FROM reward_obligation_blocked_categories WHERE obligation_id=?",obligation);
+        db.update("DELETE FROM reward_obligation_blocked_rewards WHERE obligation_id=?",obligation);
         db.update("DELETE FROM reward_obligations WHERE reward_purchase_id=?",purchase);
         db.update("""
                 INSERT INTO reward_requirements(
