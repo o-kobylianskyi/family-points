@@ -110,5 +110,17 @@ class WorkspaceGroupLedgerPortableExportPostgresTest {
         var blocked=inspector.inspect(missingGroups,family,key);
         assertTrue(blocked.blockers().contains("MISSING_CATEGORY:MEMBER_GROUPS"));
         assertFalse(blocked.restorable());
+
+        // Existing schema has a FK to point_types but does not itself prove
+        // group and denomination belong to the same tenant. Export must
+        // independently reject a foreign-family denomination.
+        db.update("""
+                INSERT INTO group_point_transactions
+                    (group_id,point_type_id,amount,created_at,type,source_type,description)
+                VALUES (?,?,1,NOW(),'EARN','MANUAL','Forbidden foreign denomination')
+                """,group,otherCurrency);
+        assertThrows(SecurityException.class,()->transaction.execute(status->exporter.export(
+                family,UUID.randomUUID(),UUID.randomUUID(),0L,
+                List.of("GROUP_POINT_LEDGER","MEMBER_GROUPS"),"V50",key)));
     }
 }
