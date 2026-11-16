@@ -22,7 +22,7 @@ import java.util.*;
  * Use only an independently approved single-worker run after testing.
  */
 @Service
-public final class WorkspaceBackupRetentionService {
+public class WorkspaceBackupRetentionService {
     private final JdbcTemplate db;
     private final WorkspaceBackupLocalArtifactStore store;
     private static final Set<String> DELETABLE=Set.of(
