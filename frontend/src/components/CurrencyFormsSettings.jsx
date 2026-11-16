@@ -70,7 +70,7 @@ function CurrencyFormsSettingsContent({ token, workspaceId, canManage }) {
   const status = current ? l.saved : suggested ? l.recommended : l.unset
 
   useEffect(() => {
-    let alive = true
+    let alive = true;
     (canManage ? getAllPointTypes(token, workspaceId) : getPointTypes(token, workspaceId))
       .then(data => { if (alive) { setTypes(data); if (data.length) {
         setSelectedId(String(data[0].id)); setEditName(data[0].name || ''); setEditActive(data[0].active ?? true)
