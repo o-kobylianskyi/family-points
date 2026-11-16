@@ -35,6 +35,7 @@ public class WorkspacePortableBackupExporter {
         Map.entry("TASK_SCHEDULE_SLOTS",new Scope("task_schedule_slots",
             "EXISTS (SELECT 1 FROM task_definitions d WHERE d.id=t.task_definition_id AND d.family_id=?)")),
         Map.entry("REWARD_REQUESTS",new Scope("reward_requests","t.family_id=?")),
+        Map.entry("REWARD_REQUIREMENTS",new Scope("reward_requirements","t.family_id=?")),
         Map.entry("WORK_NODES",new Scope("work_nodes","t.family_id=?")),
         Map.entry("MEDIA_BINDINGS",new Scope("media_bindings","t.workspace_id=?")),
         Map.entry("MEDIA_ASSETS",new Scope("media_assets","t.workspace_id=?")),
@@ -128,8 +129,42 @@ public class WorkspacePortableBackupExporter {
                         SELECT count(*) FROM reward_requirements r
                         WHERE r.family_id=?
                         """,Long.class,workspaceId);
-                if(notPortable==null || notPortable!=0L)
+                if(notPortable==null || (notPortable!=0L && !selected.contains("REWARD_REQUIREMENTS")))
                     throw new IllegalStateException("BACKUP_UNEXPORTED_REWARD_REQUIREMENTS");
+            }
+            if("REWARD_REQUIREMENTS".equals(category)) {
+                Long foreign=db.queryForObject("""
+                        SELECT count(*) FROM reward_requirements t
+                        LEFT JOIN reward_definitions d ON d.id=t.reward_definition_id
+                        LEFT JOIN reward_requests q ON q.id=t.reward_request_id
+                        LEFT JOIN task_definitions task ON task.id=t.task_definition_id
+                        WHERE t.family_id=?
+                          AND ( (t.reward_definition_id IS NOT NULL
+                                AND (d.id IS NULL OR d.family_id<>t.family_id))
+                             OR (t.reward_request_id IS NOT NULL
+                                AND (q.id IS NULL OR q.family_id<>t.family_id))
+                             OR (t.task_definition_id IS NOT NULL
+                                AND (task.id IS NULL OR task.family_id<>t.family_id)))
+                        """,Long.class,workspaceId);
+                if(foreign==null || foreign!=0L)
+                    throw new SecurityException("BACKUP_REWARD_REQUIREMENT_FOREIGN_RELATION");
+                Long definitions=db.queryForObject("""
+                        SELECT count(*) FROM reward_requirements
+                        WHERE family_id=? AND reward_definition_id IS NOT NULL
+                        """,Long.class,workspaceId);
+                Long requests=db.queryForObject("""
+                        SELECT count(*) FROM reward_requirements
+                        WHERE family_id=? AND reward_request_id IS NOT NULL
+                        """,Long.class,workspaceId);
+                Long tasks=db.queryForObject("""
+                        SELECT count(*) FROM reward_requirements
+                        WHERE family_id=? AND task_definition_id IS NOT NULL
+                        """,Long.class,workspaceId);
+                if(definitions==null || requests==null || tasks==null
+                        || (definitions>0 && !selected.contains("REWARD_DEFINITIONS"))
+                        || (requests>0 && !selected.contains("REWARD_REQUESTS"))
+                        || (tasks>0 && !selected.contains("TASK_DEFINITIONS")))
+                    throw new IllegalStateException("BACKUP_REWARD_REQUIREMENT_PARENT_MISSING");
             }
             if("TASK_EXECUTIONS".equals(category)) {
                 Long invalid=db.queryForObject("""
