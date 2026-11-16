@@ -13,6 +13,12 @@
 - **Validation:** source-only inspection, CI/Node/Vite/lint NOT_RUN in this chat; same-SHA CI awaits observed jobs. Review commit on current HEAD before additional edits.
 - **Continuity:** rolling handoff originally created `bc84f6ef`; capacity checkpoint `4650a470`. This revision reflects new source SHA.
 
+## WEB-02 package 2 — V49 PATCH invariant regression (2026-11-16)
+- Read actual `frontend/src/api/setupApi.js`, `frontend/src/utils/setupFinalizeSafety.js`, node safety tests, and synthetic browser specs `onboarding-v49-epoch-race-synthetic.spec.js`, `onboarding-v49-loading-retry-synthetic.spec.js`, `onboarding-v49-finalize-recovery-synthetic.spec.js`. These synthetic specs already cover epoch-stale, 503 retry, and four finalize receipt outcomes. **Do not repeat them.**
+- Found unguarded legitimate-HTTP-but-invalid step response: same target step/epoch/revision could unexpectedly change other decisions or prematurely return setup COMPLETED. Source fixes `c36dacd`, `87d34f4` require successful PATCH to be IN_PROGRESS and leave existing other decisions untouched; lost-PATCH GET reconciliation returns UNCONFIRMED on same violations. New explicit PENDING entries remain allowed. Tests added `2b706f4`, `6d8f829`.
+- **Latest new source/test SHA:** `6d8f8293a755e10be0833a65c848603b71d48cfd`. All four commits on `main`. Validation **NOT_RUN** (GitHub connector writes only, no repo runner attached to this chat); CI same-SHA **NOT_VERIFIED**, no PASS claims. QA can run automated synthetic Playwright alongside broader suite; QA owns real disposable workspace E2E.
+- Next: inspect feedback from actual same-SHA CI/source tests, resolve any detected failures, then check cross-tab localStorage race and existing source readiness. No real-family changes, BETA HOLD.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
