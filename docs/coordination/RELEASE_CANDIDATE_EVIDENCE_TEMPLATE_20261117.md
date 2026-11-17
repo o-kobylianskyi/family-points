@@ -27,6 +27,18 @@ This checker will reject lightweight/missing tags, altered/dirty checkout, tag-t
 
 Verify downloaded JSON internal consistency with `python scripts/beta/verify_release_evidence.py --candidate-sha <40hex> --push-report ci-push-result.json --full-evidence full-ci-evidence.json`. This does **not** authenticate files, validate job execution, or grant release authorization; independently inspect actual GitHub Actions job steps and artifact metadata.
 
+## GitHub Actions artifact provenance (read-only)
+
+The separately downloaded GitHub API artifact-list response must include both `full-ci-evidence` and `ci-push-result` and **each** artifact must match the approved candidate in: provider `workflow_run.id`, full `head_sha`, `repository_id`, `head_repository_id`, `head_branch=main`, unique positive artifact ID, non-empty size, non-expired status, HTTPS API URL and provider `sha256:` digest. The Release coordinator can validate these metadata fields together with the two CI report payloads:
+
+```powershell
+python scripts/beta/verify_ci_artifact_provenance.py --candidate-sha <40hex> --push-report ci-push-result.json --full-evidence full-ci-evidence.json --github-artifacts github-run-artifacts.json
+```
+
+**Trust boundary:** `github-run-artifacts.json` must itself be obtained independently from the actual connected GitHub API, not generated from the two CI report files. This program does not authenticate that JSON response, download artifacts, verify the ZIP bytes against the advertised digest, or prove their decompressed payloads came from the provider. Independently inspect actual GitHub run job steps, authenticated metadata and ZIP checksums before candidate acceptance. A coherent synthetic JSON file is still forgeable, and never authorizes deployment.
+
+The historical run #44044271962 provider metadata was independently checked: `full-ci-evidence` ID `14311211691` (374 bytes), `ci-push-result` ID `14311161945` (451 bytes), both non-expired, source repository `1359430010`, Actions run `44044271962`, SHA `8c397d0cbe7d68fd52d5b3f6e18a3ed44cda8d2a`, branch `main`, with SHA-256 metadata. It validates this **older** source only.
+
 ## Product, safety and independent QA
 
 | Area | Status | Required proof |
