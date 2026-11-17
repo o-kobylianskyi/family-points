@@ -16,5 +16,7 @@ See [all-track measurement protocol](../CHAT_CAPACITY_OBSERVABILITY_20261116.md)
 
 | 2026-11-17 ~21:51 CET | Designer | DESIGNER-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | ee58b02ba16a45a1435b2e5bdb842f9bab0b4fbd | CHECKPOINT | QA-032 two-tab Chromium NOT_RUN, separate Web 14/14 V8 harness (not official CI); newer main 104 commits after pinned full green run. |
 
+| 2026-11-18 ~00:03 CET | Designer | DESIGNER-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 90e4151ba6544e1cfc7c2d01b5abc0ff9da17ee7 | CHECKPOINT | Current source + QA review; Chromium two-tab still NOT_RUN; BKL-002 latest test-only source not independently green. |
+
 ## Rules
 After each substantial Designer work batch append one fact-based row and refresh [Designer latest handoff](../handoffs/DESIGNER_LATEST.md). Report actual user-observed hard-limit events without saving private transcript/screenshot. Never claim 50/75/85% or later thresholds without trustworthy measurement.
