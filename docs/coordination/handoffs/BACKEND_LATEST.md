@@ -115,3 +115,9 @@
 - Temporary chat monitoring: docs/coordination/requests/CHAT_CAPACITY_ALL_TRACKS_20261116.md
 
 **Track state:** backend source changes actively merged to main, last targeted fixes pending current-SHA CI proof. Safe implementation continues; no destructive endpoints enabled.
+
+## Backend P0 packet #25 — 2026-11-17, new chat after hard limit
+- New negative PG18 fixtures in `DisposableMultiExchangeNativeRestorePostgresTest` commit `bcac5bdf`: cross-currency rate FK pair swap in target same family must throw; historical request amount +10/+2 drift must throw even though ledger untouched; restored valid rate pair must recover exact SHA. Existing isolated source/target, zero-sum extra rows, timestamp, code, rollback and neighbor assertions preserved.
+- QA handoff `docs/coordination/requests/BKL002_QA_PACKET_20261117_FINANCIAL_HISTORY_CROSS_CATEGORY.md` commit `68a4634`. Independent pinned Maven/PostgreSQL execution still **NOT_RUN/UNKNOWN**, therefore no green claim. Review result with QA and fix only real regressions.
+- HARD_LIMIT from previous Backend chat confirmed by user screenshot; exact token/percentage remains unavailable. This new Backend chat adopts source-only continuation and updates the handoff.
+- Next: test #25 with independent QA, then source graph edge: 21st request limit, orphan/duplicate ledger, multi-member cross-currency isolation; keep TEST ONLY and BETA HOLD. Production reset Execute HTTP423; restorable/replaySupported false.
