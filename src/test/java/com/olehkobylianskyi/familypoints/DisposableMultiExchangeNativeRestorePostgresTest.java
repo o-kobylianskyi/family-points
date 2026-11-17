@@ -200,6 +200,14 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
                 archive,src.family,dst.family,members,currencies,rates,
                 result.requests(),result.transactions(),key).targetSha256());
 
+        // Mapped numeric point-type IDs are not enough: source/target codes
+        // and actual target rate parent ownership must remain equivalent.
+        b.update("UPDATE point_types SET code='DIFFERENT' WHERE id=?",dst.tokens);
+        assertThrows(SecurityException.class,()->integrity.verify(
+                archive,src.family,dst.family,members,currencies,rates,
+                result.requests(),result.transactions(),key));
+        b.update("UPDATE point_types SET code='TOKENS' WHERE id=?",dst.tokens);
+
         var badMaps=new HashMap<>(result.transactions());
         badMaps.put(badMaps.keySet().iterator().next(),-1L);
         assertThrows(SecurityException.class,()->integrity.verify(
