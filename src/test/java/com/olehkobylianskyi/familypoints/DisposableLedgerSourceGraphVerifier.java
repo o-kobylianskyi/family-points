@@ -104,6 +104,15 @@ final class DisposableLedgerSourceGraphVerifier {
                     throw new SecurityException("LEDGER_TASK_SOURCE_NOT_ARCHIVED");
                 if(taskInstance.path("member_id").asLong()!=member)
                     throw new SecurityException("LEDGER_TASK_SOURCE_MEMBER_MISMATCH");
+                // Production TaskService issues TASK/EARN for approved positive
+                // reward and TASK/PENALTY for a mandatory missed task. A
+                // numeric balance alone must never authenticate a TASK row.
+                long signed=row.path("amount").asLong();
+                String transactionType=row.path("type").asText();
+                if(signed==0 ||
+                        !(signed>0 && "EARN".equals(transactionType)
+                          || signed<0 && "PENALTY".equals(transactionType)))
+                    throw new SecurityException("LEDGER_TASK_TRANSACTION_SEMANTICS");
                 relationships.put(id,taskId);
                 task++;
             } else if("REWARD_PURCHASE".equals(sourceType)) {
