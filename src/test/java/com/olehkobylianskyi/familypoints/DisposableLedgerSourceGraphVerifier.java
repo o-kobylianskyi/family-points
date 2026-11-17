@@ -52,6 +52,7 @@ final class DisposableLedgerSourceGraphVerifier {
         for(JsonNode task:root.path("TASK_EXECUTIONS")) {
             if(!task.path("id").isIntegralNumber() || task.path("id").asLong()<=0
                     || !task.path("member_id").isIntegralNumber()
+                    || task.path("member_id").asLong()<=0
                     || !task.path("task_definition_id").isIntegralNumber()
                     || !definitions.contains(task.path("task_definition_id").asLong())
                     || taskRows.putIfAbsent(task.path("id").asLong(),task)!=null)
