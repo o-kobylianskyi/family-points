@@ -110,6 +110,19 @@ class ZipIntegrityTests(unittest.TestCase):
         self.replace_zip(name, {name + ".json": b" " * (1024 * 1024 + 1)}, refresh_digest=True)
         self.rejected()
 
+    def test_corrupt_entry_crc_with_matching_outer_sha256(self):
+        # ZIP structure and provider-style outer digest may still be valid while
+        # the inner file checksum is corrupted. Must return controlled HOLD.
+        name = "full-ci-evidence"
+        raw = io.BytesIO()
+        with zipfile.ZipFile(raw, "w", zipfile.ZIP_STORED) as z:
+            z.writestr(name + ".json", json.dumps(self.full).encode())
+        broken = raw.getvalue().replace(b'"qaAccepted": false', b'"qaAccepted": true ', 1)
+        self.assertNotEqual(broken, raw.getvalue())
+        self.paths[name].write_bytes(broken)
+        self.metadata["artifacts"][0]["digest"] = "sha256:" + hashlib.sha256(broken).hexdigest()
+        self.rejected()
+
     def test_digest_missing(self):
         del self.metadata["artifacts"][1]["digest"]
         self.rejected()
