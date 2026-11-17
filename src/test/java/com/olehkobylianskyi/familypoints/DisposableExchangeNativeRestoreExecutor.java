@@ -150,10 +150,11 @@ final class DisposableExchangeNativeRestoreExecutor {
                     Long.class,targetMember,targetFamily)))
                 throw new SecurityException("EXCHANGE_REPLAY_FOREIGN_MEMBER");
             for(var currency:currencies.entrySet()) {
-                String code=targetDb.queryForObject("""
+                var codes=targetDb.queryForList("""
                         SELECT code FROM point_types WHERE id=? AND family_id=? AND active=true
                         """,String.class,currency.getValue(),targetFamily);
-                if(!Objects.equals(sourceCodes.get(currency.getKey()),code))
+                if(codes.size()!=1
+                        || !Objects.equals(sourceCodes.get(currency.getKey()),codes.get(0)))
                     throw new SecurityException("EXCHANGE_REPLAY_CURRENCY_CODE_MISMATCH");
             }
             if(!Objects.equals(1L,targetDb.queryForObject("""
