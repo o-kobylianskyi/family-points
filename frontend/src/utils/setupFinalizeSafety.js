@@ -73,7 +73,10 @@ export function canChangeSetupStep(state, code, desiredStatus) {
 // New V46 families legitimately have empty steps until parents select them.
 export function assertSetupState(state, workspaceId) {
   const steps = state?.steps
-  if (!state || String(state.workspaceId) !== String(workspaceId) ||
+  // Reject unbound state even when both caller and response omit workspaceId.
+  if (!state || workspaceId == null || String(workspaceId).trim() === '' ||
+      state.workspaceId == null || String(state.workspaceId).trim() === '' ||
+      String(state.workspaceId) !== String(workspaceId) ||
       !Number.isSafeInteger(state.dataEpoch) || state.dataEpoch < 0 ||
       !Number.isSafeInteger(state.revision) || state.revision < 0 ||
       !['NOT_STARTED','IN_PROGRESS','COMPLETED'].includes(state.status) ||
