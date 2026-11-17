@@ -17,6 +17,14 @@
 
 At this source audit, branch `main` was observed as `c0af393dce0a8c8a700b1ae53f1f0e53d309234d`: **41 commits newer** than prior green `8c397d0`. Changes include PostgreSQL BKL002 test-only replay/integrity and Web V49 two-tab synthetic specs. The historical result does not cover later commits.
 
+Before any future authorized tagged release, verify the **existing annotated tag**, clean checkout and downloaded full-CI artifacts against one identical candidate SHA using the read-only tool:
+
+```powershell
+python scripts/beta/verify_release_tag.py --repo-root . --tag vX.Y.Z-beta.N --candidate-sha <full-40-hex-sha> --push-report ci-push-result.json --full-evidence full-ci-evidence.json
+```
+
+This checker will reject lightweight/missing tags, altered/dirty checkout, tag-to-HEAD mismatch, different CI SHA or run ID, and scoped/failed CI. The check **does not fetch remote tags** or prove GitHub ownership of a local tag or evidence JSON. Independently inspect the remote annotated tag, actual GitHub job steps and artifact metadata. Even a consistent tag/CI report is not QA acceptance or permission to deploy.
+
 Verify downloaded JSON internal consistency with `python scripts/beta/verify_release_evidence.py --candidate-sha <40hex> --push-report ci-push-result.json --full-evidence full-ci-evidence.json`. This does **not** authenticate files, validate job execution, or grant release authorization; independently inspect actual GitHub Actions job steps and artifact metadata.
 
 ## Product, safety and independent QA
