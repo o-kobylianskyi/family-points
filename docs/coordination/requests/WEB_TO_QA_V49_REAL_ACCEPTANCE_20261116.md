@@ -76,3 +76,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 V49 source regression executed evidence (2026-11-17)
 - Fetched code+test blobs `30194a6a` and `fd724498`; executed 14 source-backed `setupFinalizeSafety.test.mjs` callbacks in V8 with JS assertion equivalents: 14 PASS, 0 FAIL. Not native `node --test`, not full npm regression, not browser; do not mark CI current-SHA green from this alone. QA still owns pinned Chromium `onboarding-v49-two-tab-synthetic.spec.js`, first syntax check then browser and POST count evidence. No real family mutation, BETA HOLD.
+
+
+## WEB-02 V49 state workspace scope fix (2026-11-17)
+- Fix `50f1f01328d3fbe0eaf60f1ff07902b232211c62`: reject absent/null/blank caller or response workspaceId in `assertSetupState`; regression `ee8f32b4935ea7decfaed1c41309aeb65bb93065` covers missing scope. Actual source-backed V8 14/14 test callbacks PASS on latest blobs, but **native Node/Playwright and same-SHA CI NOT_RUN/NOT_VERIFIED**. QA to run current pinned regression + corrected Chromium two-tab, report SHA and PASS/FAIL/SKIP; no real family mutations, BETA HOLD.
