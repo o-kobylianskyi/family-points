@@ -140,3 +140,10 @@
 - AES V50 fixture tests `7594bb5a`, `abb599db`: valid reward, valid penalty, valid distinct same-task events; invalid duplicate reward, duplicate penalty, SPEND, zero, sign mismatch. Not production replay and does not infer REFUND/POINT_EXCHANGE.
 - QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261117_TASK_SOURCE_PROVENANCE.md` `c88bbf4`. Independent Maven exact-SHA **NOT_RUN/unknown**. Prior all-green 479 tests @`8c397d0` predates these changes.
 - Next: evaluate current QA CI defects first; make category-specific REWARD_PURCHASE source/owner and REFUND provenance assertions, preserve no speculative source-id mapping. Production reset HTTP423, BETA HOLD.
+
+## Backend P0 large packet #29–30 — 2026-11-17
+- Production source inspected: RewardService uses `REWARD_PURCHASE` direct spend and purchase ID; PointExchangeService uses `POINT_EXCHANGE` two legs; generic PointService.refund has caller-chosen `sourceType/sourceId` and therefore universal REFUND provenance cannot be inferred.
+- Test-only signed V50 archive verifier `875720e` now validates EVERY archived `REWARD_PURCHASES` parent (including uncharged entries): positive member, authenticated same-family denomination, positive bounded price, rejecting source graph corruption. AES fixture tests `4265dc2` cover zero owner/price, overflow price, dangling unused purchase denomination.
+- AES fixtures `0afe1c5` explicitly reject REFUND, POINT_EXCHANGE debit/credit, unknown source types in generic verifier. Specialized exchange source auditor only; no REFUND replay enabled.
+- QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261117_PURCHASE_REFUND_SOURCE_CLOSURE.md` commit `ffb4492`. New tests authored source-only; **NOT_RUN** by Backend connector, require immutable-SHA QA Maven. Prior green 479 Maven @ `8c397d0` predates #25–30.
+- Next: independently triage Maven/CI failures on new packages; extend financial contract only after exact source semantics. Reset Execute HTTP423, no production VERIFIED/Restore; BETA HOLD.
