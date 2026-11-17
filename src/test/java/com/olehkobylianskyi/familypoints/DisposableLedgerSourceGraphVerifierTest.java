@@ -176,6 +176,33 @@ class DisposableLedgerSourceGraphVerifierTest {
                         "\"price_amount\":5}],\"POINT_LEDGER\":")));
     }
 
+    @Test void sourceLedgerBalanceInventoryIsPartitionedAndAuditable()
+            throws Exception {
+        var accepted=verifyEdited(
+                ",{\"id\":101,\"member_id\":5,\"point_type_id\":3,"+
+                "\"amount\":-3,\"source_type\":\"MANUAL\",\"source_id\":null},"+
+                "{\"id\":102,\"member_id\":4,\"point_type_id\":3,"+
+                "\"amount\":-2,\"source_type\":\"MANUAL\",\"source_id\":null}",
+                "MANUAL",null,4,4,body->body);
+        assertEquals(3,accepted.ledgerRows());
+        assertEquals(3L,accepted.signedMemberCurrencyBalances().get("4:3"));
+        assertEquals(-3L,accepted.signedMemberCurrencyBalances().get("5:3"));
+        assertEquals(2,accepted.signedMemberCurrencyBalances().size());
+    }
+
+    @Test void archiveRejectsDuplicateCurrencyCodesAndInvalidCurrencyId()
+            throws Exception {
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","MANUAL",null,4,4,
+                body->body.replace("\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"}]",
+                        "\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"},"+
+                        "{\"id\":8,\"family_id\":17,\"code\":\"POINTS\"}]")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","MANUAL",null,4,4,
+                body->body.replace("\"id\":3,\"family_id\":17,\"code\":\"POINTS\"",
+                        "\"id\":0,\"family_id\":17,\"code\":\"POINTS\"")));
+    }
+
     @Test void duplicateChargeOfSamePurchaseFailsClosed() throws Exception {
         assertThrows(SecurityException.class,()->verifyEdited(
                 "","REWARD_PURCHASE",51L,4,4,
