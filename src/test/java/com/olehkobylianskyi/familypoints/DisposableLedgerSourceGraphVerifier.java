@@ -75,6 +75,16 @@ final class DisposableLedgerSourceGraphVerifier {
                     || pointType.path("code").asText().isBlank())
                 throw new SecurityException("LEDGER_SOURCE_CURRENCY_INVALID");
         }
+        // A purchase's entire economic parent must be anchored in the
+        // authenticated point-type catalog even when no matching debit exists.
+        // Orphan/dangling archive rows cannot become replay candidates.
+        for(JsonNode archivedPurchase:purchaseRows.values()) {
+            if(archivedPurchase.path("member_id").asLong()<=0
+                    || !typeIds.contains(archivedPurchase.path("point_type_id").asLong())
+                    || archivedPurchase.path("price_amount").asLong()<=0
+                    || archivedPurchase.path("price_amount").asLong()>Integer.MAX_VALUE)
+                throw new SecurityException("LEDGER_PURCHASE_ARCHIVED_PARENT_INVALID");
+        }
         int manual=0,task=0,purchaseCount=0;
         var relationships=new TreeMap<Long,Long>();
         var purchaseRelationships=new TreeMap<Long,Long>();
