@@ -30,3 +30,6 @@ DateTime CET | Track | ChatGeneration | VisibleUserTurns | VisibleAssistantTurns
 
 
 2026-11-17 afternoon CET | Backend | BACKEND-successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #34-36 | 4e479991 | CHECKPOINT | Test-only archive source-parent hardening, chat-context percentage unavailable, QA pinned run pending.
+
+
+2026-11-17 late CET | Backend | BACKEND-successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #37-40 | b7d29bb2 | CHECKPOINT | Source-only historical task economic snapshot, context percent unmeasurable.
