@@ -68,14 +68,14 @@ def verify_metadata(candidate_sha, scoped, full, metadata, *, expected_repo_id=R
 
 
 
-def verify_zip_bytes(metadata, paths):
+def verify_zip_bytes(metadata, paths, payloads):
     """Verify GitHub-issued SHA256 against complete, local, downloaded ZIP bytes.
 
     This is a content-integrity check only: provenance of metadata remains an
     independent trust prerequisite. ZIP extraction is never performed.
     """
-    if set(paths) != REQUIRED:
-        raise ValueError("Exactly two named artifact ZIPs are required")
+    if set(paths) != REQUIRED or set(payloads) != REQUIRED:
+        raise ValueError("Exactly two named artifact ZIPs and JSON payloads are required")
     matched = {}
     for artifact in metadata.get("artifacts", []):
         if not isinstance(artifact, dict):
@@ -121,8 +121,19 @@ def verify_zip_bytes(metadata, paths):
             items = z.infolist()
             if len(items) != 1 or items[0].filename != expected or items[0].is_dir():
                 raise ValueError(f"ZIP contents are not the expected {expected}")
-            # Do not decompress potentially hostile data here; user supplied
-            # JSON evidence is validated separately by validate().
+            info = items[0]
+            if info.file_size > 1024 * 1024:
+                raise ValueError("Artifact JSON exceeds safe size")
+            with z.open(info, "r") as fp:
+                content = fp.read(1024 * 1024 + 1)
+            if len(content) > 1024 * 1024:
+                raise ValueError("Artifact JSON exceeds safe size")
+            try:
+                actual = json.loads(content.decode("utf-8-sig"))
+            except (UnicodeError, json.JSONDecodeError) as exc:
+                raise ValueError("Invalid JSON inside ZIP") from exc
+            if type(actual) is not dict or actual != payloads[name]:
+                raise ValueError(f"ZIP JSON payload differs from supplied {name} report")
         result[name] = hasher.hexdigest()
     return result
 
@@ -140,12 +151,12 @@ def main():
         run, ids = verify_metadata(a.candidate_sha, read_json(a.push_report),
                                    read_json(a.full_evidence),
                                    read_json(a.github_artifacts))
-        zips = verify_zip_bytes(read_json(a.github_artifacts), {"full-ci-evidence": a.full_zip, "ci-push-result": a.push_zip})
+        zips = verify_zip_bytes(read_json(a.github_artifacts), {"full-ci-evidence": a.full_zip, "ci-push-result": a.push_zip}, {"full-ci-evidence": read_json(a.full_evidence), "ci-push-result": read_json(a.push_report)})
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print("CI ARTIFACT PROVENANCE HOLD:", exc, file=sys.stderr)
         return 2
     print(f"CI ARTIFACT METADATA + ZIP SHA256 CONSISTENT: run {run}; IDs {ids}; ZIP digests {zips}")
-    print("NOT AUTHENTICATED: independently verify GitHub API origin, compare JSON payloads inside ZIPs, run job steps and QA.")
+    print("NOT AUTHORIZATION: independently authenticate GitHub API metadata and actual non-skipped jobs; QA/user approval remains separate.")
     return 0
 
 
