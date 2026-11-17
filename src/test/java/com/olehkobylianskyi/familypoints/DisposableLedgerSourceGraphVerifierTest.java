@@ -25,7 +25,8 @@ class DisposableLedgerSourceGraphVerifierTest {
             java.util.function.UnaryOperator<String> edit) throws Exception {
         var pointLedger="{\"id\":100,\"member_id\":"+ledgerMember+
                 ",\"point_type_id\":3,\"amount\":5,\"source_type\":\""+sourceType+"\""+
-                (sourceId==null?",\"source_id\":null":",\"source_id\":"+sourceId)+"}";
+                (sourceId==null?",\"source_id\":null":",\"source_id\":"+sourceId)+
+                ("TASK".equals(sourceType)?",\"type\":\"EARN\"":"")+"}";
         String body="{\"format\":\"family-points-export-v1\",\"workspaceId\":17,\"categories\":{"+
                 "\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"}],"+
                 "\"TASK_EXECUTIONS\":[{\"id\":42,\"member_id\":"+taskMember+
@@ -48,6 +49,26 @@ class DisposableLedgerSourceGraphVerifierTest {
         assertThrows(SecurityException.class,()->verify("","TASK",99L,4,4));
         assertThrows(SecurityException.class,()->verify("","TASK",null,4,4));
     }
+    @Test void taskLedgerSignedEarnAndPenaltyAreExplicitAndSpendsCannotMasquerade()
+            throws Exception {
+        var penalty=verifyEdited("","TASK",42L,4,4,
+                body->body.replace("\"amount\":5,\"source_type\":\"TASK\"",
+                        "\"amount\":-7,\"source_type\":\"TASK\"")
+                        .replace("\"type\":\"EARN\"","\"type\":\"PENALTY\""));
+        assertEquals(1,penalty.taskRows());
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                body->body.replace("\"type\":\"EARN\"","\"type\":\"SPEND\"")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                body->body.replace("\"amount\":5,\"source_type\":\"TASK\"",
+                        "\"amount\":-5,\"source_type\":\"TASK\"")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                body->body.replace("\"amount\":5,\"source_type\":\"TASK\"",
+                        "\"amount\":0,\"source_type\":\"TASK\"")));
+    }
+
     @Test void manualSourceMustNotCarrySourceIdAndUnknownTypesRemainBlocked()
             throws Exception {
         var accepted=verify("","MANUAL",null,4,4);
