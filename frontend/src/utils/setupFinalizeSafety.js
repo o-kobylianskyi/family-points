@@ -89,6 +89,10 @@ export function assertSetupState(state, workspaceId) {
   return state
 }
 export function assertSetupReview(review, state, codes) {
+  // A preview cannot prove a valid scope by mirroring missing fields from an
+  // unvalidated state; only an in-progress setup may produce an import review.
+  assertSetupState(state, state?.workspaceId)
+  if (state.status !== 'IN_PROGRESS') throw new Error('SETUP_REVIEW_STATE_MISMATCH')
   if (!Array.isArray(codes) || !codes.length ||
       codes.some(code => typeof code !== 'string' || !code.trim()) ||
       new Set(codes).size !== codes.length || !review ||
