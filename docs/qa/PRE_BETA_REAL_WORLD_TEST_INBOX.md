@@ -210,3 +210,7 @@ All these cases are additional acceptance criteria in the **single planned final
 
 ## QA-028 multi-exchange batch rollback future acceptance
 - New `DisposableMultiExchangeNativeRestoreExecutor` test-only handles up to 20 exchange requests in one target transaction. Queue future `REAL-BKL002-MULTI-EXCHANGE-01` only in user-authorized isolated PRE-BETA campaign when general production-safe financial restore and verified owner reauth exist: two+ request histories, distinct source IDs, new target IDs, exact rate/denomination/member maps, aggregate balance (-30 POINTS/+6 TOKENS for 10→2 plus 20→4 scenario), unrelated tenant unchanged, late final credit failure must atomically roll back *all* requests and previous legs, duplicate replay blocked. Status BLOCKED_DEPENDENCY; no current live testing or deployment permission.
+
+## QA-029 acceptance boundary after first independently green full CI
+
+- GitHub Actions run `44044271962` @`8c397d0cbe7d68fd52d5b3f6e18a3ed44cda8d2a` independently confirms 479 Maven tests/0 failures/0 errors/0 skipped, Android/Web/Compose full non-skipped success, Release 55 safety cases, and exact SHA evidence job. This verifies **automated source at that SHA only**, does NOT authorize or execute real user testing, production financial restore or beta deployment. Keep all real test inbox items BLOCKED_DEPENDENCY until Backend durable VERIFIED, complete replay and Architecture/QA release gates plus explicit operator final-campaign approval.
