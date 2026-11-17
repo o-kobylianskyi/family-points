@@ -257,6 +257,9 @@ jobs:
       - name: Verify backup is atomic and rejects incomplete archives (fake Docker)
         if: ${{ always() && needs.changes.outputs.compose == 'true' }}
         run: python3 -m unittest discover -s scripts/beta -p test_backup_safety.py -v
+      - name: Verify downloaded CI ZIP digest and JSON binding (12 synthetic cases)
+        if: ${{ always() && needs.changes.outputs.compose == 'true' }}
+        run: python3 -m unittest discover -s scripts/beta -p test_verify_ci_zip_integrity.py -v
       - name: Verify independent GitHub artifact metadata guards (18 synthetic cases)
         if: ${{ always() && needs.changes.outputs.compose == 'true' }}
         run: python3 -m unittest discover -s scripts/beta -p test_verify_ci_artifact_provenance.py -v
