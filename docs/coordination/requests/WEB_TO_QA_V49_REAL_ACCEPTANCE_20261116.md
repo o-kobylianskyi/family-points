@@ -59,3 +59,8 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 ## WEB-V49-READINESS audit pickup (2026-11-16)
 - Web published source-vs-execution matrix `docs/coordination/requests/WEB_V49_READINESS_AUDIT_20261116.md` at `75ed5265`. Do not carry historical operator 47/47 or Actions Web job PASS forward to newest two-tab SHA as VERIFIED. Run pinned node source + mocked Playwright V49 scenarios in the QA consolidated campaign, record HTTP counts and traces, report failures to Web.
 - Full real V49 and BKL-002 remain separately gated; no operator request from Web and no real data changes.
+
+
+## WEB-02 corrected two-tab browser fixture (2026-11-17)
+- Test file `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` corrected in Web source commit `a0d87ee52ebed8b1e62903a910fc2bb010999189`. Previous file had doubled regex escape backslashes (28 pairs) that can break JavaScript parsing; do **not** run older fixture and mistake parser failure for application V49 defect.
+- Run `node --check qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` before Playwright. Then run the two tests with QA credentials, selected isolated family and pinned clean SHA, capturing actual PASS/FAIL/SKIP and POST counts. Browser execution still NOT_RUN by Web. No real family setup writes in the mocked cases.
