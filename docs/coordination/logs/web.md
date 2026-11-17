@@ -1212,3 +1212,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-17 — WEB-02 V49 setup-state workspace scope hardening
 - `assertSetupState` previously accepted unbound caller+response workspaceId via stringification; fixed in source `50f1f013`, regression `ee8f32b4`. Executed all 14 source-backed tests in V8 assertion-equivalent harness on latest blobs: PASS 14/14, FAIL 0. No native Node/Chromium/CI execution. QA-034 no two-tab Chromium result; BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 V49 review state scope and status hardening
+- `assertSetupReview` now validates full input state and restricts previews to IN_PROGRESS (`fd13aa0e`); new regressions `f6de28e0` cover undefined workspace, null state, NOT_STARTED, COMPLETED with otherwise matching review. Executed all 14 V49 source-backed test callbacks in V8 using equivalent assertions: 14 PASS, 0 FAIL. Native Node/Chromium/current full CI unverified. QA-036 two-tab NOT_RUN. BETA HOLD.
