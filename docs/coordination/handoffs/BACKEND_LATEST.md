@@ -147,3 +147,9 @@
 - AES fixtures `0afe1c5` explicitly reject REFUND, POINT_EXCHANGE debit/credit, unknown source types in generic verifier. Specialized exchange source auditor only; no REFUND replay enabled.
 - QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261117_PURCHASE_REFUND_SOURCE_CLOSURE.md` commit `ffb4492`. New tests authored source-only; **NOT_RUN** by Backend connector, require immutable-SHA QA Maven. Prior green 479 Maven @ `8c397d0` predates #25–30.
 - Next: independently triage Maven/CI failures on new packages; extend financial contract only after exact source semantics. Reset Execute HTTP423, no production VERIFIED/Restore; BETA HOLD.
+
+## Backend large package #31–33 — 2026-11-17
+- Authenticated source-graph verifier now returns signed balance inventory per **original member×currency** and exact ledger row count, using Math.addExact while retaining independent ancestry fail-closed checks: `c23e1bf`, effective helper after redundant-state cleanup `5712e61`. Signed original POINT_TYPES now denies duplicate codes/zero IDs.
+- AES unit fixtures `5185fe9` and `2da8d2e`: distinct member partitions, duplicate denomination codes denied, valid mixed TASK +5, REWARD_PURCHASE −4, MANUAL +7 => member A +1 and member B +7 with exact task/purchase source_id. No REFUND or POINT_EXCHANGE generic replay enabled.
+- QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261117_FINANCIAL_CROSS_CATEGORY_CLOSURE.md` `a74a052`. Authored source-only; exact-SHA Maven/Postgres **NOT_RUN/UNKNOWN**. Previous 479-case four-component green @8c397d0 predates packages #25–33. Request pinned QA combined classes, previous 12-class and all-four candidate.
+- BKL-002 release policy unchanged: production restorable/replaySupported false, Reset Execute HTTP423, BETA HOLD. Next: triage independent QA failures; extend protected archive graph/verified retention only with verified schema and owner authorization.
