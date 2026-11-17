@@ -80,3 +80,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 V49 state workspace scope fix (2026-11-17)
 - Fix `50f1f01328d3fbe0eaf60f1ff07902b232211c62`: reject absent/null/blank caller or response workspaceId in `assertSetupState`; regression `ee8f32b4935ea7decfaed1c41309aeb65bb93065` covers missing scope. Actual source-backed V8 14/14 test callbacks PASS on latest blobs, but **native Node/Playwright and same-SHA CI NOT_RUN/NOT_VERIFIED**. QA to run current pinned regression + corrected Chromium two-tab, report SHA and PASS/FAIL/SKIP; no real family mutations, BETA HOLD.
+
+
+## WEB-02 V49 final review invariant (2026-11-18)
+- Source `fd13aa0eda59eb81a52bf465a60cacea875b48d6` now invokes validated `assertSetupState` before accepting `assertSetupReview` and requires status IN_PROGRESS; tests `f6de28e0424eab7cbb0858306d5f582bd4869484` reject missing scope, null, NOT_STARTED and COMPLETED state. Source-backed V8 run 14/14 PASS; native Node/Chromium NOT_RUN. QA please run pinned full Node regressions and corrected two-tab Chromium; distinguish FAIL/SKIP and record exact source SHA, no existing family writes.
