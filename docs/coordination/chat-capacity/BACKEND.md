@@ -36,3 +36,6 @@ DateTime CET | Track | ChatGeneration | VisibleUserTurns | VisibleAssistantTurns
 
 
 2026-11-17 late CET | Backend | successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #41-44 | 76cc270e | CHECKPOINT | Explicit source/target member roster mapping; no measurable chat remaining percentage.
+
+
+2026-11-18 CET | Backend | successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #45-48 | 0dc0ea46 | CHECKPOINT | Review receipt HMAC signed pairing and task parent source tests, context limit not measurable.
