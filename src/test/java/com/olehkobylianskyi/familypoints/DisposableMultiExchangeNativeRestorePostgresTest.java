@@ -222,6 +222,32 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
                 targetSecondMember);
         assertEquals(2,rosterPreflight.verify(
                 a,b,src.family,dst.family,multiMembers).mappedMembers());
+        // Both target members have identical structural role/type, so the
+        // two-database roster permits a swap. An independently reviewed,
+        // snapshot-scoped authenticated receipt must bind the EXACT pairs.
+        var hmacGenerator=KeyGenerator.getInstance("HmacSHA256");
+        hmacGenerator.init(256);
+        var reviewKey=hmacGenerator.generateKey();
+        var reviewedBindings=List.of(
+                DisposableMemberBindingReceiptVerifier.sealForSyntheticApproval(
+                        src.family,dst.family,
+                        UUID.fromString("00000000-0000-4000-8000-000000000001"),
+                        src.member,dst.member,UUID.randomUUID(),reviewKey),
+                DisposableMemberBindingReceiptVerifier.sealForSyntheticApproval(
+                        src.family,dst.family,
+                        UUID.fromString("00000000-0000-4000-8000-000000000001"),
+                        sourceSecondMember,targetSecondMember,UUID.randomUUID(),reviewKey));
+        var identityReceipts=new DisposableMemberBindingReceiptVerifier();
+        var identitySnapshot=UUID.fromString("00000000-0000-4000-8000-000000000001");
+        assertEquals(2,identityReceipts.verify(src.family,dst.family,identitySnapshot,
+                multiMembers,reviewedBindings,reviewKey).approvedMembers());
+        var swappedIdentities=Map.of(
+                src.member,targetSecondMember,sourceSecondMember,dst.member);
+        assertEquals(2,rosterPreflight.verify(a,b,src.family,dst.family,
+                swappedIdentities).mappedMembers());
+        assertThrows(SecurityException.class,()->identityReceipts.verify(
+                src.family,dst.family,identitySnapshot,
+                swappedIdentities,reviewedBindings,reviewKey));
 
         var multiResult=replay.apply(multiMemberArchive,src.family,dst.family,
                 multiMembers,currencies,rates,key);
