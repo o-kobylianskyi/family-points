@@ -72,3 +72,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 missing-scope safety regression (2026-11-17)
 - Source fix `69a5fc3e59060601ec568785da2fac2d70d8c964` and unit regression `ec425f80189ccd65e663a4f25a047ff6c9863d62` require nonempty account/workspace on stored pending V49 operation and caller. V8 direct source-level 10/10 bounded assertions PASS; not full Node/Playwright execution. QA run pinned `frontend npm run test:regression` and corrected two-tab Chromium before V49 signoff. Missing QA credentials => SKIP, not PASS. No real or existing family writes; BETA HOLD.
+
+
+## WEB-02 V49 source regression executed evidence (2026-11-17)
+- Fetched code+test blobs `30194a6a` and `fd724498`; executed 14 source-backed `setupFinalizeSafety.test.mjs` callbacks in V8 with JS assertion equivalents: 14 PASS, 0 FAIL. Not native `node --test`, not full npm regression, not browser; do not mark CI current-SHA green from this alone. QA still owns pinned Chromium `onboarding-v49-two-tab-synthetic.spec.js`, first syntax check then browser and POST count evidence. No real family mutation, BETA HOLD.
