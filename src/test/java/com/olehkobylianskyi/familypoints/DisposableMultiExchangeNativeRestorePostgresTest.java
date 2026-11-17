@@ -178,18 +178,24 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
         assertEquals(checked.sourceSha256(),integrity.verify(
                 archive,src.family,dst.family,members,currencies,rates,
                 result.requests(),result.transactions(),key).targetSha256());
-        // A zero-amount extra row leaves net balance untouched. Exact target
-        // graph cardinality must still reject it (no orphan/extra history).
-        Long extraId=b.queryForObject("""
+        // Two unrelated +1/-1 entries preserve the same net balance. The
+        // exact historical graph must still reject this hidden pair.
+        Long extraEarn=b.queryForObject("""
                 INSERT INTO point_transactions(
                    member_id,point_type_id,amount,created_at,type,source_type,description)
-                VALUES (?,?,0,NOW(),'EARN','MANUAL','stray extra')
+                VALUES (?,?,1,NOW(),'EARN','MANUAL','stray extra credit')
+                RETURNING id
+                """,Long.class,dst.member,dst.points);
+        Long extraSpend=b.queryForObject("""
+                INSERT INTO point_transactions(
+                   member_id,point_type_id,amount,created_at,type,source_type,description)
+                VALUES (?,?,-1,NOW(),'SPEND','MANUAL','stray extra debit')
                 RETURNING id
                 """,Long.class,dst.member,dst.points);
         assertThrows(SecurityException.class,()->integrity.verify(
                 archive,src.family,dst.family,members,currencies,rates,
                 result.requests(),result.transactions(),key));
-        b.update("DELETE FROM point_transactions WHERE id=?",extraId);
+        b.update("DELETE FROM point_transactions WHERE id IN (?,?)",extraEarn,extraSpend);
         assertEquals(checked.targetSha256(),integrity.verify(
                 archive,src.family,dst.family,members,currencies,rates,
                 result.requests(),result.transactions(),key).targetSha256());
