@@ -14,7 +14,8 @@ import java.util.*;
 final class DisposableLedgerSourceGraphVerifier {
     record Result(int manualRows,int taskRows,int purchaseRows,
                   Map<Long,Long> ledgerToTaskSource,
-                  Map<Long,Long> ledgerToPurchaseSource,UUID snapshotId) {}
+                  Map<Long,Long> ledgerToPurchaseSource,UUID snapshotId,
+                  Map<String,Long> signedMemberCurrencyBalances,int ledgerRows) {}
     private final ProtectiveBackupImportInspector inspector;
     private final ProtectiveBackupPortableFile file;
     private final ProtectiveBackupArtifactCodec codec;
@@ -67,12 +68,15 @@ final class DisposableLedgerSourceGraphVerifier {
                 throw new SecurityException("LEDGER_SOURCE_PURCHASE_INVALID");
         }
         var typeIds=new HashSet<Long>();
+        var typeCodes=new HashSet<String>();
         for(JsonNode pointType:root.path("POINT_TYPES")) {
             if(pointType.path("family_id").asLong()!=source
                     || !pointType.path("id").isIntegralNumber()
                     || !typeIds.add(pointType.path("id").asLong())
+                    || pointType.path("id").asLong()<=0
                     || !pointType.path("code").isTextual()
-                    || pointType.path("code").asText().isBlank())
+                    || pointType.path("code").asText().isBlank()
+                    || !typeCodes.add(pointType.path("code").asText()))
                 throw new SecurityException("LEDGER_SOURCE_CURRENCY_INVALID");
         }
         // A purchase's entire economic parent must be anchored in the
@@ -91,6 +95,7 @@ final class DisposableLedgerSourceGraphVerifier {
         var purchaseCharged=new HashSet<Long>();
         var taskEvents=new HashSet<String>();
         var ledgerIds=new HashSet<Long>();
+        var signedBalances=new TreeMap<String,Long>();
         for(JsonNode row:root.path("POINT_LEDGER")) {
             long id=row.path("id").asLong();
             long member=row.path("member_id").asLong();
@@ -100,6 +105,9 @@ final class DisposableLedgerSourceGraphVerifier {
                     || row.path("amount").asLong()>Integer.MAX_VALUE
                     || row.path("amount").asLong()<Integer.MIN_VALUE)
                 throw new SecurityException("LEDGER_SOURCE_ROW_INVALID");
+            // Independent category-wide signed conservation inventory. This is
+            // not sufficient to prove ancestry, so category checks follow.
+            signedBalances.merge(member+":"+currency,row.path("amount").asLong(),Math::addExact);
             String sourceType=row.path("source_type").asText();
             if("MANUAL".equals(sourceType)) {
                 if(row.hasNonNull("source_id"))
@@ -154,6 +162,7 @@ final class DisposableLedgerSourceGraphVerifier {
             }
         }
         return new Result(manual,task,purchaseCount,
-                Map.copyOf(relationships),Map.copyOf(purchaseRelationships),inspected.snapshotId());
+                Map.copyOf(relationships),Map.copyOf(purchaseRelationships),
+                inspected.snapshotId(),Map.copyOf(signedBalances),ledgerIds.size());
     }
 }
