@@ -64,3 +64,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 ## WEB-02 corrected two-tab browser fixture (2026-11-17)
 - Test file `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` corrected in Web source commit `a0d87ee52ebed8b1e62903a910fc2bb010999189`. Previous file had doubled regex escape backslashes (28 pairs) that can break JavaScript parsing; do **not** run older fixture and mistake parser failure for application V49 defect.
 - Run `node --check qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` before Playwright. Then run the two tests with QA credentials, selected isolated family and pinned clean SHA, capturing actual PASS/FAIL/SKIP and POST counts. Browser execution still NOT_RUN by Web. No real family setup writes in the mocked cases.
+
+
+## WEB-02 fixture syntax note (2026-11-17)
+- Corrected two-tab browser spec blob `761d10edd052cb31a0a27f50b7ba974661ad3332` passes V8 syntax parser with module imports adapted for parsing only. Browser not executed. QA should run isolated authenticated Playwright on pinned SHA with expected one finalize POST, preserve competitor shared marker; report PASS/FAIL/SKIP and trace. Missing isolated credentials means SKIP, no real-family writes.
