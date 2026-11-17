@@ -22,3 +22,5 @@ DateTime CET | Track | ChatGeneration | VisibleUserTurns | VisibleAssistantTurns
 **Known hard-limit event:** none reported for current Backend chat. **Percent of capacity used:** unknown, unavailable; no measured evidence. **Continuity:** maintain docs/coordination/handoffs/BACKEND_LATEST.md after each substantial batch. No invented totals.
 
 2026-11-17 09:28 CET | Backend | BACKEND-current (generation unknown) | unknown | unknown | NOT_AVAILABLE | unknown | USER_UI | unknown | 586e0acb0 | HARD_LIMIT_BANNER | User supplied screenshot of Backend chat reaching maximum conversation length after financial-history QA packet #24; direct lifetime turn/token counts unavailable, no threshold estimated. Existing BACKEND_LATEST.md supports continuation.\n
+
+2026-11-17 new chat CET | Backend | BACKEND-successor-to-hard-limit | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | large QA #25-26 | f620dd3 | CHECKPOINT | New chat accepted after screenshot-confirmed prior hard limit; measured context usage unavailable; no fabricated percentage. 
