@@ -214,3 +214,6 @@ All these cases are additional acceptance criteria in the **single planned final
 ## QA-029 acceptance boundary after first independently green full CI
 
 - GitHub Actions run `44044271962` @`8c397d0cbe7d68fd52d5b3f6e18a3ed44cda8d2a` independently confirms 479 Maven tests/0 failures/0 errors/0 skipped, Android/Web/Compose full non-skipped success, Release 55 safety cases, and exact SHA evidence job. This verifies **automated source at that SHA only**, does NOT authorize or execute real user testing, production financial restore or beta deployment. Keep all real test inbox items BLOCKED_DEPENDENCY until Backend durable VERIFIED, complete replay and Architecture/QA release gates plus explicit operator final-campaign approval.
+
+## QA-030 independent automated vs operator E2E boundary
+- Verified GitHub full CI #44044271962 @8c397d0 479 backend/55 Release safety and successful Web node build does **not** cover V49 Chromium two-tab spec nor real authenticated family setup. Source-only Backend #25 newer `bcac5bdf` adds same-tenant exchange-rate endpoint drift and historic request repricing negatives but needs new pinned Maven. Retain V49 operator-owned E2E / BKL002 family finance scenarios for single approved disposable PRE-BETA campaign. NO real writes or BETA deployment.
