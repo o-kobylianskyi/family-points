@@ -19,3 +19,4 @@ Next Web chat creates new generation and records measured checkpoints; this row 
 | 2026-11-17 | Web | WEB-02 | 10 | unknown | PARTIAL_VISIBLE | unknown | NONE | 10 | 75f8773c | CHECKPOINT | New V49 missing-scope guard; source-level 10/10 V8 PASS, full runner unknown. |
 | 2026-11-17 | Web | WEB-02 | 11 | unknown | PARTIAL_VISIBLE | unknown | NONE | 11 | 0a23150d | CHECKPOINT | 14 actual JS safety test callbacks PASS V8; native Node and browser gates pending. |
 | 2026-11-17 | Web | WEB-02 | 12 | unknown | PARTIAL_VISIBLE | unknown | NONE | 12 | 9cb86342 | CHECKPOINT | V49 state scope tightened, V8 source-backed 14/14 PASS; Chromium and new CI pending. |
+| 2026-11-18 | Web | WEB-02 | 13 | unknown | PARTIAL_VISIBLE | unknown | NONE | 13 | d5134ed2 | CHECKPOINT | Review state scope+IN_PROGRESS guard, V8 source backed 14 PASS; Chromium pending. |
