@@ -62,6 +62,12 @@
 - Latest independently observed full CI run [44044271962](https://github.com/o-kobylianskyi/family-points/actions/runs/44044271962) PASS on older `8c397d0`, not a current HEAD + browser suite PASS. BKL-002/BETA HOLD remains.
 - Next: inspect QA test run; fix environment/auth or browser race only with real failure evidence, then target completed V49 acceptance.
 
+## WEB-02 package 9 — two-tab fixture syntax validation (2026-11-17)
+- Latest main at pickup `875720e961a154ec1b7a4d3be36b1dd2d5ee2ca1`. QA-032 [handoff](../handoffs/QA_LATEST.md) confirms review of Web regex fix `a0d87ee`, no executed Chromium result.
+- Independently fetched corrected `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` blob `761d10edd052cb31a0a27f50b7ba974661ad3332`. Validated with JS V8 `new Function` parser after replacing top-level imports and `import.meta` **for syntax parsing only**: **PASS**. Not an actual Node module check, Chromium browser run, or V49 acceptance.
+- No confirmed UI/runtime failure. QA remains execution owner; avoid extra manual/operator test requests. No source modifications in this checkpoint. Last all-four full CI PASS is historic run `44044271962` at `8c397d0`; newer Backend commits require new exact-SHA job evidence.
+- Next: consume QA two-tab test PASS/FAIL/SKIP + failure trace or establish isolated browser test harness under QA; investigate real failures only. No BETA/PROD or family data, BETA HOLD.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
