@@ -884,3 +884,10 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261117_EXCHANGE_HISTORY_INTEGRITY.md` initial `bb14e5c` updated `faa9910`, `48391f0`. Issue #15 comment 6942436058. Developer Java Maven/Testcontainers NOT_RUN, pinned 12-class independent QA command required. Do not claim PASS without current exact HEAD counters FAIL/ERROR/SKIP.
 - General production financial restore remains blocked: source-to-target identity/currency policy, mixed TASK/REWARD/REFUND provenance, group/reputation balances, protected durable backup receipts and owner reauth incomplete. `ProtectiveBackupImportInspector.restorable=false`, `WorkspaceFinancialRestoreClosureService.replaySupported=false`, reset Execute HTTP423, BETA HOLD.
 - NEXT P0: obtain QA test failure evidence and fix regressions; extend integrity tests to 21st request limit and complete source ID orphan/duplicate FK scenarios, then cross-category multi-member/multi-currency comparisons only after source schema proof.
+
+
+### 2026-11-17 — Backend large test-only batch #25–26
+- Source changes `bcac5bdf`, `2696cf3f`, `98b2ad06`: negative signed exchange-history drift (rate endpoints, mutable request amounts), 21-request bound, shifted source ledger provenance, dual-member/source-target mapping with isolated per-currency reconciliation.
+- Synthetic two-PostgreSQL fixture only; 1–20 bound; no production Restorer / reset API promotion. New tests NOT_RUN by Backend connector pending QA exact-SHA.
+- Formal packet `docs/coordination/requests/BKL002_QA_PACKET_20261117_FINANCIAL_BOUNDARY_MULTIMEMBER.md` (`f620dd3`). QA full four-component 479-test success is pinned to older `8c397d0` only; `#26` unknown.
+- Continue large batches, maintain handoff, and preserve HTTP423/BETA HOLD.
