@@ -22,7 +22,7 @@ async function signIn(page) {
   await page.locator('form input[type="text"]').fill(username)
   await page.locator('form input[type="password"]').fill(password)
   await page.locator('form button[type="submit"]').click()
-  await expect(page).not.toHaveURL(/\\/login(?:\\?|$)/,{timeout:12000})
+  await expect(page).not.toHaveURL(/\/login(?:\?|$)/,{timeout:12000})
   test.skip(new URL(page.url()).pathname === '/choose-family', 'Choose an isolated QA family before this test')
 }
 
@@ -31,7 +31,7 @@ async function prepare(page) {
   test.skip(new URL(page.url()).pathname === '/login' || new URL(page.url()).pathname === '/choose-family',
     'The second tab needs an authenticated selected QA family')
   const section = page.locator('#initial-family-setup')
-  await expect(section.getByText(/7\\/7/)).toBeVisible()
+  await expect(section.getByText(/7\/7/)).toBeVisible()
   await section.locator('.initial-setup-template-list input[type="checkbox"]').first().check()
   await section.getByRole('button',{name:ui.review}).click()
   await expect(section.getByRole('button',{name:ui.finalize})).toBeVisible()
@@ -44,9 +44,9 @@ test('V49 two tabs: first lost finalize keeps original UUID; second tab never re
   await signIn(page)
   let finalizeCount=0, operation=null, receiptCount=0
   const unexpected=[]
-  await context.route(/\\/workspaces\\/\\d+\\/(?:data-epoch|setup(?:\\/.*)?)(?:\\?.*)?$/, route => {
+  await context.route(/\/workspaces\/\d+\/(?:data-epoch|setup(?:\/.*)?)(?:\?.*)?$/, route => {
     const req=route.request(), path=new URL(req.url()).pathname
-    const workspaceId=Number(path.match(/\\/workspaces\\/(\\d+)\\//)[1])
+    const workspaceId=Number(path.match(/\/workspaces\/(\d+)\//)[1])
     if(path.endsWith('/data-epoch') && req.method()==='GET')
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({workspaceId,dataEpoch:0})})
     if(path.endsWith('/setup') && req.method()==='GET')
@@ -74,7 +74,7 @@ test('V49 two tabs: first lost finalize keeps original UUID; second tab never re
     unexpected.push(req.method()+' '+path)
     return route.abort('blockedbyclient')
   })
-  await context.route(/\\/template-catalog(?:\\?.*)?$/,route =>
+  await context.route(/\/template-catalog(?:\?.*)?$/,route =>
     route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(catalog)}))
   const first=await prepare(page)
   const secondPage=await context.newPage()
@@ -101,9 +101,9 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
   let op=null, finalizeCount=0, receiptCount=0, injectionDone=false
   let sharedKey, competing, secondPage
   const blocked=[]
-  await context.route(/\\/workspaces\\/\\d+\\/(?:data-epoch|setup(?:\\/.*)?)(?:\\?.*)?$/,async route=>{
+  await context.route(/\/workspaces\/\d+\/(?:data-epoch|setup(?:\/.*)?)(?:\?.*)?$/,async route=>{
     const req=route.request(),path=new URL(req.url()).pathname
-    const workspaceId=Number(path.match(/\\/workspaces\\/(\\d+)\\//)[1])
+    const workspaceId=Number(path.match(/\/workspaces\/(\d+)\//)[1])
     if(path.endsWith('/data-epoch') && req.method()==='GET')
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({workspaceId,dataEpoch:0})})
     if(path.endsWith('/setup') && req.method()==='GET')
@@ -148,12 +148,12 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
     blocked.push(req.method()+' '+path)
     return route.abort('blockedbyclient')
   })
-  await context.route(/\\/template-catalog(?:\\?.*)?$/,route =>
+  await context.route(/\/template-catalog(?:\?.*)?$/,route =>
     route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(catalog)}))
   const first=await prepare(page)
   secondPage=await context.newPage()
   await secondPage.goto('/settings#initial-family-setup')
-  await expect(secondPage.locator('#initial-family-setup').getByText(/7\\/7/)).toBeVisible()
+  await expect(secondPage.locator('#initial-family-setup').getByText(/7\/7/)).toBeVisible()
   await first.getByRole('button',{name:ui.finalize}).click()
   await expect(first.getByText(ui.unknown)).toBeVisible()
   expect(finalizeCount).toBe(1)
