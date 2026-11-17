@@ -1192,3 +1192,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 ## 2026-11-16 — WEB-02 source readiness audit and QA evidence matrix
 - Re-read latest QA logs/handoff: historical authenticated browser E2E 47/47 PASS (operator, not immutable SHA for later WEB-02 changes), local Web 16 Node tests PASS @081d670c, previous 3 actual GitHub Actions Web jobs with executed i18n/regression/lint/Vite SUCCESS. No latest Web Playwright two-tab pass/failed trace available. Updated scope audit `docs/coordination/requests/WEB_V49_READINESS_AUDIT_20261116.md` `75ed5265` with source-vs-execution and current blockers.
 - No confirmed Web failure to repair; no speculative source change. QA owns pinned automated V49 tests and real approved disposable acceptance; BETA HOLD.
+
+
+## 2026-11-17 — WEB-02 V49 two-tab Playwright static source defect
+- QA-031 source review did not execute two-tab synthetic; Web inspected and found 28 doubled literal backslash regex escape pairs in new test, including route matchers and page assertions. Corrected source in `a0d87ee52ebed8b1e62903a910fc2bb010999189`; no product behavior changed. Node syntax and Chromium Playwright not run in Web session; QA run needed at pinned SHA. Historical CI 44044271962 green @8c397d0 not proof of this new spec. BETA HOLD.
