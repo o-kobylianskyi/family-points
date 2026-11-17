@@ -17,6 +17,13 @@ test('V49 pending operation is isolated by account and family', () => {
   assert.equal(validSetupFinalizeOperation({...operation(),codes:[]},14,'account-A'),false)
   assert.equal(validSetupFinalizeOperation({...operation(),codes:['TASK_A','TASK_A']},14,'account-A'),false)
   assert.equal(validSetupFinalizeOperation({...operation(),operationId:'bad'},14,'account-A'),false)
+  // A matching pair of absent scopes must NEVER validate a pending operation.
+  for (const absent of [undefined, null, '']) {
+    assert.equal(validSetupFinalizeOperation({...operation(),accountId:absent},14,absent),false)
+    assert.equal(validSetupFinalizeOperation({...operation(),workspaceId:absent},absent,'account-A'),false)
+    assert.equal(ownsSetupFinalizeMarkers({...operation(),accountId:absent},{...operation(),accountId:absent},{...operation(),accountId:absent}),false)
+    assert.deepEqual(reconcileSetupPending({...operation(),workspaceId:absent},null,absent,'account-A'),{blocked:true})
+  }
 })
 test('V49 validates complete, ordered and scoped receipt',()=>{
   assert.deepEqual(assertSetupFinalizeReceipt(receipt(),operation()),receipt())
