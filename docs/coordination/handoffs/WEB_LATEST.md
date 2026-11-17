@@ -50,6 +50,12 @@
 - **No verified Web defect was reported in QA.** Therefore no speculative behavior refactor in this batch. QA owns pinned Node+Playwright and operator-only real disposable family acceptance; Web fixes reproducible defects when received. Backend/Release BKL002 and exact full-gate separate; BETA HOLD.
 - Next: consume QA exact-SHA outcomes/Playwright traces, fix confirmed Web regressions and rerun targeted tests; keep handoff current.
 
+## WEB-02 package 7 — verified newer complete CI, QA V49 status (2026-11-17)
+- Independently fetched actual GitHub Actions jobs for [run 44044271962](https://github.com/o-kobylianskyi/family-points/actions/runs/44044271962), exact source SHA `8c397d0cbe7d68fd52d5b3f6e18a3ed44cda8d2a` as independently recorded by QA. Web locale check/source-backed regression/lint/Vite build: all executed **SUCCESS**. Backend Maven, Android Gradle, Compose parser/release safety, Full CI exact-SHA evidence and CI outcome reporting: all jobs executed **SUCCESS**. QA log records Maven 479 tests with zero failure/error/skip and 55 Release synthetic cases, from actual logs.
+- Newest sampled moving main at audit pickup `6724c186d929bc45fa9e069f45cfffc9162c70c1`, later than green source SHA. Do not call this an exact-main PASS; subsequent Backend #25–#27 source tests have no observed matching full CI.
+- QA independently source-reviewed `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` (QA-031), but **did not execute Chromium Playwright**. Same applies to operator-authorized real feature-enabled seven-step V49 acceptance. New Web-specific verified defect: none in observed CI. QA owns test execution, Web fixes any reproduced trace. BKL-002 protected reset/restore and Beta release remain HOLD.
+- Next Web work: consume QA exact-SHA two-tab fixture results, audit test fixture reliability and correct confirmed failures only; coordinate with Release for new same-SHA non-skipped CI following Backend source commits.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
