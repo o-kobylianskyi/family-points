@@ -134,3 +134,9 @@
 - Combined QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261117_FINANCIAL_BOUNDARY_MULTIMEMBER.md` updated `dbbc30f`. Independent exact-SHA CI still REQUIRED; source-only authored tests do not equal PASS.
 - Keep production reset HTTP423, no `VERIFIED`, no production financial restore, BETA HOLD. QA historical full CI 479/0/0/0 only at older SHA `8c397d0`.
 - Next P0: consume exact-SHA QA #25–27 results, fix real failures first, audit unsupported REFUND/TASK/REWARD source ancestry without assuming metadata; test-only until complete authenticated closure.
+
+## Backend P0 package #28 — 2026-11-17, TASK ledger ancestry
+- Read actual production `TaskService` award/mandatory miss and `PointService.refund` sources. Test-only `DisposableLedgerSourceGraphVerifier` updated `fb7abcef` to require sourceType TASK with positive EARN or negative PENALTY, zero/spend/sign inversion denied, and `e8fe486b` rejects duplicate same-instance same-event TASK history.
+- AES V50 fixture tests `7594bb5a`, `abb599db`: valid reward, valid penalty, valid distinct same-task events; invalid duplicate reward, duplicate penalty, SPEND, zero, sign mismatch. Not production replay and does not infer REFUND/POINT_EXCHANGE.
+- QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261117_TASK_SOURCE_PROVENANCE.md` `c88bbf4`. Independent Maven exact-SHA **NOT_RUN/unknown**. Prior all-green 479 tests @`8c397d0` predates these changes.
+- Next: evaluate current QA CI defects first; make category-specific REWARD_PURCHASE source/owner and REFUND provenance assertions, preserve no speculative source-id mapping. Production reset HTTP423, BETA HOLD.
