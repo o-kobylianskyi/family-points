@@ -128,3 +128,9 @@
 - QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261117_FINANCIAL_BOUNDARY_MULTIMEMBER.md` `f620dd3`. Newly authored tests **NOT_RUN by Backend GitHub source connector**; request independent Maven on exact SHA; do not claim #26 green.
 - QA Issue #15 comment independently verified full four-component CI `44044271962` @ `8c397d0`: Maven 479 PASS zero failed/error/skipped + Android/Web/Compose, before #25/#26 commits. This supersedes outdated blanket no-green claims, but DOES NOT certify new test changes or authorize release.
 - Security invariant: production `restorable=false`, `replaySupported=false`, reset Execute HTTP423, BETA HOLD, no real family reset. Next: monitor QA #26 exact-SHA results; fix regressions and extend missing source provenance only with explicit verifiable historical contracts.
+
+## Backend large batch #27 — exchange exact boundary and per-leg ancestry
+- Commits `abd247aaa5d8b31651f30a4facafeaf9b4dc2db9`, `505331ce6af7eb14f0e403ebd349178b54eb9eb2`: extended synthetic two-PG18 #26 with explicit 20-approved/21-denied original exchange request boundary, 20/40 ledger, balances -210 POINTS/+42 TOKENS, and per-ledger cross-member/denomination tampering rejected by signed source-target SHA verifier.
+- Combined QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261117_FINANCIAL_BOUNDARY_MULTIMEMBER.md` updated `dbbc30f`. Independent exact-SHA CI still REQUIRED; source-only authored tests do not equal PASS.
+- Keep production reset HTTP423, no `VERIFIED`, no production financial restore, BETA HOLD. QA historical full CI 479/0/0/0 only at older SHA `8c397d0`.
+- Next P0: consume exact-SHA QA #25–27 results, fix real failures first, audit unsupported REFUND/TASK/REWARD source ancestry without assuming metadata; test-only until complete authenticated closure.
