@@ -228,3 +228,8 @@ All these cases are additional acceptance criteria in the **single planned final
 
 ## QA-033 deferred TASK source-history acceptance
 - Backend #28 source-only V50 TASK graph allows authenticated original TASK/EARN positive and TASK/PENALTY negative (missed mandatory task), both same task instance allowed if event types distinct, denies repeated EARN or repeated PENALTY for same task instance and unsupported SPEND/zero/wrong-sign. For eventual approved isolated real PRE-BETA tests require original task instance and member ownership, expected points sign and exact debit/credit, duplicate event suppression, cross-tenant isolation and preserved source→target event IDs; no generic REFUND ancestry inferred. Still BLOCKED_DEPENDENCY, no real family test or production replay.
+
+## QA-034 purchase/refund and source-balance future acceptance
+
+- Signed original purchase parents now preflight all archived `REWARD_PURCHASES`, including unused: member positive, type from same-family signed POINT_TYPES, bounded positive price; one exactly matched SPEND for charged purchase, duplicate denied. `PointService.refund` caller supplies sourceType/sourceId, so generic REFUND ancestry remains BLOCKED (no guessed mapping). Independent signed balance inventory per source member×point_type added, with duplicate currency codes denied.
+- QA identified unreferenced signed TASK_EXECUTIONS whose member_id is integral but zero/non-family not proven in archived generic verifier; demand parent closure and negative test before labeling archive complete. No live proof now. BLOCKED_DEPENDENCY.
