@@ -190,6 +190,27 @@ class DisposableLedgerSourceGraphVerifierTest {
         assertEquals(2,accepted.signedMemberCurrencyBalances().size());
     }
 
+    @Test void mixedTaskPurchaseAndManualLedgerConservesEachMemberCurrency()
+            throws Exception {
+        var accepted=verifyEdited(
+                ",{\"id\":101,\"member_id\":4,\"point_type_id\":3,"+
+                "\"amount\":-4,\"type\":\"SPEND\",\"source_type\":\"REWARD_PURCHASE\",\"source_id\":51},"+
+                "{\"id\":102,\"member_id\":5,\"point_type_id\":3,"+
+                "\"amount\":7,\"source_type\":\"MANUAL\",\"source_id\":null}",
+                "TASK",42L,4,4,
+                body->body.replace("\"POINT_LEDGER\":",
+                        "\"REWARD_PURCHASES\":[{\"id\":51,\"member_id\":4,"+
+                        "\"point_type_id\":3,\"price_amount\":4}],\"POINT_LEDGER\":"));
+        assertEquals(1,accepted.taskRows());
+        assertEquals(1,accepted.purchaseRows());
+        assertEquals(1,accepted.manualRows());
+        assertEquals(3,accepted.ledgerRows());
+        assertEquals(1L,accepted.signedMemberCurrencyBalances().get("4:3"));
+        assertEquals(7L,accepted.signedMemberCurrencyBalances().get("5:3"));
+        assertEquals(42L,accepted.ledgerToTaskSource().get(100L));
+        assertEquals(51L,accepted.ledgerToPurchaseSource().get(101L));
+    }
+
     @Test void archiveRejectsDuplicateCurrencyCodesAndInvalidCurrencyId()
             throws Exception {
         assertThrows(SecurityException.class,()->verifyEdited(
