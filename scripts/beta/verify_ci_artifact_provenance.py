@@ -25,6 +25,8 @@ def verify_metadata(candidate_sha, scoped, full, metadata, *, expected_repo_id=R
         if type(artifact) is not dict:
             raise ValueError("Invalid artifact metadata")
         name = artifact.get("name")
+        if not isinstance(name, str):
+            raise ValueError("Invalid artifact name")
         if name not in REQUIRED:
             continue
         if name in found:
