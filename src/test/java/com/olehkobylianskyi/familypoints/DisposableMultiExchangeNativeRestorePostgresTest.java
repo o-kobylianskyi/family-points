@@ -142,6 +142,48 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
         assertEquals(4,result.transactions().size());
         assertEquals(-30L,result.balances().get(dst.member+":"+dst.points));
         assertEquals(6L,result.balances().get(dst.member+":"+dst.tokens));
+        var integrity=new DisposableExchangeHistoryIntegrityVerifier(
+                b,inspector,portable,codec);
+        var checked=integrity.verify(archive,src.family,dst.family,
+                members,currencies,rates,result.requests(),result.transactions(),key);
+        assertEquals(2,checked.requests());
+        assertEquals(4,checked.transactions());
+        assertEquals(checked.sourceSha256(),checked.targetSha256());
+        assertEquals(-30L,checked.balanceDeltas().get(dst.member+":"+dst.points));
+        assertEquals(6L,checked.balanceDeltas().get(dst.member+":"+dst.tokens));
+        assertTrue(checked.sourceSha256().matches("[0-9a-f]{64}"));
+
+        // Semantic changes that preserve the overall sum MUST be caught.
+        Long credited= b.queryForObject("""
+                SELECT id FROM point_transactions
+                WHERE source_type='POINT_EXCHANGE' AND source_id=?
+                  AND type='EARN'
+                """,Long.class,result.requests().get(originalTwo));
+        b.update("UPDATE point_transactions SET description='silent edit' WHERE id=?",credited);
+        assertThrows(SecurityException.class,()->integrity.verify(
+                archive,src.family,dst.family,members,currencies,rates,
+                result.requests(),result.transactions(),key));
+        b.update("UPDATE point_transactions SET description=NULL WHERE id=?",credited);
+        b.update("""
+                UPDATE point_exchange_requests
+                SET requested_at=requested_at+INTERVAL '1 second' WHERE id=?
+                """,result.requests().get(originalOne));
+        assertThrows(SecurityException.class,()->integrity.verify(
+                archive,src.family,dst.family,members,currencies,rates,
+                result.requests(),result.transactions(),key));
+        b.update("""
+                UPDATE point_exchange_requests
+                SET requested_at=requested_at-INTERVAL '1 second' WHERE id=?
+                """,result.requests().get(originalOne));
+        assertEquals(checked.sourceSha256(),integrity.verify(
+                archive,src.family,dst.family,members,currencies,rates,
+                result.requests(),result.transactions(),key).targetSha256());
+        var badMaps=new HashMap<>(result.transactions());
+        badMaps.put(badMaps.keySet().iterator().next(),-1L);
+        assertThrows(SecurityException.class,()->integrity.verify(
+                archive,src.family,dst.family,members,currencies,rates,
+                result.requests(),badMaps,key));
+
         assertTrue(result.requests().containsKey(originalOne));
         assertTrue(result.requests().containsKey(originalTwo));
         for(Long targetRequest:result.requests().values())
