@@ -910,3 +910,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Test-only signed V50 graph verifier `c23e1bf`: count and signed member×pointType aggregate (checked arithmetic), unique archived point type codes and positive IDs. Effective source finalized `5712e61`.
 - AES fixtures `5185fe9` partition separate members, invalid currency code duplicate and ID zero deny. `2da8d2e` mixes task reward +5, reward purchase -4, manual +7 for separate member, validates +1/+7 per member and original source relationships.
 - QA packet `a74a052`, no independent exact-SHA Maven PASS asserted. Production BETA HOLD HTTP423, no real-family changes.
+
+
+### 2026-11-17 — #34–36 protected archive task/parent closure
+- Independent QA-034 identified unused task parent member_id=0 gap; fixed `26aa07c9`, AES negatives `777ba701`.
+- Fail-closed missing/incorrect sealed category arrays `5a57de9a`, negative fixtures `9478e2a5`.
+- QA handoff `4e479991`; actual Maven current-SHA PASS not yet evidenced. Positive member ID is not source tenant provenance proof. No VERIFIED/Restore promotion; HTTP423/BETA HOLD.
