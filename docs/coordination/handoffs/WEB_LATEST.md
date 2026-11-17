@@ -75,6 +75,12 @@
 - Frontend V49 real feature-enabled QA remains separately operator-approved disposable-only. Current HEAD full CI after this patch NOT_VERIFIED; last verified green `44044271962` pinned to older `8c397d0`. **BETA HOLD**.
 - Next: QA collects exact-SHA Node+Chromium test evidence; Web fixes reproduced UI failures and checks any new post-change CI steps.
 
+## WEB-02 package 11 — executed source-backed V49 safety tests (2026-11-17)
+- Last observed main HEAD before package `eb1421b64f1981315da86c2d663326712abafd69`. QA handoff QA-033 has no corrected two-tab Chromium outcome; last independently witnessed all-four full CI PASS `44044271962` at old `8c397d0`.
+- Independently fetched `frontend/src/utils/setupFinalizeSafety.js` blob `30194a6a4d303a5fea423c3d8d1a15522e03a43c` and `frontend/tests/setupFinalizeSafety.test.mjs` blob `fd7244986b67b32f6972b26639783719a2c94aeb`; executed all 14 actual test callbacks with V8 harness, replacing only JS export/import syntax and using equivalent `equal/deepEqual/throws` assertion functions. **14 PASS / 0 FAIL**, including missing account/workspace, double-tab pending identity, receipt ordering, PATCH transition and no premature COMPLETED. This is **source-backed V8 harness**, NOT Node's official `node --test` or full `npm run test:regression`, not Chromium and not same-SHA GitHub Actions.
+- No new confirmed Web code failure, no source changes this batch. Browser synthetic `onboarding-v49-two-tab-synthetic.spec.js` remains **NOT_RUN**, QA owns pinned isolated execution and report. No real family/PROD/BETA writes; BKL-002/BETA HOLD.
+- Next: consume QA Chromium results and new exact-SHA CI run; fix confirmed defects, re-evaluate readiness.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
