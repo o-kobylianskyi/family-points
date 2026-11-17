@@ -103,6 +103,46 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
         var currencies=Map.of(src.points,dst.points,src.tokens,dst.tokens);
         var rates=Map.of(src.rate,dst.rate);
 
+        // Scope guard: the bounded restore may accept 20 requests, never 21.
+        // Build the oversized authenticated source archive before touching the
+        // target, then remove the extra synthetic rows and preserve baseline.
+        var extraRequestIds=new ArrayList<Long>();
+        for(int i=0;i<19;i++) extraRequestIds.add(exchange(a,src,10,2));
+        byte[] oversized=new TransactionTemplate(new DataSourceTransactionManager(srcDs))
+                .execute(status->exporter.export(src.family,UUID.randomUUID(),UUID.randomUUID(),
+                        0L,List.of("POINT_EXCHANGE_REQUESTS","POINT_EXCHANGE_RATES",
+                                "POINT_TYPES","POINT_LEDGER"),"V50",key)).encryptedFile();
+        assertThrows(SecurityException.class,()->replay.apply(
+                oversized,src.family,dst.family,members,currencies,rates,key));
+        for(Long requestId:extraRequestIds) {
+            a.update("DELETE FROM point_transactions WHERE source_type='POINT_EXCHANGE' AND source_id=?",
+                    requestId);
+            a.update("DELETE FROM point_exchange_requests WHERE id=?",requestId);
+        }
+        assertEquals(2L,a.queryForObject(
+                "SELECT count(*) FROM point_exchange_requests WHERE member_id=?",
+                Long.class,src.member));
+        assertEquals(4L,a.queryForObject(
+                "SELECT count(*) FROM point_transactions WHERE member_id=?",
+                Long.class,src.member));
+
+        // A third historical ledger leg attached to the second request
+        // (3+1 instead of 2+2) cannot be silently reassigned to a different
+        // source request. Re-seal only disposable corrupted source state.
+        Long shiftedLeg=a.queryForObject("""
+                SELECT id FROM point_transactions
+                WHERE source_type='POINT_EXCHANGE' AND source_id=? AND type='EARN'
+                """,Long.class,originalTwo);
+        a.update("UPDATE point_transactions SET source_id=? WHERE id=?",originalOne,shiftedLeg);
+        assertThrows(RuntimeException.class,()->{
+            byte[] bad=new TransactionTemplate(new DataSourceTransactionManager(srcDs))
+                    .execute(status->exporter.export(src.family,UUID.randomUUID(),UUID.randomUUID(),
+                            0L,List.of("POINT_EXCHANGE_REQUESTS","POINT_EXCHANGE_RATES",
+                                    "POINT_TYPES","POINT_LEDGER"),"V50",key)).encryptedFile();
+            replay.apply(bad,src.family,dst.family,members,currencies,rates,key);
+        });
+        a.update("UPDATE point_transactions SET source_id=? WHERE id=?",originalTwo,shiftedLeg);
+
         var nullMembers=new HashMap<Long,Long>();nullMembers.put(src.member,null);
         assertThrows(SecurityException.class,()->replay.apply(
                 archive,src.family,dst.family,nullMembers,currencies,rates,key));
