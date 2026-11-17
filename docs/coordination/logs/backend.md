@@ -922,3 +922,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Inspected production TaskInstance historical `reward_amount` / `reward_point_type_id` / `penalty_amount` / `penalty_point_type_id`. Test-only verifier `2ee38757` reconciles snapshot amount and currency to linked TASK ledger when signed fields present.
 - AES tests `d7fe717d` include valid EARN/PENALTY and mismatch/incomplete snapshot negatives. Original member catalog is not available in exporter and portable tenant ownership remains unproven; no restore unlock.
 - QA handoff `b7d29bb2`; independent Maven execution current SHA UNKNOWN. No live data modified, HTTP423/BETA HOLD.
+
+
+### 2026-11-17 — P0 #41–44 member roster ownership preflight
+- Confirmed importer/exporter disallow portable FAMILY_MEMBERS in V50; stable source member rebind unresolved. Test-only 2-PG18 roster verifier `4b7ccd57`: exact source family roster, explicit injective map, target family ownership, member_type+role code. Integrated `c4e5d23d`; member type drift rejected `997fb762`.
+- Formal QA packet `76cc270e`. Current source-only, NOT_RUN; original DB required and same-role swaps are unresolved identity semantic risk. Production HTTP423 BETA HOLD.
