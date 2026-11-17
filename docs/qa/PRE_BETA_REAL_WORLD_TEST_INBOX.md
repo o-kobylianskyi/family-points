@@ -203,3 +203,7 @@ All these cases are additional acceptance criteria in the **single planned final
 
 ## QA-026 exchange portable-archive source closure — intake refinement
 - Backend #20 now exports/inspects authenticated `POINT_EXCHANGE_RATES` and `POINT_EXCHANGE_REQUESTS` with ledger in sealed AES archive, checks original rate multiplier, member/currency ownership, approved status and exact one debit + one credit. For future `REAL-BKL002-EXCHANGE-PAIR-01`, also verify tampered original rate snapshot, partial category export, reviewer identity, missing/duplicate legs and target source ID remapping. This is signed **source-graph preflight**, not target financial replay. Maintain BLOCKED_DEPENDENCY until full verified production native restore and approved final campaign; no live tests now.
+
+## QA-027 future acceptance — atomic exchange rollback
+
+- Backend #22 source-only, two independent PG18 synthetic proof uses single transaction request+SPEND+EARN, intentional CHECK constraint failing EARN after debit and checks zero partial rows. Future `REAL-BKL002-EXCHANGE-ATOMIC-01` requires only approved disposable PRE-BETA family and complete authorized production restorer: restore multi-exchange histories across currencies, original request/ledger ID remap, balanced exact per-member currencies, duplicate rejection, independently verified rollback of partial debit/request on fault, unrelated family isolation and durable receipt before/after. Test-only one-exchange helper DOES NOT authorize user-family restore. BLOCKED_DEPENDENCY, collect only.
