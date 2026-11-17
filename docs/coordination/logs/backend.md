@@ -897,3 +897,10 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Production code verified: `TaskService` positive `EARN` for task completion; negative `PENALTY` for mandatory missed task; `PointService.refund` source identity supplied by caller.
 - Test-only verifier commits `fb7abcef`, `e8fe486b`: positive TASK/EARN, negative TASK/PENALTY only; zero/type inversion and duplicate same-task event DENY. AES fixture commits `7594bb5a`, `abb599db`.
 - Consolidated QA instruction `c88bbf4`; exact SHA Maven not yet independently run. No production restore or reset activation.
+
+
+### 2026-11-17 — package #29–30 Purchase/Refund financial history
+- Production caller inspection: RewardService purchase spend, PointExchangeService exchange legs, PointService.refund caller-selected identity; general refund source mapping intentionally unapproved.
+- Source-only verifier `875720e` requires all signed REWARD_PURCHASES parent owners, currency graph, bounded price including currently uncharged purchases; tests `4265dc2` cover invalid parent and unused bad archived parent.
+- New negative AES tests `0afe1c5` for REFUND/POINT_EXCHANGE/unknown sourceType fail-closed. QA packet `ffb4492`. Source commits NOT independently run on latest SHA; older CI 479 passing predates.
+- No restore/execute unlock, no real family mutation.
