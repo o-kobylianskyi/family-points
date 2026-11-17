@@ -182,6 +182,36 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
                         multiMembers,currencies,rates,multiResult.requests(),
                         multiResult.transactions(),key);
         assertEquals(multiVerified.sourceSha256(),multiVerified.targetSha256());
+        // A single leg moved across members must fail even when both users
+        // belong to the same workspace and their total currency sums offset.
+        Long secondCredit=b.queryForObject("""
+                SELECT id FROM point_transactions
+                WHERE source_type='POINT_EXCHANGE' AND source_id=? AND type='EARN'
+                """,Long.class,multiResult.requests().get(originalTwo));
+        b.update("UPDATE point_transactions SET member_id=? WHERE id=?",
+                dst.member,secondCredit);
+        assertThrows(SecurityException.class,()->new DisposableExchangeHistoryIntegrityVerifier(
+                b,inspector,portable,codec).verify(multiMemberArchive,src.family,dst.family,
+                        multiMembers,currencies,rates,multiResult.requests(),
+                        multiResult.transactions(),key));
+        b.update("UPDATE point_transactions SET member_id=? WHERE id=?",
+                targetSecondMember,secondCredit);
+
+        // A point-type flip on one member's credit is also unacceptable,
+        // regardless of any family-level aggregate balance.
+        b.update("UPDATE point_transactions SET point_type_id=? WHERE id=?",
+                dst.points,secondCredit);
+        assertThrows(SecurityException.class,()->new DisposableExchangeHistoryIntegrityVerifier(
+                b,inspector,portable,codec).verify(multiMemberArchive,src.family,dst.family,
+                        multiMembers,currencies,rates,multiResult.requests(),
+                        multiResult.transactions(),key));
+        b.update("UPDATE point_transactions SET point_type_id=? WHERE id=?",
+                dst.tokens,secondCredit);
+        assertEquals(multiVerified.sourceSha256(),new DisposableExchangeHistoryIntegrityVerifier(
+                b,inspector,portable,codec).verify(multiMemberArchive,src.family,dst.family,
+                        multiMembers,currencies,rates,multiResult.requests(),
+                        multiResult.transactions(),key).targetSha256());
+
         // Disposable target only; clear the rehearsal to run the unchanged
         // single-member baseline and its unrelated negative tests below.
         b.update("DELETE FROM point_transactions WHERE member_id IN (?,?)",
