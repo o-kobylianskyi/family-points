@@ -916,3 +916,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Independent QA-034 identified unused task parent member_id=0 gap; fixed `26aa07c9`, AES negatives `777ba701`.
 - Fail-closed missing/incorrect sealed category arrays `5a57de9a`, negative fixtures `9478e2a5`.
 - QA handoff `4e479991`; actual Maven current-SHA PASS not yet evidenced. Positive member ID is not source tenant provenance proof. No VERIFIED/Restore promotion; HTTP423/BETA HOLD.
+
+
+### 2026-11-17 — Backend #37–40 task economic snapshot
+- Inspected production TaskInstance historical `reward_amount` / `reward_point_type_id` / `penalty_amount` / `penalty_point_type_id`. Test-only verifier `2ee38757` reconciles snapshot amount and currency to linked TASK ledger when signed fields present.
+- AES tests `d7fe717d` include valid EARN/PENALTY and mismatch/incomplete snapshot negatives. Original member catalog is not available in exporter and portable tenant ownership remains unproven; no restore unlock.
+- QA handoff `b7d29bb2`; independent Maven execution current SHA UNKNOWN. No live data modified, HTTP423/BETA HOLD.
