@@ -212,6 +212,16 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
         assertThrows(SecurityException.class,()->rosterPreflight.verify(
                 a,b,src.family,dst.family,Map.of(
                         src.member,dst.member,sourceSecondMember,neighbor.member)));
+        // A same-family target account is not sufficient if its member type
+        // differs from the source's original member classification.
+        b.update("UPDATE family_members SET member_type='CHILD' WHERE id=?",
+                targetSecondMember);
+        assertThrows(SecurityException.class,()->rosterPreflight.verify(
+                a,b,src.family,dst.family,multiMembers));
+        b.update("UPDATE family_members SET member_type='PARENT' WHERE id=?",
+                targetSecondMember);
+        assertEquals(2,rosterPreflight.verify(
+                a,b,src.family,dst.family,multiMembers).mappedMembers());
 
         var multiResult=replay.apply(multiMemberArchive,src.family,dst.family,
                 multiMembers,currencies,rates,key);
