@@ -118,6 +118,22 @@ class DisposableLedgerSourceGraphVerifierTest {
                         "\"amount\":5,\"type\":\"EARN\"")));
     }
 
+    @Test void evenUnusedArchivedTaskCannotHaveInvalidMemberId()
+            throws Exception {
+        var valid=verify("","TASK",42L,4,4);
+        assertEquals(1,valid.taskRows());
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                body->body.replace("\"TASK_EXECUTIONS\":[",
+                        "\"TASK_EXECUTIONS\":[{\"id\":43,\"member_id\":0,"+
+                        "\"task_definition_id\":77},")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                body->body.replace("\"TASK_EXECUTIONS\":[",
+                        "\"TASK_EXECUTIONS\":[{\"id\":44,\"member_id\":-1,"+
+                        "\"task_definition_id\":77},")));
+    }
+
     @Test void taskDefinitionMustBePresentInSameFamilyAndAmountsAreBounded()
             throws Exception {
         assertThrows(SecurityException.class,()->verifyEdited(
