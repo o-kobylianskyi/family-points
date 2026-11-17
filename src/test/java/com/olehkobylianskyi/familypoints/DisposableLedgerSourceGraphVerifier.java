@@ -69,6 +69,24 @@ final class DisposableLedgerSourceGraphVerifier {
                     || taskRows.putIfAbsent(task.path("id").asLong(),task)!=null)
                 throw new SecurityException("LEDGER_SOURCE_TASK_INVALID");
         }
+        // Validate EVERY archived TASK parent, including uncharged instances.
+        // An incomplete non-null historic economics pair is not portable.
+        // Reduced legacy fixtures with neither field do not establish full
+        // economic closure and remain a separate explicit QA blocker.
+        for(JsonNode historicalTask:taskRows.values()) {
+            for(String kind:List.of("reward","penalty")) {
+                String amount=kind+"_amount";
+                String currency=kind+"_point_type_id";
+                boolean hasAmount=historicalTask.hasNonNull(amount);
+                boolean hasCurrency=historicalTask.hasNonNull(currency);
+                if(hasAmount!=hasCurrency
+                        || (hasAmount && (!historicalTask.path(amount).canConvertToInt()
+                            || historicalTask.path(amount).asInt()<=0
+                            || !historicalTask.path(currency).isIntegralNumber()
+                            || historicalTask.path(currency).asLong()<=0)))
+                    throw new SecurityException("LEDGER_TASK_ARCHIVED_ECONOMICS_PAIR_INVALID");
+            }
+        }
         var purchaseRows=new HashMap<Long,JsonNode>();
         for(JsonNode original:root.path("REWARD_PURCHASES")) {
             long id=original.path("id").asLong();
