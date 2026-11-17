@@ -79,6 +79,7 @@ final class DisposableLedgerSourceGraphVerifier {
         var relationships=new TreeMap<Long,Long>();
         var purchaseRelationships=new TreeMap<Long,Long>();
         var purchaseCharged=new HashSet<Long>();
+        var taskEvents=new HashSet<String>();
         var ledgerIds=new HashSet<Long>();
         for(JsonNode row:root.path("POINT_LEDGER")) {
             long id=row.path("id").asLong();
@@ -113,6 +114,8 @@ final class DisposableLedgerSourceGraphVerifier {
                         !(signed>0 && "EARN".equals(transactionType)
                           || signed<0 && "PENALTY".equals(transactionType)))
                     throw new SecurityException("LEDGER_TASK_TRANSACTION_SEMANTICS");
+                if(!taskEvents.add(taskId+":"+transactionType))
+                    throw new SecurityException("LEDGER_TASK_DUPLICATE_EVENT");
                 relationships.put(id,taskId);
                 task++;
             } else if("REWARD_PURCHASE".equals(sourceType)) {
