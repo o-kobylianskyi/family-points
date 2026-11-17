@@ -143,6 +143,58 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
         });
         a.update("UPDATE point_transactions SET source_id=? WHERE id=?",originalTwo,shiftedLeg);
 
+        // Prove independent provenance across TWO members: the second
+        // request and both legs belong to the other member, but retain the
+        // same family currency pair. Reconstruct into a distinct target member.
+        Long sourceRole=a.queryForObject(
+                "SELECT family_role_id FROM family_members WHERE id=?",
+                Long.class,src.member);
+        Long targetRole=b.queryForObject(
+                "SELECT family_role_id FROM family_members WHERE id=?",
+                Long.class,dst.member);
+        long sourceSecondMember=a.queryForObject("""
+                INSERT INTO family_members(family_id,family_role_id,name,active,member_type)
+                VALUES (?,?,'Source second',true,'PARENT') RETURNING id
+                """,Long.class,src.family,sourceRole);
+        long targetSecondMember=b.queryForObject("""
+                INSERT INTO family_members(family_id,family_role_id,name,active,member_type)
+                VALUES (?,?,'Target second',true,'PARENT') RETURNING id
+                """,Long.class,dst.family,targetRole);
+        a.update("UPDATE point_exchange_requests SET member_id=? WHERE id=?",
+                sourceSecondMember,originalTwo);
+        a.update("""
+                UPDATE point_transactions SET member_id=?
+                WHERE source_type='POINT_EXCHANGE' AND source_id=?
+                """,sourceSecondMember,originalTwo);
+        byte[] multiMemberArchive=new TransactionTemplate(new DataSourceTransactionManager(srcDs))
+                .execute(status->exporter.export(src.family,UUID.randomUUID(),UUID.randomUUID(),
+                        0L,List.of("POINT_EXCHANGE_REQUESTS","POINT_EXCHANGE_RATES",
+                                "POINT_TYPES","POINT_LEDGER"),"V50",key)).encryptedFile();
+        var multiMembers=Map.of(src.member,dst.member,sourceSecondMember,targetSecondMember);
+        var multiResult=replay.apply(multiMemberArchive,src.family,dst.family,
+                multiMembers,currencies,rates,key);
+        assertEquals(-10L,multiResult.balances().get(dst.member+":"+dst.points));
+        assertEquals(2L,multiResult.balances().get(dst.member+":"+dst.tokens));
+        assertEquals(-20L,multiResult.balances().get(targetSecondMember+":"+dst.points));
+        assertEquals(4L,multiResult.balances().get(targetSecondMember+":"+dst.tokens));
+        var multiVerified=new DisposableExchangeHistoryIntegrityVerifier(
+                b,inspector,portable,codec).verify(multiMemberArchive,src.family,dst.family,
+                        multiMembers,currencies,rates,multiResult.requests(),
+                        multiResult.transactions(),key);
+        assertEquals(multiVerified.sourceSha256(),multiVerified.targetSha256());
+        // Disposable target only; clear the rehearsal to run the unchanged
+        // single-member baseline and its unrelated negative tests below.
+        b.update("DELETE FROM point_transactions WHERE member_id IN (?,?)",
+                dst.member,targetSecondMember);
+        b.update("DELETE FROM point_exchange_requests WHERE member_id IN (?,?)",
+                dst.member,targetSecondMember);
+        a.update("UPDATE point_transactions SET member_id=? WHERE source_type='POINT_EXCHANGE' AND source_id=?",
+                src.member,originalTwo);
+        a.update("UPDATE point_exchange_requests SET member_id=? WHERE id=?",src.member,originalTwo);
+        assertEquals(2L,b.queryForObject(
+                "SELECT count(*) FROM point_transactions WHERE source_type='POINT_EXCHANGE' AND source_id=?",
+                Long.class,neighborRequest));
+
         var nullMembers=new HashMap<Long,Long>();nullMembers.put(src.member,null);
         assertThrows(SecurityException.class,()->replay.apply(
                 archive,src.family,dst.family,nullMembers,currencies,rates,key));
