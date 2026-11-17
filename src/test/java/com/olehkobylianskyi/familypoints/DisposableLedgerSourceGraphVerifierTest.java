@@ -69,6 +69,26 @@ class DisposableLedgerSourceGraphVerifierTest {
                         "\"amount\":0,\"source_type\":\"TASK\"")));
     }
 
+    @Test void taskHistoryRejectsDuplicateRewardsAndDuplicatePenalties()
+            throws Exception {
+        assertThrows(SecurityException.class,()->verify(
+                ",{\"id\":101,\"member_id\":4,\"point_type_id\":3,"+
+                "\"amount\":5,\"type\":\"EARN\",\"source_type\":\"TASK\",\"source_id\":42}",
+                "TASK",42L,4,4));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                ",{\"id\":101,\"member_id\":4,\"point_type_id\":3,"+
+                "\"amount\":-7,\"type\":\"PENALTY\",\"source_type\":\"TASK\",\"source_id\":42}",
+                "TASK",42L,4,4,
+                body->body.replace("\"amount\":5,\"source_type\":\"TASK\"",
+                                  "\"amount\":-7,\"source_type\":\"TASK\"")
+                          .replace("\"type\":\"EARN\"","\"type\":\"PENALTY\"")));
+        var valid=verify(
+                ",{\"id\":101,\"member_id\":4,\"point_type_id\":3,"+
+                "\"amount\":-7,\"type\":\"PENALTY\",\"source_type\":\"TASK\",\"source_id\":42}",
+                "TASK",42L,4,4);
+        assertEquals(2,valid.taskRows());
+    }
+
     @Test void manualSourceMustNotCarrySourceIdAndUnknownTypesRemainBlocked()
             throws Exception {
         var accepted=verify("","MANUAL",null,4,4);
