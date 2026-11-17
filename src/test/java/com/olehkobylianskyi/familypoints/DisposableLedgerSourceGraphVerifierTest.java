@@ -136,6 +136,26 @@ class DisposableLedgerSourceGraphVerifierTest {
         assertThrows(SecurityException.class,()->purchaseProof(4,5,3,-5,"EARN"));
     }
 
+    @Test void unusedArchivedPurchaseStillRequiresValidCurrencyOwnerAndPrice()
+            throws Exception {
+        var accepted=purchaseProof(4,5,3,-5,"SPEND");
+        assertEquals(1,accepted.purchaseRows());
+        assertThrows(SecurityException.class,()->purchaseProof(0,5,3,-5,"SPEND"));
+        assertThrows(SecurityException.class,()->purchaseProof(4,0,3,-5,"SPEND"));
+        assertThrows(SecurityException.class,()->purchaseProof(4,2147483648L,3,-5,"SPEND"));
+        // The second archived purchase has no ledger row. Its foreign point
+        // type still corrupts authenticated source graph closure.
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","REWARD_PURCHASE",51L,4,4,
+                body->body.replace("\"amount\":5",
+                        "\"amount\":-5,\"type\":\"SPEND\"")
+                        .replace("\"POINT_LEDGER\":",
+                        "\"REWARD_PURCHASES\":[{\"id\":51,\"member_id\":4,"+
+                        "\"point_type_id\":3,\"price_amount\":5},"+
+                        "{\"id\":52,\"member_id\":4,\"point_type_id\":999,"+
+                        "\"price_amount\":5}],\"POINT_LEDGER\":")));
+    }
+
     @Test void duplicateChargeOfSamePurchaseFailsClosed() throws Exception {
         assertThrows(SecurityException.class,()->verifyEdited(
                 "","REWARD_PURCHASE",51L,4,4,
