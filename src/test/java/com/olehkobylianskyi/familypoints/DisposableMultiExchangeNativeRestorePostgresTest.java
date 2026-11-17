@@ -102,6 +102,17 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
         var members=Map.of(src.member,dst.member);
         var currencies=Map.of(src.points,dst.points,src.tokens,dst.tokens);
         var rates=Map.of(src.rate,dst.rate);
+        // Two live, independently migrated PG databases are available here;
+        // no member identity is inferred from equal numeric IDs or names.
+        var rosterPreflight=new DisposableMemberMappingPreflight();
+        var originalRoster=rosterPreflight.verify(a,b,src.family,dst.family,members);
+        assertEquals(1,originalRoster.originalRoster());
+        assertEquals(1,originalRoster.mappedMembers());
+        assertThrows(SecurityException.class,()->rosterPreflight.verify(
+                a,b,src.family,dst.family,Map.of(src.member,neighbor.member)));
+        assertThrows(SecurityException.class,()->rosterPreflight.verify(
+                a,b,src.family,dst.family,Map.of(src.member,Long.MAX_VALUE)));
+
 
         // Scope guard: the bounded restore may accept 20 requests, never 21.
         // Build the oversized authenticated source archive before touching the
@@ -190,6 +201,18 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
                         0L,List.of("POINT_EXCHANGE_REQUESTS","POINT_EXCHANGE_RATES",
                                 "POINT_TYPES","POINT_LEDGER"),"V50",key)).encryptedFile();
         var multiMembers=Map.of(src.member,dst.member,sourceSecondMember,targetSecondMember);
+        var multiRoster=rosterPreflight.verify(a,b,src.family,dst.family,multiMembers);
+        assertEquals(2,multiRoster.originalRoster());
+        assertEquals(2,multiRoster.mappedMembers());
+        assertThrows(SecurityException.class,()->rosterPreflight.verify(
+                a,b,src.family,dst.family,Map.of(src.member,dst.member)));
+        assertThrows(SecurityException.class,()->rosterPreflight.verify(
+                a,b,src.family,dst.family,Map.of(
+                        src.member,dst.member,sourceSecondMember,dst.member)));
+        assertThrows(SecurityException.class,()->rosterPreflight.verify(
+                a,b,src.family,dst.family,Map.of(
+                        src.member,dst.member,sourceSecondMember,neighbor.member)));
+
         var multiResult=replay.apply(multiMemberArchive,src.family,dst.family,
                 multiMembers,currencies,rates,key);
         assertEquals(-10L,multiResult.balances().get(dst.member+":"+dst.points));
