@@ -228,17 +228,17 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
         var hmacGenerator=KeyGenerator.getInstance("HmacSHA256");
         hmacGenerator.init(256);
         var reviewKey=hmacGenerator.generateKey();
+        var identitySnapshot=inspector.inspect(multiMemberArchive,src.family,key).snapshotId();
         var reviewedBindings=List.of(
                 DisposableMemberBindingReceiptVerifier.sealForSyntheticApproval(
                         src.family,dst.family,
-                        UUID.fromString("00000000-0000-4000-8000-000000000001"),
+                        identitySnapshot,
                         src.member,dst.member,UUID.randomUUID(),reviewKey),
                 DisposableMemberBindingReceiptVerifier.sealForSyntheticApproval(
                         src.family,dst.family,
-                        UUID.fromString("00000000-0000-4000-8000-000000000001"),
+                        identitySnapshot,
                         sourceSecondMember,targetSecondMember,UUID.randomUUID(),reviewKey));
         var identityReceipts=new DisposableMemberBindingReceiptVerifier();
-        var identitySnapshot=UUID.fromString("00000000-0000-4000-8000-000000000001");
         assertEquals(2,identityReceipts.verify(src.family,dst.family,identitySnapshot,
                 multiMembers,reviewedBindings,reviewKey).approvedMembers());
         var swappedIdentities=Map.of(
