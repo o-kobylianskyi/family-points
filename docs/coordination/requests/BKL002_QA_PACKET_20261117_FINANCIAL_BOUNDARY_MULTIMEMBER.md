@@ -29,3 +29,8 @@ No new production bean/controller. `restorable=false`, `replaySupported=false`, 
 
 ## QA feedback
 Report exact-SHA reproducible errors in Issue #15. Backend fixes source in bounded batches without awaiting user-operated microtests. Real approved E2E remains QA-owned.
+
+## Extended large-batch supplement (#27)
+- `abd247aaa5d8b31651f30a4facafeaf9b4dc2db9`: after valid two-member native replay, reassign exactly one EARN ledger row to the other member within the same family; immutable target history verifier MUST reject, restoring owner must recover exact semantic SHA. Then flip that row from TOKENS to POINTS; MUST reject and restore SHA after reversal. No family-level net-only acceptance.
+- `505331ce6af7eb14f0e403ebd349178b54eb9eb2`: strengthen bounded 1–20 executor acceptance by testing exactly **20 approved** synthetic source requests -> **20 target requests/40 target ledger rows**, total **−210 POINTS/+42 TOKENS**; then discard synthetic target and source extra requests. 21 requests MUST deny, not truncate.
+- Requires full exact-SHA Maven/Testcontainers evidence including the older 2-request SQL rollback and neighbor isolation. Previous full green at `8c397d0` predates these changes; no new PASS inferred.
