@@ -3,7 +3,12 @@
 // successful HTTP response must never finish a different local operation.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 export function validSetupFinalizeOperation(op, workspaceId, accountId) {
-  return !!op && UUID.test(String(op.operationId || '')) &&
+  // Missing scope cannot compare equal to another missing scope: stringifying
+  // undefined/null previously allowed an unbound pending operation through.
+  const hasScope = value => value !== null && value !== undefined && String(value).trim() !== ''
+  return !!op && hasScope(workspaceId) && hasScope(accountId) &&
+    hasScope(op.workspaceId) && hasScope(op.accountId) &&
+    UUID.test(String(op.operationId || '')) &&
     String(op.workspaceId) === String(workspaceId) &&
     String(op.accountId) === String(accountId) &&
     Number.isSafeInteger(op.epoch) && op.epoch >= 0 &&
