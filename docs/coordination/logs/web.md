@@ -1204,3 +1204,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-17 — WEB-02 V49 missing scope safety repair
 - QA-033 still has no Chromium two-tab run. Identified `String(undefined) === String(undefined)` scope bypass for pending V49 operation. Source `69a5fc3` now enforces nonempty stored and caller account/workspace, tests `ec425f8` reject absent values and block recovery/ownership. V8 executed 10 bounded source-level checks 10/10 PASS; full npm regressions, CI, Chromium not run on new SHA. No real family data, BETA HOLD.
+
+
+## 2026-11-17 — WEB-02 14/14 actual V49 unit callbacks executed in V8
+- Independently fetched current `setupFinalizeSafety.js` blob `30194a6a` and `setupFinalizeSafety.test.mjs` blob `fd724498`; executed all 14 test callbacks using JS V8 and equivalent `equal/deepEqual/throws` assertion functions, replacing import/export syntax only. 14/14 PASS, no test failures. This is not native `node --test`, full frontend CI or Chromium; no new deployed/browser acceptance. QA-033 still reports corrected two-tab Playwright NOT_RUN. No source changes, BETA HOLD.
