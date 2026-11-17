@@ -76,11 +76,17 @@ test('V49 staged finalize requires both exact tab and shared markers before POST
 test('V49 state honors empty V46 steps but rejects malformed and prematurely completed wizard',()=>{
   const initial={workspaceId:14,dataEpoch:0,revision:0,status:'NOT_STARTED',steps:{}}
   assert.deepEqual(assertSetupState(initial,14),initial)
+  for (const absent of [undefined, null, '']) {
+    assert.throws(() => assertSetupState({...initial,workspaceId:absent},absent))
+    assert.throws(() => assertSetupState(initial,absent))
+  }
   const full=Object.fromEntries(SETUP_STEP_CODES.map(code=>[code,'COMPLETE']))
   const complete={...initial,revision:7,status:'COMPLETED',steps:full}
   assert.deepEqual(assertSetupState(complete,14),complete)
   for(const bad of [
     {...initial,workspaceId:15}, {...initial,dataEpoch:-1},
+    {...initial,workspaceId:undefined}, {...initial,workspaceId:null},
+    {...initial,workspaceId:''},
     {...initial,revision:1.5},{...initial,steps:null},
     {...initial,steps:{OTHER:'COMPLETE'}}, {...initial,steps:{MEMBERS:'BAD'}},
     {...initial,status:'COMPLETED',steps:{}},
