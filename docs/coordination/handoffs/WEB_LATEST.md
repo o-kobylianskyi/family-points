@@ -87,6 +87,13 @@
 - Executed all **14** actual `setupFinalizeSafety.test.mjs` callbacks with source fetched from GitHub in V8 assertion-equivalent harness: **14/14 PASS / 0 FAIL** at blobs `0d2ab991dded36f326a57d882d464d0131b3fd0a` (source), `ee1a17fedbaf160c34147584d725cffff3bd67d2` (tests). Not a Node test runner, not Playwright, not complete Web CI on SHA. No PROD/BETA/real family action, BKL-002/BETA HOLD.
 - Next: QA run exact-SHA native Node and two-tab Chromium in isolated context; Web inspect any actual failure traces and fix only verified defects; coordinate next CI candidate with Release.
 
+## WEB-02 package 13 — V49 review requires authenticated in-progress setup state (2026-11-18)
+- Pickup HEAD `1ba17931b4db7581b13c3a13b9ca4fe1e139c144`; latest QA-036 handoff still says Chromium two-tab `NOT_RUN`, feature-enabled user-assisted real V49 not authorized, last independently verified four-job CI run `44044271962` at older `8c397d0`.
+- Source audit found `assertSetupReview` previously compared preview values to possibly unvalidated `state` fields, including missing workspace+review fields with matching `undefined`; source `fd13aa0eda59eb81a52bf465a60cacea875b48d6` now invokes `assertSetupState(state,state?.workspaceId)` and requires status `IN_PROGRESS` before trusting preview.
+- Test `f6de28e0424eab7cbb0858306d5f582bd4869484` denies matching forged unbound state, null state, NOT_STARTED and COMPLETED state; valid IN_PROGRESS remains accepted.
+- Actual fetched source `67dd0b03424f850de0ea9242f38c23924a0c24b5` + test blob `de0c9826f01a89e7f1ef8981ab685917f2a74174` executed all 14 source test callbacks in V8 assertion-equivalent harness: **14 PASS / 0 FAIL**. NOT native Node, Playwright, all-Web build or exact-current-SHA cloud CI. No user families or PROD/BETA touched, BETA HOLD.
+- Next: obtain QA pinned native Node and two-tab Chromium case outcomes; fix confirmed failures, then readiness audit with full CI exact candidate SHA.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
