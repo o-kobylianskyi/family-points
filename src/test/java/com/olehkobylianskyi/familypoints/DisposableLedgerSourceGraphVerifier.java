@@ -144,6 +144,24 @@ final class DisposableLedgerSourceGraphVerifier {
                         !(signed>0 && "EARN".equals(transactionType)
                           || signed<0 && "PENALTY".equals(transactionType)))
                     throw new SecurityException("LEDGER_TASK_TRANSACTION_SEMANTICS");
+                // TaskInstance contains the persisted economic snapshot.
+                // When these fields are present in the signed historical
+                // source record, bind the ledger to its exact denomination
+                // and value rather than trusting a matching source_id alone.
+                // Legacy reduced fixtures without these columns cannot claim
+                // complete task-economics provenance.
+                String amountField="EARN".equals(transactionType)
+                        ?"reward_amount":"penalty_amount";
+                String currencyField="EARN".equals(transactionType)
+                        ?"reward_point_type_id":"penalty_point_type_id";
+                if(taskInstance.has(amountField) || taskInstance.has(currencyField)) {
+                    if(!taskInstance.path(amountField).canConvertToInt()
+                            || taskInstance.path(amountField).asInt()<=0
+                            || !taskInstance.path(currencyField).isIntegralNumber()
+                            || taskInstance.path(currencyField).asLong()!=currency
+                            || Math.abs(signed)!=taskInstance.path(amountField).asInt())
+                        throw new SecurityException("LEDGER_TASK_SNAPSHOT_ECONOMICS_MISMATCH");
+                }
                 if(!taskEvents.add(taskId+":"+transactionType))
                     throw new SecurityException("LEDGER_TASK_DUPLICATE_EVENT");
                 relationships.put(id,taskId);
