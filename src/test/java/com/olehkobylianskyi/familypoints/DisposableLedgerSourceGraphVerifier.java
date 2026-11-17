@@ -40,6 +40,17 @@ final class DisposableLedgerSourceGraphVerifier {
         catch(java.io.IOException error) {
             throw new IllegalArgumentException("LEDGER_SOURCE_GRAPH_BAD_ARCHIVE",error);
         }finally {Arrays.fill(raw,(byte)0);}
+        // An authenticated manifest cannot be used to justify a missing or
+        // malformed category payload. Never interpret missing arrays as empty
+        // source history during a restore-safety preflight.
+        if(!root.isObject()
+                || !root.path("POINT_LEDGER").isArray()
+                || !root.path("POINT_TYPES").isArray())
+            throw new SecurityException("LEDGER_SOURCE_GRAPH_MISSING_PAYLOAD");
+        for(String optional:List.of("TASK_EXECUTIONS","TASK_DEFINITIONS","REWARD_PURCHASES")) {
+            if(root.has(optional) && !root.path(optional).isArray())
+                throw new SecurityException("LEDGER_SOURCE_GRAPH_INVALID_PAYLOAD:"+optional);
+        }
         var definitions=new HashSet<Long>();
         for(JsonNode def:root.path("TASK_DEFINITIONS")) {
             long id=def.path("id").asLong();
