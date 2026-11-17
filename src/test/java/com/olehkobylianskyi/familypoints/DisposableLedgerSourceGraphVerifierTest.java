@@ -69,6 +69,45 @@ class DisposableLedgerSourceGraphVerifierTest {
                         "\"amount\":0,\"source_type\":\"TASK\"")));
     }
 
+    @Test void authenticatedTaskSnapshotAmountAndCurrencyMustMatchLedger()
+            throws Exception {
+        var reward=verifyEdited("","TASK",42L,4,4,
+                body->body.replace("\"task_definition_id\":77}",
+                        "\"task_definition_id\":77,\"reward_amount\":5,"+
+                        "\"reward_point_type_id\":3}"));
+        assertEquals(1,reward.taskRows());
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                body->body.replace("\"task_definition_id\":77}",
+                        "\"task_definition_id\":77,\"reward_amount\":6,"+
+                        "\"reward_point_type_id\":3}")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                body->body.replace("\"task_definition_id\":77}",
+                        "\"task_definition_id\":77,\"reward_amount\":5,"+
+                        "\"reward_point_type_id\":99}")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                body->body.replace("\"task_definition_id\":77}",
+                        "\"task_definition_id\":77,\"reward_amount\":5}")));
+        var penalty=verifyEdited("","TASK",42L,4,4,
+                body->body.replace("\"task_definition_id\":77}",
+                        "\"task_definition_id\":77,\"penalty_amount\":7,"+
+                        "\"penalty_point_type_id\":3}")
+                        .replace("\"amount\":5,\"source_type\":\"TASK\"",
+                                 "\"amount\":-7,\"source_type\":\"TASK\"")
+                        .replace("\"type\":\"EARN\"","\"type\":\"PENALTY\""));
+        assertEquals(1,penalty.taskRows());
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                body->body.replace("\"task_definition_id\":77}",
+                        "\"task_definition_id\":77,\"penalty_amount\":8,"+
+                        "\"penalty_point_type_id\":3}")
+                        .replace("\"amount\":5,\"source_type\":\"TASK\"",
+                                 "\"amount\":-7,\"source_type\":\"TASK\"")
+                        .replace("\"type\":\"EARN\"","\"type\":\"PENALTY\"")));
+    }
+
     @Test void taskHistoryRejectsDuplicateRewardsAndDuplicatePenalties()
             throws Exception {
         assertThrows(SecurityException.class,()->verify(
