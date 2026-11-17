@@ -68,6 +68,13 @@
 - No confirmed UI/runtime failure. QA remains execution owner; avoid extra manual/operator test requests. No source modifications in this checkpoint. Last all-four full CI PASS is historic run `44044271962` at `8c397d0`; newer Backend commits require new exact-SHA job evidence.
 - Next: consume QA two-tab test PASS/FAIL/SKIP + failure trace or establish isolated browser test harness under QA; investigate real failures only. No BETA/PROD or family data, BETA HOLD.
 
+## WEB-02 package 10 — V49 scope-less pending marker rejection (2026-11-17)
+- Pickup HEAD `4edef5944f0cdd2ca030896d169d3088d0486863`; QA-033 handoff still shows corrected two-tab Chromium **NOT_RUN** (auth-selected QA workspace prerequisite).
+- Independently found `validSetupFinalizeOperation(op, workspaceId, accountId)` accepted a missing scope if **both** fields were `undefined` or `null` because `String(undefined)===String(undefined)`. Hardened source at `69a5fc3e59060601ec568785da2fac2d70d8c964`: explicit nonempty scope checks for caller and stored operation (account+workspace). Added negative unit regressions `ec425f80189ccd65e663a4f25a047ff6c9863d62`, including direct validation, ownership and blocked pending reconciliation.
+- Evaluated actual fetched source through V8 (replacing only export declarations) on 10 bounded scenarios: **10/10 PASS** (positive, missing account/workspace/marker for `undefined`, `null`, `''`). Not full `npm run test:regression`, not Jest/Node runner or cloud GitHub CI.
+- Frontend V49 real feature-enabled QA remains separately operator-approved disposable-only. Current HEAD full CI after this patch NOT_VERIFIED; last verified green `44044271962` pinned to older `8c397d0`. **BETA HOLD**.
+- Next: QA collects exact-SHA Node+Chromium test evidence; Web fixes reproduced UI failures and checks any new post-change CI steps.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
