@@ -86,6 +86,42 @@ final class DisposableExchangeHistoryIntegrityVerifier {
         exactMap(requestMap,originalRequestIds,"REQUEST");
         exactMap(ledgerMap,originalLedgerIds,"LEDGER");
 
+        // Mapped numeric IDs alone cannot prove currency identity or exchange
+        // rate ownership. Re-bind signed source catalog to exact target rows.
+        var originalTypes=new HashMap<Long,JsonNode>();
+        for(JsonNode pointType:categories.path("POINT_TYPES"))
+            originalTypes.put(positive(pointType,"id"),pointType);
+        for(var mapping:currencyMap.entrySet()) {
+            var sourceType=originalTypes.get(mapping.getKey());
+            if(sourceType==null || positive(sourceType,"family_id")!=source
+                    || !sourceType.path("code").isTextual()
+                    || sourceType.path("code").asText().isBlank())
+                throw new SecurityException("EXCHANGE_HISTORY_SOURCE_CURRENCY_MISSING");
+            var targetCodes=db.queryForList("""
+                    SELECT code FROM point_types WHERE id=? AND family_id=? AND active=true
+                    """,String.class,mapping.getValue(),target);
+            if(targetCodes.size()!=1
+                    || !sourceType.path("code").asText().equals(targetCodes.get(0)))
+                throw new SecurityException("EXCHANGE_HISTORY_TARGET_CURRENCY_DRIFT");
+        }
+        var originalRates=new HashMap<Long,JsonNode>();
+        for(JsonNode rate:categories.path("POINT_EXCHANGE_RATES"))
+            originalRates.put(positive(rate,"id"),rate);
+        for(var mapping:rateMap.entrySet()) {
+            var sourceRate=originalRates.get(mapping.getKey());
+            if(sourceRate==null || positive(sourceRate,"family_id")!=source
+                    || !currencyMap.containsKey(positive(sourceRate,"from_point_type_id"))
+                    || !currencyMap.containsKey(positive(sourceRate,"to_point_type_id")))
+                throw new SecurityException("EXCHANGE_HISTORY_SOURCE_RATE_MISSING");
+            Long owned=db.queryForObject("""
+                    SELECT count(*) FROM point_exchange_rates
+                    WHERE id=? AND family_id=? AND from_point_type_id=? AND to_point_type_id=?
+                    """,Long.class,mapping.getValue(),target,
+                    currencyMap.get(positive(sourceRate,"from_point_type_id")),
+                    currencyMap.get(positive(sourceRate,"to_point_type_id")));
+            if(!Objects.equals(1L,owned))
+                throw new SecurityException("EXCHANGE_HISTORY_TARGET_RATE_DRIFT");
+        }
         // Compare stable economic and timestamp payload fields, never row ID
         // numerals: independent DBs may reuse the same sequence values.
         for(JsonNode request:requests) {
@@ -180,7 +216,7 @@ final class DisposableExchangeHistoryIntegrityVerifier {
         return row.path(key).asLong();
     }
     private static String requestSignature(JsonNode r,long member,long rate,long from,long to) {
-        return String.join("|",Long.toString(member),Long.toString(rate),
+        return fields(Long.toString(member),Long.toString(rate),
                 Long.toString(from),Long.toString(to),
                 r.path("status").asText(),r.path("rate_from_amount").asText(),
                 r.path("rate_to_amount").asText(),r.path("from_amount").asText(),
@@ -188,11 +224,16 @@ final class DisposableExchangeHistoryIntegrityVerifier {
                 normalizedTime(r,"processed_at"));
     }
     private static String ledgerSignature(JsonNode r,long member,long currency,long sourceId) {
-        return String.join("|",Long.toString(member),Long.toString(currency),
+        return fields(Long.toString(member),Long.toString(currency),
                 Long.toString(sourceId),r.path("source_type").asText(),
                 r.path("type").asText(),r.path("amount").asText(),
                 normalizedTime(r,"created_at"),
                 r.path("description").isNull()?"":r.path("description").asText(""));
+    }
+    private static String fields(String... values) {
+        var result=new StringBuilder();
+        for(String value:values)result.append(value.length()).append(':').append(value);
+        return result.toString();
     }
     private static String normalizedTime(JsonNode r,String field) {
         if(!r.hasNonNull(field))return "";
