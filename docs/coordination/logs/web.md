@@ -1196,3 +1196,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-17 — WEB-02 V49 two-tab Playwright static source defect
 - QA-031 source review did not execute two-tab synthetic; Web inspected and found 28 doubled literal backslash regex escape pairs in new test, including route matchers and page assertions. Corrected source in `a0d87ee52ebed8b1e62903a910fc2bb010999189`; no product behavior changed. Node syntax and Chromium Playwright not run in Web session; QA run needed at pinned SHA. Historical CI 44044271962 green @8c397d0 not proof of this new spec. BETA HOLD.
+
+
+## 2026-11-17 — WEB-02 corrected two-tab fixture V8 parsed
+- Current corrected fixture source blob `761d10e` passed V8 syntax-only parser after import/import.meta transformations; Chromium NOT_RUN, QA-032 source-review only. No runtime defect verified, BETA HOLD.
