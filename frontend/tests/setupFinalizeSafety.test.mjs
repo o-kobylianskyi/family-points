@@ -110,6 +110,14 @@ test('V49 review verifies immutable epoch/revision/code ordering and complete co
     {alreadyImported:['FOREIGN']},{toImport:['TASK_A','TASK_A'],toImportCount:2},
   ])assert.throws(()=>assertSetupReview({...review,...invalid},state,codes))
   assert.throws(()=>assertSetupReview(review,state,['TASK_A','TASK_A']))
+  // A matching forged preview must not validate an unbound or completed state.
+  const unbound={...state,workspaceId:undefined}
+  assert.throws(()=>assertSetupReview({...review,workspaceId:undefined},unbound,codes))
+  assert.throws(()=>assertSetupReview(review,null,codes))
+  assert.throws(()=>assertSetupReview({...review,setupStatus:'NOT_STARTED'},{...state,status:'NOT_STARTED'},codes))
+  const completed={...state,status:'COMPLETED',
+    steps:Object.fromEntries(SETUP_STEP_CODES.map(code=>[code,'COMPLETE']))}
+  assert.throws(()=>assertSetupReview({...review,setupStatus:'COMPLETED'},completed,codes))
 })
 
 test('V49 accepts a partially progressed seven-step Backend state before finalize',()=>{
