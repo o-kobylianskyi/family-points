@@ -64,3 +64,10 @@ User explicitly requires all **real** acceptance testing be conducted together w
 - Latest `docs/coordination/handoffs/WEB_LATEST.md`: Web ran **14/14 source-backed V8 harness callbacks** covering V49 safety; explicitly NOT the Node `node --test`, npm full regression, Chromium, or GitHub Actions at this SHA.
 - Backend #15 #34–36 TEST-ONLY source fixes for positive unused task execution member, strict required JSON arrays and AES negatives remain QA/CI unverified, no production restorable/replaySupported or reset HTTP423 change; BETA HOLD.
 - No new confirmed Designer UX defect. Keep Designer implementation frozen unless QA provides a reproducible UX bug. Next task is to inspect QA's pinned synthetic browser run and a newer exact-SHA full CI; not to run real family operations or create speculative design work.
+
+## 2026-11-18 ~00:03 CET — Designer source/QA pickup
+- Moving main observed `1ba17931b4db7581b13c3a13b9ca4fe1e139c144` (41 commits ahead of previous Designer monitored `bc5b1885`). Only newer frontend paths in that comparison were `frontend/src/utils/setupFinalizeSafety.js` and `frontend/tests/setupFinalizeSafety.test.mjs`, owned by Web; no new Designer assignment or independently reported UI reproduction in QA issue #18.
+- QA #18 latest documented two-tab Chromium test remains `SOURCE_FIXED / PLAYWRIGHT_NOT_RUN`. No operator-approved real V49 E2E test evidence in the reviewed issue. Do not promote synthetic source inspection to browser PASS.
+- Backend #15 latest #41–44 test-only member roster preflight remains source-only and unverified at latest SHA. Production `restorable=false`, `replaySupported=false`, reset execute HTTP423, BETA HOLD.
+- Last fully verified four-component GitHub Actions run remains `#44044271962` at `8c397d0cbe7d68fd52d5b3f6e18a3ed44cda8d2a`; current latest main not attested by this run.
+- Designer decision: no speculative UX commits. Next work only after QA yields reproducible V49 interface defect or a later pinned CI candidate requires source/UX verification.
