@@ -1200,3 +1200,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-17 — WEB-02 corrected two-tab fixture V8 parsed
 - Current corrected fixture source blob `761d10e` passed V8 syntax-only parser after import/import.meta transformations; Chromium NOT_RUN, QA-032 source-review only. No runtime defect verified, BETA HOLD.
+
+
+## 2026-11-17 — WEB-02 V49 missing scope safety repair
+- QA-033 still has no Chromium two-tab run. Identified `String(undefined) === String(undefined)` scope bypass for pending V49 operation. Source `69a5fc3` now enforces nonempty stored and caller account/workspace, tests `ec425f8` reject absent values and block recovery/ownership. V8 executed 10 bounded source-level checks 10/10 PASS; full npm regressions, CI, Chromium not run on new SHA. No real family data, BETA HOLD.
