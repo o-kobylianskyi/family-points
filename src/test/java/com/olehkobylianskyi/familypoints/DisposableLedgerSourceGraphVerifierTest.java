@@ -98,6 +98,26 @@ class DisposableLedgerSourceGraphVerifierTest {
         assertThrows(SecurityException.class,()->verify("","REWARD_PURCHASE",42L,4,4));
         assertThrows(SecurityException.class,()->verify("","REFUND",42L,4,4));
     }
+    @Test void refundAndExchangeCannotBeSmuggledIntoGenericSourceReplay()
+            throws Exception {
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","REFUND",51L,4,4,
+                body->body.replace("\"amount\":5",
+                        "\"amount\":5,\"type\":\"REFUND\"")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","POINT_EXCHANGE",42L,4,4,
+                body->body.replace("\"amount\":5",
+                        "\"amount\":-5,\"type\":\"SPEND\"")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","POINT_EXCHANGE",42L,4,4,
+                body->body.replace("\"amount\":5",
+                        "\"amount\":5,\"type\":\"EARN\"")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","UNKNOWN_LEGACY",42L,4,4,
+                body->body.replace("\"amount\":5",
+                        "\"amount\":5,\"type\":\"EARN\"")));
+    }
+
     @Test void taskDefinitionMustBePresentInSameFamilyAndAmountsAreBounded()
             throws Exception {
         assertThrows(SecurityException.class,()->verifyEdited(
