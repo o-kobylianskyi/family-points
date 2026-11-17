@@ -114,6 +114,25 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
                                 "POINT_TYPES","POINT_LEDGER"),"V50",key)).encryptedFile();
         assertThrows(SecurityException.class,()->replay.apply(
                 oversized,src.family,dst.family,members,currencies,rates,key));
+        // Validate both sides of the exact boundary: 20 accepted, 21 denied.
+        Long twentyFirst=extraRequestIds.remove(extraRequestIds.size()-1);
+        a.update("DELETE FROM point_transactions WHERE source_type='POINT_EXCHANGE' AND source_id=?",
+                twentyFirst);
+        a.update("DELETE FROM point_exchange_requests WHERE id=?",twentyFirst);
+        byte[] atLimit=new TransactionTemplate(new DataSourceTransactionManager(srcDs))
+                .execute(status->exporter.export(src.family,UUID.randomUUID(),UUID.randomUUID(),
+                        0L,List.of("POINT_EXCHANGE_REQUESTS","POINT_EXCHANGE_RATES",
+                                "POINT_TYPES","POINT_LEDGER"),"V50",key)).encryptedFile();
+        var atLimitResult=replay.apply(atLimit,src.family,dst.family,members,currencies,rates,key);
+        assertEquals(20,atLimitResult.requests().size());
+        assertEquals(40,atLimitResult.transactions().size());
+        assertEquals(-210L,atLimitResult.balances().get(dst.member+":"+dst.points));
+        assertEquals(42L,atLimitResult.balances().get(dst.member+":"+dst.tokens));
+        b.update("DELETE FROM point_transactions WHERE member_id=?",dst.member);
+        b.update("DELETE FROM point_exchange_requests WHERE member_id=?",dst.member);
+        assertEquals(0L,b.queryForObject(
+                "SELECT count(*) FROM point_transactions WHERE member_id=?",
+                Long.class,dst.member));
         for(Long requestId:extraRequestIds) {
             a.update("DELETE FROM point_transactions WHERE source_type='POINT_EXCHANGE' AND source_id=?",
                     requestId);
