@@ -27,3 +27,6 @@ DateTime CET | Track | ChatGeneration | VisibleUserTurns | VisibleAssistantTurns
 
 
 2026-11-17 midday CET | Backend | BACKEND-successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #31-33 | a74a052 | CHECKPOINT | Large test-only financial source closure, no lifetime context counter exposed; no reliable percentage claimed.
+
+
+2026-11-17 afternoon CET | Backend | BACKEND-successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #34-36 | 4e479991 | CHECKPOINT | Test-only archive source-parent hardening, chat-context percentage unavailable, QA pinned run pending.
