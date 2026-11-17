@@ -11,6 +11,7 @@ import pathlib
 import re
 import sys
 import zipfile
+import zlib
 from verify_release_evidence import SHA_PATTERN, read_json, validate
 
 REPO_ID = 1359430010
@@ -116,7 +117,11 @@ def verify_zip_bytes(metadata, paths, payloads):
             raise ValueError("Matching bytes are not a ZIP archive")
         # No extraction, no filesystem writes. Require expected single root
         # payload and deny ambiguous duplicate/path-traversal content names.
-        with zipfile.ZipFile(archive, "r") as z:
+        try:
+            z = zipfile.ZipFile(archive, "r")
+        except (zipfile.BadZipFile, zipfile.LargeZipFile, EOFError) as exc:
+            raise ValueError("Corrupt ZIP central directory") from exc
+        with z:
             expected = name + ".json"
             items = z.infolist()
             if len(items) != 1 or items[0].filename != expected or items[0].is_dir():
@@ -124,8 +129,11 @@ def verify_zip_bytes(metadata, paths, payloads):
             info = items[0]
             if info.file_size > 1024 * 1024:
                 raise ValueError("Artifact JSON exceeds safe size")
-            with z.open(info, "r") as fp:
-                content = fp.read(1024 * 1024 + 1)
+            try:
+                with z.open(info, "r") as fp:
+                    content = fp.read(1024 * 1024 + 1)
+            except (zipfile.BadZipFile, EOFError, RuntimeError, zlib.error) as exc:
+                raise ValueError("Corrupt or unreadable ZIP entry") from exc
             if len(content) > 1024 * 1024:
                 raise ValueError("Artifact JSON exceeds safe size")
             try:
