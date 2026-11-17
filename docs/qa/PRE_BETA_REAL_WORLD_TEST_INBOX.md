@@ -217,3 +217,7 @@ All these cases are additional acceptance criteria in the **single planned final
 
 ## QA-030 independent automated vs operator E2E boundary
 - Verified GitHub full CI #44044271962 @8c397d0 479 backend/55 Release safety and successful Web node build does **not** cover V49 Chromium two-tab spec nor real authenticated family setup. Source-only Backend #25 newer `bcac5bdf` adds same-tenant exchange-rate endpoint drift and historic request repricing negatives but needs new pinned Maven. Retain V49 operator-owned E2E / BKL002 family finance scenarios for single approved disposable PRE-BETA campaign. NO real writes or BETA deployment.
+
+## QA-031 new source-only multi-member boundary and V49 two-tab intake
+- Backend #26 expanded source-only multi-exchange PG18 negative coverage: reject 21st request, reject moved source ledger leg changing 2/2 into 3/1, prove two independently mapped members preserve -10/+2 and -20/+4 per participant and per point-type, maintain original/neighbor checks. Current independent full CI #44044271962 predates this. Live financial tests remain BLOCKED_DEPENDENCY.
+- V49 two-tab Playwright authored 2 synthetic browser tests using intercepted scoped setup traffic but real QA sign-in; cannot claim PASS without authorized isolated QA account, exact SHA, two-tab counts, traces. Operator-approved real feature-enabled E2E is separate and remains COLLECT_ONLY.
