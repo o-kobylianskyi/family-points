@@ -221,3 +221,7 @@ All these cases are additional acceptance criteria in the **single planned final
 ## QA-031 new source-only multi-member boundary and V49 two-tab intake
 - Backend #26 expanded source-only multi-exchange PG18 negative coverage: reject 21st request, reject moved source ledger leg changing 2/2 into 3/1, prove two independently mapped members preserve -10/+2 and -20/+4 per participant and per point-type, maintain original/neighbor checks. Current independent full CI #44044271962 predates this. Live financial tests remain BLOCKED_DEPENDENCY.
 - V49 two-tab Playwright authored 2 synthetic browser tests using intercepted scoped setup traffic but real QA sign-in; cannot claim PASS without authorized isolated QA account, exact SHA, two-tab counts, traces. Operator-approved real feature-enabled E2E is separate and remains COLLECT_ONLY.
+
+## QA-032 bounded multi-exchange and two-tab correction
+- Added test-only #27 source validation 20 approved/40 ledger/-210/+42 permitted and 21 refused; single member-owner swap and credit denomination tamper denied by authenticated AES source-target SHA. Future authorized final family campaign must check per-member rather than just global balance and exact original request-to-leg history. BLOCKED_DEPENDENCY.
+- V49 synthetic two-tab `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` URL regex doubled-escape repaired `a0d87ee`, but browser tests not actually executed; separate mocked browser acceptance requires isolated QA login and selected workspace. No V49 live mutation or Beta permission.
