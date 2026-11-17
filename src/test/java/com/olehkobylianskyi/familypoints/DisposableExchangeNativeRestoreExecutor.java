@@ -84,16 +84,15 @@ final class DisposableExchangeNativeRestoreExecutor {
                 throw new SecurityException("EXCHANGE_REPLAY_SOURCE_CURRENCY_INVALID");
         }
         if(!sourceCodes.keySet().equals(Set.of(from,to))
-                || !members.equals(Map.of(oldMember,members.get(oldMember)))
+                || !members.keySet().equals(Set.of(oldMember))
                 || !currencies.keySet().equals(Set.of(from,to))
                 || !rates.keySet().equals(Set.of(oldRate))
                 || invalidValues(members) || invalidValues(currencies)
                 || invalidValues(rates))
             throw new SecurityException("EXCHANGE_REPLAY_REMAP_INCOMPLETE");
-        if(!Objects.equals(currencies.get(from),currencies.get(to))
-                && !Objects.equals(sourceCodes.get(from),sourceCodes.get(to))) {
-            // distinct currency IDs and codes are required, checked below
-        } else throw new SecurityException("EXCHANGE_REPLAY_CURRENCIES_NOT_DISTINCT");
+        if(Objects.equals(currencies.get(from),currencies.get(to))
+                || Objects.equals(sourceCodes.get(from),sourceCodes.get(to)))
+            throw new SecurityException("EXCHANGE_REPLAY_CURRENCIES_NOT_DISTINCT");
 
         int fromAmount=intPositive(request,"from_amount");
         int toAmount=intPositive(request,"to_amount");
