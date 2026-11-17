@@ -68,3 +68,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 fixture syntax note (2026-11-17)
 - Corrected two-tab browser spec blob `761d10edd052cb31a0a27f50b7ba974661ad3332` passes V8 syntax parser with module imports adapted for parsing only. Browser not executed. QA should run isolated authenticated Playwright on pinned SHA with expected one finalize POST, preserve competitor shared marker; report PASS/FAIL/SKIP and trace. Missing isolated credentials means SKIP, no real-family writes.
+
+
+## WEB-02 missing-scope safety regression (2026-11-17)
+- Source fix `69a5fc3e59060601ec568785da2fac2d70d8c964` and unit regression `ec425f80189ccd65e663a4f25a047ff6c9863d62` require nonempty account/workspace on stored pending V49 operation and caller. V8 direct source-level 10/10 bounded assertions PASS; not full Node/Playwright execution. QA run pinned `frontend npm run test:regression` and corrected two-tab Chromium before V49 signoff. Missing QA credentials => SKIP, not PASS. No real or existing family writes; BETA HOLD.
