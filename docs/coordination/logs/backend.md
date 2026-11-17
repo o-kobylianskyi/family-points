@@ -891,3 +891,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Synthetic two-PostgreSQL fixture only; 1–20 bound; no production Restorer / reset API promotion. New tests NOT_RUN by Backend connector pending QA exact-SHA.
 - Formal packet `docs/coordination/requests/BKL002_QA_PACKET_20261117_FINANCIAL_BOUNDARY_MULTIMEMBER.md` (`f620dd3`). QA full four-component 479-test success is pinned to older `8c397d0` only; `#26` unknown.
 - Continue large batches, maintain handoff, and preserve HTTP423/BETA HOLD.
+
+
+### 2026-11-17 — package #28 TASK signed source semantics
+- Production code verified: `TaskService` positive `EARN` for task completion; negative `PENALTY` for mandatory missed task; `PointService.refund` source identity supplied by caller.
+- Test-only verifier commits `fb7abcef`, `e8fe486b`: positive TASK/EARN, negative TASK/PENALTY only; zero/type inversion and duplicate same-task event DENY. AES fixture commits `7594bb5a`, `abb599db`.
+- Consolidated QA instruction `c88bbf4`; exact SHA Maven not yet independently run. No production restore or reset activation.
