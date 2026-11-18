@@ -61,6 +61,27 @@ final class DisposableRestorePlanFingerprint {
         }
         if(selected==0)
             throw new SecurityException("RESTORE_PLAN_EMPTY_SELECTION");
+        // A vNext hidden source member ancestry is mandatory for every
+        // category that references an original source person. This does not
+        // authorize creating that person in the target workspace.
+        if(plan.schemaVersion()<2)
+            throw new SecurityException("RESTORE_PLAN_LEGACY_NOT_RESTORABLE");
+        Set<String> needsMember=Set.of("TASK_EXECUTIONS","REWARD_PURCHASES",
+                "REWARD_REQUESTS","REWARD_OBLIGATIONS","POINT_LEDGER",
+                "REPUTATION_LEDGER","POINT_EXCHANGE_REQUESTS","MEDIA_BINDINGS");
+        if(needsMember.stream().anyMatch(c->selected(cats,c))
+                && !selected(cats,"FAMILY_MEMBERS"))
+            throw new SecurityException("RESTORE_PLAN_MEMBER_CATALOG_REQUIRED");
+        if((selected(cats,"POINT_LEDGER")||selected(cats,"REWARD_PURCHASES")
+                ||selected(cats,"POINT_EXCHANGE_REQUESTS")
+                ||selected(cats,"POINT_EXCHANGE_RATES")
+                ||selected(cats,"GROUP_POINT_LEDGER"))
+                && !selected(cats,"POINT_TYPES"))
+            throw new SecurityException("RESTORE_PLAN_POINT_TYPES_REQUIRED");
+        if(selected(cats,"TASK_EXECUTIONS")&&!selected(cats,"TASK_DEFINITIONS"))
+            throw new SecurityException("RESTORE_PLAN_TASK_DEFINITIONS_REQUIRED");
+        if(selected(cats,"REWARD_PURCHASES")&&!selected(cats,"REWARD_DEFINITIONS"))
+            throw new SecurityException("RESTORE_PLAN_REWARD_DEFINITIONS_REQUIRED");
         StringBuilder members=new StringBuilder("FP-RESTORE-MEMBERS-V2")
                 .append('|').append(plan.sourceWorkspace())
                 .append('|').append(plan.targetWorkspace())
@@ -106,6 +127,10 @@ final class DisposableRestorePlanFingerprint {
             throw new SecurityException("RESTORE_PLAN_SCOPE_MISMATCH");
     }
 
+    private static boolean selected(Map<String,Category> cats,String code) {
+        Category c=cats.get(code);
+        return c!=null&&c.selected();
+    }
     private static boolean digestValid(String v) {
         return v!=null&&v.matches("[0-9a-f]{64}");
     }
