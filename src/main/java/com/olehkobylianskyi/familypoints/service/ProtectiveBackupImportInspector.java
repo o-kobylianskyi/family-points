@@ -40,7 +40,12 @@ public final class ProtectiveBackupImportInspector {
      */
     public record AncestryV2Inspection(UUID snapshotId,long sourceWorkspaceId,
             long sourceEpoch,String manifestRootDigest,int roleCount,int memberCount,
-            boolean restorable) {}
+            List<Long> sourceRoleIds,List<Long> sourceMemberIds,boolean restorable) {
+        public AncestryV2Inspection {
+            sourceRoleIds=List.copyOf(sourceRoleIds);
+            sourceMemberIds=List.copyOf(sourceMemberIds);
+        }
+    }
     public AncestryV2Inspection inspectAncestryV2(byte[] file,long sourceWorkspaceId,
                                                   SecretKey key) {
         if(sourceWorkspaceId<=0)
@@ -61,10 +66,19 @@ public final class ProtectiveBackupImportInspector {
                     proof.sourceDigest().getBytes(java.nio.charset.StandardCharsets.US_ASCII),
                     manifest.sourceDigest().getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
                 throw new SecurityException("PORTABLE_V2_SOURCE_DIGEST_MISMATCH");
+            // Expose verified historic IDs for subsequent mapping review,
+            // never archive account identities or mint target-member roles.
+            // PortableMemberAncestryV2.verify has already enforced sorted,
+            // unique, positive IDs and role-family closure.
+            var roles=new ArrayList<Long>();
+            var members=new ArrayList<Long>();
+            for(JsonNode row:root.path("categories").path("FAMILY_ROLES"))
+                roles.add(row.path("id").asLong());
+            for(JsonNode row:root.path("categories").path("FAMILY_MEMBERS"))
+                members.add(row.path("id").asLong());
             return new AncestryV2Inspection(manifest.snapshotId(),sourceWorkspaceId,
                     manifest.dataEpoch(),proof.manifestRootDigest(),
-                    root.path("categories").path("FAMILY_ROLES").size(),
-                    root.path("categories").path("FAMILY_MEMBERS").size(),false);
+                    roles.size(),members.size(),roles,members,false);
         }catch(java.io.IOException invalid) {
             throw new SecurityException("PORTABLE_V2_SOURCE_JSON_INVALID",invalid);
         }finally {
