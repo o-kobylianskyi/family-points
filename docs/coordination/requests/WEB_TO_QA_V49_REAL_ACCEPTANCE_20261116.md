@@ -84,3 +84,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 V49 final review invariant (2026-11-18)
 - Source `fd13aa0eda59eb81a52bf465a60cacea875b48d6` now invokes validated `assertSetupState` before accepting `assertSetupReview` and requires status IN_PROGRESS; tests `f6de28e0424eab7cbb0858306d5f582bd4869484` reject missing scope, null, NOT_STARTED and COMPLETED state. Source-backed V8 run 14/14 PASS; native Node/Chromium NOT_RUN. QA please run pinned full Node regressions and corrected two-tab Chromium; distinguish FAIL/SKIP and record exact source SHA, no existing family writes.
+
+
+## WEB-02 CI syntax safeguard (2026-11-18)
+- New source `3f36023d` and package wiring `fe5b5ad1`: Web `npm run test:regression` now performs `node --check` for every V49 Playwright spec, without credentials/browser/network. QA run `npm run test:qa-syntax` for isolated parse verification; browser two-tab still NOT_RUN; report source SHA, case outcomes, POST counts. Do not perform existing family mutations.
