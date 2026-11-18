@@ -54,6 +54,25 @@ public final class PortableV2HistoryGraph {
     public static void capture(JdbcTemplate db,ObjectNode categories,long workspace) {
         if(categories==null||workspace<=0)
             throw new SecurityException("PORTABLE_V2_HISTORY_SCOPE_INVALID");
+        // A member-scoped SELECT must not silently omit an execution whose
+        // owning task belongs to this source workspace but whose assignee
+        // points to another workspace, even on a historically damaged DB.
+        Long badTask=db.queryForObject("""
+                SELECT count(*) FROM task_instances t
+                JOIN task_definitions d ON d.id=t.task_definition_id
+                LEFT JOIN family_members m ON m.id=t.member_id
+                WHERE d.family_id=? AND (m.id IS NULL OR m.family_id<>?)
+                """,Long.class,workspace,workspace);
+        if(badTask==null||badTask!=0L)
+            throw new SecurityException("PORTABLE_V2_HIDDEN_FOREIGN_TASK_EXECUTION");
+        Long badPurchase=db.queryForObject("""
+                SELECT count(*) FROM reward_purchases p
+                JOIN reward_definitions d ON d.id=p.reward_definition_id
+                LEFT JOIN family_members m ON m.id=p.member_id
+                WHERE d.family_id=? AND (m.id IS NULL OR m.family_id<>?)
+                """,Long.class,workspace,workspace);
+        if(badPurchase==null||badPurchase!=0L)
+            throw new SecurityException("PORTABLE_V2_HIDDEN_FOREIGN_REWARD_PURCHASE");
         for(String category:ORDER) {
             var rows=categories.putArray(category);
             // Query returns only rows scoped through actual source family.
