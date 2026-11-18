@@ -179,3 +179,8 @@ Source files reviewed:
 - QA packet `docs/coordination/requests/B-A-04C_CI_FIX_AND_MEMBER_FK_INVENTORY_QA_20261118.md` @`b6e9ce7`, journal `docs/coordination/logs/backend-a.md` updated. All new PG tests require exact-SHA Maven execution; queued/in-progress does not equal PASS.
 - Architecture A4-01…09 exact format/privacy/role categories/IMP approval still needed; Backend B logical conditional ACK only; no production archive schema change or owner/account export. Restore/Reset HTTP423 and BETA HOLD unchanged.
 - Next B-A-04d: verify actual Maven error/test counts at new pinned full CI, repair failures, enumerate outstanding polymorphic/reference category owners, prepare vNext producer only after signed Architecture review.
+
+
+## B-A-04c full run dispatch (2026-11-18)
+- Explicit four-component `[full-ci]` on source SHA `a67f3c388de583d3c6598eae4e88834449781e5d`, run `44281984930` IN_PROGRESS at inspection. This includes compile repair, V28 PG negative and `pg_constraint` real FK inventory; no passing test count yet.
+- QA packet `docs/coordination/requests/B-A-04C_PINNED_FULL_CI_20261118.md` includes exact test cases and fail-safe reporting requirements. Return to this run for Java Maven error/actual PG18 execution and all component test steps before claiming accepted. Next task B-A-04d as above.
