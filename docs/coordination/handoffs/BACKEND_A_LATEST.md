@@ -86,3 +86,10 @@ Source files reviewed:
 - Added two negative unit tests `2b716c7`; QA packet `docs/coordination/requests/B-A-03E_ORPHAN_COMPENSATION_QA_20261118.md` commit `3c00f4a`.
 - No test results are claimed for this exact source SHA until CI completes. Prior B-A-03d workflow `44268359058` reported SUCCESS. Crash/power-loss orphan reconciliation and operational cleanup metrics remain P0 gaps.
 - Next B-A-03f: physical file compensation and crash/restart orphan reconciliation rehearsal with disposable files, no live families. B-A-02 member archive still awaiting Architecture + Backend B ACK.
+
+
+## B-A-03f — 2026-11-18 bounded read-only restart orphan audit
+- `a25c15a`: `WorkspaceBackupLocalArtifactStore.inventory` lists bounded per-family entries with no symlink following/secret reads/deletion; `695f18f`: `WorkspaceBackupOrphanAuditService` classifies source files against registry without promoting status or deleting bytes.
+- `a6470b8` / `5e0f2c9`: file-inventory crash-temp fixture and registry classifications read-only tests. QA packet `docs/coordination/requests/B-A-03F_RESTART_ORPHAN_AUDIT_QA_20261118.md` commit `a192e80`.
+- Pending: exact-SHA CI and physical SHA verification, race/lease-aware operator reconciliation policy. `REGISTERED_FILE_PRESENT` is never equivalent to authenticated, VERIFIED or restorable.
+- Next B-A-03g: audit SHA (no plaintext), concurrency tests and operator retention-only deletion approval. B-A-02 FAMILY_MEMBERS still awaits Architecture + Backend B ACK. Restore execute HTTP423/BETA HOLD unchanged.
