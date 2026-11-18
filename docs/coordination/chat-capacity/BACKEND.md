@@ -48,3 +48,6 @@ DateTime CET | Track | ChatGeneration | VisibleUserTurns | VisibleAssistantTurns
 
 
 2026-11-18 | Backend | successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #57-60 | 174bca23 | CHECKPOINT | Verified 496/1 failed CI logs + test-only transactional synthetic financial approval; real context budget unavailable.
+
+
+2026-11-18 | Backend | successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #61-64 | afd9abf4 | CHECKPOINT | Multi-category QA-only SQL rollback, estimate 8-12 further large batches, chat context percent unavailable.
