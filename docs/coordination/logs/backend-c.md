@@ -63,3 +63,12 @@
 - PG18 proof suite expanded to 6 methods @ `52e79a29`: DB-persisted expiry + password rotation negatives. Existing two-thread replay, transaction rollback/retry, cross-family and epoch cases remain.
 - Updated independent QA packet @ `a4b34db9` and issue #15 comment `6973470561`. Maven/PG tests **NOT_RUN** by C. No production Reset Execute (HTTP423), BETA HOLD.
 - Next: QA exact-SHA results, fix failures, await engineering canonical original-owner registration/migration contract for controller integration.
+
+
+## 2026-11-18 — C-C-07: action-specific permit contract and CI triage
+- Inspected accepted Architecture `ADR-BKL002-ABCD-INTEGRATION-003` @5218b9a and issue #15; implementation decision accepted, exact per-consumer schema/DTO/IMP still required. No more routine user reapproval.
+- Independently fetched #44268695217 Java workflow logs: 572 tests, 1 failure and 1 error, both Backend B `DisposableFinancialTargetRehearsalPostgresTest` synthetic duplicate-key; previous green does not cover moving HEAD. Published failure details to issue #15.
+- Added `WorkspaceDestructivePermitContract` @306850b8: immutable action-scoped RESET vs RESTORE identity/snapshot/selection/mapping/epoch/expiry <=5min pure descriptor; not a grant or runtime authorization. Added 5 pure tests @fac58ba8; NOT_RUN.
+- Concrete B consumer ACK request `docs/coordination/requests/BACKEND_C_TO_B_DURABLE_PERMIT_CONTRACT_20261118.md` @8901b7d; issue #15 comment 6973579412. Target family -> operation/permit -> rows lock order and atomic restore consume+epoch+receipt remain proposed pending exact IMP/consumer review.
+- Safety: HTTP423 Reset, production Restore blocked and BETA HOLD. No Flyway, credential transport or destructive endpoint wired. New tests not independently executed.
+- Next: obtain B ACK, file IMP for shared permit/storage; implement verified owner enrollment and transactional DB-backed scope/grant only with reviewed integration. QA pinned-SHA target test then full CI.
