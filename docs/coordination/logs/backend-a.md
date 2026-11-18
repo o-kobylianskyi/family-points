@@ -26,3 +26,11 @@
 - Added source-only `MEMBER_EXCEPTION_PERIODS.member_id` to reviewed provenance matrix `e58300b`, PG schema nullability guard `3d14025`.
 - New `DisposablePortableMemberFkInventoryPostgresTest` `e29f276` and conservative evidence revision `be84906` query all PostgreSQL FK to `family_members`, assert required task/ledger/reward/exception source edges, print unreviewed edges; do not auto-authorize portable vNext fields.
 - QA packet `docs/coordination/requests/B-A-04C_CI_FIX_AND_MEMBER_FK_INVENTORY_QA_20261118.md` `b6e9ce7`. Next B-A-04d: CI results, more FK sources, Architecture version/privacy/IMP ACK; production importer and exporter unchanged, HTTP423/BETA HOLD.
+
+
+## 2026-11-18 — B-A-04e strict source-ID semantics & family exception-period closure
+- Exact old baseline `64f4cdea` Actions `44282865822` FULL CI SUCCESS, non-skipped Maven/Testcontainers; backend-Surefire artifact confirmed. This does not validate B-A-04e.
+- Test-only `DisposablePortableMemberReferenceClosure` strengthened to require Integer/Long source IDs (reject floating/BigDecimal aliases), role-code uniqueness and catalog row/type limits (`36e3a16`), with adversarial negative suite `4034754`.
+- Test-only PG18 `DisposablePortableMemberExceptionClosurePostgresTest` `33679c7`: real family A/B and member exception periods, one-source-family snapshot accepted, neighbor member FK injection rejected.
+- Source category `MEMBER_EXCEPTION_PERIODS` is not a current v1 export category. Architecture versioned source decision and B/D consumer review mandatory; not shipped as vNext.
+- QA: `docs/coordination/requests/B-A-04E_STRICT_SOURCE_ID_AND_EXCEPTION_CLOSURE_QA_20261118.md`, source unchanged outside tests/docs; PROD Restore, file deletion, Reset remain gated.
