@@ -28,3 +28,12 @@ Unlike prior Mockito tests, C-C-05 migrates a **disposable PostgreSQL 18** datab
 - It is a PostgreSQL locking and proof lifecycle test, **not** a signed-off owner-binding, production Reset or Restore executor, actual device/client E2E, or full schema upgrade matrix.
 - Owner-binding migration and controller policy still require Architecture/Integrator ACK.
 - BETA HOLD and HTTP 423 remain mandatory; real family reset is not authorized.
+
+
+## C-C-06 extension — new independent persisted-state regressions
+- Source update: `52e79a297f332140f8514d6aa2ce2ca292288572`.
+- **Physically expired proof**: update durable challenge expiry using PostgreSQL `clock_timestamp()`; verify HTTP 410 and zero consumption.
+- **Password rotated after issuance**: replace test account's BCrypt hash, verify old challenge rejected HTTP 409 and zero consumption.
+- Suite now has **6** PostgreSQL integration test methods; source is committed but NOT independently executed.
+- Follow-up run: `mvn -Dtest=WorkspaceResetProofConcurrencyPostgresTest,WorkspaceResetProofConsumptionSecurityTest,ResetChallengeAttemptLimiterTest test` on latest checked-out exact SHA, followed by full non-skipped 4-component CI as appropriate.
+- User product approval for ABCD-DEC-01…08 is recorded at `docs/coordination/requests/BKL002_ABCD_USER_APPROVED_DECISIONS_20261118.md`; this is **not** engineering schema approval or release permission.
