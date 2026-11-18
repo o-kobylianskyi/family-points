@@ -1224,3 +1224,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 actual Web CI after V49 syntax gate
 - Independent decoded GitHub job logs: run 44260359035 (`fe5b5ad1`), Web job 134652011939, and run 44260568949 (`201c486f`), Web job 134652692877 both executed V49 syntax **6 fixtures PASS**, native Node **33 tests PASS/0 FAIL/0 SKIP**, i18n/lint/Vite SUCCESS, 3 lint warnings/0 errors. First is scoped only; second full run failed Backend Maven while Web passed. QA Chromium two-tab NOT_RUN, BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 preserve exact V49 receipt GET UUID in two-tab QA
+- Static spec audit found receiptCount assertions could pass without checking original operation UUID. Two mocked Playwright scenarios now assert GET path matches initial finalize Idempotency-Key and workspace (`9e6a4782`). New fixture source parsed V8 syntax PASS, native Node and Chromium NOT_RUN for this SHA. QA-039 no new browser evidence; BETA HOLD.
