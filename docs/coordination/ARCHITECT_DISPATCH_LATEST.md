@@ -5,11 +5,35 @@
 ## CURRENT DISPATCH CHECKPOINT — 2026-11-18, after QA_BASELINE_READY
 
 **Architecture verified latest GitHub Issue #15:** QA posted `QA_BASELINE_READY` (comment [6986423111](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-6986423111)); its nonblocking baseline work is **COMPLETE**. Last actual fully executed verification reported by QA: [CI #44346461826](https://github.com/o-kobylianskyi/family-points/actions/runs/44346461826) QA PR SHA `425fbc8e`, Maven/PG18 **763 tests 0F/0E/0S**, Web/Android/Compose/exact SHA SUCCESS, but this is **not current main HEAD**. Historical QA negative draft [PR #27](https://github.com/o-kobylianskyi/family-points/pull/27) at `053ef322`: 766 tests, 2 failures (synthetic `authorization_header`, nested `x-api-key` aliases), kept UNMERGED; B must preserve fail-closed privacy and disposition within his large package, no speculative QA interruption.
-- **OWNER: activate / continue ONLY Backend B with `++` NOW**, [B active work file](handoffs/BACKEND_B_ACTIVE_ASSIGNMENT.md). At this check, no B-INT-02 implementation commits or `READY_FOR_QA` after the new dispatcher were observed. B should do the full implementation pass, not another docs-only planning response.
+- **OWNER: activate / continue Backend B with `++` NOW**, [B active work file](handoffs/BACKEND_B_ACTIVE_ASSIGNMENT.md). At this check, no B-INT-02 implementation commits or `READY_FOR_QA` after the new dispatcher were observed. B should do the full implementation pass, not another docs-only planning response.
 - **QA: WAIT / DO NOT ACTIVATE** now. QA will be reactivated by Architecture **only once B posts `READY_FOR_QA`**, to run one aggregate formal acceptance. Baseline phase complete; no duplicate CI.
-- **Web, Android, Designer, Release WAIT; Backend A/C/D CLOSED**.
+- **Web and new Backend Retention are optionally activatable now on independent tasks; Android, Designer, Release WAIT; Backend A/C/D CLOSED**.
 - **Architecture next trigger:** B handoff `READY_FOR_QA` or one genuine blocking contract issue. No background process implied; owner manually starts the B chat with `++`.
 - **Safety unchanged:** `restorable=false`, `replaySupported=false`, Reset Execute HTTP423, BETA HOLD.
+
+## AUTONOMOUS QUEUES + PARALLEL DISPATCH — architect-approved 2026-11-18
+
+**Owner policy:** Architecture should give each active stream a CURRENT TASK plus NEXT TASKS where independent; at each future `++` stream reads current GitHub file and continues its earliest safe unfinished queue item. User need not relay new tasks. Architecture proposes additional streams only for **genuinely independent file/contract ownership**; idle streams close or WAIT. Every stream records its `READY_FOR_QA` separately. A `READY_FOR_QA` does **not** prohibit the author from moving on to the next independent pre-authorized item while QA tests it; the author MUST NOT edit the frozen QA package's files or merge overlapping changes.
+
+### LIVE activation suggestions (owner starts chats manually)
+| Stream | NOW / NEXT | Canonical file | Non-overlap rule |
+|---|---|---|---|
+| **Backend B** | **CONTINUE** `++` for large B-INT-02; then auto B-NEXT-01 backend compatibility, then B-NEXT-02 safe diagnostics; QA P0 fixes preempt | [BACKEND_B_ACTIVE_ASSIGNMENT.md](handoffs/BACKEND_B_ACTIVE_ASSIGNMENT.md) | Owns v2, real owner auth and atomic restore. **Never** edit retention service/test files; no Web UI edits |
+| **Backend Retention** (NEW independent backend stream) | **ACTIVATE OPTIONAL NOW**; RET-01 storage/SQL crash-consistent retention; auto RET-02 retry/reconciliation | [BACKEND_RETENTION_ACTIVE_ASSIGNMENT.md](handoffs/BACKEND_RETENTION_ACTIVE_ASSIGNMENT.md) | Only retention service/store with explicit coordination and retention-only tests; no v2/permit/restore source; NO destructive live purge |
+| **Web** (existing stream) | **ACTIVATE OPTIONAL NOW**; WEB-01 V49 two-tab finalize safety; auto WEB-02 backup account-scoped UI; optional WEB-03 only confirmed UI defects | [WEB_ACTIVE_ASSIGNMENT.md](handoffs/WEB_ACTIVE_ASSIGNMENT.md) | `frontend/` and V49-specific UI fixture; no Backend, shared migrations, QA source-loss |
+| **QA** | **WAIT** until any completed package `READY_FOR_QA` (B/RET/WEB); then `++` autonomously tests earliest ready independent package | [QA_ACTIVE_ASSIGNMENT.md](handoffs/QA_ACTIVE_ASSIGNMENT.md) | Aggregated independent evidence, not micro-test interruptions |
+| Android / Designer / Release | WAIT | historical only | Activate on demonstrated need / final release |
+| Backend A/C/D | CLOSED | historical | No reopening unless owner decision |
+
+**Preferred user activation right now:** Backend B `++` as critical path; additionally start **Backend Retention** and **Web** with `++` if user wishes to exploit safe asynchronous lanes. QA remains WAIT baseline complete. Opening extra threads is a recommendation; Architecture cannot start sessions automatically. If user starts only B, independent queues remain available later.
+
+### Dependency precedence (do not change)
+- RET-01 and WEB-01 are independent of B-INT-02; run alongside it. **Only QA acceptance of the same exact SHA** applies to each package; keep shared test ownership explicit.
+- RET-01 must not edit RESTORE exporter or original-owner SQL. Web-01 must not invent backend RESTORE endpoints or flip feature flags.
+- After B-INT-02 implementation reaches READY_FOR_QA, QA runs its full gates; B may begin B-NEXT-01 **only** in non-overlapping files, otherwise WAIT. QA returns a single corrective list; B must prioritize P0/B-INT-02-FIX before B-NEXT work.
+- QA may test RET-01/WEB-01 before B completes B-INT-02, one scope at a time. No broad full CI per intermediary commit.
+- Human-auth/browser/phone tests are separate `OPERATOR ACTION REQUIRED` packets through Architecture, never hidden in ordinary stream handoffs.
+- Never assert ready-for-release based on isolated package PASS. Preserve BETA HOLD and disabled RESTORE/RESET and physical purge.
 
 ## Mandatory stream bootstrap and every subsequent `++`
 1. Read this file from `main` **at the start of every active turn**. Then read only your current role assignment file below, Issue [#15](https://github.com/o-kobylianskyi/family-points/issues/15) for the latest architect directive, and relevant source/CI. **Do not ask owner to paste tasks.**
@@ -28,10 +52,10 @@
 | Backend A | CLOSED | historical only | All mandatory tasks inherited by B |
 | Backend C | CLOSED | historical only | All mandatory tasks inherited by B |
 | Backend D | CLOSED | historical only | All mandatory tasks inherited by B |
-| Web / Android / Designer / Release | WAIT; use existing active chats only if explicitly activated by Architecture | historical role files | No idle `++` calls required |
+| Backend Retention | OPTIONAL ACTIVATE `++` | [BACKEND_RETENTION_ACTIVE_ASSIGNMENT.md](handoffs/BACKEND_RETENTION_ACTIVE_ASSIGNMENT.md) | RET-01 then RET-02, independent from B |\n| Web | OPTIONAL ACTIVATE `++` | [WEB_ACTIVE_ASSIGNMENT.md](handoffs/WEB_ACTIVE_ASSIGNMENT.md) | WEB-01 then WEB-02; no backend edits |\n| Android / Designer / Release | WAIT | historical | Activate on concrete need |
 
 ## Step and dependency graph
-**Stage 01 (parallel NOW):** Backend B implements B-INT-02 as ONE large autonomous package; QA independently reviews current CI/known failures and prepares consolidated acceptance cases. QA does **not** stop B or require a full CI per subcommit.
+**Stage 01 (parallel NOW):** Backend B implements B-INT-02 as ONE large autonomous package; QA baseline already complete. Independently, if owner activates them, Backend Retention implements RET-01 and Web implements WEB-01. QA does **not** stop B or require a full CI per subcommit.
 
 **Gate A — Backend B READY_FOR_QA**: one coherent reviewed working tree/main SHA including complete agreed functionality, targeted compile/PG tests, supported/blocked categories and migration/backward-compatibility report. Only this state activates QA's full-package test phase. A code-committed partial archive is not READY_FOR_QA.
 
