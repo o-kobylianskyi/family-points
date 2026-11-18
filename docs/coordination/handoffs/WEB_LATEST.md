@@ -123,6 +123,8 @@
 - Actions run `44264239156` for exact new test patch was **in progress** when checked; no PASS claimed. QA-039 still has corrected two-tab Chromium two-case test **NOT_RUN**. Real V49 QA approval and BKL-002 remain **HOLD**.
 - Next: inspect completed `44264239156` Web steps and logs (6-fixture syntax + 33 Node), obtain QA Chromium results with marker invariants, then fix any reproduced defect.
 
+- **Post-write actual CI follow-up**: [run 44264239156](https://github.com/o-kobylianskyi/family-points/actions/runs/44264239156) at patch `3354bcab3039d79aa5467ff9a040508431a06a80`, Web job `134664791196` independently confirmed **SUCCESS**: 6 V49 fixture `node --check` PASS, native Node **33 PASS/0 FAIL**, i18n, lint, Vite build success; lint 3 warnings, 0 errors. Full CI attestation **SKIPPED** due scoped run; Playwright Chromium NOT_RUN. This supersedes the interim in-progress observation above.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
