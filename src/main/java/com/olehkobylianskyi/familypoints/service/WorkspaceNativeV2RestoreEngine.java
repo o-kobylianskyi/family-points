@@ -63,7 +63,7 @@ public final class WorkspaceNativeV2RestoreEngine {
         if(reviewedMembers.isEmpty()||new HashSet<>(reviewedMembers.values()).size()!=reviewedMembers.size())
             throw new SecurityException("RESTORE_NATIVE_MEMBER_MAP_NOT_INJECTIVE");
         for(Long member:reviewedMembers.values()) {
-            if(!one("SELECT count(*) FROM family_members WHERE id=? AND family_id=?",
+            if(!countEquals("SELECT count(*) FROM family_members WHERE id=? AND family_id=?",
                     1L,member,target))
                 throw new SecurityException("RESTORE_NATIVE_FOREIGN_MEMBER");
         }
@@ -83,11 +83,11 @@ public final class WorkspaceNativeV2RestoreEngine {
         } finally {Arrays.fill(plain,(byte)0);}
         requireExistingCurrencyMap(cats.path("POINT_TYPES"),reviewedCurrencies,target);
         for(String table:List.of("task_definitions","reward_definitions")) {
-            if(!one("SELECT count(*) FROM "+table+" WHERE family_id=?",0L,target))
+            if(!countEquals("SELECT count(*) FROM "+table+" WHERE family_id=?",0L,target))
                 throw new SecurityException("RESTORE_NATIVE_TARGET_ALREADY_POPULATED:"+table);
         }
         for(String table:List.of("task_instances","reward_purchases","point_transactions")) {
-            if(!one("SELECT count(*) FROM "+table+" t JOIN family_members m ON m.id=t.member_id WHERE m.family_id=?",
+            if(!countEquals("SELECT count(*) FROM "+table+" t JOIN family_members m ON m.id=t.member_id WHERE m.family_id=?",
                     0L,target))
                 throw new SecurityException("RESTORE_NATIVE_TARGET_ALREADY_POPULATED:"+table);
         }
@@ -244,10 +244,7 @@ public final class WorkspaceNativeV2RestoreEngine {
     private static void remapNullable(ObjectNode row,String field,Map<Long,Long> mapping) {
         if(row.hasNonNull(field))remapRequired(row,field,mapping);
     }
-    private boolean one(String sql,Object... args) {
-        return Objects.equals(1L,db.queryForObject(sql,Long.class,args));
-    }
-    private boolean one(String sql,long expected,Object... args) {
+    private boolean countEquals(String sql,long expected,Object... args) {
         return Objects.equals(expected,db.queryForObject(sql,Long.class,args));
     }
 
