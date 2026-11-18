@@ -143,3 +143,12 @@
 - Expanded actual post-source-loss PG18 regression @`a06d4d3e`/@`d9923bc7` to check immutable IDs, source-to-target canonical mapping digest parity, missing/duplicated member IDs denial. Other tamper/tenant/key negatives remain.
 - Formal pinned QA packet / exact-SHA [full-ci] trigger `docs/coordination/requests/BACKEND_B_INT01A_VERIFIED_ROSTER_C_V2_MAPPING_QA_20261118.md` @`89b0f8e1`. **New full QA PASS not confirmed.**
 - IMP-01a source ancestry slice remains **NOT FULL RESTORABLE**, no full financial/TaskInstance graph, no original owner grant, no target native replay; production HTTP423, BETA HOLD. Next: ensure new CI all-four green, then extend same sealed v2 to approved historical source categories in ordered checkpoints.
+
+## 2026-11-18 — one large B-INT-01a.2 real historical graph checkpoint (QA pending)
+- QA-068 verified full CI #44290621478 @89b0f8e1: 749/749 Maven PG18 0F/0E/0S, Web Android Compose and exact attestation PASS; this baseline predates the following code.
+- Real history categories POINT_TYPES, TASK_DEFINITIONS, REWARD_DEFINITIONS, TASK_EXECUTIONS, REWARD_PURCHASES, POINT_LEDGER in PortableV2HistoryGraph @f0f01511, strict source/member/ledger parent checks and omitted foreign rows blocking @5ca806e7/@15996c9f/@796100ec. No silent unsupported REFUND/EXCHANGE/request purchase.
+- Existing v2 manifest/root verifier expanded @61fe594e and same REPEATABLE_READ source exporter opt-in exportWithHistory @fe9b4341. Original 2-category mode and v1 remain.
+- Existing offline Inspector typed verified category counts and C SourceArchive derived from AES-GCM authenticated manifest content digest and independently verified category/root bytes @9bcff432.
+- Pure populated graph negative tests @93470dc2/@f46534ec and real PG18 source-loss test extension @deccc2b8/@f590f0ff; no current exact SHA PASS yet.
+- Full ci request packet docs/coordination/requests/BACKEND_B_V2_HISTORY_ONE_PACKAGE_FINAL_CI_20261118.md @eaecbf4f. Run all-four on new immutable SHA after last source changes.
+- IMPORTANT: NOT FINAL FULL ARCHIVE: other media/group/reputation/refund/exchange/reward obligation categories and 17 member FK dispositions remain. No real owner grant/target native restore. Restorable/replaySupported false, HTTP423/BETA HOLD.
