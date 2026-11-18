@@ -196,6 +196,16 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 String.class,id));
         verify(storage).verifyStoredCiphertext(eq(family),eq(id),anyString());
         verify(storage,never()).deleteAuthorizedExpired(anyLong(),any());
+        // A keyless row with a non-null digest is corrupt evidence. It must not
+        // silently turn into EXPIRED just because the file cannot be resolved.
+        assertEquals(1,db.update(
+                "UPDATE workspace_protective_backups SET storage_key=NULL WHERE snapshot_id=?",id));
+        assertEquals("BACKUP_RETENTION_INCOMPLETE_ARTIFACT_EVIDENCE",
+                assertThrows(SecurityException.class,
+                        ()->tx.execute(status->retention.expireEligible(1))).getMessage());
+        assertEquals("BACKING_UP",db.queryForObject(
+                "SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",
+                String.class,id));
         assertEquals(1,db.update(
                 "DELETE FROM workspace_protective_backups WHERE snapshot_id=?",id));
     }
