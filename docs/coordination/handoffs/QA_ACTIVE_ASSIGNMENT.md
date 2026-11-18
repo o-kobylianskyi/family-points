@@ -1,4 +1,4 @@
-# QA — ACTIVE ASSIGNMENT (read after ARCHITECT_DISPATCH_LATEST.md on `++`)
+> **CURRENT STATE: WAIT (baseline complete)**. QA posted `QA_BASELINE_READY` in [Issue #15 comment 6986423111](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-6986423111). Do not run further baseline/duplicate full CI on `++`; await Architecture activation after Backend B `READY_FOR_QA`. Baseline evidence: [#44346461826](https://github.com/o-kobylianskyi/family-points/actions/runs/44346461826) @ QA PR `425fbc8e` Maven **763/763 PASS** all four; historical negative [draft PR #27](https://github.com/o-kobylianskyi/family-points/pull/27) 2 synthetic sensitive-name denial failures remains unmerged for B to review. Current main has no independent exact-head full PASS asserted.\n\n# QA — ACTIVE ASSIGNMENT (read after ARCHITECT_DISPATCH_LATEST.md on `++`)
 
 **Assigned:** 2026-11-18. Read [Architecture dispatcher](../ARCHITECT_DISPATCH_LATEST.md) and newest Architecture directives in Issue #15. Owner sends only `++` to activate/continue. Never require owner to paste or explain tasks.
 
