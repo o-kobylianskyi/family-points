@@ -105,4 +105,28 @@ class DisposablePortableFinancialSourceClosureTest {
                 assertThrows(SecurityException.class,()->
                         DisposablePortableFinancialSourceClosure.verify(FAMILY,rows)).getMessage());
     }
+    @Test void nullablePhysicalPurchaseParentCannotBypassStrictSourceGraph() {
+        // PostgreSQL may permit nullable reward_definition_id, but a portable
+        // replay cannot infer the historical product from its current title.
+        var missing=new HashMap<String,Object>();
+        missing.put("reward_definition_id",null);
+        missing.put("point_type_id",1L);
+        var rows=Map.<String,List<? extends Map<String,?>>>of(
+                "POINT_TYPES",List.of(parent(1)),
+                "REWARD_DEFINITIONS",List.of(
+                        row("id",4L,"family_id",FAMILY,"point_type_id",1L)),
+                "REWARD_PURCHASES",List.of(missing));
+        assertEquals("SOURCE_FINANCE_ID_INVALID:REWARD_PURCHASES.reward_definition_id",
+                assertThrows(SecurityException.class,()->
+                        DisposablePortableFinancialSourceClosure.verify(FAMILY,rows)).getMessage());
+    }
+
+    @Test void pointCurrencyParentIsRequiredEvenWhenNoOriginalCurrencyCatalogProvided() {
+        var rows=Map.<String,List<? extends Map<String,?>>>of(
+                "POINT_LEDGER",List.of(Map.of("point_type_id",1L)));
+        assertEquals("SOURCE_FINANCE_CATEGORY_MISSING:POINT_TYPES",
+                assertThrows(SecurityException.class,()->
+                        DisposablePortableFinancialSourceClosure.verify(FAMILY,rows)).getMessage());
+    }
+
 }
