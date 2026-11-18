@@ -142,12 +142,12 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 "local:v1:"+family+"/"+id+".fpbackup",stored.sha256(),stored.byteCount(),
                 "c".repeat(64));
         var retention=new WorkspaceBackupRetentionService(db,store);
-        assertEquals(1,tx.execute(status->retention.expireEligible(10)));
+        assertEquals(1, (int)tx.execute(status->retention.expireEligible(10)));
         assertEquals("EXPIRED",db.queryForObject(
                 "SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",
                 String.class,id));
         assertTrue(Files.isRegularFile(artifact),"Committed expiry never purges ciphertext");
-        assertEquals(0,tx.execute(status->retention.expireEligible(10)));
+        assertEquals(0, (int)tx.execute(status->retention.expireEligible(10)));
         assertEquals(1,retention.expiredArtifactInventory(10).stream()
                 .filter(row->id.equals(row.snapshotId())).count());
         assertEquals("RETAINED_VALID",retention.inspectExpiredArtifacts(10).stream()
