@@ -109,6 +109,14 @@
 - No source change this package: newest Web syntax gate is truly running in CI. No PROD/BETA or real family actions. BKL-002 protected restore/VERIFIED and BETA remain HOLD.
 - Next: consume QA pinned Chromium two-tab scenario results (single original POST, immutable UUID, competing marker untouched), triage verified browser defects, coordinate exact candidate SHA with Release.
 
+## WEB-02 package 16 — V49 two-tab receipt GET must use original UUID (2026-11-18)
+- Intake main HEAD `8d5e7406c43666df091e37c296a410bd3c00d217`; QA-039 handoff still has no executed Chromium two-tab results; current Backend CI source is moving and BETA HOLD remains.
+- Source audit confirmed `frontend/src/api/setupApi.js` binds the receipt GET path to `operationId` and validates completed receipt identity. Browser synthetic fixture previously counted `receiptCount` without verifying the GET actually used that original UUID, allowing a false positive with an incorrect request ID.
+- Fixed both scenarios in `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` commit `9e6a478246dddb0472c707026723a36da54d8f01`: require captured initial `Idempotency-Key` to be UUID-shaped and assert each receipt GET path equals exact original `/workspaces/<workspaceId>/setup/finalize-import/receipts/<UUID>`. No Web UI/API or real family writes.
+- Fetched new fixture blob `b87ba30c89b455cd50b9437f896be561b872a88e`; parsed with V8 function syntax-only after removing ESM imports/import.meta: **PASS**; confirmed two exact UUID path assertions. **NOT** Node --check, Playwright browser PASS or current SHA cloud CI.
+- Last independently witnessed Web job run `44260568949` @ `201c486f`: 6 V49 fixture syntax PASS + 33/33 native Node + lint/i18n/build PASS, older than this patch. QA owns pinned isolated Chromium and real disposable acceptance. BKL-002/BETA HOLD.
+- Next Web: consume actual QA Chromium 2-case POST/GET counts and traces; fix confirmed failures, then exact-SHA CI and readiness review.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
