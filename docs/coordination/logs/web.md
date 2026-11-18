@@ -1248,3 +1248,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 V49 two-tab Service Worker interception guard
 - Test-only `27b91a22` adds Playwright per-spec `test.use({ serviceWorkers: 'block' })` so Service Worker cannot evade mocked routes for original UUID, epoch, receipt or unexpected workspace mutations. V8 syntax PASS; no actual browser. CI #44268053082 queued at check; BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 V49 all post-login mutations blocked in synthetic test
+- `374af974`: after login, catch-all Playwright context.route('**/*') aborts unexpected POST/PUT/PATCH/DELETE anywhere, not only `/workspaces` routes; narrower setup/review/finalize mocks registered afterward. V8 syntax PASS and six direct guard checks PASS, not Chromium or live HTTP. Same SHA Actions 44268593069 queued at pickup. QA still no two-tab browser result, BETA HOLD.
