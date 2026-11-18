@@ -90,10 +90,12 @@ final class DisposableFinancialTargetRehearsal {
                         target_family,source_execution_id,member_id,task_id,
                         original_assigned_member_id,scheduled_date,slot_key,
                         title,description,mandatory,due_time,status,
-                        started_at,completed_at,reward_amount,reward_point_type_id,
+                        claimed_at,started_at,completed_at,excuse_reason,excuse_comment,
+                        reward_amount,reward_point_type_id,
                         penalty_amount,penalty_point_type_id,
+                        reward_reputation_amount,penalty_reputation_amount,
                         reward_processed,penalty_processed)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id
                     """,Long.class,targetFamily,historical.sourceId(),
                         maps.members().get(historical.sourceMember()),
                         maps.tasks().get(historical.sourceTask()),
@@ -104,16 +106,21 @@ final class DisposableFinancialTargetRehearsal {
                         historical.mandatory(),
                         historical.dueTime()==null?null:java.sql.Time.valueOf(historical.dueTime()),
                         historical.status(),
+                        historical.claimedAt()==null?null:
+                            java.sql.Timestamp.valueOf(historical.claimedAt()),
                         historical.startedAt()==null?null:
                             java.sql.Timestamp.valueOf(historical.startedAt()),
                         historical.completedAt()==null?null:
                             java.sql.Timestamp.valueOf(historical.completedAt()),
+                        historical.excuseReason(),historical.excuseComment(),
                         historical.rewardAmount(),
                         historical.rewardPointType()==null?null:
                             maps.currencies().get(historical.rewardPointType()),
                         historical.penaltyAmount(),
                         historical.penaltyPointType()==null?null:
                             maps.currencies().get(historical.penaltyPointType()),
+                        historical.rewardReputationAmount(),
+                        historical.penaltyReputationAmount(),
                         historical.rewardProcessed(),historical.penaltyProcessed());
                 if(newExecution==null || newExecution<=0
                         || executionIds.putIfAbsent(historical.sourceId(),newExecution)!=null)
