@@ -325,7 +325,7 @@ class DisposableLedgerSourceGraphVerifierTest {
                 body->body.replace("\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"}]",
                         "\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"},"+
                         "{\"id\":8,\"family_id\":17,\"code\":\"POINTS\"}]")));
-        assertThrows(SecurityException.class,()->verifyEdited(
+        assertThrows(IllegalArgumentException.class,()->verifyEdited(
                 "","MANUAL",null,4,4,
                 body->body.replace("\"id\":3,\"family_id\":17,\"code\":\"POINTS\"",
                         "\"id\":0,\"family_id\":17,\"code\":\"POINTS\"")));
