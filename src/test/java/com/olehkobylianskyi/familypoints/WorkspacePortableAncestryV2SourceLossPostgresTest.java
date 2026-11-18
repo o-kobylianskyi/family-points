@@ -359,9 +359,28 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
             tx.execute(st->{enrollment.enrollNewCreator(target,account,active);return null;});
             var guard=new WorkspaceEpochTransactionGuard(db);
             var limiter=new WorkspaceRestorePasswordLimiter(db);
+            // Google signature verification itself is covered by the
+            // GoogleTokenVerifier contract; here a Mockito-approved JWT
+            // exercises the real provider-account RESTORE linkage and permit.
+            String providerSubject="qa-google-"+UUID.randomUUID();
+            db.update("""
+                    INSERT INTO account_external_identities
+                        (account_id,provider,provider_subject)
+                    VALUES (?,'google',?)
+                    """,account,providerSubject);
+            var google=org.mockito.Mockito.mock(GoogleTokenVerifier.class);
+            var googleNow=java.time.Instant.now();
+            var verifiedJwt=org.springframework.security.oauth2.jwt.Jwt
+                    .withTokenValue("qa-verified-jwt")
+                    .header("alg","RS256")
+                    .subject(providerSubject)
+                    .issuedAt(googleNow)
+                    .expiresAt(googleNow.plusSeconds(600))
+                    .build();
+            org.mockito.Mockito.when(google.verifiedToken("qa-verified-jwt"))
+                    .thenReturn(verifiedJwt);
             var permits=new WorkspaceRestorePermitService(
-                    db,guard,encoder,limiter,offline,portable,codec,
-                    new GoogleTokenVerifier(""));
+                    db,guard,encoder,limiter,offline,portable,codec,google);
             var engine=new WorkspaceRestoreNativeTargetEngine(
                     db,guard,permits,portable,codec);
             var inspected=offline.inspectAncestryV2(archive,source,key);
@@ -402,10 +421,21 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
             assertEquals(0L,db.queryForObject(
                     "SELECT data_epoch FROM families WHERE id=?",Long.class,target));
             db.update("DELETE FROM point_types WHERE id=?",conflict);
-            var receipt=tx.execute(st->engine.restoreBounded(scope,archive,key,approved));
+            // A distinct fresh Google reauth grant consumes the real signed
+            // C scope in place of the password-issued grant on success.
+            var nowGoogle=java.time.Instant.now();
+            var googleScope=new com.olehkobylianskyi.familypoints.security
+                    .WorkspaceRestorePermitScopeV2.RestoreScope(
+                    target,account,active,UUID.randomUUID(),
+                    inspected.verifiedSourceArchiveV2(),selection,
+                    inspected.canonicalMappingDigestForReviewedIds(target,approved),
+                    0,nowGoogle,nowGoogle.plusSeconds(120));
+            tx.execute(st->{permits.issueGoogle(googleScope,archive,key,approved,
+                    "qa-verified-jwt");return null;});
+            var receipt=tx.execute(st->engine.restoreBounded(googleScope,archive,key,approved));
             assertNotNull(receipt);
             assertEquals(1,receipt.afterEpoch());
-            assertEquals(3,receipt.insertedCounts().get("POINT_LEDGER"));
+            assertEquals(Integer.valueOf(3),receipt.insertedCounts().get("POINT_LEDGER"));
             assertEquals(3L,db.queryForObject("""
                     SELECT sum(t.amount) FROM point_transactions t
                     WHERE t.member_id=?
@@ -414,12 +444,12 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
                     "SELECT data_epoch FROM families WHERE id=?",Long.class,target));
             assertEquals(1L,db.queryForObject(
                     "SELECT count(*) FROM workspace_restore_receipts WHERE operation_id=?",
-                    Long.class,scope.operationId()));
+                    Long.class,googleScope.operationId()));
             assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
                     ()->db.update("DELETE FROM workspace_restore_receipts WHERE operation_id=?",
-                            scope.operationId()));
+                            googleScope.operationId()));
             assertThrows(RuntimeException.class,()->tx.execute(st->
-                    engine.restoreBounded(scope,archive,key,approved)));
+                    engine.restoreBounded(googleScope,archive,key,approved)));
             assertEquals(3L,db.queryForObject(
                     "SELECT count(*) FROM point_transactions t WHERE t.member_id=?",
                     Long.class,active));
