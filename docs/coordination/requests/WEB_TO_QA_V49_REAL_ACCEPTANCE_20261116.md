@@ -112,3 +112,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 finalize revision+epoch additional QA checks (2026-11-18)
 - Source patch `366737553301c7a831d41336c0d7f4eb3c58fb2e` adds checks to both two-tab mocked finalize scenarios: `expectedRevision === 7`, `X-Workspace-Data-Epoch === '0'` on the only original POST, plus prior UUID and exact receipt GET path; no unexpected writes. V8 syntax PASS, native Chromium NOT_RUN. At authoring run 44267564831 in progress. QA owns pinned isolated browser outcome and exact POST count. BETA HOLD.
+
+
+## WEB-02 service worker safe mock isolation (2026-11-18)
+- Patch `27b91a22311e2f02a1686ce93b06dfccdedf5711` sets Playwright `test.use({ serviceWorkers: 'block' })` for two-tab V49 synthetic only. Active Service Workers can intercept network requests before Playwright `context.route`, undermining the catch-all POST block; per-spec setting enforces route interception. V8 syntax PASS, Chromium NOT_RUN; QA executes only in isolated selected family with all writes intercepted, reports 2 cases and POST counts. BETA HOLD.
