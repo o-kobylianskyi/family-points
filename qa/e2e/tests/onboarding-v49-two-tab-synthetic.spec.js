@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs'
 import {test, expect} from '@playwright/test'
+import { registerV49UnexpectedWriteGuard } from '../helpers/v49RouteGuard.mjs'
 
 // Playwright routing does not intercept requests handled by a Service Worker.
 // Disable service workers in these mocked tests so workspace write guards
@@ -23,20 +24,6 @@ const ui = {
 }
 
 
-// Register after QA login and before the narrow setup mocks. Every
-// unexpected write is aborted, even if a future client route moves outside
-// /workspaces/:id/. Playwright's latest matching route has precedence, so
-// later setup/review/finalize mocks still fulfill their synthetic requests.
-async function blockUnexpectedWorkspaceWrites(context, blocked) {
-  await context.route('**/*', route => {
-    const request=route.request()
-    if (['POST','PUT','PATCH','DELETE'].includes(request.method())) {
-      blocked.push(request.method()+' '+new URL(request.url()).pathname)
-      return route.abort('blockedbyclient')
-    }
-    return route.continue()
-  })
-}
 
 async function signIn(page) {
   await page.goto('/login')
@@ -66,7 +53,7 @@ test('V49 two tabs: first lost finalize keeps original UUID; second tab never re
   let finalizeCount=0, operation=null, receiptCount=0
   const receiptPaths=[]
   const unexpected=[]
-  await blockUnexpectedWorkspaceWrites(context, unexpected)
+  await registerV49UnexpectedWriteGuard(context, unexpected)
   await context.route(/\/workspaces\/\d+\/(?:data-epoch|setup(?:\/.*)?)(?:\?.*)?$/, route => {
     const req=route.request(), path=new URL(req.url()).pathname
     const workspaceId=Number(path.match(/\/workspaces\/(\d+)\//)[1])
@@ -143,7 +130,7 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
   const receiptPaths=[]
   let sharedKey, competing, secondPage
   const blocked=[]
-  await blockUnexpectedWorkspaceWrites(context, blocked)
+  await registerV49UnexpectedWriteGuard(context, blocked)
   await context.route(/\/workspaces\/\d+\/(?:data-epoch|setup(?:\/.*)?)(?:\?.*)?$/,async route=>{
     const req=route.request(),path=new URL(req.url()).pathname
     const workspaceId=Number(path.match(/\/workspaces\/(\d+)\//)[1])
