@@ -1264,3 +1264,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 three-case mocked browser receipt safety
 - Test-only `53538b27` adds third two-tab Chromium scenario for original session and shared markers both removed during valid receipt lookup; UI must remain unknown/no completed signal and 1 original POST only. Earlier native Node product cleanup fix 37/37 green, browser 3 scenarios NOT_RUN. V8 parse PASS; same-SHA run 44282785790 in progress at first observation. BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 positive original session marker recovery Chromium case
+- Test-only `480f6730` adds fourth two-tab Playwright case: valid original UUID receipt and completed setup GET with only session-owned marker, shared marker lost; UI must show completed and clear all markers while one original finalize POST. Existing three denial cases unchanged, V8 syntax PASS, Chromium NOT_RUN. Exact run 44285824609 in progress at pickup; BETA HOLD.
