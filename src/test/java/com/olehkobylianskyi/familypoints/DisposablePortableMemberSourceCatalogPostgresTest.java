@@ -114,4 +114,35 @@ class DisposablePortableMemberSourceCatalogPostgresTest {
             db.execute("ALTER TABLE family_members ENABLE TRIGGER trg_workspace_member_role");
         }
     }
+    @Test void pinnedRepeatableReadRosterNeverMixesConcurrentNewMembers() {
+        var source=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
+        Flyway.configure().dataSource(source).locations("classpath:db/migration").load().migrate();
+        var readerDb=new JdbcTemplate(source);
+        var writerDb=new JdbcTemplate(new DriverManagerDataSource(
+                DB.getJdbcUrl(),DB.getUsername(),DB.getPassword()));
+        long family=readerDb.queryForObject(
+                "INSERT INTO families(name) VALUES ('Pinned roster MVCC') RETURNING id",Long.class);
+        long role=readerDb.queryForObject(
+                "INSERT INTO family_roles(family_id,system_role,code,name) " +
+                "VALUES (?,true,'PARENT','Parent') RETURNING id",Long.class,family);
+        long initial=readerDb.queryForObject(
+                "INSERT INTO family_members(family_id,family_role_id,member_type,name,active) " +
+                "VALUES (?,?,'PARENT','Initial',true) RETURNING id",Long.class,family,role);
+        var tx=new TransactionTemplate(new DataSourceTransactionManager(source));
+        tx.setIsolationLevel(TransactionDefinition.ISOLATION_REPEATABLE_READ);
+        var producer=new DisposablePortableMemberSourceCatalog(readerDb);
+        tx.execute(status->{
+            var first=producer.capture(family);
+            assertEquals(List.of(initial),first.members().stream()
+                    .map(DisposablePortableMemberSourceCatalog.Member::sourceMemberId).toList());
+            writerDb.update("INSERT INTO family_members(family_id,family_role_id,member_type,name,active) " +
+                    "VALUES (?,?,'CHILD','New concurrent child',true)",family,role);
+            var again=producer.capture(family);
+            assertEquals(first,again,"A repeatable-read source archive must not include a late member");
+            return null;
+        });
+        assertEquals(2,tx.execute(status->producer.capture(family)).members().size(),
+                "A new transaction can observe the committed member");
+    }
+
 }
