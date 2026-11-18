@@ -234,6 +234,8 @@
 - Added native Node source regression to existing `frontend/tests/settingsRuntimeGuard.test.mjs`: `2fdb3647d2dcd8deeb6abc37852f2d3a01e10f48` asserts wrapper identity expression mirrors request scope incl username; source test blob `99c3dc61297f3fb41c22f6d7c5d110c1e8d8e7ee`. New exact-SHA [Actions #44319556749](https://github.com/o-kobylianskyi/family-points/actions/runs/44319556749) was QUEUED at first check. Do not claim Node/Build PASS until inspecting job logs.
 - Next: inspect exact-SHA Web CI and QA isolated five Chromium results; continue package32 only for proven issue. BKL-002/BETA HOLD.
 
+- **Post-write exact-SHA Web CI for package 31**: [run #44319556749](https://github.com/o-kobylianskyi/family-points/actions/runs/44319556749) pinned `2fdb3647d2dcd8deeb6abc37852f2d3a01e10f48`, Web job `134854662605`: decoded logs fixture syntax 6 PASS; native Node **38/38 PASS** including new username-only remount regression #12, lint **0 warnings and 0 errors**, i18n and Vite build SUCCESS. Full four-component attestation SKIPPED in scoped run; authorized five-case Chromium NOT_RUN. Supersedes initial queued checkpoint.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
