@@ -168,6 +168,8 @@
 - Exact [run 44268593069](https://github.com/o-kobylianskyi/family-points/actions/runs/44268593069) was QUEUED at check, so new-SHA CI NOT_YET_VERIFIED. Prior `44268053082` @`27b91a` Web 6 fixture syntax, 33 Node, i18n/lint/build PASS was scoped only and predates this patch.
 - Next: obtain exact current Web CI steps/logs and QA mocked two-tab Chromium results; if unexpected auth-refresh appears, record FAIL rather than allowing network writes. Keep BETA HOLD.
 
+- **Post-write same-SHA Web CI**: [run #44268593069](https://github.com/o-kobylianskyi/family-points/actions/runs/44268593069) for commit `374af974349d4fbcfad14f88d1d2ed0a66cbb928`, Web job `134679334325` verified from decoded logs: **6 V49 fixture syntax PASS, native Node 33 PASS / 0 FAIL / 0 SKIP**, i18n/lint/Vite build SUCCESS, 3 lint warnings/0 errors. Scoped run, full four-component attestation **SKIPPED**; mocked Chromium still **NOT_RUN**. Supersedes queued checkpoint above.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
