@@ -28,6 +28,7 @@ public final class DisposablePortableMemberReferenceClosure {
             new MemberField("member_id",false),
             new MemberField("processed_by_member_id",true))),
         Map.entry("GROUP_MEMBERSHIPS",List.of(new MemberField("member_id",false))),
+        Map.entry("MEMBER_EXCEPTION_PERIODS",List.of(new MemberField("member_id",false))),
         Map.entry("TASK_DELEGATIONS",List.of(
             new MemberField("delegated_by_member_id",false),
             new MemberField("from_member_id",false),
