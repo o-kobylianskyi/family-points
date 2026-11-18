@@ -113,6 +113,21 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
         assertTrue(proof.sourceMemberIds().get(0)<proof.sourceMemberIds().get(1));
         assertThrows(UnsupportedOperationException.class,
                 ()->proof.sourceMemberIds().add(-1L));
+        // This is the real offline source-roster → C canonical binary mapping
+        // bridge. It is NOT an owner proof or a target member grant.
+        var originalIds=proof.sourceMemberIds();
+        var reviewed=Map.of(originalIds.get(0),1003L,originalIds.get(1),1004L);
+        String cDigest=proof.canonicalMappingDigestForReviewedIds(other,reviewed);
+        assertEquals(
+                com.olehkobylianskyi.familypoints.security
+                    .WorkspaceRestorePermitScopeV2.canonicalMappingDigest(
+                            source,other,reviewed),cDigest);
+        assertThrows(SecurityException.class,()->
+                proof.canonicalMappingDigestForReviewedIds(
+                        other,Map.of(originalIds.get(0),1003L)));
+        assertThrows(IllegalArgumentException.class,()->
+                proof.canonicalMappingDigestForReviewedIds(
+                        other,Map.of(originalIds.get(0),1003L,originalIds.get(1),1003L)));
         assertFalse(proof.restorable());
         assertThrows(SecurityException.class,()->
                 offline.inspectAncestryV2(file,other,key));
