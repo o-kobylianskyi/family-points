@@ -70,3 +70,12 @@ Source verifier: `src/test/java/com/olehkobylianskyi/familypoints/DisposableLedg
 - Security boundary: no production Restore API calls, no source-to-target writes, no authorization bypass, no DEV/PROD mutation. This is a read-only acceptance bridge only.
 - **Verification:** Maven/JUnit and exact-SHA CI execution remain pending. Suggested targeted command: `mvn -Dtest=DisposableLedgerSourceGraphVerifierTest,DisposableFinancialMappingParityTest,DisposableSignedFinancialParityBridgeTest test`. Confirm with actual JUnit XML and pinned GitHub Actions logs. BKL-002 release stays HOLD.
 - **Next FIN-07:** verify archive-to-target parity against disposable PostgreSQL data written by Backend B's QA-only fixture. Do not duplicate or modify Restore ownership; wait for Backend B to publish a stable mapping/fixture access contract.
+
+## FIN-07 PostgreSQL financial ledger parity — 2026-11-18
+
+- Commit `d00f3aa69745cf16ca0a04703cf3da9559434ad6`, corrected in `c6bd7f06f1ec91a5ce32aeec2bec74934253b80d`: added `DisposableFinancialLedgerPostgresParityTest.java`, five PostgreSQL Testcontainers tests.
+- The fixture uses PostgreSQL 18 and a QA-only `qa_fin07_ledger` table keyed by operation UUID, with a Spring transaction boundary. It does **not** mutate production `point_ledger` or call Restore executor.
+- Acceptance: exact per-row source-to-target financial parity after SQL reads, rollback after injected mid-write failure, retry from clean rollback, duplicate-replay insert rejection, compensated provenance tamper rejection despite equal net balance, and isolation of independent operation UUIDs.
+- FIN-06 remains separately responsible for authenticated source archive V50 -> mapping parity. FIN-07 does **not** yet consume the signed archive itself or prove native financial Restore.
+- **Verification:** Source committed only. Targeted command `mvn -Dtest=DisposableFinancialLedgerPostgresParityTest,DisposableSignedFinancialParityBridgeTest,DisposableFinancialMappingParityTest test` (Docker required); Maven/Testcontainers and exact-SHA CI execution are NOT yet confirmed. No PASS claim without logs.
+- **Next FIN-08:** integrate a signed archive fixture with the PG-read verification layer, or compare against Backend B's explicitly published real-table disposable Restore fixture once stable. Maintain BKL-002 HOLD until full owner/QA/release gates.
