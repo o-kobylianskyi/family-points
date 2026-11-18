@@ -47,10 +47,25 @@ public class WorkspaceBackupOrphanAuditService {
                     if(!expected.equals(row.get("storage_key"))
                             || row.get("artifact_sha256")==null)
                         reason="REGISTRY_ARTIFACT_EVIDENCE_INCOMPLETE";
-                    else if("EXPIRED".equals(row.get("state")))
-                        reason="EXPIRED_REGISTRY_FILE_PRESENT";
-                    else
-                        reason="REGISTERED_FILE_PRESENT";
+                    else {
+                        String sha=(String)row.get("artifact_sha256");
+                        if(!sha.matches("[0-9a-f]{64}"))
+                            reason="REGISTRY_ARTIFACT_EVIDENCE_INCOMPLETE";
+                        else {
+                            try {
+                                // Ciphertext digest and sealed envelope only: NO decryption,
+                                // file deletion, restore promotion or data mutation.
+                                storage.verifyStoredCiphertext(workspaceId,file.snapshotId(),sha);
+                                reason="EXPIRED".equals(row.get("state"))
+                                        ? "EXPIRED_REGISTRY_FILE_PRESENT"
+                                        : "REGISTERED_CIPHERTEXT_INTACT";
+                            } catch(SecurityException invalid) {
+                                reason="CIPHERTEXT_INTEGRITY_FAILED";
+                            } catch(IllegalStateException unreadable) {
+                                reason="CIPHERTEXT_READ_FAILED";
+                            }
+                        }
+                    }
                 }
             }
             result.add(new Finding(workspaceId,file.fileName(),file.snapshotId(),
