@@ -134,6 +134,32 @@ final class DisposableFinancialTargetRehearsal {
                     },targetFamily);
             if(!actual.equals(checked.expectedTargetBalances()))
                 throw new SecurityException("QA_FINANCE_BALANCE_RECONCILIATION");
+            // Polymorphic ledger source_id is NOT a physical FK. Validate
+            // each mapped event against its actual target parent and buyer.
+            for(JsonNode original:source.path("POINT_LEDGER")) {
+                String type=original.path("source_type").asText();
+                if("MANUAL".equals(type))continue;
+                Long mappedParent="TASK".equals(type)
+                        ?executionIds.get(id(original,"source_id"))
+                        :maps.purchases().get(id(original,"source_id"));
+                String table="TASK".equals(type)
+                        ?"qa_restore_executions":"qa_restore_purchases";
+                Long matches=db.queryForObject("""
+                        SELECT count(*) FROM qa_restore_ledger l
+                        WHERE l.target_family=? AND l.source_row_id=?
+                          AND l.source_type=? AND l.source_id=?
+                          AND l.member_id=? AND l.point_type_id=?
+                        """,Long.class,targetFamily,id(original,"id"),type,mappedParent,
+                        maps.members().get(id(original,"member_id")),
+                        maps.currencies().get(id(original,"point_type_id")));
+                Long parentMatches=db.queryForObject(
+                        "SELECT count(*) FROM "+table+
+                        " WHERE id=? AND target_family=? AND member_id=?",
+                        Long.class,mappedParent,targetFamily,
+                        maps.members().get(id(original,"member_id")));
+                if(!Objects.equals(1L,matches)||!Objects.equals(1L,parentMatches))
+                    throw new SecurityException("QA_FINANCE_POLYMORPHIC_FK_MISMATCH");
+            }
             // Polymorphic source IDs are not physical FKs in POINT_LEDGER.
             // Perform an explicit target-family and target-owner check here.
             for(var entry:executionIds.entrySet()) {
