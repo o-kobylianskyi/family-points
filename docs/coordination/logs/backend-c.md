@@ -39,3 +39,11 @@
 - **Evidence:** source commits only, Maven NOT_RUN, PostgreSQL NOT_RUN, no CI green claimed; ownership provenance migration still unapproved.
 - **Release:** HTTP 423, BETA HOLD; do not infer full concurrent DB race protection from Mockito tests.
 - **Next:** verify QA execution and add isolated PostgreSQL physical concurrency tests after schema/owner provenance sign-off. Can audit rate-limit behavior in parallel.
+
+## 2026-11-18 — C-C-04: persisted proof verifier integrity and reauth budget coverage
+- Inspected `WorkspaceResetProofService`, `WorkspaceEpochTransactionGuard`, `ResetChallengeAttemptLimiter` and their current unit tests.
+- Production hardening @ `1534d864`: a durable challenge with missing/wrong-typed actor/binding or non-hex/absent 64-char verifier hash now rejects `409 RESET_FRESH_CHALLENGE_REQUIRED` rather than risking NullPointerException/corrupt-state 500. Correct proof path and HTTP423 Execute unmodified.
+- Extended synthetic proof tests @ `fbbae497`: absent/malformed verifier, missing account/epoch/member/digest/credential fingerprint. Extended rate limiter tests @ `e133438c`: null count fail closed, SQL error propagates, separate workspace/account keys.
+- QA target and exact source SHA instructions: `docs/coordination/requests/BACKEND_C_QA_PACKET_20261118_PROOF_HARDENING.md` @ `5b4336ae`.
+- **Evidence:** SOURCE_COMMITTED, Maven/JUnit/PG **NOT_RUN**; no green CI claimed. Backend C ownership/provenance migration still awaiting Architecture sign-off. No real Reset or Restore enabled.
+- **Next:** inspect QA output; build reproducible PG18 concurrency test for token consumption and reset reauth throttling on disposable DB. Keep test-only until Integrator approves shared migration/owner contract.
