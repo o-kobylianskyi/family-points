@@ -336,20 +336,20 @@ class DisposableLedgerSourceGraphVerifierTest {
         // IDs are not decimal quantities; never allow Jackson asLong() truncation.
         assertThrows(RuntimeException.class,()->verifyEdited(
                 "","MANUAL",null,4,4,body->body.replace(
-                "\"\\"member_id\\":4,\\"point_type_id\\":3\"",
-                "\"\\"member_id\\":4.5,\\"point_type_id\\":3\"")));
+                "\"member_id\":4,\"point_type_id\":3",
+                "\"member_id\":4.5,\"point_type_id\":3")));
         assertThrows(RuntimeException.class,()->verifyEdited(
                 "","MANUAL",null,4,4,body->body.replace(
-                "\"\\"point_type_id\\":3,\\"amount\\":5\"",
-                "\"\\"point_type_id\\":3.5,\\"amount\\":5\"")));
+                "\"point_type_id\":3,\"amount\":5",
+                "\"point_type_id\":3.5,\"amount\":5")));
         assertThrows(RuntimeException.class,()->verifyEdited(
                 "","MANUAL",null,4,4,body->body.replace(
-                "\"\\"POINT_LEDGER\\":[{\\"id\\":100\"",
-                "\"\\"POINT_LEDGER\\":[{\\"id\\":100.5\"")));
+                "\"POINT_LEDGER\":[{\"id\":100",
+                "\"POINT_LEDGER\":[{\"id\":100.5")));
         assertThrows(RuntimeException.class,()->verifyEdited(
                 "","MANUAL",null,4,4,body->body.replace(
-                "\"\\"id\\":77,\\"family_id\\":17\"",
-                "\"\\"id\\":77,\\"family_id\\":17.5\"")));
+                "\"id\":77,\"family_id\":17",
+                "\"id\":77,\"family_id\":17.5")));
     }
 
     @Test void duplicateChargeOfSamePurchaseFailsClosed() throws Exception {
