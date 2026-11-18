@@ -25,7 +25,9 @@ const entries = [
 const indexes = {uk:0,ru:1,de:2,en:3}
 export default function FamilyDataSafetyPlan() {
   const { currentUser } = useAuth()
-  const key = [currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.username ?? null, currentUser?.workspaceId].join(':')
+  const account = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.username ?? null
+  const canManage = currentUser?.permissions?.includes('MANAGE_WORKSPACE') || currentUser?.permissions?.includes('ADMIN_OVERRIDE')
+  const key = [account, currentUser?.workspaceId, canManage ? 'manage' : 'read-only'].join(':')
   return <FamilyDataSafetyPlanContent key={key} />
 }
 
@@ -48,7 +50,7 @@ function FamilyDataSafetyPlanContent() {
   const [reload,setReload] = useState(0)
   const [detailReload,setDetailReload] = useState(0)
   useEffect(() => {
-    if (!workspaceId || !canManage) return
+    if (!workspaceId || !accountScope || !canManage) return
     let alive = true
     listProtectiveBackups(getAccessToken(), workspaceId).then(result => {
       if (alive) setBackups(result)
@@ -57,7 +59,7 @@ function FamilyDataSafetyPlanContent() {
     return () => { alive = false }
   }, [workspaceId, accountScope, canManage, reload, getAccessToken])
   useEffect(() => {
-    if (!canManage || !workspaceId || !selectedSnapshot) return
+    if (!canManage || !accountScope || !workspaceId || !selectedSnapshot) return
     let active = true
     getProtectiveBackup(getAccessToken(),workspaceId,selectedSnapshot)
       .then(result => { if (active) setDetails(result) })
@@ -91,7 +93,7 @@ function FamilyDataSafetyPlanContent() {
   }
   // No upload endpoint currently exists. Categories below are planning-only;
   // archive manifest and compatibility MUST come from validated server preview.
-  if (!canManage || !workspaceId) return null
+  if (!canManage || !accountScope || !workspaceId) return null
   return <section className="settings-section" aria-label="Family data safety planning">
     <h2>{w[0]}</h2>
     <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
