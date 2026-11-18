@@ -92,3 +92,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 verified push CI evidence (2026-11-18)
 - GitHub Actions run 44260359035 @ fe5b5ad1 and run 44260568949 @ 201c486f: real Web logs show **V49 six Playwright fixtures syntax PASS, 33/33 native Node regression PASS, i18n/lint/build success, 3 nonblocking lint warnings**. Run 44260568949 full CI failed Backend Maven; no full green. Node syntax is not Chromium. QA execute actual `onboarding-v49-two-tab-synthetic.spec.js` 2 cases only with isolated QA account/selected workspace, record HTTP POST/GET counts, exact SHA and traces. No real family writes.
+
+
+## WEB-02 two-tab receipt identity assertion (2026-11-18)
+- Test patch `9e6a478246dddb0472c707026723a36da54d8f01` requires each of the two mocked Playwright receipt GET requests to match the **original** finalize Idempotency-Key UUID and workspace. Old test only counted receipt calls, which could mask a wrong-UUID GET. Syntax-only V8 PASS; real Chromium **NOT_RUN**. QA run on pinned clean SHA, record both case PASS/FAIL/SKIP, original UUID, POST count=1 and receipt same-UUID GET; do not disclose credentials or run real family writes. BETA HOLD.
