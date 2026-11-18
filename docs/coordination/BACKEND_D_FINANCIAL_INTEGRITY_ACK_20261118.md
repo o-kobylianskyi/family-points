@@ -88,3 +88,18 @@ Source verifier: `src/test/java/com/olehkobylianskyi/familypoints/DisposableLedg
 - Scope boundary: This is NOT native Restore. It uses only ephemeral QA table and synthetic mapped ledger rows. Backend B retains Restore executor and actual production-schema transaction ownership. No DEV/PROD data touched.
 - **Evidence:** implementation committed; Maven/Testcontainers and pinned CI results NOT VERIFIED. Suggested `mvn -Dtest=DisposableSignedFinancialPostgresParityTest,DisposableSignedFinancialParityBridgeTest,DisposableFinancialMappingParityTest test` with Docker available; capture full JUnit XML and exact SHA. BKL-002 BETA remains HOLD.
 - **Next FIN-09:** source/target persisted ledger cross-tenant and cross-operation negative testing, then architect/QA gate review. Native Restore readiness must not be inferred from these synthetic fixtures.
+
+## FIN-09–FIN-11 large package — 2026-11-18
+
+**Architect ACK: Backend D delivered maximal independent financial QA package without altering Restore executor or protected real-family data.**
+
+- **FIN-09 — mapping provenance hardening**, commit `de3de69158c5f9597a318aeba65033e964ed8ef9`: source-to-target parity now rejects duplicate `TASK` events for the same `(task, type)`, duplicate `REWARD_PURCHASE` debit for the same purchase, and null target origin/type with explicit `SecurityException`. Three new unit tests.
+- **FIN-10 — PostgreSQL isolation/concurrency**, commit `ca217b30b528278ca0b49b6a855ea55fc2626aae`: seven Testcontainers tests with QA-only `qa_fin09_ledger` keyed by `(family_id, operation_id, id)`. Covers same UUID in different families, different UUIDs in one family, failure isolation with shared UUID, full rollback of duplicate replay, concurrent submissions exactly once, cross-currency source-target tamper, and early mid-transaction rollback.
+- **FIN-11 — signed V50 negative barriers**, commit `e91737013f344cba0a0112f7c8a400d5a072ef9a`: five additional tests in FIN-08 suite for signed archive orphan TASK, foreign currency, unknown exchange origin before any PostgreSQL write; and persisted target foreign-member, foreign-currency, foreign TASK-parent rejection.
+- **Total new methods this batch: 15** (3 unit + 7 PostgreSQL isolation + 5 signed PostgreSQL); no claim that they passed. Together with previous FIN-01–08 they are read-only/test-only acceptance evidence, not product Restore authorization.
+- Backend B continues to own transaction fencing, durable approvals and real Restore mapping. Backend D explicitly requests stable actual target ledger mapping and disposable production-schema data contract before real restore acceptance.
+- **P0 blockers:** run pinned Maven/JUnit + PostgreSQL Testcontainers under Docker, capture logs, inspect concurrent CI results, verify signed source/export categories are complete for native restore. Unknown `POINT_EXCHANGE`/`REFUND` ancestry remains fail-closed until agreed contract.
+- Suggested commands:
+  - `mvn -Dtest=DisposableFinancialMappingParityTest,DisposableLedgerSourceGraphVerifierTest,DisposableSignedFinancialParityBridgeTest test`
+  - `mvn -Dtest=DisposableFinancialLedgerPostgresParityTest,DisposableSignedFinancialPostgresParityTest,DisposableFinancialTenantIsolationPostgresTest test`
+- Gate: **FIN-09–11 COMMITTED; QA/CI UNVERIFIED; PRODUCTION RESTORE HOLD; BKL-002 RELEASE HOLD.**
