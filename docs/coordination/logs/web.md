@@ -1260,3 +1260,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 V49 clear receipt requires marker ownership
 - Source `08d8714c` introduces pure canClearSetupFinalizeMarkers, component `bed3a95a` uses fail-closed guard; test `2ba2acee` rejects both missing markers, foreign UUID/epoch/revision/scope and keeps valid single-marker cleanup. Executed 15/15 fetched V49 source test callbacks PASS under V8 assertion-equivalent runner, not native Node/Chromium. Same-SHA run #44269872374 queued at observation; BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 three-case mocked browser receipt safety
+- Test-only `53538b27` adds third two-tab Chromium scenario for original session and shared markers both removed during valid receipt lookup; UI must remain unknown/no completed signal and 1 original POST only. Earlier native Node product cleanup fix 37/37 green, browser 3 scenarios NOT_RUN. V8 parse PASS; same-SHA run 44282785790 in progress at first observation. BETA HOLD.
