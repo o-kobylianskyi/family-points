@@ -109,6 +109,16 @@ final class DisposableLedgerSourceGraphVerifier {
                     || !typeCodes.add(pointType.path("code").asText()))
                 throw new SecurityException("LEDGER_SOURCE_CURRENCY_INVALID");
         }
+        // Historical task economy denomination must belong to the same
+        // authenticated source family even when no ledger row references
+        // the task. This closes QA-038's unused parent currency gap.
+        for(JsonNode taskInstance:taskRows.values()) {
+            for(String currencyField:List.of("reward_point_type_id","penalty_point_type_id")) {
+                if(taskInstance.hasNonNull(currencyField)
+                        && !typeIds.contains(taskInstance.path(currencyField).asLong()))
+                    throw new SecurityException("LEDGER_TASK_ARCHIVED_CURRENCY_NOT_FOUND");
+            }
+        }
         // A purchase's entire economic parent must be anchored in the
         // authenticated point-type catalog even when no matching debit exists.
         // Orphan/dangling archive rows cannot become replay candidates.
