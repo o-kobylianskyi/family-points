@@ -156,7 +156,7 @@ class DisposableFinancialLedgerPostgresParityTest {
                         102,14,23,-4,"SPEND","REWARD_PURCHASE",151L),
                 expected().get(2));
         commit(operation,changed,false);
-        assertEquals(2,db.queryForObject("""
+        assertEquals(2L,db.queryForObject("""
                 SELECT COALESCE(SUM(amount),0) FROM qa_fin07_ledger
                 WHERE operation_id=? AND member_id=14 AND point_type_id=23
                 """,Long.class,operation));
