@@ -15,7 +15,7 @@ import java.util.*;
  */
 final class DisposableFinancialTargetRehearsal {
     record Result(int definitions,int rewards,int purchases,int ledgerRows,
-                  Map<String,Long> balances) {}
+                  Map<String,Long> balances,Map<Long,Long> executionIds) {}
 
     private final JdbcTemplate db;
     private final TransactionTemplate tx;
@@ -51,7 +51,7 @@ final class DisposableFinancialTargetRehearsal {
                     throw new SecurityException("QA_FINANCE_TARGET_CURRENCY");
             }
             for(String table:List.of("qa_restore_tasks","qa_restore_rewards",
-                    "qa_restore_purchases","qa_restore_ledger")) {
+                    "qa_restore_executions","qa_restore_purchases","qa_restore_ledger")) {
                 Long count=db.queryForObject("SELECT count(*) FROM "+table+
                         " WHERE target_family=?",Long.class,targetFamily);
                 if(!Objects.equals(0L,count))
@@ -64,6 +64,24 @@ final class DisposableFinancialTargetRehearsal {
                 db.update("INSERT INTO qa_restore_rewards(id,target_family) VALUES (?,?)",
                         maps.rewards().get(id(row,"id")),targetFamily);
             if(failAfterStep==1)throw new IllegalStateException("QA_FAIL_AFTER_DEFINITIONS");
+            // TASK ledger source_id is a polymorphic reference to a historic
+            // *execution*, never the task definition. Allocate new target
+            // execution IDs and preserve the complete old->new mapping.
+            var executionIds=new TreeMap<Long,Long>();
+            for(JsonNode row:source.path("TASK_EXECUTIONS")) {
+                long original=id(row,"id");
+                Long newExecution=db.queryForObject("""
+                    INSERT INTO qa_restore_executions(
+                        target_family,source_execution_id,member_id,task_id)
+                    VALUES (?,?,?,?) RETURNING id
+                    """,Long.class,targetFamily,original,
+                        maps.members().get(id(row,"member_id")),
+                        maps.tasks().get(id(row,"task_definition_id")));
+                if(newExecution==null || newExecution<=0
+                        || executionIds.putIfAbsent(original,newExecution)!=null)
+                    throw new SecurityException("QA_FINANCE_EXECUTION_REMAP_INVALID");
+            }
+            if(failAfterStep==2)throw new IllegalStateException("QA_FAIL_AFTER_EXECUTIONS");
             for(JsonNode row:source.path("REWARD_PURCHASES")) {
                 // This bounded implementation only accepts purchase parents
                 // tied to archived REWARD_DEFINITIONS; request-owned purchases
@@ -81,7 +99,7 @@ final class DisposableFinancialTargetRehearsal {
                         maps.currencies().get(id(row,"point_type_id")),
                         row.path("price_amount").asInt());
             }
-            if(failAfterStep==2)throw new IllegalStateException("QA_FAIL_AFTER_PURCHASES");
+            if(failAfterStep==3)throw new IllegalStateException("QA_FAIL_AFTER_PURCHASES");
             int count=0;
             for(JsonNode row:source.path("POINT_LEDGER")) {
                 String sourceType=row.path("source_type").asText();
@@ -89,10 +107,9 @@ final class DisposableFinancialTargetRehearsal {
                 if("REWARD_PURCHASE".equals(sourceType))
                     sourceId=maps.purchases().get(id(row,"source_id"));
                 else if("TASK".equals(sourceType)) {
-                    // Original task EXECUTION is not a TASK_DEFINITION id.
-                    // This bounded rehearsal records its explicit original
-                    // ID only; full target execution rebind remains P0.
-                    sourceId=id(row,"source_id");
+                    sourceId=executionIds.get(id(row,"source_id"));
+                    if(sourceId==null)
+                        throw new SecurityException("QA_FINANCE_EXECUTION_SOURCE_UNMAPPED");
                 }
                 db.update("""
                     INSERT INTO qa_restore_ledger(
@@ -105,7 +122,7 @@ final class DisposableFinancialTargetRehearsal {
                     row.path("amount").asInt(),sourceType,sourceId);
                 count++;
             }
-            if(failAfterStep==3)throw new IllegalStateException("QA_FAIL_AFTER_LEDGER");
+            if(failAfterStep==4)throw new IllegalStateException("QA_FAIL_AFTER_LEDGER");
             var actual=new TreeMap<String,Long>();
             db.query("""
                     SELECT member_id,point_type_id,COALESCE(SUM(amount),0) AS balance
@@ -117,8 +134,21 @@ final class DisposableFinancialTargetRehearsal {
                     },targetFamily);
             if(!actual.equals(checked.expectedTargetBalances()))
                 throw new SecurityException("QA_FINANCE_BALANCE_RECONCILIATION");
+            // Polymorphic source IDs are not physical FKs in POINT_LEDGER.
+            // Perform an explicit target-family and target-owner check here.
+            for(var entry:executionIds.entrySet()) {
+                if(!Objects.equals(1L,db.queryForObject("""
+                        SELECT count(*) FROM qa_restore_executions e
+                        JOIN qa_restore_tasks t ON t.id=e.task_id
+                        WHERE e.id=? AND e.source_execution_id=?
+                          AND e.target_family=? AND t.target_family=?
+                        """,Long.class,entry.getValue(),entry.getKey(),
+                        targetFamily,targetFamily)))
+                    throw new SecurityException("QA_FINANCE_EXECUTION_FK_RECONCILIATION");
+            }
             return new Result(maps.tasks().size(),maps.rewards().size(),
-                    maps.purchases().size(),count,Map.copyOf(actual));
+                    maps.purchases().size(),count,Map.copyOf(actual),
+                    Map.copyOf(executionIds));
         });
     }
 
