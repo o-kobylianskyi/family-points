@@ -33,7 +33,11 @@ public final class PortableV2HistoryGraph {
     );
     private static final Map<String,List<String[]>> PARENTS=Map.of(
         "TASK_DEFINITIONS",List.of(new String[]{"reward_point_type_id","POINT_TYPES"},
-                new String[]{"penalty_point_type_id","POINT_TYPES"}),
+                new String[]{"penalty_point_type_id","POINT_TYPES"},
+                new String[]{"assigned_member_id","FAMILY_MEMBERS"},
+                new String[]{"created_by_member_id","FAMILY_MEMBERS"},
+                new String[]{"preferred_member_id","FAMILY_MEMBERS"},
+                new String[]{"responsible_member_id","FAMILY_MEMBERS"}),
         "REWARD_DEFINITIONS",List.<String[]>of(new String[]{"point_type_id","POINT_TYPES"}),
         "TASK_EXECUTIONS",List.of(new String[]{"task_definition_id","TASK_DEFINITIONS"},
                 new String[]{"reward_point_type_id","POINT_TYPES"},
@@ -115,10 +119,15 @@ public final class PortableV2HistoryGraph {
                         throw new SecurityException("PORTABLE_V2_HISTORY_PARENT_MISSING:"+category+"."+field);
                     edges.add(sourceId+":"+field+":"+id);
                 }
-                if("REWARD_PURCHASES".equals(category)
-                        &&row.hasNonNull("reward_request_id"))
-                    throw new SecurityException("PORTABLE_V2_UNSUPPORTED_REQUEST_PURCHASE");
+                if("REWARD_PURCHASES".equals(category)) {
+                    if(!row.has("reward_request_id"))
+                        throw new SecurityException("PORTABLE_V2_PURCHASE_REQUEST_FIELD_MISSING");
+                    if(row.hasNonNull("reward_request_id"))
+                        throw new SecurityException("PORTABLE_V2_UNSUPPORTED_REQUEST_PURCHASE");
+                }
                 if("POINT_LEDGER".equals(category)) {
+                    if(!row.has("source_id")||!row.path("amount").isNumber())
+                        throw new SecurityException("PORTABLE_V2_LEDGER_FIELD_MISSING");
                     String sourceType=row.path("source_type").asText();
                     if(!Set.of("TASK","REWARD_PURCHASE","MANUAL").contains(sourceType))
                         throw new SecurityException("PORTABLE_V2_UNSUPPORTED_FINANCIAL_SOURCE");
