@@ -108,3 +108,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 V49 synthetic workspace write guard (2026-11-18)
 - Fixture commit `67aa36aa2ed82362e6b7c2df5f50f113fa724e3d` adds catch-all non-setup workspace mutation guard: all unexpected `/workspaces/<id>/...` POST/PUT/PATCH/DELETE must abort, while narrowly mocked setup/review/finalize and read-only GET retain existing behavior. Five V8 fake-route direct outcomes PASS, not Chromium. QA pinned browser run must verify no unhandled intercepted writes, original UUID, 1 finalize POST, exact receipt GET, no unauthorized family writes; failure trace. BKL-002/BETA HOLD.
+
+
+## WEB-02 finalize revision+epoch additional QA checks (2026-11-18)
+- Source patch `366737553301c7a831d41336c0d7f4eb3c58fb2e` adds checks to both two-tab mocked finalize scenarios: `expectedRevision === 7`, `X-Workspace-Data-Epoch === '0'` on the only original POST, plus prior UUID and exact receipt GET path; no unexpected writes. V8 syntax PASS, native Chromium NOT_RUN. At authoring run 44267564831 in progress. QA owns pinned isolated browser outcome and exact POST count. BETA HOLD.
