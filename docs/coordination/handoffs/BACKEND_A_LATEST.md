@@ -191,3 +191,12 @@ Source files reviewed:
 - New `92e624e` disposable PG18 test `pinnedRepeatableReadRosterNeverMixesConcurrentNewMembers`: initial `REPEATABLE_READ` source member snapshot remains stable after another JDBC connection commits new member; fresh source transaction sees new member. Test-only fixture; production archive unchanged.
 - QA packet `docs/coordination/requests/B-A-04D_MVCC_AND_CI_QA_20261118.md` @`e51ebde`, inspect exact non-skipped Java/Maven test report before acceptance.
 - Source graph still missing signed Architecture A4-01…09 fields/version/IMP, C/D full semantic review and B exact wire ACK. Next B-A-04e: CI red triage, negative source edges, prepare approved vNext only after decision. No credentials, Restore Execute, reset activation or retention purge; BETA HOLD.
+
+
+## B-A-04e — 2026-11-18 strict original source identity & exception-period FK closure
+- **VERIFIED** previous exact-source Full CI `64f4cdea96b9df2e6e29006e229960c0a83e7f08`, run `44282865822`: Java21/Maven/Testcontainers, Web, Android, Compose and full-ci attestation SUCCESS; actual Maven `Run all backend tests` step SUCCESS, Surefire report artifact `14418511259`. Prior B-A-04d RUNNING note is now superseded.
+- `36e3a16c`: test-only source membership validator now strictly admits positive Integer/Long original source IDs, rejects fractional BigDecimal/BigInteger aliasing, duplicate/blank role codes, unsupported member type and >2000 member/role nodes. `4034754d` adversarial unit tests prove fail-closed identity aliasing, catalog limits and exception-period parent.
+- `33679c7d`: new Testcontainers PostgreSQL18 `DisposablePortableMemberExceptionClosurePostgresTest` uses *actual* two-family member-exception-period SQL rows and repeatable-read scoped catalog; rejects accidentally included neighbor member without inferring roles or names.
+- QA packet `docs/coordination/requests/B-A-04E_STRICT_SOURCE_ID_AND_EXCEPTION_CLOSURE_QA_20261118.md` @`2f8a971f`. No production source exporter/inspector/manifest/REST/SQL migration touched; no global auth identity export.
+- Note new member-exception-period ancestry is outside current v1 23-category export; vNext category/format explicit Architecture A4-01…09 + IMP and B/C/D/Release ACK remains OPEN. No guessing original ownership, no target account linking.
+- Exact-SHA CI for B-A-04e pending. NEXT B-A-04f: CI/test failures and category-by-category historical FK closure with B/D consumer acceptance; no Restore Execute, HTTP423, BETA HOLD.
