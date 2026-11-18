@@ -76,7 +76,8 @@ public class WorkspaceBackupArtifactStagingService {
             ensureExactExport(proof,snapshotId,expectedEpoch,schemaVersion,
                     ordered,exported.recordCounts());
             var stored=storage.store(workspaceId,snapshotId,file);
-            byte[] reread=storage.read(workspaceId,snapshotId,stored.sha256());
+            try {
+                byte[] reread=storage.read(workspaceId,snapshotId,stored.sha256());
             try {
                 if(!Arrays.equals(file,reread))
                     throw new SecurityException("BACKUP_LOCAL_ROUNDTRIP_MISMATCH");
@@ -91,6 +92,13 @@ public class WorkspaceBackupArtifactStagingService {
             return new Staged(snapshotId,workspaceId,exported.contentDigest(),
                     stored.sha256(),stored.byteCount(),
                     Map.copyOf(exported.recordCounts()),"STORED_UNVERIFIED");
+            } catch(RuntimeException | Error failure) {
+                // The coordinator cannot register rollback cleanup when stage()
+                // fails before returning. This invocation owns the newly stored file.
+                try {storage.deleteAuthorizedExpired(workspaceId,snapshotId);}
+                catch(RuntimeException cleanupFailure) {failure.addSuppressed(cleanupFailure);}
+                throw failure;
+            }
         } finally {Arrays.fill(file,(byte)0);}
     }
 
