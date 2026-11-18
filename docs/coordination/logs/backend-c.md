@@ -83,3 +83,14 @@
 - **Evidence:** 12 additional PG18 JUnit test methods SOURCE_COMMITTED, Maven/Testcontainers NOT_RUN by Backend C. Prior actual CI #44268695217 572/1 failure/1 error (B-owned QA fixture); historical current full green NOT established.
 - **Safety:** no production Flyway, owner enrollment, actual permit issuance, RESET/RESTORE Execute, real data mutation or deployment. HTTP423 + BETA HOLD.
 - **Next:** exact SHA QA failures triage and Backend B consumer ACK/REVISE. Once IMP/owner provenance and real credential contract signed, implement production owner resolver and strictly scoped durable permit store atomically with approved operations.
+
+
+## 2026-11-18 — C-C-09: B conditional ACK / canonical restore permit scope v2
+- Received and reviewed Backend B **CONDITIONAL ACK** `BACKEND_B_TO_C_RESTORE_PERMIT_CONSUMER_ACK_20261118.md` @25d2b6cc and Architecture Review 02 issue #15. It confirms action-scoped C auth, single transactional B RESTORE consumer, target family lock -> grant -> categories -> durable receipt; requires source workspace/schema/manifest/root+epoch, canonical mapping+selection closure digest and approved IMP before shared migration.
+- Corrected C-C-08 QA-only original-owner fixture double-PARENT role insertion @ `58c40601`, then eliminated assumption of a particular SQL `ON CONFLICT` target @ `4ffcf6ac`. No production code affected.
+- Added `WorkspaceRestorePermitScopeV2.java` @ `8345305b` with independently bound sourceWorkspaceId/schemaVersion/snapshotId/sourceSnapshotEpoch/snapshot+manifest SHA256 and target workspace/owner/targetEpoch, canonical injective sorted source→target mapping SHA and binary versioned domain-separated scope SHA; JUnit `WorkspaceRestorePermitScopeV2Test` 7 test methods @ `2ce5003b`.
+- Added `WorkspaceRestoreSelectionClosureV2.java` @ `598b26c3`: sorted complete declared category list with RESTORE/PRESERVE/BLOCK, source counts, category/closure/conflict SHA, source/target family+schema digest; 5 JUnit tests @ `06b73c4f`.
+- Exact field/encoding/owner-review proof and recipient ACK request `docs/coordination/requests/BACKEND_C_C09_CONTRACT_V2_B_ACK_20261118.md` @ `e6cb818a`; issue #15 coordinator/QA comment `6974144577`.
+- CI context: QA-052 found six prior `WorkspaceResetProofConcurrencyPostgresTest` fixture errors from V41 `confirmed_at` CHECK and repaired fixture @cee9f3f3. New C-C-09 source **NOT_RUN** by C; no current exact-SHA green claimed.
+- **Safety:** no production owner persistence, permit issuance, schema Flyway/HTTP changes, external calls, destructive Reset/Restore. Reset HTTP423, BETA HOLD.
+- **Next C-C-10:** incorporate B/A/D final field-level ACK and Architecture IMP; implement audited immutable original owner binding and authenticated registration writes, server-issued durable owner permit with actual PostgreSQL transactional consumption and complete QA. Do not wire dangerous endpoints early.
