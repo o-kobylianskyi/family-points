@@ -132,6 +132,8 @@
 - Fetched patched blob `563ed62360376b476a8e708e0f0ffdd28233ca08`; V8 module-adapted **syntax PASS** and two route-path accumulation/two test assertions confirmed. This is **NOT** Chromium execution or native `node --check`. [Actions 44265548526](https://github.com/o-kobylianskyi/family-points/actions/runs/44265548526) for exact new commit was QUEUED at check; no PASS claimed. Last independently observed Web-scoped run `44264239156` @ `3354bcab` 6 V49 syntax/33 Node/i18n/lint/build PASS.
 - Next: review `44265548526` actual Web steps/logs when completed; QA owns two-case isolated Chromium and real disposable acceptance. BETA HOLD.
 
+- **Post-write CI evidence**: [run #44265548526](https://github.com/o-kobylianskyi/family-points/actions/runs/44265548526) exact source `ca87502121e19ebe90f25bb83e8f2560a07e068f`, Web job `134669103546`: actual GitHub logs show 6 V49 fixtures `node --check` PASS, native Node **33/33 PASS, 0 skipped**, i18n/lint/build steps SUCCESS, 3 warnings/0 lint errors. Scoped run: full CI attestation SKIPPED; still no Chromium execution. Supersedes prior queued observation.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
