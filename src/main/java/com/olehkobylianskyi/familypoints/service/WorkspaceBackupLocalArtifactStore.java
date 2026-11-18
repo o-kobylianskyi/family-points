@@ -82,6 +82,41 @@ public final class WorkspaceBackupLocalArtifactStore {
         }
     }
 
+    /**
+     * Read-only, bounded filesystem inventory for an explicit workspace.
+     * Never reads backup plaintext, follows symbolic links, or deletes bytes.
+     * A non-standard filename is a suspicious entry, not silently ignored.
+     */
+    public record InventoryEntry(String fileName, UUID snapshotId, long byteCount,
+                                 boolean regularFile, boolean symbolicLink) {}
+
+    public List<InventoryEntry> inventory(long workspaceId,int limit) {
+        if(workspaceId<=0 || limit<1 || limit>1000)
+            throw new IllegalArgumentException("INVALID_BACKUP_INVENTORY_REQUEST");
+        Path folder=workspaceFolder(workspaceId,false);
+        List<InventoryEntry> entries=new ArrayList<>();
+        try(var stream=Files.newDirectoryStream(folder)) {
+            for(Path candidate:stream) {
+                if(entries.size()>=limit)
+                    throw new IllegalStateException("BACKUP_INVENTORY_LIMIT_EXCEEDED");
+                String name=candidate.getFileName().toString();
+                boolean symlink=Files.isSymbolicLink(candidate);
+                boolean regular=!symlink && Files.isRegularFile(candidate,LinkOption.NOFOLLOW_LINKS);
+                long bytes=regular?Files.size(candidate):-1L;
+                UUID id=null;
+                if(name.matches("[0-9a-fA-F-]{36}\\.fpbackup")) {
+                    try {id=UUID.fromString(name.substring(0,36));}
+                    catch(IllegalArgumentException ignored) { /* suspicious filename */ }
+                }
+                entries.add(new InventoryEntry(name,id,bytes,regular,symlink));
+            }
+        } catch(IOException ex) {
+            throw new IllegalStateException("BACKUP_LOCAL_INVENTORY_FAILED",ex);
+        }
+        entries.sort(Comparator.comparing(InventoryEntry::fileName));
+        return List.copyOf(entries);
+    }
+
     public byte[] read(long workspaceId,UUID snapshotId,String expectedSha256) {
         if(workspaceId<=0 || snapshotId==null || expectedSha256==null
                 || !expectedSha256.matches("[0-9a-f]{64}"))
