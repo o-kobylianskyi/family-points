@@ -79,4 +79,21 @@ class WorkspaceBackupLocalArtifactStoreTest {
         assertTrue(Files.exists(folder.resolve(id+".fpbackup")));
     }
 
+    @Test void ciphertextIntegrityPreflightDetectsTamperingWithoutDecryptingOrDeleting() throws Exception {
+        var format=new ProtectiveBackupPortableFile();
+        Path root=temp.resolve("integrity");
+        var store=new WorkspaceBackupLocalArtifactStore(root.toString(),format);
+        UUID id=UUID.randomUUID();
+        byte[] file=archive(64L,id);
+        var stored=store.store(64L,id,file);
+        store.verifyStoredCiphertext(64L,id,stored.sha256());
+        Path artifact=root.resolve("64").resolve(id+".fpbackup");
+        byte[] tampered=Files.readAllBytes(artifact);
+        tampered[tampered.length-1]^=0x01;
+        Files.write(artifact,tampered,StandardOpenOption.TRUNCATE_EXISTING);
+        assertThrows(SecurityException.class,()->store.verifyStoredCiphertext(
+                64L,id,stored.sha256()));
+        assertTrue(Files.exists(artifact),"Integrity failure must not delete the encrypted archive");
+    }
+
 }
