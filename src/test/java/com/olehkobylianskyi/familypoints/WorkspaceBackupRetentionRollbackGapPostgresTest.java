@@ -95,6 +95,10 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 Long.class,neighbor));
         assertFalse(Files.exists(artifact),
                 "Read-only recovery audit never repairs, deletes, or fabricates archived bytes");
+        // Both tests share this class's container; remove synthetic metadata
+        // so the other retention test cannot select a stale earlier row.
+        assertEquals(1,db.update(
+                "DELETE FROM workspace_protective_backups WHERE snapshot_id=?",id));
     }
 
     @Test void unlinkFailureRollsBackSqlInsteadOfMarkingRegistryExpired() {
@@ -133,5 +137,7 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 "SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",
                 String.class,id));
         verify(storage).deleteAuthorizedExpired(family,id);
+        assertEquals(1,db.update(
+                "DELETE FROM workspace_protective_backups WHERE snapshot_id=?",id));
     }
 }
