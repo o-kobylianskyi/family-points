@@ -64,6 +64,7 @@ public final class WorkspaceRestorePermitScopeV2 {
             if (targetWorkspaceId <= 0 || authorizedOwnerAccountId <= 0
                     || authorizedOwnerMemberId <= 0 || operationId == null
                     || source == null || targetExpectedEpoch < 0
+                    || targetExpectedEpoch == Long.MAX_VALUE
                     || issuedAt == null || expiresAt == null)
                 throw new IllegalArgumentException("Invalid target/owner identity");
             requireDigest(selectionClosureDigest);
