@@ -218,11 +218,10 @@ public final class WorkspaceRestoreNativeTargetEngine {
                 throw new SecurityException("RESTORE_TARGET_CATEGORY_NOT_EMPTY:"+category);
         }
         for(String table:List.of("task_instances","reward_purchases","point_transactions")) {
-            Long rows=db.queryForObject("""
-                SELECT count(*) FROM public."""+table+""" 
-                 t JOIN family_members m ON m.id=t.member_id
-                WHERE m.family_id=?
-                """,Long.class,workspace);
+            Long rows=db.queryForObject(
+                    "SELECT count(*) FROM public."+table+
+                    " t JOIN family_members m ON m.id=t.member_id WHERE m.family_id=?",
+                    Long.class,workspace);
             if(rows==null||rows!=0)
                 throw new SecurityException("RESTORE_TARGET_HISTORY_NOT_EMPTY:"+table);
         }
