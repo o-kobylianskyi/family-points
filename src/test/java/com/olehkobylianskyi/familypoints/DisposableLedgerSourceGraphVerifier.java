@@ -54,18 +54,23 @@ final class DisposableLedgerSourceGraphVerifier {
         var definitions=new HashSet<Long>();
         for(JsonNode def:root.path("TASK_DEFINITIONS")) {
             long id=def.path("id").asLong();
-            if(!def.path("id").isIntegralNumber() || id<=0
+            if(!def.path("id").isIntegralNumber()
+                    || !def.path("id").canConvertToLong() || id<=0
                     || !def.path("family_id").isIntegralNumber()
+                    || !def.path("family_id").canConvertToLong()
                     || def.path("family_id").asLong()!=source
                     || !definitions.add(id))
                 throw new SecurityException("LEDGER_SOURCE_DEFINITION_INVALID");
         }
         var taskRows=new HashMap<Long,JsonNode>();
         for(JsonNode task:root.path("TASK_EXECUTIONS")) {
-            if(!task.path("id").isIntegralNumber() || task.path("id").asLong()<=0
+            if(!task.path("id").isIntegralNumber()
+                    || !task.path("id").canConvertToLong() || task.path("id").asLong()<=0
                     || !task.path("member_id").isIntegralNumber()
+                    || !task.path("member_id").canConvertToLong()
                     || task.path("member_id").asLong()<=0
                     || !task.path("task_definition_id").isIntegralNumber()
+                    || !task.path("task_definition_id").canConvertToLong()
                     || !definitions.contains(task.path("task_definition_id").asLong())
                     || taskRows.putIfAbsent(task.path("id").asLong(),task)!=null)
                 throw new SecurityException("LEDGER_SOURCE_TASK_INVALID");
@@ -81,7 +86,8 @@ final class DisposableLedgerSourceGraphVerifier {
                 boolean hasAmount=historicalTask.hasNonNull(amount);
                 boolean hasCurrency=historicalTask.hasNonNull(currency);
                 if(hasAmount!=hasCurrency
-                        || (hasAmount && (!historicalTask.path(amount).canConvertToInt()
+                        || (hasAmount && ((!historicalTask.path(amount).isIntegralNumber()
+                            || !historicalTask.path(amount).canConvertToInt())
                             || historicalTask.path(amount).asInt()<=0
                             || !historicalTask.path(currency).isIntegralNumber()
                             || historicalTask.path(currency).asLong()<=0)))
@@ -91,10 +97,14 @@ final class DisposableLedgerSourceGraphVerifier {
         var purchaseRows=new HashMap<Long,JsonNode>();
         for(JsonNode original:root.path("REWARD_PURCHASES")) {
             long id=original.path("id").asLong();
-            if(!original.path("id").isIntegralNumber() || id<=0
+            if(!original.path("id").isIntegralNumber()
+                    || !original.path("id").canConvertToLong() || id<=0
                     || !original.path("member_id").isIntegralNumber()
+                    || !original.path("member_id").canConvertToLong()
                     || !original.path("point_type_id").isIntegralNumber()
+                    || !original.path("point_type_id").canConvertToLong()
                     || !original.path("price_amount").isIntegralNumber()
+                    || !original.path("price_amount").canConvertToInt()
                     || purchaseRows.putIfAbsent(id,original)!=null)
                 throw new SecurityException("LEDGER_SOURCE_PURCHASE_INVALID");
         }
@@ -102,8 +112,10 @@ final class DisposableLedgerSourceGraphVerifier {
         var typeCodes=new HashSet<String>();
         for(JsonNode pointType:root.path("POINT_TYPES")) {
             if(!pointType.path("family_id").isIntegralNumber()
+                    || !pointType.path("family_id").canConvertToLong()
                     || pointType.path("family_id").asLong()!=source
                     || !pointType.path("id").isIntegralNumber()
+                    || !pointType.path("id").canConvertToLong()
                     || !typeIds.add(pointType.path("id").asLong())
                     || pointType.path("id").asLong()<=0
                     || !pointType.path("code").isTextual()
@@ -143,10 +155,14 @@ final class DisposableLedgerSourceGraphVerifier {
             long member=row.path("member_id").asLong();
             long currency=row.path("point_type_id").asLong();
             if(!row.path("id").isIntegralNumber()
+                    || !row.path("id").canConvertToLong()
                     || !row.path("member_id").isIntegralNumber()
+                    || !row.path("member_id").canConvertToLong()
                     || !row.path("point_type_id").isIntegralNumber()
+                    || !row.path("point_type_id").canConvertToLong()
                     || id<=0 || !ledgerIds.add(id) || member<=0 || !typeIds.contains(currency)
                     || !row.path("amount").isIntegralNumber()
+                    || !row.path("amount").canConvertToInt()
                     || row.path("amount").asLong()>Integer.MAX_VALUE
                     || row.path("amount").asLong()<Integer.MIN_VALUE)
                 throw new SecurityException("LEDGER_SOURCE_ROW_INVALID");
@@ -160,6 +176,7 @@ final class DisposableLedgerSourceGraphVerifier {
                 manual++;
             } else if("TASK".equals(sourceType)) {
                 if(!row.path("source_id").isIntegralNumber()
+                        || !row.path("source_id").canConvertToLong()
                         || row.path("source_id").asLong()<=0)
                     throw new SecurityException("LEDGER_TASK_SOURCE_ID_INVALID");
                 long taskId=row.path("source_id").asLong();
@@ -188,7 +205,8 @@ final class DisposableLedgerSourceGraphVerifier {
                 String currencyField="EARN".equals(transactionType)
                         ?"reward_point_type_id":"penalty_point_type_id";
                 if(taskInstance.has(amountField) || taskInstance.has(currencyField)) {
-                    if(!taskInstance.path(amountField).canConvertToInt()
+                    if(!taskInstance.path(amountField).isIntegralNumber()
+                            || !taskInstance.path(amountField).canConvertToInt()
                             || taskInstance.path(amountField).asInt()<=0
                             || !taskInstance.path(currencyField).isIntegralNumber()
                             || taskInstance.path(currencyField).asLong()!=currency
@@ -201,6 +219,7 @@ final class DisposableLedgerSourceGraphVerifier {
                 task++;
             } else if("REWARD_PURCHASE".equals(sourceType)) {
                 if(!row.path("source_id").isIntegralNumber()
+                        || !row.path("source_id").canConvertToLong()
                         || row.path("source_id").asLong()<=0)
                     throw new SecurityException("LEDGER_PURCHASE_SOURCE_ID_INVALID");
                 long purchaseId=row.path("source_id").asLong();
