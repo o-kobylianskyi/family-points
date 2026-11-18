@@ -32,7 +32,10 @@ final class DisposableRestoreApprovalGate {
             Map<Long,Long> reviewedBindings,SecretKey key) {
         if(sourceFamily<=0 || targetFamily<=0 || snapshot==null || operation==null
                 || actorId<=0 || epoch<0 || issued==null || expires==null
-                || !expires.isAfter(issued) || reviewedBindings==null
+                || !expires.isAfter(issued)
+                || java.time.Duration.between(issued,expires).compareTo(
+                        java.time.Duration.ofMinutes(5))>0
+                || reviewedBindings==null
                 || reviewedBindings.isEmpty() || key==null)
             throw new IllegalArgumentException("RESTORE_APPROVAL_INVALID");
         byte[] digest=bindingsDigest(reviewedBindings);
@@ -48,6 +51,11 @@ final class DisposableRestoreApprovalGate {
         if(permit==null || snapshot==null || operation==null || now==null
                 || actualBindings==null || key==null)
             throw new IllegalArgumentException("RESTORE_APPROVAL_INPUT_MISSING");
+        if(permit.snapshot()==null || permit.operation()==null
+                || permit.issuedAt()==null || permit.expiresAt()==null
+                || permit.memberBindingsSha256()==null || permit.mac()==null
+                || permit.memberBindingsSha256().length!=32 || permit.mac().length!=32)
+            throw new SecurityException("RESTORE_APPROVAL_MALFORMED");
         if(permit.sourceFamily()!=sourceFamily || permit.targetFamily()!=targetFamily
                 || !permit.snapshot().equals(snapshot) || !permit.operation().equals(operation)
                 || permit.actorId()!=authenticatedActor || authenticatedActor<=0
