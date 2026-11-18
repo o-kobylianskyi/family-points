@@ -102,6 +102,12 @@ class DisposableTwoDatabaseRestoreGraphPostgresTest {
         assertThrows(SecurityException.class,()->f.engine().apply(
                 f.original.id,f.destination.id,Long.MAX_VALUE,
                 List.of(f.parentNode,f.childNode),f.mapping(),0));
+        assertThrows(SecurityException.class,()->f.engine().apply(
+                f.original.id,f.destination.id,f.originalGroup,
+                List.of(f.parentNode,f.parentNode,f.childNode),f.mapping(),0));
+        assertThrows(SecurityException.class,()->f.engine().apply(
+                f.original.id,f.destination.id,f.originalGroup,
+                List.of(f.parentNode,Long.MAX_VALUE),f.mapping(),0));
         assertEquals(0,f.count("member_groups",f.destination.id));
         assertEquals(0,f.count("work_nodes",f.destination.id));
         assertEquals(1,f.count("member_groups",f.neighbor.id));
@@ -135,6 +141,32 @@ class DisposableTwoDatabaseRestoreGraphPostgresTest {
             assertEquals(1,f.count("member_groups",f.neighbor.id));
             assertEquals(1,f.count("work_nodes",f.neighbor.id));
         }
+    }
+
+    @Test void concurrentCallsInsertGraphAtMostOnce() throws Exception {
+        var f=setup();
+        var executor=java.util.concurrent.Executors.newFixedThreadPool(2);
+        var start=new java.util.concurrent.CountDownLatch(1);
+        try {
+            var futures=new ArrayList<java.util.concurrent.Future<Boolean>>();
+            for(int i=0;i<2;i++) futures.add(executor.submit(()->{
+                start.await();
+                try {
+                    f.engine().apply(f.original.id,f.destination.id,f.originalGroup,
+                            List.of(f.childNode,f.parentNode),f.mapping(),0);
+                    return true;
+                }catch(SecurityException denied){return false;}
+            }));
+            start.countDown();
+            int applied=0;
+            for(var result:futures)
+                if(result.get(25,java.util.concurrent.TimeUnit.SECONDS))applied++;
+            assertEquals(1,applied);
+            assertEquals(1,f.count("member_groups",f.destination.id));
+            assertEquals(2,f.count("work_nodes",f.destination.id));
+            assertEquals(1,f.count("member_groups",f.neighbor.id));
+            assertEquals(1,f.count("work_nodes",f.neighbor.id));
+        }finally {executor.shutdownNow();}
     }
 
     @Test void staleTargetEpochRejectsWithoutPartialGraph() {
