@@ -94,3 +94,13 @@
 - CI context: QA-052 found six prior `WorkspaceResetProofConcurrencyPostgresTest` fixture errors from V41 `confirmed_at` CHECK and repaired fixture @cee9f3f3. New C-C-09 source **NOT_RUN** by C; no current exact-SHA green claimed.
 - **Safety:** no production owner persistence, permit issuance, schema Flyway/HTTP changes, external calls, destructive Reset/Restore. Reset HTTP423, BETA HOLD.
 - **Next C-C-10:** incorporate B/A/D final field-level ACK and Architecture IMP; implement audited immutable original owner binding and authenticated registration writes, server-issued durable owner permit with actual PostgreSQL transactional consumption and complete QA. Do not wire dangerous endpoints early.
+
+
+## 2026-11-18 — C-C-10: canonical digest interoperability and epoch overflow gate
+- Inspected Architecture Checkpoint 04 and Backend B's B-B-07 `DisposableRestorePlanFingerprint.java`: B currently hashes pipe-delimited UTF-8 text; C V2 uses typed binary domain separated SHA. **P0 integration mismatch** until B/A/D approve exact unified bytes. No attempt made to silently accept incompatible formats.
+- Committed independent golden vectors `WorkspaceRestorePermitCanonicalVectorsTest` @ `ef322c01` (3 cases): exact immutable cross-language mapping, category closure and overall scope SHA outputs. Full vectors in `BACKEND_C_C10_V2_INTEROPERABILITY_GATE_20261118.md` @ `1420b75b`.
+- Hardened both `WorkspaceRestorePermitScopeV2` @ `208017fb` and `WorkspaceDestructivePermitContract` @ `d7cadcf` against `Long.MAX_VALUE` epoch overflow before future increment; added regression `WorkspaceRestorePermitScopeV2Test` @ `b61a0592`.
+- Sent C/B hash gate and B ACK/REVISE to issue #15 comment `6974271903`. Do not wire B-B-07 test-only hash as if C V2 production grant.
+- QA-053 independently inspected: run #44271716795, Maven 643/0 failures/12 errors/0 skipped, C RESET Proof PG18 6/6 PASS; C owner fixture and Instant driver errors found and patched in later test-only commits 4ffcf6ac/ac8addc6. QA-054 later CI testCompile FIN fixture blocked remaining tests; no latest all-green.
+- **Evidence:** current C-C-10 vector/epoch tests source committed, NOT_RUN by C; no exact-head full CI. No Flyway, owner registration write, real reauth or permit execution changed. Reset HTTP423, RESTORE blocked, BETA HOLD.
+- **Next:** B/A/D field-level ACK + shared IMP to reconcile canonical V2 hashes, then implement authenticated owner binding + permit atomically on disposable PG and full exact-SHA QA. Meanwhile fix any actual C-C-08 PG errors only after observed new CI evidence.
