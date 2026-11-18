@@ -222,4 +222,82 @@ class DisposableSignedFinancialPostgresParityTest {
         });
         assertTrue(read(operation).isEmpty());
     }
+    @Test
+    void signedArchiveWithOrphanTaskNeverTouchesPostgres() throws Exception {
+        String orphan=LEDGER.replace("\"source_type\":\"TASK\",\"source_id\":42",
+                "\"source_type\":\"TASK\",\"source_id\":999");
+        assertNotEquals(LEDGER,orphan);
+        UUID operation=UUID.randomUUID();
+        assertThrows(SecurityException.class,()->{
+            SignedSource signed=authenticatedSource(orphan);
+            write(operation,mappedRows(),false);
+            reconcile(signed,read(operation));
+        });
+        assertTrue(read(operation).isEmpty());
+    }
+
+    @Test
+    void signedArchiveWithUnknownCurrencyNeverTouchesPostgres() throws Exception {
+        String foreign=LEDGER.replace(
+                "\"point_type_id\":8,\"amount\":7",
+                "\"point_type_id\":999,\"amount\":7");
+        assertNotEquals(LEDGER,foreign);
+        UUID operation=UUID.randomUUID();
+        assertThrows(SecurityException.class,()->{
+            SignedSource signed=authenticatedSource(foreign);
+            write(operation,mappedRows(),false);
+            reconcile(signed,read(operation));
+        });
+        assertTrue(read(operation).isEmpty());
+    }
+
+    @Test
+    void unsupportedSourceTypeCannotBecomeManualFinancialHistory()
+            throws Exception {
+        String unsupported=LEDGER.replace(
+                "\"source_type\":\"MANUAL\",\"source_id\":null",
+                "\"source_type\":\"POINT_EXCHANGE\",\"source_id\":999");
+        assertNotEquals(LEDGER,unsupported);
+        UUID operation=UUID.randomUUID();
+        assertThrows(SecurityException.class,()->{
+            SignedSource signed=authenticatedSource(unsupported);
+            write(operation,mappedRows(),false);
+            reconcile(signed,read(operation));
+        });
+        assertTrue(read(operation).isEmpty());
+    }
+
+    @Test
+    void validSignedArchiveRejectsForeignTargetMemberWithoutMutation()
+            throws Exception {
+        SignedSource signed=authenticatedSource(LEDGER);
+        UUID operation=UUID.randomUUID();
+        var foreign=List.of(
+                mappedRows().get(0),mappedRows().get(1),
+                new DisposableFinancialMappingParityTest.Row(
+                        103,999,28,7,"ADJUSTMENT","MANUAL",null));
+        write(operation,foreign,false);
+        assertThrows(SecurityException.class,()->reconcile(signed,read(operation)));
+    }
+
+    @Test
+    void wrongTargetCurrencyAndTaskParentBothFailIndependentLedgerParity()
+            throws Exception {
+        SignedSource signed=authenticatedSource(LEDGER);
+        UUID wrongCurrency=UUID.randomUUID();
+        var changedCurrency=List.of(
+                new DisposableFinancialMappingParityTest.Row(
+                        101,14,28,5,"EARN","TASK",142L),
+                mappedRows().get(1),mappedRows().get(2));
+        write(wrongCurrency,changedCurrency,false);
+        assertThrows(SecurityException.class,()->reconcile(signed,read(wrongCurrency)));
+        UUID wrongParent=UUID.randomUUID();
+        var changedParent=List.of(
+                new DisposableFinancialMappingParityTest.Row(
+                        101,14,23,5,"EARN","TASK",999L),
+                mappedRows().get(1),mappedRows().get(2));
+        write(wrongParent,changedParent,false);
+        assertThrows(SecurityException.class,()->reconcile(signed,read(wrongParent)));
+    }
+
 }
