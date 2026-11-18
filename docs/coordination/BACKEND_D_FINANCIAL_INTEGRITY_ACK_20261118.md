@@ -169,3 +169,13 @@ If Maven CLI is missing, use IntelliJ's Maven goal with the same `-Dtest` expres
 **FIN-15 exit:** Java compile succeeds, all 7 targeted test classes pass, no failures/errors/skips that conceal a required PostgreSQL gate, per-row provenance and category balances match, failure injection rolls back financial journal/approval atomically, architecture gate remains explicitly separate.
 
 **Next FIN-16:** address concrete failures and add Backend B native Restore parity wiring only against its versioned financial mapping and authorization contract. No actual restore or family deletion without user approval.
+
+
+## FIN-16 — 64-bit currency rollover prevention
+
+- **Concrete bug fixed** in read-only V50 source graph verifier: archived `TASK_EXECUTIONS.reward_point_type_id` and `penalty_point_type_id` had integer-shape checks but no `canConvertToLong()` before `asLong()`. An arbitrary-precision JSON number such as `18446744073709551619` (= 2^64 + 3) can truncate to valid currency ID 3. This can incorrectly pass parent-catalog and ledger denomination checks. Commit `b44965f699dd5d55f1d7c9a32b49b1550b60b17b` adds explicit range validation to all three source task-currency check paths.
+- **Regression fixtures:** commit `90c2449ee7242d71d0dc8e41fc11b64fa88c7c35` adds `DisposableLedgerCurrencyOverflowTest` with three signed archive tests: overflowing charged-task currency, overflowing unused-task parent currency, and negatively overflowing charged-task currency.
+- **Parallel development safety:** two attempts to edit the large preexisting `DisposableLedgerSourceGraphVerifierTest.java` failed with GitHub HTTP 409 because another stream changed main concurrently. To prevent overwriting peers, a **new isolated regression test file** was created instead.
+- **Verification:** Java 21 is available in the current container, but Maven and Docker CLI are not; local tests could not be executed. GitHub PR-run lookup may not include push workflows; do not infer PASS from an empty run list.
+- **QA targeted command:** `mvn -Dtest=DisposableLedgerCurrencyOverflowTest,DisposableLedgerSourceGraphVerifierTest test`; then run the full finance matrix listed earlier and attach pinned SHA and surefire XML.
+- **Gate:** FIN-16 code COMMITTED; Maven/CI UNVERIFIED; native financial Restore and BKL-002 release remain HOLD.
