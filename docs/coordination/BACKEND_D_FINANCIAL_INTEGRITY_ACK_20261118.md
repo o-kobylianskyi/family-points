@@ -179,3 +179,33 @@ If Maven CLI is missing, use IntelliJ's Maven goal with the same `-Dtest` expres
 - **Verification:** Java 21 is available in the current container, but Maven and Docker CLI are not; local tests could not be executed. GitHub PR-run lookup may not include push workflows; do not infer PASS from an empty run list.
 - **QA targeted command:** `mvn -Dtest=DisposableLedgerCurrencyOverflowTest,DisposableLedgerSourceGraphVerifierTest test`; then run the full finance matrix listed earlier and attach pinned SHA and surefire XML.
 - **Gate:** FIN-16 code COMMITTED; Maven/CI UNVERIFIED; native financial Restore and BKL-002 release remain HOLD.
+
+
+## Backend D final closure and handoff to Backend B — 2026-11-18
+
+**OWNER-ACK / USER CONFIRMATION:** Backend D stream is closed for new implementation. Backend B is the proposed receiving/integrating Backend stream under the architect's consolidation direction. This is a handoff of committed test code and unresolved validation duties, **not** an assertion that the full BKL-002 feature has passed QA or that Backend B has independently acknowledged receipt.
+
+### Delivered work
+
+- FIN-01–08: V50 source graph validation, exact ledger provenance, member/currency partitioned signed balances, source-to-target mapping parity, encrypted-source bridge, disposable PostgreSQL parity and rollback/retry fixtures.
+- FIN-09–14: duplicate TASK/EARN and purchase debit checks, cross-family and cross-operation journal isolation, concurrency, Flyway-migrated `families` epoch gate, full QA acceptance matrix.
+- FIN-15: mapping permutations and per-field provenance negative fixtures.
+- FIN-16: overflow-safe historic currency ID checks in `DisposableLedgerSourceGraphVerifier`, regression `DisposableLedgerCurrencyOverflowTest`.
+- Core files to retain: `DisposableLedgerSourceGraphVerifier.java`, `DisposableLedgerSourceGraphVerifierTest.java`, `DisposableFinancialMappingParityTest.java`, `DisposableSignedFinancialParityBridgeTest.java`, `DisposableFinancialLedgerPostgresParityTest.java`, `DisposableSignedFinancialPostgresParityTest.java`, `DisposableFinancialTenantIsolationPostgresTest.java`, `DisposableFinancialNativeFamilyGatePostgresTest.java`, `DisposableLedgerCurrencyOverflowTest.java` (all under `src/test/java/com/olehkobylianskyi/familypoints/`).
+
+### Mandatory receiving-stream tasks
+
+1. **P0 compile/test evidence:** pin `main` SHA and run Maven compile and all Backend D JUnit classes, with Docker/Testcontainers for PostgreSQL; attach Surefire XML, check URLs, failures, skipped tests. Existing GitHub API returned no positive CI evidence; all previous "committed" claims are **not** verified PASS.
+2. **P0 native integration:** Backend B owns Restore executor and mapping contract. Do not equate QA-only synthetic financial ledger tables with proof of actual native `point_ledger` import. Compare real disposable native Restore records against source graph and mapped provenance, including parent identity, row counts, amounts, debit/credit type, and per-member/currency totals.
+3. **P0 transactional security:** verify atomically persisted permit consumption + financial mutation, no duplicate transaction on retries/concurrency, target epoch fencing, cross-family isolation, and unchanged unrelated family after failed/denied operation.
+4. **P0 unsupported provenance:** no automatic conversion of unsupported EXCHANGE/REFUND/ADJUSTMENT source types to MANUAL. Resolve via an explicit approved contract or remain fail-closed.
+5. **P0 QA/release:** preserve BKL-002 production reset/restore HOLD until user authorization, QA and architect signoff. No real family deletion, native Restore, or destructive test is authorized by this handoff.
+
+### Ownership and status
+
+- Backend D: **CLOSED / HANDOFF PUBLISHED**; no FIN-17 or independent further work.
+- Backend B: **RECEIVING OWNER REQUESTED**, acceptance and test signoff pending.
+- FIN-01–16: **COMMITTED**, with unverified Java/Maven/CI test outcomes.
+- Production Restore and BKL-002 BETA: **HOLD**.
+
+**Operational note:** one GitHub coordination document serves as the transfer artifact, rather than opening another parallel Backend branch. Backend B should respond by confirming acceptance and reporting an exact commit SHA with actual test results.
