@@ -120,3 +120,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 V49 synthetic all-mutations guard (2026-11-18)
 - Fixture `374af974349d4fbcfad14f88d1d2ed0a66cbb928` upgrades post-login Playwright route guard from only `/workspaces/:id/...` to **all URL paths**, aborting/logging unexpected POST/PUT/PATCH/DELETE; known V49 setup/review/finalize routes registered subsequently and mocked. Service Workers disabled. Direct extracted guard V8 simulation GET + five different write URLs = 6 expected outcomes PASS, **not Chromium**. QA should report unexpected auth-refresh writes as blocked FAIL/triage rather than silently sending them. Browser acceptance (2 actual cases, original UUID, epoch/revision, markers, POST count) still pending; BETA HOLD.
+
+
+## WEB-02 stable route safety Node regressions (2026-11-18)
+- Commits `afabbd88`/`2c202442`/`0e7b2ed4`/`8a8cda94` extract V49 unexpected HTTP write guard into `qa/e2e/helpers/v49RouteGuard.mjs`, import it in both two-tab browser tests and add **three native Node unit cases** to Web regression CI: method classification (POST/PUT/PATCH/DELETE block, GET etc read), catch-all route aborts and records path only, missing audit array fails closed. At authoring current SHA CI run #44269209360 in progress, no latest-SHA Node PASS yet. Does **not** execute Chromium or approve real families; QA still owns pinned 2-case browser with valid isolated selected account. BETA HOLD.
