@@ -59,6 +59,17 @@ export function ownsSetupFinalizeMarkers(session, shared, operation) {
     sameSetupFinalizeOperation(shared, operation)
 }
 
+/** A verified receipt can remove markers only if this tab still owns at
+ * least one matching marker. Both missing means a concurrent context has
+ * already changed storage; do not report successful cleanup in that case. */
+export function canClearSetupFinalizeMarkers(session, shared, operation) {
+  if (!validSetupFinalizeOperation(operation, operation?.workspaceId, operation?.accountId))
+    return false
+  if (!session && !shared) return false
+  return (!session || sameSetupFinalizeOperation(session, operation)) &&
+    (!shared || sameSetupFinalizeOperation(shared, operation))
+}
+
 export const SETUP_STEP_CODES = Object.freeze(['MEMBERS','MEMBER_GROUPS','WORK_NODE_GROUPS','CATALOG_SELECTION','TASK_REVIEW','REWARD_REVIEW','FINAL_REVIEW'])
 
 /** Avoid redundant step PATCH requests when the requested decision already exists.
