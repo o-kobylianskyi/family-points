@@ -95,7 +95,7 @@ public final class PortableMemberAncestryV2 {
         return new Proof(authenticatedRoot,sourceDigest,Map.copyOf(manifest));
     }
 
-    static String computeRootWithoutTrust(ObjectNode root,long sourceWorkspace,
+    public static String computeRootWithoutTrust(ObjectNode root,long sourceWorkspace,
                                          UUID snapshot,long epoch) {
         ObjectNode candidate=root.deepCopy();
         candidate.put("manifestRootDigest","0".repeat(64));
