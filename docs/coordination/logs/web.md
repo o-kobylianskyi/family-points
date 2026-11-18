@@ -1268,3 +1268,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 positive original session marker recovery Chromium case
 - Test-only `480f6730` adds fourth two-tab Playwright case: valid original UUID receipt and completed setup GET with only session-owned marker, shared marker lost; UI must show completed and clear all markers while one original finalize POST. Existing three denial cases unchanged, V8 syntax PASS, Chromium NOT_RUN. Exact run 44285824609 in progress at pickup; BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 V49 shared-only receipt recovery browser case
+- `fb38f4d0` extends synthetic Chromium matrix to 5 cases: added positive original shared marker survives, original session marker lost during valid receipt GET; completed UI and cleanup required, no duplicate POST. V8 syntax PASS, Chromium NOT_RUN, exact new run 44286921463 queued at pickup. BETA HOLD.
