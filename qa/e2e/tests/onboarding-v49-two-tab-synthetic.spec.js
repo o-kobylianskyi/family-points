@@ -43,6 +43,7 @@ test('V49 two tabs: first lost finalize keeps original UUID; second tab never re
   test.skip(!username || !password,'Disposable QA manager credentials required')
   await signIn(page)
   let finalizeCount=0, operation=null, receiptCount=0
+  const receiptPaths=[]
   const unexpected=[]
   await context.route(/\/workspaces\/\d+\/(?:data-epoch|setup(?:\/.*)?)(?:\?.*)?$/, route => {
     const req=route.request(), path=new URL(req.url()).pathname
@@ -69,8 +70,7 @@ test('V49 two tabs: first lost finalize keeps original UUID; second tab never re
     }
     if(path.includes('/setup/finalize-import/receipts/') && req.method()==='GET') {
       receiptCount++
-      expect(operation?.id).toMatch(/^[0-9a-f-]{36}$/i)
-      expect(path).toBe(`/workspaces/${operation.workspaceId}/setup/finalize-import/receipts/${operation.id}`)
+      receiptPaths.push(path)
       return route.fulfill({status:404,contentType:'application/json',body:'{}'})
     }
     unexpected.push(req.method()+' '+path)
@@ -91,6 +91,7 @@ test('V49 two tabs: first lost finalize keeps original UUID; second tab never re
   // grant either tab permission to produce a new operation.
   await second.getByRole('button',{name:ui.receipt}).click()
   await expect.poll(()=>receiptCount).toBe(1)
+  expect(receiptPaths).toEqual([`/workspaces/${operation.workspaceId}/setup/finalize-import/receipts/${operation.id}`])
   await expect(second.getByText(ui.unknown)).toBeVisible()
   // A 404 receipt leaves both original markers intact. A second tab must
   // not silently turn an unknown finalize into a fresh operation.
@@ -114,6 +115,7 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
   test.skip(!username || !password,'Disposable QA manager credentials required')
   await signIn(page)
   let op=null, finalizeCount=0, receiptCount=0, injectionDone=false
+  const receiptPaths=[]
   let sharedKey, competing, secondPage
   const blocked=[]
   await context.route(/\/workspaces\/\d+\/(?:data-epoch|setup(?:\/.*)?)(?:\?.*)?$/,async route=>{
@@ -142,8 +144,7 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
     }
     if(path.includes('/setup/finalize-import/receipts/') && req.method()==='GET'){
       receiptCount++
-      expect(op?.id).toMatch(/^[0-9a-f-]{36}$/i)
-      expect(path).toBe(`/workspaces/${op.workspaceId}/setup/finalize-import/receipts/${op.id}`)
+      receiptPaths.push(path)
       // The foreign tab replaces the marker AFTER recovery begins but BEFORE
       // the receipt is returned. The original tab must not delete it.
       competing=await secondPage.evaluate(()=>{
@@ -177,6 +178,8 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
   await first.getByRole('button',{name:ui.receipt}).click()
   await expect.poll(()=>injectionDone).toBe(true)
   await expect.poll(()=>receiptCount).toBe(1)
+  expect(op?.id).toMatch(/^[0-9a-f-]{36}$/i)
+  expect(receiptPaths).toEqual([`/workspaces/${op.workspaceId}/setup/finalize-import/receipts/${op.id}`])
   await expect(first.getByText(ui.unknown)).toBeVisible()
   await expect(first.getByText(ui.finished)).toHaveCount(0)
   const actual=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),sharedKey)
