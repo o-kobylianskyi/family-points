@@ -17,10 +17,13 @@ class DisposableTaskInstanceSnapshotValidatorTest {
           "slot_key":"morning","title":"Original task",
           "description":"Original description","mandatory":true,
           "due_time":"12:30:00","status":"COMPLETED",
+          "claimed_at":"2026-11-18T08:50:00",
           "started_at":"2026-11-18T09:00:00",
           "completed_at":"2026-11-18T09:15:00",
+          "excuse_reason":null,"excuse_comment":null,
           "reward_amount":5,"reward_point_type_id":51,
           "penalty_amount":null,"penalty_point_type_id":null,
+          "reward_reputation_amount":null,"penalty_reputation_amount":null,
           "reward_processed":true,"penalty_processed":false
         }
         """;
@@ -97,6 +100,35 @@ class DisposableTaskInstanceSnapshotValidatorTest {
         assertThrows(SecurityException.class,()->
                 DisposableTaskInstanceSnapshotValidator.verifyLedgerEconomy(
                         JSON.readTree("[]"),Map.of(21L,original)));
+    }
+
+    @Test void reputationOnlyProcessedRewardDoesNotInventPointLedger() throws Exception {
+        var snap=snapshot();
+        snap.putNull("reward_amount");
+        snap.putNull("reward_point_type_id");
+        snap.put("reward_reputation_amount",7);
+        var validated=parse(snap);
+        DisposableTaskInstanceSnapshotValidator.verifyLedgerEconomy(
+                JSON.readTree("[]"),Map.of(21L,validated));
+        assertEquals(7,validated.rewardReputationAmount());
+    }
+
+    @Test void explicitNullAndExcuseHistoryCannotBeSilentlyDiscarded() throws Exception {
+        var missing=snapshot();
+        missing.remove("excuse_comment");
+        assertThrows(SecurityException.class,()->parse(missing));
+        var invalid=snapshot();
+        invalid.put("excuse_reason","NOT_A_REASON");
+        assertThrows(SecurityException.class,()->parse(invalid));
+        var excused=snapshot();
+        excused.put("status","EXCUSED");
+        excused.putNull("excuse_reason");
+        assertThrows(SecurityException.class,()->parse(excused));
+        excused.put("excuse_reason","ILLNESS");
+        excused.put("excuse_comment","Reviewed by family");
+        var preserved=parse(excused);
+        assertEquals("ILLNESS",preserved.excuseReason());
+        assertEquals("Reviewed by family",preserved.excuseComment());
     }
 
     @Test void duplicateTaskLedgerPayoutRejectedBeforeImport() throws Exception {
