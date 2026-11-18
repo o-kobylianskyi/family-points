@@ -248,6 +248,26 @@ class DisposableMultiExchangeNativeRestorePostgresTest {
         assertThrows(SecurityException.class,()->identityReceipts.verify(
                 src.family,dst.family,identitySnapshot,
                 swappedIdentities,reviewedBindings,reviewKey));
+        // Synthetic, single-use approval after the reviewed source->target
+        // pair check. The real owner/reauth trust path is deliberately absent.
+        var approvalOperation=UUID.randomUUID();
+        var approvalIssued=java.time.Instant.parse("2026-11-18T08:00:00Z");
+        var approvalExpires=approvalIssued.plusSeconds(300);
+        var approval=DisposableRestoreApprovalGate.syntheticIssue(
+                src.family,dst.family,identitySnapshot,approvalOperation,
+                7001,0,approvalIssued,approvalExpires,multiMembers,reviewKey);
+        var approvalGate=new DisposableRestoreApprovalGate();
+        assertThrows(SecurityException.class,()->approvalGate.consume(
+                approval,src.family,dst.family,identitySnapshot,approvalOperation,
+                7001,1,approvalIssued.plusSeconds(30),multiMembers,reviewKey));
+        assertThrows(SecurityException.class,()->approvalGate.consume(
+                approval,src.family,dst.family,identitySnapshot,approvalOperation,
+                7001,0,approvalIssued.plusSeconds(30),swappedIdentities,reviewKey));
+        approvalGate.consume(approval,src.family,dst.family,identitySnapshot,
+                approvalOperation,7001,0,approvalIssued.plusSeconds(30),multiMembers,reviewKey);
+        assertThrows(SecurityException.class,()->approvalGate.consume(
+                approval,src.family,dst.family,identitySnapshot,approvalOperation,
+                7001,0,approvalIssued.plusSeconds(30),multiMembers,reviewKey));
 
         var multiResult=replay.apply(multiMemberArchive,src.family,dst.family,
                 multiMembers,currencies,rates,key);
