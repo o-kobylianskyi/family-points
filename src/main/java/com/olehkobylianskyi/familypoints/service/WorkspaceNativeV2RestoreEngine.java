@@ -64,7 +64,7 @@ public final class WorkspaceNativeV2RestoreEngine {
             throw new SecurityException("RESTORE_NATIVE_MEMBER_MAP_NOT_INJECTIVE");
         for(Long member:reviewedMembers.values()) {
             if(!one("SELECT count(*) FROM family_members WHERE id=? AND family_id=?",
-                    member,target))
+                    1L,member,target))
                 throw new SecurityException("RESTORE_NATIVE_FOREIGN_MEMBER");
         }
         // Every point denomination is a positive owner-reviewed target identity,
