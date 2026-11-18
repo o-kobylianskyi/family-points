@@ -93,11 +93,18 @@ public class WorkspaceResetProofService {
                 """,challengeId,workspaceId,operationId.toString());
         if (rows.size()!=1) throw failure(HttpStatus.NOT_FOUND,"RESET_CHALLENGE_NOT_FOUND");
         var row=rows.get(0);
-        if (((Number)row.get("account_id")).longValue()!=accountId)
-            throw failure(HttpStatus.FORBIDDEN,"RESET_REAUTH_PROOF_INVALID");
-        if (row.get("data_epoch")==null || row.get("requested_by_member_id")==null
-                || row.get("snapshot_digest")==null || row.get("credential_fingerprint")==null)
+        // Corrupt/incomplete persisted proofs must fail closed with a controlled
+        // response, not an unexpected NPE or a verifier bypass. Never log secrets.
+        if (!(row.get("account_id") instanceof Number storedAccount)
+                || !(row.get("data_epoch") instanceof Number)
+                || !(row.get("requested_by_member_id") instanceof Number)
+                || !(row.get("snapshot_digest") instanceof String)
+                || !(row.get("credential_fingerprint") instanceof String)
+                || !(row.get("verifier_hash") instanceof String verifierHash)
+                || !verifierHash.matches("[0-9a-f]{64}"))
             throw failure(HttpStatus.CONFLICT,"RESET_FRESH_CHALLENGE_REQUIRED");
+        if (storedAccount.longValue()!=accountId)
+            throw failure(HttpStatus.FORBIDDEN,"RESET_REAUTH_PROOF_INVALID");
         if (((Number)row.get("requested_by_member_id")).longValue()!=memberId
                 || ((Number)row.get("data_epoch")).longValue()!=epoch
                 || !digest.equals(row.get("snapshot_digest"))
