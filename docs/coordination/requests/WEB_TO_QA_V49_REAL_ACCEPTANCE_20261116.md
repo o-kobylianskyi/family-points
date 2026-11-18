@@ -124,3 +124,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 stable route safety Node regressions (2026-11-18)
 - Commits `afabbd88`/`2c202442`/`0e7b2ed4`/`8a8cda94` extract V49 unexpected HTTP write guard into `qa/e2e/helpers/v49RouteGuard.mjs`, import it in both two-tab browser tests and add **three native Node unit cases** to Web regression CI: method classification (POST/PUT/PATCH/DELETE block, GET etc read), catch-all route aborts and records path only, missing audit array fails closed. At authoring current SHA CI run #44269209360 in progress, no latest-SHA Node PASS yet. Does **not** execute Chromium or approve real families; QA still owns pinned 2-case browser with valid isolated selected account. BETA HOLD.
+
+
+## WEB-02 receipt cleanup marker ownership (2026-11-18)
+- Production Web patch `08d8714c` plus `bed3a95a` changes `clear(operation)` to fail closed if both browser pending markers disappeared or if any present marker differs from the original immutable operation. One valid original session **or** shared marker still permits cleanup after validated receipt and completed backend GET. Native regression source `2ba2acee` covers both missing/foreign/valid cases, V8 source-backed test 15/15 PASS; newest native Node CI and 2-case Chromium pending. QA test original markers after 404 and foreign shared marker retention, now include no-marker cleanup denial. No real workspace writes, BETA HOLD.
