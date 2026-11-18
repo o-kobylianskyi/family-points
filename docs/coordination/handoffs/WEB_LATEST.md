@@ -94,6 +94,13 @@
 - Actual fetched source `67dd0b03424f850de0ea9242f38c23924a0c24b5` + test blob `de0c9826f01a89e7f1ef8981ab685917f2a74174` executed all 14 source test callbacks in V8 assertion-equivalent harness: **14 PASS / 0 FAIL**. NOT native Node, Playwright, all-Web build or exact-current-SHA cloud CI. No user families or PROD/BETA touched, BETA HOLD.
 - Next: obtain QA pinned native Node and two-tab Chromium case outcomes; fix confirmed failures, then readiness audit with full CI exact candidate SHA.
 
+## WEB-02 package 14 — V49 QA fixture syntax gate integrated into Web CI (2026-11-18)
+- Intake main HEAD `fa02cca11a41945ce7eedbdd2c8c705b0740b7e6`. Latest QA-037 has **not** executed the two-tab Chromium test; historical full CI `44044271962` at older `8c397d0`, current SHA still NOT_VERIFIED. BKL-002 remains HOLD.
+- Confirmed Web workflow runs `npm run test:regression` but did **not** check Playwright fixture syntax; previous V49 two-tab regex error was not caught there. Source `frontend/scripts/check-v49-fixtures.mjs` commit `3f36023d649f2f801d346fda7e41e4f89b339c7b` scans all `qa/e2e/tests/onboarding-v49-*.spec.js` and runs `node --check` on each, aborts on any parse failure or zero matched fixtures, without credentials/browser/HTTP.
+- `frontend/package.json` commit `fe5b5ad13c62d4c04d78352c23e4911dcf1f121b` prepends this check to existing `test:regression` (already invoked by Web GitHub Actions CI) and provides independent `npm run test:qa-syntax`. No changes to product UI/API, Playwright's runtime/credential gates or any real family.
+- **Execution status**: committed and CI-wired; latest-commit Node, full Web CI, and Chromium results NOT_RUN/NOT_VERIFIED in this chat. Previous source-backed V8 14/14 belongs to earlier code blobs, not this new CI gate.
+- Next: inspect actual CI job step for first newer Web-selected run and obtain pinned QA Chromium 2-case result with HTTP counts; fix confirmed fixture/runtime errors. No PROD/BETA deploy, BKL-002/BETA HOLD.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
