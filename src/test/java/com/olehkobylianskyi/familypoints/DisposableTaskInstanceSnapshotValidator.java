@@ -15,12 +15,17 @@ import java.util.*;
 final class DisposableTaskInstanceSnapshotValidator {
     record Snapshot(long sourceId,long sourceTask,long sourceMember,Long originalAssignedMember,
                     LocalDate scheduledDate,String slotKey,String title,String description,
-                    boolean mandatory,LocalTime dueTime,String status,LocalDateTime startedAt,
-                    LocalDateTime completedAt,Integer rewardAmount,Long rewardPointType,
-                    Integer penaltyAmount,Long penaltyPointType,boolean rewardProcessed,
-                    boolean penaltyProcessed) {}
+                    boolean mandatory,LocalTime dueTime,String status,LocalDateTime claimedAt,
+                    LocalDateTime startedAt,LocalDateTime completedAt,
+                    String excuseReason,String excuseComment,
+                    Integer rewardAmount,Long rewardPointType,
+                    Integer penaltyAmount,Long penaltyPointType,
+                    Integer rewardReputationAmount,Integer penaltyReputationAmount,
+                    boolean rewardProcessed,boolean penaltyProcessed) {}
     private static final Set<String> STATUSES=Set.of("PENDING","IN_PROGRESS","PAUSED",
             "WAITING_APPROVAL","COMPLETED","MISSED","EXCUSED","RELEASED","CANCELLED");
+    private static final Set<String> EXCUSES=Set.of("ILLNESS","FAMILY_EVENT",
+            "TRAVEL","PARENT_DECISION","OTHER","EXCEPTION_PERIOD");
     private DisposableTaskInstanceSnapshotValidator() {}
 
     static Snapshot parse(JsonNode row,Map<Long,Long> members,Map<Long,Long> tasks,
@@ -49,9 +54,25 @@ final class DisposableTaskInstanceSnapshotValidator {
         String status=requiredText(row,"status",30);
         if(!STATUSES.contains(status))
             throw new SecurityException("RESTORE_TASK_BAD_STATUS");
+        // vNext source contract: explicit nullable fields, not omission that
+        // might silently reset a historic attribute during target replay.
+        for(String field:List.of("original_assigned_member_id","description",
+                "due_time","claimed_at","started_at","completed_at",
+                "excuse_reason","excuse_comment",
+                "reward_amount","reward_point_type_id","penalty_amount",
+                "penalty_point_type_id","reward_reputation_amount",
+                "penalty_reputation_amount"))
+            if(!row.has(field))
+                throw new SecurityException("RESTORE_TASK_SNAPSHOT_FIELD_MISSING:"+field);
         var due=optionalTime(row,"due_time");
+        var claimed=optionalDateTime(row,"claimed_at");
         var started=optionalDateTime(row,"started_at");
         var completed=optionalDateTime(row,"completed_at");
+        String excuse=optionalText(row,"excuse_reason",30);
+        String comment=optionalText(row,"excuse_comment",500);
+        if(excuse!=null&&!EXCUSES.contains(excuse)
+                ||"EXCUSED".equals(status)&&excuse==null)
+            throw new SecurityException("RESTORE_TASK_EXCUSE_INVALID");
         if("COMPLETED".equals(status)&&completed==null)
             throw new SecurityException("RESTORE_TASK_COMPLETION_TIMESTAMP_MISSING");
         if(completed!=null && started!=null && completed.isBefore(started))
@@ -65,12 +86,15 @@ final class DisposableTaskInstanceSnapshotValidator {
         if(rewardType!=null&&!currencies.containsKey(rewardType)
                 ||penaltyType!=null&&!currencies.containsKey(penaltyType))
             throw new SecurityException("RESTORE_TASK_ECONOMY_CURRENCY_MISSING");
-        if(row.path("reward_processed").asBoolean()&&reward==null
-                ||row.path("penalty_processed").asBoolean()&&penalty==null)
+        Integer rewardRep=optionalPositive(row,"reward_reputation_amount");
+        Integer penaltyRep=optionalPositive(row,"penalty_reputation_amount");
+        if(row.path("reward_processed").asBoolean()&&reward==null&&rewardRep==null
+                ||row.path("penalty_processed").asBoolean()&&penalty==null&&penaltyRep==null)
             throw new SecurityException("RESTORE_TASK_PROCESSED_WITHOUT_ECONOMY");
         return new Snapshot(id,task,member,assigned,scheduled,slot,title,description,
-                row.path("mandatory").asBoolean(),due,status,started,completed,reward,
-                rewardType,penalty,penaltyType,row.path("reward_processed").asBoolean(),
+                row.path("mandatory").asBoolean(),due,status,claimed,started,completed,
+                excuse,comment,reward,rewardType,penalty,penaltyType,
+                rewardRep,penaltyRep,row.path("reward_processed").asBoolean(),
                 row.path("penalty_processed").asBoolean());
     }
 
@@ -99,8 +123,10 @@ final class DisposableTaskInstanceSnapshotValidator {
                 throw new SecurityException("RESTORE_TASK_LEDGER_HISTORIC_MISMATCH");
         }
         for(Snapshot snapshot:snapshots.values()) {
-            if(snapshot.rewardProcessed()&&!paid.contains(snapshot.sourceId()+":EARN")
-                    ||snapshot.penaltyProcessed()&&!paid.contains(snapshot.sourceId()+":PENALTY"))
+            if(snapshot.rewardProcessed()&&snapshot.rewardAmount()!=null
+                    &&!paid.contains(snapshot.sourceId()+":EARN")
+                    ||snapshot.penaltyProcessed()&&snapshot.penaltyAmount()!=null
+                    &&!paid.contains(snapshot.sourceId()+":PENALTY"))
                 throw new SecurityException("RESTORE_TASK_PROCESSED_LEDGER_MISSING");
         }
     }
