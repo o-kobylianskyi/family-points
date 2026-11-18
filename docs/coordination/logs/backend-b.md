@@ -51,3 +51,9 @@
 ## 2026-11-18 — B-B-08 signed source graph consumer / C-C-10 binary hash interop
 - Implemented bounded original FAMILY_MEMBERS/Task/Reward/Purchase/POINT_LEDGER source graph closure @ed12e564, negative test @ce4883ca; separate C-C-09 binary V2 exact scope adapter @caa9768d and tests @879b98b4/@590040d2; C schema VNext-2 marker test-only @120f5a6e/@3a082c12. Old pipe-delimited B hashes explicitly not accepted as C permit. Combined pre-write bounded closure @67429d44 and negative gate @085192ef; marker fixture @c922d9e6.
 - Conditional V2 ACK / hard blockers @041bb43c; QA packet @9139c382. No authenticated A category digest or actual C grant/owner, no production Restore. New exact SHA QA NOT_RUN; HTTP423/BETA HOLD.
+
+## 2026-11-18 — consolidated Backend owner assignment replaces A/B/C/D parallel implementation
+- Accepted product-owner instruction GitHub Issue #15 #6974473668: B sole primary Backend; C/D closed as separate workers and all remaining original-owner/reauth/one-use permit and FIN-01..16 history/finance duties are now B; A optional bounded support. Architecture scope freeze supersedes prior B-B-09 speculative continuation.
+- Read C original owner enrollment/V2 and permit QA and D signed V50+PG18 finance parity/source graph and native-family gate tests; verified absent native production owner writer/permit, A signed portable original roster, full history replay and one-transaction receipt.
+- Committed one critical-path ownership handoff `docs/coordination/handoffs/BACKEND_B_INTEGRATION_CRITICAL_PATH_20261118.md` @`25bab346`. No test-only class proliferation or production unsafe implementation in this coordination packet.
+- QA-058 confirmed full actual #44275375375 @ab77611b Maven 702/702 PASS including Web Android Compose and exact attestation; newer HEAD must be retested. Next: pin newest SHA QA gate then single source-loss original-owner restore vertical slice.
