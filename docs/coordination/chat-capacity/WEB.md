@@ -29,3 +29,5 @@ Next Web chat creates new generation and records measured checkpoints; this row 
 | 2026-11-18 | Web | WEB-02 | 17 | unknown | PARTIAL_VISIBLE | unknown | NONE | 17 | 3375599b | CHECKPOINT | Prior exact SHA Web CI 6 syntax+33 Node PASS; added 404/foreign marker persistence assertions. |
 
 | 2026-11-18 | Web | WEB-02 | 18 | unknown | PARTIAL_VISIBLE | unknown | NONE | 18 | 23cf078e | CHECKPOINT | Moved route-handler assertions into test for deterministic receipt UUID failures; queued CI. |
+
+| 2026-11-18 | Web | WEB-02 | 19 | unknown | PARTIAL_VISIBLE | unknown | NONE | 19 | 8489a22b | CHECKPOINT | QA route guard rejects unexpected workspace writes; 5 simulated outcomes PASS; browser pending. |
