@@ -169,4 +169,48 @@ class DisposableOriginalOwnerBindingPostgresTest {
         assertFalse(eligible(b,ownerAccount,neighborMember));
         assertFalse(eligible(b,ownerAccount,ownerMember));
     }
+    @Test void malformedPersistedCrossTenantBindingDoesNotGrantOwnership() {
+        // QA table intentionally has only independent FKs; production IMP must
+        // enforce cross-tenant ancestry. Resolver MUST still reject it.
+        syntheticEnroll(b,ownerAccount,ownerMember,"LEGACY_VERIFIED");
+        assertFalse(eligible(b,ownerAccount,ownerMember));
+        assertFalse(eligible(a,ownerAccount,ownerMember));
+    }
+
+    @Test void concurrentCompetingOriginalOwnerEnrollmentsCanCommitOnlyOne() throws Exception {
+        var pool=java.util.concurrent.Executors.newFixedThreadPool(2);
+        var start=new java.util.concurrent.CountDownLatch(1);
+        try {
+            var results=new java.util.ArrayList<java.util.concurrent.Future<Boolean>>();
+            results.add(pool.submit(()->{
+                start.await();
+                try {
+                    syntheticEnroll(a,ownerAccount,ownerMember,"REGISTRATION_VERIFIED");
+                    return true;
+                } catch (org.springframework.dao.DataIntegrityViolationException duplicate) {
+                    return false;
+                }
+            }));
+            results.add(pool.submit(()->{
+                start.await();
+                try {
+                    syntheticEnroll(a,managerAccount,managerMember,"LEGACY_VERIFIED");
+                    return true;
+                } catch (org.springframework.dao.DataIntegrityViolationException duplicate) {
+                    return false;
+                }
+            }));
+            start.countDown();
+            int committed=0;
+            for(var future:results)
+                if(future.get(30,java.util.concurrent.TimeUnit.SECONDS)) committed++;
+            assertEquals(1,committed);
+            assertEquals(1,db.queryForObject(
+                    "SELECT count(*) FROM qa_c_original_owner_binding WHERE workspace_id=?",
+                    Integer.class,a));
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
 }
