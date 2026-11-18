@@ -27,7 +27,9 @@ public final class PortableV2HistoryDataPolicy {
             "id_token","api_key","secret","credential","credentials",
             "provider_subject","provider_user_id","external_identity_id",
             "oauth_subject","session_id","session_token","jwt",
-            "authorization","cookie","set_cookie","private_key",
+            "authorization","authorization_header","http_authorization",
+            "proxy_authorization","cookie","set_cookie","private_key",
+            "x_api_key","x_auth_token","client_secret","access_key","session_key",
             "account_id","user_id","ip_address","ip","device_id");
     private static final int MAX_TEXT_BYTES=16_384;
     private static final int MAX_DEPTH=8;
@@ -60,11 +62,15 @@ public final class PortableV2HistoryDataPolicy {
             var it=node.fields();
             while(it.hasNext()) {
                 var field=it.next();
-                String normalized=field.getKey().toLowerCase(Locale.ROOT);
+                String normalized=field.getKey().toLowerCase(Locale.ROOT)
+                        .replace('-', '_');
                 if(PRIVATE_KEYS.contains(normalized)
                         ||normalized.endsWith("_password")
                         ||normalized.endsWith("_token")
                         ||normalized.endsWith("_secret")
+                        ||normalized.endsWith("_private_key")
+                        ||normalized.endsWith("_api_key")
+                        ||normalized.endsWith("_authorization_header")
                         ||normalized.startsWith("oauth_"))
                     throw new SecurityException("PORTABLE_V2_PRIVACY_FORBIDDEN_FIELD:"
                             +category+":"+field.getKey());
