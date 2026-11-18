@@ -37,7 +37,7 @@ public final class PortableMemberAncestryV2 {
                 ||root.path("sourceEpoch").asLong()!=sourceEpoch)
             throw new SecurityException("PORTABLE_V2_SOURCE_SCOPE_INVALID");
         JsonNode source=root.path("categories");
-        if(!source.isObject()||source.size()!=2
+        if(!source.isObject()||(source.size()!=2&&source.size()!=8)
                 ||!source.path("FAMILY_ROLES").isArray()
                 ||!source.path("FAMILY_MEMBERS").isArray())
             throw new SecurityException("PORTABLE_V2_ROSTER_CATEGORIES_REQUIRED");
@@ -85,6 +85,10 @@ public final class PortableMemberAncestryV2 {
         manifest.put("FAMILY_MEMBERS",new PortableManifestRootV2.Category(
                 members.size(),hashCanonical(members),
                 hashClosure("FAMILY_MEMBERS",dependencies)));
+        if(source.size()==8) {
+            var checked=PortableV2HistoryGraph.attest((ObjectNode)source,sourceWorkspaceId);
+            manifest.putAll(checked);
+        }
         String authenticatedRoot=PortableManifestRootV2.digest(
                 sourceWorkspaceId,snapshotId,sourceEpoch,manifest);
         if(!root.path("manifestRootDigest").isTextual()
@@ -107,7 +111,7 @@ public final class PortableMemberAncestryV2 {
         // Implementation delegates actual validation through a local two-pass
         // root: temporarily set the candidate root after independent hashing.
         JsonNode categories=root.path("categories");
-        if(!categories.isObject()||categories.size()!=2)
+        if(!categories.isObject()||(categories.size()!=2&&categories.size()!=8))
             throw new SecurityException("PORTABLE_V2_ROSTER_CATEGORIES_REQUIRED");
         JsonNode roles=categories.path("FAMILY_ROLES"),members=categories.path("FAMILY_MEMBERS");
         if(!roles.isArray()||!members.isArray())
@@ -120,7 +124,10 @@ public final class PortableMemberAncestryV2 {
                         roles.size(),hashCanonical(roles),hashClosure("FAMILY_ROLES",List.of())),
                 "FAMILY_MEMBERS",new PortableManifestRootV2.Category(
                         members.size(),hashCanonical(members),hashClosure("FAMILY_MEMBERS",deps)));
-        String digest=PortableManifestRootV2.digest(workspace,snapshot,epoch,hashes);
+        var all=new TreeMap<String,PortableManifestRootV2.Category>(hashes);
+        if(categories.size()==8)
+            all.putAll(PortableV2HistoryGraph.attest((ObjectNode)categories,workspace));
+        String digest=PortableManifestRootV2.digest(workspace,snapshot,epoch,all);
         root.put("manifestRootDigest",digest);
         verify(root,workspace,snapshot,epoch);
         return digest;
@@ -134,6 +141,9 @@ public final class PortableMemberAncestryV2 {
         if(!value.isIntegralNumber()||value.asLong()<=0)
             throw new SecurityException("PORTABLE_V2_SOURCE_ID_INVALID:"+name);
         return value.asLong();
+    }
+    static String canonicalCategoryDigest(JsonNode rows) {
+        return hashCanonical(rows);
     }
     private static String hashCanonical(JsonNode rows) {
         try {return hash(JSON.writeValueAsBytes(sorted(rows)));}
