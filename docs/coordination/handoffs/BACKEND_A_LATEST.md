@@ -93,3 +93,10 @@ Source files reviewed:
 - `a6470b8` / `5e0f2c9`: file-inventory crash-temp fixture and registry classifications read-only tests. QA packet `docs/coordination/requests/B-A-03F_RESTART_ORPHAN_AUDIT_QA_20261118.md` commit `a192e80`.
 - Pending: exact-SHA CI and physical SHA verification, race/lease-aware operator reconciliation policy. `REGISTERED_FILE_PRESENT` is never equivalent to authenticated, VERIFIED or restorable.
 - Next B-A-03g: audit SHA (no plaintext), concurrency tests and operator retention-only deletion approval. B-A-02 FAMILY_MEMBERS still awaits Architecture + Backend B ACK. Restore execute HTTP423/BETA HOLD unchanged.
+
+
+## B-A-03g — 2026-11-18 ciphertext integrity orphan audit
+- `ef05216` adds no-decrypt bounded ciphertext SHA/envelope preflight with zeroed transient bytes; `439c4e7` / `265cd3a` add read-only audit classifications for intact/corrupt/unreadable ciphertext.
+- `a1d47d1` / `28c389c`: negative registry SHA/malformed evidence and physical tamper tests; no auto deletion. QA packet: `docs/coordination/requests/B-A-03G_CIPHERTEXT_INTEGRITY_QA_20261118.md` commit `4c60f23`.
+- B-A-03f CI `44269230342` reported SUCCESS on exact SHA `1c41fc9`. This new packet remains CI unverified until Actions completes.
+- B-A-03h next: explicit operator-only, age/lease-aware reconciliation design and restart/race tests; never auto delete encrypted archives based solely on audit. FAMILY_MEMBERS format still awaiting Architecture and Backend B ACK. BETA HOLD / HTTP423 unchanged.
