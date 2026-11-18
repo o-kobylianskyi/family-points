@@ -54,12 +54,14 @@ class DisposablePortableFinancialSourceClosureTest {
 
     @Test void historicalTaskCurrencyNullIsExplicitAndNeverInvented() {
         var good=Map.<String,List<? extends Map<String,?>>>of(
-                "TASK_DEFINITIONS",List.of(parent(3)),
+                "TASK_DEFINITIONS",List.of(row("id",3L,"family_id",FAMILY,
+                        "reward_point_type_id",null,"penalty_point_type_id",null)),
                 "TASK_EXECUTIONS",List.of(row("task_definition_id",3L,
                         "reward_point_type_id",null,"penalty_point_type_id",null)));
         assertDoesNotThrow(()->DisposablePortableFinancialSourceClosure.verify(FAMILY,good));
         var absent=Map.<String,List<? extends Map<String,?>>>of(
-                "TASK_DEFINITIONS",List.of(parent(3)),
+                "TASK_DEFINITIONS",List.of(row("id",3L,"family_id",FAMILY,
+                        "reward_point_type_id",null,"penalty_point_type_id",null)),
                 "TASK_EXECUTIONS",List.of(row("task_definition_id",3L,
                         "reward_point_type_id",null)));
         assertEquals("SOURCE_FINANCE_FIELD_MISSING:TASK_EXECUTIONS.penalty_point_type_id",
@@ -71,12 +73,12 @@ class DisposablePortableFinancialSourceClosureTest {
     @Test void historicalPurchaseMustRetainBothProductAndCurrencyParents() {
         var good=Map.<String,List<? extends Map<String,?>>>of(
                 "POINT_TYPES",List.of(parent(1)),
-                "REWARD_DEFINITIONS",List.of(parent(4)),
+                "REWARD_DEFINITIONS",List.of(row("id",4L,"family_id",FAMILY,"point_type_id",1L)),
                 "REWARD_PURCHASES",List.of(row("reward_definition_id",4L,"point_type_id",1L)));
         assertDoesNotThrow(()->DisposablePortableFinancialSourceClosure.verify(FAMILY,good));
         var missing=Map.<String,List<? extends Map<String,?>>>of(
                 "POINT_TYPES",List.of(parent(1)),
-                "REWARD_DEFINITIONS",List.of(parent(4)),
+                "REWARD_DEFINITIONS",List.of(row("id",4L,"family_id",FAMILY,"point_type_id",1L)),
                 "REWARD_PURCHASES",List.of(row("reward_definition_id",4L,"point_type_id",999L)));
         assertEquals("SOURCE_FINANCE_PARENT_MISSING:REWARD_PURCHASES.point_type_id",
                 assertThrows(SecurityException.class,()->
