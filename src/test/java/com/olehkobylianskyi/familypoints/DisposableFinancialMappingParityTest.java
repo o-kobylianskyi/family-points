@@ -35,8 +35,12 @@ class DisposableFinancialMappingParityTest {
     static Map<String,Long> reconcile(List<Row> source, List<Row> target, Mapping ids) {
         if (source == null || target == null || ids == null)
             throw new SecurityException("FIN_RECONCILIATION_MISSING");
-        for (var map : List.of(ids.ledger, ids.members, ids.currencies, ids.tasks, ids.purchases))
-            injective(map);
+        // Explicit checks preserve a fail-closed error for absent mappings.
+        injective(ids.ledger);
+        injective(ids.members);
+        injective(ids.currencies);
+        injective(ids.tasks);
+        injective(ids.purchases);
         if (source.size() != target.size() || ids.ledger.size() != source.size())
             throw new SecurityException("FIN_ROW_COUNT");
         Map<Long,Row> targetById = new HashMap<>();
@@ -132,6 +136,53 @@ class DisposableFinancialMappingParityTest {
                 new Row(103,16,28,7,"ADJUSTMENT","MANUAL",null));
         assertThrows(SecurityException.class,()->reconcile(source(),bad,mapping()));
     }
+    @Test void repeatedReconciliationIsIdempotentAndDoesNotMutateSnapshots() {
+        var from=List.copyOf(source());
+        var to=List.copyOf(target());
+        var first=reconcile(from,to,mapping());
+        var second=reconcile(from,to,mapping());
+        assertEquals(first,second);
+        assertEquals(source(),from);
+        assertEquals(target(),to);
+    }
+
+    @Test void retryWithExtraLedgerEntryFailsEvenWhenOriginalRowsRemainValid() {
+        var after=new ArrayList<>(target());
+        after.add(new Row(104,14,23,-2,"SPEND","REWARD_PURCHASE",151L));
+        assertThrows(SecurityException.class,()->reconcile(source(),after,mapping()));
+        assertEquals(Map.of("14:23",2L,"15:28",7L),
+                reconcile(source(),target(),mapping()));
+    }
+
+    @Test void rollbackSnapshotRemainsValidButPartialFinancialWriteFails() {
+        var baseline=target();
+        var partial=List.of(target().get(0),target().get(2));
+        assertThrows(SecurityException.class,()->reconcile(source(),partial,mapping()));
+        assertEquals(Map.of("14:23",2L,"15:28",7L),
+                reconcile(source(),baseline,mapping()));
+    }
+
+    @Test void shiftedTransactionTypeFailsEvenIfAmountAndParentsMatch() {
+        var altered=List.of(new Row(101,14,23,5,"ADJUSTMENT","TASK",142L),
+                target().get(1),target().get(2));
+        assertThrows(SecurityException.class,()->reconcile(source(),altered,mapping()));
+    }
+
+    @Test void reversedMappingCannotPassWithIdenticalAggregateBalances() {
+        var swapped=new Mapping(Map.of(1L,102L,2L,101L,3L,103L),
+                mapping().members,mapping().currencies,mapping().tasks,mapping().purchases);
+        assertThrows(SecurityException.class,()->reconcile(source(),target(),swapped));
+    }
+
+    @Test void missingCategoryMappingsFailClosedWithSecurityException() {
+        var absentCurrencies=new Mapping(mapping().ledger,mapping().members,null,
+                mapping().tasks,mapping().purchases);
+        assertThrows(SecurityException.class,()->reconcile(source(),target(),absentCurrencies));
+        var absentTasks=new Mapping(mapping().ledger,mapping().members,mapping().currencies,
+                null,mapping().purchases);
+        assertThrows(SecurityException.class,()->reconcile(source(),target(),absentTasks));
+    }
+
     @Test void unknownOriginAndMissingParentRemainFailClosed() {
         var unsupported=List.of(new Row(1,4,3,5,"EARN","POINT_EXCHANGE",42L),
                 source().get(1),source().get(2));
