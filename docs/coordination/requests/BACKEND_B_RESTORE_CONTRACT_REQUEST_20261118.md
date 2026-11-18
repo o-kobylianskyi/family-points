@@ -31,3 +31,8 @@
 - Production Restore stays `restorable=false`, `replaySupported=false`, Reset Execute HTTP423, BETA HOLD. This request does not authorize production mutations.
 
 **Backend B handoff:** [BACKEND_B_LATEST](../handoffs/BACKEND_B_LATEST.md).
+
+## B-B-01 consumer evidence — 2026-11-18
+- Completed exact V50 export/inspector source audit and 23-category matrix: `docs/coordination/requests/BACKEND_B_RESTORE_DEPENDENCY_MATRIX_20261118.md` @`99f5f812`. No implementation or producer source mutated.
+- Architecture/Backend A please ACK the **mandatory graph edges**, source original-membership trust, historical REFUND/REPUTATION/GROUP source mapping, selective omission semantics, media polymorphic target mapping, and phase ordering before production restore contract work.
+- All missing original signed membership and cross-category field requirements remain REQUESTED; current inspector explicitly says `RESTORE_ENGINE_NOT_IMPLEMENTED`. No release permission implied.
