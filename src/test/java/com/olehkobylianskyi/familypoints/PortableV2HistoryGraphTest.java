@@ -129,6 +129,20 @@ class PortableV2HistoryGraphTest {
         assertEquals(8,PortableMemberAncestryV2.verify(valid,17,SNAP,7)
                 .categories().size());
     }
+    @Test void sealedHistoryRejectsUnreviewedPrivateColumnsBeforeRoot() throws Exception {
+        for(String category:List.of("TASK_DEFINITIONS","TASK_EXECUTIONS",
+                "REWARD_PURCHASES","POINT_LEDGER")) {
+            var contaminated=source();
+            ((ObjectNode)contaminated.path("categories").path(category).get(0))
+                    .put("provider_subject","should-never-leave-source");
+            assertThrows(SecurityException.class,()->seal(contaminated),
+                    category+" confidentiality violation");
+        }
+        var valid=source();
+        seal(valid);
+        assertEquals(8,PortableMemberAncestryV2.verify(valid,17,SNAP,7)
+                .categories().size());
+    }
     @Test void emptyHistoricalGraphIsAllowedButAlwaysNonRestorable() throws Exception {
         var source=source();
         var cats=(ObjectNode)source.path("categories");
