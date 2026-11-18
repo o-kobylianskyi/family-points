@@ -17,3 +17,8 @@
 - Testcontainers `4c9cf1de`, `129e9648`: missing/foreign/duplicate parent, 3 failure-injection stages, rollback/retry, duplicate and concurrency exactly once, unrelated target family survival. No live data touched.
 - QA document `5e8f1a39`. Independent targeted PASS current SHA NOT_RUN; previous actual full CI #44265994374 at prior QA SHA 507 Maven PASS and four-component green. Production Restore blocked HTTP423.
 - ABCD role split consulted: C owner security grant, B target consumer transaction, D finance integrity, A portable source. New helper is deliberately not a C auth implementation.
+
+## 2026-11-18 — B-B-03 task/reward financial restore mapping
+- Implemented TEST ONLY `DisposableRestoreFinancialDependencyPreflight` `cbc520e9`, `4b733d78`; maps authenticated source JSON TASK/REWARD/POINT_TYPES/PURCHASE/LEDGER graph to explicit target IDs, fails closed missing parents, wrong member/currency, charged duplicate, unknown REFUND/exchange, task signed event duplicate. Does not write target DB or mint owner grants.
+- Unit negative fixtures `e87240d0`, `93af5b44`; QA packet `a22bd623`. New exact-SHA Maven NOT_RUN/UNKNOWN. Full CI #44265994374 previously 507 PASS but predates this.
+- Preserve ABCD: A source/crypto, B restore consumer, C real owner authority, D finance semantics. Next B-B-04 synthetic PG18 replay only, production HTTP423 HOLD.
