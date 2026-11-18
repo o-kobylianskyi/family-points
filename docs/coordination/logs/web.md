@@ -1240,3 +1240,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 V49 two-tab guard blocks unexpected workspace writes
 - Test-only `67aa36aa` adds catch-all workspace mutation interception before narrowly mocked setup; unexpected POST/PUT/PATCH/DELETE aborted and logged, GET allowed. Verified 5 direct V8 fake-route outcomes pass and syntax parses; **not Chromium**. Catalog JSON verified 142/6, login selectors match. Exact new run 44267020114 queued at pickup. BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 V49 finalize original revision+epoch synthetic contract
+- Source `36673755` adds expectedRevision=7 and X-Workspace-Data-Epoch='0' assertions in both mocked two-tab finalize tests, alongside immutable UUID. Product setupApi/client epoch handshake read; V8 syntax only PASS. New Actions run 44267564831 in progress, not PASS; browser not run, BETA HOLD.
