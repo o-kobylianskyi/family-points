@@ -39,3 +39,6 @@ DateTime CET | Track | ChatGeneration | VisibleUserTurns | VisibleAssistantTurns
 
 
 2026-11-18 CET | Backend | successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #45-48 | 0dc0ea46 | CHECKPOINT | Review receipt HMAC signed pairing and task parent source tests, context limit not measurable.
+
+
+2026-11-18 CET | Backend | successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #49-52 | be237334 | CHECKPOINT | Signed synthetic in-memory approval gate; context percentage not measurable.
