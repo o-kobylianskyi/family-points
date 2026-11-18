@@ -36,6 +36,8 @@ class DisposableRestorePlanTransactionGuardPostgresTest {
                     17,target,2,UUID.fromString("11111111-2222-4333-8444-555555555555"),
                     "a".repeat(64),7,0,Map.of(3L,103L,4L,104L),
                     List.of(
+                            new DisposableRestorePlanFingerprint.Category("FAMILY_MEMBERS",2,true),
+                            new DisposableRestorePlanFingerprint.Category("TASK_DEFINITIONS",1,true),
                             new DisposableRestorePlanFingerprint.Category("POINT_TYPES",1,true),
                             new DisposableRestorePlanFingerprint.Category("TASK_EXECUTIONS",2,true),
                             new DisposableRestorePlanFingerprint.Category("POINT_LEDGER",3,true)),
