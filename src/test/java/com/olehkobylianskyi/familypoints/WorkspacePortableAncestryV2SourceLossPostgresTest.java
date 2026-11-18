@@ -69,6 +69,71 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
                     INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
                     VALUES (?,?,'PARENT','Neighbor protected',true)
                     """,neighbor,neighborRole);
+            // REAL migrated PostgreSQL history, not synthetic JSON: this
+            // fixture exercises all six supported economic/task categories.
+            // The neighboring family carries a separate currency and must
+            // never leak into the archived source family.
+            long pointType=db.queryForObject("""
+                    INSERT INTO point_types(family_id,code,name,active,sort_order)
+                    VALUES (?,'POINTS','Points',true,0) RETURNING id
+                    """,Long.class,family);
+            db.update("""
+                    INSERT INTO point_types(family_id,code,name,active,sort_order)
+                    VALUES (?,'NEIGHBOR_ONLY','Neighbor currency',true,0)
+                    """,neighbor);
+            long task=db.queryForObject("""
+                    INSERT INTO task_definitions(
+                        family_id,assigned_member_id,title,description,mandatory,
+                        recurrence_type,active,created_at,updated_at,
+                        reward_point_type_id,reward_amount)
+                    VALUES (?,?,'PG18 historical task','Source-only QA',false,
+                        'ONCE',true,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?,5)
+                    RETURNING id
+                    """,Long.class,family,active,pointType);
+            long reward=db.queryForObject("""
+                    INSERT INTO reward_definitions(
+                        family_id,title,description,point_type_id,price_amount,
+                        cooldown_seconds,extra_request_allowed,requires_approval,
+                        reward_kind,acquisition_mode,availability_mode,active,
+                        created_at,updated_at)
+                    VALUES (?,'PG18 historical reward','Source-only QA',?,4,
+                        30,false,false,'STANDARD','DIRECT','ALWAYS',true,
+                        CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
+                    RETURNING id
+                    """,Long.class,family,pointType);
+            long execution=db.queryForObject("""
+                    INSERT INTO task_instances(
+                        task_definition_id,member_id,original_assigned_member_id,
+                        scheduled_date,slot_key,title,description,mandatory,
+                        reward_point_type_id,reward_amount,status,
+                        reward_processed,penalty_processed)
+                    VALUES (?,?,?,DATE '2026-11-12','default',
+                        'PG18 historical task','Source-only QA',false,
+                        ?,5,'COMPLETED',true,false)
+                    RETURNING id
+                    """,Long.class,task,active,active,pointType);
+            long purchase=db.queryForObject("""
+                    INSERT INTO reward_purchases(
+                        reward_definition_id,member_id,reward_title,point_type_id,
+                        price_amount,status,purchased_at)
+                    VALUES (?,?,'PG18 historical reward',?,4,'READY',CURRENT_TIMESTAMP)
+                    RETURNING id
+                    """,Long.class,reward,active,pointType);
+            db.update("""
+                    INSERT INTO point_transactions(
+                        member_id,point_type_id,source_type,amount,type,source_id,created_at)
+                    VALUES (?,?,'TASK',5,'EARN',?,CURRENT_TIMESTAMP)
+                    """,active,pointType,execution);
+            db.update("""
+                    INSERT INTO point_transactions(
+                        member_id,point_type_id,source_type,amount,type,source_id,created_at)
+                    VALUES (?,?,'REWARD_PURCHASE',-4,'SPEND',?,CURRENT_TIMESTAMP)
+                    """,active,pointType,purchase);
+            db.update("""
+                    INSERT INTO point_transactions(
+                        member_id,point_type_id,source_type,amount,type,created_at)
+                    VALUES (?,?,'MANUAL',2,'ADJUSTMENT',CURRENT_TIMESTAMP)
+                    """,active,pointType);
             var exporter=new WorkspacePortableAncestryV2Exporter(db,codec,portable);
             var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
             tx.setIsolationLevel(TransactionDefinition.ISOLATION_REPEATABLE_READ);
@@ -79,10 +144,8 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
             assertEquals(1,result.roleCount());
             assertEquals(2,result.memberCount());
             stored=result.encryptedFile();
-            // The exact same independently pinned original-family MVCC view
-            // can also seal the supported historical graph. This fixture
-            // intentionally has no task or finance rows; the pure graph test
-            // exercises nonempty FK and financial failure scenarios.
+            // The real populated original-family task + finance graph is
+            // sealed from one PG18 snapshot before the source DB is destroyed.
             var historical=tx.execute(status->exporter.exportWithHistory(
                     family,UUID.randomUUID(),UUID.randomUUID(),0,key));
             assertNotNull(historical);
@@ -120,7 +183,25 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
         assertEquals(1,historyProof.roleCount());
         assertEquals(2,historyProof.memberCount());
         assertEquals(8,historyProof.verifiedCategoryCounts().size());
-        assertEquals(Integer.valueOf(0),historyProof.verifiedCategoryCounts().get("POINT_LEDGER"));
+        assertEquals(Integer.valueOf(1),historyProof.verifiedCategoryCounts().get("POINT_TYPES"));
+        assertEquals(Integer.valueOf(1),historyProof.verifiedCategoryCounts().get("TASK_DEFINITIONS"));
+        assertEquals(Integer.valueOf(1),historyProof.verifiedCategoryCounts().get("REWARD_DEFINITIONS"));
+        assertEquals(Integer.valueOf(1),historyProof.verifiedCategoryCounts().get("TASK_EXECUTIONS"));
+        assertEquals(Integer.valueOf(1),historyProof.verifiedCategoryCounts().get("REWARD_PURCHASES"));
+        assertEquals(Integer.valueOf(3),historyProof.verifiedCategoryCounts().get("POINT_LEDGER"));
+        // After source DB loss, decrypted history remains scoped to one family.
+        var sealedHistory=portable.decode(historyFile);
+        byte[] authenticHistory=codec.open(sealedHistory,
+                sealedHistory.manifest().snapshotId(),source,key);
+        try {
+            String payload=new String(authenticHistory,StandardCharsets.UTF_8);
+            assertTrue(payload.contains("PG18 historical task"));
+            assertTrue(payload.contains("PG18 historical reward"));
+            assertFalse(payload.contains("NEIGHBOR_ONLY"));
+            assertFalse(payload.contains("Neighbor currency"));
+            assertFalse(payload.contains("Neighbor protected"));
+            assertFalse(payload.contains("Never export this private name"));
+        }finally{Arrays.fill(authenticHistory,(byte)0);}
         var cSource=historyProof.verifiedSourceArchiveV2();
         assertEquals(source,cSource.sourceWorkspaceId());
         assertEquals("family-points-export-v2",cSource.schemaVersion());
