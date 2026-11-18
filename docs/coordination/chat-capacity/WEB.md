@@ -43,3 +43,5 @@ Next Web chat creates new generation and records measured checkpoints; this row 
 | 2026-11-18 | Web | WEB-02 | 24 | unknown | PARTIAL_VISIBLE | unknown | NONE | 24 | ffab2b54 | CHECKPOINT | Fixed missing-markers cleanup race, V8 regression 15/15 PASS; CI/Chromium pending. |
 
 | 2026-11-18 | Web | WEB-02 | 25 | unknown | PARTIAL_VISIBLE | unknown | NONE | 25 | 63466faa | CHECKPOINT | Added third V49 mocked Chromium case: missing both markers blocks completion; CI pending. |
+
+| 2026-11-18 | Web | WEB-02 | 26 | unknown | PARTIAL_VISIBLE | unknown | NONE | 26 | 50267201 | CHECKPOINT | Added fourth Chromium positive recovery case for original session marker remaining, browser pending. |
