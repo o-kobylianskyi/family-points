@@ -31,3 +31,5 @@ Next Web chat creates new generation and records measured checkpoints; this row 
 | 2026-11-18 | Web | WEB-02 | 18 | unknown | PARTIAL_VISIBLE | unknown | NONE | 18 | 23cf078e | CHECKPOINT | Moved route-handler assertions into test for deterministic receipt UUID failures; queued CI. |
 
 | 2026-11-18 | Web | WEB-02 | 19 | unknown | PARTIAL_VISIBLE | unknown | NONE | 19 | 8489a22b | CHECKPOINT | QA route guard rejects unexpected workspace writes; 5 simulated outcomes PASS; browser pending. |
+
+| 2026-11-18 | Web | WEB-02 | 20 | unknown | PARTIAL_VISIBLE | unknown | NONE | 20 | b75939ad | CHECKPOINT | V49 browser fixture asserts finalize revision and epoch headers, CI pending. |
