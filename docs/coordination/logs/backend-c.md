@@ -72,3 +72,14 @@
 - Concrete B consumer ACK request `docs/coordination/requests/BACKEND_C_TO_B_DURABLE_PERMIT_CONTRACT_20261118.md` @8901b7d; issue #15 comment 6973579412. Target family -> operation/permit -> rows lock order and atomic restore consume+epoch+receipt remain proposed pending exact IMP/consumer review.
 - Safety: HTTP423 Reset, production Restore blocked and BETA HOLD. No Flyway, credential transport or destructive endpoint wired. New tests not independently executed.
 - Next: obtain B ACK, file IMP for shared permit/storage; implement verified owner enrollment and transactional DB-backed scope/grant only with reviewed integration. QA pinned-SHA target test then full CI.
+
+
+## 2026-11-18 — C-C-08: large PG18 durable permit and original owner binding QA
+- Architecture `ADR-BKL002-ABCD-INTEGRATION-003` has accepted implementation principles; C/B exact wire, shared Flyway/IMP, legacy owner evidence and Restore receipt remain consumer-reviewed gates.
+- Added `src/test/.../security/DisposableOwnerPermitStore.java` @ `5903f595`, **test-only** PostgreSQL QA permit tables. Simulates action-specific SHA256-verified 256-bit random token, 5min TTL, scoped family/owner/snapshot/selection/mapping/epoch, target family FOR UPDATE -> permit FOR UPDATE -> token consumed -> epoch bump -> receipt in one JDBC transaction. No actual owner auth, no production component/HTTP/migration.
+- Added `DisposableOwnerPermitStorePostgresTest.java` @ `f824738e`, 6 tests: success/no replay, rollback and retry, cross-action/family denial, wrong owner/token/epoch, duplicate issuance/expiry, real 2-thread race exactly once.
+- Added `DisposableOriginalOwnerBindingPostgresTest.java` @ `926012f0`, 6 tests: absent legacy, verified owner/delegated denial, deactivation, revocation, provenance uniqueness, shared-account neighbor denial. Synthetic enrollment in QA table is NOT authenticated legacy enrollment.
+- QA packet @ `ce3a75ea` `docs/coordination/requests/BACKEND_C_C08_LARGE_PG18_SECURITY_QA_20261118.md`. Implementation impact/request @ `05a773ba` `docs/coordination/requests/BACKEND_C_C08_IMPLEMENTATION_IMPACT_20261118.md`. Issue #15 shared cross-team handoff comment `6973705838`.
+- **Evidence:** 12 additional PG18 JUnit test methods SOURCE_COMMITTED, Maven/Testcontainers NOT_RUN by Backend C. Prior actual CI #44268695217 572/1 failure/1 error (B-owned QA fixture); historical current full green NOT established.
+- **Safety:** no production Flyway, owner enrollment, actual permit issuance, RESET/RESTORE Execute, real data mutation or deployment. HTTP423 + BETA HOLD.
+- **Next:** exact SHA QA failures triage and Backend B consumer ACK/REVISE. Once IMP/owner provenance and real credential contract signed, implement production owner resolver and strictly scoped durable permit store atomically with approved operations.
