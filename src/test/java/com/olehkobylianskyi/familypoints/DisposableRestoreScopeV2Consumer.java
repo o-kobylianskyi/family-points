@@ -23,7 +23,7 @@ final class DisposableRestoreScopeV2Consumer {
             throw new SecurityException("RESTORE_SCOPE_V2_NOT_MATCHING");
         var archive=attempted.source();
         if(archive.sourceWorkspaceId()!=plan.sourceWorkspace()
-                ||!archive.schemaVersion().equals("v"+plan.schemaVersion())
+                ||!archive.schemaVersion().equals("VNext-"+plan.schemaVersion())
                 ||!archive.snapshotId().equals(plan.snapshot())
                 ||archive.sourceSnapshotEpoch()!=plan.sourceEpoch()
                 ||!archive.manifestRootDigest().equals(plan.sealedManifestSha256())
