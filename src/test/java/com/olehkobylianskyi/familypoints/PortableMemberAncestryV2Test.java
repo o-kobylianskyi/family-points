@@ -34,7 +34,7 @@ class PortableMemberAncestryV2Test {
     }
     @Test void actualCategoryJsonAndDependencyVectorsMatchIndependentPython() throws Exception {
         var source=source();
-        var root=PortableMemberAncestryV2.computeRootWithoutTrustForTest(
+        var root=PortableMemberAncestryV2.computeRootWithoutTrust(
                 source,17,SNAP,7);
         assertEquals("dcda588e22db2d804f2b68e4de43bf5e3051a45a7bd68170f673c29dce7e87c1",
                 root);
@@ -48,12 +48,13 @@ class PortableMemberAncestryV2Test {
     @Test void originalMemberAndRoleCrossFamilyOrOmittedTombstoneDenied()
             throws Exception {
         var src=source();
-        PortableMemberAncestryV2.computeRootWithoutTrustForTest(src,17,SNAP,7);
+        PortableMemberAncestryV2.computeRootWithoutTrust(src,17,SNAP,7);
         var role=((com.fasterxml.jackson.databind.node.ObjectNode)
                 src.path("categories").path("FAMILY_ROLES").get(0));
         role.put("sourceWorkspaceId",18);
+        var invalidRoleSource=src;
         assertThrows(SecurityException.class,()->
-                PortableMemberAncestryV2.verify(src,17,SNAP,7));
+                PortableMemberAncestryV2.verify(invalidRoleSource,17,SNAP,7));
         src=source();
         var row=((com.fasterxml.jackson.databind.node.ObjectNode)
                 src.path("categories").path("FAMILY_MEMBERS").get(0));
