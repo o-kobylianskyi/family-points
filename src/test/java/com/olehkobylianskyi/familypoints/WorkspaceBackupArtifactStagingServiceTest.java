@@ -2,6 +2,9 @@ package com.olehkobylianskyi.familypoints;
 
 import com.olehkobylianskyi.familypoints.service.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.junit.jupiter.api.io.TempDir;
 
 import javax.crypto.KeyGenerator;
@@ -16,6 +19,21 @@ import static org.mockito.Mockito.*;
 
 class WorkspaceBackupArtifactStagingServiceTest {
     @TempDir Path temp;
+
+    @BeforeEach void beginRepeatableReadFixture() {
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        TransactionSynchronizationManager.setCurrentTransactionIsolationLevel(
+                java.sql.Connection.TRANSACTION_REPEATABLE_READ);
+        TransactionSynchronizationManager.initSynchronization();
+    }
+
+    @AfterEach void clearTransactionFixture() {
+        TransactionSynchronizationManager.clearSynchronization();
+        TransactionSynchronizationManager.setCurrentTransactionIsolationLevel(null);
+        TransactionSynchronizationManager.setActualTransactionActive(false);
+    }
+
+
 
     private final ProtectiveBackupArtifactCodec codec=new ProtectiveBackupArtifactCodec();
     private final ProtectiveBackupPortableFile files=new ProtectiveBackupPortableFile();
@@ -105,4 +123,39 @@ class WorkspaceBackupArtifactStagingServiceTest {
                 List.of("MEMBER_GROUPS","MEMBER_GROUPS"),"V50",key()));
         verifyNoInteractions(exporter);
     }
+
+    @Test void directStageRejectsReadCommittedBeforeExporterOrDisk() throws Exception {
+        var exporter=mock(WorkspacePortableBackupExporter.class);
+        var storage=mock(WorkspaceBackupLocalArtifactStore.class);
+        var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector,files);
+        TransactionSynchronizationManager.setCurrentTransactionIsolationLevel(
+                java.sql.Connection.TRANSACTION_READ_COMMITTED);
+        var rejected=assertThrows(IllegalStateException.class,()->staging.stage(
+                31,UUID.randomUUID(),UUID.randomUUID(),0,List.of("MEMBER_GROUPS"),"V50",key()));
+        assertEquals("BACKUP_SNAPSHOT_ISOLATION_REQUIRED",rejected.getMessage());
+        verifyNoInteractions(exporter,storage);
+    }
+
+    @Test void directStageRejectsUnknownIsolationBeforeExporterOrDisk() throws Exception {
+        var exporter=mock(WorkspacePortableBackupExporter.class);
+        var storage=mock(WorkspaceBackupLocalArtifactStore.class);
+        var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector,files);
+        TransactionSynchronizationManager.setCurrentTransactionIsolationLevel(null);
+        var rejected=assertThrows(IllegalStateException.class,()->staging.stage(
+                31,UUID.randomUUID(),UUID.randomUUID(),0,List.of("MEMBER_GROUPS"),"V50",key()));
+        assertEquals("BACKUP_SNAPSHOT_ISOLATION_REQUIRED",rejected.getMessage());
+        verifyNoInteractions(exporter,storage);
+    }
+
+    @Test void directStageRejectsAbsentTransactionBeforeExporterOrDisk() throws Exception {
+        var exporter=mock(WorkspacePortableBackupExporter.class);
+        var storage=mock(WorkspaceBackupLocalArtifactStore.class);
+        var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector,files);
+        TransactionSynchronizationManager.setActualTransactionActive(false);
+        var rejected=assertThrows(IllegalStateException.class,()->staging.stage(
+                31,UUID.randomUUID(),UUID.randomUUID(),0,List.of("MEMBER_GROUPS"),"V50",key()));
+        assertEquals("BACKUP_SNAPSHOT_ISOLATION_REQUIRED",rejected.getMessage());
+        verifyNoInteractions(exporter,storage);
+    }
+
 }
