@@ -44,3 +44,14 @@ Both parsed reports agree on full SHA, GitHub Actions run URL, four SUCCESS jobs
 **HEAD drift:** at matrix refresh, `main` was `965d6896491c7e20a23f779131f1b211c8f3b9f1`, **30 commits newer** than `ef222689`, including further Backend split and Web V49 work. Current HEAD has no inherited green. Backend BKL002 production restore `restorable=false`, `replaySupported=false`, Reset Execute HTTP423; real feature-enabled V49, Android physical-device, portable restore/owner-auth and recovery signoff remain outstanding.
 
 **Gate decision: BETA HOLD.** The former two failing `DisposableLedgerSourceGraphVerifierTest` checks are resolved at `ef222689`, but all later work needs its own pinned CI + QA acceptance.
+
+## Update — 2026-11-18 / REL-RELEASE-20: post-Backend-ABC full CI
+**New verified post-split baseline**: [#44265994374](https://github.com/o-kobylianskyi/family-points/actions/runs/44265994374) at `a90546b81db38d966d4bb86e742ce25aea9d9c1d` — Java/PostgreSQL Maven **507/0/0/0**, actual Web Node, Android Gradle, Compose checks all SUCCESS, 98 unique Release synthetic cases PASS, full exact-SHA attestation + per-push report SUCCESS. [#44265904431](https://github.com/o-kobylianskyi/family-points/actions/runs/44265904431) at `e4068243ef7fe6830f87bfa66d79abc8cbc636e0` separately also 507/0/0/0 and all four non-skipped SUCCESS. Run #44265676220 at `dec2404...` failed Java compilation; it is superseded only for **the later tested SHAs**, not assumed resolved for moving HEAD.
+
+For #44265994374 independent GitHub API verified artifacts were downloaded, **actual ZIP bytes hashed**, exact provider digests matched, each archive contained one expected JSON reporting same GitHub run and exact full candidate SHA, four SUCCESS, `qaAccepted=false`, `releaseApproved=false`, `deploymentExecuted=false`:
+- `full-ci-evidence` ID **14411231168**, 374 bytes SHA256 `54d7bc62aa62c7476d69991d2166de59eaf4fb3e33b97874f09cbc86971833b6`
+- `ci-push-result` ID **14410232598**, 451 bytes SHA256 `b73bb61a8fda6b504e144489f17524737ea357f4c72be84b2e022c89134e57c8`
+
+At check `main` had progressed to `a52a2777bed858a0f66a9e8cfaea90ac6e926f82`, **11 commits past** the tested SHA; next runs #44266795831 and #44266831713 were still queued/in-progress. Do not inherit their status or treat docs-only scoped-green runs as full CI.
+
+**Backend architecture split confirmed in handoffs**: A owns portable archive exporter, original signed `FAMILY_MEMBERS` producer contract still unapproved; B owns exact V50 restore-engine and FK graph, consumer ACK pending; C owns secure Reset auth/epoch, no production unlock; real QA V49 and Android device acceptance remain pending. **BETA HOLD, production restore/reset disabled** (`restorable=false`, `replaySupported=false`, Reset Execute HTTP423), and no rollout authorization.
