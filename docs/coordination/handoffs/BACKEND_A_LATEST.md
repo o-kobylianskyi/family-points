@@ -38,3 +38,10 @@ Source files reviewed:
 - **Not implemented/accepted:** original FAMILY_MEMBERS archive, vNext contract, producer↔consumer ACK, independent exact-SHA full CI.
 - **Release gates unchanged:** Restore Execute production blocked (`restorable=false`, `replaySupported=false`), Reset Execute HTTP 423, BETA HOLD. Synthetic/disposable data only; no real family reset.
 - **Coordination:** Backend B handoff, Architecture `logs/architecture.md` and `IMPACT_REGISTER.md`, QA issue #15. Send precise contract proposal before changing shared archive format.
+
+
+## B-A-02 completed — 2026-11-18 (documentation and source-schema evidence)
+- Verified V1 family_members fields and WorkspaceMember tombstone behavior; V21/V22 global account→workspace membership and DB scope trigger; V29 optional legacy account pointer/external identity separation; V31 shared email collision; GroupMembership is separate from account membership.
+- Published producer contract proposal: `docs/coordination/requests/B-A-02_PORTABLE_MEMBER_SOURCE_CONTRACT_20261118.md` (commit `1ede3ee`). Includes minimum privacy-safe source node, original FK/role ancestry, soft-delete, account link risk, versioned wire format, legacy compatibility and 12 negative cases.
+- NO runtime Java/schema changes or tests; awaiting Architecture and Backend B ACK before source format modifications.
+- Next B-A-03: only once approved, implement archive-category/digest/inspector updates with PG18 two-tenant tests; meanwhile independently audit source snapshot isolation/limit behavior without changing restore execution.
