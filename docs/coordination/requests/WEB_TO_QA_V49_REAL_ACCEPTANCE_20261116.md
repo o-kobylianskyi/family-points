@@ -104,3 +104,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 two-tab route assertion reliability (2026-11-18)
 - Test-only commit `ca87502121e19ebe90f25bb83e8f2560a07e068f`: both V49 browser specs record the receipt GET path in `context.route` handler and assert exact original UUID in test body, preventing route-callback assertion exceptions from masking errors as timeouts. V8 syntax PASS, Chromium NOT_RUN, latest Actions run queued when checked. QA run 2 scenarios in isolated selected QA workspace, report original UUID, GET path, POST count, PASS/FAIL/SKIP and trace; BETA HOLD.
+
+
+## WEB-02 V49 synthetic workspace write guard (2026-11-18)
+- Fixture commit `67aa36aa2ed82362e6b7c2df5f50f113fa724e3d` adds catch-all non-setup workspace mutation guard: all unexpected `/workspaces/<id>/...` POST/PUT/PATCH/DELETE must abort, while narrowly mocked setup/review/finalize and read-only GET retain existing behavior. Five V8 fake-route direct outcomes PASS, not Chromium. QA pinned browser run must verify no unhandled intercepted writes, original UUID, 1 finalize POST, exact receipt GET, no unauthorized family writes; failure trace. BKL-002/BETA HOLD.
