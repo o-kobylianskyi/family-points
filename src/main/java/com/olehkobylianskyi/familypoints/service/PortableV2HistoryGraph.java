@@ -97,6 +97,9 @@ public final class PortableV2HistoryGraph {
         if(categories.size()!=allowed.size()
                 ||!allowed.equals(toNames(categories)))
             throw new SecurityException("PORTABLE_V2_HISTORY_CATEGORIES_INCOMPLETE");
+        // Refuse disallowed private columns in both live source capture
+        // and offline AES-GCM plaintext inspection, before content hashing.
+        PortableV2HistoryDataPolicy.requireAcceptable(categories);
         var ids=new HashMap<String,Set<Long>>();
         for(String category:allowed) {
             var rows=categories.path(category);
