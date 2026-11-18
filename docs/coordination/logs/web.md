@@ -1272,3 +1272,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 V49 shared-only receipt recovery browser case
 - `fb38f4d0` extends synthetic Chromium matrix to 5 cases: added positive original shared marker survives, original session marker lost during valid receipt GET; completed UI and cleanup required, no duplicate POST. V8 syntax PASS, Chromium NOT_RUN, exact new run 44286921463 queued at pickup. BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 package 28: pinned QA Chromium execution request
+- No new confirmed Web defect on five-case V49 source review. Issue #18 comment `6976230912` sent exact SHA `fb38f4d0`, command, isolated QA credential rules, outcome/traces requirement. Previous Web 37/37 Node + fixture syntax only; Chromium NOT_RUN. No source change; BETA HOLD.
