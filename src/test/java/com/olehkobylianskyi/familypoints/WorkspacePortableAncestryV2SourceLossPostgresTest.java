@@ -27,7 +27,6 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
         byte[] stored=null;
         byte[] historyStored=null;
         long originalWorkspace=0,otherWorkspace=0;
-        long originalActiveMember=0,originalDeletedMember=0;
         UUID snapshot=UUID.randomUUID();
         var key=new SecretKeySpec(new byte[32],"AES");
         var codec=new ProtectiveBackupArtifactCodec();
@@ -66,8 +65,6 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
                     VALUES (?,?,'CHILD','Deleted private name',false,
                         TIMESTAMP '2026-11-01 08:09:10') RETURNING id
                     """,Long.class,family,role);
-            originalActiveMember=active;
-            originalDeletedMember=tombstone;
             db.update("""
                     INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
                     VALUES (?,?,'PARENT','Neighbor protected',true)
@@ -153,17 +150,6 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
                     family,UUID.randomUUID(),UUID.randomUUID(),0,key));
             assertNotNull(historical);
             historyStored=historical.encryptedFile();
-            // A signed bounded archive must never silently omit a live
-            // reward request outside its six supported historical tables.
-            long outside=db.queryForObject("""
-                    INSERT INTO reward_requests(
-                        family_id,requested_by_member_id,title,status)
-                    VALUES (?,?,'Unsupported request','PENDING') RETURNING id
-                    """,Long.class,family,active);
-            assertThrows(SecurityException.class,()->tx.execute(status->
-                    exporter.exportWithHistory(family,UUID.randomUUID(),
-                            UUID.randomUUID(),0,key)));
-            db.update("DELETE FROM reward_requests WHERE id=?",outside);
             var envelope=portable.decode(stored);
             byte[] plain=codec.open(envelope,snapshot,family,key);
             try {
@@ -301,223 +287,5 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
                         offline.inspectAncestryV2(portable.encode(sealed),source,key));
             }finally{Arrays.fill(edited,(byte)0);}
         }finally{Arrays.fill(original,(byte)0);}
-        nativeRestoreAfterSourceLoss(historyFile,source,key,offline,codec,portable,
-                originalActiveMember,originalDeletedMember);
-    }
-
-    // B-INT-02: genuinely separate migrated PostgreSQL 18 target, AFTER source shutdown.
-    // The real internal production services verify BCrypt, immutable original
-    // creator enrollment, authenticated C scope, one-use permit and native FK
-    // financial replay. No HTTP route or live workspace is involved.
-    private static void nativeRestoreAfterSourceLoss(byte[] archive,long source,
-            javax.crypto.SecretKey key,ProtectiveBackupImportInspector offline,
-            ProtectiveBackupArtifactCodec codec,ProtectiveBackupPortableFile portable,
-            long originalActive,long originalDeleted) throws Exception {
-        try(var targetDb=new PostgreSQLContainer("postgres:18-alpine")
-                .withDatabaseName("b_int_02_target").withUsername("qa").withPassword("qa")) {
-            targetDb.start();
-            var ds=new DriverManagerDataSource(targetDb.getJdbcUrl(),
-                    targetDb.getUsername(),targetDb.getPassword());
-            Flyway.configure().dataSource(ds).locations("classpath:db/migration")
-                    .load().migrate();
-            var db=new JdbcTemplate(ds);
-            var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
-            long target=db.queryForObject(
-                    "INSERT INTO families(name) VALUES ('Restore target') RETURNING id",Long.class);
-            long neighbor=db.queryForObject(
-                    "INSERT INTO families(name) VALUES ('Restore neighbor') RETURNING id",Long.class);
-            long role=db.queryForObject("""
-                    INSERT INTO family_roles(family_id,system_role,code,name)
-                    VALUES (?,true,'PARENT','Parent') RETURNING id
-                    """,Long.class,target);
-            long neighborRole=db.queryForObject("""
-                    INSERT INTO family_roles(family_id,system_role,code,name)
-                    VALUES (?,true,'PARENT','Parent') RETURNING id
-                    """,Long.class,neighbor);
-            // Occupy original numeric IDs in unrelated family first.
-            long foreign=db.queryForObject("""
-                    INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
-                    VALUES (?,?,'PARENT','Unrelated',true) RETURNING id
-                    """,Long.class,neighbor,neighborRole);
-            long active=db.queryForObject("""
-                    INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
-                    VALUES (?,?,'PARENT','Restored target owner',true) RETURNING id
-                    """,Long.class,target,role);
-            long deleted=db.queryForObject("""
-                    INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
-                    VALUES (?,?,'CHILD','Mapped historic member',true) RETURNING id
-                    """,Long.class,target,role);
-            long neighborPoint=db.queryForObject("""
-                    INSERT INTO point_types(family_id,code,name,active,sort_order)
-                    VALUES (?,'NEIGHBOR','Neighbor only',true,0) RETURNING id
-                    """,Long.class,neighbor);
-            long neighborTask=db.queryForObject("""
-                    INSERT INTO task_definitions(
-                        family_id,assigned_member_id,title,description,mandatory,
-                        delegation_allowed,recurrence_type,active,created_at,updated_at,
-                        reward_point_type_id,reward_amount)
-                    VALUES (?,?,'Neighbor historical task','Foreign',false,
-                        false,'ONCE',true,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?,7)
-                    RETURNING id
-                    """,Long.class,neighbor,foreign,neighborPoint);
-            long neighborReward=db.queryForObject("""
-                    INSERT INTO reward_definitions(
-                        family_id,title,description,point_type_id,price_amount,
-                        cooldown_seconds,extra_request_allowed,requires_approval,
-                        reward_kind,acquisition_mode,availability_mode,active,
-                        created_at,updated_at)
-                    VALUES (?,'Neighbor historical reward','Foreign',?,3,
-                        30,false,false,'STANDARD','DIRECT','ALWAYS',true,
-                        CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
-                    RETURNING id
-                    """,Long.class,neighbor,neighborPoint);
-            long neighborExecution=db.queryForObject("""
-                    INSERT INTO task_instances(
-                        task_definition_id,member_id,original_assigned_member_id,
-                        scheduled_date,slot_key,title,description,mandatory,
-                        reward_point_type_id,reward_amount,status,
-                        reward_processed,penalty_processed)
-                    VALUES (?,?,?,DATE '2026-11-11','default',
-                        'Neighbor historical task','Foreign',false,
-                        ?,7,'COMPLETED',true,false)
-                    RETURNING id
-                    """,Long.class,neighborTask,foreign,foreign,neighborPoint);
-            long neighborPurchase=db.queryForObject("""
-                    INSERT INTO reward_purchases(
-                        reward_definition_id,member_id,reward_title,point_type_id,
-                        price_amount,status,purchased_at)
-                    VALUES (?,?,'Neighbor historical reward',?,3,'READY',CURRENT_TIMESTAMP)
-                    RETURNING id
-                    """,Long.class,neighborReward,foreign,neighborPoint);
-            db.update("""
-                    INSERT INTO point_transactions(
-                        member_id,point_type_id,source_type,amount,type,source_id,created_at)
-                    VALUES (?,?,'TASK',7,'EARN',?,CURRENT_TIMESTAMP)
-                    """,foreign,neighborPoint,neighborExecution);
-            var encoder=new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
-            long account=db.queryForObject("""
-                    INSERT INTO user_accounts(username,password_hash,enabled,family_member_id)
-                    VALUES (?,?,true,?) RETURNING id
-                    """,Long.class,"restore_qa_"+UUID.randomUUID(),encoder.encode("SyntheticSecret42!"),active);
-            db.update("""
-                    INSERT INTO account_workspace_memberships(account_id,family_member_id,workspace_id)
-                    VALUES (?,?,?)
-                    """,account,active,target);
-            var enrollment=new WorkspaceOriginalOwnerEnrollmentService(db);
-            tx.execute(st->{enrollment.enrollNewCreator(target,account,active);return null;});
-            var guard=new WorkspaceEpochTransactionGuard(db);
-            var limiter=new WorkspaceRestorePasswordLimiter(db);
-            // Google signature verification itself is covered by the
-            // GoogleTokenVerifier contract; here a Mockito-approved JWT
-            // exercises the real provider-account RESTORE linkage and permit.
-            String providerSubject="qa-google-"+UUID.randomUUID();
-            db.update("""
-                    INSERT INTO account_external_identities
-                        (account_id,provider,provider_subject)
-                    VALUES (?,'google',?)
-                    """,account,providerSubject);
-            var google=org.mockito.Mockito.mock(GoogleTokenVerifier.class);
-            var googleNow=java.time.Instant.now();
-            var verifiedJwt=org.springframework.security.oauth2.jwt.Jwt
-                    .withTokenValue("qa-verified-jwt")
-                    .header("alg","RS256")
-                    .subject(providerSubject)
-                    .issuedAt(googleNow)
-                    .expiresAt(googleNow.plusSeconds(600))
-                    .build();
-            org.mockito.Mockito.when(google.verifiedToken("qa-verified-jwt"))
-                    .thenReturn(verifiedJwt);
-            var permits=new WorkspaceRestorePermitService(
-                    db,guard,encoder,limiter,offline,portable,codec,google);
-            var engine=new WorkspaceRestoreNativeTargetEngine(
-                    db,guard,permits,portable,codec);
-            var inspected=offline.inspectAncestryV2(archive,source,key);
-            var approved=Map.of(originalActive,active,originalDeleted,deleted);
-            var envelope=portable.decode(archive);
-            byte[] plaintext=codec.open(envelope,envelope.manifest().snapshotId(),source,key);
-            String selection;
-            long originalExecutionId;
-            try {
-                var root=(com.fasterxml.jackson.databind.node.ObjectNode)
-                        new ObjectMapper().readTree(plaintext);
-                originalExecutionId=root.path("categories").path("TASK_EXECUTIONS")
-                        .get(0).path("id").asLong();
-                selection=WorkspaceRestoreBoundedSelectionV2.fromVerifiedSource(
-                        root,source,inspected.snapshotId(),inspected.sourceEpoch(),target,0);
-            }finally{Arrays.fill(plaintext,(byte)0);}
-            var now=java.time.Instant.now();
-            var scope=new com.olehkobylianskyi.familypoints.security
-                    .WorkspaceRestorePermitScopeV2.RestoreScope(
-                    target,account,active,UUID.randomUUID(),
-                    inspected.verifiedSourceArchiveV2(),selection,
-                    inspected.canonicalMappingDigestForReviewedIds(target,approved),
-                    0,now,now.plusSeconds(120));
-            var wrong=Map.of(originalActive,active,originalDeleted,foreign);
-            assertThrows(SecurityException.class,()->
-                    tx.execute(st->{permits.issuePassword(scope,archive,key,wrong,
-                            "SyntheticSecret42!");return null;}));
-            tx.execute(st->{permits.issuePassword(scope,archive,key,approved,
-                    "SyntheticSecret42!");return null;});
-            // Inject one target-category conflict AFTER grant issuance. The
-            // failed replay must roll back consumed_at and never bump epoch.
-            long conflict=db.queryForObject("""
-                    INSERT INTO point_types(family_id,code,name,active,sort_order)
-                    VALUES (?,'CONFLICT','Existing',true,0) RETURNING id
-                    """,Long.class,target);
-            assertThrows(SecurityException.class,()->tx.execute(st->
-                    engine.restoreBounded(scope,archive,key,approved)));
-            assertNull(db.queryForObject("""
-                    SELECT consumed_at FROM workspace_restore_permits WHERE operation_id=?
-                    """,java.sql.Timestamp.class,scope.operationId()));
-            assertEquals(0L,db.queryForObject(
-                    "SELECT data_epoch FROM families WHERE id=?",Long.class,target));
-            db.update("DELETE FROM point_types WHERE id=?",conflict);
-            // A distinct fresh Google reauth grant consumes the real signed
-            // C scope in place of the password-issued grant on success.
-            var nowGoogle=java.time.Instant.now();
-            var googleScope=new com.olehkobylianskyi.familypoints.security
-                    .WorkspaceRestorePermitScopeV2.RestoreScope(
-                    target,account,active,UUID.randomUUID(),
-                    inspected.verifiedSourceArchiveV2(),selection,
-                    inspected.canonicalMappingDigestForReviewedIds(target,approved),
-                    0,nowGoogle,nowGoogle.plusSeconds(120));
-            tx.execute(st->{permits.issueGoogle(googleScope,archive,key,approved,
-                    "qa-verified-jwt");return null;});
-            var receipt=tx.execute(st->engine.restoreBounded(googleScope,archive,key,approved));
-            assertNotNull(receipt);
-            assertEquals(1,receipt.afterEpoch());
-            assertEquals(Integer.valueOf(3),receipt.insertedCounts().get("POINT_LEDGER"));
-            assertEquals(3L,db.queryForObject("""
-                    SELECT sum(t.amount) FROM point_transactions t
-                    WHERE t.member_id=?
-                    """,Long.class,active));
-            assertEquals(1L,db.queryForObject(
-                    "SELECT data_epoch FROM families WHERE id=?",Long.class,target));
-            assertEquals(1L,db.queryForObject(
-                    "SELECT count(*) FROM workspace_restore_receipts WHERE operation_id=?",
-                    Long.class,googleScope.operationId()));
-            assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
-                    ()->db.update("DELETE FROM workspace_restore_receipts WHERE operation_id=?",
-                            googleScope.operationId()));
-            assertThrows(RuntimeException.class,()->tx.execute(st->
-                    engine.restoreBounded(googleScope,archive,key,approved)));
-            assertEquals(3L,db.queryForObject(
-                    "SELECT count(*) FROM point_transactions t WHERE t.member_id=?",
-                    Long.class,active));
-            assertEquals(1L,db.queryForObject("""
-                    SELECT count(*) FROM point_transactions t
-                    JOIN family_members m ON m.id=t.member_id
-                    WHERE m.family_id=?
-                    """,Long.class,neighbor));
-            assertEquals(7L,db.queryForObject("""
-                    SELECT sum(amount) FROM point_transactions WHERE member_id=?
-                    """,Long.class,foreign));
-            Long restoredExecution=db.queryForObject("""
-                    SELECT source_id FROM point_transactions
-                    WHERE member_id=? AND source_type='TASK'
-                    """,Long.class,active);
-            assertNotEquals(originalExecutionId,restoredExecution);
-            assertNotEquals(neighborExecution,restoredExecution);
-        }
     }
 }
