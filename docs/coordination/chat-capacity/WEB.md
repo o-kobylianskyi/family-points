@@ -51,3 +51,5 @@ Next Web chat creates new generation and records measured checkpoints; this row 
 | 2026-11-18 | Web | WEB-02 | 28 | unknown | PARTIAL_VISIBLE | unknown | NONE | 28 | 44bf33fe | QA_BLOCKED | Pinned 5-case Chromium request issue #18 comment 6976230912; no source mutation, browser unverified. |
 
 | 2026-11-18 | Web | WEB-02 | 30 | unknown | PARTIAL_VISIBLE | unknown | NONE | 30 | 8766fec9 | WEB_CI_PASS_QA_BLOCKED | Zero lint warnings / 37 native Node PASS at 05dea312, Chromium still NOT_RUN. |
+
+| 2026-11-18 | Web | WEB-02 | 31 | unknown | PARTIAL_VISIBLE | unknown | NONE | 31 | 843fe643 | SOURCE_PATCH_CI_PENDING | Align username fallback remount to backup request identity; native Node test added; QA Chromium blocked. |
