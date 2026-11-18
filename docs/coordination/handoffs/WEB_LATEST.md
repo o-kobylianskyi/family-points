@@ -160,6 +160,14 @@
 
 - **Post-write same-SHA CI verified**: [run 44268053082](https://github.com/o-kobylianskyi/family-points/actions/runs/44268053082) @ `27b91a22311e2f02a1686ce93b06dfccdedf5711`, Web job `134677648298`: actual decoded logs show **V49 syntax 6 fixtures PASS**, **native Node 33 PASS / 0 FAIL / 0 SKIP**, i18n/lint/Vite build SUCCESS, 3 lint warnings/0 errors. Scoped workflow with full attestation SKIPPED; Chromium browser still **NOT_RUN**. Supersedes earlier queued status.
 
+## WEB-02 package 22 — post-login fail-closed all-write browser guard (2026-11-18)
+- Pickup main HEAD `5c6e1dbb98f3f375ae7be7c5542d5b58892a4ad9`, QA-039 rolling still has **no Chromium two-tab actual outcome**; production BKL-002/BETA HOLD.
+- Source audit discovered synthetic catch-all guard `blockUnexpectedWorkspaceWrites` registered on `/workspaces/:id/` only. Unexpected writes outside that URL could escape to the actual QA server after login, invalidating claim that synthetic scenario cannot mutate real family.
+- Commit `374af974349d4fbcfad14f88d1d2ed0a66cbb928` changes helper `context.route('**/*', ...) ` **registered after sign-in**. Abort/log every unexpected post-login HTTP POST/PUT/PATCH/DELETE regardless of path; continue read-only requests. Later-registered narrowly scoped V49 setup/review/finalize/epoch and template-catalog mocks retain Playwright route priority. Both scenarios use this helper, and Service Workers remain blocked per prior `27b91a`. Caveat: a legitimate but unexpected token-refresh POST will now fail closed and surface in `unexpected` (QA must triage, no live write).
+- Independently fetched new test blob `5594c0c8acd46234fcfd0e3f3c43de4759651857`, V8 parse after ESM adaptation **PASS**; directly ran extracted route helper with simulated GET (CONTINUE) and five unexpected writes across /auth, /users, /workspaces and arbitrary routes (ABORT) **6/6 expected**. No Chromium, Node or true HTTP performed.
+- Exact [run 44268593069](https://github.com/o-kobylianskyi/family-points/actions/runs/44268593069) was QUEUED at check, so new-SHA CI NOT_YET_VERIFIED. Prior `44268053082` @`27b91a` Web 6 fixture syntax, 33 Node, i18n/lint/build PASS was scoped only and predates this patch.
+- Next: obtain exact current Web CI steps/logs and QA mocked two-tab Chromium results; if unexpected auth-refresh appears, record FAIL rather than allowing network writes. Keep BETA HOLD.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
