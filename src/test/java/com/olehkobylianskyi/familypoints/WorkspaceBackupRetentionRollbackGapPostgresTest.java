@@ -152,6 +152,27 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 .filter(row->id.equals(row.snapshotId())).count());
         assertEquals("RETAINED_VALID",retention.inspectExpiredArtifacts(10).stream()
                 .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
+        // RET-02: dry-run classification never modifies registry or ciphertext.
+        db.update("UPDATE workspace_protective_backups SET storage_key=? WHERE snapshot_id=?",
+                "local:v1:wrong/"+id+".fpbackup",id);
+        assertEquals("BLOCK_STORAGE_KEY",retention.inspectExpiredArtifacts(10).stream()
+                .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
+        db.update("UPDATE workspace_protective_backups SET storage_key=NULL WHERE snapshot_id=?",id);
+        assertEquals("NO_ARTIFACT_KEY",retention.inspectExpiredArtifacts(10).stream()
+                .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
+        db.update("UPDATE workspace_protective_backups SET storage_key=?,artifact_sha256=? WHERE snapshot_id=?",
+                "local:v1:"+family+"/"+id+".fpbackup","f".repeat(64),id);
+        assertEquals("BLOCK_INTEGRITY_OR_MISSING",retention.inspectExpiredArtifacts(10).stream()
+                .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
+        db.update("UPDATE workspace_protective_backups SET artifact_sha256=? WHERE snapshot_id=?",
+                "invalid",id);
+        assertEquals("BLOCK_DIGEST",retention.inspectExpiredArtifacts(10).stream()
+                .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
+        db.update("UPDATE workspace_protective_backups SET artifact_sha256=? WHERE snapshot_id=?",
+                stored.sha256(),id);
+        assertEquals("RETAINED_VALID",retention.inspectExpiredArtifacts(10).stream()
+                .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
+        assertTrue(Files.isRegularFile(artifact));
         assertThrows(org.springframework.web.server.ResponseStatusException.class,
                 ()->tx.execute(status->retention.acquireVerifiedLease(
                         family,id,java.time.Duration.ofMinutes(5))));
