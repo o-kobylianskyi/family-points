@@ -59,6 +59,7 @@ final class DisposableRestoreFinancialDependencyPreflight {
         }
         var balances=new TreeMap<String,Long>();
         var charged=new HashSet<Long>();
+        var taskEvents=new HashSet<String>();
         var seenLedger=new HashSet<Long>();
         for(JsonNode row:source.path("POINT_LEDGER")) {
             long rowId=id(row,"id");
@@ -80,7 +81,8 @@ final class DisposableRestoreFinancialDependencyPreflight {
                 JsonNode execution=byId(source.path("TASK_EXECUTIONS"),oldTaskExecution);
                 if(id(execution,"member_id")!=member
                         || !Set.of("EARN","PENALTY").contains(kind)
-                        || ("EARN".equals(kind)!=(amount>0)))
+                        || ("EARN".equals(kind)!=(amount>0))
+                        || !taskEvents.add(oldTaskExecution+":"+kind))
                     throw new SecurityException("RESTORE_TASK_SOURCE_MISMATCH");
             } else if("REWARD_PURCHASE".equals(provenance)) {
                 long originalPurchase=id(row,"source_id");
