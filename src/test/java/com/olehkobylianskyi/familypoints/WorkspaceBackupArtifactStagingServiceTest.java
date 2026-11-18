@@ -158,4 +158,53 @@ class WorkspaceBackupArtifactStagingServiceTest {
         verifyNoInteractions(exporter,storage);
     }
 
+    @Test void failedReadbackCompensatesNewlyPublishedArtifact() throws Exception {
+        var exporter=mock(WorkspacePortableBackupExporter.class);
+        var storage=mock(WorkspaceBackupLocalArtifactStore.class);
+        var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector,files);
+        var key=key();
+        UUID snapshot=UUID.randomUUID(),operation=UUID.randomUUID();
+        byte[] encrypted=archive(31,snapshot,operation,0,key,"MEMBER_GROUPS");
+        when(exporter.export(anyLong(),any(),any(),anyLong(),any(),any(),any()))
+                .thenReturn(new WorkspacePortableBackupExporter.Result(
+                        encrypted.clone(),"a".repeat(64),
+                        files.decode(encrypted).manifest().contentBytes(),
+                        snapshot,Map.of("MEMBER_GROUPS",0)));
+        when(storage.store(eq(31L),eq(snapshot),any(byte[].class)))
+                .thenReturn(new WorkspaceBackupLocalArtifactStore.Stored(
+                        snapshot,31L,"b".repeat(64),encrypted.length));
+        when(storage.read(31L,snapshot,"b".repeat(64)))
+                .thenThrow(new SecurityException("BACKUP_STORAGE_HASH_MISMATCH"));
+        var ex=assertThrows(SecurityException.class,()->staging.stage(31L,snapshot,operation,0L,
+                List.of("MEMBER_GROUPS"),"V50",key));
+        assertEquals("BACKUP_STORAGE_HASH_MISMATCH",ex.getMessage());
+        verify(storage).deleteAuthorizedExpired(31L,snapshot);
+    }
+
+    @Test void failedReadbackRetainsOriginalCauseWhenCleanupAlsoFails() throws Exception {
+        var exporter=mock(WorkspacePortableBackupExporter.class);
+        var storage=mock(WorkspaceBackupLocalArtifactStore.class);
+        var staging=new WorkspaceBackupArtifactStagingService(exporter,storage,inspector,files);
+        var key=key();
+        UUID snapshot=UUID.randomUUID(),operation=UUID.randomUUID();
+        byte[] encrypted=archive(31,snapshot,operation,0,key,"MEMBER_GROUPS");
+        when(exporter.export(anyLong(),any(),any(),anyLong(),any(),any(),any()))
+                .thenReturn(new WorkspacePortableBackupExporter.Result(
+                        encrypted.clone(),"a".repeat(64),
+                        files.decode(encrypted).manifest().contentBytes(),
+                        snapshot,Map.of("MEMBER_GROUPS",0)));
+        when(storage.store(eq(31L),eq(snapshot),any(byte[].class)))
+                .thenReturn(new WorkspaceBackupLocalArtifactStore.Stored(
+                        snapshot,31L,"b".repeat(64),encrypted.length));
+        when(storage.read(31L,snapshot,"b".repeat(64)))
+                .thenThrow(new SecurityException("READBACK_FAILED"));
+        when(storage.deleteAuthorizedExpired(31L,snapshot))
+                .thenThrow(new IllegalStateException("CLEANUP_FAILED"));
+        var ex=assertThrows(SecurityException.class,()->staging.stage(31L,snapshot,operation,0L,
+                List.of("MEMBER_GROUPS"),"V50",key));
+        assertEquals("READBACK_FAILED",ex.getMessage());
+        assertEquals(1,ex.getSuppressed().length);
+        assertEquals("CLEANUP_FAILED",ex.getSuppressed()[0].getMessage());
+    }
+
 }
