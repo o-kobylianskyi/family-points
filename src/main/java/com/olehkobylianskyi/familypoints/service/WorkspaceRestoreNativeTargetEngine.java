@@ -211,6 +211,10 @@ public final class WorkspaceRestoreNativeTargetEngine {
     }
 
     private void requireTargetEmpty(long workspace,Collection<Long> members) {
+        // The target may hold independent member/group/media/reputation
+        // histories even if the six directly replayed tables are empty.
+        // Do not claim that preserving those independent graphs is safe.
+        PortableV2SourceClosurePolicy.requireBoundedSource(db,workspace);
         for(String category:List.of("POINT_TYPES","TASK_DEFINITIONS","REWARD_DEFINITIONS")) {
             Long rows=db.queryForObject("SELECT count(*) FROM public."+TABLES.get(category)
                     +" WHERE family_id=?",Long.class,workspace);
