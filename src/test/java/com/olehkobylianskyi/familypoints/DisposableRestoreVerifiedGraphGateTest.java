@@ -68,7 +68,7 @@ class DisposableRestoreVerifiedGraphGateTest {
             DisposableRestorePlanFingerprint.Plan p,
             Collection<WorkspaceRestoreSelectionClosureV2.Category> c) {
         var a=new WorkspaceRestorePermitScopeV2.SourceArchive(
-                p.sourceWorkspace(),"v2",p.snapshot(),p.sourceEpoch(),
+                p.sourceWorkspace(),"VNext-2",p.snapshot(),p.sourceEpoch(),
                 "e".repeat(64),p.sealedManifestSha256());
         return new WorkspaceRestorePermitScopeV2.RestoreScope(
                 p.targetWorkspace(),7,8,UUID.randomUUID(),a,
