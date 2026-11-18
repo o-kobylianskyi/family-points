@@ -88,7 +88,14 @@ public final class WorkspaceBackupLocalArtifactStore {
      * A non-standard filename is a suspicious entry, not silently ignored.
      */
     public record InventoryEntry(String fileName, UUID snapshotId, long byteCount,
-                                 boolean regularFile, boolean symbolicLink) {}
+                                 boolean regularFile, boolean symbolicLink,
+                                 java.time.Instant modifiedAt) {
+        // Keep existing synthetic/mocked inventory callers source-compatible.
+        public InventoryEntry(String fileName,UUID snapshotId,long byteCount,
+                              boolean regularFile,boolean symbolicLink) {
+            this(fileName,snapshotId,byteCount,regularFile,symbolicLink,null);
+        }
+    }
 
     public List<InventoryEntry> inventory(long workspaceId,int limit) {
         if(workspaceId<=0 || limit<1 || limit>1000)
@@ -108,7 +115,10 @@ public final class WorkspaceBackupLocalArtifactStore {
                     try {id=UUID.fromString(name.substring(0,36));}
                     catch(IllegalArgumentException ignored) { /* suspicious filename */ }
                 }
-                entries.add(new InventoryEntry(name,id,bytes,regular,symlink));
+                java.time.Instant modifiedAt=regular
+                        ?Files.getLastModifiedTime(candidate,LinkOption.NOFOLLOW_LINKS).toInstant()
+                        :null;
+                entries.add(new InventoryEntry(name,id,bytes,regular,symlink,modifiedAt));
             }
         } catch(IOException ex) {
             throw new IllegalStateException("BACKUP_LOCAL_INVENTORY_FAILED",ex);
