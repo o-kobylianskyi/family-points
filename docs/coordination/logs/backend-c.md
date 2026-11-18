@@ -16,3 +16,10 @@
 - Source audit and explicit 10-group negative-test matrix: `docs/coordination/requests/BACKEND_C_SECURITY_RESET_AUDIT_20261118.md` @ `bd291acb`.
 - **Status:** audit COMPLETED, C code NOT MODIFIED, Maven/PG NOT_RUN; Reset Execute HTTP423, BETA HOLD.
 - **Next:** get ownership schema/migration ACK, implement isolated `canResetWorkspace` with fail-closed tests, re-check CI exact SHA.
+
+## 2026-11-18 — C-C-02A: original owner provenance analysis and contract
+- Inspected `Workspace`, `WorkspaceMember`, `WorkspaceController`, `WorkspaceSecurity`, `CurrentUserService`, `UserAccountService` and `WorkspaceJoinService`. Existing mutable role/privilege is not reliable creator provenance; `WorkspaceController.createWorkspace` blocks direct creation in favor of registration.
+- Published explicit migration and original-owner authorization request: `docs/coordination/requests/BACKEND_C_OWNER_PROVENANCE_CONTRACT_20261118.md` @ `daad2432`.
+- Plan requires **verified** creator account+member+workspace provenance, no guessed legacy owner backfill; own-workspace and account lifecycle checks, cross-workspace denial and retention of HTTP423. Coordinator must assign registration/migration file ownership first.
+- **State:** C-C-02 policy implementation BLOCKED ON CONTRACT ACK, no Java or SQL migrations applied; no tests executed, BETA HOLD unchanged.
+- **Next:** once approved, implement owner binding transactionally in registration and standalone reset-only ACL with negative tests; do not infer current manager=original owner.
