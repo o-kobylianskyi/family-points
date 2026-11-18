@@ -34,6 +34,7 @@ class DisposablePortableMemberEdgeSchemaPostgresTest {
                 Map.entry("REWARD_PURCHASES","reward_purchases"),
                 Map.entry("POINT_EXCHANGE_REQUESTS","point_exchange_requests"),
                 Map.entry("GROUP_MEMBERSHIPS","group_memberships"),
+                Map.entry("MEMBER_EXCEPTION_PERIODS","member_exception_periods"),
                 Map.entry("TASK_DELEGATIONS","task_delegations"));
         for(var entry:DisposablePortableMemberReferenceClosure.coveredEdges().entrySet()) {
             String table=tables.get(entry.getKey());
