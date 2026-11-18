@@ -106,6 +106,12 @@ class WorkspaceRestorePermitScopeV2Test {
         assertFalse(s.toString().contains("23"));
     }
 
+    @Test void targetEpochOverflowIsRefusedBeforeAnyDatabaseWrite() {
+        assertThrows(IllegalArgumentException.class, () -> new RestoreScope(
+                8,23,17,OP,archive(),C,D,Long.MAX_VALUE,
+                TIME,TIME.plusSeconds(60)));
+    }
+
     @Test void unknownSchemaMalformedDigestAndOverlongTtlAreRejected() {
         assertThrows(IllegalArgumentException.class,()->new SourceArchive(7,"",SNAP,0,A,B));
         assertThrows(IllegalArgumentException.class,()->new SourceArchive(7,"V2",SNAP,-1,A,B));
