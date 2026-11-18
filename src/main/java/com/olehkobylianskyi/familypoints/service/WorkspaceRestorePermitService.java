@@ -39,6 +39,7 @@ public final class WorkspaceRestorePermitService {
     public WorkspaceRestorePermitService(JdbcTemplate db,
             WorkspaceEpochTransactionGuard epochs,PasswordEncoder passwords,
             WorkspaceRestorePasswordLimiter limiter,ProtectiveBackupImportInspector inspector,
+            WorkspaceRestoreCategorySelectionV2 selection,CurrentUserService currentUser,
             ProtectiveBackupPortableFile portable,ProtectiveBackupArtifactCodec codec,
             GoogleTokenVerifier google) {
         this.db=db;this.epochs=epochs;this.passwords=passwords;
@@ -72,21 +73,25 @@ public final class WorkspaceRestorePermitService {
                 ||member.getWorkspace().getId().longValue()!=scope.targetWorkspaceId())
             throw new SecurityException("RESTORE_AUTHENTICATED_PRINCIPAL_REQUIRED");
         limiter.requireAvailable(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
-        verifiedSource(scope,sourceFile,key,reviewedMemberMap);
-        long epoch=epochs.requireCurrentEpoch(scope.targetWorkspaceId(),scope.targetExpectedEpoch());
-        if(epoch!=scope.targetExpectedEpoch())
-            throw new SecurityException("RESTORE_TARGET_EPOCH_CHANGED");
-        Instant now=Instant.now();
-        if(!scope.matches(scope,now) ||
-                scope.issuedAt().isBefore(now.minusSeconds(15)) ||
-                scope.issuedAt().isAfter(now.plusSeconds(1)))
-            throw new SecurityException("RESTORE_PERMIT_ISSUANCE_NOT_CURRENT");
+        // Authenticate and persist password attempt BEFORE the target family
+        // FOR UPDATE lock. REQUIRES_NEW budget writes need a family FK KEY SHARE;
+        // doing them after FOR UPDATE would self-deadlock on the outer TX.
         String credential=requireOwnerPasswordHash(scope);
         if(currentPassword==null || credential==null || !credential.startsWith("$2")
                 || !passwords.matches(currentPassword,credential)) {
             limiter.recordFailure(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
             throw new SecurityException("RESTORE_FRESH_PASSWORD_REQUIRED");
         }
+        limiter.clearSuccess(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
+        verifiedSource(scope,sourceFile,key,reviewedMemberMap);
+        long epoch=epochs.requireCurrentEpoch(scope.targetWorkspaceId(),scope.targetExpectedEpoch());
+        if(epoch!=scope.targetExpectedEpoch())
+            throw new SecurityException("RESTORE_TARGET_EPOCH_CHANGED");
+        Instant now=Instant.now();
+        if(!scope.matches(scope,now)
+                ||scope.issuedAt().isBefore(now.minusSeconds(15))
+                ||scope.issuedAt().isAfter(now.plusSeconds(1)))
+            throw new SecurityException("RESTORE_PERMIT_ISSUANCE_NOT_CURRENT");
         String digest=WorkspaceRestorePermitScopeV2.canonicalScopeDigest(scope);
         int inserted=db.update("""
             INSERT INTO workspace_restore_permits
@@ -102,7 +107,6 @@ public final class WorkspaceRestorePermitService {
                 java.sql.Timestamp.from(scope.expiresAt()));
         if(inserted!=1)
             throw new SecurityException("RESTORE_PERMIT_OPERATION_ALREADY_EXISTS");
-        limiter.clearSuccess(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
     }
 
     /**
