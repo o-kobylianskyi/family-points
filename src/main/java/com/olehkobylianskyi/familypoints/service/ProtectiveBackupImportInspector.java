@@ -45,6 +45,21 @@ public final class ProtectiveBackupImportInspector {
             sourceRoleIds=List.copyOf(sourceRoleIds);
             sourceMemberIds=List.copyOf(sourceMemberIds);
         }
+        /**
+         * Reuse C's real binary mapping protocol over verified historic IDs.
+         * Reviewed pairs are supplied by the caller: this proves only source
+         * membership/cardinality, NOT target family ownership, human review,
+         * original owner authentication or a durable RESTORE permit.
+         */
+        public String canonicalMappingDigestForReviewedIds(
+                long targetWorkspaceId,Map<Long,Long> reviewedPairs) {
+            if(reviewedPairs==null
+                    ||!reviewedPairs.keySet().equals(Set.copyOf(sourceMemberIds)))
+                throw new SecurityException("PORTABLE_V2_MEMBER_MAP_ROSTER_MISMATCH");
+            return com.olehkobylianskyi.familypoints.security
+                    .WorkspaceRestorePermitScopeV2.canonicalMappingDigest(
+                            sourceWorkspaceId,targetWorkspaceId,reviewedPairs);
+        }
     }
     public AncestryV2Inspection inspectAncestryV2(byte[] file,long sourceWorkspaceId,
                                                   SecretKey key) {
