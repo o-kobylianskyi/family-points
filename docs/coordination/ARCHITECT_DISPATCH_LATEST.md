@@ -2,6 +2,15 @@
 
 **Effective:** 2026-11-18 18:26 CET. **Authoritative control for live workstream activation and assignments.** Owner communicates primarily with Architecture; owner starts role chats by sending only `++`. GitHub is the durable coordination queue. The user need not copy technical assignments into chats.
 
+## CURRENT DISPATCH CHECKPOINT — 2026-11-18, after QA_BASELINE_READY
+
+**Architecture verified latest GitHub Issue #15:** QA posted `QA_BASELINE_READY` (comment [6986423111](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-6986423111)); its nonblocking baseline work is **COMPLETE**. Last actual fully executed verification reported by QA: [CI #44346461826](https://github.com/o-kobylianskyi/family-points/actions/runs/44346461826) QA PR SHA `425fbc8e`, Maven/PG18 **763 tests 0F/0E/0S**, Web/Android/Compose/exact SHA SUCCESS, but this is **not current main HEAD**. Historical QA negative draft [PR #27](https://github.com/o-kobylianskyi/family-points/pull/27) at `053ef322`: 766 tests, 2 failures (synthetic `authorization_header`, nested `x-api-key` aliases), kept UNMERGED; B must preserve fail-closed privacy and disposition within his large package, no speculative QA interruption.
+- **OWNER: activate / continue ONLY Backend B with `++` NOW**, [B active work file](handoffs/BACKEND_B_ACTIVE_ASSIGNMENT.md). At this check, no B-INT-02 implementation commits or `READY_FOR_QA` after the new dispatcher were observed. B should do the full implementation pass, not another docs-only planning response.
+- **QA: WAIT / DO NOT ACTIVATE** now. QA will be reactivated by Architecture **only once B posts `READY_FOR_QA`**, to run one aggregate formal acceptance. Baseline phase complete; no duplicate CI.
+- **Web, Android, Designer, Release WAIT; Backend A/C/D CLOSED**.
+- **Architecture next trigger:** B handoff `READY_FOR_QA` or one genuine blocking contract issue. No background process implied; owner manually starts the B chat with `++`.
+- **Safety unchanged:** `restorable=false`, `replaySupported=false`, Reset Execute HTTP423, BETA HOLD.
+
 ## Mandatory stream bootstrap and every subsequent `++`
 1. Read this file from `main` **at the start of every active turn**. Then read only your current role assignment file below, Issue [#15](https://github.com/o-kobylianskyi/family-points/issues/15) for the latest architect directive, and relevant source/CI. **Do not ask owner to paste tasks.**
 2. Perform the **largest safe substantive portion** of the currently assigned work autonomously. `++` = continue the latest active assignment; not permission for production data deletion, deployment, reset, destructive backup retention, or release.
@@ -15,7 +24,7 @@
 |---|---|---|---|
 | Architecture | ACTIVE: sole coordinator/acceptance router | **this file** | Coordinates dependency gates and calls activation |
 | Backend B | **ACTIVATE / CONTINUE** with `++` | [BACKEND_B_ACTIVE_ASSIGNMENT.md](handoffs/BACKEND_B_ACTIVE_ASSIGNMENT.md) | Deliver B-INT-02 big implementation; no micro gates |
-| QA | **ACTIVATE / CONTINUE** with `++` for baseline audit, then WAIT until B READY_FOR_QA | [QA_ACTIVE_ASSIGNMENT.md](handoffs/QA_ACTIVE_ASSIGNMENT.md) | Parallel nonblocking baseline; full gate after B handoff |
+| QA | **WAIT** — baseline complete; reactivate at B READY_FOR_QA | [QA_ACTIVE_ASSIGNMENT.md](handoffs/QA_ACTIVE_ASSIGNMENT.md) | Parallel nonblocking baseline; full gate after B handoff |
 | Backend A | CLOSED | historical only | All mandatory tasks inherited by B |
 | Backend C | CLOSED | historical only | All mandatory tasks inherited by B |
 | Backend D | CLOSED | historical only | All mandatory tasks inherited by B |
