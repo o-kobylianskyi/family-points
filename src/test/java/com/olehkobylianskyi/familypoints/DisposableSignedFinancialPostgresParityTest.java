@@ -26,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 class DisposableSignedFinancialPostgresParityTest {
     @Container
-    static final PostgreSQLContainer<?> POSTGRES =
-            new PostgreSQLContainer<>("postgres:18-alpine")
+    static final PostgreSQLContainer POSTGRES =
+            new PostgreSQLContainer("postgres:18-alpine")
                     .withDatabaseName("fin08_rehearsal")
                     .withUsername("qa").withPassword("qa");
 
