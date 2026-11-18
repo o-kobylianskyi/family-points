@@ -153,6 +153,17 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
                     family,UUID.randomUUID(),UUID.randomUUID(),0,key));
             assertNotNull(historical);
             historyStored=historical.encryptedFile();
+            // A signed bounded archive must never silently omit a live
+            // reward request outside its six supported historical tables.
+            long outside=db.queryForObject("""
+                    INSERT INTO reward_requests(
+                        family_id,requested_by_member_id,title,status)
+                    VALUES (?,?,'Unsupported request','PENDING') RETURNING id
+                    """,Long.class,family,active);
+            assertThrows(SecurityException.class,()->tx.execute(status->
+                    exporter.exportWithHistory(family,UUID.randomUUID(),
+                            UUID.randomUUID(),0,key)));
+            db.update("DELETE FROM reward_requests WHERE id=?",outside);
             var envelope=portable.decode(stored);
             byte[] plain=codec.open(envelope,snapshot,family,key);
             try {
