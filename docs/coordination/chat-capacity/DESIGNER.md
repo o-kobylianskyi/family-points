@@ -24,5 +24,7 @@ See [all-track measurement protocol](../CHAT_CAPACITY_OBSERVABILITY_20261116.md)
 
 | 2026-11-18 (time not measured, after #44263428106) | Designer | DESIGNER-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 74524363e0b8d5c720997893601b45027e1f1d94 | CHECKPOINT | Two full CI runs: 500/1 and 503/1 Backend red; Web/Android/Compose green; Chromium two-tab remains NOT_RUN. |
 
+| 2026-11-18 (exact minute not measured) | Designer | DESIGNER-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 282645317e9485c84db312c3b6c84624dac85d6b | CHECKPOINT | QA two-tab spec source strengthened with UUID marker assertions; Chromium still NOT_RUN; Restore Engine assigned Backend B, no new Designer UX defect. |
+
 ## Rules
 After each substantial Designer work batch append one fact-based row and refresh [Designer latest handoff](../handoffs/DESIGNER_LATEST.md). Report actual user-observed hard-limit events without saving private transcript/screenshot. Never claim 50/75/85% or later thresholds without trustworthy measurement.
