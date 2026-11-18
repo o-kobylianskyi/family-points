@@ -193,6 +193,22 @@ class DisposableLedgerSourceGraphVerifierTest {
         assertEquals(1,accepted.taskRows());
     }
 
+    @Test void unusedTaskSnapshotCurrencyMustExistInSignedSourceCatalog()
+            throws Exception {
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                body->body.replace("\"TASK_EXECUTIONS\":[",
+                        "\"TASK_EXECUTIONS\":[{\"id\":99,\"member_id\":4,"+
+                        "\"task_definition_id\":77,\"reward_amount\":10,"+
+                        "\"reward_point_type_id\":999},")));
+        assertThrows(SecurityException.class,()->verifyEdited(
+                "","TASK",42L,4,4,
+                body->body.replace("\"TASK_EXECUTIONS\":[",
+                        "\"TASK_EXECUTIONS\":[{\"id\":99,\"member_id\":4,"+
+                        "\"task_definition_id\":77,\"penalty_amount\":7,"+
+                        "\"penalty_point_type_id\":999},")));
+    }
+
     @Test void evenUnusedArchivedTaskCannotHaveInvalidMemberId()
             throws Exception {
         var valid=verify("","TASK",42L,4,4);
