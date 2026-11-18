@@ -152,3 +152,10 @@
 - Pure populated graph negative tests @93470dc2/@f46534ec and real PG18 source-loss test extension @deccc2b8/@f590f0ff; no current exact SHA PASS yet.
 - Full ci request packet docs/coordination/requests/BACKEND_B_V2_HISTORY_ONE_PACKAGE_FINAL_CI_20261118.md @eaecbf4f. Run all-four on new immutable SHA after last source changes.
 - IMPORTANT: NOT FINAL FULL ARCHIVE: other media/group/reputation/refund/exchange/reward obligation categories and 17 member FK dispositions remain. No real owner grant/target native restore. Restorable/replaySupported false, HTTP423/BETA HOLD.
+
+## QA-075 P0 closure — 2026-11-18: BOTH SOURCE FIXES CODED / CI PENDING
+- Verified independent QA Draft PR #21 and Issue #20 QA-070–075. No QA branch merge: red-first independent acceptance remains Draft.
+- P0-1 product fixed: `PortableV2HistoryGraph.attest` @76773efd requires exact numeric, present, non-null source family_id in POINT_TYPES, TASK_DEFINITIONS, REWARD_DEFINITIONS; active test @0d7c7a40 adds QA-matched 12 negative variants and valid eight-category root.
+- P0-2 prior empty-finance PG18 gap addressed IN CODE: existing `WorkspacePortableAncestryV2SourceLossPostgresTest` @911d9317 now inserts real migrated original/neighbor source family, actual task/reward defs + point type + task execution + reward purchase + 3 TASK/REWARD_PURCHASE/MANUAL ledger entries, seals v2, stops PostgreSQL18 and checks nonempty 6 history category counts, no neighboring data, C SourceArchive metadata and root. @c9bcfc19 rejects modified re-sealed ledger source ID offline. JPA fields/source enum inspected before test design. **Actual PG18 test PASS still unverified**; fix first SQL/constraint mismatch shown by new runner, don't invent success.
+- One final [full-ci] source+QA packet @a311f289 `docs/coordination/requests/BACKEND_B_QA075_P0_BOTH_CORRECTIONS_FULL_CI_20261118.md`. QA independent Issue #20 update #6982787864. Previous 749/749 baseline @89b0f8e1 is historical only.
+- No production RESTORE enable; unknown other categories and 17 FK remain separate final archive completeness gate. `restorable=false`, `replaySupported=false`, Reset Execute HTTP423, BETA HOLD.
