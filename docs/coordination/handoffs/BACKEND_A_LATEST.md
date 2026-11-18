@@ -118,3 +118,11 @@ Source files reviewed:
 - Handoff baseline `0c59f06` run `44270985978`: Java Maven/PostgreSQL, Android, Web, Compose all SUCCESS; synthetic Full CI exact-SHA evidence job was SKIPPED, not an additional passing job. Earlier failure snapshots do not invalidate later separately verified successes.
 - Exact-SHA CI for latest fix `9b71ce0` in progress as of handoff. Do not mark that SHA complete until its own jobs finish and test count is checked.
 - The new reverse registry-presence audit is part of this B-A-03h release batch; no auto cleanup, archival version change or Restore unlock.
+
+
+## B-A-03i — 2026-11-18 multi-PG18 TOCTOU safety tests / operator SOP
+- Verified B-A-03h `041fc3b4` Actions `44271220339` overall SUCCESS; prior `9b71ce0` was FAILED, so exact SHA matters.
+- `2d9fbb8` / `47112de`: `WorkspaceBackupReconciliationRacePostgresTest` adds three real PG18 race paths: registry commit between filesystem scan and SQL, stale orphan finding followed by registry appearance, concurrent active restore lease creation. All deny deletion, preserve tenant fence.
+- QA/operator-only runbook: `docs/coordination/requests/B-A-03I_TOCTOU_RACE_RECONCILIATION_QA_20261118.md` commit `3f47f5a`. This is NOT an approved cleanup operation and has no delete API/scheduler. 24h staleness is a review threshold, not a delete threshold.
+- Backend B conditionally ACKed hidden member provenance catalog via `docs/coordination/requests/BACKEND_B_TO_A_MEMBER_SOURCE_CONSUMER_ACK_20261118.md`; Architecture named schema/version approval still pending, so no archive schema change.
+- New SHA must get exact-SHA all-four CI evidence. Next B-A-03j: CI fail triage, source cleanup/retention callsite audit, reverse-audit racing registry checks; hold real Restore, HTTP423 and BETA.
