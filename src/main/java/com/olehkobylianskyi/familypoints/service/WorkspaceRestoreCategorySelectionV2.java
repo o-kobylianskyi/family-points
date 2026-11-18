@@ -31,6 +31,14 @@ public final class WorkspaceRestoreCategorySelectionV2 {
 
     public String requireCanonical(WorkspaceRestorePermitScopeV2.RestoreScope scope,
             byte[] file,SecretKey key) {
+        String expected=calculateCanonical(scope,file,key);
+        if(!expected.equals(scope.selectionClosureDigest()))
+            throw new SecurityException("RESTORE_SELECTION_SCOPE_NOT_AUTHENTICATED");
+        return expected;
+    }
+
+    public String calculateCanonical(WorkspaceRestorePermitScopeV2.RestoreScope scope,
+            byte[] file,SecretKey key) {
         var archive=files.decode(file);
         if(archive.manifest().workspaceId()!=scope.source().sourceWorkspaceId()
                 ||!archive.manifest().snapshotId().equals(scope.source().snapshotId())
@@ -66,8 +74,6 @@ public final class WorkspaceRestoreCategorySelectionV2 {
             String digest=WorkspaceRestoreSelectionClosureV2.canonicalDigest(
                     PortableManifestRootV2.SCHEMA,scope.source().sourceWorkspaceId(),
                     scope.targetWorkspaceId(),categories);
-            if(!digest.equals(scope.selectionClosureDigest()))
-                throw new SecurityException("RESTORE_SELECTION_SCOPE_NOT_AUTHENTICATED");
             return digest;
         } catch(java.io.IOException malformed) {
             throw new SecurityException("RESTORE_SELECTION_JSON_INVALID",malformed);
