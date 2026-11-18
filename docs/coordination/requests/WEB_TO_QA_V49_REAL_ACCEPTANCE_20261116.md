@@ -116,3 +116,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 service worker safe mock isolation (2026-11-18)
 - Patch `27b91a22311e2f02a1686ce93b06dfccdedf5711` sets Playwright `test.use({ serviceWorkers: 'block' })` for two-tab V49 synthetic only. Active Service Workers can intercept network requests before Playwright `context.route`, undermining the catch-all POST block; per-spec setting enforces route interception. V8 syntax PASS, Chromium NOT_RUN; QA executes only in isolated selected family with all writes intercepted, reports 2 cases and POST counts. BETA HOLD.
+
+
+## WEB-02 V49 synthetic all-mutations guard (2026-11-18)
+- Fixture `374af974349d4fbcfad14f88d1d2ed0a66cbb928` upgrades post-login Playwright route guard from only `/workspaces/:id/...` to **all URL paths**, aborting/logging unexpected POST/PUT/PATCH/DELETE; known V49 setup/review/finalize routes registered subsequently and mocked. Service Workers disabled. Direct extracted guard V8 simulation GET + five different write URLs = 6 expected outcomes PASS, **not Chromium**. QA should report unexpected auth-refresh writes as blocked FAIL/triage rather than silently sending them. Browser acceptance (2 actual cases, original UUID, epoch/revision, markers, POST count) still pending; BETA HOLD.
