@@ -43,3 +43,12 @@ Source verifier: `src/test/java/com/olehkobylianskyi/familypoints/DisposableLedg
 **Dependency:** Backend B/A must agree on portable protected `FAMILY_MEMBERS` mapping and parent catalog closure before claiming native financial restoration. Backend C approval transport and epoch gates are independent prerequisites. Backend D will keep archive/read-only financial checks isolated while Restore B matures.
 
 **Next (FIN-04):** read-only financial source-to-target reconciliation contract and disposable PostgreSQL acceptance fixture, including exact provenance and rollback checks. Publish test counts, SHA and CI job links when genuinely verified.
+
+## FIN-04 follow-up — 2026-11-18
+
+- Committed `a634809a2518bce87cf4c01cdf2c08452b631a3b`: `DisposableFinancialMappingParityTest.java`, a read-only source-to-target ledger mapping verifier with six JUnit tests.
+- Compares exact row lineage (ledger/member/currency/task/purchase ID mappings, amount, transaction and source type), not just aggregate totals.
+- Requires per-category injective maps and exact ledger row coverage. Rejects duplicated mappings, absent parents, foreign member/currency, altered ancestry, and balanced fraudulent compensation.
+- Backend B continues to own transactional Restore and PostgreSQL rollback tests. This fixture does not mutate DB, is not plugged into production API, and cannot unlock financial restore.
+- **Evidence limitation:** GitHub commit-status and workflow-run lookups for `a634809` returned no entries. JUnit/Maven execution has **not** been observed; do not mark FIN-04 PASS before actual pinned SHA CI.
+- QA handoff: execute `./mvnw -Dtest=DisposableFinancialMappingParityTest test` where Maven wrapper is available, or `mvn -Dtest=DisposableFinancialMappingParityTest test`; capture JUnit XML, SHA and CI URL, then incorporate mapped-ledger parity in disposable PostgreSQL Restore rehearsal.
