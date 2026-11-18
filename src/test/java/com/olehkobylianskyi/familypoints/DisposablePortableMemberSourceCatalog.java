@@ -95,6 +95,6 @@ public final class DisposablePortableMemberSourceCatalog {
     private static long positive(Object raw) {
         if(!(raw instanceof Long || raw instanceof Integer) || ((Number)raw).longValue()<=0)
             throw new SecurityException("SOURCE_PROVENANCE_ID_INVALID");
-        return n.longValue();
+        return ((Number)raw).longValue();
     }
 }
