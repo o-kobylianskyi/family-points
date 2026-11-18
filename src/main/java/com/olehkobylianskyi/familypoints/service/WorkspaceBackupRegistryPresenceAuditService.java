@@ -55,7 +55,21 @@ public class WorkspaceBackupRegistryPresenceAuditService {
             } else {
                 try {
                     storage.verifyStoredCiphertext(workspaceId,id,sha);
-                    classification="REGISTRY_CIPHERTEXT_PRESENT";
+                    // A concurrent writer may commit after the first registry
+                    // SELECT but before ciphertext verification completes.
+                    // Re-observe exact source identity/evidence. This still
+                    // is NOT a durable permission: it merely flags observed drift.
+                    var fresh=db.queryForList("""
+                            SELECT state,storage_key,artifact_sha256
+                            FROM workspace_protective_backups
+                            WHERE workspace_id=? AND snapshot_id=?
+                            """,workspaceId,id);
+                    classification=fresh.size()!=1
+                            || !Objects.equals(state,fresh.get(0).get("state"))
+                            || !Objects.equals(key,fresh.get(0).get("storage_key"))
+                            || !Objects.equals(sha,fresh.get(0).get("artifact_sha256"))
+                            ? "REGISTRY_CHANGED_DURING_AUDIT"
+                            : "REGISTRY_CIPHERTEXT_PRESENT";
                 } catch(SecurityException | IllegalArgumentException invalid) {
                     classification="REGISTRY_CIPHERTEXT_INVALID";
                 } catch(IllegalStateException unavailable) {
