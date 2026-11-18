@@ -100,3 +100,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 V49 pending marker persistence checks (2026-11-18)
 - Browser synthetic `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` updated at `3354bcab3039d79aa5467ff9a040508431a06a80`: after lost finalize and GET receipt 404, local+shared pending operation IDs equal original finalize POST UUID; after foreign shared-marker takeover during valid receipt, original local marker remains original UUID and foreign shared marker survives. Existing assertions also require receipt GET exact original UUID and no duplicate finalize POST. V8 source syntax PASS; browser Chromium NOT_RUN, QA runs pinned clean SHA in isolated selected QA workspace, record PASS/FAIL/SKIP, POST count, original UUID/GET path and trace. Latest former Web-scoped run #44263459076 @9e6a478 6-fixture syntax/33 Node PASS, predates new test. No real family actions, BETA HOLD.
+
+
+## WEB-02 two-tab route assertion reliability (2026-11-18)
+- Test-only commit `ca87502121e19ebe90f25bb83e8f2560a07e068f`: both V49 browser specs record the receipt GET path in `context.route` handler and assert exact original UUID in test body, preventing route-callback assertion exceptions from masking errors as timeouts. V8 syntax PASS, Chromium NOT_RUN, latest Actions run queued when checked. QA run 2 scenarios in isolated selected QA workspace, report original UUID, GET path, POST count, PASS/FAIL/SKIP and trace; BETA HOLD.
