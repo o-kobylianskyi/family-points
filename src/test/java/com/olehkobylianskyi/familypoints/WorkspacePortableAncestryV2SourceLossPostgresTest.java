@@ -114,11 +114,30 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
         corrupted[corrupted.length-1]^=1;
         assertThrows(SecurityException.class,()->
                 offline.inspectAncestryV2(corrupted,source,key));
-        var wrongKey=new SecretKeySpec(new byte[32],"AES");
-        wrongKey.getEncoded()[0]=1; // Cipher key fixture is an independent array.
         var different=new byte[32];different[0]=1;
         var otherKey=new SecretKeySpec(different,"AES");
         assertThrows(SecurityException.class,()->
                 offline.inspectAncestryV2(file,source,otherKey));
+        // A reader possessing the encryption key can re-seal modified JSON,
+        // but cannot make a stale manifestRootDigest pass the independent
+        // category/root proof. Explicitly protect against trusting JSON root.
+        var old=portable.decode(file);
+        byte[] original=codec.open(old,snapshot,source,key);
+        try {
+            var modified=(com.fasterxml.jackson.databind.node.ObjectNode)
+                    new ObjectMapper().readTree(original);
+            var rows=(com.fasterxml.jackson.databind.node.ArrayNode)
+                    modified.path("categories").path("FAMILY_MEMBERS");
+            ((com.fasterxml.jackson.databind.node.ObjectNode)rows.get(0))
+                    .put("activeAtSnapshot",false);
+            var edited=new ObjectMapper().writeValueAsBytes(modified);
+            try {
+                var sealed=codec.seal(snapshot,source,old.manifest().operationId(),
+                        old.manifest().dataEpoch(),old.manifest().sourceDigest(),
+                        PortableManifestRootV2.SCHEMA,edited,key);
+                assertThrows(SecurityException.class,()->
+                        offline.inspectAncestryV2(portable.encode(sealed),source,key));
+            }finally{Arrays.fill(edited,(byte)0);}
+        }finally{Arrays.fill(original,(byte)0);}
     }
 }
