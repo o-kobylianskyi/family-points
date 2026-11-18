@@ -149,3 +149,5 @@ Source files reviewed:
 - QA and architectural remediation request `docs/coordination/requests/B-A-03K_RETENTION_SQL_ROLLBACK_GAP_QA_20261118.md` @`bf812d0`: non-atomic filesystem/SQL operation is confirmed design risk, **no production retention refactor or deletion activation**. Recommend separately approved quarantine/intent/alternate-copy state machine with idempotent recovery and lease checks before releasing cleanup.
 - New exact-SHA CI/Pg18 test result pending. Backend B conditional original member catalog source ACK only; Architecture version/privacy/FK closure signoff still required. `restorable=false` / `replaySupported=false` / Reset HTTP423 / BETA HOLD unchanged.
 - Next B-A-03l: exact-SHA CI verification/fix, then staged retention state machine contract and disposable fault-injection rehearsal, no autonomous production purge.
+
+- Follow-up `0bd68d4`: physical retention fault-injection PG18 test deletes *only its own synthetic registry row* after assertions so shared static Testcontainers test methods cannot accidentally process another test's older expired fixture. Exact-SHA CI pending.
