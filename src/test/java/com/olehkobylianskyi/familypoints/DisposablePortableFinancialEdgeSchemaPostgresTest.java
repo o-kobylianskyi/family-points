@@ -42,9 +42,9 @@ class DisposablePortableFinancialEdgeSchemaPostgresTest {
                     """,table,parent.column());
                 assertEquals(1,cols.size(),"Missing source edge "+table+"."+parent.column());
                 // reward_purchases.reward_definition_id is physically nullable
-                // in the migrated PostgreSQL schema (historical orphan purchase
-                // records). The portable source graph still REQUIRES a reviewed
-                // parent before declaring that row replayable.
+                // in the observed migrated PostgreSQL schema. Do not infer a
+                // historical reason for this from the schema alone. The portable
+                // source graph still REQUIRES a reviewed non-null parent.
                 String physicalExpected = "reward_purchases".equals(table)
                         && "reward_definition_id".equals(parent.column())
                         ? "YES" : parent.optional()?"YES":"NO";
