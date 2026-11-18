@@ -84,10 +84,10 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
             long task=db.queryForObject("""
                     INSERT INTO task_definitions(
                         family_id,assigned_member_id,title,description,mandatory,
-                        recurrence_type,active,created_at,updated_at,
+                        delegation_allowed,recurrence_type,active,created_at,updated_at,
                         reward_point_type_id,reward_amount)
                     VALUES (?,?,'PG18 historical task','Source-only QA',false,
-                        'ONCE',true,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?,5)
+                        false,'ONCE',true,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?,5)
                     RETURNING id
                     """,Long.class,family,active,pointType);
             long reward=db.queryForObject("""
