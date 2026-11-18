@@ -24,4 +24,16 @@
 ### Dependencies / other streams
 QA can independently audit current CI **in parallel** but does not gate your implementation except proven critical security/compiler failures in shared files. Web/Android/Release WAIT. Architecture will trigger their work only if a concrete API/UX change or final acceptance requires it. A/C/D never activated without owner decision.
 
+
+## PRE-AUTHORIZED NEXT TASK QUEUE — NO NEW ARCHITECT ACK BETWEEN PACKAGES
+
+After completing the current **B-INT-02** implementation and posting a **genuine coherent `READY_FOR_QA`**, do **not** silently turn it into release eligibility. QA will verify that immutable package SHA separately. On the **next `++`**, Backend B may start the following independent work **while QA tests B-INT-02**, subject to explicit file conflict exclusion; no waiting for new Architecture instruction:
+1. **B-NEXT-01 — Native restore interoperability and compatibility (independent files only):** inspect existing clients' read-only backup/restore metadata contract, error code compatibility and source V1 inspection, and implement missing *backend-only* compatibility adapters and tests. Do NOT change B-INT-02 files/DB migrations currently under QA scrutiny, owner permit issue/consume, native transactional executor, C canonical binding, or review-sensitive privacy validator. Unsupported category remains fail-closed. One meaningful batch; report `B-NEXT-01_READY_FOR_QA` with exact SHA.
+2. **B-NEXT-02 — Independent Restore observability / recovery semantics:** implement safe audit/logging and operator-readable (not executable) status/receipt diagnostics in backend files not under QA's B-INT-02 changes; no secrets, tokens, member PII in logs, no live mutation, no automatic retry. Only start if B-NEXT-01 fully handed off and its file boundary is clear. Post `B-NEXT-02_READY_FOR_QA`. If this would touch B-INT-02 files or receipt serialization under active QA, **WAIT instead**.
+3. **Priority preemption:** if QA returns a concrete P0/P1 defect report for B-INT-02, stop touching overlapping files, complete one **B-INT-02-FIX** integrated correction batch and `READY_FOR_QA_FIX`; then resume next independent queue item. Critical security defects always outrank optional next-task work.
+
+**Parallel ownership boundary:** auxiliary Backend Retention owns `WorkspaceBackupRetentionService` + retention-only tests; **do not edit those files or launch competing retention migrations**. Web owns frontend/V49; B owns backend contracts. QA owns independent acceptance. Only Architecture reassigns ownership.
+
+**Definition of autonomous work:** pre-authorized next task means no new architecture ping after package delivery, but does NOT mean unreviewed production feature enable, destructive action, database migration with user-data risk, or presumed QA acceptance. If no independent safe work remains, return `WAITING_ON_QA` rather than creating speculative work.
+
 **User action:** Simply start/continue this Backend B chat with `++`. No special copy/paste or technical message expected.
