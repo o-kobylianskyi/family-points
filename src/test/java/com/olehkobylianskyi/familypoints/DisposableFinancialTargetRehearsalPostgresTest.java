@@ -49,7 +49,9 @@ class DisposableFinancialTargetRehearsalPostgresTest {
         DisposableRestoreFinancialDependencyPreflight.Mapping mapping() {
             return new DisposableRestoreFinancialDependencyPreflight.Mapping(
                     Map.of(3L,member),Map.of(51L,currency),
-                    Map.of(11L,targetFamily*10000L+11L),\n                    Map.of(31L,targetFamily*10000L+31L),\n                    Map.of(41L,targetFamily*10000L+41L));
+                    Map.of(11L,targetFamily*10000L+11L),
+                    Map.of(31L,targetFamily*10000L+31L),
+                    Map.of(41L,targetFamily*10000L+41L));
         }
         long rows(String table) {
             if(!Set.of("qa_restore_tasks","qa_restore_rewards",
@@ -171,15 +173,16 @@ class DisposableFinancialTargetRehearsalPostgresTest {
         assertThrows(SecurityException.class,()->f.consumer().apply(
                 wrongPrice,17,f.targetFamily,f.mapping(),0));
         assertEmpty(f);
+        var existing=f.mapping();
         var foreign=new DisposableRestoreFinancialDependencyPreflight.Mapping(
-                Map.of(3L,Long.MAX_VALUE),Map.of(51L,f.currency),
-                Map.of(11L,targetFamily*10000L+11L),\n                    Map.of(31L,targetFamily*10000L+31L),\n                    Map.of(41L,targetFamily*10000L+41L));
+                Map.of(3L,Long.MAX_VALUE),existing.currencies(),
+                existing.tasks(),existing.rewards(),existing.purchases());
         assertThrows(SecurityException.class,()->f.consumer().apply(
                 source(),17,f.targetFamily,foreign,0));
         assertEmpty(f);
         var wrongCurrency=new DisposableRestoreFinancialDependencyPreflight.Mapping(
-                Map.of(3L,f.member),Map.of(51L,Long.MAX_VALUE),
-                Map.of(11L,targetFamily*10000L+11L),\n                    Map.of(31L,targetFamily*10000L+31L),\n                    Map.of(41L,targetFamily*10000L+41L));
+                existing.members(),Map.of(51L,Long.MAX_VALUE),
+                existing.tasks(),existing.rewards(),existing.purchases());
         assertThrows(SecurityException.class,()->f.consumer().apply(
                 source(),17,f.targetFamily,wrongCurrency,0));
         assertEmpty(f);
