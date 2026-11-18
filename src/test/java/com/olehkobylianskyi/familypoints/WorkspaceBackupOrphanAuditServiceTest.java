@@ -49,8 +49,41 @@ class WorkspaceBackupOrphanAuditServiceTest {
                         "storage_key","local:v1:22/"+expired+".fpbackup",
                         "artifact_sha256","b".repeat(64))));
         var results=new WorkspaceBackupOrphanAuditService(db,store).audit(22L,10);
-        assertEquals("REGISTERED_FILE_PRESENT",results.get(0).finding());
+        assertEquals("REGISTERED_CIPHERTEXT_INTACT",results.get(0).finding());
         assertEquals("EXPIRED_REGISTRY_FILE_PRESENT",results.get(1).finding());
         verify(store,never()).deleteAuthorizedExpired(anyLong(),any());
     }
+    @Test void corruptedRegisteredCiphertextIsReportedWithoutDeletionOrPromotion() {
+        var db=mock(JdbcTemplate.class);
+        var store=mock(WorkspaceBackupLocalArtifactStore.class);
+        UUID id=UUID.randomUUID();
+        when(store.inventory(8L,10)).thenReturn(List.of(
+                new WorkspaceBackupLocalArtifactStore.InventoryEntry(
+                        id+".fpbackup",id,140L,true,false)));
+        when(db.queryForList(anyString(),eq(8L),eq(id))).thenReturn(List.of(
+                Map.of("state","VERIFIED","storage_key","local:v1:8/"+id+".fpbackup",
+                       "artifact_sha256","a".repeat(64))));
+        doThrow(new SecurityException("BACKUP_STORAGE_HASH_MISMATCH"))
+                .when(store).verifyStoredCiphertext(8L,id,"a".repeat(64));
+        var findings=new WorkspaceBackupOrphanAuditService(db,store).audit(8L,10);
+        assertEquals("CIPHERTEXT_INTEGRITY_FAILED",findings.get(0).finding());
+        verify(store,never()).deleteAuthorizedExpired(anyLong(),any());
+    }
+
+    @Test void invalidRegisteredHashIsIncompleteEvidenceWithoutFileRead() {
+        var db=mock(JdbcTemplate.class);
+        var store=mock(WorkspaceBackupLocalArtifactStore.class);
+        UUID id=UUID.randomUUID();
+        when(store.inventory(8L,10)).thenReturn(List.of(
+                new WorkspaceBackupLocalArtifactStore.InventoryEntry(
+                        id+".fpbackup",id,140L,true,false)));
+        when(db.queryForList(anyString(),eq(8L),eq(id))).thenReturn(List.of(
+                Map.of("state","REQUESTED","storage_key","local:v1:8/"+id+".fpbackup",
+                       "artifact_sha256","not-a-digest")));
+        var findings=new WorkspaceBackupOrphanAuditService(db,store).audit(8L,10);
+        assertEquals("REGISTRY_ARTIFACT_EVIDENCE_INCOMPLETE",findings.get(0).finding());
+        verify(store,never()).verifyStoredCiphertext(anyLong(),any(),anyString());
+        verify(store,never()).deleteAuthorizedExpired(anyLong(),any());
+    }
+
 }
