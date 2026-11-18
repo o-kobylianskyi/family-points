@@ -136,3 +136,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 four-case V49 two-tab browser acceptance (2026-11-18)
 - New test-only `480f6730d99af20cb28841bf90f0d18dfc6c4fc2` adds **positive** case: valid completed original receipt after shared localStorage marker vanishes but original sessionStorage survives. Assert completed UI visible, unknown banner absent, both storage markers ultimately cleared, one original finalize POST, epoch/revision/UUID unchanged and no unexpected writes. This complements three denial cases (receipt 404, competing shared marker, both markers gone). Four cases ready for QA pinned authenticated isolated Chromium run, no browser PASS claimed. BKL-002/BETA HOLD; report outcomes separately and sanitized trace.
+
+
+## WEB-02 V49 five-case browser matrix (2026-11-18)
+- Test-only patch `fb38f4d094a632bf85d39f9f75ff495ff2696163` adds fifth two-tab synthetic: valid completed receipt, sessionStorage original deleted while localStorage shared original remains, UI must complete and clear surviving marker; check 1 POST, original receipt UUID, revision/epoch and zero unexpected writes. Matrix now: missing receipt 404 deny, competing marker deny, both markers lost deny, session-only positive completion, shared-only positive completion. V8 syntax PASS, **actual Chromium 5 cases NOT_RUN**. Run pinned SHA only in selected isolated authenticated QA family, report exact cases PASS/FAIL/SKIP and sanitized trace. BKL-002/BETA HOLD.
