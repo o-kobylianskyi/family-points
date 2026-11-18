@@ -1228,3 +1228,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 preserve exact V49 receipt GET UUID in two-tab QA
 - Static spec audit found receiptCount assertions could pass without checking original operation UUID. Two mocked Playwright scenarios now assert GET path matches initial finalize Idempotency-Key and workspace (`9e6a4782`). New fixture source parsed V8 syntax PASS, native Node and Chromium NOT_RUN for this SHA. QA-039 no new browser evidence; BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 V49 exact original markers preserved across unknown receipt and tab collision
+- Independently confirmed GitHub Web job #134662224633 run #44263459076 at `9e6a478` (first exact UUID patch) executes 6/6 fixture syntax, 33/33 Node, i18n/lint/build successful, 3 lint warnings; scoped-only no all-four attestation. Test-only `3354bcab` adds original session+shared marker preservation after 404 receipt, and original session/foreign shared preservation after competing marker. V8 syntax parse PASS, Chromium not run; new run #44264239156 still in progress at audit. QA-039 awaits isolated browser, BETA HOLD.
