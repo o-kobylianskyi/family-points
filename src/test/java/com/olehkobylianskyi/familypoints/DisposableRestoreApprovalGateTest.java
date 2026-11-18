@@ -82,5 +82,18 @@ class DisposableRestoreApprovalGateTest {
         assertThrows(IllegalArgumentException.class,()->DisposableRestoreApprovalGate.syntheticIssue(
                 17,31,snapshot,UUID.randomUUID(),7,0,ISSUED,ISSUED,
                 Map.of(11L,41L),key));
+        assertThrows(IllegalArgumentException.class,()->DisposableRestoreApprovalGate.syntheticIssue(
+                17,31,snapshot,UUID.randomUUID(),7,0,ISSUED,
+                ISSUED.plusSeconds(301),Map.of(11L,41L),key));
+        var permit=DisposableRestoreApprovalGate.syntheticIssue(
+                17,31,snapshot,UUID.randomUUID(),7,0,ISSUED,EXPIRED,
+                Map.of(11L,41L),key);
+        var malformed=new DisposableRestoreApprovalGate.Permit(
+                permit.sourceFamily(),permit.targetFamily(),null,permit.operation(),
+                permit.actorId(),permit.targetEpoch(),permit.issuedAt(),permit.expiresAt(),
+                permit.memberBindingsSha256(),permit.mac());
+        assertThrows(SecurityException.class,()->new DisposableRestoreApprovalGate().consume(
+                malformed,17,31,snapshot,permit.operation(),7,0,VALID,
+                Map.of(11L,41L),key));
     }
 }
