@@ -55,6 +55,7 @@ final class DisposableLedgerSourceGraphVerifier {
         for(JsonNode def:root.path("TASK_DEFINITIONS")) {
             long id=def.path("id").asLong();
             if(!def.path("id").isIntegralNumber() || id<=0
+                    || !def.path("family_id").isIntegralNumber()
                     || def.path("family_id").asLong()!=source
                     || !definitions.add(id))
                 throw new SecurityException("LEDGER_SOURCE_DEFINITION_INVALID");
@@ -100,7 +101,8 @@ final class DisposableLedgerSourceGraphVerifier {
         var typeIds=new HashSet<Long>();
         var typeCodes=new HashSet<String>();
         for(JsonNode pointType:root.path("POINT_TYPES")) {
-            if(pointType.path("family_id").asLong()!=source
+            if(!pointType.path("family_id").isIntegralNumber()
+                    || pointType.path("family_id").asLong()!=source
                     || !pointType.path("id").isIntegralNumber()
                     || !typeIds.add(pointType.path("id").asLong())
                     || pointType.path("id").asLong()<=0
@@ -140,7 +142,10 @@ final class DisposableLedgerSourceGraphVerifier {
             long id=row.path("id").asLong();
             long member=row.path("member_id").asLong();
             long currency=row.path("point_type_id").asLong();
-            if(id<=0 || !ledgerIds.add(id) || member<=0 || !typeIds.contains(currency)
+            if(!row.path("id").isIntegralNumber()
+                    || !row.path("member_id").isIntegralNumber()
+                    || !row.path("point_type_id").isIntegralNumber()
+                    || id<=0 || !ledgerIds.add(id) || member<=0 || !typeIds.contains(currency)
                     || !row.path("amount").isIntegralNumber()
                     || row.path("amount").asLong()>Integer.MAX_VALUE
                     || row.path("amount").asLong()<Integer.MIN_VALUE)
