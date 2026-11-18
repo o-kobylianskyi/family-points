@@ -158,6 +158,8 @@
 - [Run 44268053082](https://github.com/o-kobylianskyi/family-points/actions/runs/44268053082) at exact patch was **QUEUED** at time of observation; previous `44267564831` @`36673755` Web steps 6 V49 fixture syntax/33 native Node/i18n/lint/Vite SUCCESS, but older SHA, scoped-only. No current-SHA CI PASS claimed until fetched steps/logs.
 - Next: inspect the completed 44268053082 Web job on exact SHA and QA execute two mocked Chromium tabs with no Service Worker, original UUID/revision/epoch, preserved markers, no unexpected writes. BETA HOLD.
 
+- **Post-write same-SHA CI verified**: [run 44268053082](https://github.com/o-kobylianskyi/family-points/actions/runs/44268053082) @ `27b91a22311e2f02a1686ce93b06dfccdedf5711`, Web job `134677648298`: actual decoded logs show **V49 syntax 6 fixtures PASS**, **native Node 33 PASS / 0 FAIL / 0 SKIP**, i18n/lint/Vite build SUCCESS, 3 lint warnings/0 errors. Scoped workflow with full attestation SKIPPED; Chromium browser still **NOT_RUN**. Supersedes earlier queued status.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
