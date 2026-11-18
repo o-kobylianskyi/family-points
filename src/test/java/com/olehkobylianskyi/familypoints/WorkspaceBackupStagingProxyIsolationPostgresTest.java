@@ -26,8 +26,8 @@ import static org.mockito.Mockito.*;
 /** Test the actual Spring transaction proxy on the staging coordinator. */
 @Testcontainers
 class WorkspaceBackupStagingProxyIsolationPostgresTest {
-    @Container static final PostgreSQLContainer<?> DB =
-            new PostgreSQLContainer<>("postgres:18-alpine")
+    @Container static final PostgreSQLContainer DB =
+            new PostgreSQLContainer("postgres:18-alpine")
                     .withDatabaseName("backup_proxy_isolation")
                     .withUsername("backup_proxy")
                     .withPassword("backup_proxy");
