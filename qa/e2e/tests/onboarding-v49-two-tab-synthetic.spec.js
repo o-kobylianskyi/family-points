@@ -23,11 +23,12 @@ const ui = {
 }
 
 
-// Defense in depth: even if the UI later adds another workspace mutation,
-// this synthetic fixture cannot write it to the selected QA workspace.
-// The narrower setup route is registered later and takes precedence.
+// Register after QA login and before the narrow setup mocks. Every
+// unexpected write is aborted, even if a future client route moves outside
+// /workspaces/:id/. Playwright's latest matching route has precedence, so
+// later setup/review/finalize mocks still fulfill their synthetic requests.
 async function blockUnexpectedWorkspaceWrites(context, blocked) {
-  await context.route(/\/workspaces\/\d+\//, route => {
+  await context.route('**/*', route => {
     const request=route.request()
     if (['POST','PUT','PATCH','DELETE'].includes(request.method())) {
       blocked.push(request.method()+' '+new URL(request.url()).pathname)
