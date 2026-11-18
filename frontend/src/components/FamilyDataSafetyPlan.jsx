@@ -44,16 +44,12 @@ function FamilyDataSafetyPlanContent() {
   const [detailBusy,setDetailBusy] = useState(false)
   const [selectedSnapshot,setSelectedSnapshot] = useState(null)
   const [backupError,setBackupError] = useState(false)
-  const [backupLoading,setBackupLoading] = useState(false)
+  const [backupLoading,setBackupLoading] = useState(true)
   const [reload,setReload] = useState(0)
   const [detailReload,setDetailReload] = useState(0)
   useEffect(() => {
     if (!workspaceId || !canManage) return
     let alive = true
-    setBackupLoading(true)
-    setBackupError(false)
-    // Never show older metadata as current while a refresh/identity change is pending.
-    setBackups([])
     listProtectiveBackups(getAccessToken(), workspaceId).then(result => {
       if (alive) setBackups(result)
     }).catch(() => { if (alive) { setBackups([]); setBackupError(true) } })
@@ -63,9 +59,6 @@ function FamilyDataSafetyPlanContent() {
   useEffect(() => {
     if (!canManage || !workspaceId || !selectedSnapshot) return
     let active = true
-    setDetailBusy(true)
-    setDetailError(false)
-    setDetails(null)
     getProtectiveBackup(getAccessToken(),workspaceId,selectedSnapshot)
       .then(result => { if (active) setDetails(result) })
       .catch(() => { if (active) { setDetails(null); setDetailError(true) } })
@@ -144,7 +137,7 @@ function FamilyDataSafetyPlanContent() {
     {tab==='backup' && <div>
       <h3>{({uk:'Серверні резервні копії',ru:'Резервные копии на сервере',de:'Server-Sicherungen',en:'Server backup records'})[language] || 'Server backup records'}</h3>
       <p>{({uk:'Це лише реєстр станів. Запис REQUESTED не означає наявність файлу або можливість відновлення.',ru:'Это только реестр статусов. REQUESTED не означает, что файл существует или доступен для восстановления.',de:'Nur Statusregister. REQUESTED bedeutet nicht, dass die Datei existiert oder wiederherstellbar ist.',en:'Metadata only. REQUESTED does not mean the file exists or can be restored.'})[language]}</p>
-      <button type="button" className="secondary-button" disabled={backupLoading} onClick={()=>setReload(v=>v+1)}>{({uk:'Оновити список',ru:'Обновить список',de:'Liste aktualisieren',en:'Refresh list'})[language]}</button>
+      <button type="button" className="secondary-button" disabled={backupLoading} onClick={()=>{setBackupLoading(true);setBackupError(false);setBackups([]);setDetails(null);setSelectedSnapshot(null);setReload(v=>v+1)}}>{({uk:'Оновити список',ru:'Обновить список',de:'Liste aktualisieren',en:'Refresh list'})[language]}</button>
       {backupLoading && <p role="status">{({uk:'Завантаження…',ru:'Загрузка…',de:'Laden…',en:'Loading…'})[language]}</p>}
       {backupError && <p role="alert">{({uk:'Не вдалося отримати реєстр резервних копій.',ru:'Не удалось загрузить реестр резервных копий.',de:'Sicherungsliste konnte nicht geladen werden.',en:'Could not load backup records.'})[language]}</p>}
       {!backupLoading && !backupError && !backups.length && <p>{({uk:'Записів немає.',ru:'Записей нет.',de:'Keine Einträge.',en:'No records.'})[language]}</p>}
@@ -156,13 +149,13 @@ function FamilyDataSafetyPlanContent() {
         <p style={{margin:'4px 0'}}>{({uk:'Метадані: наявність файлу та можливість імпорту не підтверджені.',ru:'Метаданные: наличие файла и возможность импорта не подтверждены.',de:'Nur Metadaten: Datei und Importfähigkeit sind nicht bestätigt.',en:'Metadata only: file availability and import capability are not confirmed.'})[language]}</p>
         <small>{item.state} · {item.selectedCategories?.length || 0} {({uk:'категорій',ru:'категорий',de:'Kategorien',en:'categories'})[language]}</small>
         <div><button type="button" className="secondary-button" aria-expanded={selectedSnapshot === item.snapshotId}
-          onClick={()=>{setDetails(null);setDetailError(false);setSelectedSnapshot(v=>v===item.snapshotId?null:item.snapshotId)}}>
+          onClick={()=>{setDetails(null);setDetailError(false);setDetailBusy(true);setSelectedSnapshot(v=>v===item.snapshotId?null:item.snapshotId)}}>
           {({uk:'Переглянути запис',ru:'Просмотреть запись',de:'Eintrag ansehen',en:'View metadata'})[language]}
         </button></div>
         {selectedSnapshot === item.snapshotId && <div role="region" style={{padding:'8px 12px'}}>
           {detailBusy && <p role="status">{({uk:'Завантаження…',ru:'Загрузка…',de:'Laden…',en:'Loading…'})[language]}</p>}
           {detailError && <p role="alert">{({uk:'Деталі недоступні.',ru:'Детали недоступны.',de:'Details nicht verfügbar.',en:'Details unavailable.'})[language]}</p>}
-          {!detailBusy && <button type="button" className="secondary-button" onClick={()=>setDetailReload(n=>n+1)}>{({uk:'Оновити деталі',ru:'Обновить детали',de:'Details aktualisieren',en:'Refresh details'})[language]}</button>}
+          {!detailBusy && <button type="button" className="secondary-button" onClick={()=>{setDetailBusy(true);setDetailError(false);setDetails(null);setDetailReload(n=>n+1)}}>{({uk:'Оновити деталі',ru:'Обновить детали',de:'Details aktualisieren',en:'Refresh details'})[language]}</button>}
           {details && details.snapshotId === selectedSnapshot && details.workspaceId != null && String(details.workspaceId) === String(workspaceId) && <div>
             <p>{({uk:'Статус',ru:'Статус',de:'Status',en:'Status'})[language]}: {details.state}</p>
             <p>{({uk:'Створено',ru:'Создано',de:'Erstellt',en:'Created'})[language]}: {details.createdAt ? new Date(details.createdAt).toLocaleString(language) : '—'}</p>
