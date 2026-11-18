@@ -31,14 +31,16 @@ public final class WorkspaceRestorePermitService {
     private final ProtectiveBackupImportInspector inspector;
     private final ProtectiveBackupPortableFile portable;
     private final ProtectiveBackupArtifactCodec codec;
+    private final GoogleTokenVerifier google;
 
     public WorkspaceRestorePermitService(JdbcTemplate db,
             WorkspaceEpochTransactionGuard epochs,PasswordEncoder passwords,
             WorkspaceRestorePasswordLimiter limiter,ProtectiveBackupImportInspector inspector,
-            ProtectiveBackupPortableFile portable,ProtectiveBackupArtifactCodec codec) {
+            ProtectiveBackupPortableFile portable,ProtectiveBackupArtifactCodec codec,
+            GoogleTokenVerifier google) {
         this.db=db;this.epochs=epochs;this.passwords=passwords;
         this.limiter=limiter;this.inspector=inspector;
-        this.portable=portable;this.codec=codec;
+        this.portable=portable;this.codec=codec;this.google=google;
     }
 
     /**
@@ -62,7 +64,7 @@ public final class WorkspaceRestorePermitService {
                 scope.issuedAt().isAfter(now.plusSeconds(1)))
             throw new SecurityException("RESTORE_PERMIT_ISSUANCE_NOT_CURRENT");
         String credential=requireOwnerPasswordHash(scope);
-        if(currentPassword==null || !credential.startsWith("$2")
+        if(currentPassword==null || credential==null || !credential.startsWith("$2")
                 || !passwords.matches(currentPassword,credential)) {
             limiter.recordFailure(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
             throw new SecurityException("RESTORE_FRESH_PASSWORD_REQUIRED");
@@ -86,6 +88,69 @@ public final class WorkspaceRestorePermitService {
     }
 
     /**
+     * Fresh Google ID-token authentication for accounts without a local password.
+     * Jwt signature/issuer/audience and authorized party are checked by the
+     * existing GoogleTokenVerifier. The subject is never accepted from clients
+     * directly or stored in the RESTORE permit.
+     */
+    @Transactional
+    public void issueGoogle(WorkspaceRestorePermitScopeV2.RestoreScope scope,
+            byte[] sourceFile,SecretKey key,Map<Long,Long> reviewedMemberMap,
+            String idToken) {
+        Objects.requireNonNull(scope,"scope");
+        limiter.requireAvailable(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
+        verifiedSource(scope,sourceFile,key,reviewedMemberMap);
+        epochs.requireCurrentEpoch(scope.targetWorkspaceId(),scope.targetExpectedEpoch());
+        Instant now=Instant.now();
+        if(!scope.matches(scope,now)
+                ||scope.issuedAt().isBefore(now.minusSeconds(15))
+                ||scope.issuedAt().isAfter(now.plusSeconds(1)))
+            throw new SecurityException("RESTORE_PERMIT_ISSUANCE_NOT_CURRENT");
+        // This check holds the current account/membership row locks and
+        // verifies immutable registration provenance, including provider-only accounts.
+        requireOwnerPasswordHash(scope);
+        var verified=google.verifiedToken(idToken);
+        if(verified.getIssuedAt()==null
+                ||verified.getIssuedAt().isAfter(now.plusSeconds(1))
+                ||verified.getIssuedAt().isBefore(now.minusSeconds(300)))
+            throw new SecurityException("RESTORE_GOOGLE_REAUTH_NOT_FRESH");
+        String actualLinked=linkedGoogleSubject(scope.authorizedOwnerAccountId());
+        if(!actualLinked.equals(verified.getSubject()))
+            throw new SecurityException("RESTORE_GOOGLE_SUBJECT_NOT_LINKED");
+        String digest=WorkspaceRestorePermitScopeV2.canonicalScopeDigest(scope);
+        int inserted=db.update("""
+            INSERT INTO workspace_restore_permits
+              (operation_id,target_workspace_id,owner_account_id,owner_member_id,
+               scope_digest,credential_fingerprint,reauth_method,
+               target_expected_epoch,issued_at,expires_at)
+            VALUES (?,?,?,?,?,?,'GOOGLE',?,?,?)
+            ON CONFLICT (operation_id) DO NOTHING
+            """,scope.operationId(),scope.targetWorkspaceId(),
+                scope.authorizedOwnerAccountId(),scope.authorizedOwnerMemberId(),
+                digest,googleFingerprint(scope.authorizedOwnerAccountId(),actualLinked),
+                scope.targetExpectedEpoch(),
+                java.sql.Timestamp.from(scope.issuedAt()),
+                java.sql.Timestamp.from(scope.expiresAt()));
+        if(inserted!=1)
+            throw new SecurityException("RESTORE_PERMIT_OPERATION_ALREADY_EXISTS");
+        limiter.clearSuccess(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
+    }
+
+    private String linkedGoogleSubject(long accountId) {
+        var linked=db.queryForList("""
+                SELECT provider_subject FROM account_external_identities
+                WHERE account_id=? AND provider='google'
+                """,String.class,accountId);
+        if(linked.size()!=1||linked.get(0)==null||linked.get(0).isBlank())
+            throw new SecurityException("RESTORE_GOOGLE_IDENTITY_NOT_LINKED");
+        return linked.get(0);
+    }
+
+    private static String googleFingerprint(long id,String subject) {
+        return sha("family-points:restore:google-identity:v1|"+id+"|"+subject);
+    }
+
+    /**
      * The target importer must call this AFTER family lock and source validation,
      * in the SAME transaction as FK/ledger writes, epoch increment and receipt.
      * A later rollback reverts consumption as well as data writes.
@@ -103,13 +168,25 @@ public final class WorkspaceRestorePermitService {
         var rows=db.queryForList("""
             SELECT target_workspace_id,owner_account_id,owner_member_id,
                    scope_digest,credential_fingerprint,target_expected_epoch,
-                   consumed_at,issued_at,expires_at
+                   consumed_at,issued_at,expires_at,reauth_method
             FROM workspace_restore_permits
             WHERE operation_id=? FOR UPDATE
             """,scope.operationId());
         if(rows.size()!=1)
             throw new SecurityException("RESTORE_PERMIT_NOT_FOUND");
         var saved=rows.get(0);
+        String mode=(String)saved.get("reauth_method");
+        String fingerprint;
+        if("PASSWORD".equals(mode)) {
+            if(credential==null || !credential.startsWith("$2"))
+                throw new SecurityException("RESTORE_OWNER_CREDENTIAL_CHANGED");
+            fingerprint=credentialFingerprint(scope.authorizedOwnerAccountId(),credential);
+        } else if("GOOGLE".equals(mode)) {
+            fingerprint=googleFingerprint(scope.authorizedOwnerAccountId(),
+                    linkedGoogleSubject(scope.authorizedOwnerAccountId()));
+        } else {
+            throw new SecurityException("RESTORE_REAUTH_METHOD_UNKNOWN");
+        }
         if(!Objects.equals(((Number)saved.get("target_workspace_id")).longValue(),
                            scope.targetWorkspaceId())
                 || !Objects.equals(((Number)saved.get("owner_account_id")).longValue(),
@@ -122,7 +199,7 @@ public final class WorkspaceRestorePermitService {
                 || !digestEquals((String)saved.get("scope_digest"),
                            WorkspaceRestorePermitScopeV2.canonicalScopeDigest(scope))
                 || !digestEquals((String)saved.get("credential_fingerprint"),
-                           credentialFingerprint(scope.authorizedOwnerAccountId(),credential)))
+                           fingerprint))
             throw new SecurityException("RESTORE_PERMIT_BINDING_INVALID");
         int changed=db.update("""
             UPDATE workspace_restore_permits SET consumed_at=clock_timestamp()
@@ -202,8 +279,9 @@ public final class WorkspaceRestorePermitService {
             FOR SHARE OF a,l,m
             """,String.class,scope.targetWorkspaceId(),
             scope.authorizedOwnerAccountId(),scope.authorizedOwnerMemberId());
-        if(hashes.size()!=1||hashes.get(0)==null)
+        if(hashes.size()!=1)
             throw new SecurityException("RESTORE_ORIGINAL_OWNER_NOT_VERIFIED");
+        // A linked Google-only account may have no local password hash.
         return hashes.get(0);
     }
 
