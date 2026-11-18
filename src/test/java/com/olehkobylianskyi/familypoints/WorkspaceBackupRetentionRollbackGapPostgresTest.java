@@ -152,6 +152,15 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 .filter(row->id.equals(row.snapshotId())).count());
         assertEquals("RETAINED_VALID",retention.inspectExpiredArtifacts(10).stream()
                 .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
+        assertEquals("RETAINED_VALID",
+                retention.inspectExpiredArtifactsForWorkspace(family,10)
+                        .stream().filter(row->id.equals(row.snapshotId()))
+                        .findFirst().orElseThrow().status());
+        assertTrue(retention.inspectExpiredArtifactsForWorkspace(family+999999L,10).isEmpty());
+        assertThrows(IllegalArgumentException.class,
+                ()->retention.inspectExpiredArtifactsForWorkspace(-1,10));
+        assertThrows(IllegalArgumentException.class,
+                ()->retention.inspectExpiredArtifactsForWorkspace(family,101));
         // RET-02: dry-run classification never modifies registry or ciphertext.
         db.update("UPDATE workspace_protective_backups SET storage_key=? WHERE snapshot_id=?",
                 "local:v1:wrong/"+id+".fpbackup",id);
