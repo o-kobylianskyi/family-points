@@ -38,6 +38,10 @@ class PortableMemberAncestryV2Test {
                 source,17,SNAP,7);
         assertEquals("dcda588e22db2d804f2b68e4de43bf5e3051a45a7bd68170f673c29dce7e87c1",
                 root);
+        // Root computation is intentionally non-mutating. The authenticated
+        // payload must explicitly carry the independently computed digest.
+        assertEquals("",source.path("manifestRootDigest").asText());
+        source.put("manifestRootDigest",root);
         var result=PortableMemberAncestryV2.verify(source,17,SNAP,7);
         assertEquals("0eb20ca0b2e56292e3a879d0c04513322f342be08f1ed14d13bc2b4dfafe81bb",
                 result.categories().get("FAMILY_ROLES").contentSha256());
