@@ -195,6 +195,12 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
                 sealedHistory.manifest().snapshotId(),source,key);
         try {
             String payload=new String(authenticHistory,StandardCharsets.UTF_8);
+            // Assert the required migrated task flag survives authenticated export.
+            var historicalJson=new ObjectMapper().readTree(authenticHistory);
+            var savedTask=historicalJson.path("categories").path("TASK_DEFINITIONS").get(0);
+            assertNotNull(savedTask);
+            assertTrue(savedTask.path("delegation_allowed").isBoolean());
+            assertFalse(savedTask.path("delegation_allowed").asBoolean());
             assertTrue(payload.contains("PG18 historical task"));
             assertTrue(payload.contains("PG18 historical reward"));
             assertFalse(payload.contains("NEIGHBOR_ONLY"));
