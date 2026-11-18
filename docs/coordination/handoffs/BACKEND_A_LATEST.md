@@ -151,3 +151,12 @@ Source files reviewed:
 - Next B-A-03l: exact-SHA CI verification/fix, then staged retention state machine contract and disposable fault-injection rehearsal, no autonomous production purge.
 
 - Follow-up `0bd68d4`: physical retention fault-injection PG18 test deletes *only its own synthetic registry row* after assertions so shared static Testcontainers test methods cannot accidentally process another test's older expired fixture. Exact-SHA CI pending.
+
+
+## B-A-03l CLOSED AS DESIGN / B-A-04 STARTED (2026-11-18)
+- Baseline `f10537ae` run `44275795521` overall SUCCESS but Java Maven steps **SKIPPED** (job `134703994678`). B-A-03k retention rollback PG18 tests remain **NOT VERIFIED** by that run. This corrects overly broad previous CI-green claims.
+- Retention improvement deliberately stopped at separate architecture-approved intent → quarantine → DB confirm → purge design. No production auto purge, new retention workflow or destructive release. Missing ciphertext after SQL rollback remains a documented P0 hazard; no false "repaired" claim.
+- Source member contract advances: `a8b8740` `DisposablePortableMemberSourceCatalog` TEST ONLY, reads minimal scoped `family_roles`/ `family_members` original IDs, roles, type, active, tombstone under REPEATABLE_READ, **no names/login/accounts**. `1e8cbdd` PG18 two-family fixture tests original tombstones, privacy and foreign-role/weak isolation failures. Production exporter/inspector unchanged.
+- Source/wire approval request `docs/coordination/requests/B-A-04_MEMBER_SOURCE_FIELDS_AND_WIRE_GATE_20261118.md` `f63f487` requests exact A4-01…09 decisions from Architecture, B, C, D and Release. User accepted product DEC-01…08; Backend B conditional logical consumer ACK; Architecture field/schema version/IMP still missing.
+- Backend A independent journal `docs/coordination/logs/backend-a.md` created `19fbb5a` with verification, ownership and next handoff. Explicit `[full-ci]` request to follow; check exact current SHA and job steps, not just overall workflow badge.
+- NEXT B-A-04b (after approval): versioned source roster + signed digest/inspector/legacy compatibility; until then test-only full FK ancestry, typed source/role category matrices. No production Restore/Reset; BETA HOLD.
