@@ -188,6 +188,73 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
         assertEquals(1,db.update("DELETE FROM workspace_protective_backups WHERE snapshot_id=?",id));
     }
 
+
+    @Test void competingWorkersSkipLockedRowAndRetryAfterRelease() throws Exception {
+        var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
+        Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
+        var db=new JdbcTemplate(ds);
+        var manager=new DataSourceTransactionManager(ds);
+        var tx=new TransactionTemplate(manager);
+        long family=db.queryForObject(
+                "INSERT INTO families(name) VALUES ('Retention worker race') RETURNING id",Long.class);
+        long role=db.queryForObject(
+                "INSERT INTO family_roles(family_id,system_role,code,name) " +
+                "VALUES (?,true,'PARENT','Parent') RETURNING id",Long.class,family);
+        long member=db.queryForObject(
+                "INSERT INTO family_members(family_id,family_role_id,active,member_type,name) " +
+                "VALUES (?,?,true,'PARENT','Parent') RETURNING id",Long.class,family,role);
+        UUID id=UUID.randomUUID();
+        db.update("""
+                INSERT INTO workspace_protective_backups
+                    (snapshot_id,workspace_id,operation_id,requested_by_member_id,
+                     data_epoch,reset_mode,selected_categories_json,source_digest,
+                     schema_version,state,created_at,expires_at)
+                VALUES (?,?,?, ?,0,'SELECTIVE','["MEMBER_GROUPS"]',?,
+                        'V50','REQUESTED',NOW()-INTERVAL '40 days',
+                        NOW()-INTERVAL '1 day')
+                """,id,family,UUID.randomUUID(),member,"a".repeat(64));
+        var store=mock(WorkspaceBackupLocalArtifactStore.class);
+        var retention=new WorkspaceBackupRetentionService(db,store);
+        var locked=new java.util.concurrent.CountDownLatch(1);
+        var release=new java.util.concurrent.CountDownLatch(1);
+        var workers=java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            var holder=workers.submit(()->tx.execute(status->{
+                db.queryForList("""
+                    SELECT id FROM workspace_protective_backups
+                    WHERE workspace_id=? AND snapshot_id=? FOR UPDATE
+                    """,family,id);
+                locked.countDown();
+                try {
+                    if(!release.await(10,java.util.concurrent.TimeUnit.SECONDS))
+                        throw new IllegalStateException("RETENTION_TEST_LOCK_TIMEOUT");
+                } catch(InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(interrupted);
+                }
+                return true;
+            }));
+            assertTrue(locked.await(10,java.util.concurrent.TimeUnit.SECONDS));
+            assertEquals(0, (int)tx.execute(status->retention.expireEligible(1)),
+                    "SKIP LOCKED must not wait for a concurrently held row");
+            assertEquals("REQUESTED",db.queryForObject(
+                    "SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",
+                    String.class,id));
+            release.countDown();
+            assertTrue(holder.get(10,java.util.concurrent.TimeUnit.SECONDS));
+            assertEquals(1, (int)tx.execute(status->retention.expireEligible(1)));
+            assertEquals(0, (int)tx.execute(status->retention.expireEligible(1)));
+            assertEquals("EXPIRED",db.queryForObject(
+                    "SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",
+                    String.class,id));
+            verifyNoInteractions(store);
+        } finally {
+            release.countDown();
+            workers.shutdownNow();
+            db.update("DELETE FROM workspace_protective_backups WHERE snapshot_id=?",id);
+        }
+    }
+
     @Test void ciphertextIntegrityFailureRollsBackSqlWithoutUnlink() {
         var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
         Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
