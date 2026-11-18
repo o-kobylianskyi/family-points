@@ -135,3 +135,9 @@ Source files reviewed:
 - Reviewed production physical delete callsites in staging, coordinator, explicit retention and local store. Critical non-atomic filesystem deletion vs SQL rollback retained as P0 for operator workflow. Auditors never issue delete. Exact paths/test packet: `docs/coordination/requests/B-A-03J_REVERSE_AUDIT_RACE_AND_RETENTION_QA_20261118.md` commit `fce7bef`.
 - Backend B conditional MEMBER source catalog ACK present; named Architecture wire schema approval still absent. Never add speculative `FAMILY_MEMBERS` to v1 or enable production Restore. HTTP423/BETA HOLD.
 - Next B-A-03k: exact-SHA CI triage, disposable physical retention/rollback mismatch tests, then vNext member source only after Architecture ACK.
+
+
+## Current chat continuation safety — 2026-11-18
+- Added `docs/coordination/chat-capacity/BACKEND_A.md` @`ab8bef31`: observable chat capacity unknown, no invented utilization percentages or automatic warnings.
+- Exact B-A-03j source/handoff commit `f30b88f`, CI `44274376504` queued at checkpoint. Full four-component PASS must be independently checked before acceptance. Next safe B-A-03k as above.
+- New chat ready opening: "Приймай FamilyPoints Backend A. Прочитай AGENTS.md, docs/coordination/handoffs/BACKEND_A_LATEST.md, поточний main SHA і QA B-A-03J; продовжуй B-A-03k великими пакетами, лише producer/backup/retention safety, ніякого Restore Execute." 
