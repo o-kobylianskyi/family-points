@@ -34,3 +34,10 @@
 - Test-only PG18 `DisposablePortableMemberExceptionClosurePostgresTest` `33679c7`: real family A/B and member exception periods, one-source-family snapshot accepted, neighbor member FK injection rejected.
 - Source category `MEMBER_EXCEPTION_PERIODS` is not a current v1 export category. Architecture versioned source decision and B/D consumer review mandatory; not shipped as vNext.
 - QA: `docs/coordination/requests/B-A-04E_STRICT_SOURCE_ID_AND_EXCEPTION_CLOSURE_QA_20261118.md`, source unchanged outside tests/docs; PROD Restore, file deletion, Reset remain gated.
+
+
+## 2026-11-18 — B-A-04f independent economic/group source graph safety
+- Prior B-A-04e `fc639206` full CI run `44286446835` still IN_PROGRESS at pickup; no false PASS claim.
+- Test-only `DisposablePortableFinancialSourceClosure` commit `f14e3b4`: source-family parents for point/reputation/reward/group/task and point exchange, required/optional FK ancestry, positive Integer/Long IDs and missing/foreign/duplicate parent fail-closed. `5d2affa` seven focused unit tests; `b8c2741` PG18 migrated schema nullable/column drift test.
+- Consumer handoff `docs/coordination/requests/B-A-04F_FINANCIAL_GROUP_SOURCE_CLOSURE_QA_20261118.md` @`fb43871`, exact-SHA `[full-ci]` request `25696945` Actions `44287295299` in progress at checkpoint.
+- Source-provenance tests are not authenticated production archive or semantic financial acceptance. Backend D still owns ledger source_type/source_id, historic REFUND, immutable price/points/group/reputation invariants; Backend B owns target restore, C owner reauth. A4 wire/schema/IMP Architecture ACK remains required. Reset Execute HTTP423, Restore blocked, BETA HOLD.
