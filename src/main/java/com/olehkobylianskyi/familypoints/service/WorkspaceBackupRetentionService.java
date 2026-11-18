@@ -176,7 +176,36 @@ public class WorkspaceBackupRetentionService {
      */
     @Transactional(readOnly=true)
     public List<ExpiredArtifactCheck> inspectExpiredArtifacts(int maxRecords) {
-        List<ExpiredArtifact> candidates=expiredArtifactInventory(maxRecords);
+        return classifyExpiredArtifacts(expiredArtifactInventory(maxRecords));
+    }
+
+    public record ExpiredArtifactCheck(long workspaceId,UUID snapshotId,
+                                       String status) {}
+
+    /**
+     * Narrow tenant-scoped dry run. Never returns metadata for a different
+     * workspace and never acquires purge authority. Unlike a global preview it
+     * cannot be starved by earlier expired rows from unrelated tenants.
+     */
+    @Transactional(readOnly=true)
+    public List<ExpiredArtifactCheck> inspectExpiredArtifactsForWorkspace(
+            long workspaceId,int maxRecords) {
+        if(workspaceId<=0 || maxRecords<1 || maxRecords>100)
+            throw new IllegalArgumentException("INVALID_BACKUP_RECONCILIATION_SCOPE");
+        var items=db.query("""
+            SELECT workspace_id,snapshot_id,storage_key,artifact_sha256
+            FROM workspace_protective_backups
+            WHERE workspace_id=? AND state='EXPIRED'
+            ORDER BY finished_at,id LIMIT ?
+            """,(rs,i)->new ExpiredArtifact(rs.getLong("workspace_id"),
+                rs.getObject("snapshot_id",UUID.class),
+                rs.getString("storage_key"),rs.getString("artifact_sha256")),
+                workspaceId,maxRecords);
+        return classifyExpiredArtifacts(items);
+    }
+
+    private List<ExpiredArtifactCheck> classifyExpiredArtifacts(
+            List<ExpiredArtifact> candidates) {
         List<ExpiredArtifactCheck> results=new ArrayList<>(candidates.size());
         for(var candidate:candidates) {
             String expectedKey="local:v1:"+candidate.workspaceId()+"/"
@@ -205,7 +234,4 @@ public class WorkspaceBackupRetentionService {
         }
         return List.copyOf(results);
     }
-
-    public record ExpiredArtifactCheck(long workspaceId,UUID snapshotId,
-                                       String status) {}
 }
