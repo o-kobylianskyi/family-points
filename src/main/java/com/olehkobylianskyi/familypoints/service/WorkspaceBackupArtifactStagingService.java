@@ -1,6 +1,7 @@
 package com.olehkobylianskyi.familypoints.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.crypto.SecretKey;
 import java.util.*;
@@ -49,6 +50,15 @@ public class WorkspaceBackupArtifactStagingService {
                 || selectedCategories.stream().anyMatch(Objects::isNull)
                 || selectedCategories.size()!=new HashSet<>(selectedCategories).size())
             throw new IllegalArgumentException("INVALID_BACKUP_STAGING_REQUEST");
+
+        // No direct stage call may bypass the coherent transaction boundary.
+        // A standalone exporter proxy does not protect the earlier validation and
+        // following filesystem publication if the caller already has a weak tx.
+        if(!TransactionSynchronizationManager.isActualTransactionActive()
+                || !TransactionSynchronizationManager.isSynchronizationActive()
+                || !Integer.valueOf(java.sql.Connection.TRANSACTION_REPEATABLE_READ).equals(
+                        TransactionSynchronizationManager.getCurrentTransactionIsolationLevel()))
+            throw new IllegalStateException("BACKUP_SNAPSHOT_ISOLATION_REQUIRED");
 
         var ordered=new TreeSet<>(selectedCategories);
         var exported=exporter.export(workspaceId,snapshotId,operationId,
