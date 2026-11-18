@@ -1,0 +1,54 @@
+package com.olehkobylianskyi.familypoints;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+import javax.crypto.SecretKey;
+import java.time.Instant;
+import java.util.*;
+
+/**
+ * TEST ONLY. SQL table is explicitly created in a disposable PG18 test DB,
+ * not in Flyway or production. Demonstrates transaction-bound epoch check and
+ * durable unique operation consumption across helper objects/process-like
+ * restarts. The asserted actor/key are synthetic, NOT owner reauthentication.
+ */
+final class DisposableDurableRestoreApprovalStore {
+    private final JdbcTemplate db;
+    private final TransactionTemplate tx;
+
+    DisposableDurableRestoreApprovalStore(JdbcTemplate db,PlatformTransactionManager manager) {
+        this.db=Objects.requireNonNull(db);
+        this.tx=new TransactionTemplate(Objects.requireNonNull(manager));
+    }
+
+    void consume(DisposableRestoreApprovalGate.Permit permit,long sourceFamily,
+            long targetFamily,UUID snapshot,UUID operation,long claimedActor,
+            Instant now,Map<Long,Long> explicitMappings,SecretKey reviewKey,
+            boolean injectFailureAfterReservation) {
+        tx.executeWithoutResult(status->{
+            // Serialize competing operations against the same target family,
+            // and compare the epoch INSIDE the same transaction as the INSERT.
+            Long lockedEpoch=db.queryForObject(
+                    "SELECT data_epoch FROM families WHERE id=? FOR UPDATE",
+                    Long.class,targetFamily);
+            if(lockedEpoch==null)
+                throw new SecurityException("RESTORE_APPROVAL_UNKNOWN_TARGET");
+            // Fresh instance on every call proves the SQL operation constraint,
+            // not a previous Java instance's in-memory consumed set.
+            new DisposableRestoreApprovalGate().consume(permit,sourceFamily,
+                    targetFamily,snapshot,operation,claimedActor,
+                    lockedEpoch,now,explicitMappings,reviewKey);
+            int inserted=db.update("""
+                    INSERT INTO qa_restore_approval_consumption
+                        (operation_id,source_family,target_family,snapshot_id,actor_id,target_epoch)
+                    VALUES (?,?,?,?,?,?)
+                    ON CONFLICT (operation_id) DO NOTHING
+                    """,operation,sourceFamily,targetFamily,snapshot,claimedActor,lockedEpoch);
+            if(inserted!=1)
+                throw new SecurityException("RESTORE_APPROVAL_ALREADY_CONSUMED");
+            if(injectFailureAfterReservation)
+                throw new IllegalStateException("QA_INJECTED_ROLLBACK");
+        });
+    }
+}
