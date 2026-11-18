@@ -26,7 +26,15 @@ class DisposableFinancialTargetRehearsalPostgresTest {
     private static final String SOURCE="""
             {
              "TASK_DEFINITIONS":[{"id":11,"family_id":17}],
-             "TASK_EXECUTIONS":[{"id":21,"member_id":3,"task_definition_id":11}],
+             "TASK_EXECUTIONS":[{"id":21,"member_id":3,"task_definition_id":11,
+                "original_assigned_member_id":3,"scheduled_date":"2026-11-18",
+                "slot_key":"morning","title":"Original task","description":"Historic snapshot",
+                "mandatory":true,"due_time":"12:30:00","status":"COMPLETED",
+                "started_at":"2026-11-18T09:00:00",
+                "completed_at":"2026-11-18T09:15:00",
+                "reward_amount":5,"reward_point_type_id":51,
+                "penalty_amount":null,"penalty_point_type_id":null,
+                "reward_processed":true,"penalty_processed":false}],
              "REWARD_DEFINITIONS":[{"id":31,"family_id":17}],
              "REWARD_PURCHASES":[{"id":41,"member_id":3,"reward_definition_id":31,
                   "point_type_id":51,"price_amount":4}],
@@ -80,7 +88,24 @@ class DisposableFinancialTargetRehearsalPostgresTest {
                 source_execution_id bigint NOT NULL,
                 member_id bigint NOT NULL REFERENCES family_members(id),
                 task_id bigint NOT NULL REFERENCES qa_restore_tasks(id),
-                UNIQUE(target_family,source_execution_id))
+                original_assigned_member_id bigint REFERENCES family_members(id),
+                scheduled_date date NOT NULL,
+                slot_key varchar(40) NOT NULL,
+                title varchar(200) NOT NULL,
+                description varchar(1000),
+                mandatory boolean NOT NULL,
+                due_time time,
+                status varchar(30) NOT NULL,
+                started_at timestamp,
+                completed_at timestamp,
+                reward_amount integer,
+                reward_point_type_id bigint REFERENCES point_types(id),
+                penalty_amount integer,
+                penalty_point_type_id bigint REFERENCES point_types(id),
+                reward_processed boolean NOT NULL,
+                penalty_processed boolean NOT NULL,
+                UNIQUE(target_family,source_execution_id),
+                UNIQUE(task_id,member_id,scheduled_date,slot_key))
             """);
         db.execute("""
             CREATE TABLE IF NOT EXISTS qa_restore_rewards (
@@ -131,7 +156,7 @@ class DisposableFinancialTargetRehearsalPostgresTest {
     private static JsonNode source() throws Exception {return JSON.readTree(SOURCE);}
     private static void assertEmpty(Fixture f) {
         for(String table:List.of("qa_restore_tasks","qa_restore_rewards",
-                "qa_restore_purchases","qa_restore_ledger"))
+                "qa_restore_executions","qa_restore_purchases","qa_restore_ledger"))
             assertEquals(0L,f.rows(table),table);
     }
 
@@ -165,6 +190,24 @@ class DisposableFinancialTargetRehearsalPostgresTest {
         assertEquals(f.member,f.db.queryForObject("""
                 SELECT member_id FROM qa_restore_executions WHERE id=?
                 """,Long.class,targetExecution));
+        assertEquals("COMPLETED",f.db.queryForObject(
+                "SELECT status FROM qa_restore_executions WHERE id=?",
+                String.class,targetExecution));
+        assertEquals("morning",f.db.queryForObject(
+                "SELECT slot_key FROM qa_restore_executions WHERE id=?",
+                String.class,targetExecution));
+        assertEquals(java.sql.Date.valueOf("2026-11-18"),f.db.queryForObject(
+                "SELECT scheduled_date FROM qa_restore_executions WHERE id=?",
+                java.sql.Date.class,targetExecution));
+        assertEquals(5,f.db.queryForObject(
+                "SELECT reward_amount FROM qa_restore_executions WHERE id=?",
+                Integer.class,targetExecution));
+        assertEquals(f.currency,f.db.queryForObject(
+                "SELECT reward_point_type_id FROM qa_restore_executions WHERE id=?",
+                Long.class,targetExecution));
+        assertEquals(f.member,f.db.queryForObject(
+                "SELECT original_assigned_member_id FROM qa_restore_executions WHERE id=?",
+                Long.class,targetExecution));
         assertEquals(0L,f.db.queryForObject(
                 "SELECT count(*) FROM qa_restore_ledger WHERE target_family=?",
                 Long.class,f.neighborFamily));
