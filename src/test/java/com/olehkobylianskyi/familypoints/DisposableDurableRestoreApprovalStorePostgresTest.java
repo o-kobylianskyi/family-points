@@ -143,6 +143,39 @@ class DisposableDurableRestoreApprovalStorePostgresTest {
                 Long.class,a.operation()));
     }
 
+    @Test void simultaneousTwoCategoryReplayCommitsOneAtomicSet() throws Exception {
+        var a=setup();
+        var executor=Executors.newFixedThreadPool(2);
+        var start=new CountDownLatch(1);
+        try {
+            List<Future<Boolean>> outcomes=new ArrayList<>();
+            for(int i=0;i<2;i++) outcomes.add(executor.submit(()->{
+                start.await();
+                try {
+                    a.store().consumeWithTwoSyntheticCategories(
+                            a.permit(),17,a.family(),a.snapshot(),a.operation(),7,NOW,
+                            Map.of(11L,41L,12L,42L),a.key(),11,12,5,3,0);
+                    return true;
+                } catch(SecurityException denied) {return false;}
+            }));
+            start.countDown();
+            int committed=0;
+            for(var outcome:outcomes)
+                if(outcome.get(20,TimeUnit.SECONDS))committed++;
+            assertEquals(1,committed);
+            assertEquals(1L,a.rows());
+            assertEquals(1L,a.db().queryForObject(
+                    "SELECT count(*) FROM qa_restore_financial_rehearsal WHERE operation_id=?",
+                    Long.class,a.operation()));
+            assertEquals(1L,a.db().queryForObject(
+                    "SELECT count(*) FROM qa_restore_reputation_rehearsal WHERE operation_id=?",
+                    Long.class,a.operation()));
+            assertEquals(42L,a.db().queryForObject(
+                    "SELECT target_member FROM qa_restore_reputation_rehearsal WHERE operation_id=?",
+                    Long.class,a.operation()));
+        }finally {executor.shutdownNow();}
+    }
+
     @Test void financialMutationAndPermitReservationCommitOrRollBackTogether()
             throws Exception {
         var a=setup();
