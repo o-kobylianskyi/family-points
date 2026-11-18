@@ -88,3 +88,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 CI syntax safeguard (2026-11-18)
 - New source `3f36023d` and package wiring `fe5b5ad1`: Web `npm run test:regression` now performs `node --check` for every V49 Playwright spec, without credentials/browser/network. QA run `npm run test:qa-syntax` for isolated parse verification; browser two-tab still NOT_RUN; report source SHA, case outcomes, POST counts. Do not perform existing family mutations.
+
+
+## WEB-02 verified push CI evidence (2026-11-18)
+- GitHub Actions run 44260359035 @ fe5b5ad1 and run 44260568949 @ 201c486f: real Web logs show **V49 six Playwright fixtures syntax PASS, 33/33 native Node regression PASS, i18n/lint/build success, 3 nonblocking lint warnings**. Run 44260568949 full CI failed Backend Maven; no full green. Node syntax is not Chromium. QA execute actual `onboarding-v49-two-tab-synthetic.spec.js` 2 cases only with isolated QA account/selected workspace, record HTTP POST/GET counts, exact SHA and traces. No real family writes.
