@@ -25,6 +25,8 @@ class WorkspaceBackupRegistryPresenceAuditServiceTest {
                 .when(store).verifyStoredCiphertext(8L,missing,"a".repeat(64));
         doThrow(new SecurityException("BACKUP_STORAGE_HASH_MISMATCH"))
                 .when(store).verifyStoredCiphertext(8L,corrupt,"b".repeat(64));
+        when(db.queryForList(anyString(),eq(8L),eq(intact))).thenReturn(
+                List.of(record(intact,8L,"EXPIRED","c".repeat(64))));
         var findings=new WorkspaceBackupRegistryPresenceAuditService(db,store).audit(8L,4);
         assertEquals(List.of("NOT_STAGED_IN_REGISTRY","REGISTRY_CIPHERTEXT_UNAVAILABLE",
                 "REGISTRY_CIPHERTEXT_INVALID","REGISTRY_CIPHERTEXT_PRESENT"),
@@ -63,4 +65,18 @@ class WorkspaceBackupRegistryPresenceAuditServiceTest {
                 "storage_key","local:v1:"+workspace+"/"+id+".fpbackup",
                 "artifact_sha256",sha);
     }
+    @Test void changedRegistryDuringCiphertextCheckIsNotTreatedAsStable() {
+        var db=mock(JdbcTemplate.class);
+        var store=mock(WorkspaceBackupLocalArtifactStore.class);
+        UUID id=UUID.randomUUID();
+        when(db.queryForList(anyString(),eq(42L),eq(2))).thenReturn(
+                List.of(record(id,42L,"BACKING_UP","a".repeat(64))));
+        when(db.queryForList(anyString(),eq(42L),eq(id))).thenReturn(
+                List.of(record(id,42L,"BLOCKED","b".repeat(64))));
+        var result=new WorkspaceBackupRegistryPresenceAuditService(db,store).audit(42L,1);
+        assertEquals("REGISTRY_CHANGED_DURING_AUDIT",result.get(0).classification());
+        verify(store).verifyStoredCiphertext(42L,id,"a".repeat(64));
+        verify(store,never()).deleteAuthorizedExpired(anyLong(),any());
+    }
+
 }
