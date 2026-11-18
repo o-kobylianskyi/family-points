@@ -159,15 +159,15 @@ class DisposableLedgerSourceGraphVerifierTest {
 
     @Test void authenticatedArchiveNeverTreatsMalformedCurrencyOrParentAsEmpty()
             throws Exception {
-        assertThrows(SecurityException.class,()->verifyEdited(
+        assertThrows(IllegalArgumentException.class,()->verifyEdited(
                 "","MANUAL",null,4,4,
                 body->body.replace("\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"}]",
                         "\"POINT_TYPES\":null")));
-        assertThrows(SecurityException.class,()->verifyEdited(
+        assertThrows(IllegalArgumentException.class,()->verifyEdited(
                 "","TASK",42L,4,4,
                 body->body.replace("\"TASK_DEFINITIONS\":[{\"id\":77,\"family_id\":17}]",
                         "\"TASK_DEFINITIONS\":null")));
-        assertThrows(SecurityException.class,()->verifyEdited(
+        assertThrows(IllegalArgumentException.class,()->verifyEdited(
                 "","TASK",42L,4,4,
                 body->body.replace("\"TASK_EXECUTIONS\":[{\"id\":42,\"member_id\":4,\"task_definition_id\":77}]",
                         "\"TASK_EXECUTIONS\":null")));
@@ -304,7 +304,7 @@ class DisposableLedgerSourceGraphVerifierTest {
 
     @Test void archiveRejectsDuplicateCurrencyCodesAndInvalidCurrencyId()
             throws Exception {
-        assertThrows(SecurityException.class,()->verifyEdited(
+        assertThrows(IllegalArgumentException.class,()->verifyEdited(
                 "","MANUAL",null,4,4,
                 body->body.replace("\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"}]",
                         "\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"},"+
