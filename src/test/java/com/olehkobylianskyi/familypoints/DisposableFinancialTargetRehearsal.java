@@ -73,6 +73,21 @@ final class DisposableFinancialTargetRehearsal {
                 if(!Objects.equals(0L,count))
                     throw new SecurityException("QA_FINANCE_TARGET_ALREADY_APPLIED");
             }
+            // QA-050: IDs are global PKs in the rehearsal tables even if
+            // the restore operation itself is scoped to one target family.
+            // Fail closed on preexisting cross-family IDs *before* any SQL
+            // write rather than accidentally reporting a raw DuplicateKey.
+            for(var identitySet:List.of(
+                    new AbstractMap.SimpleImmutableEntry<>("qa_restore_tasks",maps.tasks().values()),
+                    new AbstractMap.SimpleImmutableEntry<>("qa_restore_rewards",maps.rewards().values()),
+                    new AbstractMap.SimpleImmutableEntry<>("qa_restore_purchases",maps.purchases().values()))) {
+                for(Long mapped:identitySet.getValue()) {
+                    if(!Objects.equals(0L,db.queryForObject(
+                            "SELECT count(*) FROM "+identitySet.getKey()+" WHERE id=?",
+                            Long.class,mapped)))
+                        throw new SecurityException("QA_FINANCE_GLOBAL_ID_COLLISION");
+                }
+            }
             for(JsonNode row:source.path("TASK_DEFINITIONS"))
                 db.update("INSERT INTO qa_restore_tasks(id,target_family) VALUES (?,?)",
                         maps.tasks().get(id(row,"id")),targetFamily);
