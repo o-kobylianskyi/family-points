@@ -42,3 +42,6 @@ DateTime CET | Track | ChatGeneration | VisibleUserTurns | VisibleAssistantTurns
 
 
 2026-11-18 CET | Backend | successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #49-52 | be237334 | CHECKPOINT | Signed synthetic in-memory approval gate; context percentage not measurable.
+
+
+2026-11-18 | Backend | successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #53-56 | 16736856 | CHECKPOINT | Real CI red 493/2 triage + PG-only durable approval rehearsal; no reliable context percentage.
