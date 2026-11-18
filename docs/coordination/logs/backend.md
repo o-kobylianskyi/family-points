@@ -945,3 +945,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Release independently discovered 493 Maven 2 failures @304819c5 run #44196224270, exception class mismatch from malformed archive inspector, not new production restore execution. Test expectations aligned `2353013d` / `8aed240a`.
 - PG18 TEST ONLY row-locked target family epoch + operation UUID unique reserve `becbfa13`, three fixture scenarios `f446e93e`, proper Flyway order `014a13cb`. QA-038 unreferenced TASK economics denomination proof `87fd52ca`, `eb5c8037`.
 - QA `16736856`; current SHA Maven NOT_RUN by Backend. No production authorization, no Reset unlock.
+
+
+### 2026-11-18 — #57–60 synthetic approval/financial atomicity
+- Real CI #44262590272 and #44262614624: 496 Maven, 1 failure each (opposite expected exception for duplicate code vs invalid zero ID); inspected full logs, current code corrections need new exact-SHA confirmation.
+- QA-only PG18 operation approval + synthetic financial row same DB transaction `7d2bcaf6`; late failure rollback, retry, stale epoch, invalid map, concurrency exactly once tests `c5a3b440`. No production migration/PointService.
+- QA packet `174bca23`, source-only latest tests NOT_RUN. HTTP423/BETA HOLD retained.
