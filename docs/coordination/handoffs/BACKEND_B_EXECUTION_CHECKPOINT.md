@@ -26,3 +26,12 @@
 | READY_FOR_QA exact SHA / supported scope | NOT_READY |
 
 **Timeout recovery rule:** Check whether the previous GitHub commit or test call already succeeded before retrying. Source evidence outranks stale checkpoint fields; never repeat completed changes. Update once per meaningful committed batch; do not request new owner instruction between internal B-INT-02 steps.
+
+
+## 2026-11-18 — actual Backend B checkpoint / B-NEXT-01 after frozen B-INT-02
+
+**DONE — B-INT-02 (source ready for independent QA, NOT release):** frozen PR #30 SHA `b711371d6c78d77f1550002261ff0b6ac4bd941b`, `READY_FOR_QA` Issue #15 comment 6991088205; full [CI #4590](https://github.com/o-kobylianskyi/family-points/actions/runs/44392551759) 770 Maven tests 0F/2E/0S due independently owned Retention fixture. B-native two-PG18 encrypted source loss + transactional replay 1/1 PASS, creator provenance 2/2 PASS, Web/Android/Compose PASS. Release remains HOLD; no overlap edits permitted to PR #30 QA files.
+
+**CURRENT / B-NEXT-01:** branch `backend-b/b-next-01-compat-readonly`, source SHA `bfa2f5dce8f6f02a5d43b1dff4a5d183f62b08aa`, [Draft PR #31](https://github.com/o-kobylianskyi/family-points/pull/31). Added *new independent* `WorkspaceBackupCompatibilityAssessmentService` + seven-case `WorkspaceBackupCompatibilityAssessmentServiceTest`. Read-only metadata registry contract (tenant/snapshot/expiry/verified but never executable), legacy V1 existing inspector (blocked for owner/identity/native replay), authenticated eight-category V2 existing inspector (no owner permit implied). No API/HTTP/schema/production feature change or frozen B-INT-02/Retention/Web edits.
+
+**CI actual status at checkpoint:** [#4604](https://github.com/o-kobylianskyi/family-points/actions/runs/44395020403) exact `bfa2f5dc`: Web, Android, Compose successful; Java 21 Testcontainers **in progress**, compilation/testCompile steps completed; no final Maven test result yet. Do NOT claim B-NEXT-01_READY_FOR_QA until actual Java result. NEXT: inspect CI #4604 completed Java logs and B-NEXT-01 test (7 cases); fix any B-owned error on PR #31 only; then single B-NEXT-01_READY_FOR_QA if green. If QA sends B-INT-02 P0, preempt next tasks. Production restorable=false, replaySupported=false, Reset HTTP423, physical purge OFF, BETA HOLD.
