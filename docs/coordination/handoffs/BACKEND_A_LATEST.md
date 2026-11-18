@@ -45,3 +45,12 @@ Source files reviewed:
 - Published producer contract proposal: `docs/coordination/requests/B-A-02_PORTABLE_MEMBER_SOURCE_CONTRACT_20261118.md` (commit `1ede3ee`). Includes minimum privacy-safe source node, original FK/role ancestry, soft-delete, account link risk, versioned wire format, legacy compatibility and 12 negative cases.
 - NO runtime Java/schema changes or tests; awaiting Architecture and Backend B ACK before source format modifications.
 - Next B-A-03: only once approved, implement archive-category/digest/inspector updates with PG18 two-tenant tests; meanwhile independently audit source snapshot isolation/limit behavior without changing restore execution.
+
+
+## B-A-03a — 2026-11-18 export snapshot isolation safeguard
+- Verified exporter uses first digest, per-table rows and final digest while PostgreSQL default READ_COMMITTED may observe multiple MVCC statement snapshots. Family-row lock only fences cooperative writers.
+- Source change `a9c9b667`: exporter `@Transactional(isolation = Isolation.REPEATABLE_READ)` when initiating its own Spring-proxied transaction; no archive format/restore changes.
+- Test source `b49191ed`: transaction declaration regression, **NOT_RUN** in this track. QA packet `docs/coordination/requests/B-A-03A_SOURCE_SNAPSHOT_ISOLATION_QA_20261118.md` commit `a52a277`.
+- **Remaining P0 hazard:** if REQUIRED exporter joins caller's READ_COMMITTED transaction, the annotation does not raise isolation; current direct-instance tests also do not test proxy. Must review actual callsites and add true PG18 concurrent integration before asserting atomic capture.
+- B-A-02 FAMILY_MEMBERS wire contract still awaits Architecture / Backend B ACK; do not merge a guessed category or turn on Restore Execute.
+- Next: B-A-03b callsite/outer-transaction inventory and fail-closed production isolation boundary, plus controlled PG18 concurrency test.
