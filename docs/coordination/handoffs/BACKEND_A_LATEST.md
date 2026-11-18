@@ -212,3 +212,10 @@ Source files reviewed:
 - Next B-A-04g: exact-SHA Maven CI/PG18 verification and corrections; historical polymorphic ledger source_type source_id inventory with D ownership, typed archive only after Architecture A4-01…09 + IMP and B/C/D ACK. BETA HOLD.
 
 - B-A-04f pinned `[full-ci]` SHA `25696945dc24cb6696af920e949cfc1cc6ed5eef`, run `44287295299` IN_PROGRESS when checked. Only count the new PG18 finance schema test, member tests, and full jobs after actual completed evidence; docs-only green is irrelevant.
+
+
+## B-A-04g — 2026-11-18 real CI red triage, fail-closed financial parent closure
+- Last B-A-04e full SHA `fc639206` run `44286446835` SUCCESS (Java/Maven, Android, Web, Compose and exact-SHA attestation). New B-A-04f `25696945` run `44287295299` **FAIL**, actual Maven executed 744 tests / **3 failures, 0 errors, 0 skips**; Android/Web/Compose PASS. Failures were all source economic test fixtures/schema expectation in new Backend A suite, NOT evidence that Restore works.
+- Fix `d554266`: TASK_DEFINITIONS test parents now explicitly include nullable task denomination fields, REWARD_DEFINITIONS test parents include required point_type_id. `5f7d5d1` and `1ed2d11`: PG18 schema test distinguishes physically nullable reward_purchases.reward_definition_id from strict logical portable parent requirement. `1dd2e28` regressions enforce missing purchase parent and absent point currency still fail closed.
+- Financial source typed provenance and missing group source_id request to Backend D/B: `docs/coordination/requests/B-A-04G_LEDGER_PROVENANCE_CI_REPAIR_AND_D_GATE_20261118.md` @`53ddbdd`. Source-type/REFUND accounting policy MUST NOT be invented by A. Group ledger in V1 has no source_id; preserve that lack of proof, no fabricated link. No changed production archive, financial authorization or Restore executor.
+- Next B-A-04h exact-SHA full CI and test class report; only with Architecture A4-01…09 IMP, B wire and D signed source semantics can A implement authenticated vNext. HTTP423, BETA HOLD.
