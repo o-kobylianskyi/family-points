@@ -32,22 +32,22 @@ public final class PortableV2HistoryGraph {
         "POINT_LEDGER",new Table("SELECT to_jsonb(t)::text FROM point_transactions t JOIN family_members m ON m.id=t.member_id WHERE m.family_id=? ORDER BY t.id")
     );
     private static final Map<String,List<String[]>> PARENTS=Map.of(
-        "TASK_DEFINITIONS",List.of(new String[]{"reward_point_type_id","POINT_TYPES"},
+        "TASK_DEFINITIONS",List.<String[]>of(new String[]{"reward_point_type_id","POINT_TYPES"},
                 new String[]{"penalty_point_type_id","POINT_TYPES"},
                 new String[]{"assigned_member_id","FAMILY_MEMBERS"},
                 new String[]{"created_by_member_id","FAMILY_MEMBERS"},
                 new String[]{"preferred_member_id","FAMILY_MEMBERS"},
                 new String[]{"responsible_member_id","FAMILY_MEMBERS"}),
         "REWARD_DEFINITIONS",List.<String[]>of(new String[]{"point_type_id","POINT_TYPES"}),
-        "TASK_EXECUTIONS",List.of(new String[]{"task_definition_id","TASK_DEFINITIONS"},
+        "TASK_EXECUTIONS",List.<String[]>of(new String[]{"task_definition_id","TASK_DEFINITIONS"},
                 new String[]{"reward_point_type_id","POINT_TYPES"},
                 new String[]{"penalty_point_type_id","POINT_TYPES"},
                 new String[]{"member_id","FAMILY_MEMBERS"},
                 new String[]{"original_assigned_member_id","FAMILY_MEMBERS"}),
-        "REWARD_PURCHASES",List.of(new String[]{"reward_definition_id","REWARD_DEFINITIONS"},
+        "REWARD_PURCHASES",List.<String[]>of(new String[]{"reward_definition_id","REWARD_DEFINITIONS"},
                 new String[]{"point_type_id","POINT_TYPES"},
                 new String[]{"member_id","FAMILY_MEMBERS"}),
-        "POINT_LEDGER",List.of(new String[]{"point_type_id","POINT_TYPES"},
+        "POINT_LEDGER",List.<String[]>of(new String[]{"point_type_id","POINT_TYPES"},
                 new String[]{"member_id","FAMILY_MEMBERS"})
     );
 
