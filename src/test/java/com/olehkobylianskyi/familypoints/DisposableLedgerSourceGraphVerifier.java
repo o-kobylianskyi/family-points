@@ -90,6 +90,7 @@ final class DisposableLedgerSourceGraphVerifier {
                             || !historicalTask.path(amount).canConvertToInt())
                             || historicalTask.path(amount).asInt()<=0
                             || !historicalTask.path(currency).isIntegralNumber()
+                            || !historicalTask.path(currency).canConvertToLong()
                             || historicalTask.path(currency).asLong()<=0)))
                     throw new SecurityException("LEDGER_TASK_ARCHIVED_ECONOMICS_PAIR_INVALID");
             }
@@ -129,7 +130,9 @@ final class DisposableLedgerSourceGraphVerifier {
         for(JsonNode taskInstance:taskRows.values()) {
             for(String currencyField:List.of("reward_point_type_id","penalty_point_type_id")) {
                 if(taskInstance.hasNonNull(currencyField)
-                        && !typeIds.contains(taskInstance.path(currencyField).asLong()))
+                        && (!taskInstance.path(currencyField).isIntegralNumber()
+                            || !taskInstance.path(currencyField).canConvertToLong()
+                            || !typeIds.contains(taskInstance.path(currencyField).asLong())))
                     throw new SecurityException("LEDGER_TASK_ARCHIVED_CURRENCY_NOT_FOUND");
             }
         }
@@ -209,6 +212,7 @@ final class DisposableLedgerSourceGraphVerifier {
                             || !taskInstance.path(amountField).canConvertToInt()
                             || taskInstance.path(amountField).asInt()<=0
                             || !taskInstance.path(currencyField).isIntegralNumber()
+                            || !taskInstance.path(currencyField).canConvertToLong()
                             || taskInstance.path(currencyField).asLong()!=currency
                             || Math.abs(signed)!=taskInstance.path(amountField).asInt())
                         throw new SecurityException("LEDGER_TASK_SNAPSHOT_ECONOMICS_MISMATCH");
