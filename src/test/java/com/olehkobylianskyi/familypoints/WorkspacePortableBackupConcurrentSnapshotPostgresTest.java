@@ -31,8 +31,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @Testcontainers
 class WorkspacePortableBackupConcurrentSnapshotPostgresTest {
-    @Container static final PostgreSQLContainer<?> DB =
-            new PostgreSQLContainer<>("postgres:18-alpine")
+    @Container static final PostgreSQLContainer DB =
+            new PostgreSQLContainer("postgres:18-alpine")
                     .withDatabaseName("snapshot_consistency")
                     .withUsername("snapshot_test")
                     .withPassword("snapshot_test");
