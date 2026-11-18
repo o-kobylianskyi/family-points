@@ -107,6 +107,12 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
         assertEquals(snapshot,proof.snapshotId());
         assertEquals(1,proof.roleCount());
         assertEquals(2,proof.memberCount());
+        assertEquals(List.of(),proof.sourceRoleIds().stream().filter(x->x<=0).toList());
+        assertEquals(1,proof.sourceRoleIds().size());
+        assertEquals(2,proof.sourceMemberIds().size());
+        assertTrue(proof.sourceMemberIds().get(0)<proof.sourceMemberIds().get(1));
+        assertThrows(UnsupportedOperationException.class,
+                ()->proof.sourceMemberIds().add(-1L));
         assertFalse(proof.restorable());
         assertThrows(SecurityException.class,()->
                 offline.inspectAncestryV2(file,other,key));
