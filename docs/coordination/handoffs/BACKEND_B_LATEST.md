@@ -42,3 +42,8 @@
 - Legacy read-only intake: `docs/coordination/handoffs/BACKEND_LATEST.md`, `docs/coordination/logs/backend.md`
 - Architecture: `docs/coordination/logs/architecture.md`, `docs/coordination/IMPACT_REGISTER.md`
 - QA: GitHub Issue #15 / exact-SHA and Postgres18 evidence.
+
+## B-B-01 completed — 2026-11-18
+- Reviewed exact current `WorkspacePortableBackupExporter.SCOPED_TABLES` and `ProtectiveBackupImportInspector` parent checks: **23 V50 categories**, original `FAMILY_MEMBERS` omitted; inspector emits identity/currency/polymorphic ancestry blockers and `RESTORE_ENGINE_NOT_IMPLEMENTED`, `restorable=false`.
+- Matrix `docs/coordination/requests/BACKEND_B_RESTORE_DEPENDENCY_MATRIX_20261118.md` @`99f5f812`: owner/scope per category, selective FK graph, conservative stage order, source/target trust gaps and producer/consumer acceptance. Backend A/Architecture ACK pending; no shared schema or importer changes.
+- Next Backend B B-B-02: isolated PG18 target mapping/rollback test harness covering target category order and missing-parent rejection, **without** filling producer field gaps by guessing. Latest CI exact-SHA verified PASS still not asserted. Production HTTP423/BETA HOLD.
