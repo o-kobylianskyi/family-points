@@ -1,4 +1,6 @@
-> **CURRENT DISPATCH OVERRIDE — 2026-11-18:** On each `++`, read [ARCHITECT_DISPATCH_LATEST.md](../ARCHITECT_DISPATCH_LATEST.md) and [WEB_ACTIVE_ASSIGNMENT.md](WEB_ACTIVE_ASSIGNMENT.md). They carry the current WEB-01 → WEB-02 → WEB-03 queue with strict frontend-only ownership; old packages below are historical evidence, not new instructions. Backend B and Backend Retention operate in parallel on disjoint files.\n\n# FamilyPoints Web — rolling latest handoff
+> **CURRENT DISPATCH OVERRIDE — 2026-11-18:** On each `++`, read [ARCHITECT_DISPATCH_LATEST.md](../ARCHITECT_DISPATCH_LATEST.md) and [WEB_ACTIVE_ASSIGNMENT.md](WEB_ACTIVE_ASSIGNMENT.md). They carry the current WEB-01 → WEB-02 → WEB-03 queue with strict frontend-only ownership; old packages below are historical evidence, not new instructions. Backend B and Backend Retention operate in parallel on disjoint files.
+
+# FamilyPoints Web — rolling latest handoff
 
 **New role chat:** FamilyPoints — Web Frontend (WEB-02), pickup 2026-11-16 Europe/Berlin after old chat reached hard cap. **Repo:** `o-kobylianskyi/family-points`; integration branch `main`. **HEAD inspected at pickup:** `e51c0972aa3dd7a2dd5960cb5e450b40bae4750c` (2026-11-16 20:25Z). Other tracks push concurrently: re-fetch HEAD before every edit. Old emergency handoff: [20261116_WEB_CONTINUE_AFTER_LIMIT.md](20261116_WEB_CONTINUE_AFTER_LIMIT.md).
 
