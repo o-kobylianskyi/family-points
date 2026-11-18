@@ -36,6 +36,7 @@ final class DisposableRestorePlanFingerprint {
         if(plan==null || plan.sourceWorkspace()<=0||plan.targetWorkspace()<=0
                 ||plan.schemaVersion()<=0 ||plan.snapshot()==null
                 ||plan.sourceEpoch()<0||plan.targetExpectedEpoch()<0
+                ||plan.targetExpectedEpoch()==Long.MAX_VALUE
                 ||!digestValid(plan.sealedManifestSha256())
                 ||!ALLOWED_POLICIES.contains(plan.conflictPolicy())
                 ||plan.originalToTargetMembers()==null
@@ -82,6 +83,25 @@ final class DisposableRestorePlanFingerprint {
             throw new SecurityException("RESTORE_PLAN_TASK_DEFINITIONS_REQUIRED");
         if(selected(cats,"REWARD_PURCHASES")&&!selected(cats,"REWARD_DEFINITIONS"))
             throw new SecurityException("RESTORE_PLAN_REWARD_DEFINITIONS_REQUIRED");
+        // Parent categories must be deliberately selected rather than
+        // silently resolved from an unrelated, mutable target workspace.
+        String[][] parentDependencies={
+            {"TASK_SCHEDULE_SLOTS","TASK_DEFINITIONS"},
+            {"REWARD_DEFINITION_CATEGORIES","REWARD_DEFINITIONS"},
+            {"REWARD_DEFINITION_CATEGORIES","REWARD_CATEGORIES"},
+            {"REWARD_OBLIGATIONS","REWARD_PURCHASES"},
+            {"REWARD_OBLIGATION_BLOCKED_CATEGORIES","REWARD_OBLIGATIONS"},
+            {"REWARD_OBLIGATION_BLOCKED_CATEGORIES","REWARD_CATEGORIES"},
+            {"REWARD_OBLIGATION_BLOCKED_REWARDS","REWARD_OBLIGATIONS"},
+            {"REWARD_OBLIGATION_BLOCKED_REWARDS","REWARD_DEFINITIONS"},
+            {"POINT_EXCHANGE_REQUESTS","POINT_EXCHANGE_RATES"},
+            {"GROUP_POINT_LEDGER","MEMBER_GROUPS"}
+        };
+        for(var dependency:parentDependencies) {
+            if(selected(cats,dependency[0])&&!selected(cats,dependency[1]))
+                throw new SecurityException("RESTORE_PLAN_PARENT_CATEGORY_REQUIRED:"
+                        +dependency[0]+":"+dependency[1]);
+        }
         StringBuilder members=new StringBuilder("FP-RESTORE-MEMBERS-V2")
                 .append('|').append(plan.sourceWorkspace())
                 .append('|').append(plan.targetWorkspace())
