@@ -34,3 +34,14 @@ Verify exact SHA Actions job conclusions + Java test reports (including Testcont
 - CI/PG18 triage for this SHA; add cross-workspace / concurrency race rehearsal at assessment time, detect registry-backed missing file (reverse mismatch), and ensure bounded audit resource usage.
 - Add operator read-only combined summary (filesystem extra files AND registry missing bytes) with no sensitive details.
 - Prepare Architecture + Backend B decision response for original member catalog, category closure and history; **do not** independently enable Restore.
+
+
+## B-A-03h extended delivery — reverse registry-to-disk integrity
+6. `WorkspaceBackupRegistryPresenceAuditService`: bounded **per-workspace** registry inventory with max+1 overflow detection, physical ciphertext SHA/envelope preflight for rows with complete registry evidence, distinction among `NOT_STAGED_IN_REGISTRY`, `INCOMPLETE_REGISTRY_EVIDENCE`, `REGISTRY_CIPHERTEXT_UNAVAILABLE`, `REGISTRY_CIPHERTEXT_INVALID`, and `REGISTRY_CIPHERTEXT_PRESENT`. This covers the reverse crash case where a registry row survives but disk bytes vanish. No auth key, decryption or mutation.
+7. `WorkspaceBackupRegistryPresenceAuditServiceTest`: negative proof for missing file, corrupted file, non-staged registry, expired row (still read-only), malformed cross-workspace storage key, bounded scan overflow, zero deletion/write calls.
+
+Extended focused command:
+```bash
+./mvnw -Dtest=WorkspaceBackupReconciliationAssessmentServiceTest,WorkspaceBackupReconciliationAssessmentPostgresTest,WorkspaceBackupRegistryPresenceAuditServiceTest,WorkspaceBackupOrphanAuditServiceTest,WorkspaceBackupLocalArtifactStoreTest,WorkspaceBackupRetentionPostgresTest test
+```
+Audit results are **evidence**, not a cleanup decision. A single stale audit observation cannot be safely used later for physical deletion. Any future cleanup needs fresh transaction locks, active-lease recheck, age/ownership validation, audit log, operation ID and explicit Architecture/QA authorization.
