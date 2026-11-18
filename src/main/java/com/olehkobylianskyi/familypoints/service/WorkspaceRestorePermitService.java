@@ -143,6 +143,23 @@ public final class WorkspaceRestorePermitService {
                 scope.targetWorkspaceId(),reviewedMemberMap);
         if(!digestEquals(expected,scope.memberMappingDigest()))
             throw new SecurityException("RESTORE_MEMBER_BINDING_MISMATCH");
+        // Signed source IDs are not identities in the target database. Require
+        // every explicitly reviewed target member to exist within this family
+        // before issuing/consuming a permission. Never compare numeric IDs to
+        // source IDs or accept a member borrowed from another family.
+        if(reviewedMemberMap.isEmpty() || reviewedMemberMap.size()>2000)
+            throw new SecurityException("RESTORE_MEMBER_MAP_SIZE_INVALID");
+        var targetMemberIds=new java.util.HashSet<Long>();
+        for(Long targetId:reviewedMemberMap.values()) {
+            if(targetId==null || targetId<=0 || !targetMemberIds.add(targetId))
+                throw new SecurityException("RESTORE_MEMBER_TARGET_NOT_INJECTIVE");
+        }
+        var actualTargetMembers=new java.util.HashSet<Long>(db.queryForList("""
+                SELECT id FROM family_members
+                WHERE family_id=? AND active=true AND deleted_at IS NULL
+                """,Long.class,scope.targetWorkspaceId()));
+        if(!actualTargetMembers.containsAll(targetMemberIds))
+            throw new SecurityException("RESTORE_MEMBER_TARGET_NOT_OWNED");
     }
 
     private String requireOwnerPasswordHash(WorkspaceRestorePermitScopeV2.RestoreScope scope) {
@@ -157,7 +174,7 @@ public final class WorkspaceRestorePermitService {
                  AND m.active=true AND m.deleted_at IS NULL
             WHERE o.workspace_id=? AND o.owner_account_id=?
                  AND o.owner_member_id=? AND o.provenance='REGISTRATION_VERIFIED'
-            FOR SHARE OF a
+            FOR SHARE OF a,l,m
             """,String.class,scope.targetWorkspaceId(),
             scope.authorizedOwnerAccountId(),scope.authorizedOwnerMemberId());
         if(hashes.size()!=1||hashes.get(0)==null)
