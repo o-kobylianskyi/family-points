@@ -241,6 +241,30 @@ class DisposableFinancialNativeFamilyGatePostgresTest {
     }
 
     @Test
+    void nonExistentFamilyCannotClaimOrCreateFinancialHistory() {
+        // Resolve an impossible family ID without editing any real family.
+        long missing=-1;
+        UUID operation=UUID.randomUUID();
+        assertThrows(DataAccessException.class,
+                ()->claimAndWrite(missing,operation,0,persisted(),-1));
+        assertEquals(0L,countClaims(operation));
+        assertTrue(read(missing,operation).isEmpty());
+    }
+
+    @Test
+    void epochChangeAfterCommitDoesNotPermitFinancialReplay() {
+        long family=family();
+        UUID operation=UUID.randomUUID();
+        claimAndWrite(family,operation,0,persisted(),-1);
+        var before=read(family,operation);
+        db.update("UPDATE families SET data_epoch=1 WHERE id=?",family);
+        assertThrows(SecurityException.class,
+                ()->claimAndWrite(family,operation,0,persisted(),-1));
+        assertEquals(before,read(family,operation));
+        assertEquals(1L,countClaims(operation));
+    }
+
+    @Test
     void compensatedTamperingCannotPassExactFinancialParity() {
         long family=family();
         UUID operation=UUID.randomUUID();
