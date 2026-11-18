@@ -144,6 +144,13 @@
 
 - **Post-write exact-SHA Web CI verified**: [run 44267020114](https://github.com/o-kobylianskyi/family-points/actions/runs/44267020114) at `67aa36aa2ed82362e6b7c2df5f50f113fa724e3d`, Web job `134674108671`: actual logs show V49 syntax **6 fixtures PASS**, native Node **33 tests PASS / 0 fail / 0 skipped**, i18n/lint/Vite build **SUCCESS**, lint 3 warnings / 0 errors. Scoped run: four-component full attestation **SKIPPED**; no Chromium execution. Supersedes queued checkpoint above.
 
+## WEB-02 package 20 — immutable finalize revision+epoch browser assertions (2026-11-18)
+- Latest QA handoff at pickup remains QA-039, Chromium two-tab **NOT_RUN**; no claim of real feature-enabled acceptance. Product code `frontend/src/api/setupApi.js` and `frontend/src/api/client.js` independently inspected: finalize sends `expectedRevision`, `Idempotency-Key`, shared client obtains fresh workspace epoch and sends `X-Workspace-Data-Epoch` before scoped POST.
+- Test-only `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` commit `366737553301c7a831d41336c0d7f4eb3c58fb2e`: both original finalize POST interceptions capture expected revision and epoch header; main test flow asserts `revision===7`, `epochHeader==='0'`, retains original UUID, receipt path, marker persistence and no-repeat invariants. No production UI changes, no server mutations.
+- Independently fetched fixture blob `0d81cab569ab78e9c4ab406cf6e9e089b2ba53ec`; V8 parser after import adaptation **PASS**, exactly two revision and two epoch assertions found. Native Playwright Chromium **NOT_RUN**, newly published Actions [run 44267564831](https://github.com/o-kobylianskyi/family-points/actions/runs/44267564831) at exact patch was IN_PROGRESS at check, so current SHA Web CI cannot yet be claimed PASS.
+- Prior verified Web source checks at `67aa36aa`: 6 fixture Node syntax, 33/33 Node, i18n/lint/Vite PASS (scoped run), not new SHA nor browser. QA owns isolated Chromium and any real PREBETA campaign. BKL-002/BETA HOLD.
+- Next: check actual completed current-SHA Web job logs; fix any demonstrated browser mismatch, otherwise hold real acceptance pending QA trace.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
