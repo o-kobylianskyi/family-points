@@ -214,6 +214,8 @@ class DisposableSignedFinancialPostgresParityTest {
                 "{\"id\":4,\"member_id\":4,\"point_type_id\":3,\"amount\":-3,"
                 +"\"type\":\"SPEND\",\"source_type\":\"REWARD_PURCHASE\","
                 +"\"source_id\":51},{\"id\":3,\"member_id\":5");
+        assertNotEquals(LEDGER,duplicate,
+                "Negative fixture must actually modify the signed source");
         UUID operation=UUID.randomUUID();
         assertThrows(SecurityException.class,() -> {
             SignedSource invalid=authenticatedSource(duplicate);
@@ -222,6 +224,23 @@ class DisposableSignedFinancialPostgresParityTest {
         });
         assertTrue(read(operation).isEmpty());
     }
+    @Test
+    void cannotDecodeForeignKeyArchiveOrWriteToDatabase() throws Exception {
+        UUID operation=UUID.randomUUID();
+        // Only an independent authenticated archive fixture is admissible.
+        // Corrupting the signed ledger amount must be detected before DB writes.
+        String malformed=LEDGER.replace(
+                "\"amount\":5",
+                "\"amount\":6");
+        assertNotEquals(LEDGER,malformed);
+        assertThrows(SecurityException.class,()->{
+            SignedSource proof=authenticatedSource(malformed);
+            write(operation,mappedRows(),false);
+            reconcile(proof,read(operation));
+        });
+        assertTrue(read(operation).isEmpty());
+    }
+
     @Test
     void signedArchiveWithOrphanTaskNeverTouchesPostgres() throws Exception {
         String orphan=LEDGER.replace("\"source_type\":\"TASK\",\"source_id\":42",
