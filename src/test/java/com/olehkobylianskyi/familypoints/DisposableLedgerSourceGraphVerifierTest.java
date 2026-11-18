@@ -404,6 +404,58 @@ class DisposableLedgerSourceGraphVerifierTest {
                         "\"point_type_id\":3,\"amount\":-2147483649")));
     }
 
+
+    @Test void historicalTaskEconomicsRejectsFractionalAmountsEvenWhenConvertible()
+            throws Exception {
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "", "TASK",42L,4,4,
+                body->body.replace("\"task_definition_id\":77}",
+                    "\"task_definition_id\":77,\"reward_amount\":5.5,\"reward_point_type_id\":3}")));
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "", "TASK",42L,4,4,
+                body->body.replace("\"task_definition_id\":77}",
+                    "\"task_definition_id\":77,\"reward_amount\":5,\"reward_point_type_id\":3.5}")));
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "", "TASK",42L,4,4,
+                body->body.replace("\"task_definition_id\":77}",
+                    "\"task_definition_id\":77,\"penalty_amount\":6.5,\"penalty_point_type_id\":3}")));
+    }
+
+    @Test void archivedPurchaseRejectsFractionalOrOverflowingEconomicsAndIds()
+            throws Exception {
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "", "MANUAL",null,4,4,
+                body->body.replace("\"POINT_LEDGER\":",
+                    "\"REWARD_PURCHASES\":[{\"id\":51,\"member_id\":4,"
+                    +"\"point_type_id\":3,\"price_amount\":5.5}],\"POINT_LEDGER\":")));
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "", "MANUAL",null,4,4,
+                body->body.replace("\"POINT_LEDGER\":",
+                    "\"REWARD_PURCHASES\":[{\"id\":51,\"member_id\":4,"
+                    +"\"point_type_id\":3,\"price_amount\":2147483648}],\"POINT_LEDGER\":")));
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "", "MANUAL",null,4,4,
+                body->body.replace("\"POINT_LEDGER\":",
+                    "\"REWARD_PURCHASES\":[{\"id\":9223372036854775808,\"member_id\":4,"
+                    +"\"point_type_id\":3,\"price_amount\":5}],\"POINT_LEDGER\":")));
+    }
+
+    @Test void ledgerRejectsIdentifiersOutsideSignedLongRange()
+            throws Exception {
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "", "MANUAL",null,4,4,
+                body->body.replace("\"POINT_LEDGER\":[{\"id\":100",
+                    "\"POINT_LEDGER\":[{\"id\":9223372036854775808")));
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "", "MANUAL",null,4,4,
+                body->body.replace("\"member_id\":4,\"point_type_id\":3",
+                    "\"member_id\":9223372036854775808,\"point_type_id\":3")));
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "", "MANUAL",null,4,4,
+                body->body.replace("\"task_definition_id\":77}",
+                    "\"task_definition_id\":9223372036854775808}")));
+    }
+
     @Test void duplicateChargeOfSamePurchaseFailsClosed() throws Exception {
         assertThrows(SecurityException.class,()->verifyEdited(
                 "","REWARD_PURCHASE",51L,4,4,
