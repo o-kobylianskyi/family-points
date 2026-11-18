@@ -1256,3 +1256,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 V49 synthetic route guard now has CI-run Node regressions
 - `afabbd88` adds reusable V49 catch-all guard, `2c202442` adopts in both browser cases, `0e7b2ed4` adds 3 Node test cases covering classification, cross-route block/logging and absent audit fail closed, `8a8cda94` wires into Web `test:regression` already invoked by Actions. V8 parse PASS, native latest-SHA CI #44269209360 in progress at audit; Chromium NOT_RUN; QA-047 issue #18 says credentials/isolated family needed. BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 V49 clear receipt requires marker ownership
+- Source `08d8714c` introduces pure canClearSetupFinalizeMarkers, component `bed3a95a` uses fail-closed guard; test `2ba2acee` rejects both missing markers, foreign UUID/epoch/revision/scope and keeps valid single-marker cleanup. Executed 15/15 fetched V49 source test callbacks PASS under V8 assertion-equivalent runner, not native Node/Chromium. Same-SHA run #44269872374 queued at observation; BETA HOLD.
