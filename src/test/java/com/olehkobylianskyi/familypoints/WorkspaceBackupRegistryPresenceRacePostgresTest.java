@@ -81,7 +81,7 @@ class WorkspaceBackupRegistryPresenceRacePostgresTest {
             write.get(15,TimeUnit.SECONDS);
             // The first read is a stale observation: it must NEVER authorize
             // any restore or delete, regardless of its classification.
-            assertEquals("REGISTRY_CIPHERTEXT_PRESENT",previous.classification());
+            assertEquals("REGISTRY_CHANGED_DURING_AUDIT",previous.classification());
             var current=audit.audit(family,10).get(0);
             assertEquals("REGISTRY_CIPHERTEXT_INVALID",current.classification());
             assertEquals(changedSha,db.queryForObject(
