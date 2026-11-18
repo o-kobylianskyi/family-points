@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * P0 evidence: filesystem unlink is not rolled back with SQL. This is NOT an
- * implementation of automatic repair, deletion authorization or Restore.
+ * RET-01 regression: SQL rollback must NEVER unlink the sole ciphertext.
+ * Physical purge remains disabled; these tests use disposable PostgreSQL.
  */
 @Testcontainers
 class WorkspaceBackupRetentionRollbackGapPostgresTest {
@@ -31,7 +31,7 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
             .withUsername("retention_gap").withPassword("retention_gap");
     @TempDir Path temp;
 
-    @Test void rollbackAfterPhysicalDeleteLeavesRegistryRowAndReverseAuditReportsMissingBytes()
+    @Test void rollbackAfterExpiryTransitionPreservesCiphertextAndRegistry()
             throws Exception {
         var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
         Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
@@ -76,32 +76,32 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
         var retention=new WorkspaceBackupRetentionService(db,store);
         var failure=assertThrows(IllegalStateException.class,()->transactions.execute(status->{
             assertEquals(1,retention.expireEligible(1));
-            assertFalse(Files.exists(artifact),"Physical delete already occurred");
-            throw new IllegalStateException("SIMULATED_SQL_ROLLBACK_AFTER_DELETE");
+            assertTrue(Files.exists(artifact),"SQL expiry may not unlink ciphertext");
+            throw new IllegalStateException("SIMULATED_SQL_ROLLBACK_AFTER_EXPIRY");
         }));
-        assertEquals("SIMULATED_SQL_ROLLBACK_AFTER_DELETE",failure.getMessage());
+        assertEquals("SIMULATED_SQL_ROLLBACK_AFTER_EXPIRY",failure.getMessage());
 
         assertEquals("BACKING_UP",db.queryForObject(
                 "SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",
                 String.class,id));
-        assertFalse(Files.exists(artifact),
-                "SQL rollback cannot re-create ciphertext already unlinked");
+        assertTrue(Files.exists(artifact),
+                "Rollback must leave original ciphertext recoverable");
         var evidence=new WorkspaceBackupRegistryPresenceAuditService(db,store)
                 .audit(family,10);
         assertEquals(1,evidence.size());
-        assertEquals("REGISTRY_CIPHERTEXT_INVALID",evidence.get(0).classification());
+        assertNotEquals("REGISTRY_CIPHERTEXT_INVALID",evidence.get(0).classification());
         assertEquals(0L,db.queryForObject(
                 "SELECT count(*) FROM workspace_protective_backups WHERE workspace_id=?",
                 Long.class,neighbor));
-        assertFalse(Files.exists(artifact),
-                "Read-only recovery audit never repairs, deletes, or fabricates archived bytes");
+        assertTrue(Files.exists(artifact),
+                "Read-only audit cannot destroy archived bytes");
         // Both tests share this class's container; remove synthetic metadata
         // so the other retention test cannot select a stale earlier row.
         assertEquals(1,db.update(
                 "DELETE FROM workspace_protective_backups WHERE snapshot_id=?",id));
     }
 
-    @Test void unlinkFailureRollsBackSqlInsteadOfMarkingRegistryExpired() {
+    @Test void ciphertextIntegrityFailureRollsBackSqlWithoutUnlink() {
         var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
         Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
         var db=new JdbcTemplate(ds);
@@ -128,15 +128,16 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 """,id,family,UUID.randomUUID(),member,"a".repeat(64),
                 "local:v1:"+family+"/"+id+".fpbackup","b".repeat(64));
         var storage=mock(WorkspaceBackupLocalArtifactStore.class);
-        doThrow(new IllegalStateException("DISK_UNLINK_DENIED"))
-                .when(storage).deleteAuthorizedExpired(family,id);
+        doThrow(new SecurityException("BACKUP_FILE_MISSING_OR_UNSAFE"))
+                .when(storage).verifyStoredCiphertext(eq(family),eq(id),anyString());
         var retention=new WorkspaceBackupRetentionService(db,storage);
-        assertEquals("DISK_UNLINK_DENIED",assertThrows(IllegalStateException.class,
+        assertEquals("BACKUP_FILE_MISSING_OR_UNSAFE",assertThrows(SecurityException.class,
                 ()->tx.execute(status->retention.expireEligible(1))).getMessage());
         assertEquals("BACKING_UP",db.queryForObject(
                 "SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",
                 String.class,id));
-        verify(storage).deleteAuthorizedExpired(family,id);
+        verify(storage).verifyStoredCiphertext(eq(family),eq(id),anyString());
+        verify(storage,never()).deleteAuthorizedExpired(anyLong(),any());
         assertEquals(1,db.update(
                 "DELETE FROM workspace_protective_backups WHERE snapshot_id=?",id));
     }
