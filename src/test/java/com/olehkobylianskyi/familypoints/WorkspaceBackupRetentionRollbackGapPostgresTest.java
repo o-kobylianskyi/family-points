@@ -164,8 +164,7 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 "local:v1:"+family+"/"+id+".fpbackup","f".repeat(64),id);
         assertEquals("BLOCK_INTEGRITY_OR_MISSING",retention.inspectExpiredArtifacts(10).stream()
                 .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
-        db.update("UPDATE workspace_protective_backups SET artifact_sha256=? WHERE snapshot_id=?",
-                "invalid",id);
+        db.update("UPDATE workspace_protective_backups SET artifact_sha256=NULL WHERE snapshot_id=?",id);
         assertEquals("BLOCK_DIGEST",retention.inspectExpiredArtifacts(10).stream()
                 .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
         db.update("UPDATE workspace_protective_backups SET artifact_sha256=? WHERE snapshot_id=?",
