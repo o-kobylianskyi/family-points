@@ -49,7 +49,7 @@ class DisposableFinancialTargetRehearsalPostgresTest {
         DisposableRestoreFinancialDependencyPreflight.Mapping mapping() {
             return new DisposableRestoreFinancialDependencyPreflight.Mapping(
                     Map.of(3L,member),Map.of(51L,currency),
-                    Map.of(11L,1011L),Map.of(31L,1031L),Map.of(41L,1041L));
+                    Map.of(11L,targetFamily*10000L+11L),\n                    Map.of(31L,targetFamily*10000L+31L),\n                    Map.of(41L,targetFamily*10000L+41L));
         }
         long rows(String table) {
             if(!Set.of("qa_restore_tasks","qa_restore_rewards",
@@ -137,7 +137,7 @@ class DisposableFinancialTargetRehearsalPostgresTest {
         assertEquals(1L,f.rows("qa_restore_rewards"));
         assertEquals(1L,f.rows("qa_restore_purchases"));
         assertEquals(3L,f.rows("qa_restore_ledger"));
-        assertEquals(1041L,f.db.queryForObject("""
+        assertEquals(f.mapping().purchases().get(41L),f.db.queryForObject("""
                 SELECT source_id FROM qa_restore_ledger
                 WHERE target_family=? AND source_type='REWARD_PURCHASE'
                 """,Long.class,f.targetFamily));
@@ -173,13 +173,13 @@ class DisposableFinancialTargetRehearsalPostgresTest {
         assertEmpty(f);
         var foreign=new DisposableRestoreFinancialDependencyPreflight.Mapping(
                 Map.of(3L,Long.MAX_VALUE),Map.of(51L,f.currency),
-                Map.of(11L,1011L),Map.of(31L,1031L),Map.of(41L,1041L));
+                Map.of(11L,targetFamily*10000L+11L),\n                    Map.of(31L,targetFamily*10000L+31L),\n                    Map.of(41L,targetFamily*10000L+41L));
         assertThrows(SecurityException.class,()->f.consumer().apply(
                 source(),17,f.targetFamily,foreign,0));
         assertEmpty(f);
         var wrongCurrency=new DisposableRestoreFinancialDependencyPreflight.Mapping(
                 Map.of(3L,f.member),Map.of(51L,Long.MAX_VALUE),
-                Map.of(11L,1011L),Map.of(31L,1031L),Map.of(41L,1041L));
+                Map.of(11L,targetFamily*10000L+11L),\n                    Map.of(31L,targetFamily*10000L+31L),\n                    Map.of(41L,targetFamily*10000L+41L));
         assertThrows(SecurityException.class,()->f.consumer().apply(
                 source(),17,f.targetFamily,wrongCurrency,0));
         assertEmpty(f);
