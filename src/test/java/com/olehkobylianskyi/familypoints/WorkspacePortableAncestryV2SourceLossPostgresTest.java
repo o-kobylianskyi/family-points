@@ -360,7 +360,8 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
             var guard=new WorkspaceEpochTransactionGuard(db);
             var limiter=new WorkspaceRestorePasswordLimiter(db);
             var permits=new WorkspaceRestorePermitService(
-                    db,guard,encoder,limiter,offline,portable,codec);
+                    db,guard,encoder,limiter,offline,portable,codec,
+                    new GoogleTokenVerifier(""));
             var engine=new WorkspaceRestoreNativeTargetEngine(
                     db,guard,permits,portable,codec);
             var inspected=offline.inspectAncestryV2(archive,source,key);
