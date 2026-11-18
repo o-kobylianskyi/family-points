@@ -47,3 +47,11 @@
 - QA target and exact source SHA instructions: `docs/coordination/requests/BACKEND_C_QA_PACKET_20261118_PROOF_HARDENING.md` @ `5b4336ae`.
 - **Evidence:** SOURCE_COMMITTED, Maven/JUnit/PG **NOT_RUN**; no green CI claimed. Backend C ownership/provenance migration still awaiting Architecture sign-off. No real Reset or Restore enabled.
 - **Next:** inspect QA output; build reproducible PG18 concurrency test for token consumption and reset reauth throttling on disposable DB. Keep test-only until Integrator approves shared migration/owner contract.
+
+## 2026-11-18 — C-C-05: real PostgreSQL 18 concurrency and rollback test source
+- Inspected existing `WorkspaceDisposableRestoreRehearsalPostgresTest`, `DisposableDurableRestoreApprovalStorePostgresTest`, `WorkspaceResetAuditSchemaPostgresTest`, schema V43/V44 and production `WorkspaceResetProofService`.
+- New `WorkspaceResetProofConcurrencyPostgresTest` @ `2119befd` uses actual production proof lifecycle (not cloned SQL), disposable Testcontainers PostgreSQL 18, Flyway, two tenant fixtures, BCrypt credentials and TransactionTemplate.
+- Four test cases: simultaneous proof consumption exactly once, injected rollback then retry then replay denial, other-workspace isolation, persisted epoch advancement denies stale proof. No Reset/Restore Execute and no family data deletion.
+- QA execution packet `docs/coordination/requests/BACKEND_C_QA_PACKET_20261118_PROOF_PG_CONCURRENCY.md` @ `45333c63`.
+- **Evidence:** test source committed; actual Maven/Docker/PostgreSQL tests **NOT_RUN** from connector, no green result claimed; CI exact SHA must be independently checked.
+- **Next:** triage actual QA failures; await Architecture owner provenance ACK before wiring destructive REST permissions. Maintain Reset HTTP423 and BETA HOLD.
