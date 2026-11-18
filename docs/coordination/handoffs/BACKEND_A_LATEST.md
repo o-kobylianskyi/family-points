@@ -126,3 +126,12 @@ Source files reviewed:
 - QA/operator-only runbook: `docs/coordination/requests/B-A-03I_TOCTOU_RACE_RECONCILIATION_QA_20261118.md` commit `3f47f5a`. This is NOT an approved cleanup operation and has no delete API/scheduler. 24h staleness is a review threshold, not a delete threshold.
 - Backend B conditionally ACKed hidden member provenance catalog via `docs/coordination/requests/BACKEND_B_TO_A_MEMBER_SOURCE_CONSUMER_ACK_20261118.md`; Architecture named schema/version approval still pending, so no archive schema change.
 - New SHA must get exact-SHA all-four CI evidence. Next B-A-03j: CI fail triage, source cleanup/retention callsite audit, reverse-audit racing registry checks; hold real Restore, HTTP423 and BETA.
+
+
+## B-A-03j — 2026-11-18 reverse audit registry race guard / physical delete paths
+- Previous B-A-03i Actions `44273553572` exact SHA `5f91d269` overall SUCCESS. Later B-A-03j CI must be verified independently.
+- `7795b463`: new `WorkspaceBackupRegistryPresenceRacePostgresTest`, separate PG18 JDBC reader/writer, concurrent registry SHA update during ciphertext verification; unrelated family unchanged; no delete.
+- `4ded05eb`: after successful stored ciphertext verification, reverse audit re-reads exact workspace/snapshot registry fields and classifies a changed/missing row `REGISTRY_CHANGED_DURING_AUDIT`. `1e9b509` unit asserts drift; `a4ac54e` PG18 expectation updated. Observational only: a later change can still race, never authorize delete.
+- Reviewed production physical delete callsites in staging, coordinator, explicit retention and local store. Critical non-atomic filesystem deletion vs SQL rollback retained as P0 for operator workflow. Auditors never issue delete. Exact paths/test packet: `docs/coordination/requests/B-A-03J_REVERSE_AUDIT_RACE_AND_RETENTION_QA_20261118.md` commit `fce7bef`.
+- Backend B conditional MEMBER source catalog ACK present; named Architecture wire schema approval still absent. Never add speculative `FAMILY_MEMBERS` to v1 or enable production Restore. HTTP423/BETA HOLD.
+- Next B-A-03k: exact-SHA CI triage, disposable physical retention/rollback mismatch tests, then vNext member source only after Architecture ACK.
