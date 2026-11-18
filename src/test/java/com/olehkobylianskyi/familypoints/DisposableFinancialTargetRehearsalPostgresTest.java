@@ -30,10 +30,13 @@ class DisposableFinancialTargetRehearsalPostgresTest {
                 "original_assigned_member_id":3,"scheduled_date":"2026-11-18",
                 "slot_key":"morning","title":"Original task","description":"Historic snapshot",
                 "mandatory":true,"due_time":"12:30:00","status":"COMPLETED",
+                "claimed_at":"2026-11-18T08:50:00",
                 "started_at":"2026-11-18T09:00:00",
                 "completed_at":"2026-11-18T09:15:00",
+                "excuse_reason":null,"excuse_comment":null,
                 "reward_amount":5,"reward_point_type_id":51,
                 "penalty_amount":null,"penalty_point_type_id":null,
+                "reward_reputation_amount":null,"penalty_reputation_amount":null,
                 "reward_processed":true,"penalty_processed":false}],
              "REWARD_DEFINITIONS":[{"id":31,"family_id":17}],
              "REWARD_PURCHASES":[{"id":41,"member_id":3,"reward_definition_id":31,
@@ -96,12 +99,17 @@ class DisposableFinancialTargetRehearsalPostgresTest {
                 mandatory boolean NOT NULL,
                 due_time time,
                 status varchar(30) NOT NULL,
+                claimed_at timestamp,
                 started_at timestamp,
                 completed_at timestamp,
+                excuse_reason varchar(30),
+                excuse_comment varchar(500),
                 reward_amount integer,
                 reward_point_type_id bigint REFERENCES point_types(id),
                 penalty_amount integer,
                 penalty_point_type_id bigint REFERENCES point_types(id),
+                reward_reputation_amount integer,
+                penalty_reputation_amount integer,
                 reward_processed boolean NOT NULL,
                 penalty_processed boolean NOT NULL,
                 UNIQUE(target_family,source_execution_id),
@@ -208,6 +216,13 @@ class DisposableFinancialTargetRehearsalPostgresTest {
         assertEquals(f.member,f.db.queryForObject(
                 "SELECT original_assigned_member_id FROM qa_restore_executions WHERE id=?",
                 Long.class,targetExecution));
+        assertEquals(java.sql.Timestamp.valueOf("2026-11-18 08:50:00"),
+                f.db.queryForObject(
+                    "SELECT claimed_at FROM qa_restore_executions WHERE id=?",
+                    java.sql.Timestamp.class,targetExecution));
+        assertEquals("Original task",f.db.queryForObject(
+                "SELECT title FROM qa_restore_executions WHERE id=?",
+                String.class,targetExecution));
         assertEquals(0L,f.db.queryForObject(
                 "SELECT count(*) FROM qa_restore_ledger WHERE target_family=?",
                 Long.class,f.neighborFamily));
