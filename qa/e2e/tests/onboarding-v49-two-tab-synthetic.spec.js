@@ -92,6 +92,19 @@ test('V49 two tabs: first lost finalize keeps original UUID; second tab never re
   await second.getByRole('button',{name:ui.receipt}).click()
   await expect.poll(()=>receiptCount).toBe(1)
   await expect(second.getByText(ui.unknown)).toBeVisible()
+  // A 404 receipt leaves both original markers intact. A second tab must
+  // not silently turn an unknown finalize into a fresh operation.
+  const originalMarkers=await page.evaluate(()=>{
+    const key=Object.keys(localStorage).find(k=>k.startsWith('fp:setup:pending:') && k.endsWith(':shared'))
+    if(!key) return null
+    const sessionKey=key.slice(0,-':shared'.length)
+    return {
+      shared:JSON.parse(localStorage.getItem(key)),
+      session:JSON.parse(sessionStorage.getItem(sessionKey)),
+    }
+  })
+  expect(originalMarkers?.shared?.operationId).toBe(operation.id)
+  expect(originalMarkers?.session?.operationId).toBe(operation.id)
   expect(finalizeCount).toBe(1)
   expect(unexpected).toEqual([])
   await secondPage.close()
@@ -168,6 +181,15 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
   await expect(first.getByText(ui.finished)).toHaveCount(0)
   const actual=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),sharedKey)
   expect(actual).toEqual(competing.foreign)
+  // The first tab's session-local marker is still its own original request,
+  // while the shared marker belongs to the competing operation.
+  const local=await page.evaluate(key=>{
+    const sessionKey=key.slice(0,-':shared'.length)
+    const value=sessionStorage.getItem(sessionKey)
+    return value ? JSON.parse(value) : null
+  },sharedKey)
+  expect(local?.operationId).toBe(op.id)
+  expect(local?.operationId).not.toBe(competing.foreign.operationId)
   expect(finalizeCount).toBe(1)
   expect(blocked).toEqual([])
   await secondPage.close()
