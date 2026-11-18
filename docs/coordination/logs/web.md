@@ -1288,3 +1288,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-01_READY_FOR_QA (architect queued stream)
 - Read current dispatch and active assignment, audited existing V49 five-case synthetic and source safety. Corrected V49 wrapper owner identity omission of workspaceMemberId `6c80eaa1`, added regression `6cc24e98`. Exact Web CI #44366630311 Web job 135022094841 Node 39/39, 6 fixture syntax, i18n/lint zero-warning/build PASS. Scoped full attestation SKIPPED and Chromium NOT_RUN. Issue #15 formal WEB-01_READY_FOR_QA comment 6987315284; froze V49 sources; next independent WEB-02. No live family activity; BETA HOLD.
+
+
+## 2026-11-18 — WEB-02_READY_FOR_QA / backup permission remount safety
+- `e07de418` aligns backup list component remount with management permission alongside existing username/account/workspace identity, prevents privileged metadata being retained upon revocation and regrant; absent account scope disallows list/details and hides panel. `6dfbc802` Node regression added. Web CI #44393670802 exact SHA 40/40 Node, V49 syntax 6 PASS, i18n/lint 0 warnings/build PASS, full exact SHA SKIPPED; no Chromium evidence. Issue #15 WEB-02_READY_FOR_QA comment 6991053477. Next optional WEB-03 confirmed UI defect only; BETA HOLD.
