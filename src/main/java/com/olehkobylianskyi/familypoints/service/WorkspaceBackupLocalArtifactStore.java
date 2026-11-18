@@ -117,6 +117,16 @@ public final class WorkspaceBackupLocalArtifactStore {
         return List.copyOf(entries);
     }
 
+    /**
+     * Read-only integrity preflight: ciphertext SHA-256 and scoped envelope only.
+     * Does not decrypt, change registry state, or classify archive as restorable.
+     * Uses the bounded read path and zeroes the transient ciphertext buffer.
+     */
+    public void verifyStoredCiphertext(long workspaceId,UUID snapshotId,String expectedSha256) {
+        byte[] bytes=read(workspaceId,snapshotId,expectedSha256);
+        Arrays.fill(bytes,(byte)0);
+    }
+
     public byte[] read(long workspaceId,UUID snapshotId,String expectedSha256) {
         if(workspaceId<=0 || snapshotId==null || expectedSha256==null
                 || !expectedSha256.matches("[0-9a-f]{64}"))
