@@ -294,6 +294,9 @@ public final class WorkspaceRestoreNativeTargetEngine {
                 long parent=positive(r,"source_id");
                 JsonNode task=executions.get(parent);
                 if(task==null||!"EARN".equals(type)||amount<=0
+                        ||!"COMPLETED".equals(task.path("status").asText())
+                        ||!task.path("reward_processed").asBoolean(false)
+                        ||task.path("penalty_processed").asBoolean(false)
                         ||task.path("member_id").asLong()!=member
                         ||task.path("reward_point_type_id").asLong()!=point
                         ||task.path("reward_amount").asLong()!=amount)
@@ -304,6 +307,7 @@ public final class WorkspaceRestoreNativeTargetEngine {
                 long parent=positive(r,"source_id");
                 JsonNode purchase=purchases.get(parent);
                 if(purchase==null||!"SPEND".equals(type)||amount>=0
+                        ||!Set.of("READY","USED").contains(purchase.path("status").asText())
                         ||purchase.path("member_id").asLong()!=member
                         ||purchase.path("point_type_id").asLong()!=point
                         ||purchase.path("price_amount").asLong()!=-amount)
@@ -314,6 +318,23 @@ public final class WorkspaceRestoreNativeTargetEngine {
                     ||r.hasNonNull("source_id")||!"ADJUSTMENT".equals(type))
                 throw new SecurityException("RESTORE_UNSUPPORTED_LEDGER_PROVENANCE");
         }
+        // Every reward-bearing completed task and every paid purchase must
+        // have exactly one historical ledger event. Missing events cannot
+        // silently mutate balances during a supposedly complete replay.
+        for(var entry:executions.entrySet()) {
+            JsonNode task=entry.getValue();
+            if(task.path("penalty_processed").asBoolean(false))
+                throw new SecurityException("RESTORE_UNSUPPORTED_TASK_PENALTY_HISTORY");
+            if(task.path("reward_processed").asBoolean(false)
+                    &&task.path("reward_amount").asLong()>0
+                    &&task.hasNonNull("reward_point_type_id")
+                    &&!eventKeys.contains("TASK:"+entry.getKey()))
+                throw new SecurityException("RESTORE_MISSING_TASK_LEDGER");
+        }
+        for(var entry:purchases.entrySet())
+            if(entry.getValue().path("price_amount").asLong()>0
+                    &&!eventKeys.contains("REWARD_PURCHASE:"+entry.getKey()))
+                throw new SecurityException("RESTORE_MISSING_PURCHASE_LEDGER");
     }
 
     private void requireFinancialParity(ObjectNode cats,long workspace,
