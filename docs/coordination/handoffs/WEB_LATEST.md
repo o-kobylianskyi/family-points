@@ -195,6 +195,8 @@
 - Re-fetched fixture blob `339f8415090d4d4a413757021a67d61145204fd6`; module-adapted V8 syntax PASS, fixture now **3 V49 two-tab scenarios**. Not Node's parser, and critically **Chromium still NOT_RUN**, so browser correctness is pending QA. Exact [run #44282785790](https://github.com/o-kobylianskyi/family-points/actions/runs/44282785790) was IN_PROGRESS at first check. Do not claim Web CI PASS before actual job logs.
 - BKL-002/BETA HOLD. Next QA request: isolated account browser execute 3 cases with case names, PASS/FAIL/SKIP, exact commit SHA, traces and sanitized HTTP count evidence; keep real V49 acceptance separate.
 
+- **Post-write exact-SHA Web CI result**: [run #44282785790](https://github.com/o-kobylianskyi/family-points/actions/runs/44282785790) on `53538b27be078401bf7e9e10f58e55e9b6d27d66`, Web job `134727671529` actual decoded log: V49 fixture `node --check` **6 PASS**, native Node **37 PASS / 0 FAIL / 0 SKIP**, i18n/lint/build SUCCESS, 3 lint warnings/0 errors. Web-scoped CI only, Full CI exact-SHA attestation SKIPPED and **3-case Chromium NOT_RUN**. Supersedes initial in-progress check.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
