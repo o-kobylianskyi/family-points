@@ -22,3 +22,8 @@
 - Implemented TEST ONLY `DisposableRestoreFinancialDependencyPreflight` `cbc520e9`, `4b733d78`; maps authenticated source JSON TASK/REWARD/POINT_TYPES/PURCHASE/LEDGER graph to explicit target IDs, fails closed missing parents, wrong member/currency, charged duplicate, unknown REFUND/exchange, task signed event duplicate. Does not write target DB or mint owner grants.
 - Unit negative fixtures `e87240d0`, `93af5b44`; QA packet `a22bd623`. New exact-SHA Maven NOT_RUN/UNKNOWN. Full CI #44265994374 previously 507 PASS but predates this.
 - Preserve ABCD: A source/crypto, B restore consumer, C real owner authority, D finance semantics. Next B-B-04 synthetic PG18 replay only, production HTTP423 HOLD.
+
+## 2026-11-18 — B-B-04 isolated PG18 target financial graph
+- New B-B-04 test-only mapped QA target FK writer `DisposableFinancialTargetRehearsal` @92b56372/31382da5, never writes real finance/history tables. Reconciles B-B-03 expected target balances against inserted mapped ledger sums, checks tenant and epoch, rejects duplicate apply.
+- New Testcontainers PG18 @349a2f3d/dbd59033: 4 QA-only FK tables with real family/member/currency parents, +3 test balance, late 3-stage rollback/retry, foreign IDs and mismatched source spend, race, neighbor isolation.
+- QA handoff `021467b6`, exact new SHA Maven NOT VERIFIED. Earlier known all-four #44266982944 514 PASS predates this B-B-04. TASK source_id original ID still **not native target TaskInstance remap**. ABCD owner boundaries unchanged; production HTTP423/BETA HOLD.
