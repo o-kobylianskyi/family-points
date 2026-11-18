@@ -25,7 +25,7 @@ const entries = [
 const indexes = {uk:0,ru:1,de:2,en:3}
 export default function FamilyDataSafetyPlan() {
   const { currentUser } = useAuth()
-  const key = [currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id, currentUser?.workspaceId].join(':')
+  const key = [currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.username ?? null, currentUser?.workspaceId].join(':')
   return <FamilyDataSafetyPlanContent key={key} />
 }
 
