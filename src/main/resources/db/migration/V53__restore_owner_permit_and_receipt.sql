@@ -31,6 +31,17 @@ CREATE TRIGGER trg_original_owner_membership
 BEFORE INSERT OR UPDATE ON workspace_original_owner_bindings
 FOR EACH ROW EXECUTE FUNCTION verify_original_owner_membership();
 
+-- Creator provenance is append-only. Any replacement requires a distinct
+-- explicitly reviewed, versioned recovery migration; do not mutate in place.
+CREATE FUNCTION deny_original_owner_binding_mutation()
+RETURNS trigger LANGUAGE plpgsql AS $
+BEGIN
+  RAISE EXCEPTION 'Original owner binding immutable' USING ERRCODE='23514';
+END $;
+CREATE TRIGGER trg_original_owner_immutable
+BEFORE UPDATE OR DELETE ON workspace_original_owner_bindings
+FOR EACH ROW EXECUTE FUNCTION deny_original_owner_binding_mutation();
+
 CREATE TABLE workspace_restore_permits (
   operation_id UUID PRIMARY KEY,
   target_workspace_id BIGINT NOT NULL REFERENCES families(id) ON DELETE RESTRICT,
