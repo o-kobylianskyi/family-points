@@ -287,6 +287,71 @@ class DisposableFinancialTargetRehearsalPostgresTest {
         assertEmpty(f);
     }
 
+    @Test void historicSnapshotTamperingAndDuplicateSlotsLeaveTargetUntouched()
+            throws Exception {
+        var f=setup();
+        var missing=(com.fasterxml.jackson.databind.node.ObjectNode)source();
+        ((com.fasterxml.jackson.databind.node.ObjectNode)missing.path("TASK_EXECUTIONS").get(0))
+                .remove("claimed_at");
+        assertThrows(SecurityException.class,()->f.consumer().apply(
+                missing,17,f.targetFamily,f.mapping(),0));
+        assertEmpty(f);
+
+        var wrongAmount=(com.fasterxml.jackson.databind.node.ObjectNode)source();
+        ((com.fasterxml.jackson.databind.node.ObjectNode)wrongAmount.path("TASK_EXECUTIONS").get(0))
+                .put("reward_amount",7);
+        assertThrows(SecurityException.class,()->f.consumer().apply(
+                wrongAmount,17,f.targetFamily,f.mapping(),0));
+        assertEmpty(f);
+
+        var mismatched=(com.fasterxml.jackson.databind.node.ObjectNode)source();
+        ((com.fasterxml.jackson.databind.node.ObjectNode)mismatched.path("TASK_EXECUTIONS").get(0))
+                .put("original_assigned_member_id",999);
+        assertThrows(SecurityException.class,()->f.consumer().apply(
+                mismatched,17,f.targetFamily,f.mapping(),0));
+        assertEmpty(f);
+
+        var duplicate=(com.fasterxml.jackson.databind.node.ObjectNode)source();
+        var rows=(com.fasterxml.jackson.databind.node.ArrayNode)duplicate.path("TASK_EXECUTIONS");
+        var sameSlot=((com.fasterxml.jackson.databind.node.ObjectNode)rows.get(0)).deepCopy();
+        sameSlot.put("id",22);
+        rows.add(sameSlot);
+        assertThrows(SecurityException.class,()->f.consumer().apply(
+                duplicate,17,f.targetFamily,f.mapping(),0));
+        assertEmpty(f);
+    }
+
+    @Test void globalPrimaryKeyCollisionFromNeighborFailsClosedBeforeAnyInsert()
+            throws Exception {
+        var f=setup();
+        Long targetTask=f.mapping().tasks().get(11L);
+        f.db.update("INSERT INTO qa_restore_tasks(id,target_family) VALUES (?,?)",
+                targetTask,f.neighborFamily);
+        assertThrows(SecurityException.class,()->f.consumer().apply(
+                source(),17,f.targetFamily,f.mapping(),0));
+        assertEmpty(f);
+        assertEquals(1L,f.db.queryForObject(
+                "SELECT count(*) FROM qa_restore_tasks WHERE id=? AND target_family=?",
+                Long.class,targetTask,f.neighborFamily));
+    }
+
+    @Test void reputationOnlyTaskSnapshotDoesNotFabricatePointsLedger() throws Exception {
+        var f=setup();
+        var payload=(com.fasterxml.jackson.databind.node.ObjectNode)source();
+        var task=(com.fasterxml.jackson.databind.node.ObjectNode)
+                payload.path("TASK_EXECUTIONS").get(0);
+        task.putNull("reward_amount");
+        task.putNull("reward_point_type_id");
+        task.put("reward_reputation_amount",7);
+        ((com.fasterxml.jackson.databind.node.ArrayNode)payload.path("POINT_LEDGER")).remove(0);
+        var restored=f.consumer().apply(payload,17,f.targetFamily,f.mapping(),0);
+        assertEquals(Map.of(f.member+":"+f.currency,-2L),restored.balances());
+        assertEquals(2L,f.rows("qa_restore_ledger"));
+        assertEquals(7,f.db.queryForObject(
+                "SELECT reward_reputation_amount FROM qa_restore_executions "+
+                "WHERE target_family=?",Integer.class,f.targetFamily));
+    }
+
     @Test void simultaneousDuplicateConsumersCommitAtMostOnce() throws Exception {
         var f=setup();
         var executor=java.util.concurrent.Executors.newFixedThreadPool(2);
