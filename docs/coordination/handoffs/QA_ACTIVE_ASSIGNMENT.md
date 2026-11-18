@@ -15,3 +15,12 @@ Most QA is synthetic/disposable/CI and requires NO owner action. If real browser
 
 ## Safety
 Production `restorable=false`, `replaySupported=false`, Reset Execute HTTP423, BETA HOLD; no production data writes, cleanup, deploy or destruction authorized. Historical independently verified source-only #44290621478 @`89b0f8e1` Maven 749/749 remains a baseline until newer exact full evidence confirmed. Do not call a v2 archive a completed Restore.
+
+
+## PRE-AUTHORIZED QA QUEUE — future `++` can advance without architect micro-dispatch
+**QA-01 B-INT-02:** when Backend B posts `READY_FOR_QA` and Architecture activates QA, run one full exact-SHA native Restore package test and consolidated defect report; subsequent `READY_FOR_QA_FIX` invokes one verification run. Critical security failures BLOCK release, not Backend's independent next work.
+**QA-02 RET-01/RET-02:** after independent Backend Retention posts `RET-01_READY_FOR_QA`, QA may validate disposable PG18 rollback/kill/recovery/lease tests on RET-only immutable SHA without waiting for B-INT-02; return one integrated report. Do not confuse this with global full-release gate. Retry after RET corrective batch.
+**QA-03 WEB-01/WEB-02:** after Web posts `WEB-01_READY_FOR_QA`, run existing Playwright Chromium two-tab synthetic on pinned SHA and Node/Vite relevant checks; return consolidated selectors/auth/timeout/receipt proof, no real-family access. If a truly authenticated manual DEV V49 or phone scenario is needed, file a separate `OPERATOR ACTION REQUIRED` to Architecture, NOT an ordinary inline owner request.
+**QA-04 final release matrix:** after B-INT-02, RET and Web focused gates accepted, execute one comprehensive exact-SHA release-quality all-four pipeline and operator-approved disposable smoke; activate Release only when Architecture explicitly directs.
+
+**Queue policy:** on every `++`, select the earliest **READY_FOR_QA** package whose source SHA/files are stable and not already being audited, unless higher-severity P0 regression preempts it. B/Retention/Web implementation runs asynchronously; QA need not wait for all packages to finish before checking an independent completed one. After a QA handoff, move to next ready package automatically on the next `++`; if none ready, return `WAIT` rather than inventing tests. Acceptance comments must state exact SHA, scope and evidence, never declare unrelated unfinished work complete.
