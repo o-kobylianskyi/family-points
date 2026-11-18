@@ -42,3 +42,8 @@ Read each request's own latest status and the cross-track register: this section
 - [Android XTR-20261024-P-07](XTR-20261024-P-07.md) — invalidate local offline queue/cache on family reset, native admin UI later.
 - [Release XTR-20261024-P-08](XTR-20261024-P-08.md) — disposable database, backup/recovery, multi-family/device validation and explicit no-go/go.
 - Full [ADR-FAMILY-RESET-001](../../architecture/ADR-FAMILY-RESET-001.md), cross-track IMP-0009; this is specification-only, not user data deletion.
+
+## 2026-11-18 — Backend A / Backend B split (owner-directed, architecture ACK pending)
+- [Backend B Restore Engine handoff](../handoffs/BACKEND_B_LATEST.md) · [Backend B log](../logs/backend-b.md).
+- [Backend B → Backend A / Architecture source contract](BACKEND_B_RESTORE_CONTRACT_REQUEST_20261118.md): portable original-family member identity, versioned archive source graph and cross-category FK mapping dependencies. **REQUESTED**, not approval for archive-format edits.
+- Legacy Backend handoff/journal remains for historic BKL-002 evidence. No change to disabled HTTP423 restore or BETA HOLD.
