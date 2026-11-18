@@ -170,3 +170,12 @@ Source files reviewed:
 - Remaining: signed source vNext A4-01…09 technical ACK by Architecture and field-level D/C/B/Release; full 23-category closure, source TaskInstance snapshot, media/financial polymorphic parent graph; no auto login matching/owner proof. BETA HOLD and Reset HTTP423.
 - NEXT B-A-04c: verify current exact-SHA full CI and fix test failures; expand test-only source category closure using real Flyway FK catalog and D/Backend B requirements; implement vNext serialization only after explicit named schema/IMP approval.
 - New-chat opening: "Продовжуй FamilyPoints Backend A. Прочитай AGENTS.md, docs/coordination/handoffs/BACKEND_A_LATEST.md, main HEAD, B-A-04B QA та актуальний CI. Роби максимально великими пакетами. Не змінюй wire vNext до Architecture ACK, не розблоковуй Restore."
+
+
+## B-A-04c — CI defect triage and actual PostgreSQL member-FK audit (2026-11-18)
+- Important corrected evidence: `32cff0f` run `44278301617` **FAIL** Java Maven `testCompile` unknown symbol `n` in `DisposablePortableMemberSourceCatalog.java:98`; Web/Android/Compose passed. Fixed `b6c4669`. Do not represent stale docs-only workflow SUCCESS as Java test PASS.
+- `45c7ff9` PG18 negative test now respects real V28 cross-family role trigger, then injects synthetic legacy corrupt data with trigger temporarily disabled ONLY in disposable DB, restores it in finally; source reader must fail closed.
+- `e58300b` source reference matrix now includes required `MEMBER_EXCEPTION_PERIODS.member_id`; `3d14025` verifies its PG18 FK nullability. `e29f276` / `be84906` new PG18 FK catalog inventory reads `pg_constraint` for all original-member parent edges; prints unreviewed columns and enforces that previously covered categories have no silently uncovered new FK.
+- QA packet `docs/coordination/requests/B-A-04C_CI_FIX_AND_MEMBER_FK_INVENTORY_QA_20261118.md` @`b6e9ce7`, journal `docs/coordination/logs/backend-a.md` updated. All new PG tests require exact-SHA Maven execution; queued/in-progress does not equal PASS.
+- Architecture A4-01…09 exact format/privacy/role categories/IMP approval still needed; Backend B logical conditional ACK only; no production archive schema change or owner/account export. Restore/Reset HTTP423 and BETA HOLD unchanged.
+- Next B-A-04d: verify actual Maven error/test counts at new pinned full CI, repair failures, enumerate outstanding polymorphic/reference category owners, prepare vNext producer only after signed Architecture review.
