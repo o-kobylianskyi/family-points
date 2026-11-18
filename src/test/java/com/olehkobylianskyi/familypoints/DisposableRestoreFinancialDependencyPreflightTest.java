@@ -86,6 +86,10 @@ class DisposableRestoreFinancialDependencyPreflightTest {
         denied(ARCHIVE.replace("\"id\":63", "\"id\":62"),mapping());
         denied(ARCHIVE.replace("\"source_type\":\"MANUAL\"",
                 "\"source_type\":\"REFUND\""),mapping());
+        denied(ARCHIVE.replace("\"id\":63,\"member_id\":3,\"point_type_id\":51,\"amount\":2",
+                "\"id\":63,\"member_id\":3,\"point_type_id\":51,\"amount\":5")
+                .replace("\"source_type\":\"MANUAL\",\"source_id\":null",
+                        "\"source_type\":\"TASK\",\"source_id\":21"),mapping());
     }
 
     @Test void unsupportedRefundAndExchangeCannotBeMisreadAsManual()
