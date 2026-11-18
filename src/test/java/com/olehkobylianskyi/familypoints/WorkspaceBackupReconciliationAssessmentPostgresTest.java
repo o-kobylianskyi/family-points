@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 class WorkspaceBackupReconciliationAssessmentPostgresTest {
-    @Container static final PostgreSQLContainer<?> DB=new PostgreSQLContainer<>("postgres:18-alpine")
+    @Container static final PostgreSQLContainer DB=new PostgreSQLContainer("postgres:18-alpine")
             .withDatabaseName("orphan_reconciliation")
             .withUsername("audit_test").withPassword("audit_test");
     @TempDir Path temp;
