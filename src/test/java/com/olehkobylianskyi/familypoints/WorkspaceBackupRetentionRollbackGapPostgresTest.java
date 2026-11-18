@@ -147,6 +147,15 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 "SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",
                 String.class,id));
         assertTrue(Files.isRegularFile(artifact),"Committed expiry never purges ciphertext");
+        // A process restart has no in-memory cleanup cursor to lose: the
+        // committed EXPIRED row remains inspectable and no sweep can unlink.
+        var restartedRetention=new WorkspaceBackupRetentionService(db,store);
+        assertEquals(0, (int)tx.execute(status->restartedRetention.expireEligible(10)));
+        assertEquals("RETAINED_VALID",
+                restartedRetention.inspectExpiredArtifactsForWorkspace(family,10)
+                        .stream().filter(row->id.equals(row.snapshotId()))
+                        .findFirst().orElseThrow().status());
+        assertTrue(Files.isRegularFile(artifact));
         assertEquals(0, (int)tx.execute(status->retention.expireEligible(10)));
         assertEquals(1,retention.expiredArtifactInventory(10).stream()
                 .filter(row->id.equals(row.snapshotId())).count());
