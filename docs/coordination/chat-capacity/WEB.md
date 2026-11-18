@@ -26,3 +26,4 @@ Next Web chat creates new generation and records measured checkpoints; this row 
 | 2026-11-18 | Web | WEB-02 | 15 | unknown | PARTIAL_VISIBLE | unknown | NONE | 15 | b04dd58e | CHECKPOINT | Verified actual GitHub Web CI syntax 6/6 and Node 33/33; Chromium not executed. |
 
 | 2026-11-18 | Web | WEB-02 | 16 | unknown | PARTIAL_VISIBLE | unknown | NONE | 16 | f5ee630b | CHECKPOINT | Added original UUID assertions to both V49 receipt mocks; V8 syntax PASS, Chromium pending. |
+| 2026-11-18 | Web | WEB-02 | 17 | unknown | PARTIAL_VISIBLE | unknown | NONE | 17 | 3375599b | CHECKPOINT | Prior exact SHA Web CI 6 syntax+33 Node PASS; added 404/foreign marker persistence assertions. |
