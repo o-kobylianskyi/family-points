@@ -48,7 +48,7 @@ class WorkspaceBackupRegistryPresenceRacePostgresTest {
                 VALUES (?,?,?, ?,0,'SELECTIVE','["MEMBER_GROUPS"]',?,
                         'V50','BACKING_UP',?,TRUE,?,128,NOW(),
                         NOW()-INTERVAL '1 day',NOW()+INTERVAL '31 days')
-                """,snapshot,family,UUID.randomUUID(),"c".repeat(64),
+                """,snapshot,family,UUID.randomUUID(),member,"c".repeat(64),
                 "local:v1:"+family+"/"+snapshot+".fpbackup",firstSha);
         var storage=mock(WorkspaceBackupLocalArtifactStore.class);
         var started=new CountDownLatch(1);
