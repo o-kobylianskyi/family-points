@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.web.server.ResponseStatusException;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -73,7 +74,10 @@ public class WorkspacePortableBackupExporter {
     public record Result(byte[] encryptedFile,String contentDigest,long byteCount,
                          UUID snapshotId,Map<String,Integer> recordCounts) {}
 
-    @Transactional
+    // A consistent MVCC view is required across first digest, row collection and final digest.
+    // Existing caller transactions retain their own isolation: acceptance must also verify
+    // entry-point transaction boundaries, not just this annotation.
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Result export(long workspaceId,UUID snapshotId,UUID operationId,
                          long expectedEpoch,Collection<String> categories,
                          String schemaVersion,SecretKey key) {
