@@ -127,4 +127,62 @@ class WorkspaceBackupReconciliationRacePostgresTest {
         assertFalse(oldResult.deleteAuthorized(),"Old scan results must never grant delete rights");
         verify(store,never()).deleteAuthorizedExpired(anyLong(),any());
     }
+    @Test void leaseCommittedBetweenFileScanAndLookupForcesHold() throws Exception {
+        var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
+        Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
+        var db=new JdbcTemplate(ds);
+        var second=new JdbcTemplate(new DriverManagerDataSource(
+                DB.getJdbcUrl(),DB.getUsername(),DB.getPassword()));
+        long family=db.queryForObject("INSERT INTO families(name) VALUES ('Race leased') RETURNING id",Long.class);
+        long role=db.queryForObject("INSERT INTO family_roles(family_id,system_role,code,name) " +
+                "VALUES (?,true,'PARENT','Parent') RETURNING id",Long.class,family);
+        long member=db.queryForObject("INSERT INTO family_members(family_id,family_role_id,active,member_type,name) " +
+                "VALUES (?,?,true,'PARENT','Parent') RETURNING id",Long.class,family,role);
+        UUID snapshot=UUID.randomUUID(),lease=UUID.randomUUID();
+        db.update("""
+                INSERT INTO workspace_protective_backups
+                    (snapshot_id,workspace_id,operation_id,requested_by_member_id,
+                     data_epoch,reset_mode,selected_categories_json,source_digest,
+                     schema_version,state)
+                VALUES (?,?,?, ?,0,'SELECTIVE','["MEMBER_GROUPS"]',?,
+                        'V50','BACKING_UP')
+                """,snapshot,family,UUID.randomUUID(),member,"a".repeat(64));
+        var fileScan=new CountDownLatch(1);
+        var leaseCommitted=new CountDownLatch(1);
+        var store=mock(WorkspaceBackupLocalArtifactStore.class);
+        Instant now=Instant.parse("2026-11-18T12:00:00Z");
+        when(store.inventory(family,10)).thenAnswer(invocation->{
+            fileScan.countDown();
+            if(!leaseCommitted.await(15,TimeUnit.SECONDS))
+                throw new IllegalStateException("Lease writer timeout");
+            return List.of(new WorkspaceBackupLocalArtifactStore.InventoryEntry(
+                    snapshot+".fpbackup",snapshot,128,true,false,now.minusSeconds(172800)));
+        });
+        var pool=Executors.newSingleThreadExecutor();
+        try {
+            Future<?> writer=pool.submit(()->{
+                try {
+                    if(!fileScan.await(15,TimeUnit.SECONDS))
+                        throw new IllegalStateException("Scan did not begin");
+                    second.update("""
+                        INSERT INTO workspace_backup_restore_leases
+                            (lease_id,snapshot_id,workspace_id,expires_at)
+                        VALUES (?,?,?,CURRENT_TIMESTAMP+INTERVAL '10 minutes')
+                        """,lease,snapshot,family);
+                } catch(InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(ex);
+                } finally {leaseCommitted.countDown();}
+            });
+            var assessment=new WorkspaceBackupReconciliationAssessmentService(
+                    db,store,Clock.fixed(now,ZoneOffset.UTC));
+            var result=assessment.assess(family,10).get(0);
+            writer.get(15,TimeUnit.SECONDS);
+            assertEquals("ACTIVE_RESTORE_LEASE_HOLD",result.classification());
+            assertTrue(result.hasActiveLease());
+            assertFalse(result.deleteAuthorized());
+            verify(store,never()).deleteAuthorizedExpired(anyLong(),any());
+        } finally {pool.shutdownNow();}
+    }
+
 }
