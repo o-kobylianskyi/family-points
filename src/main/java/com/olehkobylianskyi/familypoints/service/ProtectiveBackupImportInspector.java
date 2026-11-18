@@ -39,11 +39,22 @@ public final class ProtectiveBackupImportInspector {
      * restore permission; the existing v1 inspect method is unchanged.
      */
     public record AncestryV2Inspection(UUID snapshotId,long sourceWorkspaceId,
-            long sourceEpoch,String manifestRootDigest,int roleCount,int memberCount,
+            long sourceEpoch,String manifestRootDigest,String authenticatedSnapshotDigest,
+            int roleCount,int memberCount,Map<String,Integer> verifiedCategoryCounts,
             List<Long> sourceRoleIds,List<Long> sourceMemberIds,boolean restorable) {
         public AncestryV2Inspection {
+            verifiedCategoryCounts=Map.copyOf(verifiedCategoryCounts);
             sourceRoleIds=List.copyOf(sourceRoleIds);
             sourceMemberIds=List.copyOf(sourceMemberIds);
+        }
+        /** Actual AAD-authenticated archive metadata, not client JSON. */
+        public com.olehkobylianskyi.familypoints.security
+                .WorkspaceRestorePermitScopeV2.SourceArchive verifiedSourceArchiveV2() {
+            return new com.olehkobylianskyi.familypoints.security
+                    .WorkspaceRestorePermitScopeV2.SourceArchive(
+                            sourceWorkspaceId,PortableManifestRootV2.SCHEMA,
+                            snapshotId,sourceEpoch,authenticatedSnapshotDigest,
+                            manifestRootDigest);
         }
         /**
          * Reuse C's real binary mapping protocol over verified historic IDs.
@@ -91,9 +102,13 @@ public final class ProtectiveBackupImportInspector {
                 roles.add(row.path("id").asLong());
             for(JsonNode row:root.path("categories").path("FAMILY_MEMBERS"))
                 members.add(row.path("id").asLong());
+            var verifiedCounts=new TreeMap<String,Integer>();
+            proof.categories().forEach((name,category)->
+                    verifiedCounts.put(name,Math.toIntExact(category.rows())));
             return new AncestryV2Inspection(manifest.snapshotId(),sourceWorkspaceId,
                     manifest.dataEpoch(),proof.manifestRootDigest(),
-                    roles.size(),members.size(),roles,members,false);
+                    manifest.contentSha256(),roles.size(),members.size(),
+                    verifiedCounts,roles,members,false);
         }catch(java.io.IOException invalid) {
             throw new SecurityException("PORTABLE_V2_SOURCE_JSON_INVALID",invalid);
         }finally {
