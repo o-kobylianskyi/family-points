@@ -95,6 +95,40 @@ class PortableV2HistoryGraphTest {
         var request=source;
         assertThrows(SecurityException.class,()->seal(request));
     }
+    @Test void directlyScopedHistoryRequiresExactIntegralSourceFamilyId() throws Exception {
+        // Same 12 red-first cases as independent QA Draft PR #21, expressed
+        // in the active existing suite without merging the QA branch.
+        for(String category:List.of("POINT_TYPES","TASK_DEFINITIONS",
+                "REWARD_DEFINITIONS")) {
+            var missing=source();
+            ((ObjectNode)missing.path("categories").path(category).get(0))
+                    .remove("family_id");
+            assertThrows(SecurityException.class,()->seal(missing),
+                    category+" missing family_id");
+
+            var nullFamily=source();
+            ((ObjectNode)nullFamily.path("categories").path(category).get(0))
+                    .putNull("family_id");
+            assertThrows(SecurityException.class,()->seal(nullFamily),
+                    category+" null family_id");
+
+            var otherFamily=source();
+            ((ObjectNode)otherFamily.path("categories").path(category).get(0))
+                    .put("family_id",18L);
+            assertThrows(SecurityException.class,()->seal(otherFamily),
+                    category+" foreign family_id");
+
+            var stringFamily=source();
+            ((ObjectNode)stringFamily.path("categories").path(category).get(0))
+                    .put("family_id","17");
+            assertThrows(SecurityException.class,()->seal(stringFamily),
+                    category+" string family_id");
+        }
+        var valid=source();
+        seal(valid);
+        assertEquals(8,PortableMemberAncestryV2.verify(valid,17,SNAP,7)
+                .categories().size());
+    }
     @Test void emptyHistoricalGraphIsAllowedButAlwaysNonRestorable() throws Exception {
         var source=source();
         var cats=(ObjectNode)source.path("categories");
