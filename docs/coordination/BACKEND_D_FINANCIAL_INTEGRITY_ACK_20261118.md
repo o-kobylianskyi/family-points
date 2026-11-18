@@ -79,3 +79,12 @@ Source verifier: `src/test/java/com/olehkobylianskyi/familypoints/DisposableLedg
 - FIN-06 remains separately responsible for authenticated source archive V50 -> mapping parity. FIN-07 does **not** yet consume the signed archive itself or prove native financial Restore.
 - **Verification:** Source committed only. Targeted command `mvn -Dtest=DisposableFinancialLedgerPostgresParityTest,DisposableSignedFinancialParityBridgeTest,DisposableFinancialMappingParityTest test` (Docker required); Maven/Testcontainers and exact-SHA CI execution are NOT yet confirmed. No PASS claim without logs.
 - **Next FIN-08:** integrate a signed archive fixture with the PG-read verification layer, or compare against Backend B's explicitly published real-table disposable Restore fixture once stable. Maintain BKL-002 HOLD until full owner/QA/release gates.
+
+## FIN-08 signed V50 -> PostgreSQL parity — 2026-11-18
+
+- Commit `a84a1197196d07165789cdc3dd6d347847c516ed`: added `DisposableSignedFinancialPostgresParityTest.java` with four Testcontainers PostgreSQL 18 acceptance tests.
+- Flow: seal authenticated V50 archive -> source graph verifier `inspect` -> decrypt and materialize its read-only source rows -> explicit mapping -> write to **QA-only** PostgreSQL `qa_fin08_ledger` in a transaction -> query DB rows -> exact provenance and member/currency parity verification.
+- Tests: valid signed provenance, injected mid-transaction rollback + clean retry + duplicate replay denial, balanced but altered persisted ledger rejection, and invalid signed source rejection before any DB writes.
+- Scope boundary: This is NOT native Restore. It uses only ephemeral QA table and synthetic mapped ledger rows. Backend B retains Restore executor and actual production-schema transaction ownership. No DEV/PROD data touched.
+- **Evidence:** implementation committed; Maven/Testcontainers and pinned CI results NOT VERIFIED. Suggested `mvn -Dtest=DisposableSignedFinancialPostgresParityTest,DisposableSignedFinancialParityBridgeTest,DisposableFinancialMappingParityTest test` with Docker available; capture full JUnit XML and exact SHA. BKL-002 BETA remains HOLD.
+- **Next FIN-09:** source/target persisted ledger cross-tenant and cross-operation negative testing, then architect/QA gate review. Native Restore readiness must not be inferred from these synthetic fixtures.
