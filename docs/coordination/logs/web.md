@@ -1236,3 +1236,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 route handler assertion reliability
 - Fixture commit `ca875021` moves receipt-path expectations outside async Playwright context.route handlers, recording exact GET path then comparing against original POST idempotency UUID in test body. Product login selectors verified against LoginPage.jsx. V8 syntax PASS only; run #44265548526 queued, no new Chrome or latest CI PASS. BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 V49 two-tab guard blocks unexpected workspace writes
+- Test-only `67aa36aa` adds catch-all workspace mutation interception before narrowly mocked setup; unexpected POST/PUT/PATCH/DELETE aborted and logged, GET allowed. Verified 5 direct V8 fake-route outcomes pass and syntax parses; **not Chromium**. Catalog JSON verified 142/6, login selectors match. Exact new run 44267020114 queued at pickup. BETA HOLD.
