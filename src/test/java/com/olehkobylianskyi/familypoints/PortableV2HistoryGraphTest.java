@@ -60,7 +60,8 @@ class PortableV2HistoryGraphTest {
         var source=source();
         ((ObjectNode)source.path("categories").path("TASK_EXECUTIONS").get(0))
                 .put("task_definition_id",999L);
-        assertThrows(SecurityException.class,()->seal(source));
+        var orphan=source;
+        assertThrows(SecurityException.class,()->seal(orphan));
         source=source();
         ((ObjectNode)source.path("categories").path("POINT_TYPES").get(0))
                 .put("family_id",18);
