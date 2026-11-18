@@ -41,3 +41,10 @@
 - Test-only `DisposablePortableFinancialSourceClosure` commit `f14e3b4`: source-family parents for point/reputation/reward/group/task and point exchange, required/optional FK ancestry, positive Integer/Long IDs and missing/foreign/duplicate parent fail-closed. `5d2affa` seven focused unit tests; `b8c2741` PG18 migrated schema nullable/column drift test.
 - Consumer handoff `docs/coordination/requests/B-A-04F_FINANCIAL_GROUP_SOURCE_CLOSURE_QA_20261118.md` @`fb43871`, exact-SHA `[full-ci]` request `25696945` Actions `44287295299` in progress at checkpoint.
 - Source-provenance tests are not authenticated production archive or semantic financial acceptance. Backend D still owns ledger source_type/source_id, historic REFUND, immutable price/points/group/reputation invariants; Backend B owns target restore, C owner reauth. A4 wire/schema/IMP Architecture ACK remains required. Reset Execute HTTP423, Restore blocked, BETA HOLD.
+
+
+## 2026-11-18 — B-A-04g financial source provenance + CI repair
+- `25696945` full CI `44287295299` FAILED actual Maven: 744 tests, 3 failures/0 errors/0 skips. Android, Web, Compose passed. Failures isolated to 2 incomplete finance source synthetic parents and PG18 physical nullable `reward_purchases.reward_definition_id`; zero assumptions about production restore.
+- `d554266` source fixture parent complete; `5f7d5d1`, `1ed2d11` actual nullable schema assertion while replay parent remains mandatory; `1dd2e28` negative replay parent/currency tests.
+- B/D Architecture coordination: `docs/coordination/requests/B-A-04G_LEDGER_PROVENANCE_CI_REPAIR_AND_D_GATE_20261118.md` @`53ddbdd`: group_point_transactions original V1 has NO source_id, POINT/REPUTATION ledger polymorphic sources need signed D meaning. No inventing REFUND/MANUAL parent.
+- Full all-four `[full-ci]` source SHA `2cb661e44831626ba9bbdc7c820bf7e32ae26b31`, run `44289022966` QUEUED at checkpoint. Exact Java Testcontainers/Surefire PASS not yet observed. Next B-A-04h: CI result, fix if red, then source FK/ledger historical graph with explicit B/D review.
