@@ -162,4 +162,43 @@ public class WorkspaceBackupRetentionService {
 
     public record ExpiredArtifact(long workspaceId,UUID snapshotId,
                                   String storageKey,String artifactSha256) {}
+
+    /**
+     * RET-02 non-destructive reconciliation preview. Safe to retry after restart:
+     * no SQL changes, no filesystem writes, no physical purge and no scheduler.
+     * Reports only metadata/status codes, never personal data or ciphertext.
+     * The operator must separately authorize any future destructive finalizer.
+     */
+    @Transactional(readOnly=true)
+    public List<ExpiredArtifactCheck> inspectExpiredArtifacts(int maxRecords) {
+        List<ExpiredArtifact> candidates=expiredArtifactInventory(maxRecords);
+        List<ExpiredArtifactCheck> results=new ArrayList<>(candidates.size());
+        for(var candidate:candidates) {
+            String expectedKey="local:v1:"+candidate.workspaceId()+"/"
+                    +candidate.snapshotId()+".fpbackup";
+            String status;
+            if(!expectedKey.equals(candidate.storageKey())) {
+                status="BLOCK_STORAGE_KEY";
+            } else if(candidate.artifactSha256()==null
+                    || !candidate.artifactSha256().matches("[0-9a-f]{64}")) {
+                status="BLOCK_DIGEST";
+            } else {
+                try {
+                    store.verifyStoredCiphertext(candidate.workspaceId(),
+                            candidate.snapshotId(),candidate.artifactSha256());
+                    status="RETAINED_VALID";
+                } catch(SecurityException | IllegalArgumentException ex) {
+                    status="BLOCK_INTEGRITY_OR_MISSING";
+                } catch(IllegalStateException ex) {
+                    status="BLOCK_STORAGE_UNAVAILABLE";
+                }
+            }
+            results.add(new ExpiredArtifactCheck(candidate.workspaceId(),
+                    candidate.snapshotId(),status));
+        }
+        return List.copyOf(results);
+    }
+
+    public record ExpiredArtifactCheck(long workspaceId,UUID snapshotId,
+                                       String status) {}
 }
