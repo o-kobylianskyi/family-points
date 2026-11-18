@@ -1232,3 +1232,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 V49 exact original markers preserved across unknown receipt and tab collision
 - Independently confirmed GitHub Web job #134662224633 run #44263459076 at `9e6a478` (first exact UUID patch) executes 6/6 fixture syntax, 33/33 Node, i18n/lint/build successful, 3 lint warnings; scoped-only no all-four attestation. Test-only `3354bcab` adds original session+shared marker preservation after 404 receipt, and original session/foreign shared preservation after competing marker. V8 syntax parse PASS, Chromium not run; new run #44264239156 still in progress at audit. QA-039 awaits isolated browser, BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 route handler assertion reliability
+- Fixture commit `ca875021` moves receipt-path expectations outside async Playwright context.route handlers, recording exact GET path then comparing against original POST idempotency UUID in test body. Product login selectors verified against LoginPage.jsx. V8 syntax PASS only; run #44265548526 queued, no new Chrome or latest CI PASS. BETA HOLD.
