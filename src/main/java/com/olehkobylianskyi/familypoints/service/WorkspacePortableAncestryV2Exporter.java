@@ -109,6 +109,9 @@ public class WorkspacePortableAncestryV2Exporter {
         }
         String rootDigest=PortableMemberAncestryV2.computeRootWithoutTrust(
                 root,sourceWorkspaceId,snapshotId,expectedEpoch);
+        // The root computer validates a defensive copy; embed the independently
+        // computed digest into the actual sealed payload before verification.
+        root.put("manifestRootDigest",rootDigest);
         var verified=PortableMemberAncestryV2.verify(
                 root,sourceWorkspaceId,snapshotId,expectedEpoch);
         if(!rootDigest.equals(verified.manifestRootDigest()))
