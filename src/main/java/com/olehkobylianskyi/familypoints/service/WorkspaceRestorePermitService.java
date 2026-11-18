@@ -1,6 +1,7 @@
 package com.olehkobylianskyi.familypoints.service;
 
 import com.olehkobylianskyi.familypoints.security.WorkspaceRestorePermitScopeV2;
+import com.olehkobylianskyi.familypoints.security.CurrentUserService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public final class WorkspaceRestorePermitService {
     private final WorkspaceRestorePasswordLimiter limiter;
     private final ProtectiveBackupImportInspector inspector;
     private final WorkspaceRestoreCategorySelectionV2 selection;
+    private final CurrentUserService currentUser;
     private final ProtectiveBackupPortableFile portable;
     private final ProtectiveBackupArtifactCodec codec;
     private final GoogleTokenVerifier google;
@@ -40,7 +42,8 @@ public final class WorkspaceRestorePermitService {
             ProtectiveBackupPortableFile portable,ProtectiveBackupArtifactCodec codec,
             GoogleTokenVerifier google) {
         this.db=db;this.epochs=epochs;this.passwords=passwords;
-        this.limiter=limiter;this.inspector=inspector;this.selection=selection;
+        this.limiter=limiter;this.inspector=inspector;
+        this.selection=selection;this.currentUser=currentUser;
         this.portable=portable;this.codec=codec;this.google=google;
     }
 
@@ -54,6 +57,20 @@ public final class WorkspaceRestorePermitService {
             byte[] sourceFile,SecretKey key,Map<Long,Long> reviewedMemberMap,
             String currentPassword) {
         Objects.requireNonNull(scope,"scope");
+        // The RESTORE action must originate from the actually authenticated
+        // current owner principal and selected live workspace membership,
+        // NEVER from an unchecked caller-supplied account/member pair.
+        var principal=currentUser.getCurrentAccount();
+        var member=currentUser.getCurrentMember();
+        if(principal==null||member==null||!principal.isEnabled()
+                ||principal.getId()==null
+                ||principal.getId().longValue()!=scope.authorizedOwnerAccountId()
+                ||member.getId()==null
+                ||member.getId().longValue()!=scope.authorizedOwnerMemberId()
+                ||member.getWorkspace()==null
+                ||member.getWorkspace().getId()==null
+                ||member.getWorkspace().getId().longValue()!=scope.targetWorkspaceId())
+            throw new SecurityException("RESTORE_AUTHENTICATED_PRINCIPAL_REQUIRED");
         limiter.requireAvailable(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
         verifiedSource(scope,sourceFile,key,reviewedMemberMap);
         long epoch=epochs.requireCurrentEpoch(scope.targetWorkspaceId(),scope.targetExpectedEpoch());
