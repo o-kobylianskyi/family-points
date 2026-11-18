@@ -30,3 +30,17 @@
 4. After independent backup/restore rehearsal and APK signature verification, obtain **explicit user approval** for a specified version, target environment and risk. Only then use the separately reviewed deploy procedure. No default authorization.
 
 Owner: Release / DevOps. Last independent full CI evidence: #44044271962 on SHA `8c397d0`. **BETA HOLD**.
+
+## Update — 2026-11-18 / REL-RELEASE-19 (new full CI baseline)
+
+**New verified immutable baseline:** [FamilyPoints CI #44264218493](https://github.com/o-kobylianskyi/family-points/actions/runs/44264218493), SHA `ef222689d8e928ee008dbcbd04dce0c51f2e86ad`. Actual non-skipped jobs and steps: **Backend Maven/PostgreSQL 506 tests / 0 failures / 0 errors / 0 skipped**, Web Node/i18n/lint/Vite SUCCESS, Android Gradle/JVM SUCCESS, Compose and **98 unique Release Safety cases PASS**. Full exact-SHA attestation and per-commit report SUCCESS. Prior successful runs: #44264107962 @ `eda8b9f...` with Maven 503/0/0/0 and #44264165604 @ `aef18c4...` with Maven 505/0/0/0.
+
+**Independently downloaded artifact bytes** for #44264218493 and matched complete ZIP SHA-256 values to independently fetched GitHub API artifact metadata:
+- `ci-push-result` ID `14410245239`, SHA-256 `ae2ee806df7d65837a24d0e43f543c176ec1d3d6cb4f6cffd09ad595cf4af579`, archive 450 bytes, exactly `ci-push-result.json`.
+- `full-ci-evidence` ID `14409343835`, SHA-256 `76a50b348c45468ba3d14dfb14aebd6fc5d7b803c407126375427bd96d0f0665`, archive 373 bytes, exactly `full-ci-evidence.json`.
+
+Both parsed reports agree on full SHA, GitHub Actions run URL, four SUCCESS jobs, `fullCiVerified=true`, and `qaAccepted=false`, `releaseApproved=false`, `deploymentExecuted=false`. GitHub API artifact metadata links both IDs to that source SHA and run. This is authenticated provider-source evidence for the **specific tested commit**, not independent QA acceptance or PROD/BETA authorization.
+
+**HEAD drift:** at matrix refresh, `main` was `965d6896491c7e20a23f779131f1b211c8f3b9f1`, **30 commits newer** than `ef222689`, including further Backend split and Web V49 work. Current HEAD has no inherited green. Backend BKL002 production restore `restorable=false`, `replaySupported=false`, Reset Execute HTTP423; real feature-enabled V49, Android physical-device, portable restore/owner-auth and recovery signoff remain outstanding.
+
+**Gate decision: BETA HOLD.** The former two failing `DisposableLedgerSourceGraphVerifierTest` checks are resolved at `ef222689`, but all later work needs its own pinned CI + QA acceptance.
