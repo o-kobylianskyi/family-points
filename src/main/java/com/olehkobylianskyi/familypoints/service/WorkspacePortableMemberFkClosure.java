@@ -23,6 +23,12 @@ public final class WorkspacePortableMemberFkClosure {
     private static final Map<String,Disposition> KNOWN = Map.ofEntries(
         Map.entry("user_accounts.family_member_id",Disposition.EXCLUDE),
         Map.entry("account_workspace_memberships.family_member_id",Disposition.EXCLUDE),
+        // Security and backup-registry references are NOT business history.
+        // They may exist for a real source family but must never be exported
+        // or used to infer target account ownership.
+        Map.entry("workspace_original_owner_bindings.owner_member_id",Disposition.EXCLUDE),
+        Map.entry("workspace_restore_permits.owner_member_id",Disposition.EXCLUDE),
+        Map.entry("workspace_protective_backups.requested_by_member_id",Disposition.EXCLUDE),
         Map.entry("task_definitions.assigned_member_id",Disposition.INCLUDE),
         Map.entry("task_definitions.created_by_member_id",Disposition.INCLUDE),
         Map.entry("task_definitions.preferred_member_id",Disposition.INCLUDE),
