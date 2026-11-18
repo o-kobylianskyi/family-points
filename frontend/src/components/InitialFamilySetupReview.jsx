@@ -28,7 +28,7 @@ const setupStates = {
 }
 export default function InitialFamilySetupReview() {
   const { currentUser } = useAuth()
-  const owner = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.username
+  const owner = currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.workspaceMemberId ?? currentUser?.username
   return <InitialFamilySetupReviewContent key={`${owner}:${currentUser?.workspaceId}:${currentUser?.memberId}`} />
 }
 
