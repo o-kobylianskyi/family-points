@@ -207,6 +207,27 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
         assertEquals("family-points-export-v2",cSource.schemaVersion());
         assertEquals(historyProof.manifestRootDigest(),cSource.manifestRootDigest());
         assertEquals(historyProof.authenticatedSnapshotDigest(),cSource.snapshotDigest());
+        // Even a malicious actor able to re-encrypt an altered history payload
+        // cannot retain its original authenticated manifest/root provenance.
+        byte[] historyPlain=codec.open(sealedHistory,
+                sealedHistory.manifest().snapshotId(),source,key);
+        try {
+            var mutatedHistory=(com.fasterxml.jackson.databind.node.ObjectNode)
+                    new ObjectMapper().readTree(historyPlain);
+            var ledger=mutatedHistory.path("categories").path("POINT_LEDGER");
+            ((com.fasterxml.jackson.databind.node.ObjectNode)ledger.get(0))
+                    .put("source_id",999_999L);
+            byte[] alteredHistory=new ObjectMapper().writeValueAsBytes(mutatedHistory);
+            try {
+                var resealed=codec.seal(sealedHistory.manifest().snapshotId(),source,
+                        sealedHistory.manifest().operationId(),
+                        sealedHistory.manifest().dataEpoch(),
+                        sealedHistory.manifest().sourceDigest(),
+                        PortableManifestRootV2.SCHEMA,alteredHistory,key);
+                assertThrows(SecurityException.class,()->
+                        offline.inspectAncestryV2(portable.encode(resealed),source,key));
+            }finally{Arrays.fill(alteredHistory,(byte)0);}
+        }finally{Arrays.fill(historyPlain,(byte)0);}
         assertThrows(UnsupportedOperationException.class,
                 ()->historyProof.verifiedCategoryCounts().put("OTHER",99));
         assertFalse(historyProof.restorable());
