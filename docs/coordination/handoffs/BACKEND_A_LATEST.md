@@ -210,3 +210,5 @@ Source files reviewed:
 - `5d2affa`: financial source closure unit positives and negatives; `b8c2741`: Testcontainers PostgreSQL18 actual Flyway column presence/nullability guard. This is NOT a Backend D financial source-type/REFUND policy; ledger polymorphic closure remains OPEN.
 - QA and consumer request `docs/coordination/requests/B-A-04F_FINANCIAL_GROUP_SOURCE_CLOSURE_QA_20261118.md` commit `fb43871`. No shared DTO, migration, exporter/inspector, restore, credentials or destructive retention changes.
 - Next B-A-04g: exact-SHA Maven CI/PG18 verification and corrections; historical polymorphic ledger source_type source_id inventory with D ownership, typed archive only after Architecture A4-01…09 + IMP and B/C/D ACK. BETA HOLD.
+
+- B-A-04f pinned `[full-ci]` SHA `25696945dc24cb6696af920e949cfc1cc6ed5eef`, run `44287295299` IN_PROGRESS when checked. Only count the new PG18 finance schema test, member tests, and full jobs after actual completed evidence; docs-only green is irrelevant.
