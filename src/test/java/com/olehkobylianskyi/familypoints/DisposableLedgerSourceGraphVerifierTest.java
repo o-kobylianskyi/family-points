@@ -352,6 +352,58 @@ class DisposableLedgerSourceGraphVerifierTest {
                 "\"id\":77,\"family_id\":17.5")));
     }
 
+
+    @Test void multCurrencyMemberBalancesAreNeverAggregatedAcrossDenominations()
+            throws Exception {
+        var accepted=verifyEdited(
+                ",{\"id\":101,\"member_id\":4,\"point_type_id\":8,\"amount\":11,"
+                +"\"source_type\":\"MANUAL\",\"source_id\":null},"
+                +"{\"id\":102,\"member_id\":5,\"point_type_id\":8,\"amount\":-3,"
+                +"\"source_type\":\"MANUAL\",\"source_id\":null},"
+                +"{\"id\":103,\"member_id\":4,\"point_type_id\":3,\"amount\":-2,"
+                +"\"source_type\":\"MANUAL\",\"source_id\":null}",
+                "MANUAL",null,4,4,
+                body->body.replace("\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"}]",
+                        "\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"},"
+                        +"{\"id\":8,\"family_id\":17,\"code\":\"TIME\"}]"));
+        assertEquals(4,accepted.manualRows());
+        assertEquals(4,accepted.ledgerRows());
+        assertEquals(3L,accepted.signedMemberCurrencyBalances().get("4:3"));
+        assertEquals(11L,accepted.signedMemberCurrencyBalances().get("4:8"));
+        assertEquals(-3L,accepted.signedMemberCurrencyBalances().get("5:8"));
+        assertEquals(3,accepted.signedMemberCurrencyBalances().size());
+    }
+
+    @Test void secondaryLedgerCurrencyMustExistInAuthenticatedSource()
+            throws Exception {
+        assertThrows(RuntimeException.class,()->verify(
+                ",{\"id\":101,\"member_id\":4,\"point_type_id\":8,\"amount\":11,"
+                +"\"source_type\":\"MANUAL\",\"source_id\":null}",
+                "MANUAL",null,4,4));
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                ",{\"id\":101,\"member_id\":4,\"point_type_id\":3,\"amount\":11,"
+                +"\"source_type\":\"MANUAL\",\"source_id\":null}",
+                "MANUAL",null,4,4,
+                body->body.replace("\"POINT_LEDGER\":[{\"id\":100",
+                        "\"POINT_LEDGER\":[{\"id\":101")));
+    }
+
+    @Test void ledgerRejectsFractionalAndOverflowingSignedAmounts()
+            throws Exception {
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "","MANUAL",null,4,4,
+                body->body.replace("\"point_type_id\":3,\"amount\":5",
+                        "\"point_type_id\":3,\"amount\":5.5")));
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "","MANUAL",null,4,4,
+                body->body.replace("\"point_type_id\":3,\"amount\":5",
+                        "\"point_type_id\":3,\"amount\":2147483648")));
+        assertThrows(RuntimeException.class,()->verifyEdited(
+                "","MANUAL",null,4,4,
+                body->body.replace("\"point_type_id\":3,\"amount\":5",
+                        "\"point_type_id\":3,\"amount\":-2147483649")));
+    }
+
     @Test void duplicateChargeOfSamePurchaseFailsClosed() throws Exception {
         assertThrows(SecurityException.class,()->verifyEdited(
                 "","REWARD_PURCHASE",51L,4,4,
