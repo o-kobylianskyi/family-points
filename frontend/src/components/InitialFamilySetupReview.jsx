@@ -5,7 +5,7 @@ import { getTemplateCatalog } from '../api/templateApi'
 import { getSetupState, reviewSetupCatalog, setSetupStep, finalizeSetupImport, getSetupFinalizeReceipt } from '../api/setupApi'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { validateSetupCatalog, selectSetupMatching, hasSelectedSetupMatch } from '../utils/setupCatalogSelection'
-import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, assertSetupStepTransition, canChangeSetupStep, sameSetupFinalizeOperation, ownsSetupFinalizeMarkers, assertSetupCompletionAfterReceipt } from '../utils/setupFinalizeSafety'
+import { validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, assertSetupStepTransition, canChangeSetupStep, sameSetupFinalizeOperation, ownsSetupFinalizeMarkers, canClearSetupFinalizeMarkers, assertSetupCompletionAfterReceipt } from '../utils/setupFinalizeSafety'
 
 // Seven-step V49 reviewed private-template import; no automatic activation or ledger writes.
 const words = {
@@ -103,8 +103,7 @@ function InitialFamilySetupReviewContent() {
     try { saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null') }
     catch { setPending({ blocked: true }); return false }
     const shared = readShared()
-    if ((saved && !sameSetupFinalizeOperation(saved, operation)) ||
-        (shared && !sameSetupFinalizeOperation(shared, operation))) {
+    if (!canClearSetupFinalizeMarkers(saved, shared, operation)) {
       setPending({ blocked: true })
       return false
     }
