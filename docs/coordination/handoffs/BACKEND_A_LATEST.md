@@ -184,3 +184,10 @@ Source files reviewed:
 ## B-A-04c full run dispatch (2026-11-18)
 - Explicit four-component `[full-ci]` on source SHA `a67f3c388de583d3c6598eae4e88834449781e5d`, run `44281984930` IN_PROGRESS at inspection. This includes compile repair, V28 PG negative and `pg_constraint` real FK inventory; no passing test count yet.
 - QA packet `docs/coordination/requests/B-A-04C_PINNED_FULL_CI_20261118.md` includes exact test cases and fail-safe reporting requirements. Return to this run for Java Maven error/actual PG18 execution and all component test steps before claiming accepted. Next task B-A-04d as above.
+
+
+## B-A-04d — 2026-11-18 source graph MVCC snapshot and CI tracking
+- Full 4-component CI `44278301617` SHA `32cff0f` failed Java testCompile, corrected in `b6c4669`. Later Full CI `44281984930` SHA `a67f3c` still showed Java/PostgreSQL **IN_PROGRESS** with Android/Web/Compose success; no full PASS claim.
+- New `92e624e` disposable PG18 test `pinnedRepeatableReadRosterNeverMixesConcurrentNewMembers`: initial `REPEATABLE_READ` source member snapshot remains stable after another JDBC connection commits new member; fresh source transaction sees new member. Test-only fixture; production archive unchanged.
+- QA packet `docs/coordination/requests/B-A-04D_MVCC_AND_CI_QA_20261118.md` @`e51ebde`, inspect exact non-skipped Java/Maven test report before acceptance.
+- Source graph still missing signed Architecture A4-01…09 fields/version/IMP, C/D full semantic review and B exact wire ACK. Next B-A-04e: CI red triage, negative source edges, prepare approved vNext only after decision. No credentials, Restore Execute, reset activation or retention purge; BETA HOLD.
