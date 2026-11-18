@@ -17,6 +17,21 @@ const ui = {
   finished:/Import completed|Імпорт завершено|Импорт завершён|Import abgeschlossen/,
 }
 
+
+// Defense in depth: even if the UI later adds another workspace mutation,
+// this synthetic fixture cannot write it to the selected QA workspace.
+// The narrower setup route is registered later and takes precedence.
+async function blockUnexpectedWorkspaceWrites(context, blocked) {
+  await context.route(/\/workspaces\/\d+\//, route => {
+    const request=route.request()
+    if (['POST','PUT','PATCH','DELETE'].includes(request.method())) {
+      blocked.push(request.method()+' '+new URL(request.url()).pathname)
+      return route.abort('blockedbyclient')
+    }
+    return route.continue()
+  })
+}
+
 async function signIn(page) {
   await page.goto('/login')
   await page.locator('form input[type="text"]').fill(username)
@@ -45,6 +60,7 @@ test('V49 two tabs: first lost finalize keeps original UUID; second tab never re
   let finalizeCount=0, operation=null, receiptCount=0
   const receiptPaths=[]
   const unexpected=[]
+  await blockUnexpectedWorkspaceWrites(context, unexpected)
   await context.route(/\/workspaces\/\d+\/(?:data-epoch|setup(?:\/.*)?)(?:\?.*)?$/, route => {
     const req=route.request(), path=new URL(req.url()).pathname
     const workspaceId=Number(path.match(/\/workspaces\/(\d+)\//)[1])
@@ -118,6 +134,7 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
   const receiptPaths=[]
   let sharedKey, competing, secondPage
   const blocked=[]
+  await blockUnexpectedWorkspaceWrites(context, blocked)
   await context.route(/\/workspaces\/\d+\/(?:data-epoch|setup(?:\/.*)?)(?:\?.*)?$/,async route=>{
     const req=route.request(),path=new URL(req.url()).pathname
     const workspaceId=Number(path.match(/\/workspaces\/(\d+)\//)[1])
