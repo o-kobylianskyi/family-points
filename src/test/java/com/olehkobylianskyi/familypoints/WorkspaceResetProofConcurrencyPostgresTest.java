@@ -88,7 +88,7 @@ class WorkspaceResetProofConcurrencyPostgresTest {
                 VALUES (?,?::uuid,?,'[]',?)
                 """, familyA, operation.toString(), memberId, digest);
         assertEquals(1, jdbc.update("""
-                UPDATE workspace_reset_operations SET status='CONFIRMED'
+                UPDATE workspace_reset_operations SET status='CONFIRMED', confirmed_at=CURRENT_TIMESTAMP
                 WHERE workspace_id=? AND operation_id=?::uuid AND status='PREPARED'
                 """, familyA, operation.toString()));
     }
