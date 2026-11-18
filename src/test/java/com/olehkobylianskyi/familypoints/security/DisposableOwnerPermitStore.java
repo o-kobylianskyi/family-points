@@ -91,7 +91,8 @@ public final class DisposableOwnerPermitStore {
                     """, id, scope.workspaceId(), scope.action().name(), scope.operationId(),
                     scope.ownerAccountId(), scope.ownerMemberId(), scope.snapshotId(),
                     scope.snapshotDigest(), scope.selectionDigest(), scope.memberMappingDigest(),
-                    scope.dataEpoch(), scope.issuedAt(), scope.expiresAt(), sha(secret));
+                    scope.dataEpoch(), java.sql.Timestamp.from(scope.issuedAt()),
+                    java.sql.Timestamp.from(scope.expiresAt()), sha(secret));
             if (inserted != 1) deny(HttpStatus.CONFLICT);
         });
         return new Issued(id, secret);
