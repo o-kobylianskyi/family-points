@@ -104,3 +104,13 @@
 - QA-053 independently inspected: run #44271716795, Maven 643/0 failures/12 errors/0 skipped, C RESET Proof PG18 6/6 PASS; C owner fixture and Instant driver errors found and patched in later test-only commits 4ffcf6ac/ac8addc6. QA-054 later CI testCompile FIN fixture blocked remaining tests; no latest all-green.
 - **Evidence:** current C-C-10 vector/epoch tests source committed, NOT_RUN by C; no exact-head full CI. No Flyway, owner registration write, real reauth or permit execution changed. Reset HTTP423, RESTORE blocked, BETA HOLD.
 - **Next:** B/A/D field-level ACK + shared IMP to reconcile canonical V2 hashes, then implement authenticated owner binding + permit atomically on disposable PG and full exact-SHA QA. Meanwhile fix any actual C-C-08 PG errors only after observed new CI evidence.
+
+
+## 2026-11-18 — C-C-11: verified 30-case PG18 evidence and audited owner enrollment preflight
+- Directly read #44274406405 backend job 134698875830: **30/30 PASS** across C 6 durable permit + 6 original owner + 6 Reset proof concurrency + 7 V2 scope + 5 selection closure tests. Entire Maven 684/0 failures/1 error/0 skipped BUILD FAILURE from A/QA registry presence-race insert; Web/Android/Compose success, exact-SHA attestation red. Earlier source-only claims corrected only for these exact tested classes and historical SHA.
+- Backend B commit `590040d2` now asserts C's three canonical binary V2 golden vectors in its `DisposableRestoreScopeV2ConsumerTest`; final field-level signed source/consumer ACK, production IMP, stable official DTO/Flyway and receipt contract remain gated.
+- New `OriginalOwnerEnrollmentEvidence.java` @ `ac4cb72f` pure candidate/evidence/freshness validation, NO authentication or DB binding; 8 JUnit cases @ `a2dd81d5`. Distinguishes verified original registration event from audited independent legacy recovery, denies role/name/oldest fallback by omission.
+- PG18 original-owner QA `DisposableOriginalOwnerBindingPostgresTest` +2 tests @ `a2582a35`: malformed cross-family binding resolves denied and competing two-thread enrollments unique. TEST-ONLY; new tests NOT_RUN.
+- Full QA/IMP handoff `docs/coordination/requests/BACKEND_C_C11_OWNER_ENROLLMENT_QA_AND_B_V2_ACK_20261118.md` @ `649c01fb`; Issue #15 cross-team update `6974428564`.
+- **Safety:** production binding writer/legacy evidence verifier absent, no Flyway or reauth/grant issuance, Reset Execute HTTP423, production Restore disabled, BETA HOLD.
+- **Next:** Architecture/Integrator registration source ownership, audited legacy enrollment IMP and B A/D final signed manifest/digest ACK; then implement true transaction-bound owner verifier + one-use grant under reviewed scope.
