@@ -62,3 +62,10 @@ Source files reviewed:
 - QA handoff `docs/coordination/requests/B-A-03B_STAGING_ISOLATION_QA_20261118.md` commit `1f61d55`.
 - Outstanding: independent PG18 Spring-proxied transaction test and two-connection concurrent source updates, direct staging/export callsites outside coordinator, exact-SHA CI PASS evidence. B-A-02 wire-contract approval still pending.
 - Next B-A-03c: real transaction and concurrent isolation regression; B-A-04 after Architecture+Backend B approve member catalog.
+
+
+## B-A-03c — 2026-11-18 actual PostgreSQL MVCC concurrency regression
+- Commit `344d235`: new Testcontainers PG18 `WorkspacePortableBackupConcurrentSnapshotPostgresTest`. One repeatable-read source transaction pins a family scope snapshot/digest while second independent connection updates a member group without family-row fencing; verifies encrypted archive holds old coherent row and original digest, newer DB row committed, neighbor untouched, `restorable=false`.
+- QA packet `docs/coordination/requests/B-A-03C_CONCURRENT_SNAPSHOT_QA_20261118.md` commit `c4e8f4c`. Authored test **NOT_RUN** by connector; actual CI PASS must be pinned to its SHA.
+- Existing real staging path guard B-A-03b remains; Spring AOP entrypoint integration and direct-stage bypass checks still pending. Member catalog producer→consumer contract still awaits Architecture/Backend B ACK. HTTP423/BETA HOLD unchanged.
+- Next B-A-03d: test real Spring transaction proxy and stage entrypoint isolation; then pursue approved source member catalog.
