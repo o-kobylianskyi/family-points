@@ -44,7 +44,7 @@ function InitialFamilySetupReviewContent() {
   const [packs, setPacks] = useState([])
   const [pack, setPack] = useState('ALL')
   const [unavailable, setUnavailable] = useState(false)
-  const [loadingSetup, setLoadingSetup] = useState(false)
+  const [loadingSetup, setLoadingSetup] = useState(true)
   const [loadAttempt, setLoadAttempt] = useState(0)
   const [kind, setKind] = useState('TASK')
   const [category, setCategory] = useState('ALL')
@@ -137,8 +137,6 @@ function InitialFamilySetupReviewContent() {
   useEffect(() => {
     const id = ++seq.current
     if (!workspaceId || !canManageSetup) return
-    setLoadingSetup(true)
-    setUnavailable(false)
     Promise.all([getSetupState(getAccessToken(), workspaceId), getTemplateCatalog(getAccessToken())])
       .then(([state, data]) => {
         const checked = validateSetupCatalog(data)
@@ -264,7 +262,7 @@ function InitialFamilySetupReviewContent() {
     {unavailable && <div role="status">
       <p>{w[1]}</p>
       <button type="button" className="secondary-button" disabled={loadingSetup || busy}
-        onClick={() => { setError(false); setErrorStatus(null); setLoadAttempt(value => value + 1) }}>
+        onClick={() => { setLoadingSetup(true); setUnavailable(false); setError(false); setErrorStatus(null); setLoadAttempt(value => value + 1) }}>
         {({uk:'Повторити завантаження',ru:'Повторить загрузку',de:'Erneut laden',en:'Retry loading'})[lang] || 'Retry loading'}
       </button>
     </div>}
