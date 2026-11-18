@@ -50,6 +50,8 @@ public final class WorkspaceBackupLocalArtifactStore {
         if(Files.exists(destination,LinkOption.NOFOLLOW_LINKS))
             throw new IllegalStateException("BACKUP_ARTIFACT_ALREADY_EXISTS");
         Path temp=null;
+        boolean published=false;
+        boolean completed=false;
         try {
             temp=Files.createTempFile(folder,".upload-",".tmp");
             chmod(temp,FILE_MODE);
@@ -58,9 +60,11 @@ public final class WorkspaceBackupLocalArtifactStore {
             // Same-directory hard-link publication is atomic and no-overwrite:
             // it cannot replace an existing snapshot from another writer.
             Files.createLink(destination,temp);
+            published=true;
             Files.delete(temp);
             temp=null;
             chmod(destination,FILE_MODE);
+            completed=true;
             return new Stored(snapshotId,workspaceId,ProtectiveBackupArtifactCodec.sha(encryptedFile),
                     encryptedFile.length);
         } catch(FileAlreadyExistsException ex) {
@@ -69,6 +73,12 @@ public final class WorkspaceBackupLocalArtifactStore {
             throw new IllegalStateException("BACKUP_LOCAL_WRITE_FAILED",ex);
         } finally {
             if(temp!=null)try {Files.deleteIfExists(temp);}catch(IOException ignored) {}
+            // Remove only a destination published by THIS invocation. Never delete
+            // a pre-existing snapshot after FileAlreadyExistsException.
+            if(published && !completed)
+                try {Files.deleteIfExists(destination);}catch(IOException ignored) {
+                    // An orphan after cleanup failure is handled by audit/reconciliation.
+                }
         }
     }
 
