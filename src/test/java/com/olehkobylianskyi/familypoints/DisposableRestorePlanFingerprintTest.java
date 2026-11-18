@@ -20,7 +20,9 @@ class DisposableRestorePlanFingerprintTest {
                 mappings,categories,"FAIL_ON_CONFLICT");
     }
     private static List<DisposableRestorePlanFingerprint.Category> categories() {
-        return List.of(new DisposableRestorePlanFingerprint.Category("POINT_TYPES",2,true),
+        return List.of(new DisposableRestorePlanFingerprint.Category("FAMILY_MEMBERS",2,true),
+                new DisposableRestorePlanFingerprint.Category("TASK_DEFINITIONS",3,true),
+                new DisposableRestorePlanFingerprint.Category("POINT_TYPES",2,true),
                 new DisposableRestorePlanFingerprint.Category("TASK_EXECUTIONS",5,true),
                 new DisposableRestorePlanFingerprint.Category("POINT_LEDGER",9,true),
                 new DisposableRestorePlanFingerprint.Category("REWARD_PURCHASES",3,false));
@@ -60,9 +62,12 @@ class DisposableRestorePlanFingerprintTest {
                 new DisposableRestorePlanFingerprint.Plan(17,31,2,SNAPSHOT,MANIFEST,7,5,p.originalToTargetMembers(),p.categories(),p.conflictPolicy()),
                 plan(Map.of(3L,104L,4L,103L),p.categories()),
                 plan(p.originalToTargetMembers(),List.of(
+                        new DisposableRestorePlanFingerprint.Category("FAMILY_MEMBERS",2,true),
+                        new DisposableRestorePlanFingerprint.Category("TASK_DEFINITIONS",3,true),
                         new DisposableRestorePlanFingerprint.Category("POINT_TYPES",2,true),
                         new DisposableRestorePlanFingerprint.Category("TASK_EXECUTIONS",5,true),
-                        new DisposableRestorePlanFingerprint.Category("POINT_LEDGER",10,true)))
+                        new DisposableRestorePlanFingerprint.Category("POINT_LEDGER",10,true),
+                        new DisposableRestorePlanFingerprint.Category("REWARD_PURCHASES",3,false)))
         );
         for(var change:changed)assertNotEquals(a.planDigest(),
                 verifier.calculate(change).planDigest(),change.toString());
@@ -89,6 +94,23 @@ class DisposableRestorePlanFingerprintTest {
         assertThrows(SecurityException.class,()->verifier.requireMatchingScope(
                 p,hash,reset,reset,NOW));
     }
+    @Test void missingOriginalRosterAndRequiredParentsCannotBeApproved() {
+        var p=normal();
+        var withoutMembers=new ArrayList<>(p.categories());
+        withoutMembers.removeIf(c->"FAMILY_MEMBERS".equals(c.code()));
+        assertThrows(SecurityException.class,()->
+                verifier.calculate(plan(p.originalToTargetMembers(),withoutMembers)));
+        var withoutTask=new ArrayList<>(p.categories());
+        withoutTask.removeIf(c->"TASK_DEFINITIONS".equals(c.code()));
+        assertThrows(SecurityException.class,()->
+                verifier.calculate(plan(p.originalToTargetMembers(),withoutTask)));
+        var legacy=new DisposableRestorePlanFingerprint.Plan(
+                p.sourceWorkspace(),p.targetWorkspace(),1,p.snapshot(),
+                p.sealedManifestSha256(),p.sourceEpoch(),p.targetExpectedEpoch(),
+                p.originalToTargetMembers(),p.categories(),p.conflictPolicy());
+        assertThrows(SecurityException.class,()->verifier.calculate(legacy));
+    }
+
     @Test void duplicateIdsValuesUnknownCategoriesAndEmptySelectionDenied() {
         var duplicate=plan(Map.of(3L,103L,4L,103L),categories());
         assertThrows(SecurityException.class,()->verifier.calculate(duplicate));
