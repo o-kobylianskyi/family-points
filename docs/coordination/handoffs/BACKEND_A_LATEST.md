@@ -202,3 +202,11 @@ Source files reviewed:
 - Exact-SHA CI for B-A-04e pending. NEXT B-A-04f: CI/test failures and category-by-category historical FK closure with B/D consumer acceptance; no Restore Execute, HTTP423, BETA HOLD.
 
 - B-A-04e full four-component same-SHA `[full-ci]` request commit `fc639206f8193a6f02c43ca7338f993107a9277e`, Actions run `44286446835` QUEUED at checkpoint. Do not claim PASS until actual Java Maven/PostgreSQL18 test steps, Android/Web/Compose, full attestation finish. Previous proven baseline remains `64f4cdea` run `44282865822` SUCCESS. Next B-A-04f after CI results and Architecture wire approval.
+
+
+## B-A-04f — 2026-11-18 financial/group FK source closure (TEST ONLY)
+- Previous `fc639206` full CI `44286446835` still IN_PROGRESS at B-A-04f pickup; Java Maven and Android not yet accepted. Don't conflate docs-only green with PG18 PASS.
+- `f14e3b4`: `DisposablePortableFinancialSourceClosure` test-only source table/category parent DAG for POINT_LEDGER, REWARD_PURCHASES, GROUP_POINT_LEDGER, GROUP_MEMBERSHIPS, TASK_EXECUTIONS, TASK_DEFINITIONS, REWARD_DEFINITIONS, POINT_EXCHANGE_REQUESTS/RATES. Strict source-family scoped ID/row/nullable constraints; unknown/missing parent FAIL CLOSED.
+- `5d2affa`: financial source closure unit positives and negatives; `b8c2741`: Testcontainers PostgreSQL18 actual Flyway column presence/nullability guard. This is NOT a Backend D financial source-type/REFUND policy; ledger polymorphic closure remains OPEN.
+- QA and consumer request `docs/coordination/requests/B-A-04F_FINANCIAL_GROUP_SOURCE_CLOSURE_QA_20261118.md` commit `fb43871`. No shared DTO, migration, exporter/inspector, restore, credentials or destructive retention changes.
+- Next B-A-04g: exact-SHA Maven CI/PG18 verification and corrections; historical polymorphic ledger source_type source_id inventory with D ownership, typed archive only after Architecture A4-01…09 + IMP and B/C/D ACK. BETA HOLD.
