@@ -120,7 +120,7 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
         assertEquals(1,historyProof.roleCount());
         assertEquals(2,historyProof.memberCount());
         assertEquals(8,historyProof.verifiedCategoryCounts().size());
-        assertEquals(0,historyProof.verifiedCategoryCounts().get("POINT_LEDGER"));
+        assertEquals(Integer.valueOf(0),historyProof.verifiedCategoryCounts().get("POINT_LEDGER"));
         var cSource=historyProof.verifiedSourceArchiveV2();
         assertEquals(source,cSource.sourceWorkspaceId());
         assertEquals("family-points-export-v2",cSource.schemaVersion());
