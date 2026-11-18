@@ -213,6 +213,12 @@
 
 - **Actual post-write exact-SHA Web CI**: [run #44286921463](https://github.com/o-kobylianskyi/family-points/actions/runs/44286921463) for `fb38f4d094a632bf85d39f9f75ff495ff2696163`, Web job `134741937421` completed **SUCCESS**; decoded log: V49 fixture syntax **6 PASS**, native Node **37 PASS / 0 FAIL / 0 SKIP**, i18n/lint/Vite build SUCCESS, lint 3 warnings/0 errors. Scoped full all-four attestation SKIPPED. Five-case Chromium has still **NOT_RUN**. Supersedes queued checkpoint.
 
+## WEB-02 package 28 — QA Chromium execution gate escalated, no speculative source changes (2026-11-18)
+- Re-read live main commit stream, `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` exact blob `ccaef197aca71db929681c5806d58c3281aec3f2` (five cases), `InitialFamilySetupReview.jsx` `9bdbb717710c125225a056ff4ae2a0c31e4c4078`, and recent QA Issue #18 comments through QA-065. No reproducible new Web source regression found in code review; do not add sixth untested synthetic case.
+- QA Chromium five-case **NOT_RUN**; exact source commit `fb38f4d094a632bf85d39f9f75ff495ff2696163`. Previous Web-scoped CI [#44286921463](https://github.com/o-kobylianskyi/family-points/actions/runs/44286921463) attested 37/37 Node, 6 V49 fixture syntax, lint/i18n/build PASS; NOT Chromium, full four-component attestation SKIPPED.
+- Added actual QA execution request to [Issue #18 comment 6976230912](https://github.com/o-kobylianskyi/family-points/issues/18#issuecomment-6976230912): pinned command, disposable selected QA family/secret credential handling, five expected browser outcomes, immutable original UUID/epoch/revision and 1 original POST, zero unexpected writes, screenshot/trace, explicit PASS/FAIL/SKIP. If no private credentials or approved QA scope, classify SKIP/BLOCKED instead of running against user family.
+- Product/fixture source **UNCHANGED** in package 28, no new CI attributed. QA must execute Chromium and provide trace; then Web will fix confirmed defects. BKL-002/BETA HOLD.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
