@@ -55,3 +55,11 @@
 - QA execution packet `docs/coordination/requests/BACKEND_C_QA_PACKET_20261118_PROOF_PG_CONCURRENCY.md` @ `45333c63`.
 - **Evidence:** test source committed; actual Maven/Docker/PostgreSQL tests **NOT_RUN** from connector, no green result claimed; CI exact SHA must be independently checked.
 - **Next:** triage actual QA failures; await Architecture owner provenance ACK before wiring destructive REST permissions. Maintain Reset HTTP423 and BETA HOLD.
+
+
+## 2026-11-18 — C-C-06: owner product ACK and PostgreSQL proof QA follow-up
+- Owner approved product decisions ABCD-DEC-01…08 in shared record `8571566f`; engineering schema/DTO and legacy owner verification still need Architecture ACK.
+- CI run `44268695217` Java job was in progress at inspection. No current full green claimed. QA corrected two unrelated Testcontainers 2.x compile errors.
+- PG18 proof suite expanded to 6 methods @ `52e79a29`: DB-persisted expiry + password rotation negatives. Existing two-thread replay, transaction rollback/retry, cross-family and epoch cases remain.
+- Updated independent QA packet @ `a4b34db9` and issue #15 comment `6973470561`. Maven/PG tests **NOT_RUN** by C. No production Reset Execute (HTTP423), BETA HOLD.
+- Next: QA exact-SHA results, fix failures, await engineering canonical original-owner registration/migration contract for controller integration.
