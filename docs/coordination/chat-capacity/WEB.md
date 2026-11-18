@@ -39,3 +39,5 @@ Next Web chat creates new generation and records measured checkpoints; this row 
 | 2026-11-18 | Web | WEB-02 | 22 | unknown | PARTIAL_VISIBLE | unknown | NONE | 22 | 91cb38c3 | CHECKPOINT | Browser mock guard fails closed for any unexpected post-login writes; 6 simulated routes PASS. |
 
 | 2026-11-18 | Web | WEB-02 | 23 | unknown | PARTIAL_VISIBLE | unknown | NONE | 23 | 112bd51c | CHECKPOINT | Three persistent native Node tests added for V49 mock route safety; CI exact run pending. |
+
+| 2026-11-18 | Web | WEB-02 | 24 | unknown | PARTIAL_VISIBLE | unknown | NONE | 24 | ffab2b54 | CHECKPOINT | Fixed missing-markers cleanup race, V8 regression 15/15 PASS; CI/Chromium pending. |
