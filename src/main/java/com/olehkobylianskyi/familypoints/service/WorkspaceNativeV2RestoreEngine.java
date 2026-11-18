@@ -23,7 +23,7 @@ import java.util.*;
  * permit consumption, native inserts, finance parity, epoch and receipt.
  */
 @Service
-public final class WorkspaceNativeV2RestoreEngine {
+public class WorkspaceNativeV2RestoreEngine {
     private static final ObjectMapper JSON=new ObjectMapper();
     private final JdbcTemplate db;
     private final WorkspaceEpochTransactionGuard epochs;

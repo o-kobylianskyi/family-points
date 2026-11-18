@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
  * password-denied parent transaction rolls back. No RESET budget is reused.
  */
 @Service
-public final class WorkspaceRestorePasswordLimiter {
+public class WorkspaceRestorePasswordLimiter {
     private final JdbcTemplate db;
     public WorkspaceRestorePasswordLimiter(JdbcTemplate db) { this.db=db; }
 

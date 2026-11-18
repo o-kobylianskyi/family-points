@@ -15,7 +15,7 @@ import java.util.UUID;
  * NOT inferred from admin roles, earliest member or login email.
  */
 @Service
-public final class WorkspaceOriginalOwnerEnrollmentService {
+public class WorkspaceOriginalOwnerEnrollmentService {
     private final JdbcTemplate db;
     public WorkspaceOriginalOwnerEnrollmentService(JdbcTemplate db) { this.db=db; }
 

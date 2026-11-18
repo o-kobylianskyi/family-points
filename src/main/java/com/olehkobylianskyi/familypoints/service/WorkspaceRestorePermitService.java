@@ -24,7 +24,7 @@ import java.util.Objects;
  * signed source verification and final epoch/receipt commit.
  */
 @Service
-public final class WorkspaceRestorePermitService {
+public class WorkspaceRestorePermitService {
     private final JdbcTemplate db;
     private final WorkspaceEpochTransactionGuard epochs;
     private final PasswordEncoder passwords;

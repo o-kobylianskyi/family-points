@@ -75,7 +75,13 @@ class WorkspaceRestoreOwnerFoundationPostgresTest {
             assertEquals(0L,db.queryForObject(
                     "SELECT count(*) FROM workspace_original_owner_bindings WHERE workspace_id=?",
                     Long.class,a));
-            // Legitimate service path can mark only a newly provisioned\n            // family/member within its own physical registration transaction.\n            tx.execute(status->{\n                WorkspaceNewFamilyTransactionEvidence.record(a,memberA);\n                owner.enrollNewCreator(a,accountA,memberA);\n                return null;\n            });
+            // Legitimate service path can mark only a newly provisioned
+            // family/member within its own physical registration transaction.
+            tx.execute(status->{
+                WorkspaceNewFamilyTransactionEvidence.record(a,memberA);
+                owner.enrollNewCreator(a,accountA,memberA);
+                return null;
+            });
             assertEquals(1L,db.queryForObject(
                     "SELECT count(*) FROM workspace_original_owner_bindings WHERE workspace_id=?",
                     Long.class,a));
