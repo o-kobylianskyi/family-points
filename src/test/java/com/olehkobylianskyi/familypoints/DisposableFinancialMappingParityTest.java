@@ -223,6 +223,69 @@ class DisposableFinancialMappingParityTest {
         assertThrows(SecurityException.class,()->reconcile(source(),invalidOrigin,mapping()));
     }
 
+
+    @Test void swappingEveryPairOfLedgerMappingsIsDetected() {
+        var originals=List.of(1L,2L,3L);
+        for (int i=0;i<originals.size();i++) {
+            for (int j=i+1;j<originals.size();j++) {
+                var replacement=new HashMap<>(mapping().ledger());
+                Long first=originals.get(i),second=originals.get(j);
+                Long old=replacement.get(first);
+                replacement.put(first,replacement.get(second));
+                replacement.put(second,old);
+                var mismapped=new Mapping(replacement,mapping().members(),
+                        mapping().currencies(),mapping().tasks(),mapping().purchases());
+                assertThrows(SecurityException.class,
+                        ()->reconcile(source(),target(),mismapped),
+                        "A permutation of ledger IDs must not substitute history");
+            }
+        }
+    }
+
+    @Test void everyLedgerFieldIsCheckedNotOnlyTheTotal() {
+        var first=target().get(0);
+        var variants=List.of(
+                new Row(first.id(),15,first.currency(),first.amount(),
+                        first.type(),first.sourceType(),first.sourceId()),
+                new Row(first.id(),first.member(),28,first.amount(),
+                        first.type(),first.sourceType(),first.sourceId()),
+                new Row(first.id(),first.member(),first.currency(),6,
+                        first.type(),first.sourceType(),first.sourceId()),
+                new Row(first.id(),first.member(),first.currency(),first.amount(),
+                        "PENALTY",first.sourceType(),first.sourceId()),
+                new Row(first.id(),first.member(),first.currency(),first.amount(),
+                        first.type(),"MANUAL",null),
+                new Row(first.id(),first.member(),first.currency(),first.amount(),
+                        first.type(),first.sourceType(),999L));
+        for (Row variant:variants) {
+            var altered=List.of(variant,target().get(1),target().get(2));
+            assertThrows(SecurityException.class,
+                    ()->reconcile(source(),altered,mapping()));
+        }
+    }
+
+    @Test void repeatedIndependentSourceEventsCannotShareOneTaskOrPurchase() {
+        var taskDuplicate=List.of(source().get(0),
+                new Row(4,4,3,5,"EARN","TASK",42L),
+                source().get(1),source().get(2));
+        var targetDuplicate=List.of(target().get(0),
+                new Row(104,14,23,5,"EARN","TASK",142L),
+                target().get(1),target().get(2));
+        var ids=new Mapping(Map.of(1L,101L,4L,104L,2L,102L,3L,103L),
+                mapping().members(),mapping().currencies(),
+                mapping().tasks(),mapping().purchases());
+        assertThrows(SecurityException.class,
+                ()->reconcile(taskDuplicate,targetDuplicate,ids));
+        var purchaseDuplicate=List.of(source().get(0),source().get(1),
+                new Row(4,4,3,-3,"SPEND","REWARD_PURCHASE",51L),
+                source().get(2));
+        var purchasedTarget=List.of(target().get(0),target().get(1),
+                new Row(104,14,23,-3,"SPEND","REWARD_PURCHASE",151L),
+                target().get(2));
+        assertThrows(SecurityException.class,
+                ()->reconcile(purchaseDuplicate,purchasedTarget,ids));
+    }
+
     @Test void unknownOriginAndMissingParentRemainFailClosed() {
         var unsupported=List.of(new Row(1,4,3,5,"EARN","POINT_EXCHANGE",42L),
                 source().get(1),source().get(2));
