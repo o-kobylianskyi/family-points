@@ -44,6 +44,10 @@ class DisposableDurableRestoreApprovalStorePostgresTest {
         var ds=new DriverManagerDataSource(
                 POSTGRES.getJdbcUrl(),POSTGRES.getUsername(),POSTGRES.getPassword());
         var db=new JdbcTemplate(ds);
+        // Migrate the isolated database BEFORE creating any QA-only table:
+        // Flyway must not mistake a nonempty unmigrated schema for production.
+        org.flywaydb.core.Flyway.configure().dataSource(ds)
+                .locations("classpath:db/migration").load().migrate();
         db.execute("""
                 CREATE TABLE IF NOT EXISTS qa_restore_approval_consumption (
                     operation_id uuid PRIMARY KEY,
@@ -54,18 +58,6 @@ class DisposableDurableRestoreApprovalStorePostgresTest {
                     target_epoch bigint NOT NULL
                 )
                 """);
-        // A disposable family table suffices for the epoch locking contract;
-        // no production schema or migration is changed.
-        db.execute("""
-                CREATE TABLE IF NOT EXISTS qa_restore_family_epoch (
-                    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                    data_epoch bigint NOT NULL DEFAULT 0
-                )
-                """);
-        // The helper's lock intentionally targets the real 'families' table,
-        // so the source schema is prepared through Flyway, not a fake alias.
-        org.flywaydb.core.Flyway.configure().dataSource(ds)
-                .locations("classpath:db/migration").load().migrate();
         long family=db.queryForObject(
                 "INSERT INTO families(name) VALUES (?) RETURNING id",
                 Long.class,"Approval target "+UUID.randomUUID());
