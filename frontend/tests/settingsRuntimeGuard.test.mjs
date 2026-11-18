@@ -24,3 +24,12 @@ test('Settings currency loader does not invoke the alive boolean as a function',
   const source=readFileSync(new URL('../src/components/CurrencyFormsSettings.jsx',import.meta.url),'utf8')
   assert.match(source,/let alive = true;\s*\n\s*\(canManage \? getAllPointTypes/)
 })
+
+test('Safety plan remount scope includes username fallback used by loader identity',()=>{
+  const source=readFileSync(new URL('../src/components/FamilyDataSafetyPlan.jsx',import.meta.url),'utf8')
+  const expected='currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.username ?? null'
+  assert.ok(source.includes('const key = ['+expected+', currentUser?.workspaceId]'),
+    'The component key must change when a username-only account changes')
+  assert.ok(source.includes('const accountScope = '+expected),
+    'The backup request scope must use the same account identity as the wrapper key')
+})
