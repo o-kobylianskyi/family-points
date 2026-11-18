@@ -334,6 +334,11 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
                     INSERT INTO family_roles(family_id,system_role,code,name)
                     VALUES (?,true,'PARENT','Parent') RETURNING id
                     """,Long.class,neighbor);
+            // Occupy original numeric IDs in unrelated family first.
+            long foreign=db.queryForObject("""
+                    INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
+                    VALUES (?,?,'PARENT','Unrelated',true) RETURNING id
+                    """,Long.class,neighbor,neighborRole);
             long active=db.queryForObject("""
                     INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
                     VALUES (?,?,'PARENT','Restored target owner',true) RETURNING id
@@ -342,10 +347,53 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
                     INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
                     VALUES (?,?,'CHILD','Mapped historic member',true) RETURNING id
                     """,Long.class,target,role);
-            long foreign=db.queryForObject("""
-                    INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
-                    VALUES (?,?,'PARENT','Unrelated',true) RETURNING id
-                    """,Long.class,neighbor,neighborRole);
+            long neighborPoint=db.queryForObject("""
+                    INSERT INTO point_types(family_id,code,name,active,sort_order)
+                    VALUES (?,'NEIGHBOR','Neighbor only',true,0) RETURNING id
+                    """,Long.class,neighbor);
+            long neighborTask=db.queryForObject("""
+                    INSERT INTO task_definitions(
+                        family_id,assigned_member_id,title,description,mandatory,
+                        delegation_allowed,recurrence_type,active,created_at,updated_at,
+                        reward_point_type_id,reward_amount)
+                    VALUES (?,?,'Neighbor historical task','Foreign',false,
+                        false,'ONCE',true,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?,7)
+                    RETURNING id
+                    """,Long.class,neighbor,foreign,neighborPoint);
+            long neighborReward=db.queryForObject("""
+                    INSERT INTO reward_definitions(
+                        family_id,title,description,point_type_id,price_amount,
+                        cooldown_seconds,extra_request_allowed,requires_approval,
+                        reward_kind,acquisition_mode,availability_mode,active,
+                        created_at,updated_at)
+                    VALUES (?,'Neighbor historical reward','Foreign',?,3,
+                        30,false,false,'STANDARD','DIRECT','ALWAYS',true,
+                        CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
+                    RETURNING id
+                    """,Long.class,neighbor,neighborPoint);
+            long neighborExecution=db.queryForObject("""
+                    INSERT INTO task_instances(
+                        task_definition_id,member_id,original_assigned_member_id,
+                        scheduled_date,slot_key,title,description,mandatory,
+                        reward_point_type_id,reward_amount,status,
+                        reward_processed,penalty_processed)
+                    VALUES (?,?,?,DATE '2026-11-11','default',
+                        'Neighbor historical task','Foreign',false,
+                        ?,7,'COMPLETED',true,false)
+                    RETURNING id
+                    """,Long.class,neighborTask,foreign,foreign,neighborPoint);
+            long neighborPurchase=db.queryForObject("""
+                    INSERT INTO reward_purchases(
+                        reward_definition_id,member_id,reward_title,point_type_id,
+                        price_amount,status,purchased_at)
+                    VALUES (?,?,'Neighbor historical reward',?,3,'READY',CURRENT_TIMESTAMP)
+                    RETURNING id
+                    """,Long.class,neighborReward,foreign,neighborPoint);
+            db.update("""
+                    INSERT INTO point_transactions(
+                        member_id,point_type_id,source_type,amount,type,source_id,created_at)
+                    VALUES (?,?,'TASK',7,'EARN',?,CURRENT_TIMESTAMP)
+                    """,foreign,neighborPoint,neighborExecution);
             var encoder=new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
             long account=db.queryForObject("""
                     INSERT INTO user_accounts(username,password_hash,enabled,family_member_id)
@@ -388,9 +436,12 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
             var envelope=portable.decode(archive);
             byte[] plaintext=codec.open(envelope,envelope.manifest().snapshotId(),source,key);
             String selection;
+            long originalExecutionId;
             try {
                 var root=(com.fasterxml.jackson.databind.node.ObjectNode)
                         new ObjectMapper().readTree(plaintext);
+                originalExecutionId=root.path("categories").path("TASK_EXECUTIONS")
+                        .get(0).path("id").asLong();
                 selection=WorkspaceRestoreBoundedSelectionV2.fromVerifiedSource(
                         root,source,inspected.snapshotId(),inspected.sourceEpoch(),target,0);
             }finally{Arrays.fill(plaintext,(byte)0);}
@@ -453,11 +504,20 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
             assertEquals(3L,db.queryForObject(
                     "SELECT count(*) FROM point_transactions t WHERE t.member_id=?",
                     Long.class,active));
-            assertEquals(0L,db.queryForObject("""
+            assertEquals(1L,db.queryForObject("""
                     SELECT count(*) FROM point_transactions t
                     JOIN family_members m ON m.id=t.member_id
                     WHERE m.family_id=?
                     """,Long.class,neighbor));
+            assertEquals(7L,db.queryForObject("""
+                    SELECT sum(amount) FROM point_transactions WHERE member_id=?
+                    """,Long.class,foreign));
+            Long restoredExecution=db.queryForObject("""
+                    SELECT source_id FROM point_transactions
+                    WHERE member_id=? AND source_type='TASK'
+                    """,Long.class,active);
+            assertNotEquals(originalExecutionId,restoredExecution);
+            assertNotEquals(neighborExecution,restoredExecution);
         }
     }
 }
