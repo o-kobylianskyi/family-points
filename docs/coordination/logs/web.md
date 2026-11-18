@@ -1252,3 +1252,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 V49 all post-login mutations blocked in synthetic test
 - `374af974`: after login, catch-all Playwright context.route('**/*') aborts unexpected POST/PUT/PATCH/DELETE anywhere, not only `/workspaces` routes; narrower setup/review/finalize mocks registered afterward. V8 syntax PASS and six direct guard checks PASS, not Chromium or live HTTP. Same SHA Actions 44268593069 queued at pickup. QA still no two-tab browser result, BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 V49 synthetic route guard now has CI-run Node regressions
+- `afabbd88` adds reusable V49 catch-all guard, `2c202442` adopts in both browser cases, `0e7b2ed4` adds 3 Node test cases covering classification, cross-route block/logging and absent audit fail closed, `8a8cda94` wires into Web `test:regression` already invoked by Actions. V8 parse PASS, native latest-SHA CI #44269209360 in progress at audit; Chromium NOT_RUN; QA-047 issue #18 says credentials/isolated family needed. BETA HOLD.
