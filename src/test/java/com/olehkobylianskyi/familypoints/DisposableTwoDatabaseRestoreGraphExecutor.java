@@ -81,10 +81,10 @@ final class DisposableTwoDatabaseRestoreGraphExecutor {
             if(!advanced)throw new SecurityException("RESTORE_NODE_SOURCE_CYCLE");
         }
         return tx.execute(status->{
-            Long epoch=target.queryForObject("""
+            var targetEpochs=target.queryForList("""
                     SELECT data_epoch FROM families WHERE id=? FOR UPDATE
                     """,Long.class,targetFamily);
-            if(epoch==null || epoch!=0L)
+            if(targetEpochs.size()!=1 || !Objects.equals(0L,targetEpochs.get(0)))
                 throw new SecurityException("RESTORE_TARGET_EPOCH_INVALID");
             Long existingGroups=target.queryForObject(
                     "SELECT count(*) FROM member_groups WHERE family_id=?",
