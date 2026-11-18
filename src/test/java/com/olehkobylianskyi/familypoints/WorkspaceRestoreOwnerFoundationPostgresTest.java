@@ -2,6 +2,7 @@ package com.olehkobylianskyi.familypoints;
 
 import com.olehkobylianskyi.familypoints.service.WorkspaceOriginalOwnerEnrollmentService;
 import com.olehkobylianskyi.familypoints.service.WorkspaceRestorePasswordLimiter;
+import com.olehkobylianskyi.familypoints.service.WorkspacePortableMemberFkClosure;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -56,6 +57,16 @@ class WorkspaceRestoreOwnerFoundationPostgresTest {
             assertEquals(0L,db.queryForObject(
                     "SELECT count(*) FROM workspace_original_owner_bindings WHERE workspace_id=?",
                     Long.class,b));
+            // Physical catalog review includes original-member FKs from
+            // all applied migrations, rather than a fixed 17-edge guess.
+            var fkEdges=new WorkspacePortableMemberFkClosure(db).inspect(a);
+            assertTrue(fkEdges.size()>=17);
+            assertTrue(fkEdges.stream().anyMatch(e->e.table().equals("user_accounts")
+                    && e.disposition()==WorkspacePortableMemberFkClosure.Disposition.EXCLUDE));
+            assertTrue(fkEdges.stream().anyMatch(e->e.table().equals("task_instances")
+                    && e.disposition()==WorkspacePortableMemberFkClosure.Disposition.INCLUDE));
+            assertDoesNotThrow(()->new WorkspacePortableMemberFkClosure(db)
+                    .requireHistoryClosure(a));
 
             assertThrows(SecurityException.class,
                     ()->tx.execute(s->{owner.enrollNewCreator(b,accountA,memberA);return null;}));
