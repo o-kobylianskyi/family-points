@@ -225,10 +225,10 @@ class DisposableSignedFinancialPostgresParityTest {
         assertTrue(read(operation).isEmpty());
     }
     @Test
-    void cannotDecodeForeignKeyArchiveOrWriteToDatabase() throws Exception {
+    void signedHistoricalRewardMismatchNeverWritesToDatabase() throws Exception {
         UUID operation=UUID.randomUUID();
-        // Only an independent authenticated archive fixture is admissible.
-        // Corrupting the signed ledger amount must be detected before DB writes.
+        // A newly sealed fixture with a ledger amount inconsistent with its
+        // signed task economic snapshot must fail before any DB write.
         String malformed=LEDGER.replace(
                 "\"amount\":5",
                 "\"amount\":6");
