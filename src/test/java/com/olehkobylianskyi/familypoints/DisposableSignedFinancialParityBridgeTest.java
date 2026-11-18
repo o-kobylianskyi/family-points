@@ -127,7 +127,11 @@ class DisposableSignedFinancialParityBridgeTest {
     @Test void targetCannotReplaceArchivedDebitWithCompensatingCredit()
             throws Exception {
         var original = authenticatedSource(sealed(VALID_LEDGER));
-        var altered = List.of(target().get(0),
+        // Credit +1 and debit -1 compensate: aggregate remains unchanged,
+        // but both historical entries must still fail exact row parity.
+        var altered = List.of(
+                new DisposableFinancialMappingParityTest.Row(
+                        101,14,23,6,"EARN","TASK",142L),
                 new DisposableFinancialMappingParityTest.Row(
                         102,14,23,-4,"SPEND","REWARD_PURCHASE",151L),
                 new DisposableFinancialMappingParityTest.Row(
