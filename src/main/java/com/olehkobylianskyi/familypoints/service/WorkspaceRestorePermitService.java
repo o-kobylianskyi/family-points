@@ -58,20 +58,7 @@ public final class WorkspaceRestorePermitService {
             byte[] sourceFile,SecretKey key,Map<Long,Long> reviewedMemberMap,
             String currentPassword) {
         Objects.requireNonNull(scope,"scope");
-        // The RESTORE action must originate from the actually authenticated
-        // current owner principal and selected live workspace membership,
-        // NEVER from an unchecked caller-supplied account/member pair.
-        var principal=currentUser.getCurrentAccount();
-        var member=currentUser.getCurrentMember();
-        if(principal==null||member==null||!principal.isEnabled()
-                ||principal.getId()==null
-                ||principal.getId().longValue()!=scope.authorizedOwnerAccountId()
-                ||member.getId()==null
-                ||member.getId().longValue()!=scope.authorizedOwnerMemberId()
-                ||member.getWorkspace()==null
-                ||member.getWorkspace().getId()==null
-                ||member.getWorkspace().getId().longValue()!=scope.targetWorkspaceId())
-            throw new SecurityException("RESTORE_AUTHENTICATED_PRINCIPAL_REQUIRED");
+        requireAuthenticatedOwnerCaller(scope);
         limiter.requireAvailable(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
         // Authenticate and persist password attempt BEFORE the target family
         // FOR UPDATE lock. REQUIRES_NEW budget writes need a family FK KEY SHARE;
@@ -120,16 +107,16 @@ public final class WorkspaceRestorePermitService {
             byte[] sourceFile,SecretKey key,Map<Long,Long> reviewedMemberMap,
             String idToken) {
         Objects.requireNonNull(scope,"scope");
+        requireAuthenticatedOwnerCaller(scope);
         limiter.requireAvailable(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
-        verifiedSource(scope,sourceFile,key,reviewedMemberMap);
-        epochs.requireCurrentEpoch(scope.targetWorkspaceId(),scope.targetExpectedEpoch());
+        // Inspect verified ID-token and current linked subject before acquiring
+        // the family FOR UPDATE lock; limiter success also commits first.
         Instant now=Instant.now();
         if(!scope.matches(scope,now)
                 ||scope.issuedAt().isBefore(now.minusSeconds(15))
                 ||scope.issuedAt().isAfter(now.plusSeconds(1)))
             throw new SecurityException("RESTORE_PERMIT_ISSUANCE_NOT_CURRENT");
-        // This check holds the current account/membership row locks and
-        // verifies immutable registration provenance, including provider-only accounts.
+        // Real current owner proof, not a claimed Google subject.
         requireOwnerPasswordHash(scope);
         var verified=google.verifiedToken(idToken);
         if(verified.getIssuedAt()==null
@@ -139,6 +126,9 @@ public final class WorkspaceRestorePermitService {
         String actualLinked=linkedGoogleSubject(scope.authorizedOwnerAccountId());
         if(!actualLinked.equals(verified.getSubject()))
             throw new SecurityException("RESTORE_GOOGLE_SUBJECT_NOT_LINKED");
+        limiter.clearSuccess(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
+        verifiedSource(scope,sourceFile,key,reviewedMemberMap);
+        epochs.requireCurrentEpoch(scope.targetWorkspaceId(),scope.targetExpectedEpoch());
         String digest=WorkspaceRestorePermitScopeV2.canonicalScopeDigest(scope);
         int inserted=db.update("""
             INSERT INTO workspace_restore_permits
@@ -155,7 +145,22 @@ public final class WorkspaceRestorePermitService {
                 java.sql.Timestamp.from(scope.expiresAt()));
         if(inserted!=1)
             throw new SecurityException("RESTORE_PERMIT_OPERATION_ALREADY_EXISTS");
-        limiter.clearSuccess(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
+    }
+
+    private void requireAuthenticatedOwnerCaller(
+            WorkspaceRestorePermitScopeV2.RestoreScope scope) {
+        var principal=currentUser.getCurrentAccount();
+        var member=currentUser.getCurrentMember();
+        if(principal==null||member==null||!principal.isEnabled()
+                ||principal.getId()==null
+                ||principal.getId().longValue()!=scope.authorizedOwnerAccountId()
+                ||member.getId()==null
+                ||member.getId().longValue()!=scope.authorizedOwnerMemberId()
+                ||member.getWorkspace()==null
+                ||member.getWorkspace().getId()==null
+                ||member.getWorkspace().getId().longValue()!=scope.targetWorkspaceId())
+            throw new SecurityException("RESTORE_AUTHENTICATED_PRINCIPAL_REQUIRED");
+
     }
 
     private String linkedGoogleSubject(long accountId) {
