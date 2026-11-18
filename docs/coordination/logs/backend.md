@@ -957,3 +957,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Two QA-only financial categories + one permit reserve in same SQL transaction `b607e240`. PG18 three-stage crash simulation with complete rollback and deterministic replay `aef18c45`; cross-category same UUID concurrent commit exactly once `ef222689`.
 - QA formal packet `afd9abf4`. Tests added, actual current SHA Maven/PG18 not verified. No production restore, synthetic data only.
 - Rough remaining engineering estimate ~8–12 substantial Backend batches, external QA and release gates separate.
+
+### 2026-11-18 — Backend split: legacy journal transitions to Backend B for Restore Engine
+- Project owner transferred this assistant's responsibility to **Backend B**. Prior unified Backend work #25–64 is preserved above. New updates on Restore Engine appear in `docs/coordination/logs/backend-b.md`; primary handoff: `docs/coordination/handoffs/BACKEND_B_LATEST.md`.
+- Producer/consumer interface with **Backend A (Backup & Portable Archive)** requires Architecture/Backend A acknowledgment: request `docs/coordination/requests/BACKEND_B_RESTORE_CONTRACT_REQUEST_20261118.md`.
+- Production Reset Execute HTTP423, restorable/replaySupported false, BETA HOLD.
