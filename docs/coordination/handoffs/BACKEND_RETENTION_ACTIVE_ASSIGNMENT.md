@@ -50,3 +50,11 @@
 - **Fix `a0210961687a15eafe3f725a02962bb79b277a8a`:** malformed stored-row fixture assertions now expect `DataIntegrityViolationException` and prove registered state remains intact. Also rejects attempted `artifact_sha256=NULL`; retains valid-key/wrong-scope and hash-mismatch RET-02 read-only classification. Database constraints unchanged.
 - Next gate: exact test execution on a commit that contains this fix; do not transfer the prior failing CI conclusion to new SHA. Disposable PG18 `./mvnw -Dtest=WorkspaceBackupRetentionRollbackGapPostgresTest,WorkspaceBackupRetentionPostgresTest,WorkspaceBackupRegistryPresenceAuditServiceTest test`. Backend B independently handling its own B-INT-02 failures; do not overlap.
 - **Status** RET-01/RET-02: PATCH_COMMITTED / RETEST_PENDING; no physical purge, no schema migration, no production action. Durable purge/recovery journal remains unimplemented and separately gated.
+
+## RET-01/RET-02 consolidated code-ready checkpoint — 2026-11-18
+
+**Frozen package target for independent test**: commit `96cfe428df5c6f11a564714ef36f6cc83b008548` or newer with identical Retention source/test blobs. Regression tests include `a021096` PostgreSQL CHECK fixtures, `3b53015` simultaneous `SKIP LOCKED` workers, and `96cfe42` committed-state new-service restart + retry preservation.
+
+**Test execution status**: not attested on corrected target. The only independent reported Retention failure is on earlier run `44390867357` at `b5248e65`; it is not current fix evidence. Do not present package as QA_PASS or fully crash-consistent physical purge. Read-only reconciliation/SQL-first no-unlink safety code is committed, but actual durable physical-deletion journal is explicitly NOT implemented or authorized.
+
+**Single requested QA pass**: disposable PG18 `./mvnw -Dtest=WorkspaceBackupRetentionRollbackGapPostgresTest,WorkspaceBackupRetentionPostgresTest,WorkspaceBackupRegistryPresenceAuditServiceTest test`, exact commit SHA + test classes/counts F/E/S + first failing assertion; if green, Architecture can mark bounded RET-01/RET-02 source behavior accepted for QA. No duplicate full CI, no PROD purge, Restore Engine edits, or automatic scheduler.
