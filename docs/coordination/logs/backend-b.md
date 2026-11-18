@@ -38,3 +38,7 @@
 - New source historic task validator `fd5dc71c`/`c35c8a5b`, target PG QA execution fields/unique slot `08fcfd83`, `b93222a1`, fixtures `7cbcff8c`, `5a36e161`, pure tests `2f2bdb52`, `d5d894aa`, `8f9068e6`: original-assignee/status/date/slot/claimed/start/finish/excuse/reward/penalty POINT+reputation and real TASK ledger amount/currency parity, reject missing metadata, duplicates, support reputation-only without invented point ledger.
 - Conditional B consumer ACK to C action-scoped owner permit `25d2b6cc`, request source workspace identity/versioned manifest/canonical mapping digest, C real owner proof+grant. QA formal packet `00d759ab`.
 - Everything TEST ONLY; no real family/history or Reset Execute touched. Current exact-SHA Maven unknown; HTTP423/BETA HOLD.
+
+## 2026-11-18 — B-B-06 producer consumer ACK and explicit full-ci
+- Conditional A consumer logical approval `e4f71887` based on A's actual B-A-02 member catalog proposal and Architecture review 02, with tombstone/private original family identity and full TaskInstance history source fields; not wire-format or migration approval.
+- C action RESTORE grant consumption contract conditional ACK `25d2b6cc` remains. QA pinned JDK21/PG18 + full four-component request `5e3420de` committed with workflow `[full-ci]` directive; cannot claim green until job/steps, counts and immutable SHA independently inspected.
