@@ -54,3 +54,11 @@ Source files reviewed:
 - **Remaining P0 hazard:** if REQUIRED exporter joins caller's READ_COMMITTED transaction, the annotation does not raise isolation; current direct-instance tests also do not test proxy. Must review actual callsites and add true PG18 concurrent integration before asserting atomic capture.
 - B-A-02 FAMILY_MEMBERS wire contract still awaits Architecture / Backend B ACK; do not merge a guessed category or turn on Restore Execute.
 - Next: B-A-03b callsite/outer-transaction inventory and fail-closed production isolation boundary, plus controlled PG18 concurrency test.
+
+
+## B-A-03b — 2026-11-18 transaction join safety
+- Identified real callsite: coordinator `registerAndStage` → staging `stage` → exporter `export`; coordinator formerly defaulted READ_COMMITTED, so standalone exporter REPEATABLE_READ annotation was overridden by joining the outer transaction.
+- `1520bcb`: annotated coordinator REPEATABLE_READ; `c7f89b8`: fail-closed guard for weak or unknown Spring transaction isolation before registry/file side effects; `9791430`: negative unit tests.
+- QA handoff `docs/coordination/requests/B-A-03B_STAGING_ISOLATION_QA_20261118.md` commit `1f61d55`.
+- Outstanding: independent PG18 Spring-proxied transaction test and two-connection concurrent source updates, direct staging/export callsites outside coordinator, exact-SHA CI PASS evidence. B-A-02 wire-contract approval still pending.
+- Next B-A-03c: real transaction and concurrent isolation regression; B-A-04 after Architecture+Backend B approve member catalog.
