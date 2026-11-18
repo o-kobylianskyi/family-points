@@ -27,6 +27,7 @@ public final class PortableV2HistoryDataPolicy {
             "id_token","api_key","secret","credential","credentials",
             "provider_subject","provider_user_id","external_identity_id",
             "oauth_subject","session_id","session_token","jwt",
+            "authorization","cookie","set_cookie","private_key",
             "account_id","user_id","ip_address","ip","device_id");
     private static final int MAX_TEXT_BYTES=16_384;
     private static final int MAX_DEPTH=8;
