@@ -42,12 +42,15 @@ public final class DisposablePortableMemberSourceCatalog {
                 SELECT id,family_id,code,system_role
                 FROM family_roles WHERE family_id=? ORDER BY id
                 """,workspaceId);
+        if(roleRows.size()>2000)throw new IllegalStateException("SOURCE_ROLE_ROW_LIMIT");
         var roles=new ArrayList<Role>();
         var roleIds=new HashSet<Long>();
+        var roleCodes=new HashSet<String>();
         for(var row:roleRows) {
             long id=positive(row.get("id")),family=positive(row.get("family_id"));
             String code=(String)row.get("code");
             if(family!=workspaceId || !roleIds.add(id) || code==null || code.isBlank()
+                    || !roleCodes.add(code)
                     || !(row.get("system_role") instanceof Boolean))
                 throw new SecurityException("SOURCE_ROLE_PROVENANCE_INVALID");
             roles.add(new Role(id,family,code,(Boolean)row.get("system_role")));
@@ -62,6 +65,7 @@ public final class DisposablePortableMemberSourceCatalog {
                 LEFT JOIN family_roles r ON r.id=m.family_role_id
                 WHERE m.family_id=? ORDER BY m.id
                 """,workspaceId);
+        if(memberRows.size()>2000)throw new IllegalStateException("SOURCE_MEMBER_ROW_LIMIT");
         var members=new ArrayList<Member>();
         var memberIds=new HashSet<Long>();
         for(var row:memberRows) {
@@ -89,7 +93,7 @@ public final class DisposablePortableMemberSourceCatalog {
     }
 
     private static long positive(Object raw) {
-        if(!(raw instanceof Number n) || n.longValue()<=0)
+        if(!(raw instanceof Long || raw instanceof Integer) || ((Number)raw).longValue()<=0)
             throw new SecurityException("SOURCE_PROVENANCE_ID_INVALID");
         return n.longValue();
     }
