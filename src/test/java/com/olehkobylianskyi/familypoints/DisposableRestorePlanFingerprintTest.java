@@ -111,6 +111,28 @@ class DisposableRestorePlanFingerprintTest {
         assertThrows(SecurityException.class,()->verifier.calculate(legacy));
     }
 
+    @Test void selectiveChildWithoutParentCategoriesAndEpochOverflowDenied() {
+        var p=normal();
+        var noRateParent=plan(p.originalToTargetMembers(),List.of(
+                new DisposableRestorePlanFingerprint.Category("FAMILY_MEMBERS",2,true),
+                new DisposableRestorePlanFingerprint.Category("POINT_TYPES",2,true),
+                new DisposableRestorePlanFingerprint.Category("POINT_EXCHANGE_REQUESTS",1,true)));
+        assertThrows(SecurityException.class,()->
+                verifier.calculate(noRateParent));
+        var noGroupParent=plan(p.originalToTargetMembers(),List.of(
+                new DisposableRestorePlanFingerprint.Category("FAMILY_MEMBERS",2,true),
+                new DisposableRestorePlanFingerprint.Category("POINT_TYPES",2,true),
+                new DisposableRestorePlanFingerprint.Category("GROUP_POINT_LEDGER",1,true)));
+        assertThrows(SecurityException.class,()->
+                verifier.calculate(noGroupParent));
+        var overflowing=new DisposableRestorePlanFingerprint.Plan(
+                p.sourceWorkspace(),p.targetWorkspace(),p.schemaVersion(),
+                p.snapshot(),p.sealedManifestSha256(),p.sourceEpoch(),
+                Long.MAX_VALUE,p.originalToTargetMembers(),p.categories(),
+                p.conflictPolicy());
+        assertThrows(SecurityException.class,()->verifier.calculate(overflowing));
+    }
+
     @Test void duplicateIdsValuesUnknownCategoriesAndEmptySelectionDenied() {
         var duplicate=plan(Map.of(3L,103L,4L,103L),categories());
         assertThrows(SecurityException.class,()->verifier.calculate(duplicate));
