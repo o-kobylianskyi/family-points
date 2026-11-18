@@ -100,6 +100,9 @@ jobs:
       - name: Print tested commit
         if: needs.changes.outputs.backend == 'true'
         run: git rev-parse HEAD
+      - name: Preflight Testcontainers 2 PostgreSQLContainer Java syntax
+        if: needs.changes.outputs.backend == 'true'
+        run: python3 scripts/ci/check_testcontainers2_pg.py
       - name: Run all backend tests
         if: needs.changes.outputs.backend == 'true'
         run: |
