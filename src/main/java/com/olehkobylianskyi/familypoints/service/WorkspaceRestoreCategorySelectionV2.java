@@ -64,7 +64,7 @@ public final class WorkspaceRestoreCategorySelectionV2 {
                         ?WorkspaceRestoreSelectionClosureV2.Decision.RESTORE
                         :WorkspaceRestoreSelectionClosureV2.Decision.PRESERVE;
                 String conflict=ProtectiveBackupArtifactCodec.sha((
-                        "family-points:restore:no-replace:v2|"+scope.targetWorkspaceId()
+                        "family-points:restore:target-empty:v2|"+scope.targetWorkspaceId()
                         +"|"+scope.targetExpectedEpoch()+"|"+name
                         ).getBytes(StandardCharsets.UTF_8));
                 categories.add(new WorkspaceRestoreSelectionClosureV2.Category(
