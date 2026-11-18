@@ -951,3 +951,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - Real CI #44262590272 and #44262614624: 496 Maven, 1 failure each (opposite expected exception for duplicate code vs invalid zero ID); inspected full logs, current code corrections need new exact-SHA confirmation.
 - QA-only PG18 operation approval + synthetic financial row same DB transaction `7d2bcaf6`; late failure rollback, retry, stale epoch, invalid map, concurrency exactly once tests `c5a3b440`. No production migration/PointService.
 - QA packet `174bca23`, source-only latest tests NOT_RUN. HTTP423/BETA HOLD retained.
+
+
+### 2026-11-18 — BKL-002 #61–64 multi-category atomic rehearsal
+- Two QA-only financial categories + one permit reserve in same SQL transaction `b607e240`. PG18 three-stage crash simulation with complete rollback and deterministic replay `aef18c45`; cross-category same UUID concurrent commit exactly once `ef222689`.
+- QA formal packet `afd9abf4`. Tests added, actual current SHA Maven/PG18 not verified. No production restore, synthetic data only.
+- Rough remaining engineering estimate ~8–12 substantial Backend batches, external QA and release gates separate.
