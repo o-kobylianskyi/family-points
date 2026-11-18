@@ -151,6 +151,13 @@
 - Prior verified Web source checks at `67aa36aa`: 6 fixture Node syntax, 33/33 Node, i18n/lint/Vite PASS (scoped run), not new SHA nor browser. QA owns isolated Chromium and any real PREBETA campaign. BKL-002/BETA HOLD.
 - Next: check actual completed current-SHA Web job logs; fix any demonstrated browser mismatch, otherwise hold real acceptance pending QA trace.
 
+## WEB-02 package 21 — block Service Worker interception bypass in V49 synthetic Chromium (2026-11-18)
+- QA-039 rolling handoff still provides no actual Playwright Chromium two-tab results, no real V49 acceptance. Latest checked moving main `55bcc4277dc0011d4fe00bdda2e68b0dba284e3d` and newer Backend sources; BKL-002/BETA HOLD.
+- Static review: Playwright context.route mocks and catch-all workspace mutation guards are only authoritative when network requests traverse the route layer; requests intercepted by an active Service Worker may not be intercepted by Playwright. In the two-tab synthetic test only, committed `27b91a22311e2f02a1686ce93b06dfccdedf5711`: `test.use({ serviceWorkers: 'block' })`. No app changes, no user family mutation, no global QA configuration changes.
+- Fetched fixture blob `5a65b0d4fb89137ff5eaf9db724fc72ee1e577a5`. V8 parser after adapting ESM import/meta syntax **PASS**; verifies test.use setting and exactly two two-tab tests. **Not** native `node --check`, not Playwright Chromium run or E2E PASS.
+- [Run 44268053082](https://github.com/o-kobylianskyi/family-points/actions/runs/44268053082) at exact patch was **QUEUED** at time of observation; previous `44267564831` @`36673755` Web steps 6 V49 fixture syntax/33 native Node/i18n/lint/Vite SUCCESS, but older SHA, scoped-only. No current-SHA CI PASS claimed until fetched steps/logs.
+- Next: inspect the completed 44268053082 Web job on exact SHA and QA execute two mocked Chromium tabs with no Service Worker, original UUID/revision/epoch, preserved markers, no unexpected writes. BETA HOLD.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
