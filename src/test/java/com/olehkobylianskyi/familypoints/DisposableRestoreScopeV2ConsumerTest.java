@@ -105,8 +105,9 @@ class DisposableRestoreScopeV2ConsumerTest {
                 previous.categoryCode(),previous.decision(),previous.sourceRowCount()+1,
                 previous.sourceCategoryDigest(),previous.dependencyClosureDigest(),
                 previous.targetConflictPlanDigest()));
+        var drifted=changed;
         assertThrows(SecurityException.class,()->
-                consumer.verify(p,changed,issued,issued,NOW));
+                consumer.verify(p,drifted,issued,issued,NOW));
         changed=new ArrayList<>(cats);
         previous=changed.get(0);
         changed.set(0,new WorkspaceRestoreSelectionClosureV2.Category(
