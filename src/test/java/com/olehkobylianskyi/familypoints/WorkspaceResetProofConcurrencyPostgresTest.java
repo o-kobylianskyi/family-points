@@ -175,6 +175,32 @@ class WorkspaceResetProofConcurrencyPostgresTest {
         assertEquals(1, consumedCount(proof.challengeId()));
     }
 
+
+    @Test
+    void physicallyExpiredProofCannotBeConsumed() {
+        var proof = issue();
+        jdbc.update("UPDATE workspace_reset_challenges SET expires_at=clock_timestamp()-interval '1 second' WHERE id=?",
+                proof.challengeId());
+        var ex = assertThrows(ResponseStatusException.class, () -> consume(proof));
+        assertEquals(HttpStatus.GONE, ex.getStatusCode());
+        assertEquals(0, consumedCount(proof.challengeId()));
+        assertEquals(0L, jdbc.queryForObject(
+                "SELECT data_epoch FROM families WHERE id=?", Long.class, familyB));
+    }
+
+    @Test
+    void passwordRotationInvalidatesPreviouslyIssuedProof() {
+        var proof = issue();
+        var newPasswordHash = new BCryptPasswordEncoder().encode("rotated-test-secret");
+        assertEquals(1, jdbc.update(
+                "UPDATE user_accounts SET password_hash=? WHERE id=?", newPasswordHash, accountId));
+        var ex = assertThrows(ResponseStatusException.class, () -> consume(proof));
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        assertEquals(0, consumedCount(proof.challengeId()));
+        assertEquals(0L, jdbc.queryForObject(
+                "SELECT data_epoch FROM families WHERE id=?", Long.class, familyA));
+    }
+
     @Test
     void persistedEpochAdvanceRejectsOldProofBeforeConsumption() {
         var proof = issue();
