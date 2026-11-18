@@ -69,6 +69,8 @@ test('V49 two tabs: first lost finalize keeps original UUID; second tab never re
     }
     if(path.includes('/setup/finalize-import/receipts/') && req.method()==='GET') {
       receiptCount++
+      expect(operation?.id).toMatch(/^[0-9a-f-]{36}$/i)
+      expect(path).toBe(`/workspaces/${operation.workspaceId}/setup/finalize-import/receipts/${operation.id}`)
       return route.fulfill({status:404,contentType:'application/json',body:'{}'})
     }
     unexpected.push(req.method()+' '+path)
@@ -127,6 +129,8 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
     }
     if(path.includes('/setup/finalize-import/receipts/') && req.method()==='GET'){
       receiptCount++
+      expect(op?.id).toMatch(/^[0-9a-f-]{36}$/i)
+      expect(path).toBe(`/workspaces/${op.workspaceId}/setup/finalize-import/receipts/${op.id}`)
       // The foreign tab replaces the marker AFTER recovery begins but BEFORE
       // the receipt is returned. The original tab must not delete it.
       competing=await secondPage.evaluate(()=>{
