@@ -43,7 +43,7 @@ public final class WorkspaceDestructivePermitContract {
             Objects.requireNonNull(issuedAt, "issuedAt");
             Objects.requireNonNull(expiresAt, "expiresAt");
             if (workspaceId <= 0 || ownerAccountId <= 0 || ownerMemberId <= 0
-                    || dataEpoch < 0)
+                    || dataEpoch < 0 || dataEpoch == Long.MAX_VALUE)
                 throw new IllegalArgumentException("Invalid target or owner identity/epoch");
             requireDigest(snapshotDigest, "snapshotDigest");
             requireDigest(selectionDigest, "selectionDigest");
