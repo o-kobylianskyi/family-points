@@ -45,16 +45,22 @@ public final class DisposablePortableMemberReferenceClosure {
         Objects.requireNonNull(categoryRows,"categoryRows");
         if(roster.sourceWorkspaceId()<=0)
             throw new SecurityException("SOURCE_MEMBER_CATALOG_WORKSPACE_INVALID");
+        if(roster.roles().size()>2000 || roster.members().size()>2000)
+            throw new IllegalStateException("SOURCE_MEMBER_CATALOG_ROW_LIMIT");
         var roles=new HashSet<Long>();
+        var roleCodes=new HashSet<String>();
         for(var role:roster.roles()) {
             if(role.sourceWorkspaceId()!=roster.sourceWorkspaceId() ||
-                    role.sourceRoleId()<=0 || !roles.add(role.sourceRoleId()))
+                    role.sourceRoleId()<=0 || !roles.add(role.sourceRoleId())
+                    || role.roleCode()==null || role.roleCode().isBlank()
+                    || !roleCodes.add(role.roleCode()))
                 throw new SecurityException("SOURCE_ROLE_GRAPH_INVALID");
         }
         var memberIds=new HashSet<Long>();
         for(var member:roster.members()) {
             if(member.sourceWorkspaceId()!=roster.sourceWorkspaceId()
                     || member.sourceMemberId()<=0 || !roles.contains(member.sourceRoleId())
+                    || !Set.of("PARENT","CHILD","OTHER").contains(member.memberType())
                     || !memberIds.add(member.sourceMemberId()))
                 throw new SecurityException("SOURCE_MEMBER_GRAPH_INVALID");
         }
@@ -74,8 +80,9 @@ public final class DisposablePortableMemberReferenceClosure {
                                 +entry.getKey()+"."+field.column());
                     Object raw=row.get(field.column());
                     if(raw==null && field.nullable())continue;
-                    if(!(raw instanceof Number n) || n.longValue()<=0 ||
-                            !memberIds.contains(n.longValue()))
+                    if(!(raw instanceof Long || raw instanceof Integer)
+                            || ((Number)raw).longValue()<=0
+                            || !memberIds.contains(((Number)raw).longValue()))
                         throw new SecurityException("SOURCE_MEMBER_EDGE_UNRESOLVED:"
                                 +entry.getKey()+"."+field.column());
                 }
