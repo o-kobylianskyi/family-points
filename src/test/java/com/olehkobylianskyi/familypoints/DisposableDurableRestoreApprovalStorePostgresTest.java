@@ -58,6 +58,14 @@ class DisposableDurableRestoreApprovalStorePostgresTest {
                     target_epoch bigint NOT NULL
                 )
                 """);
+        db.execute("""
+                CREATE TABLE IF NOT EXISTS qa_restore_financial_rehearsal (
+                    operation_id uuid PRIMARY KEY,
+                    target_family bigint NOT NULL,
+                    target_member bigint NOT NULL,
+                    amount integer NOT NULL CHECK (amount>0)
+                )
+                """);
         long family=db.queryForObject(
                 "INSERT INTO families(name) VALUES (?) RETURNING id",
                 Long.class,"Approval target "+UUID.randomUUID());
@@ -71,6 +79,84 @@ class DisposableDurableRestoreApprovalStorePostgresTest {
                 17,family,snapshot,operation,7,0,ISSUED,ISSUED.plusSeconds(300),
                 Map.of(11L,41L,12L,42L),key);
         return new Setup(db,manager,family,key,snapshot,operation,permit);
+    }
+
+    @Test void financialMutationAndPermitReservationCommitOrRollBackTogether()
+            throws Exception {
+        var a=setup();
+        var store=a.store();
+        var bindings=Map.of(11L,41L,12L,42L);
+        assertThrows(IllegalStateException.class,()->store.consumeWithSyntheticFinancialWrite(
+                a.permit(),17,a.family(),a.snapshot(),a.operation(),7,NOW,
+                bindings,a.key(),11,5,true));
+        assertEquals(0L,a.rows());
+        assertEquals(0L,a.db().queryForObject(
+                "SELECT count(*) FROM qa_restore_financial_rehearsal WHERE operation_id=?",
+                Long.class,a.operation()));
+        // A new verifier object after the injected failure can retry safely,
+        // because neither the DB operation reservation nor the QA ledger
+        // was committed.
+        a.store().consumeWithSyntheticFinancialWrite(a.permit(),17,a.family(),
+                a.snapshot(),a.operation(),7,NOW,bindings,a.key(),11,5,false);
+        assertEquals(1L,a.rows());
+        assertEquals(5,a.db().queryForObject(
+                "SELECT amount FROM qa_restore_financial_rehearsal WHERE operation_id=?",
+                Integer.class,a.operation()));
+        assertThrows(SecurityException.class,()->a.store().consumeWithSyntheticFinancialWrite(
+                a.permit(),17,a.family(),a.snapshot(),a.operation(),7,NOW,
+                bindings,a.key(),11,5,false));
+        assertEquals(1L,a.db().queryForObject(
+                "SELECT count(*) FROM qa_restore_financial_rehearsal WHERE operation_id=?",
+                Long.class,a.operation()));
+    }
+
+    @Test void failedMappingAndEpochCannotTouchFinancialOrApprovalTables() throws Exception {
+        var a=setup();
+        var bindings=Map.of(11L,41L,12L,42L);
+        assertThrows(SecurityException.class,()->a.store().consumeWithSyntheticFinancialWrite(
+                a.permit(),17,a.family(),a.snapshot(),a.operation(),7,NOW,
+                bindings,a.key(),999,5,false));
+        assertEquals(0L,a.rows());
+        a.db().update("UPDATE families SET data_epoch=1 WHERE id=?",a.family());
+        assertThrows(SecurityException.class,()->a.store().consumeWithSyntheticFinancialWrite(
+                a.permit(),17,a.family(),a.snapshot(),a.operation(),7,NOW,
+                bindings,a.key(),11,5,false));
+        assertEquals(0L,a.rows());
+        assertEquals(0L,a.db().queryForObject(
+                "SELECT count(*) FROM qa_restore_financial_rehearsal WHERE operation_id=?",
+                Long.class,a.operation()));
+    }
+
+    @Test void concurrentFinancialMutationIsExactlyOnce() throws Exception {
+        var a=setup();
+        var executor=Executors.newFixedThreadPool(2);
+        var start=new CountDownLatch(1);
+        try {
+            List<Future<Boolean>> futures=new ArrayList<>();
+            for(int i=0;i<2;i++) {
+                futures.add(executor.submit(()->{
+                    start.await();
+                    try {
+                        a.store().consumeWithSyntheticFinancialWrite(
+                                a.permit(),17,a.family(),a.snapshot(),a.operation(),7,NOW,
+                                Map.of(11L,41L,12L,42L),a.key(),11,5,false);
+                        return true;
+                    } catch(SecurityException rejected) {return false;}
+                }));
+            }
+            start.countDown();
+            int committed=0;
+            for(Future<Boolean> future:futures)
+                if(future.get(20,TimeUnit.SECONDS))committed++;
+            assertEquals(1,committed);
+            assertEquals(1L,a.rows());
+            assertEquals(1L,a.db().queryForObject(
+                    "SELECT count(*) FROM qa_restore_financial_rehearsal WHERE operation_id=?",
+                    Long.class,a.operation()));
+            assertEquals(5,a.db().queryForObject(
+                    "SELECT amount FROM qa_restore_financial_rehearsal WHERE operation_id=?",
+                    Integer.class,a.operation()));
+        } finally {executor.shutdownNow();}
     }
 
     @Test void rollbackAfterReservationAllowsRetryThenRestartDeny() throws Exception {
