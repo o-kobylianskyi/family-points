@@ -298,3 +298,87 @@ test('V49 two tabs: missing both markers during receipt denies completion',async
   expect(blocked).toEqual([])
   await secondPage.close()
 })
+
+test('V49 two tabs: original local marker permits completion when shared marker vanishes',async({page,context})=>{
+  test.skip(!username || !password,'Disposable QA manager credentials required')
+  await signIn(page)
+  let op=null, finalizeCount=0, receiptCount=0, injectionDone=false
+  const receiptPaths=[]
+  let removedKeys, secondPage
+  const blocked=[]
+  await registerV49UnexpectedWriteGuard(context, blocked)
+  await context.route(/\/workspaces\/\d+\/(?:data-epoch|setup(?:\/.*)?)(?:\?.*)?$/,async route=>{
+    const req=route.request(),path=new URL(req.url()).pathname
+    const workspaceId=Number(path.match(/\/workspaces\/(\d+)\//)[1])
+    if(path.endsWith('/data-epoch') && req.method()==='GET')
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({workspaceId,dataEpoch:0})})
+    if(path.endsWith('/setup') && req.method()==='GET')
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+        workspaceId,dataEpoch:0,revision:7,status:receiptCount?'COMPLETED':'IN_PROGRESS',
+        steps
+      ,...(receiptCount?{revision:8}:{})})})
+    if(path.endsWith('/setup/review') && req.method()==='POST'){
+      const codes=req.postDataJSON().selectedCatalogCodes
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+        workspaceId,dataEpoch:0,revision:7,setupStatus:'IN_PROGRESS',
+        selectedCount:codes.length,toImportCount:codes.length,alreadyImportedCount:0,
+        selectedCodes:codes,toImport:codes,alreadyImported:[],
+        requiresExplicitConfirmation:true,createsActiveDefinitions:false
+      })})
+    }
+    if(path.endsWith('/setup/finalize-import') && req.method()==='POST'){
+      finalizeCount++
+      op={id:req.headers()['idempotency-key'],codes:req.postDataJSON().selectedCatalogCodes,workspaceId,
+        revision:req.postDataJSON().expectedRevision,epochHeader:req.headers()['x-workspace-data-epoch']}
+      return route.abort('failed')
+    }
+    if(path.includes('/setup/finalize-import/receipts/') && req.method()==='GET'){
+      receiptCount++
+      receiptPaths.push(path)
+      // Shared marker disappears during valid receipt GET but this tab still
+      // owns its original session marker. Successful recovery is permitted.
+      removedKeys=await page.evaluate(()=>{
+        const key=Object.keys(localStorage).find(k=>k.startsWith('fp:setup:pending:') && k.endsWith(':shared'))
+        if(!key) return null
+        const sessionKey=key.slice(0,-':shared'.length)
+        localStorage.removeItem(key)
+        return {key,sessionKey}
+      })
+      injectionDone=!!removedKeys
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+        workspaceId,operationId:op.id,replayed:true,dataEpoch:0,revision:8,
+        setupStatus:'COMPLETED',
+        importResult:{selectedCodes:op.codes,toImport:op.codes,alreadyImported:[]}
+      })})
+    }
+    blocked.push(req.method()+' '+path)
+    return route.abort('blockedbyclient')
+  })
+  await context.route(/\/template-catalog(?:\?.*)?$/,route =>
+    route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(catalog)}))
+  const first=await prepare(page)
+  secondPage=await context.newPage()
+  await secondPage.goto('/settings#initial-family-setup')
+  await expect(secondPage.locator('#initial-family-setup').getByText(/7\/7/)).toBeVisible()
+  await first.getByRole('button',{name:ui.finalize}).click()
+  await expect(first.getByText(ui.unknown)).toBeVisible()
+  expect(finalizeCount).toBe(1)
+  expect(op?.revision).toBe(7)
+  expect(op?.epochHeader).toBe('0')
+  await first.getByRole('button',{name:ui.receipt}).click()
+  await expect.poll(()=>injectionDone).toBe(true)
+  await expect.poll(()=>receiptCount).toBe(1)
+  expect(op?.id).toMatch(/^[0-9a-f-]{36}$/i)
+  expect(receiptPaths).toEqual([`/workspaces/${op.workspaceId}/setup/finalize-import/receipts/${op.id}`])
+  await expect(first.getByText(ui.finished)).toBeVisible()
+  await expect(first.getByText(ui.unknown)).toHaveCount(0)
+  expect(removedKeys?.key).toMatch(/^fp:setup:pending:.*:shared$/)
+  const markers=await page.evaluate(keys=>({
+    local:localStorage.getItem(keys.key),
+    session:sessionStorage.getItem(keys.sessionKey),
+  }),removedKeys)
+  expect(markers).toEqual({local:null,session:null})
+  expect(finalizeCount).toBe(1)
+  expect(blocked).toEqual([])
+  await secondPage.close()
+})
