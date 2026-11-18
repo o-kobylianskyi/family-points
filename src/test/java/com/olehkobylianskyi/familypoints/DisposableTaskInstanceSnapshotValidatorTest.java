@@ -46,12 +46,12 @@ class DisposableTaskInstanceSnapshotValidatorTest {
         assertEquals("COMPLETED",s.status());
         assertEquals("morning",s.slotKey());
         assertEquals("Original task",s.title());
-        assertEquals(5,s.rewardAmount());
-        assertEquals(51L,s.rewardPointType());
+        assertEquals(5,s.rewardAmount().intValue());
+        assertEquals(51L,s.rewardPointType().longValue());
         assertTrue(s.rewardProcessed());
         assertEquals(java.time.LocalDate.parse("2026-11-18"),s.scheduledDate());
         assertEquals(java.time.LocalTime.parse("12:30:00"),s.dueTime());
-        assertEquals(3L,s.originalAssignedMember());
+        assertEquals(3L,s.originalAssignedMember().longValue());
         DisposableTaskInstanceSnapshotValidator.verifyLedgerEconomy(
                 taskLedger(5,51,"EARN"),Map.of(21L,s));
     }
@@ -110,7 +110,7 @@ class DisposableTaskInstanceSnapshotValidatorTest {
         var validated=parse(snap);
         DisposableTaskInstanceSnapshotValidator.verifyLedgerEconomy(
                 JSON.readTree("[]"),Map.of(21L,validated));
-        assertEquals(7,validated.rewardReputationAmount());
+        assertEquals(7,validated.rewardReputationAmount().intValue());
     }
 
     @Test void explicitNullAndExcuseHistoryCannotBeSilentlyDiscarded() throws Exception {
