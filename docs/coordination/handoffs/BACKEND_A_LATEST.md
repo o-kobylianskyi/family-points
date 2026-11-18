@@ -141,3 +141,11 @@ Source files reviewed:
 - Added `docs/coordination/chat-capacity/BACKEND_A.md` @`ab8bef31`: observable chat capacity unknown, no invented utilization percentages or automatic warnings.
 - Exact B-A-03j source/handoff commit `f30b88f`, CI `44274376504` queued at checkpoint. Full four-component PASS must be independently checked before acceptance. Next safe B-A-03k as above.
 - New chat ready opening: "Приймай FamilyPoints Backend A. Прочитай AGENTS.md, docs/coordination/handoffs/BACKEND_A_LATEST.md, поточний main SHA і QA B-A-03J; продовжуй B-A-03k великими пакетами, лише producer/backup/retention safety, ніякого Restore Execute." 
+
+
+## B-A-03k — 2026-11-18 PG18 retention unlink / SQL rollback hazard
+- Verified previous B-A-03j SHA `bbc5d866aa4c38d46445fe393f8bca8b3a9a101e` GitHub Actions `44274509971` overall SUCCESS before this batch.
+- New `WorkspaceBackupRetentionRollbackGapPostgresTest` @`3ca4231`: actual PostgreSQL 18 + synthetic workspace/backup + real encrypted local file; `expireEligible` deletes disk file, forced outer transaction rollback leaves registry `BACKING_UP`; reverse audit detects invalid/missing ciphertext, other workspace untouched. Independent unlink failure negative checks SQL never claims EXPIRED when unlink fails.
+- QA and architectural remediation request `docs/coordination/requests/B-A-03K_RETENTION_SQL_ROLLBACK_GAP_QA_20261118.md` @`bf812d0`: non-atomic filesystem/SQL operation is confirmed design risk, **no production retention refactor or deletion activation**. Recommend separately approved quarantine/intent/alternate-copy state machine with idempotent recovery and lease checks before releasing cleanup.
+- New exact-SHA CI/Pg18 test result pending. Backend B conditional original member catalog source ACK only; Architecture version/privacy/FK closure signoff still required. `restorable=false` / `replaySupported=false` / Reset HTTP423 / BETA HOLD unchanged.
+- Next B-A-03l: exact-SHA CI verification/fix, then staged retention state machine contract and disposable fault-injection rehearsal, no autonomous production purge.
