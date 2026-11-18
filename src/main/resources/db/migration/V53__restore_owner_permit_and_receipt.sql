@@ -48,7 +48,9 @@ CREATE TABLE workspace_restore_permits (
   owner_account_id BIGINT NOT NULL REFERENCES user_accounts(id) ON DELETE RESTRICT,
   owner_member_id BIGINT NOT NULL REFERENCES family_members(id) ON DELETE RESTRICT,
   scope_digest CHAR(64) NOT NULL CHECK (scope_digest ~ '^[0-9a-f]{64}$'),
-  credential_fingerprint CHAR(64) NOT NULL CHECK (credential_fingerprint ~ '^[0-9a-f]{64}
+  credential_fingerprint CHAR(64) NOT NULL CHECK (credential_fingerprint ~ '^[0-9a-f]{64}$'),
+  reauth_method VARCHAR(12) NOT NULL DEFAULT 'PASSWORD'
+    CHECK (reauth_method IN ('PASSWORD','GOOGLE')),
   target_expected_epoch BIGINT NOT NULL CHECK (target_expected_epoch >= 0),
   issued_at TIMESTAMPTZ NOT NULL,
   expires_at TIMESTAMPTZ NOT NULL,
