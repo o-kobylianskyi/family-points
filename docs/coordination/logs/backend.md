@@ -933,3 +933,9 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 - TEST-only HMAC-SHA256 explicit member pair review `bcb05290`, fixtures `89f47646`, 2-PG18 original snapshot binding `793e9b40`, `304819c5`. Verifies no silently swapped same-role source/target members using already reviewed mapping. Reviewer authorization NOT proven.
 - QA-036 unused TASK snapshot economics pairs validated `5de56133`, AES negatives `0af75e10`.
 - QA packet `0dc0ea46`; exact SHA Maven NOT_RUN/UNKNOWN. Production reset HTTP423, BETA HOLD.
+
+
+### 2026-11-18 — Backend #49–52 restore permit context, test-only
+- New synthetic signed snapshot/operation/family/actor/epoch/5-minute/member-map HMAC approval `a9786b11`, negative pure tests `3aee3324`, hardening `e59691cc`/`201c486f`, disposable two-PG18 integration `d1361679`.
+- In-memory replay set NOT durable, asserted actor is NOT actual owner reauth, source FAMILY_MEMBERS category still absent. No production unlock.
+- QA `be237334`; latest exact-SHA Maven/PG18 NOT_RUN by Backend. HTTP423/BETA HOLD.
