@@ -69,3 +69,12 @@ Source files reviewed:
 - QA packet `docs/coordination/requests/B-A-03C_CONCURRENT_SNAPSHOT_QA_20261118.md` commit `c4e8f4c`. Authored test **NOT_RUN** by connector; actual CI PASS must be pinned to its SHA.
 - Existing real staging path guard B-A-03b remains; Spring AOP entrypoint integration and direct-stage bypass checks still pending. Member catalog producer→consumer contract still awaits Architecture/Backend B ACK. HTTP423/BETA HOLD unchanged.
 - Next B-A-03d: test real Spring transaction proxy and stage entrypoint isolation; then pursue approved source member catalog.
+
+
+## B-A-03d — 2026-11-18 direct staging/proxy isolation
+- `6570877`: direct `WorkspaceBackupArtifactStagingService.stage` now requires an active Spring transaction + synchronization + REPEATABLE_READ before exporter or filesystem writes.
+- `a1b0dca`: staging unit tests initialize/clear repeatable-read fixture and explicitly deny READ_COMMITTED, null and absent transaction, with no side effects.
+- `94de34f` / `a714796`: PG18 `WorkspaceBackupStagingProxyIsolationPostgresTest` exercises actual `TransactionInterceptor` on coordinator; validates physical DB isolation and rejects weaker outer caller before any registry/staging/storage interaction.
+- QA packet `docs/coordination/requests/B-A-03D_STAGING_PROXY_ISOLATION_QA_20261118.md` commit `9782aa2`.
+- New CI exact-head acceptance **pending**; never infer PASS from source commits or prior SHA. RESTORE remains disabled, Reset Execute HTTP423, BETA HOLD. Archive FAMILY_MEMBERS source privacy contract awaits Architecture/Backend B ACK.
+- Next B-A-03e: resolve any CI regressions, inspect orphan-file reconciliation/direct authorized staging routes, then B-A-04 only after schema approval.
