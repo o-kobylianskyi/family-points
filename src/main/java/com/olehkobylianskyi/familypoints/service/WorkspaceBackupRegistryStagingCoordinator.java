@@ -2,6 +2,7 @@ package com.olehkobylianskyi.familypoints.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import javax.crypto.SecretKey;
@@ -24,7 +25,9 @@ public class WorkspaceBackupRegistryStagingCoordinator {
     public record Result(WorkspaceProtectiveBackupService.Backup registryEntry,
             WorkspaceBackupArtifactStagingService.Staged artifact,boolean recoveryVerified) {}
 
-    @Transactional
+    // Own a repeatable-read snapshot when entered through the Spring proxy.
+    // An already-active caller transaction must itself use compatible isolation.
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Result registerAndStage(long workspaceId,long memberId,
             WorkspaceProtectiveBackupService.Request request,long expectedEpoch,SecretKey key) {
         if(workspaceId<=0 || memberId<=0 || request==null || expectedEpoch<0
