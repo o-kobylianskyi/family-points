@@ -36,6 +36,11 @@ public class WorkspaceBackupRegistryStagingCoordinator {
         if(!TransactionSynchronizationManager.isActualTransactionActive()
                 || !TransactionSynchronizationManager.isSynchronizationActive())
             throw new IllegalStateException("BACKUP_COORDINATION_TRANSACTION_REQUIRED");
+        // REQUIRED methods join outer transactions. Reject weaker/unknown isolation
+        // instead of silently relying on the exporter's inner annotation.
+        if(!Integer.valueOf(java.sql.Connection.TRANSACTION_REPEATABLE_READ).equals(
+                TransactionSynchronizationManager.getCurrentTransactionIsolationLevel()))
+            throw new IllegalStateException("BACKUP_SNAPSHOT_ISOLATION_REQUIRED");
         var entry=registry.request(workspaceId,memberId,request);
         if(entry.workspaceId()!=workspaceId
                 || !entry.operationId().equals(request.operationId())
