@@ -121,7 +121,7 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
         keygen.init(256);
         var encrypted=format.encode(new ProtectiveBackupArtifactCodec().seal(
                 id,family,UUID.randomUUID(),0,"a".repeat(64),"V50",
-                "{\\"format\\":\\"test\\",\\"categories\\":{}}".getBytes(StandardCharsets.UTF_8),
+                "{\"format\":\"test\",\"categories\":{}}".getBytes(StandardCharsets.UTF_8),
                 keygen.generateKey()));
         var store=new WorkspaceBackupLocalArtifactStore(temp.resolve("committed").toString(),format);
         var stored=store.store(family,id,encrypted);
