@@ -31,3 +31,11 @@
 - **Evidence:** new source and tests pushed to GitHub main. Tests are **NOT_RUN** (source-only connector; no Maven baseline); do not claim PASS or exact-SHA CI.
 - **Safety:** `execute` remains HTTP423, no existing controller/DB/Flyway changed, BETA HOLD.
 - **Next:** architecture approves provenance schema; C adds transactional resolver + protected `canResetWorkspace`, wires Reset endpoints and executes unit/PG CI. Meanwhile, C can improve isolated proof abuse/replay negative coverage without enabling execution.
+
+## 2026-11-18 — C-C-03: one-use Reset proof negative test package
+- Inspected `WorkspaceResetProofService`, `WorkspaceEpochTransactionGuard` and existing challenge controller test; found present 5-minute proof/epoch, credential fingerprint, account/member and conditional consumed-at protections.
+- Committed `WorkspaceResetProofConsumptionSecurityTest` (7 JUnit cases, synthetic Mockito) @ `39a1ece4`: successful consumption only; consumed reuse, expiry, prior epoch, rotated password, wrong actor/member/secret/digest, other family/challenge and lost conditional update. No production business logic changed.
+- QA request `docs/coordination/requests/BACKEND_C_QA_PACKET_20261118_PROOF_CONSUMPTION.md` @ `f7723020`; exact-SHA `mvn -Dtest=WorkspaceResetProofConsumptionSecurityTest test` acceptance pending.
+- **Evidence:** source commits only, Maven NOT_RUN, PostgreSQL NOT_RUN, no CI green claimed; ownership provenance migration still unapproved.
+- **Release:** HTTP 423, BETA HOLD; do not infer full concurrent DB race protection from Mockito tests.
+- **Next:** verify QA execution and add isolated PostgreSQL physical concurrency tests after schema/owner provenance sign-off. Can audit rate-limit behavior in parallel.
