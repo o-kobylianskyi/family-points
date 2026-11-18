@@ -1244,3 +1244,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 V49 finalize original revision+epoch synthetic contract
 - Source `36673755` adds expectedRevision=7 and X-Workspace-Data-Epoch='0' assertions in both mocked two-tab finalize tests, alongside immutable UUID. Product setupApi/client epoch handshake read; V8 syntax only PASS. New Actions run 44267564831 in progress, not PASS; browser not run, BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 V49 two-tab Service Worker interception guard
+- Test-only `27b91a22` adds Playwright per-spec `test.use({ serviceWorkers: 'block' })` so Service Worker cannot evade mocked routes for original UUID, epoch, receipt or unexpected workspace mutations. V8 syntax PASS; no actual browser. CI #44268053082 queued at check; BETA HOLD.
