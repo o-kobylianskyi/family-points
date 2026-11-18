@@ -58,6 +58,36 @@ class DisposableRestoreScopeV2ConsumerTest {
                 p.targetExpectedEpoch(),ISSUED,ISSUED.plusSeconds(300));
     }
 
+    @Test void backendBUsesSameFixedBinaryVectorsAsCNotPipeDelimitedHashes() {
+        assertEquals("690dafc3d70b893b8b394827044692b26f55b8dcee773d52e510d892c1bca8fc",
+                WorkspaceRestorePermitScopeV2.canonicalMappingDigest(
+                        7,8,Map.of(12L,42L,11L,41L)));
+        var cats=List.of(
+                new WorkspaceRestoreSelectionClosureV2.Category(
+                        "TASK_DEFINITIONS",
+                        WorkspaceRestoreSelectionClosureV2.Decision.RESTORE,
+                        11,"a".repeat(64),"b".repeat(64),"c".repeat(64)),
+                new WorkspaceRestoreSelectionClosureV2.Category(
+                        "REWARD_PURCHASES",
+                        WorkspaceRestoreSelectionClosureV2.Decision.PRESERVE,
+                        8,"b".repeat(64),"c".repeat(64),"d".repeat(64)));
+        assertEquals("b008109bcb80fde5728b36393827c5afafc3780c0d8eb3616d0a4289acf0202b",
+                WorkspaceRestoreSelectionClosureV2.canonicalDigest(
+                        "VNext-2",7,8,cats));
+        var source=new WorkspaceRestorePermitScopeV2.SourceArchive(
+                7,"VNext-2",
+                UUID.fromString("f1000000-0000-4000-8000-000000000001"),
+                12,"a".repeat(64),"b".repeat(64));
+        var scope=new WorkspaceRestorePermitScopeV2.RestoreScope(
+                8,23,17,
+                UUID.fromString("f1000000-0000-4000-8000-000000000002"),
+                source,"c".repeat(64),"d".repeat(64),4,
+                Instant.parse("2026-11-18T12:00:00Z"),
+                Instant.parse("2026-11-18T12:05:00Z"));
+        assertEquals("17f6d74e1eb83f826b455d81b2cbcf8b896ab9af1d639305ff3ed5e4bf916979",
+                WorkspaceRestorePermitScopeV2.canonicalScopeDigest(scope));
+    }
+
     @Test void exactCContractInteropAndOrderIndependence() {
         var p=plan();var c=selection();var issued=scope(p,c);
         var actual=consumer.verify(p,c,issued,issued,NOW);
