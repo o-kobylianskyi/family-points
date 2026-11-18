@@ -60,3 +60,13 @@ Source verifier: `src/test/java/com/olehkobylianskyi/familypoints/DisposableLedg
 - This is read-only snapshot checking, **not** a PostgreSQL rollback test. Backend B owns PostgreSQL transactional Restore test coverage (e.g. `c5a3b44054cc02999cb286c02417767c1f286908`). No destructive operations performed.
 - **Tests/CI have not been verified.** Targeted execution: `mvn -Dtest=DisposableFinancialMappingParityTest test`, capture pinned SHA and logs. Release remains HOLD.
 - Next FIN-06: signed source archive -> source-to-target mapping -> per-ledger financial reconciliation, pending explicit Backend B mapping contract.
+
+## FIN-06 signed source-to-target financial acceptance — 2026-11-18
+
+- Committed test-only `DisposableSignedFinancialParityBridgeTest.java` at `b053884584f8b70f5c5f69eee636d6cab0bd5e45`; compensated tamper fixture corrected at `ef9b79ee91b4990ea1f6d548f66ecb5840b33e83`.
+- Uses a sealed V50 portable archive, calls `DisposableLedgerSourceGraphVerifier.inspect` for authenticated source graph closure, reopens the same signed source to read `POINT_LEDGER`, and runs `DisposableFinancialMappingParityTest.reconcile` against explicit ledger/member/currency/task/purchase ID mappings.
+- Positive: mixed TASK/EARN, REWARD_PURCHASE/SPEND, MANUAL/ADJUSTMENT across two members and two currencies preserves exact signed balances.
+- Negative: duplicate purchase debit in the signed source, unsupported POINT_EXCHANGE origin, and compensated mutation to two target rows with unchanged aggregate total.
+- Security boundary: no production Restore API calls, no source-to-target writes, no authorization bypass, no DEV/PROD mutation. This is a read-only acceptance bridge only.
+- **Verification:** Maven/JUnit and exact-SHA CI execution remain pending. Suggested targeted command: `mvn -Dtest=DisposableLedgerSourceGraphVerifierTest,DisposableFinancialMappingParityTest,DisposableSignedFinancialParityBridgeTest test`. Confirm with actual JUnit XML and pinned GitHub Actions logs. BKL-002 release stays HOLD.
+- **Next FIN-07:** verify archive-to-target parity against disposable PostgreSQL data written by Backend B's QA-only fixture. Do not duplicate or modify Restore ownership; wait for Backend B to publish a stable mapping/fixture access contract.
