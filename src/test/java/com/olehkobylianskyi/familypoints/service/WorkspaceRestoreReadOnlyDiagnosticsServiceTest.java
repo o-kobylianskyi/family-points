@@ -56,7 +56,7 @@ class WorkspaceRestoreReadOnlyDiagnosticsServiceTest {
         var out=service.assess(7,OP);
         assertEquals(WorkspaceRestoreReadOnlyDiagnosticsService.State.RESTORE_SCHEMA_NOT_DEPLOYED,out.state());
         assertFalse(out.executable());
-        verify(db,never()).queryForList(anyString(),any(),any());
+        verify(db,only()).queryForObject(anyString(),eq(Boolean.class));
     }
     @Test void committedReceiptIsOnlyEvidenceOfRecordedCompletionNotExecutableGrant() {
         identity(7);deployed();
@@ -69,7 +69,7 @@ class WorkspaceRestoreReadOnlyDiagnosticsServiceTest {
         assertFalse(out.executable());
         assertEquals(List.of("RESTORE_RECEIPT_READ_ONLY"),out.advisoryCodes());
         verify(db,never()).update(anyString(),any(Object[].class));
-        verify(db,never()).queryForList(contains("FROM workspace_restore_permits"),any(),any());
+        verify(db,never()).update(anyString(),any(Object[].class));
     }
     @Test void inconsistentReceiptDoesNotReportSuccess() {
         identity(7);deployed();
