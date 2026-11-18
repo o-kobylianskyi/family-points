@@ -143,3 +143,29 @@ Request a pinned SHA, surefire XML, full output for failures, and GitHub Actions
 
 
 **FIN-12 extension:** `22fb4ff137333246d500e3a6e01dbb898f971dd6` added two additional negative PostgreSQL cases: missing/non-existent family cannot claim or insert history; post-commit family epoch change cannot replay ledger mutation. **FIN-12/13 total: 9 added JUnit tests**, all awaiting Maven/CI verification. The QA-only table scheme and production Restore boundary remain unchanged.
+
+
+## FIN-15 verification and regression sweep — 2026-11-18
+
+**Committed changes:** `3aae1b9b5cf4e8fca1cd1630794647c49414e083` adds three table-driven JUnit tests: all three ledger-ID pairwise swaps, every independent target provenance field (member/currency/amount/transaction/source-type/source-id), duplicate source task reward and purchase debit. `b2c9d2c787c8a86cd9ab0011eb74617db169bab7` adds an encrypted source fixture mismatch / pre-DB fail-closed case and an `assertNotEquals` guard against no-op fixture mutation; final test-name clarification `eaea300bce99e0e147b20e792aed4d84d1b95df4`.
+
+**Verification reality:**
+- This execution environment exposes Java 21 and GitHub file editing, but has **no Maven binary, Docker engine or network route to GitHub clone**. It cannot currently execute this project JUnit/Testcontainers suite. No local or remote PASS is claimed.
+- GitHub combined commit status and PR workflow-run API do not expose a positive CI result for recent Backend D commits; absence of these fields is not failure or success.
+- Do not remove BKL-002 HOLD on source-only committed test cases.
+
+**QA execution contract — on the user's build host with Docker:**
+
+```powershell
+cd C:\Users\Oleh\IdeaProjects\family-points
+git pull --ff-only origin main
+git rev-parse HEAD
+mvn -Dtest=DisposableLedgerSourceGraphVerifierTest,DisposableFinancialMappingParityTest,DisposableSignedFinancialParityBridgeTest test
+mvn -Dtest=DisposableFinancialLedgerPostgresParityTest,DisposableSignedFinancialPostgresParityTest,DisposableFinancialTenantIsolationPostgresTest,DisposableFinancialNativeFamilyGatePostgresTest test
+```
+
+If Maven CLI is missing, use IntelliJ's Maven goal with the same `-Dtest` expressions. Record pinned SHA and exact Surefire XML from `target/surefire-reports` plus full logs for all failures. Docker/Testcontainers must be available before PG tests.
+
+**FIN-15 exit:** Java compile succeeds, all 7 targeted test classes pass, no failures/errors/skips that conceal a required PostgreSQL gate, per-row provenance and category balances match, failure injection rolls back financial journal/approval atomically, architecture gate remains explicitly separate.
+
+**Next FIN-16:** address concrete failures and add Backend B native Restore parity wiring only against its versioned financial mapping and authorization contract. No actual restore or family deletion without user approval.
