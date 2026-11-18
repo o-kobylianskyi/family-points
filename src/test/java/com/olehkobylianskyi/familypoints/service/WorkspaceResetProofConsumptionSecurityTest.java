@@ -146,6 +146,33 @@ class WorkspaceResetProofConsumptionSecurityTest {
         verify(db, never()).update(contains("UPDATE workspace_reset_challenges"), any(Object[].class));
     }
 
+    @Test void nullOrMalformedPersistedVerifierFailsClosedWithoutMutation() {
+        var row = challengeRow();
+        row.put("verifier_hash", null);
+        when(db.queryForList(contains("FROM workspace_reset_challenges"),
+                eq(challenge), eq(WORKSPACE), eq(operation.toString()))).thenReturn(List.of(row));
+        assertEquals(HttpStatus.CONFLICT, denied(challenge, WORKSPACE, ACCOUNT, MEMBER, DIGEST, SECRET));
+        row.put("verifier_hash", "bad");
+        assertEquals(HttpStatus.CONFLICT, denied(challenge, WORKSPACE, ACCOUNT, MEMBER, DIGEST, SECRET));
+        row.put("verifier_hash", "x".repeat(64));
+        assertEquals(HttpStatus.CONFLICT, denied(challenge, WORKSPACE, ACCOUNT, MEMBER, DIGEST, SECRET));
+        verify(db, never()).update(contains("UPDATE workspace_reset_challenges"), any(Object[].class));
+    }
+
+    @Test void missingAccountOrBindingMetadataFailsClosed() {
+        var row = challengeRow();
+        when(db.queryForList(contains("FROM workspace_reset_challenges"),
+                eq(challenge), eq(WORKSPACE), eq(operation.toString()))).thenReturn(List.of(row));
+        for (String key : List.of("account_id", "data_epoch", "requested_by_member_id",
+                                  "snapshot_digest", "credential_fingerprint")) {
+            Object old = row.put(key, null);
+            assertEquals(HttpStatus.CONFLICT,
+                    denied(challenge, WORKSPACE, ACCOUNT, MEMBER, DIGEST, SECRET), key);
+            row.put(key, old);
+        }
+        verify(db, never()).update(contains("UPDATE workspace_reset_challenges"), any(Object[].class));
+    }
+
     @Test void concurrentConsumptionLostUpdateMustFailClosed() {
         when(db.update(contains("UPDATE workspace_reset_challenges"),
                 eq(challenge), eq(WORKSPACE), eq(operation.toString()))).thenReturn(0);
