@@ -50,3 +50,14 @@ After completing the current **B-INT-02** implementation and posting a **genuine
 **Definition of autonomous work:** pre-authorized next task means no new architecture ping after package delivery, but does NOT mean unreviewed production feature enable, destructive action, database migration with user-data risk, or presumed QA acceptance. If no independent safe work remains, return `WAITING_ON_QA` rather than creating speculative work.
 
 **User action:** Simply start/continue this Backend B chat with `++`. No special copy/paste or technical message expected.
+
+
+## 2026-11-18 — B-INT-02 single coherent READY_FOR_QA delivery
+
+**Active implementation completed, not QA accepted:** frozen B PR #30 source SHA `b711371d6c78d77f1550002261ff0b6ac4bd941b`, branch `backend-b/b-int-02-integrated`. Canonical complete delivery and supported/blocked categories: [B_INT_02_READY_FOR_QA_20261118.md](../requests/B_INT_02_READY_FOR_QA_20261118.md). This document update does not change the frozen source SHA.
+
+Source includes 8-category signed v2 original ancestry/finance, runtime original creator enrollment+password/Google reauth, bounded one-use RESTORE permit, native transaction FK/ledger parity/epoch/immutable receipt and two disposable PG18 DB source-loss E2E. No executable HTTP endpoint or Production Restore activation. Legacy owner recovery and unsupported nonempty categories remain fail-closed.
+
+Actual [full CI #4590](https://github.com/o-kobylianskyi/family-points/actions/runs/44392551759) on exact B SHA: 770 Maven tests, **0 failures/2 errors/0 skips**; only two Retention-owned `WorkspaceBackupRetentionRollbackGapPostgresTest` DB CHECK errors, already independently handed off to Issue #15 [6990884639](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-6990884639). B native source-loss test 1/1 PASS, original-owner PG18 test 2/2 PASS, QA-075 PG18 source-loss 1/1 PASS; Android, Web, Compose SUCCESS, **full CI attestation FAILED** (not all-green). Retention fixes are not B-owned. Independent QA acceptance outstanding.
+
+**Current track state:** B-INT-02 `READY_FOR_QA` only, protected QA source files frozen; B-NEXT-01 on NEXT `++` only if disjoint from frozen B files. Any QA B-owned P0 failures preempt B-NEXT work. `restorable=false`, `replaySupported=false`, Reset HTTP423, physical deletion OFF, BETA HOLD.
