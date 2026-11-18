@@ -47,7 +47,7 @@ class DisposableRestoreScopeV2ConsumerTest {
             DisposableRestorePlanFingerprint.Plan p,
             Collection<WorkspaceRestoreSelectionClosureV2.Category> cats) {
         var a=new WorkspaceRestorePermitScopeV2.SourceArchive(
-                p.sourceWorkspace(),"v"+p.schemaVersion(),p.snapshot(),
+                p.sourceWorkspace(),"VNext-"+p.schemaVersion(),p.snapshot(),
                 p.sourceEpoch(),SNAPSHOT_DIGEST,p.sealedManifestSha256());
         return new WorkspaceRestorePermitScopeV2.RestoreScope(p.targetWorkspace(),
                 7,8,UUID.randomUUID(),a,
