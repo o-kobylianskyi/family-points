@@ -304,7 +304,7 @@ class DisposableLedgerSourceGraphVerifierTest {
 
     @Test void archiveRejectsDuplicateCurrencyCodesAndInvalidCurrencyId()
             throws Exception {
-        assertThrows(IllegalArgumentException.class,()->verifyEdited(
+        assertThrows(SecurityException.class,()->verifyEdited(
                 "","MANUAL",null,4,4,
                 body->body.replace("\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"}]",
                         "\"POINT_TYPES\":[{\"id\":3,\"family_id\":17,\"code\":\"POINTS\"},"+
