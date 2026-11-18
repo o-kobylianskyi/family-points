@@ -43,6 +43,22 @@ public class WorkspacePortableAncestryV2Exporter {
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
     public Result export(long sourceWorkspaceId,UUID snapshotId,UUID operationId,
                          long expectedEpoch,SecretKey key) {
+        return exportInternal(sourceWorkspaceId,snapshotId,operationId,expectedEpoch,key,false);
+    }
+
+    /**
+     * Full bounded TASK/REWARD/POINT ancestry archive. Unsupported financial
+     * event types or source parents reject the entire source before sealing.
+     * Never mark it restorable: owner/permit and other data still need approval.
+     */
+    @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
+    public Result exportWithHistory(long sourceWorkspaceId,UUID snapshotId,UUID operationId,
+                                    long expectedEpoch,SecretKey key) {
+        return exportInternal(sourceWorkspaceId,snapshotId,operationId,expectedEpoch,key,true);
+    }
+
+    private Result exportInternal(long sourceWorkspaceId,UUID snapshotId,UUID operationId,
+                          long expectedEpoch,SecretKey key,boolean withHistory) {
         if(sourceWorkspaceId<=0||snapshotId==null||operationId==null||expectedEpoch<0)
             throw new IllegalArgumentException("PORTABLE_V2_SOURCE_SCOPE_INVALID");
         if(!TransactionSynchronizationManager.isActualTransactionActive()
@@ -107,6 +123,8 @@ public class WorkspacePortableAncestryV2Exporter {
                 member.put("deletedAtSnapshot",dateTime.toString());
             else throw new SecurityException("PORTABLE_V2_TOMBSTONE_INVALID");
         }
+        if(withHistory)
+            PortableV2HistoryGraph.capture(db,cats,sourceWorkspaceId);
         String rootDigest=PortableMemberAncestryV2.computeRootWithoutTrust(
                 root,sourceWorkspaceId,snapshotId,expectedEpoch);
         // The root computer validates a defensive copy; embed the independently
