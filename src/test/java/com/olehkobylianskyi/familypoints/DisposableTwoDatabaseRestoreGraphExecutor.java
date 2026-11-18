@@ -37,11 +37,12 @@ final class DisposableTwoDatabaseRestoreGraphExecutor {
         // are online. It MUST NOT replace signed original member provenance.
         new DisposableMemberMappingPreflight().verify(
                 source,target,sourceFamily,targetFamily,exactMembers);
-        String groupName=source.queryForObject("""
+        var sourceGroups=source.queryForList("""
                 SELECT name FROM member_groups WHERE id=? AND family_id=?
                 """,String.class,sourceGroupId,sourceFamily);
-        if(groupName==null)
+        if(sourceGroups.size()!=1)
             throw new SecurityException("RESTORE_GROUP_FOREIGN_SOURCE");
+        String groupName=sourceGroups.get(0);
         if(selectedSourceNodeIds.size()!=new HashSet<>(selectedSourceNodeIds).size())
             throw new SecurityException("RESTORE_NODE_DUPLICATE_SELECTION");
         var nodes=new TreeMap<Long,SourceNode>();
