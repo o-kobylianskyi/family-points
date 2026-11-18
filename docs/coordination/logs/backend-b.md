@@ -47,3 +47,7 @@
 - Added typed canonical SHA-256 separated digests `11b5e115`/`ba500cac`/`2b30cba2`, JUnit negatives `7155bc09`/`ca53ebfa`/`37eb3e05`; does not trust order of input maps/categories and rejects legacy without original signed `FAMILY_MEMBERS` selection.
 - Added B plan-vs-C immutable RESTORE scope comparison and one-target-PG18 QA operation/epoch transaction `e0a844f1`, `c8b07703`, `c0743997` with rollback, race and wrong action/expiry negatives. This is **not authenticated C grant issuance or consumption**; no real finance writes.
 - Formal QA packet `d435debf`, new exact-SHA CI not confirmed. A source signed member catalog, C owner proof/permit durable store and D finance attestations still independent blockers. Runtime Reset/Restore HTTP423/BETA HOLD unchanged.
+
+## 2026-11-18 — B-B-08 signed source graph consumer / C-C-10 binary hash interop
+- Implemented bounded original FAMILY_MEMBERS/Task/Reward/Purchase/POINT_LEDGER source graph closure @ed12e564, negative test @ce4883ca; separate C-C-09 binary V2 exact scope adapter @caa9768d and tests @879b98b4/@590040d2; C schema VNext-2 marker test-only @120f5a6e/@3a082c12. Old pipe-delimited B hashes explicitly not accepted as C permit. Combined pre-write bounded closure @67429d44 and negative gate @085192ef; marker fixture @c922d9e6.
+- Conditional V2 ACK / hard blockers @041bb43c; QA packet @9139c382. No authenticated A category digest or actual C grant/owner, no production Restore. New exact SHA QA NOT_RUN; HTTP423/BETA HOLD.
