@@ -111,3 +111,10 @@ Source files reviewed:
 - QA contract `docs/coordination/requests/B-A-03H_RESTART_LEASE_RECONCILIATION_QA_20261118.md`, updated in `b041939`. No file deletion, schema migration, production restore or reset execution.
 - **Pending:** current exact-SHA workflow green + PG18 job results, verification of concurrency on new audit, operator-approved physical cleanup procedure, source member archive B-A-02 Architecture+Backend B ACK.
 - **Next B-A-03i:** diagnose any test regressions and add concurrency/time-of-check audit negative cases with exact-SHA CI; once signed source format is approved, B-A-04 original member catalog/category closure. BETA HOLD, HTTP423 unchanged.
+
+
+## B-A-03h CI triage and follow-up (2026-11-18)
+- Older run `44270520060` at new PG18 test SHA `303a72c` failed Java testCompile: Testcontainers package `org.testcontainers.postgresql.PostgreSQLContainer` is non-generic. This Backend A fixture incorrectly used `PostgreSQLContainer<?>` / diamond. Fixed locally in repo source commit `9b71ce0` (non-generic class/constructor); another concurrent finance fixture generated similar errors in earlier SHAs and belongs to its owner.
+- Handoff baseline `0c59f06` run `44270985978`: Java Maven/PostgreSQL, Android, Web, Compose all SUCCESS; synthetic Full CI exact-SHA evidence job was SKIPPED, not an additional passing job. Earlier failure snapshots do not invalidate later separately verified successes.
+- Exact-SHA CI for latest fix `9b71ce0` in progress as of handoff. Do not mark that SHA complete until its own jobs finish and test count is checked.
+- The new reverse registry-presence audit is part of this B-A-03h release batch; no auto cleanup, archival version change or Restore unlock.
