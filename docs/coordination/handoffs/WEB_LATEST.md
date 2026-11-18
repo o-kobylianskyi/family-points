@@ -260,3 +260,9 @@ docs/coordination/handoffs/WEB_LATEST.md, docs/coordination/logs/web.md
 передавай всі реальні E2E QA. BKL-002/BETA HOLD. Після кожного пакета
 оновлюй rolling handoff і chat-capacity WEB log, не вигадуй % ліміту.
 ```
+
+## WEB-01_READY_FOR_QA — architect dispatch accepted and Web package frozen (2026-11-18)
+- **Source/test SHA** `6cc24e98dbc4750f7d027e6e36ff363674d952e6`, correction `6c80eaa1bc51e6ba41d3056b1cead9f772b00ed2` makes wrapper owner fallback exactly match V49 pending-marker account ID, adding `workspaceMemberId` before username. Regression `frontend/tests/settingsRuntimeGuard.test.mjs` asserts both definitions remain synchronized. Existing five-case Chromium test blob `ccaef197aca71db929681c5806d58c3281aec3f2` unchanged.
+- **Actual pinned Web CI** [#44366630311](https://github.com/o-kobylianskyi/family-points/actions/runs/44366630311), Web job `135022094841`: native Node **39/39 PASS**, V49 fixture syntax **6 PASS**, i18n, zero-warning lint and Vite build PASS, full four-part exact-SHA attestation SKIPPED. **Chromium NOT_RUN**; separate QA acceptance still required.
+- **Formal handoff sent** [Issue #15 comment 6987315284](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-6987315284): `WEB-01_READY_FOR_QA`; QA pinned five-case two-tab synthetic browser receipt safety, trace, and no user-family writes. Web-01 files frozen until QA test feedback or P0 fix.
+- **NEXT** preauthorized independent `WEB-02` per `WEB_ACTIVE_ASSIGNMENT.md`: backup account-scope metadata UI, local state isolation, loading/retry, read-only state and disabled Restore/Reset, no backend RESTORE API writes. `WEB-03` only evidenced existing catalog defects. QA WAIT until Architecture activates. BKL-002/BETA HOLD.
