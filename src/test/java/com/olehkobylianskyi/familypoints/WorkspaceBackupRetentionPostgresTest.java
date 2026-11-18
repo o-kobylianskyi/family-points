@@ -55,7 +55,8 @@ class WorkspaceBackupRetentionPostgresTest {
         assertFalse(tx.execute(s->service.release(b,snapshot,lease)).booleanValue());
         assertTrue(tx.execute(s->service.release(a,snapshot,lease)).booleanValue());
         assertEquals(1,tx.execute(s->service.expireEligible(10)).intValue());
-        verify(store).deleteAuthorizedExpired(a,snapshot);
+        verify(store).verifyStoredCiphertext(eq(a),eq(snapshot),eq("b".repeat(64)));
+        verify(store,never()).deleteAuthorizedExpired(anyLong(),any());
         assertEquals("EXPIRED",db.queryForObject("SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",String.class,snapshot));
         assertEquals(0,tx.execute(s->service.expireEligible(10)).intValue());
     }
