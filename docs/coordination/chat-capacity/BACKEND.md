@@ -45,3 +45,6 @@ DateTime CET | Track | ChatGeneration | VisibleUserTurns | VisibleAssistantTurns
 
 
 2026-11-18 | Backend | successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #53-56 | 16736856 | CHECKPOINT | Real CI red 493/2 triage + PG-only durable approval rehearsal; no reliable context percentage.
+
+
+2026-11-18 | Backend | successor | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | #57-60 | 174bca23 | CHECKPOINT | Verified 496/1 failed CI logs + test-only transactional synthetic financial approval; real context budget unavailable.
