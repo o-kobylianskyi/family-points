@@ -59,7 +59,7 @@ public class WorkspaceBackupOrphanAuditService {
                                 reason="EXPIRED".equals(row.get("state"))
                                         ? "EXPIRED_REGISTRY_FILE_PRESENT"
                                         : "REGISTERED_CIPHERTEXT_INTACT";
-                            } catch(SecurityException invalid) {
+                            } catch(SecurityException | IllegalArgumentException invalid) {
                                 reason="CIPHERTEXT_INTEGRITY_FAILED";
                             } catch(IllegalStateException unreadable) {
                                 reason="CIPHERTEXT_READ_FAILED";
