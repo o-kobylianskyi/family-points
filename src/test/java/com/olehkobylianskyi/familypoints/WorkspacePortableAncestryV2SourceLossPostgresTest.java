@@ -119,6 +119,15 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
         var historyProof=offline.inspectAncestryV2(historyFile,source,key);
         assertEquals(1,historyProof.roleCount());
         assertEquals(2,historyProof.memberCount());
+        assertEquals(8,historyProof.verifiedCategoryCounts().size());
+        assertEquals(0,historyProof.verifiedCategoryCounts().get("POINT_LEDGER"));
+        var cSource=historyProof.verifiedSourceArchiveV2();
+        assertEquals(source,cSource.sourceWorkspaceId());
+        assertEquals("family-points-export-v2",cSource.schemaVersion());
+        assertEquals(historyProof.manifestRootDigest(),cSource.manifestRootDigest());
+        assertEquals(historyProof.authenticatedSnapshotDigest(),cSource.snapshotDigest());
+        assertThrows(UnsupportedOperationException.class,
+                ()->historyProof.verifiedCategoryCounts().put("OTHER",99));
         assertFalse(historyProof.restorable());
         assertEquals(snapshot,proof.snapshotId());
         assertEquals(1,proof.roleCount());
