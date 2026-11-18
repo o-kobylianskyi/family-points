@@ -23,3 +23,11 @@
 - Plan requires **verified** creator account+member+workspace provenance, no guessed legacy owner backfill; own-workspace and account lifecycle checks, cross-workspace denial and retention of HTTP423. Coordinator must assign registration/migration file ownership first.
 - **State:** C-C-02 policy implementation BLOCKED ON CONTRACT ACK, no Java or SQL migrations applied; no tests executed, BETA HOLD unchanged.
 - **Next:** once approved, implement owner binding transactionally in registration and standalone reset-only ACL with negative tests; do not infer current manager=original owner.
+
+## 2026-11-18 — C-C-02B: owner identity predicate and negative tests (source committed)
+- Added isolated, side-effect-free `security/ResetOriginalOwnerPolicy.java` @ `867018a0`. Owner eligibility requires exact requested workspace, current authenticated enabled account, active/non-deleted member, current account-member link and explicit `REGISTRATION_VERIFIED` / `LEGACY_VERIFIED` binding of account+member+workspace. Unknown/null provenance fails closed. Role/ADMIN_OVERRIDE never substitutes provenance.
+- Added `security/ResetOriginalOwnerPolicyTest.java` @ `8dd944ad` with seven JUnit test methods and multiple assertions: positive trusted binding, unknown/missing binding, cross-workspace shared account, delegated manager, member mismatch, disabled/deleted/revoked/unauthed, missing IDs, binding mismatch.
+- **Not wired into production controllers**: canonical DB binding and signup/backfill migration have no Architecture ACK. A pure policy is a necessary identity predicate, **not** credential proof, owner-resolution service, approved endpoint auth, migration, or enablement.
+- **Evidence:** new source and tests pushed to GitHub main. Tests are **NOT_RUN** (source-only connector; no Maven baseline); do not claim PASS or exact-SHA CI.
+- **Safety:** `execute` remains HTTP423, no existing controller/DB/Flyway changed, BETA HOLD.
+- **Next:** architecture approves provenance schema; C adds transactional resolver + protected `canResetWorkspace`, wires Reset endpoints and executes unit/PG CI. Meanwhile, C can improve isolated proof abuse/replay negative coverage without enabling execution.
