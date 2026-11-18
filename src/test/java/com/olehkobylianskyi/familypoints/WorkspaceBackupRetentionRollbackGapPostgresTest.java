@@ -101,6 +101,62 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 "DELETE FROM workspace_protective_backups WHERE snapshot_id=?",id));
     }
 
+    @Test void committedExpiryRetainsBytesAndRepeatedSweepCannotReissueLease()
+            throws Exception {
+        var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
+        Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
+        var db=new JdbcTemplate(ds);
+        var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));
+        long family=db.queryForObject(
+                "INSERT INTO families(name) VALUES ('Retention committed safe') RETURNING id",Long.class);
+        long role=db.queryForObject(
+                "INSERT INTO family_roles(family_id,system_role,code,name) VALUES (?,true,'PARENT','Parent') RETURNING id",
+                Long.class,family);
+        long member=db.queryForObject(
+                "INSERT INTO family_members(family_id,family_role_id,active,member_type,name) " +
+                "VALUES (?,?,true,'PARENT','Parent') RETURNING id",Long.class,family,role);
+        UUID id=UUID.randomUUID();
+        var format=new ProtectiveBackupPortableFile();
+        var keygen=KeyGenerator.getInstance("AES");
+        keygen.init(256);
+        var encrypted=format.encode(new ProtectiveBackupArtifactCodec().seal(
+                id,family,UUID.randomUUID(),0,"a".repeat(64),"V50",
+                "{\\"format\\":\\"test\\",\\"categories\\":{}}".getBytes(StandardCharsets.UTF_8),
+                keygen.generateKey()));
+        var store=new WorkspaceBackupLocalArtifactStore(temp.resolve("committed").toString(),format);
+        var stored=store.store(family,id,encrypted);
+        Path artifact=temp.resolve("committed").resolve(Long.toString(family))
+                .resolve(id+".fpbackup");
+        db.update("""
+                INSERT INTO workspace_protective_backups
+                    (snapshot_id,workspace_id,operation_id,requested_by_member_id,
+                     data_epoch,reset_mode,selected_categories_json,source_digest,
+                     schema_version,state,storage_key,encrypted,artifact_sha256,
+                     artifact_bytes,artifact_stored_at,created_at,expires_at,
+                     restore_verified_at,verified_at,manifest_sha256)
+                VALUES (?,?,?, ?,0,'SELECTIVE','["MEMBER_GROUPS"]',?,
+                        'V50','VERIFIED',?,TRUE,?,?,NOW()-INTERVAL '35 days',
+                        NOW()-INTERVAL '40 days',NOW()-INTERVAL '1 day',
+                        NOW()-INTERVAL '2 days',NOW()-INTERVAL '2 days',?)
+                """,id,family,UUID.randomUUID(),member,"a".repeat(64),
+                "local:v1:"+family+"/"+id+".fpbackup",stored.sha256(),stored.byteCount(),
+                "c".repeat(64));
+        var retention=new WorkspaceBackupRetentionService(db,store);
+        assertEquals(1,tx.execute(status->retention.expireEligible(10)));
+        assertEquals("EXPIRED",db.queryForObject(
+                "SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",
+                String.class,id));
+        assertTrue(Files.isRegularFile(artifact),"Committed expiry never purges ciphertext");
+        assertEquals(0,tx.execute(status->retention.expireEligible(10)));
+        assertEquals(1,retention.expiredArtifactInventory(10).stream()
+                .filter(row->id.equals(row.snapshotId())).count());
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                ()->tx.execute(status->retention.acquireVerifiedLease(
+                        family,id,java.time.Duration.ofMinutes(5))));
+        assertTrue(Files.isRegularFile(artifact),"Lease denial and replay never unlink");
+        assertEquals(1,db.update("DELETE FROM workspace_protective_backups WHERE snapshot_id=?",id));
+    }
+
     @Test void ciphertextIntegrityFailureRollsBackSqlWithoutUnlink() {
         var ds=new DriverManagerDataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword());
         Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
