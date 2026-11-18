@@ -65,6 +65,12 @@ final class DisposableFinancialTargetRehearsal {
                         maps.rewards().get(id(row,"id")),targetFamily);
             if(failAfterStep==1)throw new IllegalStateException("QA_FAIL_AFTER_DEFINITIONS");
             for(JsonNode row:source.path("REWARD_PURCHASES")) {
+                // This bounded implementation only accepts purchase parents
+                // tied to archived REWARD_DEFINITIONS; request-owned purchases
+                // await the complete approved request/obligation contract.
+                if(!row.hasNonNull("reward_definition_id")
+                        || row.hasNonNull("reward_request_id"))
+                    throw new SecurityException("QA_FINANCE_REQUEST_PURCHASE_UNSUPPORTED");
                 long reward=id(row,"reward_definition_id");
                 db.update("""
                     INSERT INTO qa_restore_purchases(
