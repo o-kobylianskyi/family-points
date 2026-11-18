@@ -128,3 +128,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 receipt cleanup marker ownership (2026-11-18)
 - Production Web patch `08d8714c` plus `bed3a95a` changes `clear(operation)` to fail closed if both browser pending markers disappeared or if any present marker differs from the original immutable operation. One valid original session **or** shared marker still permits cleanup after validated receipt and completed backend GET. Native regression source `2ba2acee` covers both missing/foreign/valid cases, V8 source-backed test 15/15 PASS; newest native Node CI and 2-case Chromium pending. QA test original markers after 404 and foreign shared marker retention, now include no-marker cleanup denial. No real workspace writes, BETA HOLD.
+
+
+## WEB-02 3-case V49 two-tab Chromium packet (2026-11-18)
+- Test-only SHA `53538b27be078401bf7e9e10f58e55e9b6d27d66` adds third browser case: after lost finalize POST, GET original receipt is valid but during HTTP response both original session and shared markers disappear. Expected: retain unknown result, never show completion, original finalize POST count 1, GET same UUID, epoch=0/revision=7, both markers absent, no unexpected workspace mutations. Two prior cases (404 receipt, competing marker) remain. Fixture now **3 scenarios**; syntax V8 PASS; actual Chromium **NOT_RUN**. QA run only on selected isolated authenticated workspace; record 3 outcome classifications, sanitized trace and counts. BETA HOLD.
