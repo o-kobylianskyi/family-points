@@ -47,3 +47,5 @@ Next Web chat creates new generation and records measured checkpoints; this row 
 | 2026-11-18 | Web | WEB-02 | 26 | unknown | PARTIAL_VISIBLE | unknown | NONE | 26 | 50267201 | CHECKPOINT | Added fourth Chromium positive recovery case for original session marker remaining, browser pending. |
 
 | 2026-11-18 | Web | WEB-02 | 27 | unknown | PARTIAL_VISIBLE | unknown | NONE | 27 | 53ba2468 | CHECKPOINT | Fifth V49 Chromium case verifies positive recovery with shared marker only; browser pending. |
+
+| 2026-11-18 | Web | WEB-02 | 28 | unknown | PARTIAL_VISIBLE | unknown | NONE | 28 | 44bf33fe | QA_BLOCKED | Pinned 5-case Chromium request issue #18 comment 6976230912; no source mutation, browser unverified. |
