@@ -187,6 +187,8 @@
 - Fetched source blob `41ba13a453b342d3858474a887ae8031fdcb7a9d` and test blob `2748742102f101098198f5eb7fcc31cafeb54a7b`. Executed all **15** actual `setupFinalizeSafety.test.mjs` callbacks under V8 assertion-equivalent harness: **15 PASS / 0 FAIL**, **not** native Node test runner or Chromium. Exact GitHub [run 44269872374](https://github.com/o-kobylianskyi/family-points/actions/runs/44269872374) for newest test commit was QUEUED when observed; no latest-SHA CI PASS claimed.
 - Next: verify native Node 37/37 candidate Web CI, run QA Chromium two-tab and review marker conflict trace, retain BKL-002/BETA HOLD.
 
+- **Post-write exact-SHA Web CI verification:** [run #44269872374](https://github.com/o-kobylianskyi/family-points/actions/runs/44269872374) @ `2ba2acee5417be3e8cb2ba3559a35f705cd92d9d`, Web job `134683667947` completed SUCCESS: decoded logs **V49 syntax 6 fixtures PASS**, native Node **37/37 PASS / 0 FAIL / 0 SKIP** (includes `V49 receipt marker cleanup requires current immutable ownership` PASS), i18n/lint/Vite build successful, 3 lint warnings/0 errors. Full all-component exact-SHA attestation SKIPPED (scoped), Chromium two-tab NOT_RUN; supersedes queued checkpoint.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
