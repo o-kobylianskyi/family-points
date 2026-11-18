@@ -33,3 +33,12 @@ test('Safety plan remount scope includes username fallback used by loader identi
   assert.ok(source.includes('const accountScope = '+expected),
     'The backup request scope must use the same account identity as the wrapper key')
 })
+
+test('V49 remount identity exactly matches pending finalize marker account scope',()=>{
+  const source=readFileSync(new URL('../src/components/InitialFamilySetupReview.jsx',import.meta.url),'utf8')
+  const identity='currentUser?.accountId ?? currentUser?.userId ?? currentUser?.id ?? currentUser?.workspaceMemberId ?? currentUser?.username'
+  assert.ok(source.includes('const owner = '+identity),
+    'React component remount owner must use the same account identity as V49 pending markers')
+  assert.ok(source.includes('const accountId = '+identity),
+    'V49 pending marker account identity must remain aligned with React wrapper')
+})
