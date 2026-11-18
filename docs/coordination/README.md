@@ -1,4 +1,4 @@
-# FamilyPoints — Git coordination hub
+> **ACTIVE STREAM DISPATCH (2026-11-18):** Architecture is the single coordinator. At every `++`, each active stream must read [ARCHITECT_DISPATCH_LATEST.md](ARCHITECT_DISPATCH_LATEST.md) and its linked role assignment. User only starts requested chats; tasks and dependencies are stored in GitHub. Backend B only active Backend, QA independently on activation, other streams WAIT. Real/manual tests require a separate `OPERATOR ACTION REQUIRED` packet. This dispatch supersedes historical role-split guidance below.\n\n# FamilyPoints — Git coordination hub
 
 ## Mandatory chat-capacity protocol (all role chats, 2026-11-16)
 
