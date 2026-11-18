@@ -109,6 +109,17 @@ public final class PortableV2HistoryGraph {
                 if(id<=previous||!seen.add(id))
                     throw new SecurityException("PORTABLE_V2_HISTORY_ID_ORDER:"+category);
                 previous=id;
+                // Three categories are directly scoped by source family.
+                // Missing, null or string-encoded family_id is never evidence
+                // of provenance, even when the remaining JSON is well formed.
+                if(Set.of("POINT_TYPES","TASK_DEFINITIONS","REWARD_DEFINITIONS")
+                        .contains(category)
+                        &&(!row.hasNonNull("family_id")
+                        ||!row.path("family_id").isIntegralNumber()
+                        ||row.path("family_id").asLong()!=workspace))
+                    throw new SecurityException("PORTABLE_V2_HISTORY_FOREIGN_FAMILY:"+category);
+                // Member-owned categories use the authenticated original
+                // member roster (not a synthetic top-level family_id).
                 if(!"FAMILY_ROLES".equals(category)
                         &&!"FAMILY_MEMBERS".equals(category)
                         &&row.has("family_id")
