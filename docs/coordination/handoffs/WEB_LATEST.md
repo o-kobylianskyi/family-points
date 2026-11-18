@@ -197,6 +197,13 @@
 
 - **Post-write exact-SHA Web CI result**: [run #44282785790](https://github.com/o-kobylianskyi/family-points/actions/runs/44282785790) on `53538b27be078401bf7e9e10f58e55e9b6d27d66`, Web job `134727671529` actual decoded log: V49 fixture `node --check` **6 PASS**, native Node **37 PASS / 0 FAIL / 0 SKIP**, i18n/lint/build SUCCESS, 3 lint warnings/0 errors. Web-scoped CI only, Full CI exact-SHA attestation SKIPPED and **3-case Chromium NOT_RUN**. Supersedes initial in-progress check.
 
+## WEB-02 package 26 — positive one-marker Chromium recovery regression (2026-11-18)
+- Latest checked QA Issue #18 notes through QA-063 still classify V49 authenticated isolated Chromium **NOT_RUN**; no QA-only approval for real family writes, BKL-002/BETA HOLD.
+- Previous package 24 fixed production V49 `clear` to reject when **both** markers absent and permit a **single owned** marker, but current mocked browser file's three cases cover only denial paths. This creates false confidence if fail-closed code ever accidentally rejects all valid recovery.
+- Added test-only fourth `V49 two tabs: original local marker permits completion when shared marker vanishes` in `qa/e2e/tests/onboarding-v49-two-tab-synthetic.spec.js` at `480f6730d99af20cb28841bf90f0d18dfc6c4fc2`. During original UUID receipt GET, remove only shared localStorage marker, preserve tab's original sessionStorage marker; mock validated completed receipt and revision+1 backend GET; require **Import completed visible**, unknown-result banner gone, both markers cleared after successful cleanup, one finalize POST, correct original UUID/epoch/revision/GET path, zero unexpected post-login writes. Existing 3 denial cases unchanged.
+- Fetched new spec blob `8a617b06c4708c6eebe65f25092bf96bc8c47950`: adapted V8 syntax parse **PASS**, exactly four two-tab cases. **Not** native Node parser/Chromium browser execution. Exact SHA [Actions 44285824609](https://github.com/o-kobylianskyi/family-points/actions/runs/44285824609) was IN_PROGRESS at first observation; don't attribute future PASS until logs read.
+- Next: inspect exact SHA CI Web job and QA isolated Chromium four-case run, triage any actually executed browser failure; retain BETA HOLD.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
