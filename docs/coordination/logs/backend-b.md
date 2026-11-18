@@ -73,3 +73,9 @@
 - Architecture approved single signed-source v2 direction #6975893637. Added genuine read-only epoch-pinned PG `WorkspacePortableAncestryV2Exporter` @f3429291, actual `PortableManifestRootV2` binary SHA256 encoder and golden @a783ba39/f3c92331, canonical category member/role graph `PortableMemberAncestryV2` @0868e350/edf24aef + golden @c55bca00, existing offline inspector new `inspectAncestryV2` @c86841ea. FPB1 AES-GCM reused, no key/account exposure or Flyway/HTTP changes.
 - Real PG18 two-family tombstone, source destroyed then offline decryption / cross-family / wrong key / ciphertext / stale authenticated manifest root test @e69ba876/e21af51d. QA packet/full CI trigger @4cd5691f pending actual SHA evidence; **DO NOT claim PASS yet**.
 - Entire output ancestry-only and explicitly `restorable=false`; full task+ledger source FK and 17 unreviewed FK dispositions remain P0; owner/permit and native target integrations follow sequentially. HTTP423, BETA HOLD.
+
+## 2026-11-18 — actual PG18 source loss PASSED, v2 root test fixture one error, C mapping bridge
+- Real full #44289077924 @cb397d6: Maven 749, 0F/1E/0S, Web Android Compose success, gate red; root test original JSON lacked `manifestRootDigest` (computed only on defensive copy). QA fixed independently @cd98bf2; no concurrent B overwrite.
+- Actual `WorkspacePortableAncestryV2SourceLossPostgresTest` 1/1 PASS in same red run; manifest test 3/3 and A financial 9/9. Python independent vectors match.
+- Implemented validated original member/role ID publication from offline inspector @7952e376 and C canonical injective reviewed map digest @a8a4e3c2; source-loss PG18 test checks mapping parity and mismatched/injective rejections @a06d4d3e/@d9923bc7. No role/login/owner authorization, v2 ancestry still non-restorable.
+- One new pinned actual full CI request @89b0f8e1. Following stage blocked on exact SHA and full-category FK/TaskInstance/finance source closure; HTTP423/BETA HOLD.
