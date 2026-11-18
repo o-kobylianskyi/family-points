@@ -9,3 +9,12 @@
 - Security: original/target ID matching cannot be guessed; no credentials or owner auth exported; Restore Executor remains B, owner binding and permits C, immutable finance D. `restorable=false`, `replaySupported=false`, Reset Execute HTTP423, BETA HOLD.
 - QA: run `DisposablePortableMemberSourceCatalogPostgresTest`, `WorkspaceBackupRetentionRollbackGapPostgresTest` and both source/reverse audit race tests with actual Testcontainers on pinned SHA; complete CI `[full-ci]` requested and reported separately with real job-step evidence.
 - Next large B-A-04b: after Architecture signed vNext contract implement additive privacy-reviewed source archive and matching inspector with backwards compatibility; until then source FK closure matrix and synthetic validator only.
+
+
+## 2026-11-18 — B-A-04b test-only member FK closure
+- SHA `db9e4eb`: `DisposablePortableMemberReferenceClosure` implements a strict original-member identity parent resolver for curated source categories, with explicit null-vs-missing, source-family and role provenance, 2000 row limit, unknown category denial.
+- SHA `426fef3`: source closure negative unit suite; `b795d5a`: real PG18 migration column/nullability drift verification.
+- SHA `4cdb874`: source roster fail-closed role/member row bounds, duplicate role codes and nonintegral IDs.
+- QA packet `docs/coordination/requests/B-A-04B_MEMBER_REFERENCE_CLOSURE_QA_20261118.md` @`3392121`.
+- Scope limitations: `TASK_EXECUTIONS.original_assigned_member_id` is optional but MUST be explicitly present in vNext; executor remains independent. The audited matrix is incomplete: account membership auth metadata excluded; member exception periods, other category polymorphic links, media and finance source types require D/B and Architecture review.
+- Existing full-run `44277446121` for earlier `3cbe37b` remains in progress; all new B-A-04b tests need separately pinned run. PROD importer/inspector/archive format unchanged. HTTP423/BETA HOLD.
