@@ -61,10 +61,14 @@ class DisposableOriginalOwnerBindingPostgresTest {
     }
 
     private long member(long family,String name) {
-        long role=db.queryForObject("""
+        // Family role codes are workspace-unique: reuse the fixture's role
+        // rather than inserting PARENT twice for owner and delegated manager.
+        Long role=db.queryForObject("""
                 INSERT INTO family_roles(family_id,system_role,code,name)
-                VALUES (?,true,'PARENT',?) RETURNING id
-                """,Long.class,family,"QA role");
+                VALUES (?,true,'PARENT','QA role')
+                ON CONFLICT (family_id,code) DO UPDATE SET name=EXCLUDED.name
+                RETURNING id
+                """,Long.class,family);
         return db.queryForObject("""
                 INSERT INTO family_members(family_id,family_role_id,active,member_type,name)
                 VALUES (?,?,true,'PARENT',?) RETURNING id
