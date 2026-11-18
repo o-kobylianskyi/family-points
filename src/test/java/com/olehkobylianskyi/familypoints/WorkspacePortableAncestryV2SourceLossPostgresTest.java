@@ -25,6 +25,7 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
                 .withDatabaseName("portable_v2_source")
                 .withUsername("qa").withPassword("qa");
         byte[] stored=null;
+        byte[] historyStored=null;
         long originalWorkspace=0,otherWorkspace=0;
         UUID snapshot=UUID.randomUUID();
         var key=new SecretKeySpec(new byte[32],"AES");
@@ -78,6 +79,14 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
             assertEquals(1,result.roleCount());
             assertEquals(2,result.memberCount());
             stored=result.encryptedFile();
+            // The exact same independently pinned original-family MVCC view
+            // can also seal the supported historical graph. This fixture
+            // intentionally has no task or finance rows; the pure graph test
+            // exercises nonempty FK and financial failure scenarios.
+            var historical=tx.execute(status->exporter.exportWithHistory(
+                    family,UUID.randomUUID(),UUID.randomUUID(),0,key));
+            assertNotNull(historical);
+            historyStored=historical.encryptedFile();
             var envelope=portable.decode(stored);
             byte[] plain=codec.open(envelope,snapshot,family,key);
             try {
@@ -101,9 +110,16 @@ class WorkspacePortableAncestryV2SourceLossPostgresTest {
         // No DB connection or JdbcTemplate below: archive must stand alone.
         assertNotNull(stored);
         final byte[] file=stored;
+        final byte[] historyFile=historyStored;
         final long source=originalWorkspace;
         final long other=otherWorkspace;
         var proof=offline.inspectAncestryV2(file,source,key);
+        // Includes 6 history categories in the existing v2 content/root,
+        // without needing the original PostgreSQL service after DB loss.
+        var historyProof=offline.inspectAncestryV2(historyFile,source,key);
+        assertEquals(1,historyProof.roleCount());
+        assertEquals(2,historyProof.memberCount());
+        assertFalse(historyProof.restorable());
         assertEquals(snapshot,proof.snapshotId());
         assertEquals(1,proof.roleCount());
         assertEquals(2,proof.memberCount());
