@@ -210,3 +210,8 @@
 - Formal QA packet `docs/coordination/requests/BKL002_QA_PACKET_20261118_MULTICATEGORY_ATOMIC_RECOVERY.md` `afd9abf4`. Target five latest exact-SHA classes + #24 12-class and all-four CI; source-only new changes NOT independently PASS. Prior latest observed Maven red exception mismatch at intervening SHA.
 - **Forecast: ~8–12 more major Backend batches** to genuine production-grade BKL-002 acceptance (source identity/owner proof, durable grants, complete all-category replay, integrity receipts, exact-SHA QA/release). Not equivalent to BETA ship date; surprises may add batches. No unverifiable completion percentage.
 - Production restorable=false, replaySupported=false, Reset Execute HTTP423, BETA HOLD. Next: real CI evidence / source→target integrity / original-member ledger binding, then full restore architecture under owner/architect gates.
+
+## Backend ownership split / transition — 2026-11-18
+- Owner assigned this chat **Backend B (Restore Engine)**; Backend A is **Backup & Portable Archive**. Previous Backend journal/packets remain historical; new Restore Engine work MUST use `docs/coordination/handoffs/BACKEND_B_LATEST.md` and `docs/coordination/logs/backend-b.md`.
+- Backend B handles FULL/SELECTIVE Restore, verified FK/ID rebind, transaction/rollback, restore operation identity/receipts and TEST-only source/target checks. Backend A handles exporter/portable source category schema, sealed artifact integrity and authenticated original source-member roster.
+- Contract request `docs/coordination/requests/BACKEND_B_RESTORE_CONTRACT_REQUEST_20261118.md` awaiting Architecture/Backend A acknowledgment. No production restore authorization; HTTP423/BETA HOLD.
