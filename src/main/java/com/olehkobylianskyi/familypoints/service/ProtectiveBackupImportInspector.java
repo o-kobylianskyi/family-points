@@ -33,6 +33,45 @@ public final class ProtectiveBackupImportInspector {
             String schemaVersion,List<String> availableCategories,
             Map<String,Integer> counts,boolean restorable,List<String> blockers) {}
 
+    /**
+     * IMP-01a: offline authenticated verification of the minimal v2 original
+     * member/role ancestry source slice. NO database, writer, owner proof or
+     * restore permission; the existing v1 inspect method is unchanged.
+     */
+    public record AncestryV2Inspection(UUID snapshotId,long sourceWorkspaceId,
+            long sourceEpoch,String manifestRootDigest,int roleCount,int memberCount,
+            boolean restorable) {}
+    public AncestryV2Inspection inspectAncestryV2(byte[] file,long sourceWorkspaceId,
+                                                  SecretKey key) {
+        if(sourceWorkspaceId<=0)
+            throw new SecurityException("PORTABLE_V2_SOURCE_SCOPE_INVALID");
+        var artifact=files.decode(file);
+        var manifest=artifact.manifest();
+        if(manifest.workspaceId()!=sourceWorkspaceId
+                ||!PortableManifestRootV2.SCHEMA.equals(manifest.schemaVersion()))
+            throw new SecurityException("PORTABLE_V2_ARCHIVE_SCOPE_OR_VERSION");
+        byte[] plaintext=codec.open(artifact,manifest.snapshotId(),sourceWorkspaceId,key);
+        try {
+            JsonNode parsed=json.readTree(plaintext);
+            if(!(parsed instanceof com.fasterxml.jackson.databind.node.ObjectNode root))
+                throw new SecurityException("PORTABLE_V2_ROOT_OBJECT_REQUIRED");
+            var proof=PortableMemberAncestryV2.verify(root,sourceWorkspaceId,
+                    manifest.snapshotId(),manifest.dataEpoch());
+            if(!java.security.MessageDigest.isEqual(
+                    proof.sourceDigest().getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+                    manifest.sourceDigest().getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
+                throw new SecurityException("PORTABLE_V2_SOURCE_DIGEST_MISMATCH");
+            return new AncestryV2Inspection(manifest.snapshotId(),sourceWorkspaceId,
+                    manifest.dataEpoch(),proof.manifestRootDigest(),
+                    root.path("categories").path("FAMILY_ROLES").size(),
+                    root.path("categories").path("FAMILY_MEMBERS").size(),false);
+        }catch(java.io.IOException invalid) {
+            throw new SecurityException("PORTABLE_V2_SOURCE_JSON_INVALID",invalid);
+        }finally {
+            Arrays.fill(plaintext,(byte)0);
+        }
+    }
+
     private static void checkParent(JsonNode categories,Map<String,Set<Long>> ids,
             Set<String> blockers,String child,String column,String parent) {
         if(!categories.has(child))return;
