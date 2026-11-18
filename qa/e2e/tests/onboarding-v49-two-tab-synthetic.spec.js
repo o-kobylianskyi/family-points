@@ -1,6 +1,11 @@
 import {readFileSync} from 'node:fs'
 import {test, expect} from '@playwright/test'
 
+// Playwright routing does not intercept requests handled by a Service Worker.
+// Disable service workers in these mocked tests so workspace write guards
+// and expected epoch/receipt routes cannot be bypassed by an active worker.
+test.use({ serviceWorkers: 'block' })
+
 // Only authentication uses QA. All scoped setup/epoch traffic is mocked.
 // This file never sends setup mutations to a real workspace.
 const username = process.env.FP_QA_USERNAME || process.env.FP_QA_EMAIL
