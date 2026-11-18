@@ -1220,3 +1220,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 CI syntax check for V49 Playwright fixtures
 - `frontend/scripts/check-v49-fixtures.mjs` @`3f36023d` finds onboarding-v49-*.spec.js and executes Node --check on each; fails if zero specs. `frontend/package.json` @`fe5b5ad1` prepends gate to `test:regression`, which Web CI already runs. Not yet observed executing on latest SHA, Chromium still NOT_RUN, BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 actual Web CI after V49 syntax gate
+- Independent decoded GitHub job logs: run 44260359035 (`fe5b5ad1`), Web job 134652011939, and run 44260568949 (`201c486f`), Web job 134652692877 both executed V49 syntax **6 fixtures PASS**, native Node **33 tests PASS/0 FAIL/0 SKIP**, i18n/lint/Vite SUCCESS, 3 lint warnings/0 errors. First is scoped only; second full run failed Backend Maven while Web passed. QA Chromium two-tab NOT_RUN, BETA HOLD.
