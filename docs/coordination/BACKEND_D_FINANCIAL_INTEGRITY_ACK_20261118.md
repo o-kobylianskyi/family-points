@@ -103,3 +103,40 @@ Source verifier: `src/test/java/com/olehkobylianskyi/familypoints/DisposableLedg
   - `mvn -Dtest=DisposableFinancialMappingParityTest,DisposableLedgerSourceGraphVerifierTest,DisposableSignedFinancialParityBridgeTest test`
   - `mvn -Dtest=DisposableFinancialLedgerPostgresParityTest,DisposableSignedFinancialPostgresParityTest,DisposableFinancialTenantIsolationPostgresTest test`
 - Gate: **FIN-09–11 COMMITTED; QA/CI UNVERIFIED; PRODUCTION RESTORE HOLD; BKL-002 RELEASE HOLD.**
+
+
+## FIN-12–FIN-14 — native-family gate and QA release evidence contract
+
+**Architect handoff, 2026-11-18**
+
+**FIN-12 + FIN-13:** commit `d243d127b39f151bcaf653775bf2a981c355b11c` introduces `DisposableFinancialNativeFamilyGatePostgresTest.java`, seven PostgreSQL 18/Testcontainers scenarios. This test **runs repository Flyway migrations** first, anchors target family identities to real `families(id)` and `families.data_epoch`, then uses isolated `qa_fin12_operation_claim` and `qa_fin12_financial_journal` tables. No production financial tables or native Restore executor are written.
+
+- Happy path: persisted financial history resolves to exact per-member/per-currency signed balance and individual ledger lineage after mapped IDs.
+- Atomicity: injected partial write aborts journal AND operation claim; clean retry produces one complete journal.
+- Idempotency: a repeated operation UUID is rejected; committed ledger history stays identical.
+- Epoch gate: stale family epoch prevents claim and financial writes.
+- Cross-family gate: another family cannot reuse a committed operation UUID; its journal remains untouched.
+- Concurrency: two submissions racing for the same operation ID may commit only one journal.
+- Financial fraud gate: compensating changes with identical net totals fail exact ledger parity.
+
+**FIN-14 acceptance evidence matrix (QA owners):**
+
+| Gate | Evidence needed | Current evidence |
+| --- | --- | --- |
+| Java test compilation | Maven compiler success at pinned SHA | NOT OBSERVED |
+| Pure signed V50 graph | `DisposableLedgerSourceGraphVerifierTest` PASS + XML | NOT OBSERVED |
+| Financial mapped parity | `DisposableFinancialMappingParityTest`, `DisposableSignedFinancialParityBridgeTest` PASS + XML | NOT OBSERVED |
+| Disposable PostgreSQL | `DisposableFinancialLedgerPostgresParityTest`, `DisposableSignedFinancialPostgresParityTest`, `DisposableFinancialTenantIsolationPostgresTest`, `DisposableFinancialNativeFamilyGatePostgresTest` PASS + Docker logs | NOT OBSERVED |
+| Backend B actual Restore | Signed source-to-target map, native financial journal, approvals, rollback, re-entrant replay | NOT PROVEN BY D'S QA FIXTURES |
+| Real family protection | QA authorization + test family only + invariant before/after other family | NOT PROVEN BY D'S QA FIXTURES |
+| Release | Architect + QA + owner explicit signoff | HOLD |
+
+Use this targeted Maven command when Docker/PostgreSQL Testcontainers is available:
+
+`mvn -Dtest=DisposableLedgerSourceGraphVerifierTest,DisposableFinancialMappingParityTest,DisposableSignedFinancialParityBridgeTest,DisposableFinancialLedgerPostgresParityTest,DisposableSignedFinancialPostgresParityTest,DisposableFinancialTenantIsolationPostgresTest,DisposableFinancialNativeFamilyGatePostgresTest test`
+
+Request a pinned SHA, surefire XML, full output for failures, and GitHub Actions check URL. The narrow test suite cannot prove the real Restore executor works; do not promote `FIN-12–14` from COMMITTED to PASS without executing it. Production financial Restore and BKL-002 beta release remain HOLD.
+
+**Dependency to Backend B:** publish an explicit contract for native financial ledger DB column names and ownership, one-to-one source-to-target mapping semantics by family/member/currency/task/purchase, epoch fencing, restore operation and idempotency, and disposable real-schema native Restore fixture. Backend D can then attach real journal acceptance without editing Backend B's transactional executor.
+
+**Next work:** evaluate test failures/CI for this precise SHA, fix regressions, then construct a native-ledger acceptance adapter only after Backend B publishes a stable owned contract.
