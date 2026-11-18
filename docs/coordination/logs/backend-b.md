@@ -11,3 +11,9 @@
 - Source-reviewed `WorkspacePortableBackupExporter` and `ProtectiveBackupImportInspector`, all 23 current portable categories, checked explicit original member/currency polymorphic parent blockers and RESTORE_ENGINE_NOT_IMPLEMENTED. Authenticated original FAMILY_MEMBERS still unavailable.
 - Committed `docs/coordination/requests/BACKEND_B_RESTORE_DEPENDENCY_MATRIX_20261118.md` @`99f5f812` with per-category owner, restore FK and selective closure graph, safe two-pass conceptual ordering, target conflict and parent omission policies, exact Backend A/Architecture/QA gates.
 - Appended formal request to A/Architecture; **NO** exporter/format change or real DB write. Next: B-B-02 PG18 target replay mapping and rollback tests after reviewing current consumer helpers; shared contract ACK remains pending, production restore HTTP423/BETA HOLD.
+
+## 2026-11-18 — B-B-02 two-DB Restore FK mapping and rollback
+- Implemented `DisposableTwoDatabaseRestoreGraphExecutor` test-only `c2921656`, `ee39aef7`, `36966d27`: selected source GROUP + two-level WORK_NODES source/target mapping against two independent PG18 DBs, original roster proof while source live, guarded target epoch/foreign IDs, ordered FK reconstruction in one target transaction.
+- Testcontainers `4c9cf1de`, `129e9648`: missing/foreign/duplicate parent, 3 failure-injection stages, rollback/retry, duplicate and concurrency exactly once, unrelated target family survival. No live data touched.
+- QA document `5e8f1a39`. Independent targeted PASS current SHA NOT_RUN; previous actual full CI #44265994374 at prior QA SHA 507 Maven PASS and four-component green. Production Restore blocked HTTP423.
+- ABCD role split consulted: C owner security grant, B target consumer transaction, D finance integrity, A portable source. New helper is deliberately not a C auth implementation.
