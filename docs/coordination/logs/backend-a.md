@@ -18,3 +18,11 @@
 - QA packet `docs/coordination/requests/B-A-04B_MEMBER_REFERENCE_CLOSURE_QA_20261118.md` @`3392121`.
 - Scope limitations: `TASK_EXECUTIONS.original_assigned_member_id` is optional but MUST be explicitly present in vNext; executor remains independent. The audited matrix is incomplete: account membership auth metadata excluded; member exception periods, other category polymorphic links, media and finance source types require D/B and Architecture review.
 - Existing full-run `44277446121` for earlier `3cbe37b` remains in progress; all new B-A-04b tests need separately pinned run. PROD importer/inspector/archive format unchanged. HTTP423/BETA HOLD.
+
+
+## 2026-11-18 — B-A-04c CI red repair and full original-member FK inventory
+- Explicit full CI SHA `32cff0f` Actions `44278301617` FAILED Java testCompile at `DisposablePortableMemberSourceCatalog.java:98` unknown variable `n`; actual Java Maven ran and red, while Web/Android/Compose passed. Corrected source with `b6c4669`, exact updated SHA CI still pending; do not assume PASS.
+- Repaired PG18 cross-family role negative fixture to respect production V28 trigger, then intentionally synthesize historical corruption only with disposable DB trigger temporarily disabled; fixture restores trigger in finally (`45c7ff9`).
+- Added source-only `MEMBER_EXCEPTION_PERIODS.member_id` to reviewed provenance matrix `e58300b`, PG schema nullability guard `3d14025`.
+- New `DisposablePortableMemberFkInventoryPostgresTest` `e29f276` and conservative evidence revision `be84906` query all PostgreSQL FK to `family_members`, assert required task/ledger/reward/exception source edges, print unreviewed edges; do not auto-authorize portable vNext fields.
+- QA packet `docs/coordination/requests/B-A-04C_CI_FIX_AND_MEMBER_FK_INVENTORY_QA_20261118.md` `b6e9ce7`. Next B-A-04d: CI results, more FK sources, Architecture version/privacy/IMP ACK; production importer and exporter unchanged, HTTP423/BETA HOLD.
