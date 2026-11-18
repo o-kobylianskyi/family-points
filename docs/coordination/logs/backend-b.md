@@ -27,3 +27,8 @@
 - New B-B-04 test-only mapped QA target FK writer `DisposableFinancialTargetRehearsal` @92b56372/31382da5, never writes real finance/history tables. Reconciles B-B-03 expected target balances against inserted mapped ledger sums, checks tenant and epoch, rejects duplicate apply.
 - New Testcontainers PG18 @349a2f3d/dbd59033: 4 QA-only FK tables with real family/member/currency parents, +3 test balance, late 3-stage rollback/retry, foreign IDs and mismatched source spend, race, neighbor isolation.
 - QA handoff `021467b6`, exact new SHA Maven NOT VERIFIED. Earlier known all-four #44266982944 514 PASS predates this B-B-04. TASK source_id original ID still **not native target TaskInstance remap**. ABCD owner boundaries unchanged; production HTTP423/BETA HOLD.
+
+## 2026-11-18 — B-B-05 TASK ledger execution ID remap
+- Source-checked production TaskInstance and repaired B-B-04 test-only task provenance hole: target QA execution inserted with FK to task + owner and new execution ID, TASK ledger now references that ID rather than archived numeric source. Commits `0cbe423a`, `101b5a94`.
+- PG18 `5b59ce64` + `4e3f1af3` physical FK test, after-execution failure rollback, absent original execution/definition fail closed, ledger remap and family isolation. Source→target mapping proof does not rely on numeric inequality. QA `261abb8d`; current exact SHA Maven unverified.
+- No production executor/REST/schema mutation; C actual auth, A archive family lineage, D finance closure still needed. Remains HTTP423/BETA HOLD.
