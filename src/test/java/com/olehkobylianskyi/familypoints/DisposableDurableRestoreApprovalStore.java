@@ -22,6 +22,45 @@ final class DisposableDurableRestoreApprovalStore {
         this.tx=new TransactionTemplate(Objects.requireNonNull(manager));
     }
 
+    /**
+     * A disposable financial write and authorization reservation in ONE
+     * PostgreSQL transaction. The SQL table exists only in the PG18 fixture.
+     * No production point ledger is written, and no real restore is exposed.
+     */
+    void consumeWithSyntheticFinancialWrite(DisposableRestoreApprovalGate.Permit permit,
+            long sourceFamily,long targetFamily,UUID snapshot,UUID operation,
+            long claimedActor,Instant now,Map<Long,Long> explicitMappings,
+            SecretKey reviewKey,long originalMember,int amount,
+            boolean injectFailureAfterFinancialWrite) {
+        tx.executeWithoutResult(status->{
+            Long lockedEpoch=db.queryForObject(
+                    "SELECT data_epoch FROM families WHERE id=? FOR UPDATE",
+                    Long.class,targetFamily);
+            if(lockedEpoch==null)
+                throw new SecurityException("RESTORE_APPROVAL_UNKNOWN_TARGET");
+            new DisposableRestoreApprovalGate().consume(permit,sourceFamily,
+                    targetFamily,snapshot,operation,claimedActor,lockedEpoch,
+                    now,explicitMappings,reviewKey);
+            if(!explicitMappings.containsKey(originalMember) || amount<=0)
+                throw new SecurityException("RESTORE_FINANCIAL_MAPPING_INVALID");
+            int inserted=db.update("""
+                    INSERT INTO qa_restore_approval_consumption
+                        (operation_id,source_family,target_family,snapshot_id,actor_id,target_epoch)
+                    VALUES (?,?,?,?,?,?)
+                    ON CONFLICT (operation_id) DO NOTHING
+                    """,operation,sourceFamily,targetFamily,snapshot,claimedActor,lockedEpoch);
+            if(inserted!=1)
+                throw new SecurityException("RESTORE_APPROVAL_ALREADY_CONSUMED");
+            db.update("""
+                    INSERT INTO qa_restore_financial_rehearsal
+                        (operation_id,target_family,target_member,amount)
+                    VALUES (?,?,?,?)
+                    """,operation,targetFamily,explicitMappings.get(originalMember),amount);
+            if(injectFailureAfterFinancialWrite)
+                throw new IllegalStateException("QA_INJECTED_FINANCIAL_ROLLBACK");
+        });
+    }
+
     void consume(DisposableRestoreApprovalGate.Permit permit,long sourceFamily,
             long targetFamily,UUID snapshot,UUID operation,long claimedActor,
             Instant now,Map<Long,Long> explicitMappings,SecretKey reviewKey,
