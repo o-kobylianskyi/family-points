@@ -1,0 +1,30 @@
+# Backend B / B-B-07 — Canonical Restore Plan and scoped synthetic consumption
+
+**Date 2026-11-18 CET · SOURCE READY, EXACT-SHA QA NOT VERIFIED · TEST ONLY.**
+No production controller, runtime Restore, Flyway, owner reauthentication or real family financial records were modified.
+
+## Source/code
+- `DisposableRestorePlanFingerprint.java` `11b5e115`, `ba500cac`, `2b30cba2`: strict typed plan with original sourceWorkspaceId, destination targetWorkspaceId, versioned schema marker (minimum vNext 2), immutable snapshot UUID, 64-hex sealed manifest digest, separate source and target data epochs, explicit injective original→target member ID map, bounded known category code/count/selected entries and FAIL_ON_CONFLICT policy.
+- Canonical hash SHA256 **domain separated** `FP-RESTORE-MEMBERS-V2` for sorted ID mappings and source/target/count; `FP-RESTORE-SELECTION-V2` for sorted category/row count/selected state and source+target/version/policy; `FP-RESTORE-PLAN-V2` binds both hashes, source/target, version/snapshot/manifest digest and both epochs. No UI name, email, raw member account credentials or JSON insertion order in canonical digest.
+- **Mandatory hidden original FAMILY_MEMBERS** source category for member-bound selections, and TASK_EXECUTIONS→TASK_DEFINITIONS, selected POINT_LEDGER/REWARD_PURCHASE/EXCHANGE/GROUP money→POINT_TYPES, plus mandatory parent category closure for task slots, reward obligations and blocks, exchange rate requests, member groups. Old V50 without original source identity is non-restorable, though its read-only inspection remains A's responsibility.
+- Integrates `WorkspaceDestructivePermitContract.Scope` **comparison only**: action RESTORE, operation, target workspace, snapshot/digest, selection digest, member mapping digest, target epoch, bounded issued/expires and exact issued/candidate matches. Matching C descriptor is **not proof of owner reauthentication/real issued grant**. The existing C descriptor does NOT currently carry sourceWorkspaceId/schemaVersion in its own immutable fields; source workspace provenance is carried inside B plan digest and A manifest assumption; B/C/Architecture must approve a revised shared DTO before production.
+- Pure JUnit `DisposableRestorePlanFingerprintTest` @`7155bc09`, `ca53ebfa`, `37eb3e05`: canonical map/category reordering equality, every protected dimension mutation changes planDigest, swapped same-role target member pair changes digest, scope wrong operation, RESET action, expiry, missing roster and source task/point parent categories, unknown/duplicate/negative categories, mapping injectivity and target-epoch overflow.
+- `DisposableRestorePlanTransactionGuard` @`e0a844f1`: **QA-only** PostgreSQL transaction locks target family data_epoch row first, verifies B plan against caller-supplied C scope descriptor, reserves one operation UUID via synthetic unique table, writes QA synthetic event, bumps target data_epoch and emits in-memory receipt, all same SQL transaction. Rollback after event means operation, event and epoch all revert; replay/reused operation and stale epochs denied. Does **not** query/consume C's real permit row or perform financial restore.
+- `DisposableRestorePlanTransactionGuardPostgresTest` @`c8b07703`, fixture `c0743997`: Testcontainers PostgreSQL18 with actual Flyway then QA-only operation/event tables, positive synthetic mutation, injected late rollback/fresh helper retry, wrong mapping/scope/expiry/action with zero side effects, 2-thread same-operation exactly one commit and neighbor workspace unchanged.
+
+## Independent QA commands
+Pin one newest immutable SHA, JDK21, Docker PostgreSQL 18:
+```powershell
+mvn -Dtest=DisposableRestorePlanFingerprintTest,DisposableRestorePlanTransactionGuardPostgresTest,DisposableTaskInstanceSnapshotValidatorTest,DisposableFinancialTargetRehearsalPostgresTest,DisposableRestoreFinancialDependencyPreflightTest,DisposableTwoDatabaseRestoreGraphPostgresTest test
+```
+Then full non-skipped four-component [full-ci] and 98+ Release tests on same exact SHA. Report actual commit SHA, Actions run ID, Maven counts tests/failures/errors/skips, Docker startup, first stack for failures; no assumption that [full-ci] label itself proves execution. Known prior red #44268695217 B global PK fixture; #44270256780 C V41 6 errors; #44271499224 FIN-09 testCompile. QA fixes require new exact SHA evidence.
+
+## Explicit limits
+- All plan category-row counts are **supplied test inputs**, not an authenticated counted manifest. Cryptographic validity and historical membership source identity need A signed vNext MVCC archive with original family+role catalog, tombstones and complete source FK closure; no passwords or provider IDs.
+- C must authorize real owner via reauth, issue and persist a one-use RESTORE grant. This test accepts **caller-supplied descriptors** so cannot authorize a real Restore, even if hash matches; no real C DB grant consumption. B requested C + Architecture decision on shared sourceWorkspaceId/schemaVersion and typed digests in `BACKEND_B_TO_C_RESTORE_PERMIT_CONSUMER_ACK_20261118.md`.
+- The plan enforces conservative category-level closure, **not** full per-row FK closure nor selective target-conflict preview: additional Finance D/refund/points exchange/media/group semantics and A source graph proof required.
+- The QA PG transaction writes only `qa_restore_plan_*` rows and increments data_epoch in a **disposable test family**, not production family. It does not atomically wrap the other separate B-B-06 financial rehearsal; this is a future integration blocker.
+- **No production unlock.** `restorable=false`, `replaySupported=false`, Reset Execute HTTP423, BETA HOLD.
+
+## Next B-B-08
+After QA exact-SHA result: implement cross-category per-row dependency-closure projection and typed source provenance digest versus A immutable manifest; link actual approved C permit consumption + D financial proof to ONE target transaction only after Architecture shared IMP and verified source owner identity.
