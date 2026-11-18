@@ -1276,3 +1276,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 package 28: pinned QA Chromium execution request
 - No new confirmed Web defect on five-case V49 source review. Issue #18 comment `6976230912` sent exact SHA `fb38f4d0`, command, isolated QA credential rules, outcome/traces requirement. Previous Web 37/37 Node + fixture syntax only; Chromium NOT_RUN. No source change; BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 package 30 zero React effect warnings
+- `c68e6115` backup list/details loading starts at initial state or user Refresh/Expand; `05dea312` setup V49 initial loading and Retry starts in user action, removes effect-time sync setState while keeping async stale-response guards. Exact Web CI #44290108759 @05dea312 confirms 37/37 Node, 6/6 V49 syntax, i18n/build PASS, oxlint 0 warnings / 0 errors. Five-case Chromium NOT_RUN; no reset/restore execution; BETA HOLD.
