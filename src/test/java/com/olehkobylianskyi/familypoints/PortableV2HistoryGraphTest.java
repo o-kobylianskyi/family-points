@@ -23,7 +23,9 @@ class PortableV2HistoryGraphTest {
                   "memberType":"PARENT","activeAtSnapshot":true,"deletedAtSnapshot":null}],
                 "POINT_TYPES":[{"id":31,"family_id":17}],
                 "TASK_DEFINITIONS":[{"id":41,"family_id":17,
-                  "reward_point_type_id":31,"penalty_point_type_id":null}],
+                  "reward_point_type_id":31,"penalty_point_type_id":null,
+                  "assigned_member_id":null,"created_by_member_id":null,
+                  "preferred_member_id":null,"responsible_member_id":null}],
                 "REWARD_DEFINITIONS":[{"id":51,"family_id":17,"point_type_id":31}],
                 "TASK_EXECUTIONS":[{"id":61,"member_id":21,"task_definition_id":41,
                   "original_assigned_member_id":null,"reward_point_type_id":31,
@@ -31,9 +33,9 @@ class PortableV2HistoryGraphTest {
                 "REWARD_PURCHASES":[{"id":71,"member_id":21,
                   "reward_definition_id":51,"point_type_id":31,"reward_request_id":null}],
                 "POINT_LEDGER":[
-                  {"id":81,"member_id":21,"point_type_id":31,"source_type":"TASK","source_id":61},
-                  {"id":82,"member_id":21,"point_type_id":31,"source_type":"REWARD_PURCHASE","source_id":71},
-                  {"id":83,"member_id":21,"point_type_id":31,"source_type":"MANUAL","source_id":null}
+                  {"id":81,"member_id":21,"point_type_id":31,"amount":5,"source_type":"TASK","source_id":61},
+                  {"id":82,"member_id":21,"point_type_id":31,"amount":-4,"source_type":"REWARD_PURCHASE","source_id":71},
+                  {"id":83,"member_id":21,"point_type_id":31,"amount":2,"source_type":"MANUAL","source_id":null}
                 ]
               },
               "manifestRootDigest":""
