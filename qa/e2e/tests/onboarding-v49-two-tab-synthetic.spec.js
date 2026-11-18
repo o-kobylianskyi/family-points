@@ -81,7 +81,8 @@ test('V49 two tabs: first lost finalize keeps original UUID; second tab never re
     }
     if(path.endsWith('/setup/finalize-import') && req.method()==='POST') {
       finalizeCount++
-      operation={id:req.headers()['idempotency-key'],workspaceId,codes:req.postDataJSON().selectedCatalogCodes}
+      operation={id:req.headers()['idempotency-key'],workspaceId,codes:req.postDataJSON().selectedCatalogCodes,
+        revision:req.postDataJSON().expectedRevision,epochHeader:req.headers()['x-workspace-data-epoch']}
       return route.abort('failed')
     }
     if(path.includes('/setup/finalize-import/receipts/') && req.method()==='GET') {
@@ -103,6 +104,8 @@ test('V49 two tabs: first lost finalize keeps original UUID; second tab never re
   await expect(second.getByRole('button',{name:ui.finalize})).toHaveCount(0)
   expect(finalizeCount).toBe(1)
   expect(operation?.id).toMatch(/^[0-9a-f-]{36}$/i)
+  expect(operation.revision).toBe(7)
+  expect(operation.epochHeader).toBe('0')
   // Receipt lookup of the SAME UUID is safe. A missing receipt must not
   // grant either tab permission to produce a new operation.
   await second.getByRole('button',{name:ui.receipt}).click()
@@ -156,7 +159,8 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
     }
     if(path.endsWith('/setup/finalize-import') && req.method()==='POST'){
       finalizeCount++
-      op={id:req.headers()['idempotency-key'],codes:req.postDataJSON().selectedCatalogCodes,workspaceId}
+      op={id:req.headers()['idempotency-key'],codes:req.postDataJSON().selectedCatalogCodes,workspaceId,
+        revision:req.postDataJSON().expectedRevision,epochHeader:req.headers()['x-workspace-data-epoch']}
       return route.abort('failed')
     }
     if(path.includes('/setup/finalize-import/receipts/') && req.method()==='GET'){
@@ -192,6 +196,8 @@ test('V49 two tabs: competing shared marker survives original receipt cleanup',a
   await first.getByRole('button',{name:ui.finalize}).click()
   await expect(first.getByText(ui.unknown)).toBeVisible()
   expect(finalizeCount).toBe(1)
+  expect(op?.revision).toBe(7)
+  expect(op?.epochHeader).toBe('0')
   await first.getByRole('button',{name:ui.receipt}).click()
   await expect.poll(()=>injectionDone).toBe(true)
   await expect.poll(()=>receiptCount).toBe(1)
