@@ -23,6 +23,10 @@ public final class WorkspaceOriginalOwnerEnrollmentService {
     public void enrollNewCreator(long workspaceId,long accountId,long memberId) {
         if(workspaceId<=0||accountId<=0||memberId<=0)
             throw new SecurityException("RESTORE_OWNER_ENROLLMENT_SCOPE_INVALID");
+        // Never infer creation from age, administrator role or membership.
+        // The exact family/member must have been provisioned in this SAME
+        // physical transaction; any later legacy enrollment fails closed.
+        WorkspaceNewFamilyTransactionEvidence.consume(workspaceId,memberId);
         Long count=db.queryForObject("""
                 SELECT count(*) FROM families f
                 JOIN family_members m ON m.family_id=f.id AND m.id=?
