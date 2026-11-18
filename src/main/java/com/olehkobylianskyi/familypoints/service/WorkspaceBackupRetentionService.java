@@ -16,10 +16,13 @@ import java.util.*;
  * database row to serialize lease vs delete. This class never verifies a
  * backup or authorizes a reset/restore operation.
  *
- * Filesystem deletion cannot participate in SQL rollback. If commit fails
- * after a physical deletion, a later sweep detects the missing file and
- * expires the registry; a restore always checks the actual file and digest.
- * Use only an independently approved single-worker run after testing.
+ * Retention is intentionally SQL-first. Marking EXPIRED is a durable revocation
+ * of restorable status; this service never unlinks ciphertext in the SQL
+ * transaction. Physical purge is deliberately disabled and requires a
+ * separately reviewed recovery-safe finalizer and release approval.
+ *
+ * SQL rollback therefore leaves BOTH registry state and ciphertext intact.
+ * Retries select only pre-expiry states; EXPIRED is terminal for leasing.
  */
 @Service
 public class WorkspaceBackupRetentionService {
@@ -79,8 +82,10 @@ public class WorkspaceBackupRetentionService {
     }
 
     /**
-     * Internal bounded cleanup invoked explicitly by an operator/coordinator.
-     * No scheduled auto-run; do not enable on production before recovery QA.
+     * Internal bounded expiry transition, not physical cleanup. This commits
+     * the non-restorable state before ANY future separately authorized unlink.
+     * Repeated calls are idempotent and distinct workers use SKIP LOCKED.
+     * No scheduled auto-run or physical purge is enabled.
      */
     @Transactional
     public int expireEligible(int maxRecords) {
@@ -114,8 +119,10 @@ public class WorkspaceBackupRetentionService {
                     throw new SecurityException("BACKUP_RETENTION_STORAGE_KEY_MISMATCH");
                 if(row.get("artifact_sha256")==null)
                     throw new SecurityException("BACKUP_RETENTION_MISSING_ARTIFACT_EVIDENCE");
-                // Physical deletion precedes SQL expiry and is idempotent.
-                store.deleteAuthorizedExpired(workspaceId,snapshotId);
+                // Fail closed on missing/tampered ciphertext BEFORE changing SQL.
+                // This is read-only; failed verification rolls the transaction back.
+                store.verifyStoredCiphertext(workspaceId,snapshotId,
+                        (String)row.get("artifact_sha256"));
             }
             int changed=db.update("""
                 UPDATE workspace_protective_backups SET state='EXPIRED',
@@ -132,4 +139,27 @@ public class WorkspaceBackupRetentionService {
         }
         return count;
     }
+
+    /**
+     * Read-only reconciliation for a future separate, explicitly authorized
+     * physical finalizer. Never unlinks bytes, never changes backup state.
+     * An EXPIRED row is not leaseable, even when its file is still retained.
+     */
+    @Transactional(readOnly=true)
+    public List<ExpiredArtifact> expiredArtifactInventory(int maxRecords) {
+        if(maxRecords<1 || maxRecords>100)
+            throw new IllegalArgumentException("INVALID_BACKUP_EXPIRY_LIMIT");
+        return db.query("""
+            SELECT workspace_id,snapshot_id,storage_key,artifact_sha256
+            FROM workspace_protective_backups
+            WHERE state='EXPIRED' AND storage_key IS NOT NULL
+            ORDER BY finished_at,id LIMIT ?
+            """,(rs,i)->new ExpiredArtifact(rs.getLong("workspace_id"),
+                    rs.getObject("snapshot_id",UUID.class),
+                    rs.getString("storage_key"),rs.getString("artifact_sha256")),
+                maxRecords);
+    }
+
+    public record ExpiredArtifact(long workspaceId,UUID snapshotId,
+                                  String storageKey,String artifactSha256) {}
 }
