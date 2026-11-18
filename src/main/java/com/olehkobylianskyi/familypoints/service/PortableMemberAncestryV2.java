@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -21,7 +20,6 @@ import java.util.*;
  * no parent pairs for ROLES. All data is later sealed by the FPB1 AES-GCM
  * codec. No external input can supply an unverified root digest.
  */
-@Component
 public final class PortableMemberAncestryV2 {
     private static final String CLOSURE_DOMAIN="family-points:portable:member-deps:v2";
     private static final ObjectMapper JSON=new ObjectMapper();
