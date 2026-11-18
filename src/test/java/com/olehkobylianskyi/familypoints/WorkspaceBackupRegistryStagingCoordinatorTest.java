@@ -107,13 +107,53 @@ class WorkspaceBackupRegistryStagingCoordinatorTest {
         verifyNoInteractions(registry,stage,storage);
     }
 
+    @Test void weakerOuterTransactionFailsBeforeRegistryOrFileWrites() throws Exception {
+        var registry=mock(WorkspaceProtectiveBackupService.class);
+        var stage=mock(WorkspaceBackupArtifactStagingService.class);
+        var storage=mock(WorkspaceBackupLocalArtifactStore.class);
+        var coordinator=new WorkspaceBackupRegistryStagingCoordinator(registry,stage,storage);
+        var generator=KeyGenerator.getInstance("AES");generator.init(256);
+        var request=new WorkspaceProtectiveBackupService.Request(
+                UUID.randomUUID(),"SELECTIVE",List.of("MEMBER_GROUPS"),"a".repeat(64),"V50");
+        beginSynchronization(java.sql.Connection.TRANSACTION_READ_COMMITTED);
+        try {
+            var rejected=assertThrows(IllegalStateException.class,()->coordinator.registerAndStage(
+                    7,3,request,0,generator.generateKey()));
+            assertEquals("BACKUP_SNAPSHOT_ISOLATION_REQUIRED",rejected.getMessage());
+            verifyNoInteractions(registry,stage,storage);
+        } finally {endSynchronization();}
+    }
+
+    @Test void unknownCallerIsolationFailsClosedBeforeRegistryOrFileWrites() throws Exception {
+        var registry=mock(WorkspaceProtectiveBackupService.class);
+        var stage=mock(WorkspaceBackupArtifactStagingService.class);
+        var storage=mock(WorkspaceBackupLocalArtifactStore.class);
+        var coordinator=new WorkspaceBackupRegistryStagingCoordinator(registry,stage,storage);
+        var generator=KeyGenerator.getInstance("AES");generator.init(256);
+        var request=new WorkspaceProtectiveBackupService.Request(
+                UUID.randomUUID(),"SELECTIVE",List.of("MEMBER_GROUPS"),"a".repeat(64),"V50");
+        beginSynchronization(null);
+        try {
+            var rejected=assertThrows(IllegalStateException.class,()->coordinator.registerAndStage(
+                    7,3,request,0,generator.generateKey()));
+            assertEquals("BACKUP_SNAPSHOT_ISOLATION_REQUIRED",rejected.getMessage());
+            verifyNoInteractions(registry,stage,storage);
+        } finally {endSynchronization();}
+    }
+
     private static void beginSynchronization() {
+        beginSynchronization(java.sql.Connection.TRANSACTION_REPEATABLE_READ);
+    }
+
+    private static void beginSynchronization(Integer isolation) {
         TransactionSynchronizationManager.setActualTransactionActive(true);
+        TransactionSynchronizationManager.setCurrentTransactionIsolationLevel(isolation);
         TransactionSynchronizationManager.initSynchronization();
     }
 
     private static void endSynchronization() {
         TransactionSynchronizationManager.clearSynchronization();
+        TransactionSynchronizationManager.setCurrentTransactionIsolationLevel(null);
         TransactionSynchronizationManager.setActualTransactionActive(false);
     }
 
