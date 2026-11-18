@@ -94,11 +94,24 @@ class DisposablePortableMemberSourceCatalogPostgresTest {
                 "VALUES (?,true,'PARENT','Parent') RETURNING id",Long.class,second);
         // Legacy FK family_role_id alone does not prove same-family ownership;
         // the future source capture must reject, not silently filter this row.
-        db.update("INSERT INTO family_members(family_id,family_role_id,member_type,name,active) " +
-                "VALUES (?,?,'PARENT','Mismatched',true)",first,foreignRole);
-        var reader=new DisposablePortableMemberSourceCatalog(db);
-        assertEquals("SOURCE_MEMBER_PROVENANCE_INVALID",
-                assertThrows(SecurityException.class,()->
-                        tx.execute(status->reader.capture(first))).getMessage());
+        // V28 protects ordinary SQL writes; first assert the production DB
+        // rejects cross-family role assignment before constructing source data.
+        assertThrows(org.springframework.dao.DataAccessException.class,()->
+                db.update("INSERT INTO family_members(family_id,family_role_id,member_type,name,active) " +
+                        "VALUES (?,?,'PARENT','Mismatched',true)",first,foreignRole));
+        // Rehearse a legacy/corrupted source database on disposable PG18 only.
+        // Such rows must not be silently omitted by the portable producer.
+        db.execute("ALTER TABLE family_members DISABLE TRIGGER trg_workspace_member_role");
+        try {
+            db.update("INSERT INTO family_members(family_id,family_role_id,member_type,name,active) " +
+                    "VALUES (?,?,'PARENT','Mismatched',true)",first,foreignRole);
+            var reader=new DisposablePortableMemberSourceCatalog(db);
+            assertEquals("SOURCE_MEMBER_PROVENANCE_INVALID",
+                    assertThrows(SecurityException.class,()->
+                            tx.execute(status->reader.capture(first))).getMessage());
+        } finally {
+            db.execute("DELETE FROM family_members WHERE family_id="+first);
+            db.execute("ALTER TABLE family_members ENABLE TRIGGER trg_workspace_member_role");
+        }
     }
 }
