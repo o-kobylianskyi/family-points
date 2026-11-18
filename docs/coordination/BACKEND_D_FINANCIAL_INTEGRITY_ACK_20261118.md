@@ -52,3 +52,11 @@ Source verifier: `src/test/java/com/olehkobylianskyi/familypoints/DisposableLedg
 - Backend B continues to own transactional Restore and PostgreSQL rollback tests. This fixture does not mutate DB, is not plugged into production API, and cannot unlock financial restore.
 - **Evidence limitation:** GitHub commit-status and workflow-run lookups for `a634809` returned no entries. JUnit/Maven execution has **not** been observed; do not mark FIN-04 PASS before actual pinned SHA CI.
 - QA handoff: execute `./mvnw -Dtest=DisposableFinancialMappingParityTest test` where Maven wrapper is available, or `mvn -Dtest=DisposableFinancialMappingParityTest test`; capture JUnit XML, SHA and CI URL, then incorporate mapped-ledger parity in disposable PostgreSQL Restore rehearsal.
+
+## FIN-05 checkpoint — 2026-11-18
+
+- Commit `f676ab07f5ca12541eddd699bdbcce4bec3a6ace` adds six tests for deterministic repeat reconciliation, duplicate post-retry ledger entry, partial target snapshot, modified transaction type, swapped ID mappings and missing categories.
+- Fixed null mapping categories to reject with explicit SecurityException rather than an accidental List.of NPE.
+- This is read-only snapshot checking, **not** a PostgreSQL rollback test. Backend B owns PostgreSQL transactional Restore test coverage (e.g. `c5a3b44054cc02999cb286c02417767c1f286908`). No destructive operations performed.
+- **Tests/CI have not been verified.** Targeted execution: `mvn -Dtest=DisposableFinancialMappingParityTest test`, capture pinned SHA and logs. Release remains HOLD.
+- Next FIN-06: signed source archive -> source-to-target mapping -> per-ledger financial reconciliation, pending explicit Backend B mapping contract.
