@@ -29,6 +29,7 @@ public final class WorkspaceRestorePermitService {
     private final PasswordEncoder passwords;
     private final WorkspaceRestorePasswordLimiter limiter;
     private final ProtectiveBackupImportInspector inspector;
+    private final WorkspaceRestoreCategorySelectionV2 selection;
     private final ProtectiveBackupPortableFile portable;
     private final ProtectiveBackupArtifactCodec codec;
     private final GoogleTokenVerifier google;
@@ -39,7 +40,7 @@ public final class WorkspaceRestorePermitService {
             ProtectiveBackupPortableFile portable,ProtectiveBackupArtifactCodec codec,
             GoogleTokenVerifier google) {
         this.db=db;this.epochs=epochs;this.passwords=passwords;
-        this.limiter=limiter;this.inspector=inspector;
+        this.limiter=limiter;this.inspector=inspector;this.selection=selection;
         this.portable=portable;this.codec=codec;this.google=google;
     }
 
@@ -220,6 +221,7 @@ public final class WorkspaceRestorePermitService {
             throw new SecurityException("RESTORE_AUTHENTICATED_ARCHIVE_MISMATCH");
         if(proof.verifiedCategoryCounts().size()!=8)
             throw new SecurityException("RESTORE_EIGHT_CATEGORY_SOURCE_REQUIRED");
+        selection.requireCanonical(scope,sourceFile,key);
         // The caller cannot supply an arbitrary selection hash: reconstruct
         // C's binary digest from authenticated source category bytes and the
         // target-epoch-specific bounded replay/preserve dispositions.
