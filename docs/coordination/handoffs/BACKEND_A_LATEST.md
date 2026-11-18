@@ -78,3 +78,11 @@ Source files reviewed:
 - QA packet `docs/coordination/requests/B-A-03D_STAGING_PROXY_ISOLATION_QA_20261118.md` commit `9782aa2`.
 - New CI exact-head acceptance **pending**; never infer PASS from source commits or prior SHA. RESTORE remains disabled, Reset Execute HTTP423, BETA HOLD. Archive FAMILY_MEMBERS source privacy contract awaits Architecture/Backend B ACK.
 - Next B-A-03e: resolve any CI regressions, inspect orphan-file reconciliation/direct authorized staging routes, then B-A-04 only after schema approval.
+
+
+## B-A-03e — 2026-11-18 partial file publication and stage readback compensation
+- Fixed physical orphan on local store partial-success path: `4f1afe5` deletes only files linked by the current failing call after publication; preexisting snapshots remain untouched.
+- Fixed storage-success/validation-failure staging path: `84a95df` deletes newly stored file after failed readback/SHA/manifest and keeps cleanup failure as suppressed on original exception.
+- Added two negative unit tests `2b716c7`; QA packet `docs/coordination/requests/B-A-03E_ORPHAN_COMPENSATION_QA_20261118.md` commit `3c00f4a`.
+- No test results are claimed for this exact source SHA until CI completes. Prior B-A-03d workflow `44268359058` reported SUCCESS. Crash/power-loss orphan reconciliation and operational cleanup metrics remain P0 gaps.
+- Next B-A-03f: physical file compensation and crash/restart orphan reconciliation rehearsal with disposable files, no live families. B-A-02 member archive still awaiting Architecture + Backend B ACK.
