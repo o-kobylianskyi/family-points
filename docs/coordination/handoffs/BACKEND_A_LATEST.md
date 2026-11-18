@@ -100,3 +100,14 @@ Source files reviewed:
 - `a1d47d1` / `28c389c`: negative registry SHA/malformed evidence and physical tamper tests; no auto deletion. QA packet: `docs/coordination/requests/B-A-03G_CIPHERTEXT_INTEGRITY_QA_20261118.md` commit `4c60f23`.
 - B-A-03f CI `44269230342` reported SUCCESS on exact SHA `1c41fc9`. This new packet remains CI unverified until Actions completes.
 - B-A-03h next: explicit operator-only, age/lease-aware reconciliation design and restart/race tests; never auto delete encrypted archives based solely on audit. FAMILY_MEMBERS format still awaiting Architecture and Backend B ACK. BETA HOLD / HTTP423 unchanged.
+
+
+## B-A-03h — 2026-11-18 large package: restart/lease/age guard and reverse audit
+- Verified prior B-A-03g exact-SHA `4f332030` workflow `44269850500` SUCCESS. This does not certify this newer packet.
+- `99ab374` extends no-follow encrypted archive inventory with last-modified timestamp (old fixture constructor preserved).
+- `f03404b`: explicit read-only `WorkspaceBackupReconciliationAssessmentService`. Requires 24h elapsed age before even marking orphan/temp **REVIEW_ONLY**; active restore lease, in-progress/expired registry, future/unknown timestamps, symlinks and unrecognized files all hold; every finding `deleteAuthorized=false`, no HTTP or automatic cleanup.
+- `4793875`: deterministic age/lease/tombstone/overflow and no-delete tests. `303a72c`: real Testcontainers PG18 + filesystem post-restart rehearsal with live lease, lease release, BACKING_UP and EXPIRED registry, orphan ciphertext and crash temp, cross-tenant invariants.
+- `5f2dcfd`: separate bounded reverse `WorkspaceBackupRegistryPresenceAuditService` to detect DB registry rows whose files are missing/invalid without decrypting; `d3b4e3e` tests missing/corrupt/malformed/oversized scans, read-only safety.
+- QA contract `docs/coordination/requests/B-A-03H_RESTART_LEASE_RECONCILIATION_QA_20261118.md`, updated in `b041939`. No file deletion, schema migration, production restore or reset execution.
+- **Pending:** current exact-SHA workflow green + PG18 job results, verification of concurrency on new audit, operator-approved physical cleanup procedure, source member archive B-A-02 Architecture+Backend B ACK.
+- **Next B-A-03i:** diagnose any test regressions and add concurrency/time-of-check audit negative cases with exact-SHA CI; once signed source format is approved, B-A-04 original member catalog/category closure. BETA HOLD, HTTP423 unchanged.
