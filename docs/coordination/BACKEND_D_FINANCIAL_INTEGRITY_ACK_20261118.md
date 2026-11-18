@@ -140,3 +140,6 @@ Request a pinned SHA, surefire XML, full output for failures, and GitHub Actions
 **Dependency to Backend B:** publish an explicit contract for native financial ledger DB column names and ownership, one-to-one source-to-target mapping semantics by family/member/currency/task/purchase, epoch fencing, restore operation and idempotency, and disposable real-schema native Restore fixture. Backend D can then attach real journal acceptance without editing Backend B's transactional executor.
 
 **Next work:** evaluate test failures/CI for this precise SHA, fix regressions, then construct a native-ledger acceptance adapter only after Backend B publishes a stable owned contract.
+
+
+**FIN-12 extension:** `22fb4ff137333246d500e3a6e01dbb898f971dd6` added two additional negative PostgreSQL cases: missing/non-existent family cannot claim or insert history; post-commit family epoch change cannot replay ledger mutation. **FIN-12/13 total: 9 added JUnit tests**, all awaiting Maven/CI verification. The QA-only table scheme and production Restore boundary remain unchanged.
