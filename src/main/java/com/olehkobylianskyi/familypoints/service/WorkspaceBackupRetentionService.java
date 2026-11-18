@@ -28,7 +28,7 @@ import java.util.*;
 public class WorkspaceBackupRetentionService {
     private final JdbcTemplate db;
     private final WorkspaceBackupLocalArtifactStore store;
-    private static final Set<String> DELETABLE=Set.of(
+    private static final Set<String> EXPIRABLE=Set.of(
             "REQUESTED","BACKING_UP","VERIFIED","FAILED","BLOCKED");
     public WorkspaceBackupRetentionService(JdbcTemplate db,
             WorkspaceBackupLocalArtifactStore store) {
@@ -112,7 +112,12 @@ public class WorkspaceBackupRetentionService {
             UUID snapshotId=(UUID)row.get("snapshot_id");
             String state=(String)row.get("state");
             String storageKey=(String)row.get("storage_key");
-            if(!DELETABLE.contains(state))continue;
+            if(!EXPIRABLE.contains(state))continue;
+            // A verified row without a scoped storage key is corrupted registry
+            // evidence, not an empty pending request. Never expire it silently.
+            if(storageKey==null && (row.get("artifact_sha256")!=null
+                    || "VERIFIED".equals(state)))
+                throw new SecurityException("BACKUP_RETENTION_INCOMPLETE_ARTIFACT_EVIDENCE");
             if(storageKey!=null) {
                 String expected="local:v1:"+workspaceId+"/"+snapshotId+".fpbackup";
                 if(!expected.equals(storageKey))
@@ -152,7 +157,7 @@ public class WorkspaceBackupRetentionService {
         return db.query("""
             SELECT workspace_id,snapshot_id,storage_key,artifact_sha256
             FROM workspace_protective_backups
-            WHERE state='EXPIRED' AND storage_key IS NOT NULL
+            WHERE state='EXPIRED'
             ORDER BY finished_at,id LIMIT ?
             """,(rs,i)->new ExpiredArtifact(rs.getLong("workspace_id"),
                     rs.getObject("snapshot_id",UUID.class),
@@ -177,7 +182,9 @@ public class WorkspaceBackupRetentionService {
             String expectedKey="local:v1:"+candidate.workspaceId()+"/"
                     +candidate.snapshotId()+".fpbackup";
             String status;
-            if(!expectedKey.equals(candidate.storageKey())) {
+            if(candidate.storageKey()==null) {
+                status="NO_ARTIFACT_KEY";
+            } else if(!expectedKey.equals(candidate.storageKey())) {
                 status="BLOCK_STORAGE_KEY";
             } else if(candidate.artifactSha256()==null
                     || !candidate.artifactSha256().matches("[0-9a-f]{64}")) {
