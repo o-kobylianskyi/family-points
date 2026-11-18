@@ -1280,3 +1280,7 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02 package 30 zero React effect warnings
 - `c68e6115` backup list/details loading starts at initial state or user Refresh/Expand; `05dea312` setup V49 initial loading and Retry starts in user action, removes effect-time sync setState while keeping async stale-response guards. Exact Web CI #44290108759 @05dea312 confirms 37/37 Node, 6/6 V49 syntax, i18n/build PASS, oxlint 0 warnings / 0 errors. Five-case Chromium NOT_RUN; no reset/restore execution; BETA HOLD.
+
+
+## 2026-11-18 — WEB-02 package 31 backup metadata remount identity
+- `26ab8520` aligns FamilyDataSafetyPlan wrapper key with child username fallback so username-only account switch remounts local backup state; backupApi already validates workspace scope. `2fdb3647` native test locks wrapper/request identity alignment. CI #44319556749 queued on first check; V49 Chromium five-case NOT_RUN, BETA HOLD.
