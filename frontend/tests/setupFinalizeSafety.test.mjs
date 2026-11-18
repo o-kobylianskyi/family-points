@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, assertSetupStepTransition, canChangeSetupStep, sameSetupFinalizeOperation, ownsSetupFinalizeMarkers, assertSetupCompletionAfterReceipt} from '../src/utils/setupFinalizeSafety.js'
+import {validSetupFinalizeOperation, assertSetupFinalizeReceipt, reconcileSetupPending, assertSetupState, assertSetupReview, SETUP_STEP_CODES, reconcileSetupStepAfterFailure, assertSetupStepTransition, canChangeSetupStep, sameSetupFinalizeOperation, ownsSetupFinalizeMarkers, canClearSetupFinalizeMarkers, assertSetupCompletionAfterReceipt} from '../src/utils/setupFinalizeSafety.js'
 
 const operation = () => ({
   accountId: 'account-A',workspaceId: 14,epoch: 3,revision: 7,
@@ -71,6 +71,24 @@ test('V49 staged finalize requires both exact tab and shared markers before POST
     assert.equal(ownsSetupFinalizeMarkers(competing, op, op), false)
   }
   assert.equal(ownsSetupFinalizeMarkers(op, op, {...op, codes:[]}), false)
+})
+
+test('V49 receipt marker cleanup requires current immutable ownership', () => {
+  const op = operation()
+  const other = {...op, operationId:'b489ea25-4e10-48ee-b8ea-7a9f4b2e3456'}
+  assert.equal(canClearSetupFinalizeMarkers(op, op, op), true)
+  assert.equal(canClearSetupFinalizeMarkers(op, null, op), true)
+  assert.equal(canClearSetupFinalizeMarkers(null, op, op), true)
+  // Both missing must not be mistaken for successful cleanup after a race.
+  assert.equal(canClearSetupFinalizeMarkers(null, null, op), false)
+  for (const competitor of [other, {...op, epoch:4}, {...op, revision:8},
+    {...op, codes:['REWARD_B','TASK_A']}, {...op, workspaceId:15},
+    {...op, accountId:'other'}, {blocked:true}]) {
+    assert.equal(canClearSetupFinalizeMarkers(op, competitor, op), false)
+    assert.equal(canClearSetupFinalizeMarkers(competitor, op, op), false)
+    assert.equal(canClearSetupFinalizeMarkers(null, competitor, op), false)
+  }
+  assert.equal(canClearSetupFinalizeMarkers(op, op, {...op, operationId:'invalid'}), false)
 })
 
 test('V49 state honors empty V46 steps but rejects malformed and prematurely completed wizard',()=>{
