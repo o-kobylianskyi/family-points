@@ -79,3 +79,8 @@
 - Actual `WorkspacePortableAncestryV2SourceLossPostgresTest` 1/1 PASS in same red run; manifest test 3/3 and A financial 9/9. Python independent vectors match.
 - Implemented validated original member/role ID publication from offline inspector @7952e376 and C canonical injective reviewed map digest @a8a4e3c2; source-loss PG18 test checks mapping parity and mismatched/injective rejections @a06d4d3e/@d9923bc7. No role/login/owner authorization, v2 ancestry still non-restorable.
 - One new pinned actual full CI request @89b0f8e1. Following stage blocked on exact SHA and full-category FK/TaskInstance/finance source closure; HTTP423/BETA HOLD.
+
+## 2026-11-18 — large real v2 history graph source implementation
+- New source graph @f0f01511, existing root @61fe594e, real MVCC exporter @fe9b4341; strictly bounded 6 historical categories with orphan/cross-family source denial @5ca806e7/@15996c9f/@796100ec. C verified SourceArchive binder @9bcff432.
+- Pure populated tests @93470dc2 and PG18 source-loss extension @deccc2b8/@f590f0ff; full exact SHA QA NOT VERIFIED. Baseline 749/749 @89b0f8e1 predates source changes. Full CI request @eaecbf4f.
+- Full 23+ and 17 unresolved member FKs remain, no production user auth/permit/native replay/receipts; HTTP423/BETA HOLD.
