@@ -58,4 +58,25 @@ class WorkspaceBackupLocalArtifactStoreTest {
                 ()->new WorkspaceBackupLocalArtifactStore(link.toString(),format)
                         .store(3L,id,encrypted));
     }
+    @Test void inventoryIsReadOnlyAndFindsCrashOrphanTempAndRegularArchive() throws Exception {
+        var format=new ProtectiveBackupPortableFile();
+        Path root=temp.resolve("inventory");
+        var store=new WorkspaceBackupLocalArtifactStore(root.toString(),format);
+        UUID id=UUID.randomUUID();
+        byte[] file=archive(73L,id);
+        store.store(73L,id,file);
+        Path folder=root.resolve("73");
+        Path orphan=folder.resolve(".upload-crash.tmp");
+        Files.write(orphan,new byte[]{1,2,3});
+        var items=store.inventory(73L,10);
+        assertEquals(2,items.size());
+        assertTrue(items.stream().anyMatch(e->id.equals(e.snapshotId()) &&
+                e.regularFile() && e.byteCount()==file.length));
+        assertTrue(items.stream().anyMatch(e->e.fileName().equals(".upload-crash.tmp") &&
+                e.snapshotId()==null));
+        assertThrows(IllegalStateException.class,()->store.inventory(73L,1));
+        assertTrue(Files.exists(orphan));
+        assertTrue(Files.exists(folder.resolve(id+".fpbackup")));
+    }
+
 }
