@@ -66,6 +66,14 @@ class DisposableDurableRestoreApprovalStorePostgresTest {
                     amount integer NOT NULL CHECK (amount>0)
                 )
                 """);
+        db.execute("""
+                CREATE TABLE IF NOT EXISTS qa_restore_reputation_rehearsal (
+                    operation_id uuid PRIMARY KEY,
+                    target_family bigint NOT NULL,
+                    target_member bigint NOT NULL,
+                    amount integer NOT NULL CHECK (amount>0)
+                )
+                """);
         long family=db.queryForObject(
                 "INSERT INTO families(name) VALUES (?) RETURNING id",
                 Long.class,"Approval target "+UUID.randomUUID());
@@ -79,6 +87,60 @@ class DisposableDurableRestoreApprovalStorePostgresTest {
                 17,family,snapshot,operation,7,0,ISSUED,ISSUED.plusSeconds(300),
                 Map.of(11L,41L,12L,42L),key);
         return new Setup(db,manager,family,key,snapshot,operation,permit);
+    }
+
+    @Test void eachMultiCategoryFailureStageRollsBackAllRowsAndRetrySucceeds()
+            throws Exception {
+        for(int failureStage=1;failureStage<=3;failureStage++) {
+            var a=setup();
+            var mapping=Map.of(11L,41L,12L,42L);
+            final int stage=failureStage;
+            assertThrows(IllegalStateException.class,()->a.store()
+                    .consumeWithTwoSyntheticCategories(a.permit(),17,a.family(),
+                            a.snapshot(),a.operation(),7,NOW,mapping,a.key(),
+                            11,12,5,3,stage));
+            assertEquals(0L,a.rows());
+            assertEquals(0L,a.db().queryForObject(
+                    "SELECT count(*) FROM qa_restore_financial_rehearsal WHERE operation_id=?",
+                    Long.class,a.operation()));
+            assertEquals(0L,a.db().queryForObject(
+                    "SELECT count(*) FROM qa_restore_reputation_rehearsal WHERE operation_id=?",
+                    Long.class,a.operation()));
+            a.store().consumeWithTwoSyntheticCategories(a.permit(),17,a.family(),
+                    a.snapshot(),a.operation(),7,NOW,mapping,a.key(),11,12,5,3,0);
+            assertEquals(1L,a.rows());
+            assertEquals(5,a.db().queryForObject(
+                    "SELECT amount FROM qa_restore_financial_rehearsal WHERE operation_id=?",
+                    Integer.class,a.operation()));
+            assertEquals(3,a.db().queryForObject(
+                    "SELECT amount FROM qa_restore_reputation_rehearsal WHERE operation_id=?",
+                    Integer.class,a.operation()));
+            assertThrows(SecurityException.class,()->a.store()
+                    .consumeWithTwoSyntheticCategories(a.permit(),17,a.family(),
+                            a.snapshot(),a.operation(),7,NOW,mapping,a.key(),
+                            11,12,5,3,0));
+        }
+    }
+
+    @Test void twoCategoriesCannotCommitForInvalidMemberOrStaleEpoch()
+            throws Exception {
+        var a=setup();
+        var mapping=Map.of(11L,41L,12L,42L);
+        assertThrows(SecurityException.class,()->a.store()
+                .consumeWithTwoSyntheticCategories(a.permit(),17,a.family(),
+                        a.snapshot(),a.operation(),7,NOW,mapping,a.key(),11,999,5,3,0));
+        assertEquals(0L,a.rows());
+        a.db().update("UPDATE families SET data_epoch=1 WHERE id=?",a.family());
+        assertThrows(SecurityException.class,()->a.store()
+                .consumeWithTwoSyntheticCategories(a.permit(),17,a.family(),
+                        a.snapshot(),a.operation(),7,NOW,mapping,a.key(),11,12,5,3,0));
+        assertEquals(0L,a.rows());
+        assertEquals(0L,a.db().queryForObject(
+                "SELECT count(*) FROM qa_restore_financial_rehearsal WHERE operation_id=?",
+                Long.class,a.operation()));
+        assertEquals(0L,a.db().queryForObject(
+                "SELECT count(*) FROM qa_restore_reputation_rehearsal WHERE operation_id=?",
+                Long.class,a.operation()));
     }
 
     @Test void financialMutationAndPermitReservationCommitOrRollBackTogether()
