@@ -31,6 +31,22 @@ final class DisposableFinancialTargetRehearsal {
             DisposableRestoreFinancialDependencyPreflight.Mapping maps,
             int failAfterStep) {
         var checked=preflight.verify(source,sourceFamily,maps);
+        // Strict vNext historical snapshot contract. Reject incomplete/legacy
+        // source rows, never rebuild status/date/economy from mutable definitions.
+        var snapshots=new TreeMap<Long,DisposableTaskInstanceSnapshotValidator.Snapshot>();
+        var uniqueSlots=new HashSet<String>();
+        for(JsonNode row:source.path("TASK_EXECUTIONS")) {
+            var historical=DisposableTaskInstanceSnapshotValidator.parse(
+                    row,maps.members(),maps.tasks(),maps.currencies());
+            if(snapshots.putIfAbsent(historical.sourceId(),historical)!=null)
+                throw new SecurityException("QA_FINANCE_DUPLICATE_EXECUTION");
+            String key=historical.sourceTask()+":"+historical.sourceMember()
+                    +":"+historical.scheduledDate()+":"+historical.slotKey();
+            if(!uniqueSlots.add(key))
+                throw new SecurityException("QA_FINANCE_DUPLICATE_HISTORIC_SLOT");
+        }
+        DisposableTaskInstanceSnapshotValidator.verifyLedgerEconomy(
+                source.path("POINT_LEDGER"),snapshots);
         return tx.execute(status->{
             var epochs=db.queryForList("SELECT data_epoch FROM families WHERE id=? FOR UPDATE",
                     Long.class,targetFamily);
@@ -68,17 +84,39 @@ final class DisposableFinancialTargetRehearsal {
             // *execution*, never the task definition. Allocate new target
             // execution IDs and preserve the complete old->new mapping.
             var executionIds=new TreeMap<Long,Long>();
-            for(JsonNode row:source.path("TASK_EXECUTIONS")) {
-                long original=id(row,"id");
+            for(var historical:snapshots.values()) {
                 Long newExecution=db.queryForObject("""
                     INSERT INTO qa_restore_executions(
-                        target_family,source_execution_id,member_id,task_id)
-                    VALUES (?,?,?,?) RETURNING id
-                    """,Long.class,targetFamily,original,
-                        maps.members().get(id(row,"member_id")),
-                        maps.tasks().get(id(row,"task_definition_id")));
+                        target_family,source_execution_id,member_id,task_id,
+                        original_assigned_member_id,scheduled_date,slot_key,
+                        title,description,mandatory,due_time,status,
+                        started_at,completed_at,reward_amount,reward_point_type_id,
+                        penalty_amount,penalty_point_type_id,
+                        reward_processed,penalty_processed)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id
+                    """,Long.class,targetFamily,historical.sourceId(),
+                        maps.members().get(historical.sourceMember()),
+                        maps.tasks().get(historical.sourceTask()),
+                        historical.originalAssignedMember()==null?null:
+                            maps.members().get(historical.originalAssignedMember()),
+                        java.sql.Date.valueOf(historical.scheduledDate()),
+                        historical.slotKey(),historical.title(),historical.description(),
+                        historical.mandatory(),
+                        historical.dueTime()==null?null:java.sql.Time.valueOf(historical.dueTime()),
+                        historical.status(),
+                        historical.startedAt()==null?null:
+                            java.sql.Timestamp.valueOf(historical.startedAt()),
+                        historical.completedAt()==null?null:
+                            java.sql.Timestamp.valueOf(historical.completedAt()),
+                        historical.rewardAmount(),
+                        historical.rewardPointType()==null?null:
+                            maps.currencies().get(historical.rewardPointType()),
+                        historical.penaltyAmount(),
+                        historical.penaltyPointType()==null?null:
+                            maps.currencies().get(historical.penaltyPointType()),
+                        historical.rewardProcessed(),historical.penaltyProcessed());
                 if(newExecution==null || newExecution<=0
-                        || executionIds.putIfAbsent(original,newExecution)!=null)
+                        || executionIds.putIfAbsent(historical.sourceId(),newExecution)!=null)
                     throw new SecurityException("QA_FINANCE_EXECUTION_REMAP_INVALID");
             }
             if(failAfterStep==2)throw new IllegalStateException("QA_FAIL_AFTER_EXECUTIONS");
