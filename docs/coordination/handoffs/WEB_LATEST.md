@@ -211,6 +211,8 @@
 - QA central Issue #18 last inspected independent browser status **NOT_RUN**, no isolated disposable workspace/credentials currently used. QA receives five-case acceptance now; no BETA/PROD/Test/Test2 writes. BKL-002/BETA HOLD.
 - Next: check latest exact-SHA Web CI steps and logs and wait for QA isolated Chromium (5 cases) before declaring browser acceptance; triage reproduced failures only.
 
+- **Actual post-write exact-SHA Web CI**: [run #44286921463](https://github.com/o-kobylianskyi/family-points/actions/runs/44286921463) for `fb38f4d094a632bf85d39f9f75ff495ff2696163`, Web job `134741937421` completed **SUCCESS**; decoded log: V49 fixture syntax **6 PASS**, native Node **37 PASS / 0 FAIL / 0 SKIP**, i18n/lint/Vite build SUCCESS, lint 3 warnings/0 errors. Scoped full all-four attestation SKIPPED. Five-case Chromium has still **NOT_RUN**. Supersedes queued checkpoint.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
