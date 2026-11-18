@@ -94,4 +94,57 @@ class DisposablePortableMemberReferenceClosureTest {
                 DisposablePortableMemberReferenceClosure.verify(catalog(),
                         Map.of("TASK_EXECUTIONS",rows))).getMessage());
     }
+    @Test void numericAliasingCannotSmuggleFractionalOrOverflowedSourceIdentity() {
+        for(Object malicious:List.of(7.9d,7.1f,java.math.BigDecimal.valueOf(7.01),
+                java.math.BigInteger.valueOf(Long.MAX_VALUE).add(java.math.BigInteger.ONE))) {
+            var input=Map.<String,List<? extends Map<String,?>>>of(
+                    "POINT_LEDGER",List.of(Map.of("member_id",malicious)));
+            assertEquals("SOURCE_MEMBER_EDGE_UNRESOLVED:POINT_LEDGER.member_id",
+                    assertThrows(SecurityException.class,()->
+                            DisposablePortableMemberReferenceClosure.verify(catalog(),input))
+                            .getMessage());
+        }
+    }
+
+    @Test void sourceRoleCodeMustBeUniqueAndMemberTypeSupported() {
+        var original=catalog();
+        var duplicateCodes=new DisposablePortableMemberSourceCatalog.Catalog(FAMILY,
+                List.of(new DisposablePortableMemberSourceCatalog.Role(5,FAMILY,"PARENT",true),
+                        new DisposablePortableMemberSourceCatalog.Role(6,FAMILY,"PARENT",false)),
+                original.members());
+        assertEquals("SOURCE_ROLE_GRAPH_INVALID",
+                assertThrows(SecurityException.class,()->
+                        DisposablePortableMemberReferenceClosure.verify(duplicateCodes,Map.of()))
+                        .getMessage());
+        var unsupported=new DisposablePortableMemberSourceCatalog.Catalog(FAMILY,original.roles(),
+                List.of(new DisposablePortableMemberSourceCatalog.Member(
+                        7,FAMILY,5,"UNRECOGNIZED",true,null)));
+        assertEquals("SOURCE_MEMBER_GRAPH_INVALID",
+                assertThrows(SecurityException.class,()->
+                        DisposablePortableMemberReferenceClosure.verify(unsupported,Map.of()))
+                        .getMessage());
+    }
+
+    @Test void memberCatalogCannotBeOversizedEvenWithNoSelectedCategory() {
+        var many=new ArrayList<DisposablePortableMemberSourceCatalog.Member>();
+        for(int id=1;id<=2001;id++)
+            many.add(new DisposablePortableMemberSourceCatalog.Member(
+                    id,FAMILY,5,"CHILD",false,null));
+        var roster=new DisposablePortableMemberSourceCatalog.Catalog(
+                FAMILY,catalog().roles(),many);
+        assertEquals("SOURCE_MEMBER_CATALOG_ROW_LIMIT",
+                assertThrows(IllegalStateException.class,()->
+                        DisposablePortableMemberReferenceClosure.verify(roster,Map.of())).getMessage());
+    }
+
+    @Test void memberExceptionPeriodsRequireOriginalSourceIdentity() {
+        assertDoesNotThrow(()->DisposablePortableMemberReferenceClosure.verify(catalog(),
+                Map.of("MEMBER_EXCEPTION_PERIODS",List.of(Map.of("member_id",8L)))));
+        assertEquals("SOURCE_MEMBER_EDGE_UNRESOLVED:MEMBER_EXCEPTION_PERIODS.member_id",
+                assertThrows(SecurityException.class,()->
+                        DisposablePortableMemberReferenceClosure.verify(catalog(),
+                                Map.of("MEMBER_EXCEPTION_PERIODS",
+                                        List.of(Map.of("member_id",12345L))))).getMessage());
+    }
+
 }
