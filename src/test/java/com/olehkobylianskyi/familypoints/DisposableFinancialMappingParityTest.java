@@ -50,6 +50,8 @@ class DisposableFinancialMappingParityTest {
         }
         Map<String,Long> balance = new TreeMap<>();
         Set<Long> seenSource = new HashSet<>();
+        Set<String> taskEvents = new HashSet<>();
+        Set<Long> purchaseCharges = new HashSet<>();
         for (Row original : source) {
             if (original == null || original.id <= 0 || original.member <= 0
                     || original.currency <= 0 || original.type == null
@@ -72,8 +74,15 @@ class DisposableFinancialMappingParityTest {
             if ("REWARD_PURCHASE".equals(original.sourceType)
                     && (original.amount >= 0 || !"SPEND".equals(original.type)))
                 throw new SecurityException("FIN_PURCHASE_ECONOMICS");
+            if ("TASK".equals(original.sourceType)
+                    && !taskEvents.add(original.sourceId + ":" + original.type))
+                throw new SecurityException("FIN_TASK_DUPLICATE_EVENT");
+            if ("REWARD_PURCHASE".equals(original.sourceType)
+                    && !purchaseCharges.add(original.sourceId))
+                throw new SecurityException("FIN_DUPLICATE_PURCHASE_CHARGE");
             Row actual = targetById.get(map(ids.ledger, original.id));
-            if (actual == null
+            if (actual == null || actual.member <= 0 || actual.currency <= 0
+                    || actual.type == null || actual.sourceType == null
                     || actual.member != map(ids.members,original.member)
                     || actual.currency != map(ids.currencies,original.currency)
                     || actual.amount != original.amount
@@ -181,6 +190,37 @@ class DisposableFinancialMappingParityTest {
         var absentTasks=new Mapping(mapping().ledger,mapping().members,mapping().currencies,
                 null,mapping().purchases);
         assertThrows(SecurityException.class,()->reconcile(source(),target(),absentTasks));
+    }
+
+    @Test void duplicateTaskEventCannotPassEvenWithDistinctLedgerRowIds() {
+        var from=List.of(source().get(0),
+                new Row(4,4,3,5,"EARN","TASK",42L),
+                source().get(1),source().get(2));
+        var to=List.of(target().get(0),
+                new Row(104,14,23,5,"EARN","TASK",142L),
+                target().get(1),target().get(2));
+        var ids=new Mapping(Map.of(1L,101L,4L,104L,2L,102L,3L,103L),
+                mapping().members,mapping().currencies,mapping().tasks,mapping().purchases);
+        assertThrows(SecurityException.class,()->reconcile(from,to,ids));
+    }
+
+    @Test void duplicatePurchaseDebitCannotPassEvenWithDifferentLedgerIds() {
+        var from=List.of(source().get(0),source().get(1),
+                new Row(4,4,3,-3,"SPEND","REWARD_PURCHASE",51L),source().get(2));
+        var to=List.of(target().get(0),target().get(1),
+                new Row(104,14,23,-3,"SPEND","REWARD_PURCHASE",151L),target().get(2));
+        var ids=new Mapping(Map.of(1L,101L,2L,102L,4L,104L,3L,103L),
+                mapping().members,mapping().currencies,mapping().tasks,mapping().purchases);
+        assertThrows(SecurityException.class,()->reconcile(from,to,ids));
+    }
+
+    @Test void nullTargetTransactionOrOriginIsRejectedWithoutNullPointer() {
+        var invalidType=List.of(new Row(101,14,23,5,null,"TASK",142L),
+                target().get(1),target().get(2));
+        assertThrows(SecurityException.class,()->reconcile(source(),invalidType,mapping()));
+        var invalidOrigin=List.of(new Row(101,14,23,5,"EARN",null,142L),
+                target().get(1),target().get(2));
+        assertThrows(SecurityException.class,()->reconcile(source(),invalidOrigin,mapping()));
     }
 
     @Test void unknownOriginAndMissingParentRemainFailClosed() {
