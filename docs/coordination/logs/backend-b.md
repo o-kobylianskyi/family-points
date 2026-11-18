@@ -42,3 +42,8 @@
 ## 2026-11-18 — B-B-06 producer consumer ACK and explicit full-ci
 - Conditional A consumer logical approval `e4f71887` based on A's actual B-A-02 member catalog proposal and Architecture review 02, with tombstone/private original family identity and full TaskInstance history source fields; not wire-format or migration approval.
 - C action RESTORE grant consumption contract conditional ACK `25d2b6cc` remains. QA pinned JDK21/PG18 + full four-component request `5e3420de` committed with workflow `[full-ci]` directive; cannot claim green until job/steps, counts and immutable SHA independently inspected.
+
+## 2026-11-18 — B-B-07 canonical Restore Plan + synthetic PG consumption
+- Added typed canonical SHA-256 separated digests `11b5e115`/`ba500cac`/`2b30cba2`, JUnit negatives `7155bc09`/`ca53ebfa`/`37eb3e05`; does not trust order of input maps/categories and rejects legacy without original signed `FAMILY_MEMBERS` selection.
+- Added B plan-vs-C immutable RESTORE scope comparison and one-target-PG18 QA operation/epoch transaction `e0a844f1`, `c8b07703`, `c0743997` with rollback, race and wrong action/expiry negatives. This is **not authenticated C grant issuance or consumption**; no real finance writes.
+- Formal QA packet `d435debf`, new exact-SHA CI not confirmed. A source signed member catalog, C owner proof/permit durable store and D finance attestations still independent blockers. Runtime Reset/Restore HTTP423/BETA HOLD unchanged.
