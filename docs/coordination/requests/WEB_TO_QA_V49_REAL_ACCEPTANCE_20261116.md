@@ -132,3 +132,7 @@ Run as synthetic fixtures at pinned exact SHA and report PASS/FAIL/SKIP separate
 
 ## WEB-02 3-case V49 two-tab Chromium packet (2026-11-18)
 - Test-only SHA `53538b27be078401bf7e9e10f58e55e9b6d27d66` adds third browser case: after lost finalize POST, GET original receipt is valid but during HTTP response both original session and shared markers disappear. Expected: retain unknown result, never show completion, original finalize POST count 1, GET same UUID, epoch=0/revision=7, both markers absent, no unexpected workspace mutations. Two prior cases (404 receipt, competing marker) remain. Fixture now **3 scenarios**; syntax V8 PASS; actual Chromium **NOT_RUN**. QA run only on selected isolated authenticated workspace; record 3 outcome classifications, sanitized trace and counts. BETA HOLD.
+
+
+## WEB-02 four-case V49 two-tab browser acceptance (2026-11-18)
+- New test-only `480f6730d99af20cb28841bf90f0d18dfc6c4fc2` adds **positive** case: valid completed original receipt after shared localStorage marker vanishes but original sessionStorage survives. Assert completed UI visible, unknown banner absent, both storage markers ultimately cleared, one original finalize POST, epoch/revision/UUID unchanged and no unexpected writes. This complements three denial cases (receipt 404, competing shared marker, both markers gone). Four cases ready for QA pinned authenticated isolated Chromium run, no browser PASS claimed. BKL-002/BETA HOLD; report outcomes separately and sanitized trace.
