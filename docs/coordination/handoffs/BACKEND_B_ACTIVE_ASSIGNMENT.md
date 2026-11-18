@@ -2,6 +2,19 @@
 
 **Assigned by Architecture:** 2026-11-18. **Single active Backend owner.** A/C/D are CLOSED. Read [dispatcher](../ARCHITECT_DISPATCH_LATEST.md), current Issue #15 directives and source code before acting. **The owner only sends `++`**; all instructions are here, no new pasted task required.
 
+## TIMEOUT / INTERRUPTED-TURN RECOVERY — MANDATORY BEFORE RESUMING B-INT-02
+
+**On every new `++`, especially after chat/tool timeouts, do NOT restart B-INT-02 from phase 1 by default.** Preserve a durable, compact progress checkpoint at [BACKEND_B_EXECUTION_CHECKPOINT.md](BACKEND_B_EXECUTION_CHECKPOINT.md) whenever you complete a meaningful atomic implementation batch. If interrupted in the middle of a tool call, the transaction/commit/result is UNKNOWN until inspected.
+
+1. Read this current task, [ARCHITECT_DISPATCH_LATEST.md](../ARCHITECT_DISPATCH_LATEST.md), the checkpoint file, latest Issue #15 blocker/ACKs and recent `main` commits. Re-fetch changed source/tests. Determine real HEAD, what's committed, what is uncommitted/unavailable, what actually passed/failed/not-run. If checkpoint is stale relative to `main`, source state wins.
+2. Build a **resume delta**: `DONE` (verified committed path/SHA), `IN_PROGRESS` (last confirmed smallest coherent slice), `NEXT` (single highest-priority unimplemented dependency), `BLOCKED` (exact contract/error), and known test evidence. Only implement **NEXT + remaining dependent items**, never reimplement `DONE`.
+3. Commit small independent units *within one large implementation pass* as soon as they are coherent, then update checkpoint with current source SHAs/test evidence. Do not generate an extra progress/doc-only commit after every source line or test; checkpoints are per meaningful batch, and at minimum before a known long high-risk step and at READY_FOR_QA.
+4. **Idempotency:** before retrying a timed-out GitHub write or CI trigger, query GitHub to see whether it already happened. A timed-out job does not mean failure; a write may have succeeded. Never create duplicate files/commits/workflows or repeat destructive operations blindly.
+5. If no usable checkpoint exists, reconstruct from Git commit history, source, migrations and tests; report uncertainty rather than guess. Don't claim a test passed without immutable run/SHA and actual execution. A conversation timeout cannot certify completion, and sending `++` alone does not keep code running while the chat is inactive.
+6. If work is sufficiently large to exceed one execution window, prioritize a durable minimum vertical increment to GitHub *first*, then keep moving through the preauthorized package. The package is still one coherent B-INT-02 functional goal, not separate Architecture approval cycles.
+
+Checkpoint must remain free of credentials/secrets, include next concrete source action, and identify overlapping ownership forbidden by Retention/Web. No production Restore, purge or rollout enablement.
+
 ## STATUS: IMPLEMENTATION / B-INT-02 — one autonomous large package
 
 **Outcome:** complete a bounded, genuinely end-to-end BKL-002 RESTORE-capable Backend path against disposable PostgreSQL18 and an independently verified encrypted source archive. The scope is large on purpose: **implement all coherent dependent pieces in one autonomous pass; then submit ONE READY_FOR_QA**. Do not stop after each module/commit for Architect or QA approval. Many independent atomic commits and cheap targeted build/test checks are encouraged.
