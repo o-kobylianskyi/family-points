@@ -200,3 +200,5 @@ Source files reviewed:
 - QA packet `docs/coordination/requests/B-A-04E_STRICT_SOURCE_ID_AND_EXCEPTION_CLOSURE_QA_20261118.md` @`2f8a971f`. No production source exporter/inspector/manifest/REST/SQL migration touched; no global auth identity export.
 - Note new member-exception-period ancestry is outside current v1 23-category export; vNext category/format explicit Architecture A4-01…09 + IMP and B/C/D/Release ACK remains OPEN. No guessing original ownership, no target account linking.
 - Exact-SHA CI for B-A-04e pending. NEXT B-A-04f: CI/test failures and category-by-category historical FK closure with B/D consumer acceptance; no Restore Execute, HTTP423, BETA HOLD.
+
+- B-A-04e full four-component same-SHA `[full-ci]` request commit `fc639206f8193a6f02c43ca7338f993107a9277e`, Actions run `44286446835` QUEUED at checkpoint. Do not claim PASS until actual Java Maven/PostgreSQL18 test steps, Android/Web/Compose, full attestation finish. Previous proven baseline remains `64f4cdea` run `44282865822` SUCCESS. Next B-A-04f after CI results and Architecture wire approval.
