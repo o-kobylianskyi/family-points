@@ -27,7 +27,9 @@ public final class PortableV2HistoryDataPolicy {
             "id_token","api_key","secret","credential","credentials",
             "provider_subject","provider_user_id","external_identity_id",
             "oauth_subject","session_id","session_token","jwt",
-            "account_id","user_id","ip_address","ip","device_id");
+            "account_id","user_id","ip_address","ip","device_id",
+            "authorization","proxy_authorization","cookie","set_cookie",
+            "private_key","client_secret","access_key","session_key");
     private static final int MAX_TEXT_BYTES=16_384;
     private static final int MAX_DEPTH=8;
     private static final int MAX_ARRAY_ITEMS=2_000;
@@ -64,7 +66,9 @@ public final class PortableV2HistoryDataPolicy {
                         ||normalized.endsWith("_password")
                         ||normalized.endsWith("_token")
                         ||normalized.endsWith("_secret")
-                        ||normalized.startsWith("oauth_"))
+                        ||normalized.startsWith("oauth_")
+                        ||normalized.endsWith("_private_key")
+                        ||normalized.endsWith("_api_key"))
                     throw new SecurityException("PORTABLE_V2_PRIVACY_FORBIDDEN_FIELD:"
                             +category+":"+field.getKey());
                 check(field.getValue(),category,depth+1);
