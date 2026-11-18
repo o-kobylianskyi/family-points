@@ -32,3 +32,9 @@
 - Source-checked production TaskInstance and repaired B-B-04 test-only task provenance hole: target QA execution inserted with FK to task + owner and new execution ID, TASK ledger now references that ID rather than archived numeric source. Commits `0cbe423a`, `101b5a94`.
 - PG18 `5b59ce64` + `4e3f1af3` physical FK test, after-execution failure rollback, absent original execution/definition fail closed, ledger remap and family isolation. Source→target mapping proof does not rely on numeric inequality. QA `261abb8d`; current exact SHA Maven unverified.
 - No production executor/REST/schema mutation; C actual auth, A archive family lineage, D finance closure still needed. Remains HTTP423/BETA HOLD.
+
+## 2026-11-18 — B-B-06 large batch historical TaskInstance + red CI ownership
+- QA issue #15 identified Backend B fixture global PK failures (572 tests, 1 FAIL + 1 ERROR) #44268695217. Added collision preflight `093f4ca6` and PG18 neighbor collision negative `2a07b90a`; per-family ID allocation already present; require exact new-SHA CI, no guessed green.
+- New source historic task validator `fd5dc71c`/`c35c8a5b`, target PG QA execution fields/unique slot `08fcfd83`, `b93222a1`, fixtures `7cbcff8c`, `5a36e161`, pure tests `2f2bdb52`, `d5d894aa`, `8f9068e6`: original-assignee/status/date/slot/claimed/start/finish/excuse/reward/penalty POINT+reputation and real TASK ledger amount/currency parity, reject missing metadata, duplicates, support reputation-only without invented point ledger.
+- Conditional B consumer ACK to C action-scoped owner permit `25d2b6cc`, request source workspace identity/versioned manifest/canonical mapping digest, C real owner proof+grant. QA formal packet `00d759ab`.
+- Everything TEST ONLY; no real family/history or Reset Execute touched. Current exact-SHA Maven unknown; HTTP423/BETA HOLD.
