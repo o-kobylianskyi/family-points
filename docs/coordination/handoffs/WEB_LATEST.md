@@ -142,6 +142,8 @@
 - [Exact run 44267020114](https://github.com/o-kobylianskyi/family-points/actions/runs/44267020114) was **queued** at check, so no new CI PASS claim. Earlier `44265548526` @ `ca875021` Web 6 fixture syntax + native Node 33/33, lint/i18n/build SUCCESS, predates change. QA owns final browser and real disposable family acceptance. **BKL-002/BETA HOLD.**
 - Next: verify new Web-scoped CI exact SHA and collect two-case actual Chromium traces with guarded zero other writes, original UUID and marker invariants. Do not request manual tests from user outside QA.
 
+- **Post-write exact-SHA Web CI verified**: [run 44267020114](https://github.com/o-kobylianskyi/family-points/actions/runs/44267020114) at `67aa36aa2ed82362e6b7c2df5f50f113fa724e3d`, Web job `134674108671`: actual logs show V49 syntax **6 fixtures PASS**, native Node **33 tests PASS / 0 fail / 0 skipped**, i18n/lint/Vite build **SUCCESS**, lint 3 warnings / 0 errors. Scoped run: four-component full attestation **SKIPPED**; no Chromium execution. Supersedes queued checkpoint above.
+
 ## Implemented vs verified
 - Implemented in source: seven-step V49 wizard, 142 catalog/6 packs, parent-gated review, durable original finalize UUID, GET-only recovery after lost replies, cross-tab mismatch blocking, no implicit writes; step epoch/revision protection.
 - Historic user-side Playwright evidence: 3/3 read-only synthetic and 2/2 finalize-recovery synthetic PASS, **not pinned to current HEAD**. Old screenshot reports Web node source 31/31 PASS on `758dfe4`, Vite PASS, lint 4 warnings/0 errors; **historic chat report, not rerun here**.
