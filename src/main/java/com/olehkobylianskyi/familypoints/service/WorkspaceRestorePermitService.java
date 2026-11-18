@@ -29,12 +29,16 @@ public final class WorkspaceRestorePermitService {
     private final PasswordEncoder passwords;
     private final WorkspaceRestorePasswordLimiter limiter;
     private final ProtectiveBackupImportInspector inspector;
+    private final ProtectiveBackupPortableFile portable;
+    private final ProtectiveBackupArtifactCodec codec;
 
     public WorkspaceRestorePermitService(JdbcTemplate db,
             WorkspaceEpochTransactionGuard epochs,PasswordEncoder passwords,
-            WorkspaceRestorePasswordLimiter limiter,ProtectiveBackupImportInspector inspector) {
+            WorkspaceRestorePasswordLimiter limiter,ProtectiveBackupImportInspector inspector,
+            ProtectiveBackupPortableFile portable,ProtectiveBackupArtifactCodec codec) {
         this.db=db;this.epochs=epochs;this.passwords=passwords;
         this.limiter=limiter;this.inspector=inspector;
+        this.portable=portable;this.codec=codec;
     }
 
     /**
@@ -139,6 +143,27 @@ public final class WorkspaceRestorePermitService {
             throw new SecurityException("RESTORE_AUTHENTICATED_ARCHIVE_MISMATCH");
         if(proof.verifiedCategoryCounts().size()!=8)
             throw new SecurityException("RESTORE_EIGHT_CATEGORY_SOURCE_REQUIRED");
+        // The caller cannot supply an arbitrary selection hash: reconstruct
+        // C's binary digest from authenticated source category bytes and the
+        // target-epoch-specific bounded replay/preserve dispositions.
+        var envelope=portable.decode(sourceFile);
+        byte[] plain=codec.open(envelope,scope.source().snapshotId(),
+                scope.source().sourceWorkspaceId(),key);
+        try {
+            var parsed=new com.fasterxml.jackson.databind.ObjectMapper().readTree(plain);
+            if(!(parsed instanceof com.fasterxml.jackson.databind.node.ObjectNode root))
+                throw new SecurityException("RESTORE_SELECTION_ROOT_NOT_OBJECT");
+            String selection=WorkspaceRestoreBoundedSelectionV2.fromVerifiedSource(
+                    root,scope.source().sourceWorkspaceId(),scope.source().snapshotId(),
+                    scope.source().sourceSnapshotEpoch(),scope.targetWorkspaceId(),
+                    scope.targetExpectedEpoch());
+            if(!digestEquals(selection,scope.selectionClosureDigest()))
+                throw new SecurityException("RESTORE_SELECTION_SCOPE_NOT_AUTHENTICATED");
+        } catch(java.io.IOException invalid) {
+            throw new SecurityException("RESTORE_SELECTION_JSON_INVALID",invalid);
+        } finally {
+            java.util.Arrays.fill(plain,(byte)0);
+        }
         String expected=proof.canonicalMappingDigestForReviewedIds(
                 scope.targetWorkspaceId(),reviewedMemberMap);
         if(!digestEquals(expected,scope.memberMappingDigest()))
