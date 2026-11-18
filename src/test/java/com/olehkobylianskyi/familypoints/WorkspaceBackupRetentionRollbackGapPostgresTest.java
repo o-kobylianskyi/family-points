@@ -150,6 +150,8 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
         assertEquals(0,tx.execute(status->retention.expireEligible(10)));
         assertEquals(1,retention.expiredArtifactInventory(10).stream()
                 .filter(row->id.equals(row.snapshotId())).count());
+        assertEquals("RETAINED_VALID",retention.inspectExpiredArtifacts(10).stream()
+                .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
         assertThrows(org.springframework.web.server.ResponseStatusException.class,
                 ()->tx.execute(status->retention.acquireVerifiedLease(
                         family,id,java.time.Duration.ofMinutes(5))));
