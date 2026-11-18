@@ -20,5 +20,7 @@ See [all-track measurement protocol](../CHAT_CAPACITY_OBSERVABILITY_20261116.md)
 
 | 2026-11-18 ~08:54 CET | Designer | DESIGNER-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 6fb90aa2e8160a617898529f4408acb7745e93e4 | CHECKPOINT | Full run #44196224270 Web/Android/Compose PASS but Maven 493 tests with two failures; newer V49 QA syntax gate source-only; Chromium NOT_RUN. |
 
+| 2026-11-18 (minute not measured) | Designer | DESIGNER-current | unknown | unknown | PARTIAL_VISIBLE | unknown | NONE | unknown | 565522c0db05c0d5b362907c132451c4ee93887c | CHECKPOINT | Verified two completed Actions: Web/Android/Compose green; backend 496 tests with one assertion failure at 8aed240a, Full gate red. Chromium two-tab unverified. |
+
 ## Rules
 After each substantial Designer work batch append one fact-based row and refresh [Designer latest handoff](../handoffs/DESIGNER_LATEST.md). Report actual user-observed hard-limit events without saving private transcript/screenshot. Never claim 50/75/85% or later thresholds without trustworthy measurement.
