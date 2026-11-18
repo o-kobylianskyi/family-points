@@ -23,8 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 class DisposableFinancialTenantIsolationPostgresTest {
     @Container
-    static final PostgreSQLContainer<?> POSTGRES =
-            new PostgreSQLContainer<>("postgres:18-alpine")
+    static final PostgreSQLContainer POSTGRES =
+            new PostgreSQLContainer("postgres:18-alpine")
                     .withDatabaseName("fin_isolation")
                     .withUsername("qa").withPassword("qa");
 
