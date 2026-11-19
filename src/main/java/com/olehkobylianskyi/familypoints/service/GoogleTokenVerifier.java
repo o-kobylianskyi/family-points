@@ -1,6 +1,7 @@
 package com.olehkobylianskyi.familypoints.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -20,6 +21,7 @@ public class GoogleTokenVerifier {
     private static final String PRODUCTION_GOOGLE_JWKS =
             "https://www.googleapis.com/oauth2/v3/certs";
 
+    @Autowired
     public GoogleTokenVerifier(@Value("${familypoints.google.client-id:}") String clientId) {
         this(clientId, PRODUCTION_GOOGLE_JWKS);
     }
