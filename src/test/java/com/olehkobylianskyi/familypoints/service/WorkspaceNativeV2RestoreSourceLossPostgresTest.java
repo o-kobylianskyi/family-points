@@ -33,7 +33,7 @@ class WorkspaceNativeV2RestoreSourceLossPostgresTest {
         assertNotNull(id);
         return id;
     }
-    @Test void sealedHistoryRestoresNativeFinancialsOnceAfterSourceDbLossAndRollsBackAtomically() {
+    @Test void sealedHistoryRestoresNativeFinancialsOnceAfterSourceDbLossAndRollsBackAtomically() throws Exception {
         try(var source=new PostgreSQLContainer("postgres:18-alpine")
                     .withDatabaseName("source_loss").withUsername("qa").withPassword("qa");
             var target=new PostgreSQLContainer("postgres:18-alpine")
