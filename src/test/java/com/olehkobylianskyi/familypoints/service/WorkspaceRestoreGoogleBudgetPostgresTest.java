@@ -73,7 +73,7 @@ class WorkspaceRestoreGoogleBudgetPostgresTest {
                         """,Long.class,family,role);
                 long accountId=db.queryForObject("""
                         INSERT INTO user_accounts(username,password_hash,enabled,family_member_id)
-                        VALUES (?,NULL,true,?) RETURNING id
+                        VALUES (?,'GOOGLE_ONLY_NO_LOCAL_PASSWORD',true,?) RETURNING id
                         """,Long.class,"qa_google_"+UUID.randomUUID(),memberId);
                 db.update("""
                         INSERT INTO account_workspace_memberships(
