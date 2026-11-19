@@ -27,6 +27,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       SPRING_PROFILES_ACTIVE: beta
+      # Dedicated backend-only persistent encrypted .fpbackup store; never exposed to Web.
+      FAMILYPOINTS_BACKUP_LOCAL_DIRECTORY: /var/lib/familypoints/backups
       FAMILYPOINTS_WEB_URL: ${FAMILYPOINTS_WEB_URL:-https://family-point.com}
       FAMILYPOINTS_GLOBAL_ACCOUNT_REGISTRATION_ENABLED: ${FAMILYPOINTS_GLOBAL_ACCOUNT_REGISTRATION_ENABLED:-false}
       FAMILYPOINTS_MEMBER_EMAIL_INVITATIONS_ENABLED: ${FAMILYPOINTS_MEMBER_EMAIL_INVITATIONS_ENABLED:-false}
@@ -42,6 +44,8 @@ services:
       FAMILYPOINTS_GOOGLE_REGISTRATION_ENABLED: ${FAMILYPOINTS_GOOGLE_REGISTRATION_ENABLED:-false}
       FAMILYPOINTS_GOOGLE_LINKING_ENABLED: ${FAMILYPOINTS_GOOGLE_LINKING_ENABLED:-false}
       FAMILYPOINTS_FIRST_FAMILY_ENABLED: ${FAMILYPOINTS_FIRST_FAMILY_ENABLED:-false}
+    volumes:
+      - beta_backup_artifacts:/var/lib/familypoints/backups
     depends_on:
       database:
         condition: service_healthy
@@ -64,6 +68,8 @@ services:
 
 volumes:
   beta_postgres:
+  # Independent lifecycle from PostgreSQL. Never run `docker compose down -v`.
+  beta_backup_artifacts:
 
 networks:
   internal:
