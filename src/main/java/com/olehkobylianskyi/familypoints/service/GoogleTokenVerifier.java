@@ -17,10 +17,20 @@ public class GoogleTokenVerifier {
     private final String clientId;
     private final JwtDecoder decoder;
 
+    private static final String PRODUCTION_GOOGLE_JWKS =
+            "https://www.googleapis.com/oauth2/v3/certs";
+
     public GoogleTokenVerifier(@Value("${familypoints.google.client-id:}") String clientId) {
+        this(clientId, PRODUCTION_GOOGLE_JWKS);
+    }
+
+    // Package-private for deterministic local RS256/JWKS security tests only.
+    // Production's public Spring constructor always uses the pinned Google URL;
+    // never accept a JWKS URL from a public request or environment variable.
+    GoogleTokenVerifier(String clientId, String jwksUri) {
         this.clientId = clientId;
         NimbusJwtDecoder verifier = NimbusJwtDecoder
-                .withJwkSetUri("https://www.googleapis.com/oauth2/v3/certs").build();
+                .withJwkSetUri(jwksUri).build();
         verifier.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
                 new JwtTimestampValidator(),
                 new JwtClaimValidator<String>("iss", value ->
