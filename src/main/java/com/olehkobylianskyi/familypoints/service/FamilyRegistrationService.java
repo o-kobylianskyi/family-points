@@ -19,15 +19,18 @@ public class FamilyRegistrationService {
     private final WorkspaceMemberRepository members;
     private final AccountWorkspaceMembershipRepository memberships;
     private final PasswordEncoder encoder;
+    private final WorkspaceOriginalOwnerEnrollmentService originalOwners;
 
     public FamilyRegistrationService(FamilyWorkspaceProvisioningService provisioning,
             UserAccountRepository accounts, WorkspaceMemberRepository members,
-            AccountWorkspaceMembershipRepository memberships, PasswordEncoder encoder) {
+            AccountWorkspaceMembershipRepository memberships, PasswordEncoder encoder,
+            WorkspaceOriginalOwnerEnrollmentService originalOwners) {
         this.provisioning = provisioning;
         this.accounts = accounts;
         this.members = members;
         this.memberships = memberships;
         this.encoder = encoder;
+        this.originalOwners=originalOwners;
     }
 
     public record CreatedFamily(Long accountId, Long workspaceId, Long memberId) {}
@@ -46,7 +49,8 @@ public class FamilyRegistrationService {
         var member = members.findByIdAndWorkspaceId(family.ownerMemberId(), family.workspaceId())
                 .orElseThrow();
         var account = accounts.save(new UserAccount(username, encoder.encode(password), member));
-        memberships.save(new AccountWorkspaceMembership(account, member));
+        memberships.saveAndFlush(new AccountWorkspaceMembership(account, member));
+        originalOwners.enrollNewCreator(family.workspaceId(),account.getId(),member.getId());
         return new CreatedFamily(account.getId(), family.workspaceId(), member.getId());
     }
 }
