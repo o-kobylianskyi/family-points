@@ -296,6 +296,56 @@ class WorkspaceNativeV2RestoreFinanceMatrixPostgresTest {
             assertEquals(1L,b.queryForObject(
                     "SELECT count(*) FROM workspace_restore_permits WHERE operation_id=?",
                     Long.class,scope.operationId()));
+            // Existing target business rows must fail without deleting or
+            // consuming the signed one-use RESTORE grant.
+            long conflicting=insert(b,"""
+                    INSERT INTO task_definitions(
+                      family_id,assigned_member_id,title,description,mandatory,
+                      delegation_allowed,recurrence_type,active,created_at,updated_at)
+                    VALUES (?,?,'Existing target','Do not overwrite',
+                            false,false,'ONCE',true,
+                            CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) RETURNING id
+                    """,targetFamily,targetMember);
+            assertThrows(RuntimeException.class,()->dstTx.execute(tx->
+                    nativeEngine.restore(scope,sealed,key,memberMap,currencyMap)));
+            assertEquals(1L,b.queryForObject(
+                    "SELECT count(*) FROM task_definitions WHERE id=? AND family_id=?",
+                    Long.class,conflicting,targetFamily));
+            assertEquals(0L,b.queryForObject(
+                    "SELECT count(*) FROM workspace_restore_permits WHERE operation_id=? AND consumed_at IS NOT NULL",
+                    Long.class,scope.operationId()));
+            b.update("DELETE FROM task_definitions WHERE id=?",conflicting);
+
+            // Source scope epoch=0 is immutable; changing target epoch must
+            // reject even when the archive and permit are otherwise valid.
+            b.update("UPDATE families SET data_epoch=1 WHERE id=?",targetFamily);
+            assertThrows(RuntimeException.class,()->dstTx.execute(tx->
+                    nativeEngine.restore(scope,sealed,key,memberMap,currencyMap)));
+            assertEquals(0L,b.queryForObject(
+                    "SELECT count(*) FROM workspace_restore_receipts WHERE target_workspace_id=?",
+                    Long.class,targetFamily));
+            b.update("UPDATE families SET data_epoch=0 WHERE id=?",targetFamily);
+
+            // Simulate actual DB clock expiry without waiting five minutes.
+            // The immutable caller scope is still current, but the persisted
+            // permit has expired and must not be consumed.
+            b.update("""
+                    UPDATE workspace_restore_permits
+                    SET issued_at=clock_timestamp()-interval '6 minutes',
+                        expires_at=clock_timestamp()-interval '2 minutes'
+                    WHERE operation_id=?
+                    """,scope.operationId());
+            assertThrows(RuntimeException.class,()->dstTx.execute(tx->
+                    nativeEngine.restore(scope,sealed,key,memberMap,currencyMap)));
+            assertEquals(0L,b.queryForObject(
+                    "SELECT count(*) FROM workspace_restore_permits WHERE operation_id=? AND consumed_at IS NOT NULL",
+                    Long.class,scope.operationId()));
+            b.update("""
+                    UPDATE workspace_restore_permits
+                    SET issued_at=?,expires_at=? WHERE operation_id=?
+                    """,java.sql.Timestamp.from(scope.issuedAt()),
+                    java.sql.Timestamp.from(scope.expiresAt()),scope.operationId());
+
             // A deliberate failure after native apply MUST roll back all
             // inserts, permit consumption, epoch AND receipt together.
             assertThrows(IllegalStateException.class,()->dstTx.execute(tx->{
