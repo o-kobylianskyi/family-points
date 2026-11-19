@@ -5,6 +5,7 @@ import com.olehkobylianskyi.familypoints.security.CurrentUserService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -131,7 +132,7 @@ public class WorkspaceRestorePermitService {
             actualLinked=linkedGoogleSubject(scope.authorizedOwnerAccountId());
             if(!actualLinked.equals(verified.getSubject()))
                 throw new SecurityException("RESTORE_GOOGLE_SUBJECT_NOT_LINKED");
-        } catch (SecurityException | IllegalArgumentException rejectedCredential) {
+        } catch (SecurityException | IllegalArgumentException | ResponseStatusException rejectedCredential) {
             limiter.recordFailure(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
             throw rejectedCredential;
         }
