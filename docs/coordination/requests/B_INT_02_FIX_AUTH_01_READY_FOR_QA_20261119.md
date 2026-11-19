@@ -1,0 +1,26 @@
+# B-INT-02-FIX-AUTH-01 — single frozen READY_FOR_QA_FIX handoff (2026-11-19)
+
+**Producer:** Backend B. **Status:** `B-INT-02-FIX_READY_FOR_QA`; NOT QA accepted or release eligible.
+**Review PR:** [Draft #36](https://github.com/o-kobylianskyi/family-points/pull/36), branch `backend-b/b-int-02-fix-auth-01`. **Frozen exact SHA:** `e487d909d59ef7f0637bf04e47f911a14395861e`. It was created from independently verified all-green QA combined PR #35 `7a7b17fca9937efcc4e74893082ceb25638a9657`, without modifying PR30/35, main source, Retention, Web, Archive schema, or Restore HTTP flags.
+
+## B-owned P1 fix
+The actual `WorkspaceRestorePermitService.issueGoogle` previously called `limiter.requireAvailable` but failed JWT signature/issuer/audience (`ResponseStatusException`), stale/future `iat`, missing or wrong linked Google `sub` without calling `limiter.recordFailure`. Now, only **authenticated current owner's rejected provider credential evidence** consumes one dedicated RESTORE attempt. The limiter uses existing Spring `REQUIRES_NEW` durable transaction; outer caller rollback cannot erase rejection; five failures in 15 minutes block attempt six. A verified credential clears the dedicated budget. Wrong principal, invalid scope, signed archive/epoch/operation failures are NOT counted as Google credential failures. Cryptographic verifier still rejects invalid tokens; no provider bypass, new auth API or migration was added.
+
+## Changed source & tests
+1. `src/main/java/com/olehkobylianskyi/familypoints/service/WorkspaceRestorePermitService.java` — production rejected-Google credential accounting (no changes to password path).
+2. `src/test/java/com/olehkobylianskyi/familypoints/service/WorkspaceRestoreGoogleBudgetTest.java` — 6 focused invalid JWT, iat, unlinked subject, unauthorized principal, expired scope, and post-auth archive error cases.
+3. `src/test/java/com/olehkobylianskyi/familypoints/service/WorkspaceRestoreGoogleBudgetPostgresTest.java` — one **actual disposable PG18 + real Spring @Transactional REQUIRES_NEW proxy** test repeatedly invoking production `issueGoogle` inside outer rollback: 5 persisted failures, 6th locked, workspace isolation and successful clear, no permit issued. Provider token is test-mocked for rejected credentials; no real Google login, network, secrets or live families.
+4. `src/test/java/com/olehkobylianskyi/familypoints/service/WorkspaceNativeV2RestoreSourceLossPostgresTest.java` — enlarged existing **two actual PG18** encrypted source-deleted native restore E2E: wrong decrypt key, ciphertext tamper, cross-family member mapping, mismatched point currency, deliberate rollback, **two simultaneous JDBC connections competing for same permit**, one committed success+receipt+epoch/ledger and other rejected, replay denied.
+
+## Exact-SHA CI evidence
+[GitHub Actions #4636](https://github.com/o-kobylianskyi/family-points/actions/runs/44494288784) exact `e487d909d59ef7f0637bf04e47f911a14395861e`: **all 7 real jobs SUCCESS**, Java 21 + PostgreSQL 18 Testcontainers **777 tests / 0 failures / 0 errors / 0 skipped; BUILD SUCCESS**, Web SUCCESS, Android SUCCESS, Compose SUCCESS, exact-SHA full attestation SUCCESS. New tests: `WorkspaceRestoreGoogleBudgetTest` **6/6 PASS**, `WorkspaceRestoreGoogleBudgetPostgresTest` **1/1 PASS**, `WorkspaceNativeV2RestoreSourceLossPostgresTest` **1/1 PASS**, Retention rollback gap **4/4 PASS**. Compiler/retry issues from previous runs #4633, #4634 were fixed before pinned CI; do not confuse those runs with final evidence.
+
+## Independent QA acceptance instructions
+- Freeze SHA `e487d909`, verify whole diff from green PR35 and only expected B-owned files. Preserve existing owner/tenant/action-scope boundaries and GoogleTokenVerifier issuer/aud/azp signature semantics.
+- Repeat focused tests with disposable PG18:
+  `./mvnw -Dtest=WorkspaceRestoreGoogleBudgetTest,WorkspaceRestoreGoogleBudgetPostgresTest,WorkspaceNativeV2RestoreSourceLossPostgresTest test`.
+- Audit the exact five-failure rollback resistant budget and sixth-lock, per-tenant separation, successful credential clears, provider-invalid/future/stale/unlinked subject, wrong authenticated principal not charged, signed archive/epoch deny not charged, race exactly one receipt and no duplicate ledger, wrong key/tamper/foreign member/wrong currency fail-closed.
+- **Still UNVERIFIED in this packet:** real signed Google JWK provider token success/negative audience/azp under a live provider (only synthetic unit-mocked invalid token + unchanged real verifier static source); fully populated **two-member × two-currency** signed native target replay/financial cross-product; other unsupported nonempty source graph cases beyond existing closure tests. QA should report those as independent gaps rather than inventing PASS. No production or user-family tests.
+- If genuine B-owned bug found, return ONE aggregate repro with exact SHA/first stack; architecture owns any follow-up reassignment. Do not assume green code equals full end-to-end product approval.
+
+**Safety:** PR remains Draft/unmerged. No production Restore HTTP route, no deletion/cleanup, `restorable=false`, `replaySupported=false`, Reset Execute HTTP423, physical purge OFF, BETA HOLD. Approval is for synthetic and independently QA-reviewed implementation only.
