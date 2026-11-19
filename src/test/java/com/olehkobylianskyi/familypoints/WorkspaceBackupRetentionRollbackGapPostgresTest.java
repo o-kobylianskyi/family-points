@@ -147,6 +147,15 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 "SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",
                 String.class,id));
         assertTrue(Files.isRegularFile(artifact),"Committed expiry never purges ciphertext");
+        // A process restart has no in-memory cleanup cursor to lose: the
+        // committed EXPIRED row remains inspectable and no sweep can unlink.
+        var restartedRetention=new WorkspaceBackupRetentionService(db,store);
+        assertEquals(0, (int)tx.execute(status->restartedRetention.expireEligible(10)));
+        assertEquals("RETAINED_VALID",
+                restartedRetention.inspectExpiredArtifactsForWorkspace(family,10)
+                        .stream().filter(row->id.equals(row.snapshotId()))
+                        .findFirst().orElseThrow().status());
+        assertTrue(Files.isRegularFile(artifact));
         assertEquals(0, (int)tx.execute(status->retention.expireEligible(10)));
         assertEquals(1,retention.expiredArtifactInventory(10).stream()
                 .filter(row->id.equals(row.snapshotId())).count());
@@ -166,14 +175,20 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 "local:v1:wrong/"+id+".fpbackup",id);
         assertEquals("BLOCK_STORAGE_KEY",retention.inspectExpiredArtifacts(10).stream()
                 .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
-        db.update("UPDATE workspace_protective_backups SET storage_key=NULL WHERE snapshot_id=?",id);
-        assertEquals("NO_ARTIFACT_KEY",retention.inspectExpiredArtifacts(10).stream()
+        // V51 CHECK is artifact-evidence based, not EXPIRED-state based:
+        // populated artifact_bytes/artifact_stored_at require storage_key.
+        // Nulling the key must fail even after terminal expiry.
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
+                ()->db.update(
+                        "UPDATE workspace_protective_backups SET storage_key=NULL WHERE snapshot_id=?",id));
+        assertEquals("BLOCK_STORAGE_KEY",retention.inspectExpiredArtifacts(10).stream()
                 .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
         db.update("UPDATE workspace_protective_backups SET storage_key=?,artifact_sha256=? WHERE snapshot_id=?",
                 "local:v1:"+family+"/"+id+".fpbackup","f".repeat(64),id);
         assertEquals("BLOCK_INTEGRITY_OR_MISSING",retention.inspectExpiredArtifacts(10).stream()
                 .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
-        db.update("UPDATE workspace_protective_backups SET artifact_sha256=NULL WHERE snapshot_id=?",id);
+        assertEquals(1,db.update(
+                "UPDATE workspace_protective_backups SET artifact_sha256=NULL WHERE snapshot_id=?",id));
         assertEquals("BLOCK_DIGEST",retention.inspectExpiredArtifacts(10).stream()
                 .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
         db.update("UPDATE workspace_protective_backups SET artifact_sha256=? WHERE snapshot_id=?",
@@ -292,13 +307,9 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 String.class,id));
         verify(storage).verifyStoredCiphertext(eq(family),eq(id),anyString());
         verify(storage,never()).deleteAuthorizedExpired(anyLong(),any());
-        // A keyless row with a non-null digest is corrupt evidence. It must not
-        // silently turn into EXPIRED just because the file cannot be resolved.
-        assertEquals(1,db.update(
-                "UPDATE workspace_protective_backups SET storage_key=NULL WHERE snapshot_id=?",id));
-        assertEquals("BACKUP_RETENTION_INCOMPLETE_ARTIFACT_EVIDENCE",
-                assertThrows(SecurityException.class,
-                        ()->tx.execute(status->retention.expireEligible(1))).getMessage());
+        // SQL CHECK already rejects partial evidence before retention sees it.
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
+                ()->db.update("UPDATE workspace_protective_backups SET storage_key=NULL WHERE snapshot_id=?",id));
         assertEquals("BACKING_UP",db.queryForObject(
                 "SELECT state FROM workspace_protective_backups WHERE snapshot_id=?",
                 String.class,id));
