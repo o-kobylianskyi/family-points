@@ -116,16 +116,27 @@ public class WorkspaceRestorePermitService {
                 ||scope.issuedAt().isBefore(now.minusSeconds(15))
                 ||scope.issuedAt().isAfter(now.plusSeconds(1)))
             throw new SecurityException("RESTORE_PERMIT_ISSUANCE_NOT_CURRENT");
-        // Real current owner proof, not a claimed Google subject.
+        // Owner/tenant authorization failures are NOT credential attempts.
+        // Only a verified owner's rejected Google credential proof contributes
+        // to the dedicated RESTORE budget. The limiter writes REQUIRES_NEW so
+        // an outer @Transactional rollback cannot erase a failed attempt.
         requireOwnerPasswordHash(scope);
-        var verified=google.verifiedToken(idToken);
-        if(verified.getIssuedAt()==null
-                ||verified.getIssuedAt().isAfter(now.plusSeconds(1))
-                ||verified.getIssuedAt().isBefore(now.minusSeconds(300)))
-            throw new SecurityException("RESTORE_GOOGLE_REAUTH_NOT_FRESH");
-        String actualLinked=linkedGoogleSubject(scope.authorizedOwnerAccountId());
-        if(!actualLinked.equals(verified.getSubject()))
-            throw new SecurityException("RESTORE_GOOGLE_SUBJECT_NOT_LINKED");
+        final String actualLinked;
+        try {
+            var verified=google.verifiedToken(idToken);
+            if(verified==null || verified.getIssuedAt()==null
+                    ||verified.getIssuedAt().isAfter(now.plusSeconds(1))
+                    ||verified.getIssuedAt().isBefore(now.minusSeconds(300)))
+                throw new SecurityException("RESTORE_GOOGLE_REAUTH_NOT_FRESH");
+            actualLinked=linkedGoogleSubject(scope.authorizedOwnerAccountId());
+            if(!actualLinked.equals(verified.getSubject()))
+                throw new SecurityException("RESTORE_GOOGLE_SUBJECT_NOT_LINKED");
+        } catch (SecurityException | IllegalArgumentException rejectedCredential) {
+            limiter.recordFailure(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
+            throw rejectedCredential;
+        }
+        // Successful reauth clears only its dedicated counter. A later
+        // archive/epoch/permit denial is unrelated to Google credentials.
         limiter.clearSuccess(scope.targetWorkspaceId(),scope.authorizedOwnerAccountId());
         verifiedSource(scope,sourceFile,key,reviewedMemberMap);
         epochs.requireCurrentEpoch(scope.targetWorkspaceId(),scope.targetExpectedEpoch());
