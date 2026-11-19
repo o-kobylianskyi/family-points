@@ -54,6 +54,7 @@ public final class PortableV2HistoryGraph {
     public static void capture(JdbcTemplate db,ObjectNode categories,long workspace) {
         if(categories==null||workspace<=0)
             throw new SecurityException("PORTABLE_V2_HISTORY_SCOPE_INVALID");
+        PortableV2SourceClosurePolicy.requireBoundedSource(db,workspace);
         // A member-scoped SELECT must not silently omit an execution whose
         // owning task belongs to this source workspace but whose assignee
         // points to another workspace, even on a historically damaged DB.

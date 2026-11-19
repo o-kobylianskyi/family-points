@@ -78,7 +78,7 @@ class PopulatedDatabaseUpgradeTest {
         }
 
         var migrationResult = flyway(false).migrate();
-        assertEquals(17, migrationResult.migrationsExecuted, "V36 through V52 must run during upgrade");
+        assertEquals(18, migrationResult.migrationsExecuted, "V36 through V53 must run during upgrade");
 
         try (Connection db = DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {
