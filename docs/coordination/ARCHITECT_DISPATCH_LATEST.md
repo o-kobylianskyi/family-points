@@ -2,6 +2,16 @@
 
 **Effective:** 2026-11-18 18:26 CET. **Authoritative control for live workstream activation and assignments.** Owner communicates primarily with Architecture; owner starts role chats by sending only `++`. GitHub is the durable coordination queue. The user need not copy technical assignments into chats.
 
+## LATEST ARCHITECT DISPATCH — 2026-11-19 / UNIFIED PR39 QA GREEN, FINAL BETA GATES
+
+**INTEGRATION QA ACCEPTED WITH SCOPE LIMIT:** [QA report #7007769906](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-7007769906), [Draft PR39](https://github.com/o-kobylianskyi/family-points/pull/39) source head `e6b65b85580a8fbb946853e03e8356b20abdef05`, actual GitHub test-merge SHA `9a79e25732d3e7fbe98bbadeb6f0ae29bedc65d0`. [CI #44513824449](https://github.com/o-kobylianskyi/family-points/actions/runs/44513824449) **all seven jobs SUCCESS, Maven Java21/Postgres18 794 tests/0F/0E/0S, Web, Android, Compose, full test-merge exact-SHA attestation SUCCESS**. 33-path diff verified, prior approved PR38 core + PR31/PR32 read-only tests included, Retention V51 fixture unchanged, WEB-02 existing frontend source maintained. The CI attests GitHub test-merge, **not literally branch-head**. No full-suite duplicate required. PR39 DRAFT/UNMERGED; BETA HOLD.
+
+**ACTIVATE TWO SAFE STREAMS IN PARALLEL, EACH `++`:**
+- **QA:** [QA active file](handoffs/QA_ACTIVE_ASSIGNMENT.md) — prepare and, where authorized disposable environment exists, perform final scoped **WEB-01/WEB-02 Chromium** account/family/role/permission transition tests, stale response race checks, plus locally cryptographic GoogleTokenVerifier JWK/aud/azp negative test plan or actual test. Clearly mark real Google provider E2E, unsupported nonempty source category/TTL residual UNVERIFIED unless executed; one `QA_BETA_FINAL_OPERATOR_MATRIX` and exact operator packet. Do not use live families or expose credentials.
+- **Release / DevOps:** [RELEASE_READINESS_ACTIVE_ASSIGNMENT.md](handoffs/RELEASE_READINESS_ACTIVE_ASSIGNMENT.md) — read-only actual Compose/env/flags/migrations/provenance/rollback/Android BETA artifact readiness audit; one `RELEASE_BETA_READINESS_AUDIT`. **NO deployment, merging, APK publishing, environment mutation or CI rerun.**
+
+**WAIT:** Backend B, Retention, Web, Android, Designer; A/C/D CLOSED. Only after QA+Release audit and approved operator proof may Architecture consider whether to mark PR39 ready, merge and/or schedule a new BETA. Explicitly decide **safe bounded BETA with executable Restore still disabled** versus separate future production Restore feature. `restorable=false`, `replaySupported=false`, Reset Execute HTTP423, physical retention purge OFF. No production Restore, Reset, physical deletion, merge, deploy or real-family test.
+
 ## LIVE ARCHITECT DISPATCH — 2026-11-19 / FIRST UNIFIED BKL-002 DRAFT PR39
 
 **QA P2 test gate CLOSED:** independent [QA PR38 report #7007356299](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-7007356299) verified source/test + real [CI #44505301209](https://github.com/o-kobylianskyi/family-points/actions/runs/44505301209), 778/778 PG18, 7/7 jobs, *nonidentity* source→target 2×2 member/currency/parent/event FK and ledger proof; no B product defect.
