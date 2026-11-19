@@ -43,9 +43,19 @@ def validate(compose):
     if mount.get("read_only") is True:
         raise AssertionError("Backend archive volume cannot be read-only")
     source = mount.get("source", "")
-    if not source.endswith("_" + ARCHIVE_VOLUME):
+    # Compose's normalized JSON may use the logical source key or the
+    # project-prefixed Docker resource name, depending on CLI version.
+    declared = compose.get("volumes", {})
+    if source == ARCHIVE_VOLUME:
+        exists = ARCHIVE_VOLUME in declared
+    else:
+        exists = source.endswith("_" + ARCHIVE_VOLUME) and any(
+            item.get("name") == source for item in declared.values()
+            if isinstance(item, dict)
+        )
+    if not (source == ARCHIVE_VOLUME or source.endswith("_" + ARCHIVE_VOLUME)):
         raise AssertionError("Archive mount must use dedicated named volume")
-    if source not in compose.get("volumes", {}):
+    if not exists:
         raise AssertionError("Named archive volume is not declared")
 
     for name, service in (("web", web), ("database", database)):
