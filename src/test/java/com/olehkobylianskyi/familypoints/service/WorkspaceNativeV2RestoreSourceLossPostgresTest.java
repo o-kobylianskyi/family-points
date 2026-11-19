@@ -183,6 +183,38 @@ class WorkspaceNativeV2RestoreSourceLossPostgresTest {
             var nativeEngine=new WorkspaceNativeV2RestoreEngine(
                     b,epoch,permit,inspector,portable,codec);
 
+            // Real native target negative checks, not just pure validator guards.
+            var incorrectKey=new SecretKeySpec(new byte[]{1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},"AES");
+            assertThrows(RuntimeException.class,()->dstTx.execute(tx->
+                    nativeEngine.restore(scope,sealed,incorrectKey,memberMap,currencyMap)));
+            byte[] tampered=sealed.clone();
+            tampered[tampered.length-1]^=0x01;
+            assertThrows(RuntimeException.class,()->dstTx.execute(tx->
+                    nativeEngine.restore(scope,tampered,key,memberMap,currencyMap)));
+            long otherFamily=insert(b,"INSERT INTO families(name) VALUES ('Foreign QA') RETURNING id");
+            long otherRole=insert(b,"""
+                    INSERT INTO family_roles(family_id,system_role,code,name)
+                    VALUES (?,true,'PARENT','Other') RETURNING id
+                    """,otherFamily);
+            long foreignMember=insert(b,"""
+                    INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
+                    VALUES (?,?,'PARENT','Other',true) RETURNING id
+                    """,otherFamily,otherRole);
+            assertThrows(RuntimeException.class,()->dstTx.execute(tx->
+                    nativeEngine.restore(scope,sealed,key,
+                            Map.of(sourceMember,foreignMember),currencyMap)));
+            long wrongCurrency=insert(b,"""
+                    INSERT INTO point_types(family_id,code,name,active,sort_order)
+                    VALUES (?,'DIFFERENT','Different',true,1) RETURNING id
+                    """,targetFamily);
+            assertThrows(RuntimeException.class,()->dstTx.execute(tx->
+                    nativeEngine.restore(scope,sealed,key,memberMap,
+                            Map.of(originalPoint,wrongCurrency))));
+            assertEquals(0L,b.queryForObject(
+                    "SELECT count(*) FROM workspace_restore_receipts WHERE target_workspace_id=?",
+                    Long.class,targetFamily));
+
             assertThrows(SecurityException.class,()->dstTx.execute(tx->{
                 permit.issuePassword(scope,sealed,key,memberMap,"wrong-password");
                 return null;
@@ -213,8 +245,42 @@ class WorkspaceNativeV2RestoreSourceLossPostgresTest {
             assertEquals(0L,b.queryForObject(
                     "SELECT count(*) FROM workspace_restore_permits WHERE operation_id=? AND consumed_at IS NOT NULL",
                     Long.class,scope.operationId()));
-            var result=dstTx.execute(tx->
-                    nativeEngine.restore(scope,sealed,key,memberMap,currencyMap));
+            // Two independent PG18 connections simultaneously attempt the
+            // same operation: family epoch fence + FOR UPDATE permit allow
+            // exactly ONE committed restore and receipt.
+            var executor=java.util.concurrent.Executors.newFixedThreadPool(2);
+            java.util.concurrent.CountDownLatch ready=new java.util.concurrent.CountDownLatch(2);
+            java.util.concurrent.CountDownLatch go=new java.util.concurrent.CountDownLatch(1);
+            WorkspaceNativeV2RestoreEngine.Result result;
+            try {
+                java.util.concurrent.Callable<WorkspaceNativeV2RestoreEngine.Result> writer=()->{
+                    ready.countDown();
+                    if(!go.await(10,java.util.concurrent.TimeUnit.SECONDS))
+                        throw new AssertionError("Writers not started together");
+                    return dstTx.execute(tx->nativeEngine.restore(
+                            scope,sealed,key,memberMap,currencyMap));
+                };
+                var first=executor.submit(writer);
+                var second=executor.submit(writer);
+                assertTrue(ready.await(10,java.util.concurrent.TimeUnit.SECONDS));
+                go.countDown();
+                var successes=new java.util.ArrayList<WorkspaceNativeV2RestoreEngine.Result>();
+                int rejected=0;
+                for(var future:java.util.List.of(first,second)) {
+                    try {
+                        successes.add(future.get(30,java.util.concurrent.TimeUnit.SECONDS));
+                    } catch(java.util.concurrent.ExecutionException denied) {
+                        assertTrue(denied.getCause() instanceof RuntimeException);
+                        rejected++;
+                    }
+                }
+                assertEquals(1,successes.size(),"Exactly one PG transaction may commit");
+                assertEquals(1,rejected,"The duplicate writer must fail closed");
+                result=successes.get(0);
+            } finally {
+                go.countDown();
+                executor.shutdownNow();
+            }
             assertNotNull(result);
             assertEquals(1,result.newEpoch());
             assertEquals(1,result.insertedCounts().get("TASK_EXECUTIONS"));
