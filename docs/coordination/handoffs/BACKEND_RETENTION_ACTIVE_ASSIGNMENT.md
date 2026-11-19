@@ -76,3 +76,23 @@
 - **Actual newer immutable PG18 evidence**: Backend B draft PR #31 [CI #44395020403](https://github.com/o-kobylianskyi/family-points/actions/runs/44395020403) at `bfa2f5dce8f6f02a5d43b1dff4a5d183f62b08aa`, Maven **772 tests, 1 failure, 0 errors, 0 skipped**. Single failing retention assertion `WorkspaceBackupRetentionRollbackGapPostgresTest.committedExpiryRetainsBytesAndRepeatedSweepCannotReissueLease`: expected `DataIntegrityViolationException` on `storage_key=NULL` but PG18 accepted the change for terminal `EXPIRED` state.
 - **Fixed only retention test source**: `a8181ba9b3b2980b0f7756384d3e1d431856cf90` now asserts the state-specific behavior: `EXPIRED` nullable `storage_key` is read-only classified `NO_ARTIFACT_KEY`, and `EXPIRED` null digest is read-only classified `BLOCK_DIGEST`; restores correct staged evidence for valid-case checks. Existing `BACKING_UP` guard against keyless partial evidence remains and expects SQL constraint rejection. No schema modifications.
 - **Status**: FIX_COMMITTED, NOT EXECUTED at corrected exact SHA. Request focused PG18 Testcontainers rerun (one package, not extra Full CI), then a combined integration candidate/QA acceptance coordinated by Architecture. No purge, no Restore Engine edits, no production activation.
+
+## RET-CHECK-03 source-corrected, focused execution still pending — 2026-11-19
+
+**Exact DDL inspected on `main`:** `V50__workspace_protective_backup_registry.sql` adds the general `ck_protective_backup_verified` invariant and `V51__backup_artifact_staging_evidence.sql` adds:
+
+```sql
+CHECK (
+  (artifact_sha256 IS NULL AND artifact_bytes IS NULL AND artifact_stored_at IS NULL)
+  OR
+  (artifact_sha256 ~ '^[0-9a-f]{64}$' AND artifact_bytes > 0
+   AND artifact_bytes <= 67140864 AND artifact_stored_at IS NOT NULL
+   AND encrypted = TRUE AND storage_key IS NOT NULL)
+)
+```
+
+This constraint is **not conditional on `state='EXPIRED'`**. With populated byte count/time and SHA, `storage_key=NULL` makes both branches FALSE and is rejected even for EXPIRED; with `artifact_sha256=NULL`, first branch FALSE but second UNKNOWN, and PostgreSQL CHECK accepts UNKNOWN. The prior two contradictory test expectations concerned different columns. Not evidence of nondeterministic PG behavior.
+
+**Single retention-only corrective test commit** `d61c87c795aa166f2871ea59df0233ee93dba928`: `WorkspaceBackupRetentionRollbackGapPostgresTest.committedExpiryRetainsBytesAndRepeatedSweepCannotReissueLease` now asserts exactly this hybrid: key NULL -> SQL `DataIntegrityViolationException` / `BLOCK_STORAGE_KEY` unchanged; digest NULL -> accepted / `BLOCK_DIGEST`; restore original digest -> `RETAINED_VALID`, bytes still on disk and EXPIRED cannot acquire lease. Distinct BACKING_UP incomplete key remains blocked. **Production code/DDL unchanged.**
+
+**Evidence status**: QA PR #34 previous run 770/0F/1E, not a PASS on this test blob. No disposable PG18 Maven/Testcontainers execution available from this stream; don't label `RET_CHECK_03_READY_FOR_QA` or quote targeted tests as passing until actual exact-SHA result is recorded. Target: `./mvnw -Dtest=WorkspaceBackupRetentionRollbackGapPostgresTest,WorkspaceBackupRetentionPostgresTest,WorkspaceBackupRegistryPresenceAuditServiceTest test`. Do not dispatch new Full CI before focused result per Architecture.
