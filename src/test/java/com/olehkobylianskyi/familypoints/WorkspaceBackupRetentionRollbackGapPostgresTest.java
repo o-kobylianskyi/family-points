@@ -175,11 +175,13 @@ class WorkspaceBackupRetentionRollbackGapPostgresTest {
                 "local:v1:wrong/"+id+".fpbackup",id);
         assertEquals("BLOCK_STORAGE_KEY",retention.inspectExpiredArtifacts(10).stream()
                 .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
-        // EXPIRED has already revoked restore eligibility. Its evidence can
-        // legitimately be incomplete, unlike a staged BACKING_UP artifact.
-        assertEquals(1,db.update(
-                "UPDATE workspace_protective_backups SET storage_key=NULL WHERE snapshot_id=?",id));
-        assertEquals("NO_ARTIFACT_KEY",retention.inspectExpiredArtifacts(10).stream()
+        // V51 CHECK is artifact-evidence based, not EXPIRED-state based:
+        // populated artifact_bytes/artifact_stored_at require storage_key.
+        // Nulling the key must fail even after terminal expiry.
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
+                ()->db.update(
+                        "UPDATE workspace_protective_backups SET storage_key=NULL WHERE snapshot_id=?",id));
+        assertEquals("BLOCK_STORAGE_KEY",retention.inspectExpiredArtifacts(10).stream()
                 .filter(row->id.equals(row.snapshotId())).findFirst().orElseThrow().status());
         db.update("UPDATE workspace_protective_backups SET storage_key=?,artifact_sha256=? WHERE snapshot_id=?",
                 "local:v1:"+family+"/"+id+".fpbackup","f".repeat(64),id);
