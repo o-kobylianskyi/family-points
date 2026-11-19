@@ -33,6 +33,9 @@ class WorkspaceNativeV2RestoreFinanceMatrixPostgresTest {
         assertNotNull(id);
         return id;
     }
+    private static long insertedId(JdbcTemplate db,String sql,Object... args) {
+        return insert(db,sql,args);
+    }
     @Test void twoMembersTwoCurrenciesSourceLossExactLedgerParityAndNegatives() throws Exception {
         try(var source=new PostgreSQLContainer("postgres:18-alpine")
                     .withDatabaseName("source_loss").withUsername("qa").withPassword("qa");
@@ -180,6 +183,62 @@ class WorkspaceNativeV2RestoreFinanceMatrixPostgresTest {
             assertEquals(8,proof.verifiedCategoryCounts().size());
             assertFalse(proof.restorable());
 
+            // Advance TARGET identity sequences using legitimate OTHER-family
+            // rows. Source and target DB sequences are independent, so without
+            // this padding matching numeric IDs could hide a broken remapper.
+            long paddingFamily=insert(b,
+                    "INSERT INTO families(name) VALUES ('Other-family ID padding') RETURNING id");
+            long paddingRole=insert(b,"""
+                    INSERT INTO family_roles(family_id,system_role,code,name)
+                    VALUES (?,true,'PARENT','Padding') RETURNING id
+                    """,paddingFamily);
+            long paddingMember=insert(b,"""
+                    INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
+                    VALUES (?,?,'PARENT','Padding',true) RETURNING id
+                    """,paddingFamily,paddingRole);
+            for(int pad=0;pad<4;pad++) {
+                insert(b,"""
+                    INSERT INTO family_members(family_id,family_role_id,member_type,name,active)
+                    VALUES (?,?,'CHILD','Other-family row',true) RETURNING id
+                    """,paddingFamily,paddingRole);
+                insert(b,"""
+                    INSERT INTO point_types(family_id,code,name,active,sort_order)
+                    VALUES (?,?,?,true,?) RETURNING id
+                    """,paddingFamily,"PADDING_"+pad,"Other-family",pad);
+            }
+            long paddingPoint=insert(b,"""
+                    INSERT INTO point_types(family_id,code,name,active,sort_order)
+                    VALUES (?,'PADDING_ORIGINAL','Other-family',true,20) RETURNING id
+                    """,paddingFamily);
+            long paddingTask=insert(b,"""
+                    INSERT INTO task_definitions(
+                      family_id,assigned_member_id,title,description,mandatory,
+                      delegation_allowed,recurrence_type,active,created_at,updated_at)
+                    VALUES (?,?,'Other-family task','Padding',false,false,'ONCE',true,
+                            CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) RETURNING id
+                    """,paddingFamily,paddingMember);
+            long paddingReward=insert(b,"""
+                    INSERT INTO reward_definitions(family_id,title,description,
+                      point_type_id,price_amount,active,created_at,updated_at)
+                    VALUES (?,'Other-family reward','Padding',?,1,true,
+                            CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) RETURNING id
+                    """,paddingFamily,paddingPoint);
+            insert(b,"""
+                    INSERT INTO task_instances(
+                      task_definition_id,member_id,original_assigned_member_id,
+                      scheduled_date,slot_key,title,description,mandatory,status,
+                      reward_processed,penalty_processed)
+                    VALUES (?,?,?,DATE '2026-11-11','default',
+                            'Other-family execution','Padding',false,'COMPLETED',true,false)
+                    RETURNING id
+                    """,paddingTask,paddingMember,paddingMember);
+            insert(b,"""
+                    INSERT INTO reward_purchases(reward_definition_id,member_id,
+                      reward_title,point_type_id,price_amount,status,purchased_at)
+                    VALUES (?,?,'Other-family purchase',?,1,'READY',CURRENT_TIMESTAMP)
+                    RETURNING id
+                    """,paddingReward,paddingMember,paddingPoint);
+
             long targetFamily=insert(b,"INSERT INTO families(name) VALUES ('Target') RETURNING id");
             long targetRole=insert(b,"""
                     INSERT INTO family_roles(family_id,system_role,code,name)
@@ -221,6 +280,20 @@ class WorkspaceNativeV2RestoreFinanceMatrixPostgresTest {
                     secondMember,secondTargetMember);
             var currencyMap=Map.of(originalPoint,targetPoint,
                     secondPoint,secondTargetPoint);
+            // Prove BOTH members and BOTH currencies really need nonidentity
+            // remapping rather than coincidentally preserving source row IDs.
+            assertNotEquals(sourceMember,targetMember);
+            assertNotEquals(secondMember,secondTargetMember);
+            assertNotEquals(originalPoint,targetPoint);
+            assertNotEquals(secondPoint,secondTargetPoint);
+            assertFalse(java.util.Set.of(sourceMember,secondMember)
+                    .contains(targetMember));
+            assertFalse(java.util.Set.of(sourceMember,secondMember)
+                    .contains(secondTargetMember));
+            assertFalse(java.util.Set.of(originalPoint,secondPoint)
+                    .contains(targetPoint));
+            assertFalse(java.util.Set.of(originalPoint,secondPoint)
+                    .contains(secondTargetPoint));
             var sourceArchive=proof.verifiedSourceArchiveV2();
             String mapping=proof.canonicalMappingDigestForReviewedIds(targetFamily,memberMap);
             var now=java.time.Instant.now();
@@ -425,6 +498,77 @@ class WorkspaceNativeV2RestoreFinanceMatrixPostgresTest {
             assertEquals(2L,b.queryForObject(
                     "SELECT count(*) FROM reward_definitions WHERE family_id=?",
                     Long.class,targetFamily));
+            // Verify native event FK *and* polymorphic ledger source_id
+            // now point to remapped TARGET rows, never source numeric IDs.
+            long restoredTask=insertedId(b,
+                    "SELECT id FROM task_definitions WHERE family_id=? AND title='Task'",
+                    targetFamily);
+            long restoredTask2=insertedId(b,
+                    "SELECT id FROM task_definitions WHERE family_id=? AND title='Second task'",
+                    targetFamily);
+            long restoredReward=insertedId(b,
+                    "SELECT id FROM reward_definitions WHERE family_id=? AND title='Reward'",
+                    targetFamily);
+            long restoredReward2=insertedId(b,
+                    "SELECT id FROM reward_definitions WHERE family_id=? AND title='Second reward'",
+                    targetFamily);
+            long restoredExecution=insertedId(b,
+                    "SELECT id FROM task_instances WHERE task_definition_id=? AND member_id=?",
+                    restoredTask,targetMember);
+            long restoredExecution2=insertedId(b,
+                    "SELECT id FROM task_instances WHERE task_definition_id=? AND member_id=?",
+                    restoredTask2,secondTargetMember);
+            long restoredPurchase=insertedId(b,
+                    "SELECT id FROM reward_purchases WHERE reward_definition_id=? AND member_id=?",
+                    restoredReward,targetMember);
+            long restoredPurchase2=insertedId(b,
+                    "SELECT id FROM reward_purchases WHERE reward_definition_id=? AND member_id=?",
+                    restoredReward2,secondTargetMember);
+            for(var pair:java.util.List.of(
+                    new long[]{sourceTask,restoredTask},new long[]{task2,restoredTask2},
+                    new long[]{sourceReward,restoredReward},new long[]{reward2,restoredReward2},
+                    new long[]{execution,restoredExecution},new long[]{execution2,restoredExecution2},
+                    new long[]{purchase,restoredPurchase},new long[]{purchase2,restoredPurchase2}))
+                assertNotEquals(pair[0],pair[1],"Real parent/source IDs must be remapped");
+            assertEquals(1L,b.queryForObject("""
+                    SELECT count(*) FROM point_transactions
+                    WHERE member_id=? AND point_type_id=?
+                      AND source_type='TASK' AND source_id=? AND amount=5
+                    """,Long.class,targetMember,targetPoint,restoredExecution));
+            assertEquals(1L,b.queryForObject("""
+                    SELECT count(*) FROM point_transactions
+                    WHERE member_id=? AND point_type_id=?
+                      AND source_type='TASK' AND source_id=? AND amount=9
+                    """,Long.class,secondTargetMember,secondTargetPoint,restoredExecution2));
+            assertEquals(1L,b.queryForObject("""
+                    SELECT count(*) FROM point_transactions
+                    WHERE member_id=? AND point_type_id=?
+                      AND source_type='REWARD_PURCHASE' AND source_id=? AND amount=-4
+                    """,Long.class,targetMember,targetPoint,restoredPurchase));
+            assertEquals(1L,b.queryForObject("""
+                    SELECT count(*) FROM point_transactions
+                    WHERE member_id=? AND point_type_id=?
+                      AND source_type='REWARD_PURCHASE' AND source_id=? AND amount=-11
+                    """,Long.class,secondTargetMember,secondTargetPoint,restoredPurchase2));
+            assertEquals(2L,b.queryForObject("""
+                    SELECT count(*) FROM task_instances i
+                    JOIN task_definitions d ON d.id=i.task_definition_id
+                    JOIN family_members m ON m.id=i.member_id
+                    WHERE d.family_id=? AND m.family_id=?
+                    """,Long.class,targetFamily,targetFamily));
+            assertEquals(2L,b.queryForObject("""
+                    SELECT count(*) FROM reward_purchases p
+                    JOIN reward_definitions d ON d.id=p.reward_definition_id
+                    JOIN family_members m ON m.id=p.member_id
+                    WHERE d.family_id=? AND m.family_id=?
+                    """,Long.class,targetFamily,targetFamily));
+            // Padding-family business rows must survive the target restore.
+            assertEquals(1L,b.queryForObject(
+                    "SELECT count(*) FROM task_definitions WHERE id=? AND family_id=?",
+                    Long.class,paddingTask,paddingFamily));
+            assertEquals(1L,b.queryForObject(
+                    "SELECT count(*) FROM reward_definitions WHERE id=? AND family_id=?",
+                    Long.class,paddingReward,paddingFamily));
             assertEquals(1L,b.queryForObject(
                     "SELECT count(*) FROM workspace_restore_receipts WHERE operation_id=?",
                     Long.class,scope.operationId()));
