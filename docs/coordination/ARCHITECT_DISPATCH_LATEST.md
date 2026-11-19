@@ -2,6 +2,16 @@
 
 **Effective:** 2026-11-18 18:26 CET. **Authoritative control for live workstream activation and assignments.** Owner communicates primarily with Architecture; owner starts role chats by sending only `++`. GitHub is the durable coordination queue. The user need not copy technical assignments into chats.
 
+## LATEST ARCHITECT DISPATCH — 2026-11-19 / FINAL COMBINED DRAFT PR42 CREATED, QA INTEGRATED CI NEXT
+
+**QA independently APPROVED two separate exact code/test packages:** [QA_SECURITY_STORAGE_40_41_REPORT #7016735755](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-7016735755), [PR41](https://github.com/o-kobylianskyi/family-points/pull/41) real local RSA/JWKS Nimbus production code path, wrong signer/kid/issuer/aud/azp/subject/time, signed unsupported populated source PG18, scope 5-min boundary; [PR40](https://github.com/o-kobylianskyi/family-points/pull/40) backend-only encrypted-artifact volume+property 10/10 effective Compose. Each separate exact CI 7/7 PASS. Does NOT certify unified candidate.
+
+**ARCHITECT CREATED [DRAFT PR42](https://github.com/o-kobylianskyi/family-points/pull/42):** pinned latest main `e724bd0e08bb250672dc56438b0497e534356bcb` → immutable source HEAD `023dc69752fd1467a36f0b4f45cf1e751879d5ab`; one atomic 42-path Git tree/commit: **33** approved native v2/finance/read-only PR39 paths + **4** accepted PR41 security path blobs + **5** approved PR40 Compose/CI/application-property/runbook files. GitHub independently verifies 42 changed paths, `draft=true`, initially mergeable true. Preserves current main Retention corrected fixture and frozen WEB-02 source; original PR39/40/41 unmerged and unchanged. **ONE combined CI for PR42 is required but no workflow run was visible at first check; PENDING until actual GitHub evidence.** Prior PR39 794/794, PR41 797/797, PR40 765/765 cannot be transferred to PR42.
+
+**NEXT OWNER ACTION: QA `++` ONLY** using [QA_ACTIVE_ASSIGNMENT](handoffs/QA_ACTIVE_ASSIGNMENT.md): independently inspect PR42 exact 42 paths, full Java21 PG18 F/E/S and critical class logs, web, Android, Compose storage 10-case negative tests, exact GitHub test-merge SHA attestation. If full CI absent, report pending; if red, one precise first stack and owner. If green, scoped QA acceptance — NOT release authorization. No blanket duplicate CI; use the automatically PR-triggered run.
+
+**All operator gates remain:** authorized disposable WEB-01/02 Chromium, local BETA PG17 Flyway V53 and DB+artifact isolated recovery, Docker UID10001 archival named volume write/permissions, signed APK and physical device, real externally Google-signed login if provider-backed Restore will become executable (currently NOT). `restorable=false`, `replaySupported=false`, Reset Execute HTTP423, physical purge OFF, **BETA HOLD**. No merge/deploy/host/environment change or real-family data operations. Backend B/Release/Web/Android/Retention WAIT until QA; A/C/D CLOSED.
+
 ## LATEST ARCHITECT DISPATCH — 2026-11-19 / SECURITY PR41 + STORAGE PR40 BOTH GREEN → QA
 
 **TWO INDEPENDENT IMPLEMENTATION PACKAGES DELIVERED, NOT YET INTEGRATED OR QA ACCEPTED:**
