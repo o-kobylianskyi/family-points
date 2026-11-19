@@ -13,14 +13,16 @@ class FamilyRegistrationServiceTest {
     private final WorkspaceMemberRepository members = mock(WorkspaceMemberRepository.class);
     private final AccountWorkspaceMembershipRepository links = mock(AccountWorkspaceMembershipRepository.class);
     private final PasswordEncoder encoder = mock(PasswordEncoder.class);
+    private final WorkspaceOriginalOwnerEnrollmentService owners =
+            mock(WorkspaceOriginalOwnerEnrollmentService.class);
     private final FamilyRegistrationService registration =
-            new FamilyRegistrationService(provisioning, accounts, members, links, encoder);
+            new FamilyRegistrationService(provisioning, accounts, members, links, encoder, owners);
 
     @Test
     void refusesWeakPasswordsWithoutWritingAnything() {
         assertThrows(ResponseStatusException.class,
                 () -> registration.register("someone", "short", "Household", "Parent"));
-        verifyNoInteractions(provisioning, accounts, members, links, encoder);
+        verifyNoInteractions(provisioning, accounts, members, links, encoder, owners);
     }
 
     @Test
@@ -28,20 +30,20 @@ class FamilyRegistrationServiceTest {
         when(accounts.existsByUsername("someone")).thenReturn(true);
         assertThrows(ResponseStatusException.class,
                 () -> registration.register("someone", "long-enough-password", "Household", "Parent"));
-        verifyNoInteractions(provisioning, members, links, encoder);
+        verifyNoInteractions(provisioning, members, links, encoder, owners);
     }
 
     @Test
     void refusesOversizedFamilyNameBeforeWriting() {
         assertThrows(ResponseStatusException.class,
                 () -> registration.register("someone", "long-enough-password", "x".repeat(101), "Parent"));
-        verifyNoInteractions(provisioning, accounts, members, links, encoder);
+        verifyNoInteractions(provisioning, accounts, members, links, encoder, owners);
     }
 
     @Test
     void refusesInvalidAccountNames() {
         assertThrows(ResponseStatusException.class,
                 () -> registration.register("bad username", "long-enough-password", "Household", "Parent"));
-        verifyNoInteractions(provisioning, accounts, members, links, encoder);
+        verifyNoInteractions(provisioning, accounts, members, links, encoder, owners);
     }
 }
