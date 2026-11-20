@@ -1,0 +1,137 @@
+name: Ephemeral PG17 and backup volume qualification
+
+on:
+  pull_request:
+    branches:
+      - architecture/bkl-002-final-candidate-20261119
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fp-ephemeral-pg17-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  pg17-flyway-dump-restore:
+    name: Ephemeral PostgreSQL 17 / V53 / real dump and empty restore
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.base.ref == 'architecture/bkl-002-final-candidate-20261119' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      TESTCONTAINERS_RYUK_DISABLED: 'false'
+    steps:
+      - name: Checkout exact immutable PR test-merge
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Source identity, distinct from PR head
+        shell: bash
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          echo "Tested GitHub PR merge SHA: $GITHUB_SHA"
+          echo "PR source HEAD: $PR_HEAD_SHA"
+          echo "Runner: $RUNNER_ENVIRONMENT; no production host or credentials"
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Confirm synthetic Docker engine
+        run: docker info --format '{{.ServerVersion}}'
+      - name: Real PG17 Flyway and independent empty PG17 restore
+        id: pg
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./mvnw
+          ./mvnw -B -ntp -Dtest=EphemeralPg17MigrationRestoreTest test
+      - name: Sanitize PG17 evidence
+        if: always()
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          TEST_RESULT: ${{ steps.pg.outcome }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          status = os.environ["TEST_RESULT"]
+          evidence = {
+              "gate": "PG17_V53_DUMP_RESTORE",
+              "result": "PASS" if status == "success" else "FAIL",
+              "executed": status in ("success", "failure"),
+              "testedSha": os.environ["GITHUB_SHA"],
+              "prHeadSha": os.environ["PR_HEAD_SHA"],
+              "runner": "github-hosted",
+              "source": "ephemeral synthetic data only",
+              "actualDatabaseRestored": status == "success",
+              "releaseApproved": False,
+              "deploymentExecuted": False
+          }
+          pathlib.Path("ephemeral-pg17-evidence.json").write_text(json.dumps(evidence, indent=2)+"\n")
+          PY
+      - name: Upload scrubbed qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ephemeral-pg17-evidence
+          path: |
+            ephemeral-pg17-evidence.json
+            target/surefire-reports/TEST-*EphemeralPg17MigrationRestoreTest.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+  archive-uid10001:
+    name: Ephemeral archive named-volume / UID 10001 / POSIX atomicity
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.base.ref == 'architecture/bkl-002-final-candidate-20261119' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify exact tested PR merge commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          echo "GitHub test-merge SHA=$GITHUB_SHA"
+      - name: Real new named-volume test without permission bypass
+        id: volume
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/test_ephemeral_pg17_volume.sh
+      - name: Record evidence with genuine RED on permission failures
+        if: always()
+        env:
+          RESULT: ${{ steps.volume.outcome }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          status = os.environ["RESULT"]
+          result = {
+              "gate": "EPHEMERAL_UID10001_VOLUME_ATOMICITY",
+              "result": "PASS" if status == "success" else "FAIL",
+              "executed": status in ("success", "failure"),
+              "testedSha": os.environ["GITHUB_SHA"],
+              "prHeadSha": os.environ["PR_HEAD_SHA"],
+              "runner": "github-hosted",
+              "permissionBypassApplied": False,
+              "releaseApproved": False,
+              "deploymentExecuted": False
+          }
+          pathlib.Path("ephemeral-volume-evidence.json").write_text(json.dumps(result, indent=2)+"\n")
+          PY
+      - name: Upload sanitized volume evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ephemeral-volume-evidence
+          path: ephemeral-volume-evidence.json
+          if-no-files-found: error
+          retention-days: 14
