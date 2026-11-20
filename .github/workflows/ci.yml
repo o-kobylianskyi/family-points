@@ -223,6 +223,9 @@ jobs:
       - name: Validate signed APK manifest and source-SHA guard regressions
         if: needs.changes.outputs.compose == 'true'
         run: python3 -m unittest discover -s scripts/android -p test_verify_release_manifest.py -v
+      - name: Assert LF checkout bytes for tracked shell scripts and CRLF-negative fixture
+        if: needs.changes.outputs.compose == 'true'
+        run: python3 -m unittest discover -s scripts/ci -p test_shell_lf_checkout.py -v
       - name: Parse Android publish and backup shell scripts
         if: needs.changes.outputs.compose == 'true'
         run: |
@@ -288,6 +291,10 @@ jobs:
           bash -n scripts/beta/smoke.sh
           bash -n scripts/beta/backup.sh
           test -f .env.beta.example
+
+      - name: Validate backend-only persistent encrypted archive volume (synthetic)
+        if: ${{ always() && needs.changes.outputs.compose == 'true' }}
+        run: python3 -m unittest discover -s scripts/beta -p test_archive_volume_config.py -v
 
   full-ci-attestation:
     name: Full CI / exact-SHA evidence
