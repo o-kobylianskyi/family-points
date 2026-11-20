@@ -18,14 +18,17 @@ public class AdditionalFamilyService {
     private final FamilyWorkspaceProvisioningService provisioning;
     private final WorkspaceMemberRepository members;
     private final AccountWorkspaceMembershipRepository memberships;
+    private final WorkspaceOriginalOwnerEnrollmentService originalOwners;
 
     public AdditionalFamilyService(CurrentUserService currentUser,
             FamilyWorkspaceProvisioningService provisioning,
-            WorkspaceMemberRepository members, AccountWorkspaceMembershipRepository memberships) {
+            WorkspaceMemberRepository members, AccountWorkspaceMembershipRepository memberships,
+            WorkspaceOriginalOwnerEnrollmentService originalOwners) {
         this.currentUser = currentUser;
         this.provisioning = provisioning;
         this.members = members;
         this.memberships = memberships;
+        this.originalOwners=originalOwners;
     }
 
     public record Created(Long workspaceId, Long memberId) {}
@@ -37,7 +40,8 @@ public class AdditionalFamilyService {
         var family = provisioning.provision(familyName, ownerName);
         var owner = members.findByIdAndWorkspaceId(family.ownerMemberId(), family.workspaceId())
                 .orElseThrow();
-        memberships.save(new AccountWorkspaceMembership(account, owner));
+        memberships.saveAndFlush(new AccountWorkspaceMembership(account, owner));
+        originalOwners.enrollNewCreator(family.workspaceId(),account.getId(),owner.getId());
         return new Created(family.workspaceId(), family.ownerMemberId());
     }
 }
