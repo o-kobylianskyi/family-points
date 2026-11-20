@@ -1,5 +1,15 @@
 # FamilyPoints — CURRENT ARCHITECT DISPATCH (read FIRST on every `++`)
 
+## CURRENT OVERRIDE — 2026-11-20 / QA PR44 INDEPENDENT ACCEPTANCE ACTIVE
+
+**QA NEXT `++`: `QA_BETA_VOLUME_UID_FIX_44_REPORT`.** Read [Release PR44 handoff #7039317685](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-7039317685) and Architect Issue #15 STEP34. Latest [Draft PR44](https://github.com/o-kobylianskyi/family-points/pull/44) source HEAD `43429586e1b9dd6f8669d8cf09e8a2b2a3871a76` based on PR43 `8cbbc07eade3f1dd109201364a43b67fe6096809`, tested PR test-merge `af7b12afd6775efa1988ee03444c1b3cf6d1bcf5`. Focused ephemeral CI run #44734159110 both jobs SUCCESS, with actual pre-bootstrap UID10001 expected permission-denied and post-init positive write/hash/link/rename/remount, plus PG17 V53/actual pg_restore. Conventional CI #44734159100 last Architect check remains **IN_PROGRESS** (Java PG18), so **do not claim full success pending completion**.
+
+Independently audit exact seven-path PR43→PR44 delta, init service least privilege/archive-only mount `network_mode:none` and caps, mountpoint verification, non-recursive ownership 10001:10001 mode0700, backend still nonroot, no PostgreSQL or Web archive exposure, deploy script mandatory init even with `up --no-deps`, fail-before-backend, original negative preserved, effective Compose 15 tests and deploy fake safety 9 tests. Inspect real GitHub logs/attested exact SHA, wait for conventional CI to complete without manually rerunning CI, report one `QA_BETA_VOLUME_UID_FIX_44_REPORT` with EXECUTED PASS/FAIL/UNVERIFIED and first actionable blocker. Do not certify host Contabo runtime from ephemeral runner.
+
+**Release/DevOps WAIT pending QA; other streams WAIT.** PR42/43/44 Draft/unmerged; SAFE BOUNDED BETA HOLD, Restore/Reset/purge OFF, no real-family/host operations or merge/tag/deploy.
+
+---
+
 ## CURRENT OVERRIDE — 2026-11-20 / RELEASE UID10001 OPERABILITY FIX ACTIVE
 
 **Release/DevOps NEXT `++`: `REL-BETA-VOLUME-UID-FIX-01`, one large isolated implementation package.** [Draft PR43](https://github.com/o-kobylianskyi/family-points/pull/43) PG17+dump/restore+volume automation is implemented. Its actual [Ephemeral CI #44730072936](https://github.com/o-kobylianskyi/family-points/actions/runs/44730072936) proves PostgreSQL17/Flyway V53 and separate empty PG17 pg_restore PASS but **fresh named archive Docker volume UID10001 FAILS with Permission denied**. Genuine BETA operability defect; DO NOT suppress failure or bypass with root backend/chmod777. Independently checked standard [CI #44730072837](https://github.com/o-kobylianskyi/family-points/actions/runs/44730072837): ALL 7 jobs completed SUCCESS, separate from ephemeral CI failure.
