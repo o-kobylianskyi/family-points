@@ -43,6 +43,7 @@ public class FamilyWorkspaceProvisioningService {
         WorkspaceMember owner = members.save(new WorkspaceMember(
                 ownerName.trim(), WorkspaceMemberType.PARENT, admin, workspace));
         economy.getOrCreateSettings(workspace.getId());
+        WorkspaceNewFamilyTransactionEvidence.record(workspace.getId(),owner.getId());
         return new ProvisionedFamily(workspace.getId(), owner.getId());
     }
 }

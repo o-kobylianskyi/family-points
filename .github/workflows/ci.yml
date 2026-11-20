@@ -289,6 +289,10 @@ jobs:
           bash -n scripts/beta/backup.sh
           test -f .env.beta.example
 
+      - name: Validate backend-only persistent encrypted archive volume (synthetic)
+        if: ${{ always() && needs.changes.outputs.compose == 'true' }}
+        run: python3 -m unittest discover -s scripts/beta -p test_archive_volume_config.py -v
+
   full-ci-attestation:
     name: Full CI / exact-SHA evidence
     if: ${{ always() && needs.changes.result == 'success' && needs.changes.outputs.backend == 'true' && needs.changes.outputs.android == 'true' && needs.changes.outputs.web == 'true' && needs.changes.outputs.compose == 'true' }}
