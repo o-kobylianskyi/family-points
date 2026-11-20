@@ -85,7 +85,7 @@ jobs:
           retention-days: 14
 
   archive-uid10001:
-    name: Ephemeral archive named-volume / UID 10001 / POSIX atomicity
+    name: Ephemeral UID10001 baseline RED expected + production bootstrap positive
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.base.ref == 'architecture/bkl-002-final-candidate-20261119' }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -99,12 +99,23 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           echo "GitHub test-merge SHA=$GITHUB_SHA"
-      - name: Real new named-volume test without permission bypass
+      - name: Verify baseline bare volume still fails; verify bootstrap POSIX persistence
         id: volume
         shell: bash
         run: |
           set -euo pipefail
-          bash scripts/ci/test_ephemeral_pg17_volume.sh
+          # Original pre-fix test is UNCHANGED and must actually fail.
+          set +e
+          bash scripts/ci/test_ephemeral_pg17_volume.sh > "$RUNNER_TEMP/bare-volume.log" 2>&1
+          negative_rc=$?
+          set -e
+          if [[ "$negative_rc" -eq 0 ]] || ! grep -q 'Permission denied' "$RUNNER_TEMP/bare-volume.log"; then
+            echo "::error::Expected pristine volume Permission denied guard was not observed" >&2
+            exit 1
+          fi
+          echo "EPHEMERAL_PREBOOTSTRAP_UID10001_EXPECTED_RED"
+          # Actual production Compose init service, not a test-side permission fix.
+          bash scripts/ci/test_ephemeral_initialized_archive_volume.sh
       - name: Record evidence with genuine RED on permission failures
         if: always()
         env:
@@ -115,13 +126,15 @@ jobs:
           import json, os, pathlib
           status = os.environ["RESULT"]
           result = {
-              "gate": "EPHEMERAL_UID10001_VOLUME_ATOMICITY",
+              "gate": "EPHEMERAL_UID10001_PREBOOTSTRAP_NEGATIVE_AND_POSTBOOTSTRAP_POSITIVE",
               "result": "PASS" if status == "success" else "FAIL",
               "executed": status in ("success", "failure"),
               "testedSha": os.environ["GITHUB_SHA"],
               "prHeadSha": os.environ["PR_HEAD_SHA"],
               "runner": "github-hosted",
               "permissionBypassApplied": False,
+              "prebootstrapNegativeExpected": status == "success",
+              "productionInitServiceExecuted": status == "success",
               "releaseApproved": False,
               "deploymentExecuted": False
           }
