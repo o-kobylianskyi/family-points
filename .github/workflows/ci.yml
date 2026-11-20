@@ -223,6 +223,9 @@ jobs:
       - name: Validate signed APK manifest and source-SHA guard regressions
         if: needs.changes.outputs.compose == 'true'
         run: python3 -m unittest discover -s scripts/android -p test_verify_release_manifest.py -v
+      - name: Assert LF checkout bytes for tracked shell scripts and CRLF-negative fixture
+        if: needs.changes.outputs.compose == 'true'
+        run: python3 -m unittest discover -s scripts/ci -p test_shell_lf_checkout.py -v
       - name: Parse Android publish and backup shell scripts
         if: needs.changes.outputs.compose == 'true'
         run: |
