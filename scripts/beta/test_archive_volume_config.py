@@ -58,6 +58,30 @@ def validate(compose):
     if not exists:
         raise AssertionError("Named archive volume is not declared")
 
+    init = services.get("backup-volume-init")
+    if not init:
+        raise AssertionError("Dedicated archive volume initializer missing")
+    init_volumes = init.get("volumes", [])
+    if len(init_volumes) != 1 or init_volumes[0].get("source") != source or init_volumes[0].get("target") != ARCHIVE_DIR:
+        raise AssertionError("Initializer must mount only backend's exact archive volume")
+    if init.get("ports") or init.get("networks") or init.get("network_mode") != "none":
+        raise AssertionError("Initializer must have no network or ports")
+    if str(init.get("user")) not in ("0:0", "0"):
+        raise AssertionError("Initializer must be restricted explicit root, never backend root")
+    if init.get("read_only") is not True or init.get("cap_drop") != ["ALL"]:
+        raise AssertionError("Initializer must be read-only and drop all capabilities by default")
+    if set(init.get("cap_add", [])) != {"CHOWN", "FOWNER"}:
+        raise AssertionError("Initializer may have only CHOWN/FOWNER capability")
+    if "no-new-privileges:true" not in init.get("security_opt", []):
+        raise AssertionError("Initializer must prohibit privilege gains")
+    if init.get("restart") not in ("no", None):
+        raise AssertionError("Initializer must run as a completed one-shot")
+    if not init.get("configs"):
+        raise AssertionError("Initializer must load its immutable script via config")
+    deps = backend.get("depends_on", {})
+    if deps.get("backup-volume-init", {}).get("condition") != "service_completed_successfully":
+        raise AssertionError("Backend must wait for successful archive init before startup")
+
     for name, service in (("web", web), ("database", database)):
         for volume in service.get("volumes", []):
             if volume.get("source") == source or volume.get("target") == ARCHIVE_DIR:
@@ -99,6 +123,30 @@ class BetaArchiveVolumeConfigTests(unittest.TestCase):
         props = (ROOT / "src/main/resources/application.properties").read_text()
         self.assertIn(PROPERTY, props)
         self.assertNotIn("familypoints.backup.local-directory=/var/", props)
+
+    def test_initializer_tampered_volume_rejected(self):
+        cfg = copy.deepcopy(self.effective)
+        cfg["services"]["backup-volume-init"]["volumes"][0]["source"] = "beta_postgres"
+        with self.assertRaisesRegex(AssertionError, "exact archive volume"):
+            validate(cfg)
+
+    def test_initializer_network_rejected(self):
+        cfg = copy.deepcopy(self.effective)
+        cfg["services"]["backup-volume-init"]["network_mode"] = "host"
+        with self.assertRaisesRegex(AssertionError, "no network"):
+            validate(cfg)
+
+    def test_backend_missing_init_dependency_rejected(self):
+        cfg = copy.deepcopy(self.effective)
+        del cfg["services"]["backend"]["depends_on"]["backup-volume-init"]
+        with self.assertRaisesRegex(AssertionError, "wait for successful archive init"):
+            validate(cfg)
+
+    def test_initializer_recursive_privilege_rejected(self):
+        cfg = copy.deepcopy(self.effective)
+        cfg["services"]["backup-volume-init"]["cap_add"] = ["CHOWN", "FOWNER", "DAC_OVERRIDE"]
+        with self.assertRaisesRegex(AssertionError, "only CHOWN/FOWNER"):
+            validate(cfg)
 
     def test_missing_backend_mount_rejected(self):
         cfg = copy.deepcopy(self.effective)
