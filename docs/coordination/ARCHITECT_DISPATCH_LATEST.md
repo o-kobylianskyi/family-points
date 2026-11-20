@@ -1,5 +1,17 @@
 # FamilyPoints — CURRENT ARCHITECT DISPATCH (read FIRST on every `++`)
 
+## CURRENT OVERRIDE — 2026-11-20 / RELEASE DEVOPS ACTIVE NEXT (SUPERSEDES OLD "QA ++ ONLY" BELOW)
+
+**ONE ACTIVE STREAM: Release/DevOps `++` — `REL-PG17-EPHEMERAL-CI-DESIGN-01`.** Read [Architect Issue #15 STEP31 #7036887243](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-7036887243) FIRST and execute **one large design/research package**, not a host operation. Deliver one `REL_PG17_EPHEMERAL_CI_DESIGN_READY` handoff to Issue #15. Assess whether an isolated ephemeral GitHub-hosted CI runner can prove PostgreSQL17 Flyway V53, real synthetic pg_dump→empty PG17 pg_restore and row parity, Docker archive volume UID10001 IO/atomic name/recreate persistence, optionally dual synthetic encrypted archive recovery. Define an exact safe workflow strategy, source/runner isolation and evidence, minimal scope/time, risk, and whether a small draft CI-only PR is warranted. **No implementation/CI dispatch in this DESIGN task**; wait for Architecture's review first. Do not touch Contabo/actual BETA/production, existing families, credentials, host env or volumes.
+
+**Why active:** independent [QA operator audit #7035217092](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-7035217092) accepted, and separate operator packet preparations [QA WEB01/02 #7036502209](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-7036502209) + [Release PG17/volume #7036514468](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-7036514468) completed. Their literal status **WAIT** applies only to unapproved LIVE/host operator execution, **NOT** to the new non-running CI DESIGN task.
+
+**Other streams:** QA WAIT on disposable browser approval/CI design; Backend/Web/Android/Retention WAIT for a confirmed defect or separate directive. Do not repeat PR40/41/42 acceptance or blanket CI.
+
+**Source caution:** Draft PR42 source `023dc69752fd1467a36f0b4f45cf1e751879d5ab` OPEN/UNMERGED. Prior combined green CI 7/7, 797/797, Compose 10/10 attested an OLD GitHub test-merge `a08b9a4485b0b6bd1889a4a0e0dafa40406dafd6`, while new moving main changes current test-merge SHA. Final SHA must be independently validated before release; no extrapolation. **Safe bounded BETA HOLD**, Restore Execute/Reset Execute/physical purge OFF (`restorable=false`, `replaySupported=false`, Reset HTTP423). No merge/tag/deploy, real-account/host operations, destructive steps.
+
+---
+
 **Effective:** 2026-11-18 18:26 CET. **Authoritative control for live workstream activation and assignments.** Owner communicates primarily with Architecture; owner starts role chats by sending only `++`. GitHub is the durable coordination queue. The user need not copy technical assignments into chats.
 
 ## LATEST ARCHITECT DISPATCH — 2026-11-19 / FINAL COMBINED DRAFT PR42 CREATED, QA INTEGRATED CI NEXT
