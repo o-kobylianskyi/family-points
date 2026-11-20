@@ -124,6 +124,15 @@ class BetaArchiveVolumeConfigTests(unittest.TestCase):
         self.assertIn(PROPERTY, props)
         self.assertNotIn("familypoints.backup.local-directory=/var/", props)
 
+    def test_deployment_invokes_init_before_no_deps_backend(self):
+        script = (ROOT / "scripts/beta/deploy-release.sh").read_text()
+        start = script.index('deployment_stage="archive-volume-init"')
+        init = script.index('run --no-deps --rm backup-volume-init', start)
+        backend = script.index('up -d --build --no-deps backend web', start)
+        self.assertLess(start, init)
+        self.assertLess(init, backend)
+        self.assertNotIn("down -v", script)
+
     def test_initializer_tampered_volume_rejected(self):
         cfg = copy.deepcopy(self.effective)
         cfg["services"]["backup-volume-init"]["volumes"][0]["source"] = "beta_postgres"
