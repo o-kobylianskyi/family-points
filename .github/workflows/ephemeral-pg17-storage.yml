@@ -5,6 +5,7 @@ on:
     branches:
       - architecture/bkl-002-final-candidate-20261119
       - release/rel-pg17-ephemeral-ci-implement-01
+      - main
 
 permissions:
   contents: read
@@ -16,7 +17,7 @@ concurrency:
 jobs:
   pg17-flyway-dump-restore:
     name: Ephemeral PostgreSQL 17 / V53 / real dump and empty restore
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && (github.event.pull_request.base.ref == 'architecture/bkl-002-final-candidate-20261119' || github.event.pull_request.base.ref == 'release/rel-pg17-ephemeral-ci-implement-01') }}
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && (github.event.pull_request.base.ref == 'architecture/bkl-002-final-candidate-20261119' || github.event.pull_request.base.ref == 'release/rel-pg17-ephemeral-ci-implement-01' || github.event.pull_request.base.ref == 'main') }}
     runs-on: ubuntu-latest
     timeout-minutes: 22
     env:
@@ -87,7 +88,7 @@ jobs:
 
   archive-uid10001:
     name: Ephemeral UID10001 baseline RED expected + production bootstrap positive
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && (github.event.pull_request.base.ref == 'architecture/bkl-002-final-candidate-20261119' || github.event.pull_request.base.ref == 'release/rel-pg17-ephemeral-ci-implement-01') }}
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && (github.event.pull_request.base.ref == 'architecture/bkl-002-final-candidate-20261119' || github.event.pull_request.base.ref == 'release/rel-pg17-ephemeral-ci-implement-01' || github.event.pull_request.base.ref == 'main') }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
