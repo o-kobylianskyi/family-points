@@ -250,7 +250,14 @@ const handlePointOperation = async ({
       throw new Error('Unknown point operation')
   }
 
-  await refreshPoints()
+  // A successful POST must never be reported as a failed mutation just
+  // because the follow-up GET failed; a retry could duplicate the award.
+  try {
+    await refreshPoints()
+    setError('')
+  } catch {
+    setError(t('points.refreshAfterMutationFailed'))
+  }
 }
 
   const formatAmount = (amount) => {
