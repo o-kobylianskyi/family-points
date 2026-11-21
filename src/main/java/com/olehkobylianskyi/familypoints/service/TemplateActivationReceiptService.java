@@ -1,6 +1,7 @@
 package com.olehkobylianskyi.familypoints.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.olehkobylianskyi.familypoints.controller.WorkspaceTemplateController;
 import com.olehkobylianskyi.familypoints.dto.RewardDefinitionRequest;
 import com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest;
@@ -20,7 +21,10 @@ public class TemplateActivationReceiptService {
     private final JdbcTemplate db;
     private final WorkspaceEpochTransactionGuard epoch;
     private final WorkspaceTemplateController templates;
-    private final ObjectMapper mapper=new ObjectMapper().findAndRegisterModules();
+    // Explicit Jackson 2 JSR-310 support: Boot 4 defaults to Jackson 3 and
+    // findAndRegisterModules() can miss LocalDate/LocalTime in deployed builds.
+    // Preserve the original Jackson 2 JSON fingerprint format for replay.
+    private final ObjectMapper mapper=new ObjectMapper().registerModule(new JavaTimeModule());
 
     public TemplateActivationReceiptService(JdbcTemplate db,
             WorkspaceEpochTransactionGuard epoch,WorkspaceTemplateController templates) {
@@ -88,7 +92,7 @@ public class TemplateActivationReceiptService {
             family,key);
         return rows.isEmpty()?null:rows.get(0);
     }
-    private String fingerprint(String kind,long template,Object request) {
+    String fingerprint(String kind,long template,Object request) {
         try {
             byte[] payload=mapper.writeValueAsBytes(request);
             MessageDigest digest=MessageDigest.getInstance("SHA-256");
