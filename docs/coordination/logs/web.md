@@ -1292,3 +1292,8 @@ Read `docs/coordination/ARCHITECTURE_CHAT_HANDOFF_20261027.md` and `docs/coordin
 
 ## 2026-11-18 — WEB-02_READY_FOR_QA / backup permission remount safety
 - `e07de418` aligns backup list component remount with management permission alongside existing username/account/workspace identity, prevents privileged metadata being retained upon revocation and regrant; absent account scope disallows list/details and hides panel. `6dfbc802` Node regression added. Web CI #44393670802 exact SHA 40/40 Node, V49 syntax 6 PASS, i18n/lint 0 warnings/build PASS, full exact SHA SKIPPED; no Chromium evidence. Issue #15 WEB-02_READY_FOR_QA comment 6991053477. Next optional WEB-03 confirmed UI defect only; BETA HOLD.
+
+
+
+## 2026-11-21 — WEB-POINTS-01 /points local UI fix
+- User screenshot defects: literal history description `error`, no five-step amount selection, blank default, 0-balance `spend` denial. Implemented fixed 5-point dropdown & arrows, last MANUAL amount, 5 fallback, four locales, explain valid insufficient balance, guard against duplicate award after failed GET refresh. Exact Web CI #44920982015 @5c50a89f 44/44 Node, 6 syntax, 0 lint warnings/error, i18n/build PASS. Local browser still NOT_RUN, spend-to-negative decision belongs to Architecture. BETA HOLD.
