@@ -14,6 +14,8 @@ function PointOperationContent({
   onSubmit,
   initialAmount = 5,
   availableBalance = 0,
+  canPurchaseRewards = false,
+  loadRewards,
 }) {
   const { t } = useTranslation()
 
@@ -22,7 +24,44 @@ function PointOperationContent({
   const [submitting, setSubmitting] = useState(false)
   const submitLock = useRef(false)
   const [error, setError] = useState('')
+  const [spendMode, setSpendMode] = useState('manual')
+  const [rewardId, setRewardId] = useState('')
+  const [rewards, setRewards] = useState([])
+  const [rewardsLoading, setRewardsLoading] = useState(false)
+  const [rewardsError, setRewardsError] = useState(false)
+  const [rewardAttempted, setRewardAttempted] = useState(false)
+  const { i18n } = useTranslation()
+  const lang = (i18n.resolvedLanguage || i18n.language || 'en').split('-')[0]
+  const messages = ({
+    uk: ['Тип списання', 'Інше списання без нагороди', 'Списання за нагороду', 'Виберіть нагороду', 'Завантаження нагород…', 'Помилка завантаження нагород', 'Немає доступних нагород', 'Ціна', 'Запит уже було надіслано. Перевірте історію нагород перед повторною спробою.', 'Потрібне право керування нагородами', 'Отримати нагороду'],
+    ru: ['Тип списания', 'Другое списание без награды', 'Списание за награду', 'Выберите награду', 'Загрузка наград…', 'Ошибка загрузки наград', 'Нет доступных наград', 'Цена', 'Запрос уже отправлен. Проверьте историю наград перед повторной попыткой.', 'Нужно право управления наградами', 'Получить награду'],
+    de: ['Art der Abbuchung', 'Andere Abbuchung ohne Belohnung', 'Für Belohnung einlösen', 'Belohnung wählen', 'Belohnungen laden…', 'Belohnungen konnten nicht geladen werden', 'Keine Belohnungen verfügbar', 'Preis', 'Anfrage bereits gesendet. Vor erneutem Versuch den Belohnungsverlauf prüfen.', 'Berechtigung zur Belohnungsverwaltung erforderlich', 'Belohnung einlösen'],
+    en: ['Spend type', 'Other spend without reward', 'Redeem reward', 'Choose reward', 'Loading rewards…', 'Failed to load rewards', 'No rewards available', 'Cost', 'Request already sent. Check reward history before retrying.', 'Reward management permission required', 'Redeem reward'],
+  })[lang] || ['Spend type', 'Other spend without reward', 'Redeem reward', 'Choose reward', 'Loading rewards…', 'Failed to load rewards', 'No rewards available', 'Cost', 'Request already sent. Check reward history before retrying.', 'Reward management permission required', 'Redeem reward']
+  const rewardMode = operation === 'spend' && spendMode === 'reward'
+  const eligibleRewards = rewards.filter(reward =>
+    reward.active !== false && reward.acquisitionMode === 'DIRECT' && !reward.requiresApproval)
+  const chosenReward = eligibleRewards.find(reward => String(reward.id) === rewardId)
+
   const insufficient = operation === 'spend' && Number(amount) > Math.max(0, Number(availableBalance) || 0)
+
+  useEffect(() => {
+    if (operation !== 'spend' || !member || !canPurchaseRewards || !loadRewards) return
+    let active = true
+    Promise.resolve().then(async () => {
+      if (!active) return
+      setRewardsLoading(true)
+      try {
+        const result = await loadRewards()
+        if (active) setRewards(Array.isArray(result) ? result : [])
+      } catch {
+        if (active) setRewardsError(true)
+      } finally {
+        if (active) setRewardsLoading(false)
+      }
+    })
+    return () => { active = false }
+  }, [operation, member?.id, canPurchaseRewards, loadRewards])
 
   useEffect(() => {
     if (!operation || !member || submitting) return
@@ -47,6 +86,25 @@ function PointOperationContent({
     event.preventDefault()
 
     if (submitLock.current || submitting) return
+
+    if (rewardMode) {
+      if (!chosenReward || !canPurchaseRewards || rewardAttempted) return
+      submitLock.current = true
+      setRewardAttempted(true)
+      try {
+        setSubmitting(true)
+        setError('')
+        await onSubmit({ operation, rewardId: chosenReward.id })
+        onClose()
+      } catch {
+        // No server receipt/idempotency: unknown POST result MUST NOT be retried.
+        setError(messages[8])
+      } finally {
+        setSubmitting(false)
+        submitLock.current = false
+      }
+      return
+    }
 
     const numericAmount = Number(amount)
 
@@ -118,7 +176,33 @@ function PointOperationContent({
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="fp-number-field">
+          {operation === 'spend' && <div className="fp-number-field">
+            <label htmlFor="point-spend-mode">{messages[0]}</label>
+            <select id="point-spend-mode" value={spendMode}
+              onChange={event => { setSpendMode(event.target.value); setError('') }}
+              disabled={submitting || rewardAttempted}>
+              <option value="manual">{messages[1]}</option>
+              <option value="reward">{messages[2]}</option>
+            </select>
+            {rewardMode && <>
+              {!canPurchaseRewards && <p role="alert">{messages[9]}</p>}
+              {rewardsLoading && <p role="status">{messages[4]}</p>}
+              {rewardsError && <p role="alert">{messages[5]}</p>}
+              {!rewardsLoading && !rewardsError && !eligibleRewards.length && <p role="status">{messages[6]}</p>}
+              <label htmlFor="point-spend-reward">{messages[3]}</label>
+              <select id="point-spend-reward" value={rewardId}
+                onChange={event => { setRewardId(event.target.value); setError('') }}
+                disabled={submitting || rewardAttempted || !canPurchaseRewards || rewardsLoading || rewardsError}>
+                <option value="">{messages[3]}</option>
+                {eligibleRewards.map(reward =>
+                  <option key={reward.id} value={reward.id}>
+                    {reward.title} — {reward.priceAmount} {reward.pointTypeCode || ''}
+                  </option>)}
+              </select>
+              {chosenReward && <p role="status">{messages[7]}: {chosenReward.priceAmount} {chosenReward.pointTypeCode || ''}</p>}
+            </>}
+          </div>}
+          {!rewardMode && <div className="fp-number-field">
             <label htmlFor="point-operation-amount">{t('pointOperation.amount')}</label>
             <NumberInput
               id="point-operation-amount"
@@ -144,9 +228,9 @@ function PointOperationContent({
             {operation === 'spend' && insufficient && <p role="status" className="point-operation-balance-warning">
               {t('pointOperation.insufficientBalance', {balance: Math.max(0, Number(availableBalance) || 0)})}
             </p>}
-          </div>
+          </div>}
 
-          <label>
+          {!rewardMode && <label>
             {t('pointOperation.description')}
 
             <textarea
@@ -157,7 +241,7 @@ function PointOperationContent({
               }
               disabled={submitting}
             />
-          </label>
+          </label>}
 
           {error && (
             <div className="error-message">
@@ -178,11 +262,11 @@ function PointOperationContent({
             <button
               type="submit"
               className={`primary-button ${operation}`}
-              disabled={submitting || insufficient}
+              disabled={submitting || (rewardMode ? !chosenReward || !canPurchaseRewards || rewardAttempted || rewardsLoading || rewardsError : insufficient)}
             >
               {submitting
                 ? t('common.saving')
-                : t(`pointOperation.${operation}.submit`)}
+                : rewardMode ? messages[10] : t(`pointOperation.${operation}.submit`)}
             </button>
           </div>
         </form>
