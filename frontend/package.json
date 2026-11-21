@@ -11,7 +11,7 @@
     "i18n:check": "node scripts/check-i18n.mjs",
     "test:onboarding": "node --test tests/onboardingImportOperation.test.mjs tests/templateActivationOperation.test.mjs",
     "test:history": "node --test tests/rewardHistoryPage.test.mjs",
-    "test:regression": "node scripts/check-v49-fixtures.mjs && node --test tests/onboardingImportOperation.test.mjs tests/templateActivationOperation.test.mjs tests/rewardHistoryPage.test.mjs tests/setupFinalizeSafety.test.mjs tests/setupCatalogSelection.test.mjs tests/settingsRuntimeGuard.test.mjs tests/authContextValue.test.mjs tests/v49RouteGuard.test.mjs tests/pointOperationDefaults.test.mjs tests/rewardSpendEligibility.test.mjs tests/rewardPurchaseIntent.test.mjs",
+    "test:regression": "node scripts/check-v49-fixtures.mjs && node --test tests/onboardingImportOperation.test.mjs tests/templateActivationOperation.test.mjs tests/rewardHistoryPage.test.mjs tests/setupFinalizeSafety.test.mjs tests/setupCatalogSelection.test.mjs tests/settingsRuntimeGuard.test.mjs tests/authContextValue.test.mjs tests/v49RouteGuard.test.mjs tests/pointOperationDefaults.test.mjs tests/rewardSpendEligibility.test.mjs tests/rewardPurchaseIntent.test.mjs tests/rewardPurchaseReceipt.test.mjs",
     "test:qa-syntax": "node scripts/check-v49-fixtures.mjs"
   },
   "dependencies": {
