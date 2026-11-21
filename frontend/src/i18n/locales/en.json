@@ -73,7 +73,8 @@
     "history": "History",
     "historyDescription": "Recent point transactions",
     "noHistory": "No transactions yet",
-    "noDescription": "No description"
+    "noDescription": "No description",
+    "refreshAfterMutationFailed": "The operation was saved, but the balance or history could not refresh. Reload the page. Do not repeat the operation."
   },
   "pointTransactionType": {
     "EARN": "Earned",
