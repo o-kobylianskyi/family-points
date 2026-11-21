@@ -73,7 +73,8 @@
     "history": "Verlauf",
     "historyDescription": "Letzte Punktetransaktionen",
     "noHistory": "Noch keine Transaktionen",
-    "noDescription": "Keine Beschreibung"
+    "noDescription": "Keine Beschreibung",
+    "refreshAfterMutationFailed": "Der Vorgang wurde gespeichert, aber Kontostand oder Verlauf konnten nicht aktualisiert werden. Laden Sie die Seite neu. Wiederholen Sie den Vorgang nicht."
   },
   "pointTransactionType": {
     "EARN": "Gutschrift",
