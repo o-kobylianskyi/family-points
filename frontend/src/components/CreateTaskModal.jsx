@@ -239,7 +239,7 @@ function CreateTaskModalContent({
       const epoch = await observeWorkspaceEpoch(getAccessToken(), origin)
       if (epoch !== operation.epoch) throw new Error('WORKSPACE_DATA_EPOCH_CHANGED')
       const receipt = retry
-        ? await activateTaskTemplateIdempotent(getAccessToken(), origin, operation.templateId, operation.request, operation.operationId)
+        ? await activateTaskTemplateIdempotent(getAccessToken(), origin, operation.templateId, operation.request, operation.operationId, getAccessToken)
         : await getTemplateActivationReceipt(getAccessToken(), origin, operation.operationId)
       verifyActivationReceipt(receipt, operation)
       if (String(templateWorkspaceRef.current) !== String(origin)) return
@@ -656,7 +656,7 @@ function CreateTaskModalContent({
         // Resolve the token after the async epoch handshake: a concurrent
         // session refresh may have rotated it while the handshake was in flight.
         // Never replay the POST automatically if the result is uncertain.
-        const receipt = await activateTaskTemplateIdempotent(getAccessToken(), originWorkspace, operation.templateId, operation.request, operation.operationId)
+        const receipt = await activateTaskTemplateIdempotent(getAccessToken(), originWorkspace, operation.templateId, operation.request, operation.operationId, getAccessToken)
         verifyActivationReceipt(receipt, operation)
         sessionStorage.removeItem(activationKey)
         setPendingActivation(null)
