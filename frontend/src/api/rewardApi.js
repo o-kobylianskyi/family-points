@@ -143,3 +143,14 @@ export async function getRewardPurchaseHistory(token, workspaceId, filters = {})
   )
   return handleResponse(response, 'Failed to load reward purchase history')
 }
+
+ 
+// The server purchase owns both ledger debit and reward history. No automatic retry:
+// existing purchase endpoint has no verified idempotent receipt for unknown responses.
+export async function purchaseRewardForMember(token, workspaceId, rewardId, memberId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/rewards/${rewardId}/purchase-for-member/${memberId}`,
+    { token, method: 'POST' }
+  )
+  return handleResponse(response, 'Failed to purchase reward for member')
+}

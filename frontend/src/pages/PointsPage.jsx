@@ -1,10 +1,11 @@
 import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
 import { initialPointOperationAmount } from '../utils/pointOperationDefaults'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/authContextValue'
 import MemberAvatar from '../components/MemberAvatar'
+import { getRewards, purchaseRewardForMember } from '../api/rewardApi'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 
 import {
@@ -38,6 +39,10 @@ function PointsPage() {
   const [error, setError] = useState('')
   const [pointOperation, setPointOperation] =
     useState(null)
+
+  const canPurchaseRewards = currentUser.permissions.includes('MANAGE_REWARDS') || currentUser.permissions.includes('ADMIN_OVERRIDE')
+
+  const loadRewardsForSpend = useCallback(() => getRewards(getAccessToken(), currentUser.workspaceId), [getAccessToken, currentUser.workspaceId])
 
   const canManagePoints =
     currentUser.permissions.includes('MANAGE_POINTS')
@@ -222,7 +227,16 @@ const handlePointOperation = async ({
   operation,
   amount,
   description,
+  rewardId,
 }) => {
+  if (operation === 'spend' && rewardId != null) {
+    if (!canPurchaseRewards) throw new Error('Reward management permission required')
+    // Purchase is the authoritative single debit; never also call spendPoints.
+    await purchaseRewardForMember(getAccessToken(), currentUser.workspaceId, rewardId, selectedMemberId)
+    try { await refreshPoints(); setError('') }
+    catch { setError(t('points.refreshAfterMutationFailed')) }
+    return
+  }
   const token = getAccessToken()
 
   const args = [
@@ -434,6 +448,8 @@ const handlePointOperation = async ({
         member={selectedMember}
         initialAmount={initialPointOperationAmount(history, pointOperation, selectedMemberId)}
         availableBalance={balance}
+        canPurchaseRewards={canPurchaseRewards}
+        loadRewards={loadRewardsForSpend}
         onClose={() => setPointOperation(null)}
         onSubmit={handlePointOperation}
       />
