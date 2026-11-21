@@ -18,6 +18,7 @@ test('PR57 reward receipt matches original intent; zero price and replay are all
   assert.deepEqual(verifyRewardPurchaseReceipt(receipt(), intent), receipt())
   assert.equal(verifyRewardPurchaseReceipt({ ...receipt(), replayed: true }, intent).replayed, true)
   assert.equal(verifyRewardPurchaseReceipt(receipt(), intent).purchase.status, 'READY')
+  assert.equal(verifyRewardPurchaseReceipt({ ...receipt(), purchase: { ...receipt().purchase, status: 'REDEEMED' } }, intent).purchase.status, 'REDEEMED')
 })
 
 test('foreign identity, unknown price/unit and malformed purchase receipts fail closed', () => {
@@ -31,6 +32,10 @@ test('foreign identity, unknown price/unit and malformed purchase receipts fail 
     { purchase: { ...receipt().purchase, priceAmount: -1 } },
     { purchase: { ...receipt().purchase, priceAmount: '10' } },
     { purchase: { ...receipt().purchase, status: '' } },
+    { purchase: { ...receipt().purchase, status: 'CANCELLED' } },
+    { purchase: { ...receipt().purchase, status: 'PENDING_APPROVAL' } },
+    { purchase: { ...receipt().purchase, status: 'FAILED' } },
+    { purchase: { ...receipt().purchase, status: 'READY ' } },
     { purchase: null }
   ]) assert.throws(
     () => verifyRewardPurchaseReceipt({ ...receipt(), ...patch }, intent),
