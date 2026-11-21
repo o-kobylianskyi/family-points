@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import NumberInput from './NumberInput'
+import { POINT_AMOUNT_PRESETS } from '../utils/pointOperationDefaults'
 
 function PointOperationModal(props) {
   const scope = [props.operation, props.member?.id].join(':')
@@ -130,13 +131,16 @@ function PointOperationContent({
               disabled={submitting}
               aria-label={t('pointOperation.amount')}
             />
-            <div className="point-amount-presets" style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:8}}>
-              {[5,10,15,20,25,30,40,50,75,100].map(value => (
-                <button type="button" key={value} className="secondary-button"
-                  aria-pressed={Number(amount) === value} disabled={submitting}
-                  onClick={() => {setAmount(String(value));setError('')}}>{value}</button>
-              ))}
-            </div>
+            <label htmlFor="point-operation-quick-amount" style={{display:'block',marginTop:8}}>
+              {t('pointOperation.quickAmount')}
+            </label>
+            <select id="point-operation-quick-amount"
+              value={POINT_AMOUNT_PRESETS.includes(Number(amount)) ? String(amount) : ''}
+              onChange={event => {setAmount(event.target.value);setError('')}}
+              disabled={submitting}>
+              <option value="" disabled>{t('pointOperation.customAmount')}</option>
+              {POINT_AMOUNT_PRESETS.map(value => <option key={value} value={value}>{value}</option>)}
+            </select>
             {operation === 'spend' && insufficient && <p role="status" className="point-operation-balance-warning">
               {t('pointOperation.insufficientBalance', {balance: Math.max(0, Number(availableBalance) || 0)})}
             </p>}
