@@ -87,6 +87,8 @@
     "description": "Beschreibung",
     "invalidAmount": "Bitte eine ganze Zahl größer als null eingeben",
     "insufficientBalance": "Nicht genügend Punkte zum Ausgeben. Verfügbar: {{balance}}. Für einen negativen Kontostand verwenden Sie „Strafe“.",
+    "quickAmount": "Schnellauswahl (Schritt 5)",
+    "customAmount": "Anderer Wert",
     "operationFailed": "Die Operation konnte nicht ausgeführt werden",
     "earn": {
       "title": "Punkte gutschreiben",
