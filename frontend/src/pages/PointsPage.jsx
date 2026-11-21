@@ -238,6 +238,7 @@ const handlePointOperation = async ({
     catch { setError(t('points.refreshAfterMutationFailed')) }
     return
   }
+  if (!canManagePoints) throw new Error('Point management permission required')
   const token = getAccessToken()
 
   const args = [
@@ -355,15 +356,15 @@ const handlePointOperation = async ({
 
               </div>
 
-            {canManagePoints && (
+            {(canManagePoints || canPurchaseRewards) && (
               <div className="point-actions">
-                <button
+                {canManagePoints && <button
                   type="button"
                   className="point-action earn"
-                   onClick={() => setPointOperation('earn')}
+                  onClick={() => setPointOperation('earn')}
                 >
                   + {t('points.earn')}
-                </button>
+                </button>}
 
                 <button
                   type="button"
@@ -373,13 +374,13 @@ const handlePointOperation = async ({
                   − {t('points.spend')}
                 </button>
 
-                <button
+                {canManagePoints && <button
                   type="button"
                   className="point-action penalty"
                   onClick={() => setPointOperation('penalty')}
                 >
                   {t('points.penalty')}
-                </button>
+                </button>}
               </div>
             )}
           </div>
@@ -450,6 +451,7 @@ const handlePointOperation = async ({
         initialAmount={initialPointOperationAmount(history, pointOperation, selectedMemberId)}
         availableBalance={balance}
         canPurchaseRewards={canPurchaseRewards}
+        canManagePoints={canManagePoints}
         loadRewards={loadRewardsForSpend}
         loadRewardAvailability={loadRewardAvailabilityForSpend}
         onClose={() => setPointOperation(null)}
