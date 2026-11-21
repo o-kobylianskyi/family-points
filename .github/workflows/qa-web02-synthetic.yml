@@ -1,0 +1,100 @@
+name: QA WEB02 synthetic Chromium (localhost only)
+
+on:
+  pull_request:
+    paths:
+      - 'qa/e2e/tests/backup-metadata-cross-tenant-race-synthetic.spec.js'
+      - '.github/workflows/qa-web02-synthetic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  web02-synthetic:
+    name: WEB02 / six mocked Chromium cases
+    # Never run PR fork code or grant permissions beyond reading the repository.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      FP_QA_BASE_URL: http://127.0.0.1:5173
+      VITE_API_URL: http://127.0.0.1:8080
+    steps:
+      - name: Checkout exact GitHub PR merge commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Record tested source SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "WEB02_PR_TEST_MERGE_SHA=$(git rev-parse HEAD)"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          echo "WEB02_SOURCE_HEAD=${{ github.event.pull_request.head.sha }}"
+          echo "WEB02_TEST_MODE=LOCALHOST_ONLY_SYNTHETIC_MOCKED_NOT_LIVE"
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend from locked dependencies
+        working-directory: frontend
+        run: npm ci --ignore-scripts
+
+      - name: Install Playwright test runner without changing repository lockfiles
+        working-directory: qa/e2e
+        run: npm install --ignore-scripts --no-save --package-lock=false
+
+      - name: Install only Chromium and runner dependencies
+        working-directory: qa/e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Start isolated local Vite and require readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd frontend && npm run dev -- --host 127.0.0.1 > "$RUNNER_TEMP/fp-web02-vite.log" 2>&1) &
+          echo $! > "$RUNNER_TEMP/fp-web02-vite.pid"
+          ready=false
+          for i in $(seq 1 45); do
+            if curl --fail --silent --max-time 2 --noproxy '*' http://127.0.0.1:5173/ > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [[ "$ready" != true ]]; then
+            echo "::error::Local Vite never became ready"
+            exit 1
+          fi
+          echo "WEB02_LOCAL_VITE_READY=http://127.0.0.1:5173"
+
+      - name: Run exact six synthetic Chromium cases (zero retries)
+        working-directory: qa/e2e
+        env:
+          CI: ''
+          FP_QA_BASE_URL: http://127.0.0.1:5173
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx playwright test tests/backup-metadata-cross-tenant-race-synthetic.spec.js --project=chromium --workers=1 --retries=0 --reporter=list
+          echo "WEB02_SYNTHETIC_CHROMIUM_RUN_PASS"
+
+      - name: Stop local Vite process
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f "$RUNNER_TEMP/fp-web02-vite.pid" ]]; then
+            kill "$(cat "$RUNNER_TEMP/fp-web02-vite.pid")" 2>/dev/null || true
+          fi
+
+      - name: Report evidence scope
+        if: always()
+        shell: bash
+        run: |
+          echo "## WEB02 synthetic browser check" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Exact tested PR SHA: `$GITHUB_SHA`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- App origin: localhost:5173 only; API: intercepted mock routes; external HTTP blocked" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Test type: synthetic / no real authentication or tenant-role transitions" >> "$GITHUB_STEP_SUMMARY"
+          echo "- This is NOT WEB01 live, WEB02 live, signed Android, offhost restore, or BETA acceptance" >> "$GITHUB_STEP_SUMMARY"
