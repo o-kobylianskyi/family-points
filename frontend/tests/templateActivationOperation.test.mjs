@@ -48,3 +48,19 @@ test('V48 REWARD permits deliberate zero price and TIME minutes', () => {
   assert.equal(validActivation(record, 7, 'REWARD', 2), true)
   assert.equal(verifyActivationReceipt({...receipt(), kind:'REWARD', templateId:33}, record).createdDefinitionId, 500)
 })
+
+test('V48 TASK recovery authentication failure preserves original pending operation and prevents replay', async () => {
+  const {readFileSync} = await import('node:fs')
+  const source = readFileSync(new URL('../src/components/CreateTaskModal.jsx', import.meta.url),'utf8')
+  assert.match(source,/const authDenied = error\.status === 401 \|\| error\.status === 403/)
+  assert.match(source,/if \(authDenied\) setRecoveryNeedsAuth\(true\)/)
+  assert.match(source,/if \(submitLock\.current \|\| !pendingActivation \|\| !activationKey \|\| recoveryNeedsAuth\) return/)
+  assert.match(source,/disabled=\{loading \|\| recoveryNeedsAuth\} onClick=\{\(\) => recoverActivation\(false\)\}/)
+  assert.match(source,/disabled=\{loading \|\| recoveryNeedsAuth\} onClick=\{\(\) => recoverActivation\(true\)\}/)
+  const start = source.indexOf('const recoverActivation = async')
+  const end = source.indexOf('const [unknownWrite, setUnknownWrite]', start)
+  const handler = source.slice(start,end)
+  assert.ok(!handler.includes('sessionStorage.removeItem(activationKey)') ||
+    handler.indexOf('sessionStorage.removeItem(activationKey)') < handler.indexOf('} catch (error)'),
+    'Failed recovery must not delete original operation marker')
+})
