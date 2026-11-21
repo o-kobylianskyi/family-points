@@ -34,3 +34,13 @@ test('Points modal refuses malformed history amount and non-manual entries as de
   assert.equal(initialPointOperationAmount(rows,'earn',9),7)
   assert.equal(initialPointOperationAmount(null,'earn',9),5)
 })
+
+import {readFileSync} from 'node:fs'
+test('successful point POST cannot be retried because the following history GET failed',()=>{
+  const page=readFileSync(new URL('../src/pages/PointsPage.jsx',import.meta.url),'utf8')
+  assert.match(page,/await refreshPoints\(\)\s*setError\(''\)\s*\} catch \{\s*setError\(t\('points\.refreshAfterMutationFailed'\)\)/)
+  const modal=readFileSync(new URL('../src/components/PointOperationModal.jsx',import.meta.url),'utf8')
+  assert.match(modal,/await onSubmit\(\{[\s\S]*?\}\)\s*onClose\(\)/)
+  assert.match(modal,/stepperStep=\{5\}/)
+  assert.match(modal,/POINT_AMOUNT_PRESETS\.map\(/)
+})
