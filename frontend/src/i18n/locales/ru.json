@@ -73,7 +73,8 @@
     "history": "История",
     "historyDescription": "Последние операции с баллами",
     "noHistory": "Операций пока нет",
-    "noDescription": "Без описания"
+    "noDescription": "Без описания",
+    "refreshAfterMutationFailed": "Операция сохранена, но не удалось обновить баланс или историю. Обновите страницу. Не повторяйте операцию."
   },
   "pointTransactionType": {
     "EARN": "Начисление",
