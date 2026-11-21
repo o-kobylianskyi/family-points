@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import java.util.UUID
+import com.olehkobylianskyi.familypoints.android.data.RewardPurchaseReceiptPolicy
 
 /**
  * Durable identity-only journal for an eventual online reward purchase.
@@ -112,20 +113,14 @@ class RewardPurchaseIntentStore(context: Context) :
         requestedState: String,
         verifiedAccountId: Long,
         verifiedWorkspaceId: Long,
-        verifiedEpoch: Long,
-        authoritativeReceiptValidated: Boolean = false
+        verifiedEpoch: Long
     ) {
-        require(requestedState in setOf("UNCERTAIN", "HELD", "CONFIRMED"))
+        require(requestedState in setOf("UNCERTAIN", "HELD"))
         require(verifiedAccountId > 0 && verifiedWorkspaceId > 0 && verifiedEpoch >= 0)
         require(original.state in setOf("PREPARED", "UNCERTAIN"))
         val target = if (original.accountId != verifiedAccountId ||
             original.workspaceId != verifiedWorkspaceId ||
             original.epoch != verifiedEpoch) "HELD" else requestedState
-        if (requestedState == "CONFIRMED") {
-            check(target == "CONFIRMED" && authoritativeReceiptValidated) {
-                "Confirmed state requires exact verified receipt and unchanged scope"
-            }
-        }
         // A foreign account must never update another account's intent.
         check(original.accountId == verifiedAccountId &&
             original.workspaceId == verifiedWorkspaceId) { "Intent owner mismatch" }
@@ -140,6 +135,44 @@ class RewardPurchaseIntentStore(context: Context) :
                 original.route, original.state)
         )
         check(changed == 1) { "Intent was changed or already resolved" }
+    }
+
+    /**
+     * Only a validated read-only server receipt may confirm an intent.
+     * This is a local journal acknowledgement, NEVER a purchase/fulfillment action.
+     */
+    @Synchronized
+    internal fun confirmReceipt(
+        original: Intent,
+        receipt: RewardPurchaseReceiptPolicy.Receipt,
+        verifiedAccountId: Long,
+        verifiedWorkspaceId: Long,
+        verifiedEpoch: Long
+    ) {
+        require(original.state in setOf("PREPARED", "UNCERTAIN"))
+        check(original.accountId == verifiedAccountId &&
+            original.workspaceId == verifiedWorkspaceId &&
+            original.epoch == verifiedEpoch) { "Receipt scope drift requires review" }
+        val decision = RewardPurchaseReceiptPolicy.evaluate(
+            RewardPurchaseReceiptPolicy.Intent(
+                original.operationId.toString(), original.workspaceId,
+                original.accountId, original.rewardId, original.memberId, original.epoch
+            ), receipt, verifiedWorkspaceId, verifiedAccountId, verifiedEpoch
+        )
+        check(decision == RewardPurchaseReceiptPolicy.Decision.ACCEPT) {
+            "Unverified purchase receipt cannot confirm local intent"
+        }
+        val changed = writableDatabase.update(
+            "reward_purchase_intents",
+            ContentValues().apply { put("state", "CONFIRMED") },
+            """operation_id=? AND account_id=? AND workspace_id=? AND member_id=?
+               AND reward_id=? AND data_epoch=? AND route_kind=? AND state=?""",
+            arrayOf(original.operationId.toString(), original.accountId.toString(),
+                original.workspaceId.toString(), original.memberId.toString(),
+                original.rewardId.toString(), original.epoch.toString(),
+                original.route, original.state)
+        )
+        check(changed == 1) { "Original intent changed before receipt reconciliation" }
     }
 
     /** Quarantine all unresolved intents on generation change; never delete rows. */
