@@ -55,7 +55,7 @@ class PointMutationTransactionPostgresTest {
     @Configuration
     @EnableTransactionManagement
     @EnableJpaRepositories(basePackageClasses = PointTransactionRepository.class)
-    @Import({PointMutationService.class, PointService.class, WorkspaceEpochTransactionGuard.class,
+    @Import({RewardPurchaseOperationService.class, PointMutationService.class, PointService.class, WorkspaceEpochTransactionGuard.class,
             RewardService.class, RewardAvailabilityService.class, ReputationService.class,
             TaskService.class, TaskGenerationService.class, TaskDeadlineService.class,
             TaskAuditService.class, TaskRewardNegotiationService.class, PointExchangeService.class,
@@ -226,6 +226,110 @@ class PointMutationTransactionPostgresTest {
         }
     }
 
+
+    /**
+     * Actual JPA RewardService + PointService, SQL ledger and receipt in one
+     * Spring-managed PostgreSQL transaction. Mocked authentication identity
+     * only; no mock of purchase, repository or monetary movement.
+     */
+    @Test void realRewardPurchaseOneLedgerDebitAndOriginalPriceOnReplay() {
+        var f = fixture();
+        long reward = sql.queryForObject("""
+                INSERT INTO reward_definitions
+                    (family_id,title,point_type_id,price_amount,requires_approval,
+                     active,cooldown_seconds)
+                VALUES (?,'Disposable reward',?,12,false,true,0) RETURNING id
+                """, Long.class, f.workspace(), f.currency());
+        long actorId = sql.queryForObject("""
+                INSERT INTO user_accounts (family_member_id,username,password_hash,enabled)
+                VALUES (?,?,'unused-only-test',true) RETURNING id
+                """, Long.class,f.member(),"reward-e2e-"+java.util.UUID.randomUUID());
+        sql.update("""
+                INSERT INTO point_transactions
+                    (member_id,point_type_id,amount,created_at,type,source_type,description)
+                VALUES (?,?,40,now(),'EARN','MANUAL','Synthetic initial funds')
+                """,f.member(),f.currency());
+
+        var user = org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.entity.UserAccount.class);
+        org.mockito.Mockito.when(user.getId()).thenReturn(actorId);
+        var current=context.getBean(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(current.getCurrentAccount()).thenReturn(user);
+        org.mockito.Mockito.when(current.belongsToWorkspace(f.workspace())).thenReturn(true);
+        org.mockito.Mockito.when(current.getCurrentMemberId()).thenReturn(f.member());
+        try {
+            var api=context.getBean(RewardPurchaseOperationService.class);
+            java.util.UUID key=java.util.UUID.randomUUID();
+            var first=api.purchaseSelf(f.workspace(),reward,key);
+            assertFalse(first.replayed());
+            long purchase=first.purchase().getId();
+            assertEquals(12,first.purchase().getPriceAmount());
+            assertEquals("READY",first.purchase().getStatus().name());
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM reward_purchases
+                    WHERE member_id=? AND reward_definition_id=?
+                    """,Long.class,f.member(),reward));
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM point_transactions
+                    WHERE member_id=? AND point_type_id=?
+                      AND source_type='REWARD_PURCHASE' AND source_id=?
+                      AND type='SPEND' AND amount=-12
+                    """,Long.class,f.member(),f.currency(),purchase));
+            sql.update("UPDATE reward_definitions SET price_amount=20 WHERE id=?",reward);
+            var replay=api.purchaseSelf(f.workspace(),reward,key);
+            assertTrue(replay.replayed());
+            assertEquals(purchase,replay.purchase().getId());
+            assertEquals(12,replay.purchase().getPriceAmount());
+            assertEquals(purchase,api.receipt(f.workspace(),key).purchase().getId());
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM point_transactions
+                    WHERE member_id=? AND source_type='REWARD_PURCHASE'
+                    """,Long.class,f.member()));
+            assertEquals(28L,sql.queryForObject("""
+                    SELECT coalesce(sum(amount),0) FROM point_transactions
+                    WHERE member_id=? AND point_type_id=?
+                    """,Long.class,f.member(),f.currency()));
+        } finally {
+            org.mockito.Mockito.reset(current);
+        }
+    }
+
+    @Test void failedInsufficientRewardPurchaseRollsBackReceiptAndPurchase() {
+        var f = fixture();
+        long reward=sql.queryForObject("""
+                INSERT INTO reward_definitions
+                    (family_id,title,point_type_id,price_amount,requires_approval,
+                     active,cooldown_seconds)
+                VALUES (?,'Too expensive',?,30,false,true,0) RETURNING id
+                """,Long.class,f.workspace(),f.currency());
+        long actorId=sql.queryForObject("""
+                INSERT INTO user_accounts (family_member_id,username,password_hash,enabled)
+                VALUES (?,?,'unused-only-test',true) RETURNING id
+                """,Long.class,f.member(),"reward-insufficient-"+java.util.UUID.randomUUID());
+        var user=org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.entity.UserAccount.class);
+        org.mockito.Mockito.when(user.getId()).thenReturn(actorId);
+        var current=context.getBean(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(current.getCurrentAccount()).thenReturn(user);
+        org.mockito.Mockito.when(current.belongsToWorkspace(f.workspace())).thenReturn(true);
+        org.mockito.Mockito.when(current.getCurrentMemberId()).thenReturn(f.member());
+        try {
+            java.util.UUID key=java.util.UUID.randomUUID();
+            assertThrows(com.olehkobylianskyi.familypoints.exception.InsufficientPointsException.class,
+                ()->context.getBean(RewardPurchaseOperationService.class).purchaseSelf(f.workspace(),reward,key));
+            assertEquals(0L,sql.queryForObject("""
+                    SELECT count(*) FROM reward_purchases WHERE member_id=? AND reward_definition_id=?
+                    """,Long.class,f.member(),reward));
+            assertEquals(0L,sql.queryForObject("""
+                    SELECT count(*) FROM reward_purchase_operation_receipts
+                    WHERE workspace_id=? AND operation_id=?
+                    """,Long.class,f.workspace(),key));
+            assertEquals(0L,sql.queryForObject("""
+                    SELECT count(*) FROM point_transactions
+                    WHERE member_id=? AND source_type='REWARD_PURCHASE'
+                    """,Long.class,f.member()));
+        } finally {
+            org.mockito.Mockito.reset(current);
+        }
+    }
 
     @AfterEach void clearRequest() {
         org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
