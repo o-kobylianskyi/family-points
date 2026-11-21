@@ -1,4 +1,5 @@
 import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
+import { initialPointOperationAmount } from '../utils/pointOperationDefaults'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -424,6 +425,8 @@ const handlePointOperation = async ({
       <PointOperationModal
         operation={pointOperation}
         member={selectedMember}
+        initialAmount={initialPointOperationAmount(history, pointOperation, selectedMemberId)}
+        availableBalance={balance}
         onClose={() => setPointOperation(null)}
         onSubmit={handlePointOperation}
       />
