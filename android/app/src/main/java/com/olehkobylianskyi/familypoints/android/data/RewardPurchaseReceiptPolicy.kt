@@ -37,7 +37,8 @@ internal object RewardPurchaseReceiptPolicy {
         currentActorAccountId: Long,
         currentDataEpoch: Long
     ): Decision {
-        if (runCatching { UUID.fromString(intent.operationId) }.getOrNull()?.toString() != intent.operationId.lowercase()) {
+        if (runCatching { UUID.fromString(intent.operationId) }.getOrNull()?.toString() != intent.operationId ||
+            runCatching { UUID.fromString(receipt.operationId) }.getOrNull()?.toString() != receipt.operationId) {
             return Decision.HOLD_FOR_REVIEW
         }
         if (intent.workspaceId <= 0 || intent.actorAccountId <= 0 ||
@@ -49,7 +50,7 @@ internal object RewardPurchaseReceiptPolicy {
             receipt.purchaseId <= 0 || receipt.rewardDefinitionId != intent.rewardId ||
             receipt.memberId != intent.memberId || receipt.pointTypeId <= 0 ||
             receipt.pointTypeCode.isBlank() || receipt.priceAmount < 0 ||
-            receipt.status.isBlank()) return Decision.HOLD_FOR_REVIEW
+            receipt.status != "READY") return Decision.HOLD_FOR_REVIEW
         return Decision.ACCEPT
     }
 
