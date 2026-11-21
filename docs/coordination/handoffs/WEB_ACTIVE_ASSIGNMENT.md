@@ -37,3 +37,7 @@ On each `++`: continue first unfinished item in queue; when coherent package is 
 - **Exact-SHA Web CI:** [#44393670802](https://github.com/o-kobylianskyi/family-points/actions/runs/44393670802), job `135117804232`: native Node `40/40 PASS`, V49 fixture syntax 6 PASS, i18n, oxlint 0 warnings/errors, Vite build SUCCESS. Full CI exact-SHA attestation SKIPPED; independent browser QA NOT_RUN.
 - **Issue #15 handoff** [6991053477](https://github.com/o-kobylianskyi/family-points/issues/15#issuecomment-6991053477): `WEB-02_READY_FOR_QA`. Frozen `FamilyDataSafetyPlan.jsx`, `settingsRuntimeGuard.test.mjs` for QA unless P0. QA tests identity/scope switch, manage permission revoke/regrant, read-only backup metadata, error/retry, forbidden Restorable and HTTP423 without live data.
 - **Next autonomous queue** WEB-03: inspect existing template catalog/search/filter UA/RU/DE for reproducible independent Web release defect. If none, `NO_WORK / WAIT` (do not fabricate features or add speculative regressions). WEB-01 also frozen and QA pending. BETA HOLD.
+
+
+## WEB-POINTS-01 accepted user local defect packet — 2026-11-21
+- Source `5c50a89fcd27529c0680dd3fca52f0324d528ed5` Web /points amounts dropdown step 5, last matching manual amount, localized insufficiency, prevent successful POST followed by failed GET from prompting repeat. CI #44920982015 Web 44/44 Node / V49 syntax 6 / lint 0 / i18n/build PASS. Localhost browser NOT_RUN. QA pending; Backend negative spend policy intentionally unchanged. See WEB_LATEST.md. BETA HOLD.
