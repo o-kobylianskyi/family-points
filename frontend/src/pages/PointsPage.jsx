@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/authContextValue'
 import MemberAvatar from '../components/MemberAvatar'
-import { getRewards, purchaseRewardForMember } from '../api/rewardApi'
+import { getRewards, getRewardAvailability, purchaseRewardForMember } from '../api/rewardApi'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 
 import {
@@ -43,6 +43,7 @@ function PointsPage() {
   const canPurchaseRewards = currentUser.permissions.includes('MANAGE_REWARDS') || currentUser.permissions.includes('ADMIN_OVERRIDE')
 
   const loadRewardsForSpend = useCallback(() => getRewards(getAccessToken(), currentUser.workspaceId), [getAccessToken, currentUser.workspaceId])
+  const loadRewardAvailabilityForSpend = useCallback(rewardId => getRewardAvailability(getAccessToken(), currentUser.workspaceId, rewardId), [getAccessToken, currentUser.workspaceId])
 
   const canManagePoints =
     currentUser.permissions.includes('MANAGE_POINTS')
@@ -450,6 +451,7 @@ const handlePointOperation = async ({
         availableBalance={balance}
         canPurchaseRewards={canPurchaseRewards}
         loadRewards={loadRewardsForSpend}
+        loadRewardAvailability={loadRewardAvailabilityForSpend}
         onClose={() => setPointOperation(null)}
         onSubmit={handlePointOperation}
       />
