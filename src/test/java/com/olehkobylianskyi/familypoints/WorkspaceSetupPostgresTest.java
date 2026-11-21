@@ -58,8 +58,12 @@ class WorkspaceSetupPostgresTest {
         assertTrue(a.steps().isEmpty());
         assertEquals(0L,a.dataEpoch());
         assertEquals("NOT_STARTED",f.service.current(f.familyB).status());
+        // This regression exercises only the V45 -> V52 historical setup phase.
+        // A newer migration (V54 reward receipts) must not be mistaken for
+        // a second execution of the setup migration.
         assertEquals(0,Flyway.configure().dataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword())
-                .locations("classpath:db/migration").load().migrate().migrationsExecuted);
+                .locations("classpath:db/migration")
+                .target(MigrationVersion.fromVersion("52")).load().migrate().migrationsExecuted);
     }
 
     @Test void stepChangesAreDurableAndRevisionConflictsHaveNoSideEffects() {
