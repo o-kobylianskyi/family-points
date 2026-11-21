@@ -29,7 +29,7 @@ class PopulatedDatabaseUpgradeTest {
         var config = Flyway.configure()
                 .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
                 .locations("classpath:db/migration");
-        if (baselineOnly) config.target(MigrationVersion.fromVersion("35"));
+        config.target(MigrationVersion.fromVersion(baselineOnly ? "35" : "52"));
         return config.load();
     }
 
