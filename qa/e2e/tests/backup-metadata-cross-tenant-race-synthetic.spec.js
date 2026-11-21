@@ -68,10 +68,24 @@ async function mockApp(page, { list, detail, familyByActor, managementByActor } 
       unexpected.push(method + ' ' + url.pathname)
       return route.abort('blockedbyclient')
     }
-    if (url.origin === origin) return route.continue()
-    if (url.protocol !== 'http:' ||
-        !['localhost', '127.0.0.1'].includes(url.hostname) ||
-        url.port !== '8080') {
+    // Treat every API path as an API regardless of origin. On a Vite
+    // localhost proxy, /api or /workspaces must NEVER reach a real backend.
+    const isApiPath = /^\/(?:api|auth|workspaces)(?:\/|$)/.test(url.pathname)
+    const isMockApiHost = url.protocol === 'http:' &&
+      ['localhost', '127.0.0.1'].includes(url.hostname) &&
+      url.port === '8080'
+    if (url.origin === origin && !isApiPath && !/^\/healthz(?:\/|$)/.test(url.pathname)) {
+      // Only the Vite frontend navigation/static asset GETs stay on localhost.
+      // Reject unknown app paths rather than relying on a backend proxy.
+      const isFrontendAsset = url.pathname === '/' ||
+        ['/settings', '/tasks'].includes(url.pathname) ||
+        /^\/(?:src|node_modules|@vite|@react-refresh|assets)(?:\/|$)/.test(url.pathname) ||
+        /^\/(?:favicon\.ico|vite\.svg)$/.test(url.pathname)
+      if (isFrontendAsset) return route.continue()
+      blocked.push('UNRECOGNIZED_LOCAL_RESOURCE ' + url.pathname)
+      return route.abort('blockedbyclient')
+    }
+    if (!(url.origin === origin && isApiPath) && !isMockApiHost) {
       blocked.push(method + ' ' + url.origin + url.pathname)
       return route.abort('blockedbyclient')
     }
