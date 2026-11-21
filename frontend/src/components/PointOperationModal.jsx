@@ -45,6 +45,7 @@ function PointOperationContent({
   const rewardMode = operation === 'spend' && spendMode === 'reward'
   const eligibleRewards = eligibleDirectRewards(rewards)
   const chosenReward = eligibleRewards.find(reward => String(reward.id) === rewardId)
+  const chosenRewardId = chosenReward?.id ?? null
   const scheduleConfirmed = chosenReward && rewardScheduleIsOpen(rewardSchedule, chosenReward.id)
   const canSubmitReward = !!chosenReward && canPurchaseRewards && !rewardAttempted &&
     !rewardsLoading && !rewardsError && !scheduleLoading && !scheduleError && scheduleConfirmed
@@ -67,10 +68,10 @@ function PointOperationContent({
       }
     })
     return () => { active = false }
-  }, [operation, member?.id, canPurchaseRewards, loadRewards])
+  }, [operation, member, canPurchaseRewards, loadRewards])
 
   useEffect(() => {
-    if (!rewardMode || !chosenReward || !loadRewardAvailability) {
+    if (!rewardMode || !chosenRewardId || !loadRewardAvailability) {
       return
     }
     let active = true
@@ -80,7 +81,7 @@ function PointOperationContent({
       setScheduleError(false)
       setRewardSchedule(null)
       try {
-        const availability = await loadRewardAvailability(chosenReward.id)
+        const availability = await loadRewardAvailability(chosenRewardId)
         if (active) setRewardSchedule(availability)
       } catch {
         if (active) setScheduleError(true)
@@ -89,7 +90,7 @@ function PointOperationContent({
       }
     })
     return () => { active = false }
-  }, [rewardMode, chosenReward?.id, loadRewardAvailability])
+  }, [rewardMode, chosenRewardId, loadRewardAvailability])
 
   useEffect(() => {
     if (!operation || !member || submitting) return
