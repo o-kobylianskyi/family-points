@@ -84,6 +84,46 @@ test('mismatched receipt, corrupt intent and wrong account all fail closed', asy
   assert.equal((await inspectPendingRewardPurchase(input(async () => {throw Error('SHOULD_NOT_CALL')}))).status, 'NO_VALID_INTENT')
 })
 
+
+test('reload and changed account/member never transfer the old original UUID to another actor', async () => {
+  const before = setup()
+  const resumed = await inspectPendingRewardPurchase(input(async (workspaceId, operationId) => {
+    assert.equal(workspaceId, 13)
+    assert.equal(operationId, uuid)
+    return { status: 200, body: validBody }
+  }))
+  assert.equal(resumed.status, 'CONFIRMED_PURCHASE')
+  assert.equal(keys.get(intent.scope), before)
+  for (const change of [{ accountId: 'another-account' }, { workspaceId: 14 }, { memberId: 8 }]) {
+    let invoked = 0
+    const other = await inspectPendingRewardPurchase({
+      ...input(async () => { invoked++; return { status: 200, body: validBody } }),
+      ...change
+    })
+    assert.equal(invoked, 0)
+    assert.equal(other.status, 'NO_VALID_INTENT')
+    assert.equal(keys.get(intent.scope), before)
+  }
+})
+
+test('pending, cancelled, unknown and mismatched completed receipts do not confirm charge state', async () => {
+  for (const state of ['PENDING_APPROVAL', 'CANCELLED', 'FAILED', 'UNKNOWN', null]) {
+    const before = setup()
+    const result = await inspectPendingRewardPurchase(input(async () => ({
+      status: 200,
+      body: { ...validBody, purchase: { ...validBody.purchase, status: state } }
+    })))
+    assert.equal(result.status, 'UNKNOWN_NO_REPLAY')
+    assert.equal(keys.get(intent.scope), before)
+  }
+  const before = setup()
+  const operationMismatch = await inspectPendingRewardPurchase(input(async () => ({
+    status: 200, body: { ...validBody, operationId: 'other' }
+  })))
+  assert.equal(operationMismatch.status, 'UNKNOWN_NO_REPLAY')
+  assert.equal(keys.get(intent.scope), before)
+})
+
 test('reconciliation module never sends POST or clears pending, and is not yet wired to live spend', () => {
   const module = readFileSync(new URL('../src/utils/rewardPurchaseReconciliation.js', import.meta.url), 'utf8')
   const page = readFileSync(new URL('../src/pages/PointsPage.jsx', import.meta.url), 'utf8')
