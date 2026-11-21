@@ -206,7 +206,9 @@ test('WEB02 synthetic: reversed list completion never displays superseded metada
   }})
   try {
     await page.goto('/settings')
-    await expect.poll(() => hits).toBe(1)
+    // React StrictMode may mount effects twice; the first is deliberately
+    // pending, while subsequent reads may legitimately finish immediately.
+    await expect.poll(() => hits).toBeGreaterThan(0)
     // Reload replaces the entire React component tree, rather than faking
     // an in-place account or role transition.
     await page.reload()
