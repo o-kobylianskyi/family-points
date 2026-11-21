@@ -45,6 +45,19 @@ class RewardPurchaseReceiptPolicyTest {
         assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW, check(receipt = receipt.copy(pointTypeCode = "")))
     }
 
+    @Test fun cancelledFailedAndUnknownStatusesNeverConfirm() {
+        for (status in listOf("FAILED", "CANCELLED", "REJECTED", "FULFILLED", "UNKNOWN", "")) {
+            assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW,
+                check(receipt = receipt.copy(status = status)))
+        }
+    }
+
+    @Test fun operationIdsMustBeCanonical() {
+        assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW,
+            check(intent = intent.copy(operationId = uuid.uppercase()),
+                receipt = receipt.copy(operationId = uuid.uppercase())))
+    }
+
     @Test fun uncertainOutcomeIsNeverAutomaticallyReposted() {
         assertFalse(RewardPurchaseReceiptPolicy.mayAutomaticallyPostAfterUncertainOutcome())
     }
