@@ -1,6 +1,6 @@
 import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
 import { initialPointOperationAmount } from '../utils/pointOperationDefaults'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/authContextValue'
@@ -41,6 +41,8 @@ function PointsPage() {
     useState(null)
 
   const canPurchaseRewards = currentUser.permissions.includes('MANAGE_REWARDS') || currentUser.permissions.includes('ADMIN_OVERRIDE')
+
+  const loadRewardsForSpend = useCallback(() => getRewards(getAccessToken(), currentUser.workspaceId), [getAccessToken, currentUser.workspaceId])
 
   const canManagePoints =
     currentUser.permissions.includes('MANAGE_POINTS')
@@ -447,7 +449,7 @@ const handlePointOperation = async ({
         initialAmount={initialPointOperationAmount(history, pointOperation, selectedMemberId)}
         availableBalance={balance}
         canPurchaseRewards={canPurchaseRewards}
-        loadRewards={() => getRewards(getAccessToken(), currentUser.workspaceId)}
+        loadRewards={loadRewardsForSpend}
         onClose={() => setPointOperation(null)}
         onSubmit={handlePointOperation}
       />
