@@ -16,6 +16,7 @@ function PointOperationContent({
   initialAmount = 5,
   availableBalance = 0,
   canPurchaseRewards = false,
+  canManagePoints = false,
   loadRewards,
   loadRewardAvailability,
 }) {
@@ -26,7 +27,7 @@ function PointOperationContent({
   const [submitting, setSubmitting] = useState(false)
   const submitLock = useRef(false)
   const [error, setError] = useState('')
-  const [spendMode, setSpendMode] = useState('manual')
+  const [spendMode, setSpendMode] = useState(canManagePoints ? 'manual' : 'reward')
   const [rewardId, setRewardId] = useState('')
   const [rewards, setRewards] = useState([])
   const [rewardsLoading, setRewardsLoading] = useState(false)
@@ -115,6 +116,7 @@ function PointOperationContent({
     event.preventDefault()
 
     if (submitLock.current || submitting) return
+    if (operation === 'spend' && !rewardMode && !canManagePoints) return
 
     if (rewardMode) {
       if (!canSubmitReward) return
@@ -210,7 +212,7 @@ function PointOperationContent({
             <select id="point-spend-mode" value={spendMode}
               onChange={event => { setSpendMode(event.target.value); setRewardId(''); setRewardSchedule(null); setError('') }}
               disabled={submitting || rewardAttempted}>
-              <option value="manual">{messages[1]}</option>
+              <option value="manual" disabled={!canManagePoints}>{messages[1]}</option>
               <option value="reward">{messages[2]}</option>
             </select>
             {rewardMode && <>
@@ -295,7 +297,7 @@ function PointOperationContent({
             <button
               type="submit"
               className={`primary-button ${operation}`}
-              disabled={submitting || (rewardMode ? !canSubmitReward : insufficient)}
+              disabled={submitting || (rewardMode ? !canSubmitReward : (operation === 'spend' && !canManagePoints) || insufficient)}
             >
               {submitting
                 ? t('common.saving')
