@@ -231,6 +231,12 @@ function PointOperationContent({
                   </option>)}
               </select>
               {chosenReward && <p role="status">{messages[7]}: {chosenReward.priceAmount} {chosenReward.pointTypeCode || ''}</p>}
+              {chosenReward && <p className="point-operation-reward-note">{({
+                uk:'Розклад перевірено окремо. Остаточну доступність, залишок балів, ліміти та ціну перевіряє сервер під час придбання.',
+                ru:'Расписание проверяется отдельно. Окончательную доступность, баланс баллов, лимиты и цену сервер проверяет при покупке.',
+                de:'Der Zeitplan wird separat geprüft. Verfügbarkeit, Punktestand, Limits und Preis prüft der Server beim Kauf endgültig.',
+                en:'Schedule is checked separately. The server verifies final availability, points balance, limits, and price when purchasing.'
+              })[lang] || 'The server verifies final reward eligibility and price when purchasing.'}</p>}
               {chosenReward && scheduleLoading && <p role="status">{({uk:'Перевірка часу доступності…',ru:'Проверка времени доступности…',de:'Verfügbarkeit wird geprüft…',en:'Checking schedule availability…'})[lang] || 'Checking schedule availability…'}</p>}
               {chosenReward && scheduleError && <p role="alert">{({uk:'Не вдалося перевірити доступність нагороди. Списання заблоковано.',ru:'Не удалось проверить доступность награды. Списание заблокировано.',de:'Verfügbarkeit konnte nicht geprüft werden. Einlösung gesperrt.',en:'Could not verify reward availability. Redemption blocked.'})[lang] || 'Could not verify reward availability.'}</p>}
               {chosenReward && !scheduleLoading && !scheduleError && rewardSchedule && !scheduleConfirmed && <p role="alert">{({uk:'Нагорода зараз недоступна за розкладом.',ru:'Награда сейчас недоступна по расписанию.',de:'Belohnung ist derzeit zeitlich nicht verfügbar.',en:'Reward is not available at this time.'})[lang] || 'Reward unavailable now.'}</p>}
