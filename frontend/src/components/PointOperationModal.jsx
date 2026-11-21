@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import NumberInput from './NumberInput'
 import { POINT_AMOUNT_PRESETS } from '../utils/pointOperationDefaults'
+import { eligibleDirectRewards, rewardScheduleIsOpen } from '../utils/rewardSpendEligibility'
 
 function PointOperationModal(props) {
   const scope = [props.operation, props.member?.id].join(':')
@@ -16,8 +17,9 @@ function PointOperationContent({
   availableBalance = 0,
   canPurchaseRewards = false,
   loadRewards,
+  loadRewardAvailability,
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const [amount, setAmount] = useState(String(initialAmount))
   const [description, setDescription] = useState('')
@@ -30,7 +32,9 @@ function PointOperationContent({
   const [rewardsLoading, setRewardsLoading] = useState(false)
   const [rewardsError, setRewardsError] = useState(false)
   const [rewardAttempted, setRewardAttempted] = useState(false)
-  const { i18n } = useTranslation()
+  const [rewardSchedule, setRewardSchedule] = useState(null)
+  const [scheduleLoading, setScheduleLoading] = useState(false)
+  const [scheduleError, setScheduleError] = useState(false)
   const lang = (i18n.resolvedLanguage || i18n.language || 'en').split('-')[0]
   const messages = ({
     uk: ['Тип списання', 'Інше списання без нагороди', 'Списання за нагороду', 'Виберіть нагороду', 'Завантаження нагород…', 'Помилка завантаження нагород', 'Немає доступних нагород', 'Ціна', 'Запит уже було надіслано. Перевірте історію нагород перед повторною спробою.', 'Потрібне право керування нагородами', 'Отримати нагороду'],
@@ -39,9 +43,11 @@ function PointOperationContent({
     en: ['Spend type', 'Other spend without reward', 'Redeem reward', 'Choose reward', 'Loading rewards…', 'Failed to load rewards', 'No rewards available', 'Cost', 'Request already sent. Check reward history before retrying.', 'Reward management permission required', 'Redeem reward'],
   })[lang] || ['Spend type', 'Other spend without reward', 'Redeem reward', 'Choose reward', 'Loading rewards…', 'Failed to load rewards', 'No rewards available', 'Cost', 'Request already sent. Check reward history before retrying.', 'Reward management permission required', 'Redeem reward']
   const rewardMode = operation === 'spend' && spendMode === 'reward'
-  const eligibleRewards = rewards.filter(reward =>
-    reward.active !== false && reward.acquisitionMode === 'DIRECT' && !reward.requiresApproval)
+  const eligibleRewards = eligibleDirectRewards(rewards)
   const chosenReward = eligibleRewards.find(reward => String(reward.id) === rewardId)
+  const scheduleConfirmed = chosenReward && rewardScheduleIsOpen(rewardSchedule, chosenReward.id)
+  const canSubmitReward = !!chosenReward && canPurchaseRewards && !rewardAttempted &&
+    !rewardsLoading && !rewardsError && !scheduleLoading && !scheduleError && scheduleConfirmed
 
   const insufficient = operation === 'spend' && Number(amount) > Math.max(0, Number(availableBalance) || 0)
 
@@ -62,6 +68,28 @@ function PointOperationContent({
     })
     return () => { active = false }
   }, [operation, member?.id, canPurchaseRewards, loadRewards])
+
+  useEffect(() => {
+    if (!rewardMode || !chosenReward || !loadRewardAvailability) {
+      return
+    }
+    let active = true
+    Promise.resolve().then(async () => {
+      if (!active) return
+      setScheduleLoading(true)
+      setScheduleError(false)
+      setRewardSchedule(null)
+      try {
+        const availability = await loadRewardAvailability(chosenReward.id)
+        if (active) setRewardSchedule(availability)
+      } catch {
+        if (active) setScheduleError(true)
+      } finally {
+        if (active) setScheduleLoading(false)
+      }
+    })
+    return () => { active = false }
+  }, [rewardMode, chosenReward?.id, loadRewardAvailability])
 
   useEffect(() => {
     if (!operation || !member || submitting) return
@@ -88,7 +116,7 @@ function PointOperationContent({
     if (submitLock.current || submitting) return
 
     if (rewardMode) {
-      if (!chosenReward || !canPurchaseRewards || rewardAttempted) return
+      if (!canSubmitReward) return
       submitLock.current = true
       setRewardAttempted(true)
       try {
@@ -179,7 +207,7 @@ function PointOperationContent({
           {operation === 'spend' && <div className="fp-number-field">
             <label htmlFor="point-spend-mode">{messages[0]}</label>
             <select id="point-spend-mode" value={spendMode}
-              onChange={event => { setSpendMode(event.target.value); setError('') }}
+              onChange={event => { setSpendMode(event.target.value); setRewardId(''); setRewardSchedule(null); setError('') }}
               disabled={submitting || rewardAttempted}>
               <option value="manual">{messages[1]}</option>
               <option value="reward">{messages[2]}</option>
@@ -191,7 +219,7 @@ function PointOperationContent({
               {!rewardsLoading && !rewardsError && !eligibleRewards.length && <p role="status">{messages[6]}</p>}
               <label htmlFor="point-spend-reward">{messages[3]}</label>
               <select id="point-spend-reward" value={rewardId}
-                onChange={event => { setRewardId(event.target.value); setError('') }}
+                onChange={event => { setRewardId(event.target.value); setRewardSchedule(null); setScheduleError(false); setError('') }}
                 disabled={submitting || rewardAttempted || !canPurchaseRewards || rewardsLoading || rewardsError}>
                 <option value="">{messages[3]}</option>
                 {eligibleRewards.map(reward =>
@@ -200,6 +228,10 @@ function PointOperationContent({
                   </option>)}
               </select>
               {chosenReward && <p role="status">{messages[7]}: {chosenReward.priceAmount} {chosenReward.pointTypeCode || ''}</p>}
+              {chosenReward && scheduleLoading && <p role="status">{({uk:'Перевірка часу доступності…',ru:'Проверка времени доступности…',de:'Verfügbarkeit wird geprüft…',en:'Checking schedule availability…'})[lang] || 'Checking schedule availability…'}</p>}
+              {chosenReward && scheduleError && <p role="alert">{({uk:'Не вдалося перевірити доступність нагороди. Списання заблоковано.',ru:'Не удалось проверить доступность награды. Списание заблокировано.',de:'Verfügbarkeit konnte nicht geprüft werden. Einlösung gesperrt.',en:'Could not verify reward availability. Redemption blocked.'})[lang] || 'Could not verify reward availability.'}</p>}
+              {chosenReward && !scheduleLoading && !scheduleError && rewardSchedule && !scheduleConfirmed && <p role="alert">{({uk:'Нагорода зараз недоступна за розкладом.',ru:'Награда сейчас недоступна по расписанию.',de:'Belohnung ist derzeit zeitlich nicht verfügbar.',en:'Reward is not available at this time.'})[lang] || 'Reward unavailable now.'}</p>}
+
             </>}
           </div>}
           {!rewardMode && <div className="fp-number-field">
@@ -262,7 +294,7 @@ function PointOperationContent({
             <button
               type="submit"
               className={`primary-button ${operation}`}
-              disabled={submitting || (rewardMode ? !chosenReward || !canPurchaseRewards || rewardAttempted || rewardsLoading || rewardsError : insufficient)}
+              disabled={submitting || (rewardMode ? !canSubmitReward : insufficient)}
             >
               {submitting
                 ? t('common.saving')
