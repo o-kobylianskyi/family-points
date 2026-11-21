@@ -3,6 +3,7 @@ package com.olehkobylianskyi.familypoints.android
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.olehkobylianskyi.familypoints.android.storage.RewardPurchaseIntentStore
+import com.olehkobylianskyi.familypoints.android.data.RewardPurchaseReceiptPolicy
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -80,10 +81,28 @@ class RewardPurchaseIntentSqliteTest {
         store.transition(entry, "UNCERTAIN", 11, 91, 7)
         val unknown = store.scoped(11, 91).single()
         assertEquals("UNCERTAIN", unknown.state)
-        assertThrows(IllegalStateException::class.java) {
+        assertThrows(IllegalArgumentException::class.java) {
             store.transition(unknown, "CONFIRMED", 11, 91, 7)
         }
         assertEquals("UNCERTAIN", store.scoped(11, 91).single().state)
+    }
+
+    @Test fun exactReceiptConfirmsButInvalidReceiptDoesNot() = fresh { store ->
+        val entry = intent()
+        store.prepare(entry)
+        val receipt = RewardPurchaseReceiptPolicy.Receipt(
+            entry.operationId.toString(), 100, entry.rewardId, entry.memberId,
+            2, "POINTS", 12, "READY"
+        )
+        assertThrows(IllegalStateException::class.java) {
+            store.confirmReceipt(entry, receipt.copy(status = "CANCELLED"), 11, 91, 7)
+        }
+        assertEquals("PREPARED", store.scoped(11, 91).single().state)
+        store.confirmReceipt(entry, receipt, 11, 91, 7)
+        assertEquals("CONFIRMED", store.scoped(11, 91).single().state)
+        assertThrows(IllegalArgumentException::class.java) {
+            store.confirmReceipt(store.scoped(11, 91).single(), receipt, 11, 91, 7)
+        }
     }
 
     @Test fun ownerSwitchCannotMutateForeignIntent() = fresh { store ->
