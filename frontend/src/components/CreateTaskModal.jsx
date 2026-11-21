@@ -221,8 +221,15 @@ function CreateTaskModalContent({
 
   const [loading, setLoading] = useState(false)
   const submitLock = useRef(false)
+  const [recoveryNeedsAuth, setRecoveryNeedsAuth] = useState(false)
+  const activationAuthMessage = () => ({
+    uk:'Не вдалося перевірити операцію: потрібна повторна авторизація. Закрийте форму, увійдіть у цей самий обліковий запис і перевірте квитанцію ще раз. Запис операції збережено; не створюйте дублікат.',
+    ru:'Не удалось проверить операцию: требуется повторная авторизация. Закройте форму, войдите в ту же учётную запись и проверьте квитанцию снова. Операция сохранена; не создавайте дубликат.',
+    de:'Die Prüfung erfordert eine erneute Anmeldung. Schließen Sie das Formular, melden Sie sich mit demselben Konto an und prüfen Sie den Beleg erneut. Der Vorgang bleibt gespeichert; keinen Duplikat erstellen.',
+    en:'Sign in again to verify the operation. Close this form, sign in with the same account, then check the receipt again. The pending operation is preserved; do not create a duplicate.'
+  })[i18n.language.split('-')[0]] || 'Sign in again with the same account and check the receipt.'
   const recoverActivation = async (retry = false) => {
-    if (submitLock.current || !pendingActivation || !activationKey) return
+    if (submitLock.current || !pendingActivation || !activationKey || recoveryNeedsAuth) return
     submitLock.current = true
     setLoading(true); setError('')
     const operation = pendingActivation, origin = currentUser.workspaceId
@@ -239,9 +246,17 @@ function CreateTaskModalContent({
       try { await onCreated?.({ id: receipt.createdDefinitionId }) } catch { /* Write already confirmed. */ }
       onClose()
     } catch (error) {
-      if (String(templateWorkspaceRef.current) === String(origin)) setError(error.status === 404
-        ? ({uk:'Квитанції поки немає. Доступне лише явне повторення тієї самої операції.',ru:'Квитанции пока нет. Можно повторить только ту же операцию.',de:'Noch kein Beleg. Nur denselben Vorgang explizit wiederholen.',en:'No receipt yet. Only the original operation may be retried explicitly.'})[i18n.language.split('-')[0]]
-        : (error.message || 'Activation outcome is unknown'))
+      if (String(templateWorkspaceRef.current) === String(origin)) {
+        // Authentication errors cannot authorize a receipt lookup or replay.
+        // Preserve the original UUID and immutable request for the next login.
+        const authDenied = error.status === 401 || error.status === 403 ||
+          /authentication is required|not authenticated|unauthorized/i.test(error.message || '')
+        if (authDenied) setRecoveryNeedsAuth(true)
+        setError(authDenied ? activationAuthMessage()
+          : error.status === 404
+            ? ({uk:'Квитанції поки немає. Доступне лише явне повторення тієї самої операції.',ru:'Квитанции пока нет. Можно повторить только ту же операцию.',de:'Noch kein Beleg. Nur denselben Vorgang explizit wiederholen.',en:'No receipt yet. Only the original operation may be retried explicitly.'})[i18n.language.split('-')[0]]
+            : (error.message || 'Activation outcome is unknown'))
+      }
     } finally {
       submitLock.current = false
       setLoading(false)
@@ -695,8 +710,8 @@ function CreateTaskModalContent({
         >
           {pendingActivation && <div className="page-error" role="alert">
             <p>{({uk:'Є незавершена активація TASK. Перевірте квитанцію перш ніж створювати інше завдання.',ru:'Есть незавершённая активация TASK. Сначала проверьте квитанцию.',de:'Offene Aufgabenaktivierung. Zuerst Beleg prüfen.',en:'Pending task activation. Check the receipt before creating another task.'})[i18n.language.split('-')[0]]}</p>
-            <button type="button" disabled={loading} onClick={() => recoverActivation(false)}>{({uk:'Перевірити квитанцію',ru:'Проверить квитанцию',de:'Beleg prüfen',en:'Check receipt'})[i18n.language.split('-')[0]] || 'Check receipt'}</button>
-            <button type="button" disabled={loading} onClick={() => recoverActivation(true)}>{({uk:'Повторити ту саму операцію',ru:'Повторить ту же операцию',de:'Denselben Vorgang wiederholen',en:'Retry original UUID'})[i18n.language.split('-')[0]] || 'Retry original UUID'}</button>
+            <button type="button" disabled={loading || recoveryNeedsAuth} onClick={() => recoverActivation(false)}>{({uk:'Перевірити квитанцію',ru:'Проверить квитанцию',de:'Beleg prüfen',en:'Check receipt'})[i18n.language.split('-')[0]] || 'Check receipt'}</button>
+            <button type="button" disabled={loading || recoveryNeedsAuth} onClick={() => recoverActivation(true)}>{({uk:'Повторити ту саму операцію',ru:'Повторить ту же операцию',de:'Denselben Vorgang wiederholen',en:'Retry original UUID'})[i18n.language.split('-')[0]] || 'Retry original UUID'}</button>
           </div>}
           {error && (
             <div className="page-error">
