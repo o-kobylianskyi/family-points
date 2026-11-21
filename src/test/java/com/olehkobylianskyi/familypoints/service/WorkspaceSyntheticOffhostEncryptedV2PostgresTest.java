@@ -116,7 +116,7 @@ class WorkspaceSyntheticOffhostEncryptedV2PostgresTest {
             byte[] dumpBytes = Files.readAllBytes(dump);
             assertTrue(dumpBytes.length > 0);
             String dumpSha = ProtectiveBackupArtifactCodec.sha(dumpBytes);
-            assertEquals(epoch.longValue(), jdbc.queryForObject(
+            assertEquals(epoch, jdbc.queryForObject(
                     "SELECT data_epoch FROM families WHERE id=?", Long.class, family));
             assertEquals(1L, jdbc.queryForObject(
                     "SELECT count(*) FROM family_members WHERE family_id=?", Long.class, family));
@@ -145,7 +145,7 @@ class WorkspaceSyntheticOffhostEncryptedV2PostgresTest {
                     "SELECT count(*) FROM family_roles WHERE family_id=?", Long.class, family));
             assertEquals(1L, restored.queryForObject(
                     "SELECT count(*) FROM family_members WHERE family_id=?", Long.class, family));
-            assertEquals(epoch.longValue(), restored.queryForObject(
+            assertEquals(epoch, restored.queryForObject(
                     "SELECT data_epoch FROM families WHERE id=?", Long.class, family));
             assertEquals(53, restored.queryForObject(
                     "SELECT max(installed_rank) FROM flyway_schema_history WHERE success", Integer.class));
@@ -153,7 +153,7 @@ class WorkspaceSyntheticOffhostEncryptedV2PostgresTest {
             var verified = inspector.inspectAncestryV2(
                     Files.readAllBytes(remoteArchive), family, key);
             assertEquals(snapshot, verified.snapshotId());
-            assertEquals(epoch.longValue(), verified.sourceEpoch());
+            assertEquals(epoch, verified.sourceEpoch());
             assertEquals(1, verified.memberCount());
             assertEquals(1, verified.roleCount());
             assertFalse(verified.restorable());
