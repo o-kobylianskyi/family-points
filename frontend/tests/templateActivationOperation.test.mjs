@@ -53,7 +53,7 @@ test('V48 TASK recovery authentication failure preserves original pending operat
   const {readFileSync} = await import('node:fs')
   const source = readFileSync(new URL('../src/components/CreateTaskModal.jsx', import.meta.url),'utf8')
   assert.match(source,/const authDenied = error\.status === 401 \|\| error\.status === 403/)
-  assert.match(source,/if \(authDenied\) setRecoveryNeedsAuth\(true\)/)
+  assert.match(source,/if \(authDenied\) \{ setRecoveryNeedsAuth\(true\); setReceiptConfirmedMissing\(false\) \}/)
   assert.match(source,/if \(submitLock\.current \|\| !pendingActivation \|\| !activationKey \|\| \(retry && \(recoveryNeedsAuth \|\| !receiptConfirmedMissing\)\)\) return/)
   assert.match(source,/disabled=\{loading\} onClick=\{\(\) => recoverActivation\(false\)\}/)
   assert.match(source,/disabled=\{loading \|\| recoveryNeedsAuth \|\| !receiptConfirmedMissing\} onClick=\{\(\) => recoverActivation\(true\)\}/)
