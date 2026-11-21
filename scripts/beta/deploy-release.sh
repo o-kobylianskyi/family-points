@@ -46,6 +46,11 @@ release_failure() {
 trap release_failure EXIT
 
 git switch --detach "$target"
+# --no-deps below intentionally excludes dependency startup; run the confined
+# one-shot archive initializer explicitly before backend starts.
+# Only the approved archive mount-root is changed; this is NOT a DB operation.
+deployment_stage="archive-volume-init"
+sudo docker compose --env-file .env -f compose.beta.yml run --no-deps --rm backup-volume-init
 deployment_stage="compose-up"
 sudo docker compose --env-file .env -f compose.beta.yml up -d --build --no-deps backend web
 deployment_stage="localhost-health"
