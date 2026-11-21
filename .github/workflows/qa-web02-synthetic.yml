@@ -94,7 +94,7 @@ jobs:
         shell: bash
         run: |
           echo "## WEB02 synthetic browser check" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Exact tested PR SHA: `$GITHUB_SHA`" >> "$GITHUB_STEP_SUMMARY"
+          printf -- '- Exact tested PR SHA: %s\n' "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
           echo "- App origin: localhost:5173 only; API: intercepted mock routes; external HTTP blocked" >> "$GITHUB_STEP_SUMMARY"
           echo "- Test type: synthetic / no real authentication or tenant-role transitions" >> "$GITHUB_STEP_SUMMARY"
           echo "- This is NOT WEB01 live, WEB02 live, signed Android, offhost restore, or BETA acceptance" >> "$GITHUB_STEP_SUMMARY"
