@@ -87,6 +87,8 @@
     "description": "Description",
     "invalidAmount": "Enter a whole number greater than zero",
     "insufficientBalance": "Not enough points to spend. Available: {{balance}}. Use Penalty to allow a negative balance.",
+    "quickAmount": "Quick select (step 5)",
+    "customAmount": "Custom value",
     "operationFailed": "The operation could not be completed",
     "earn": {
       "title": "Add points",
