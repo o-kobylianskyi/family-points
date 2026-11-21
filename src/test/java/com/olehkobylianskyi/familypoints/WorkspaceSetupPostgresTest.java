@@ -37,7 +37,8 @@ class WorkspaceSetupPostgresTest {
         flyway.target(MigrationVersion.fromVersion("45")).load().migrate();
         long old = db.queryForObject("INSERT INTO families(name) VALUES ('Existing family') RETURNING id",Long.class);
         assertEquals(7,Flyway.configure().dataSource(source).locations("classpath:db/migration")
-                .load().migrate().migrationsExecuted,"V46 should be additive");
+                .target(MigrationVersion.fromVersion("52")).load().migrate().migrationsExecuted,
+                "V46-V52 should be additive and not enroll legacy families");
         assertEquals(0L,db.queryForObject(
                 "SELECT count(*) FROM workspace_setup_states WHERE workspace_id=?",Long.class,old),
                 "Old families must not be enrolled automatically");
