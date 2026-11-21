@@ -6,7 +6,7 @@ export function initialPointOperationAmount(history, operation, memberId) {
   const wanted = {earn:'EARN',spend:'SPEND',penalty:'PENALTY'}[operation]
   if (!wanted || !Array.isArray(history)) return 5
   const matching = history.find(row =>
-    row && row.type === wanted &&
+    row && row.type === wanted && row.sourceType === 'MANUAL' &&
     String(row.memberId) === String(memberId) &&
     Number.isSafeInteger(row.amount) && row.amount !== 0 &&
     Math.abs(row.amount) <= 100000
