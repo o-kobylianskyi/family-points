@@ -11,14 +11,17 @@ function PointOperationContent({
   member,
   onClose,
   onSubmit,
+  initialAmount = 5,
+  availableBalance = 0,
 }) {
   const { t } = useTranslation()
 
-  const [amount, setAmount] = useState('')
+  const [amount, setAmount] = useState(String(initialAmount))
   const [description, setDescription] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const submitLock = useRef(false)
   const [error, setError] = useState('')
+  const insufficient = operation === 'spend' && Number(amount) > Math.max(0, Number(availableBalance) || 0)
 
   useEffect(() => {
     if (!operation || !member || submitting) return
@@ -54,6 +57,11 @@ function PointOperationContent({
       return
     }
 
+    if (insufficient) {
+      setError(t('pointOperation.insufficientBalance', {balance: Math.max(0, Number(availableBalance) || 0)}))
+      return
+    }
+
     submitLock.current = true
     try {
       setSubmitting(true)
@@ -68,8 +76,9 @@ function PointOperationContent({
       onClose()
     } catch (error) {
       setError(
-        error.message ||
-          t('pointOperation.operationFailed')
+        /not enough points|insufficient points/i.test(error?.message || '')
+          ? t('pointOperation.insufficientBalance', {balance: Math.max(0, Number(availableBalance) || 0)})
+          : (error.message || t('pointOperation.operationFailed'))
       )
     } finally {
       submitLock.current = false
@@ -114,12 +123,23 @@ function PointOperationContent({
               id="point-operation-amount"
               min="1"
               step="1"
+              stepperStep={5}
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
               autoFocus
               disabled={submitting}
               aria-label={t('pointOperation.amount')}
             />
+            <div className="point-amount-presets" style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:8}}>
+              {[5,10,15,20,25,30,40,50,75,100].map(value => (
+                <button type="button" key={value} className="secondary-button"
+                  aria-pressed={Number(amount) === value} disabled={submitting}
+                  onClick={() => {setAmount(String(value));setError('')}}>{value}</button>
+              ))}
+            </div>
+            {operation === 'spend' && insufficient && <p role="status" className="point-operation-balance-warning">
+              {t('pointOperation.insufficientBalance', {balance: Math.max(0, Number(availableBalance) || 0)})}
+            </p>}
           </div>
 
           <label>
@@ -154,7 +174,7 @@ function PointOperationContent({
             <button
               type="submit"
               className={`primary-button ${operation}`}
-              disabled={submitting}
+              disabled={submitting || insufficient}
             >
               {submitting
                 ? t('common.saving')
