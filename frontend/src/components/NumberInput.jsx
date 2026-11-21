@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next'
 
 /** Shared numeric field with an integrated stepper and one outer border. */
-export default function NumberInput({ value, onChange, min, max, step = 1, disabled = false, ...props }) {
+export default function NumberInput({ value, onChange, min, max, step = 1, stepperStep = step, disabled = false, ...props }) {
   const { t } = useTranslation()
   const amount = Number(value)
   const lower = min === undefined ? -Infinity : Number(min)
   const upper = max === undefined ? Infinity : Number(max)
-  const delta = Number(step) > 0 ? Number(step) : 1
+  const delta = Number(stepperStep) > 0 ? Number(stepperStep) : 1
   const isFilled = value !== '' && value !== null && value !== undefined && Number.isFinite(amount)
 
   const adjust = (direction) => {
