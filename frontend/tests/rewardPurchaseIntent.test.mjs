@@ -16,7 +16,7 @@ const storage = {
 test('future purchase intent uses one immutable UUID per scoped member and cannot overwrite unresolved intent', () => {
   values.clear()
   const intent = makeRewardPurchaseIntent({
-    accountId: 'parent', workspaceId: 13, memberId: 4, rewardId: 45, operationId: uuid
+    accountId: 'parent', workspaceId: 13, memberId: 4, rewardId: 45, operationId: uuid, expectedPointTypeId: 3, expectedPointTypeCode: 'POINTS', expectedPriceAmount: 10
   })
   assert.equal(Object.isFrozen(intent), true)
   assert.equal(intent.state, 'UNKNOWN')
@@ -38,7 +38,7 @@ test('malformed, wrong-scope and non-UUID operations fail closed without network
     accountId: 'parent', workspaceId: 13, memberId: 4, rewardId: -1, operationId: uuid
   }), /INVALID_PURCHASE_INTENT/)
   const record = makeRewardPurchaseIntent({
-    accountId: 'parent', workspaceId: 13, memberId: 4, rewardId: 45, operationId: uuid
+    accountId: 'parent', workspaceId: 13, memberId: 4, rewardId: 45, operationId: uuid, expectedPointTypeId: 3, expectedPointTypeCode: 'POINTS', expectedPriceAmount: 10
   })
   values.set(record.scope, JSON.stringify({ ...record, workspaceId: 14 }))
   assert.equal(readRewardPurchaseIntent(storage, record.scope), null)
