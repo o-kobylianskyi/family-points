@@ -98,3 +98,53 @@ test('Web receipt API is not yet wired into active reward mutation and the old p
   assert.doesNotMatch(page + modal, /getRewardPurchaseOperationReceipt/)
   assert.doesNotMatch(page + modal, /inspectPendingRewardPurchase/)
 })
+
+test('receipt transport rejects malformed scope, missing auth and noncanonical UUID before network', async () => {
+  let calls = 0
+  globalThis.__rewardReceiptTestApiRequest = async () => {
+    calls++
+    throw Error('NEVER_SEND')
+  }
+  const invalid = [
+    ['', 13, operationId],
+    [null, 13, operationId],
+    ['fake-jwt-never-networked', 0, operationId],
+    ['fake-jwt-never-networked', -1, operationId],
+    ['fake-jwt-never-networked', 'not-a-family', operationId],
+    ['fake-jwt-never-networked', 13, '../../unrelated'],
+    ['fake-jwt-never-networked', 13, operationId.toUpperCase()],
+    ['fake-jwt-never-networked', 13, 'not-a-uuid']
+  ]
+  for (const args of invalid) {
+    await assert.rejects(
+      getRewardPurchaseOperationReceipt(...args),
+      /REWARD_PURCHASE_RECEIPT_REQUEST_INVALID/
+    )
+  }
+  assert.equal(calls, 0)
+})
+
+test('receipt status progression is read-only and never invents a fresh purchase intent', async () => {
+  const before = prepare()
+  const states = [
+    ['READY', 'CONFIRMED_PURCHASE'],
+    ['REDEEMED', 'CONFIRMED_PURCHASE'],
+    ['CANCELLED', 'UNKNOWN_NO_REPLAY'],
+    ['PENDING_APPROVAL', 'UNKNOWN_NO_REPLAY']
+  ]
+  let getCount = 0
+  for (const [status, expected] of states) {
+    globalThis.__rewardReceiptTestApiRequest = async (path, options) => {
+      getCount++
+      assert.equal(options.method, 'GET')
+      assert.match(path, new RegExp(operationId + '$'))
+      return { status: 200, json: async () => ({
+        ...purchase, purchase: { ...purchase.purchase, status }
+      }) }
+    }
+    const observed = await readWithToken()
+    assert.equal(observed.status, expected)
+    assert.equal(records.get(intent.scope), before)
+  }
+  assert.equal(getCount, states.length)
+})
