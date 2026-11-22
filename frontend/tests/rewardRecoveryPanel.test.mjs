@@ -8,7 +8,7 @@ import {
 test('four full locales cover each recovery and purchase hold message', () => {
   const required = [
     'heading', 'check', 'checking', 'unknown', 'unavailable', 'auth',
-    'conflict', 'confirmed', 'redeemed', 'cancelled', 'blocked', 'operation', 'status'
+    'conflict', 'confirmed', 'redeemed', 'cancelled', 'blocked', 'operation', 'status', 'legacy'
   ]
   for (const language of ['uk', 'ru', 'de', 'en']) {
     assert.deepEqual(Object.keys(rewardRecoveryMessages[language]).sort(), [...required].sort())
@@ -24,6 +24,8 @@ test('four full locales cover each recovery and purchase hold message', () => {
       rewardRecoveryMessages[language].auth)
     assert.equal(rewardRecoveryStatusMessage('CONFLICT_NO_REPLAY', null, language),
       rewardRecoveryMessages[language].conflict)
+    assert.equal(rewardRecoveryStatusMessage('LEGACY_SNAPSHOT_MISSING_HOLD', null, language),
+      rewardRecoveryMessages[language].legacy)
     assert.equal(rewardRecoveryStatusMessage('UNKNOWN_NO_REPLAY', null, language),
       rewardRecoveryMessages[language].unknown)
   }
