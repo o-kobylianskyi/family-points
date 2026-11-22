@@ -7,7 +7,7 @@ import { inspectPendingRewardPurchase } from '../src/utils/rewardPurchaseReconci
 // Isolate the production rewardApi source with an injected fake API requester.
 // All tests stay offline and never call real localhost or workspace data.
 const source = readFileSync(new URL('../src/api/rewardApi.js', import.meta.url), 'utf8')
-  .replace("import { apiRequest } from './client'", "const apiRequest = globalThis.__rewardReceiptTestApiRequest")
+  .replace("import { apiRequest } from './client'", "const apiRequest = (...args) => globalThis.__rewardReceiptTestApiRequest(...args)")
 const { getRewardPurchaseOperationReceipt } = await import(
   'data:text/javascript;base64,' + Buffer.from(source).toString('base64')
 )
