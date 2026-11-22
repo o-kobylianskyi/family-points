@@ -14,6 +14,7 @@ export const rewardRecoveryMessages = {
     operation: 'Операція',
     status: 'Стан квитанції',
     legacy: 'Збережено стару операцію без початкової ціни й типу балів. UUID не змінюється; автоматичне підтвердження та повторне придбання заблоковані.',
+    originalPrice: 'Початкова вартість',
 
   },
   ru: {
@@ -31,6 +32,7 @@ export const rewardRecoveryMessages = {
     operation: 'Операция',
     status: 'Статус квитанции',
     legacy: 'Сохранена старая операция без исходной цены и типа баллов. UUID не меняется; автоматическое подтверждение и повторная покупка заблокированы.',
+    originalPrice: 'Исходная стоимость',
 
   },
   de: {
@@ -48,6 +50,7 @@ export const rewardRecoveryMessages = {
     operation: 'Vorgang',
     status: 'Belegstatus',
     legacy: 'Alter Vorgang ohne ursprünglichen Preis und Punkttyp erhalten. UUID bleibt unverändert; automatische Bestätigung und erneuter Kauf sind gesperrt.',
+    originalPrice: 'Ursprünglicher Preis',
 
   },
   en: {
@@ -64,7 +67,8 @@ export const rewardRecoveryMessages = {
     blocked: 'Reward purchases are disabled until the security review is complete.',
     operation: 'Operation',
     status: 'Receipt status',
-    legacy: 'Previous operation lacks the original price and point type. UUID is preserved; automatic confirmation and another purchase remain blocked.',
+    legacy: 'Previous operation lacks the original price and point type. UUID is preserved; automatic confirmation and another purchase remain blocked.',    originalPrice: 'Original price',
+
   },
 }
 
