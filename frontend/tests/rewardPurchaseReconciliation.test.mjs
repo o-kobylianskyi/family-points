@@ -144,6 +144,9 @@ test('authenticated matching CANCELLED receipt reports historical purchase and H
     { purchase: { ...validBody.purchase, status: 'CANCELLED', memberId: 99 } },
     { purchase: { ...validBody.purchase, status: 'CANCELLED', rewardDefinitionId: 99 } },
     { purchase: { ...validBody.purchase, status: 'CANCELLED', priceAmount: -1 } },
+    { purchase: { ...validBody.purchase, status: 'CANCELLED', priceAmount: 11 } },
+    { purchase: { ...validBody.purchase, status: 'CANCELLED', pointTypeId: 4 } },
+    { purchase: { ...validBody.purchase, status: 'CANCELLED', pointTypeCode: 'OTHER' } },
     { purchase: { ...validBody.purchase, status: 'CANCELLED', pointTypeCode: '' } }
   ]) {
     const result = await inspectPendingRewardPurchase(input(async () => ({
