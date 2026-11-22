@@ -28,7 +28,8 @@ class RewardPurchaseIntentSqliteTest {
         account: Long = 11, workspace: Long = 91,
         id: UUID = UUID.randomUUID(), epoch: Long = 7
     ) = RewardPurchaseIntentStore.Intent(
-        id, account, workspace, 24, 42, epoch, "MANAGER", "PREPARED"
+        id, account, workspace, 24, 42, epoch, "MANAGER", "PREPARED",
+        2, "POINTS", 12
     )
 
     @Test fun identitySurvivesSqliteReopen() {
@@ -83,6 +84,18 @@ class RewardPurchaseIntentSqliteTest {
         assertEquals(1, store.quarantineEpoch(11, 91, 8))
         assertEquals("HELD", store.scoped(11, 91).single().state)
         assertEquals("PREPARED", store.scoped(12, 91).single().state)
+    }
+
+    @Test fun newIntentAlwaysPersistsOriginalPriceAndCurrency() = fresh { store ->
+        val entry = intent()
+        store.prepare(entry)
+        val persisted = store.scoped(11, 91).single()
+        assertEquals(2L, persisted.expectedPointTypeId)
+        assertEquals("POINTS", persisted.expectedPointTypeCode)
+        assertEquals(12, persisted.expectedPriceAmount)
+        assertThrows(IllegalArgumentException::class.java) {
+            store.prepare(intent().copy(expectedPriceAmount = null))
+        }
     }
 
     @Test fun unknownOutcomeSurvivesAndCannotBecomeConfirmedWithoutReceipt() = fresh { store ->
