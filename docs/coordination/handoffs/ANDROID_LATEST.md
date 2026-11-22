@@ -56,3 +56,14 @@ BETA HOLD; no merge/tag/deploy, no reset/restore execute, no family DB changes, 
 - **No new Android source changed in STEP69.** PR58 remains DRAFT/unmerged, runtime receipt GET not registered and purchase POST not wired; synthetic SQLite/device test execution pending. Retain safety holds: BETA HOLD, no real family write, no merge/deploy/restore/reset.
 - Next safe Android acceptance: independent QA inspect named JVM XML and run SQLite `RewardPurchaseIntentSqliteTest` on controlled Android emulator/device; prove persisted UUID, canonical status allowlist and epoch drift. Then read-only intent review UX, **without** POST or any generic spend; after Backend financial QA/Architecture, separately authorize runtime integration.
 - Capacity: no reliable chat token percentage; current discussion continuation handoff committed regularly.
+
+## STEP70 — 2026-11-22, source-only read-only reward journal UI
+- Architect latest STEP69 Issue #15 #7084116039: read-only parity allowed, no financial POST or runtime purchase enablement; Backend must determine READY->REDEEMED/CANCELLED receipt interpretation. QA #7084050011 confirmed Android SQLite instrumented tests are authored but **NOT_EXECUTED**, and noted Web READY+REDEEMED vs Android READY-only parity question.
+- Added on existing PR58 branch:
+  - `ui/screens/RewardPurchaseIntentReviewModel.kt`: verified account/workspace-scoped projection of identity-only journal; no cross-account records; no automatic purchase actions.
+  - `ui/screens/RewardPurchaseIntentReviewSection.kt`: standalone non-navigated Compose read-only section, localized UK/RU/DE/EN, displays local state/reward/member/UUID; no button, callback, API call or financial mutation. **Not wired** into active RewardsScreen until separate QA/architecture decision.
+  - `test/.../RewardPurchaseIntentReviewModelTest.kt`: 3 authored JVM tests for account/tenant scoping, invalid state and disabled financial actions.
+- **This STEP70 source change is not tested yet:** latest new-head CI must be checked; no device/emulator available through this GitHub-only channel, therefore SQLite `RewardPurchaseIntentSqliteTest` remains NOT_RUN on device. APK compiled on former HEAD 7420e8cc; do not transfer that verdict to new source SHA.
+- Backend PR57 current previous accepted SHA 084f4df source green 772; newer c165bed source had in-flight run at STEP69 and Architect subsequently reports 775 PG tests 0F; this still needs QA and canonical lifecycle decision.
+- Strict holds: no merge, no deploy, no host/real-family data, no purchase POST, no generic spend workaround; BETA HOLD.
+- Next: verify automatic CI for exact STEP70 source; have QA run actual connectedDebugAndroidTest on explicitly approved disposable emulator and report seven named SQLite cases. After backend status decision align Android/Web receipt interpretation; keep purchase UI inactive until financially accepted.
