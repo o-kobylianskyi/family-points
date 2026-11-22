@@ -154,3 +154,17 @@ export async function purchaseRewardForMember(token, workspaceId, rewardId, memb
   )
   return handleResponse(response, 'Failed to purchase reward for member')
 }
+
+// Read-only PR57 receipt lookup; the caller must validate the returned body
+// against the persisted original operation before claiming any purchase.
+// 404, 401 and 409 are NOT permission to resubmit a purchase.
+export async function getRewardPurchaseOperationReceipt(token, workspaceId, operationId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/rewards/purchases/receipts/${operationId}`,
+    { token, method: 'GET', cache: 'no-store' }
+  )
+  return {
+    status: response.status,
+    body: response.status === 200 ? await response.json() : null,
+  }
+}
