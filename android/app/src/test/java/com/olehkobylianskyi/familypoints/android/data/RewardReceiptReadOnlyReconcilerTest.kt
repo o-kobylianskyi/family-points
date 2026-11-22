@@ -13,7 +13,7 @@ import java.util.UUID
 class RewardReceiptReadOnlyReconcilerTest {
     private val uuid = UUID.fromString("f4271bb3-bf2f-4b6b-b671-1e66b78fa09f")
     private val original = RewardPurchaseIntentStore.Intent(
-        uuid, 21, 22, 23, 24, 25, "SELF", "UNCERTAIN"
+        uuid, 21, 22, 23, 24, 25, "SELF", "UNCERTAIN", 6, "POINTS", 9
     )
     private val purchase = RewardPurchaseSummary(
         45, 24, 23, "Member", "Reward", 6, "POINTS", 9,
