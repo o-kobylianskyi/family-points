@@ -86,4 +86,36 @@ class RewardPurchaseOperationServiceTest {
         verifyNoInteractions(rewards);
         verify(db, never()).update(anyString(), any(Object[].class));
     }
+
+    @Test void forbiddenForeignWorkspaceNeverReadsOrPurchases() {
+        authenticatedSelf();
+        when(current.belongsToWorkspace(2L)).thenReturn(false);
+        UUID key=UUID.randomUUID();
+        assertEquals(HttpStatus.FORBIDDEN,assertThrows(ResponseStatusException.class,
+                () -> service.receipt(2L,key)).getStatusCode());
+        assertEquals(HttpStatus.FORBIDDEN,assertThrows(ResponseStatusException.class,
+                () -> service.purchaseSelf(2L,5L,key)).getStatusCode());
+        verifyNoInteractions(epochs,rewards,purchases,db);
+    }
+
+    @Test void managerRouteDeniedWithoutRewardPermissionBeforeAnyFinancialWrite() {
+        authenticatedSelf();
+        var member=mock(com.olehkobylianskyi.familypoints.entity.WorkspaceMember.class);
+        var role=mock(com.olehkobylianskyi.familypoints.entity.WorkspaceRole.class);
+        when(current.getCurrentMember()).thenReturn(member);
+        when(member.getWorkspaceRole()).thenReturn(role);
+        UUID key=UUID.randomUUID();
+        assertEquals(HttpStatus.FORBIDDEN,assertThrows(ResponseStatusException.class,
+                () -> service.purchaseForMember(1L,4L,5L,key)).getStatusCode());
+        verifyNoInteractions(epochs,rewards,purchases,db);
+    }
+
+    @Test void staleEpochPreventsEvenReceiptLookupWithinNewPurchaseAttempt() {
+        authenticatedSelf();
+        when(epochs.requireCurrentRequestEpoch(1L)).thenThrow(
+                new ResponseStatusException(HttpStatus.CONFLICT,"WORKSPACE_DATA_EPOCH_STALE"));
+        assertEquals(HttpStatus.CONFLICT,assertThrows(ResponseStatusException.class,
+                () -> service.purchaseSelf(1L,5L,UUID.randomUUID())).getStatusCode());
+        verifyNoInteractions(rewards,purchases,db);
+    }
 }
