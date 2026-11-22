@@ -34,6 +34,28 @@ class RewardPurchaseRecoveryStateTest {
         assertEquals(RewardPurchaseRecoveryState.State.CONFIRMED_PURCHASE, result())
     }
 
+    @Test fun redeemedAndCancelledHaveDifferentHistoricalOutcomes() {
+        assertEquals(RewardPurchaseRecoveryState.State.CONFIRMED_REDEEMED,
+            result(purchase = purchase.copy(status = "REDEEMED")))
+        assertEquals(RewardPurchaseRecoveryState.State.CANCELLED_HISTORY_HOLD,
+            result(purchase = purchase.copy(status = "CANCELLED")))
+        assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW,
+            result(purchase = purchase.copy(status = "PENDING_APPROVAL")))
+        assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW,
+            result(purchase = purchase.copy(status = "FAILED")))
+    }
+
+    @Test fun forgedCancellationNeverBecomesVerifiedHistoricalPurchase() {
+        assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW,
+            result(purchase = purchase.copy(status = "CANCELLED", rewardDefinitionId = 888)))
+        assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW,
+            result(purchase = purchase.copy(status = "CANCELLED"), actor = 999))
+        assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW,
+            result(purchase = purchase.copy(status = "CANCELLED"), epoch = 10))
+        assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW,
+            result(uuid = "incorrect", purchase = purchase.copy(status = "CANCELLED")))
+    }
+
     @Test fun receiptMismatchAndScopeDriftAreHeld() {
         assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW, result(uuid = "unrelated"))
         assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW,
