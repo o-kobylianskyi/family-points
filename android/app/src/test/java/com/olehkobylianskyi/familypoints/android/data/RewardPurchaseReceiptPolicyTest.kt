@@ -6,7 +6,7 @@ import org.junit.Test
 
 class RewardPurchaseReceiptPolicyTest {
     private val uuid = "8c126e6b-7867-49ed-a40f-a20254cd0918"
-    private val intent = RewardPurchaseReceiptPolicy.Intent(uuid, 12, 34, 56, 78, 9)
+    private val intent = RewardPurchaseReceiptPolicy.Intent(uuid, 12, 34, 56, 78, 9, 2, "POINTS", 25)
     private val receipt = RewardPurchaseReceiptPolicy.Receipt(
         uuid, 111, 56, 78, 2, "POINTS", 25, "READY"
     )
@@ -21,7 +21,8 @@ class RewardPurchaseReceiptPolicyTest {
 
     @Test fun exactReceiptAcceptedIncludingZeroPrice() {
         assertEquals(RewardPurchaseReceiptPolicy.Decision.ACCEPT, check())
-        assertEquals(RewardPurchaseReceiptPolicy.Decision.ACCEPT, check(receipt = receipt.copy(priceAmount = 0)))
+        assertEquals(RewardPurchaseReceiptPolicy.Decision.ACCEPT, check(intent = intent.copy(expectedPriceAmount = 0),
+            receipt = receipt.copy(priceAmount = 0)))
     }
 
     @Test fun mismatchedUuidRewardOrMemberNeverConfirms() {
@@ -55,6 +56,21 @@ class RewardPurchaseReceiptPolicyTest {
             assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW,
                 check(receipt = receipt.copy(status = status)))
         }
+    }
+
+    @Test fun mismatchedOriginalPriceOrCurrencyDoesNotConfirm() {
+        assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW,
+            check(receipt = receipt.copy(priceAmount = 26)))
+        assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW,
+            check(receipt = receipt.copy(pointTypeId = 4)))
+        assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW,
+            check(receipt = receipt.copy(pointTypeCode = "OTHER")))
+        assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW,
+            check(intent = intent.copy(expectedPriceAmount = null)))
+        assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW,
+            check(intent = intent.copy(expectedPointTypeId = null)))
+        assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW,
+            check(intent = intent.copy(expectedPointTypeCode = null)))
     }
 
     @Test fun operationIdsMustBeCanonical() {
