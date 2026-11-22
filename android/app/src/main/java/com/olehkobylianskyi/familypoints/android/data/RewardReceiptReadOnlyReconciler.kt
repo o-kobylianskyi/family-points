@@ -50,7 +50,9 @@ internal class RewardReceiptReadOnlyReconciler(
             return RewardPurchaseRecoveryState.afterReceipt(
                 RewardPurchaseReceiptPolicy.Intent(
                     original.operationId.toString(), original.workspaceId, original.accountId,
-                    original.rewardId, original.memberId, original.epoch
+                    original.rewardId, original.memberId, original.epoch,
+                    original.expectedPointTypeId, original.expectedPointTypeCode,
+                    original.expectedPriceAmount
                 ),
                 receipt.operationId, receipt.purchase, workspaceId, actorAccountId,
                 after.dataEpoch
