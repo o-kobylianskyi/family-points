@@ -8,7 +8,7 @@ import {
 test('four full locales cover each recovery and purchase hold message', () => {
   const required = [
     'heading', 'check', 'checking', 'unknown', 'unavailable', 'auth',
-    'conflict', 'confirmed', 'redeemed', 'cancelled', 'blocked', 'operation', 'status', 'legacy'
+    'conflict', 'confirmed', 'redeemed', 'cancelled', 'blocked', 'operation', 'status', 'legacy', 'originalPrice'
   ]
   for (const language of ['uk', 'ru', 'de', 'en']) {
     assert.deepEqual(Object.keys(rewardRecoveryMessages[language]).sort(), [...required].sort())
@@ -41,6 +41,9 @@ test('recovery panel is explicitly read-only and scoped per user/family/member w
   assert.match(panel, /receiptFetcher: \(family, operationId\)/)
   assert.match(panel, /getRewardPurchaseOperationReceipt\(getAccessToken\(\), family, operationId\)/)
   assert.match(panel, /generation\.current/)
+  assert.ok(panel.includes('pending.expectedPriceAmount'))
+  assert.ok(panel.includes('pending.expectedPointTypeCode'))
+  assert.ok(panel.includes('pending.version === 1'))
   assert.match(page, /<RewardPurchaseRecoveryPanel/)
   assert.match(page, /accountId=\{currentUser\.accountId \?\? currentUser\.userId \?\? currentUser\.id\}/)
   assert.match(page, /rewardPurchaseEnabled=\{false\}/)
