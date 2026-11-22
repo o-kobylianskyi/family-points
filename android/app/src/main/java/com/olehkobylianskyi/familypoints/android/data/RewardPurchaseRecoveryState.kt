@@ -9,6 +9,8 @@ internal object RewardPurchaseRecoveryState {
         READY_TO_CHECK,
         CHECKING,
         CONFIRMED_PURCHASE,
+        CONFIRMED_REDEEMED,
+        CANCELLED_HISTORY_HOLD,
         NEEDS_REVIEW
     }
 
@@ -42,8 +44,27 @@ internal object RewardPurchaseRecoveryState {
             currentAccountId,
             currentEpoch
         )
-        return if (result == RewardPurchaseReceiptPolicy.Decision.ACCEPT)
-            State.CONFIRMED_PURCHASE else State.NEEDS_REVIEW
+        if (result == RewardPurchaseReceiptPolicy.Decision.ACCEPT) {
+            return if (purchase.status == "REDEEMED") State.CONFIRMED_REDEEMED
+            else State.CONFIRMED_PURCHASE
+        }
+        // CANCELLED does not undo the historical purchase or prove a refund.
+        // Distinguish it ONLY when the full receipt identity/price/type/scope
+        // validates; a forged/foreign cancellation remains NEEDS_REVIEW.
+        if (purchase.status == "CANCELLED") {
+            val matched = RewardPurchaseReceiptPolicy.evaluate(
+                intent,
+                RewardPurchaseReceiptPolicy.Receipt(
+                    responseOperationId, purchase.id, purchase.rewardDefinitionId,
+                    purchase.memberId, purchase.pointTypeId, purchase.pointTypeCode,
+                    purchase.priceAmount, "READY"
+                ),
+                currentWorkspaceId, currentAccountId, currentEpoch
+            )
+            if (matched == RewardPurchaseReceiptPolicy.Decision.ACCEPT)
+                return State.CANCELLED_HISTORY_HOLD
+        }
+        return State.NEEDS_REVIEW
     }
 
     fun canClearUncertainIntent(state: State): Boolean = false
