@@ -1352,6 +1352,26 @@ class PointMutationTransactionPostgresTest {
                             fixture.workspace(),template+10000L,operation,request)))
                     .getStatusCode().value());
 
+            // The valid immutable List.of(...) case above must not throw NPE.
+            // Invalid mutable lists must still be rejected transactionally.
+            request.setInitialSlotTimes(java.util.Arrays.asList(
+                    java.time.LocalTime.of(17,0), null));
+            assertThrows(IllegalArgumentException.class,
+                    ()->withEpoch(0L,()->receipts.activateTask(
+                            fixture.workspace(),template,UUID.randomUUID(),request)));
+            request.setInitialSlotTimes(java.util.List.of(
+                    java.time.LocalTime.of(17,0),java.time.LocalTime.of(17,0)));
+            assertThrows(IllegalArgumentException.class,
+                    ()->withEpoch(0L,()->receipts.activateTask(
+                            fixture.workspace(),template,UUID.randomUUID(),request)));
+            request.setInitialSlotTimes(java.util.List.of(java.time.LocalTime.of(17,0)));
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM task_definitions WHERE family_id=?
+                    """,Long.class,fixture.workspace()));
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM template_activation_requests WHERE workspace_id=?
+                    """,Long.class,fixture.workspace()));
+
             // Fault at the very LAST receipt SQL insert, after real TaskService
             // created work node/definition/participants in the same transaction.
             UUID failedKey=UUID.randomUUID();
