@@ -165,3 +165,41 @@ test('reconciliation module never sends POST or clears pending, and is not yet w
   assert.doesNotMatch(module, /apiRequest\(|fetch\(|removeItem\(|setItem\(/)
   assert.doesNotMatch(page, /inspectPendingRewardPurchase/)
 })
+
+test('v1 original UUID without price snapshot stays held, no GET or POST and never rewritten', async () => {
+  keys.clear()
+  const legacy = { version: 1, scope: intent.scope, accountId: 'parent',
+    workspaceId: 13, memberId: 7, rewardId: 45, operationId: uuid, state: 'UNKNOWN' }
+  const original = JSON.stringify(legacy)
+  keys.set(intent.scope, original)
+  let calls = 0
+  const result = await inspectPendingRewardPurchase(input(async () => {
+    calls++
+    return { status: 200, body: validBody }
+  }))
+  assert.equal(result.status, 'LEGACY_SNAPSHOT_MISSING_HOLD')
+  assert.equal(result.receipt, null)
+  assert.equal(result.intent.operationId, uuid)
+  assert.equal(calls, 0)
+  assert.equal(keys.get(intent.scope), original)
+})
+
+test('price drift and point type change in receipt leave v2 UNKNOWN without a second debit', async () => {
+  for (const changed of [
+    { priceAmount: 11 }, { priceAmount: 0 }, { pointTypeId: 5 },
+    { pointTypeCode: 'OTHER' }, { pointTypeId: 5, pointTypeCode: 'OTHER' }
+  ]) {
+    const before = setup()
+    let gets = 0
+    const result = await inspectPendingRewardPurchase(input(async () => {
+      gets++
+      return { status: 200, body: {
+        ...validBody, purchase: { ...validBody.purchase, ...changed }
+      } }
+    }))
+    assert.equal(gets, 1)
+    assert.equal(result.status, 'UNKNOWN_NO_REPLAY')
+    assert.equal(result.receipt, null)
+    assert.equal(keys.get(intent.scope), before)
+  }
+})
