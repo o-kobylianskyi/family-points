@@ -239,7 +239,7 @@ function CreateTaskModalContent({
       const epoch = await observeWorkspaceEpoch(getAccessToken(), origin)
       if (epoch !== operation.epoch) throw new Error('WORKSPACE_DATA_EPOCH_CHANGED')
       const receipt = retry
-        ? await activateTaskTemplateIdempotent(getAccessToken(), origin, operation.templateId, operation.request, operation.operationId)
+        ? await activateTaskTemplateIdempotent(getAccessToken(), origin, operation.templateId, operation.request, operation.operationId, getAccessToken)
         : await getTemplateActivationReceipt(getAccessToken(), origin, operation.operationId)
       verifyActivationReceipt(receipt, operation)
       if (String(templateWorkspaceRef.current) !== String(origin)) return
@@ -648,12 +648,15 @@ function CreateTaskModalContent({
       if (!editing && selectedTemplateId && activationKey) {
         const existing = readActivation(sessionStorage, activationKey, originWorkspace, 'TASK')
         if (existing) { setPendingActivation(existing); throw new Error('PENDING_ACTIVATION_RECOVERY_REQUIRED') }
-        const epoch = await observeWorkspaceEpoch(token, originWorkspace)
+        const epoch = await observeWorkspaceEpoch(getAccessToken(), originWorkspace)
         const operation = makeActivation(originWorkspace, 'TASK', epoch, selectedTemplateId, request, crypto.randomUUID())
         saveActivation(sessionStorage, activationKey, operation)
         setPendingActivation(operation)
         setUnknownWrite(true)
-        const receipt = await activateTaskTemplateIdempotent(token, originWorkspace, operation.templateId, operation.request, operation.operationId)
+        // Resolve the token after the async epoch handshake: a concurrent
+        // session refresh may have rotated it while the handshake was in flight.
+        // Never replay the POST automatically if the result is uncertain.
+        const receipt = await activateTaskTemplateIdempotent(getAccessToken(), originWorkspace, operation.templateId, operation.request, operation.operationId, getAccessToken)
         verifyActivationReceipt(receipt, operation)
         sessionStorage.removeItem(activationKey)
         setPendingActivation(null)
