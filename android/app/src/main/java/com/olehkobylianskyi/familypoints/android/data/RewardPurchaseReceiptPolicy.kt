@@ -14,7 +14,10 @@ internal object RewardPurchaseReceiptPolicy {
         val actorAccountId: Long,
         val rewardId: Long,
         val memberId: Long,
-        val dataEpoch: Long
+        val dataEpoch: Long,
+        val expectedPointTypeId: Long? = null,
+        val expectedPointTypeCode: String? = null,
+        val expectedPriceAmount: Int? = null
     )
 
     data class Receipt(
@@ -49,6 +52,12 @@ internal object RewardPurchaseReceiptPolicy {
         if (receipt.operationId != intent.operationId ||
             receipt.purchaseId <= 0 || receipt.rewardDefinitionId != intent.rewardId ||
             receipt.memberId != intent.memberId || receipt.pointTypeId <= 0 ||
+            intent.expectedPointTypeId == null || intent.expectedPointTypeId <= 0 ||
+            intent.expectedPointTypeCode.isNullOrBlank() ||
+            intent.expectedPriceAmount == null || intent.expectedPriceAmount < 0 ||
+            receipt.pointTypeId != intent.expectedPointTypeId ||
+            receipt.pointTypeCode != intent.expectedPointTypeCode ||
+            receipt.priceAmount != intent.expectedPriceAmount ||
             receipt.pointTypeCode.isBlank() || receipt.priceAmount < 0 ||
             receipt.status !in setOf("READY", "REDEEMED")) return Decision.HOLD_FOR_REVIEW
         return Decision.ACCEPT
