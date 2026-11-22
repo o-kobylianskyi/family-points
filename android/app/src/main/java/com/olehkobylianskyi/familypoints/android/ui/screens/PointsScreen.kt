@@ -108,7 +108,7 @@ fun PointsScreen(
     // Local identity journal only; no network, no mutation, no other-account read.
     LaunchedEffect(currentUser.accountId, currentUser.workspaceId, refreshNonce) {
         rewardIntents = try {
-            rewardIntentStore.scoped(currentUser.accountId, currentUser.workspaceId)
+            rewardIntentStore.scoped(currentUser.accountId ?: 0L, currentUser.workspaceId)
         } catch (_: Exception) {
             // A corrupt/locked journal must never trigger a new purchase.
             emptyList()
@@ -784,7 +784,7 @@ fun PointsScreen(
                 item {
                     RewardPurchaseIntentReviewSection(
                         language = language,
-                        accountId = currentUser.accountId,
+                        accountId = currentUser.accountId ?: 0L,
                         workspaceId = currentUser.workspaceId,
                         records = rewardIntents
                     )
