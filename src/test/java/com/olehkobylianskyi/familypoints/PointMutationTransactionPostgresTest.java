@@ -55,7 +55,7 @@ class PointMutationTransactionPostgresTest {
     @Configuration
     @EnableTransactionManagement
     @EnableJpaRepositories(basePackageClasses = PointTransactionRepository.class)
-    @Import({PointMutationService.class, PointService.class, WorkspaceEpochTransactionGuard.class,
+    @Import({TemplateActivationReceiptService.class, PointMutationService.class, PointService.class, WorkspaceEpochTransactionGuard.class,
             RewardService.class, RewardAvailabilityService.class, ReputationService.class,
             TaskService.class, TaskGenerationService.class, TaskDeadlineService.class,
             TaskAuditService.class, TaskRewardNegotiationService.class, PointExchangeService.class,
@@ -1282,6 +1282,132 @@ class PointMutationTransactionPostgresTest {
         assertEquals(2L,sql.queryForObject("SELECT count(*) FROM template_activation_requests WHERE workspace_id=?",Long.class,fixture.workspace()));
         assertEquals(0L,sql.queryForObject("SELECT count(*) FROM reward_purchases p JOIN family_members m ON m.id=p.member_id WHERE m.family_id=?",Long.class,fixture.workspace()));
         assertEquals(0,postings(fixture));
+    }
+
+
+    /**
+     * Domain-bound V48 regression: real template controller validation and
+     * TaskService/JPA persistence in the same receipt transaction. Only the
+     * isolated TaskController bean is bridged to its real implementation; no
+     * HTTP/JWT success is inferred from this disposable PostgreSQL fixture.
+     */
+    @Test void localDateActivationCreatesRealTaskDomainAndReceiptOnce() {
+        var fixture=fixture();
+        var templates=context.getBean(
+                com.olehkobylianskyi.familypoints.controller.WorkspaceTemplateController.class);
+        var receipts=context.getBean(TemplateActivationReceiptService.class);
+        var taskControllerMock=context.getBean(
+                com.olehkobylianskyi.familypoints.controller.TaskController.class);
+        var actualController=new com.olehkobylianskyi.familypoints.controller.TaskController(
+                context.getBean(TaskService.class),
+                context.getBean(TaskGenerationService.class),
+                context.getBean(TaskDeadlineService.class),
+                context.getBean(TaskAuditService.class),
+                context.getBean(TaskRewardNegotiationService.class));
+        org.mockito.Mockito.when(taskControllerMock.createDefinition(
+                org.mockito.ArgumentMatchers.eq(fixture.workspace()),
+                org.mockito.ArgumentMatchers.any(
+                        com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest.class)))
+                .thenAnswer(invocation->actualController.createDefinition(
+                        invocation.getArgument(0),invocation.getArgument(1)));
+        var current=context.getBean(
+                com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(current.getCurrentMember()).thenAnswer(invocation->
+                context.getBean(WorkspaceMemberRepository.class)
+                        .findById(fixture.member()).orElseThrow());
+        long template=sql.queryForObject("""
+                INSERT INTO workspace_private_templates(workspace_id,kind,title,definition_json)
+                VALUES (?,'TASK','Domain task','{}') RETURNING id
+                """,Long.class,fixture.workspace());
+        var request=new com.olehkobylianskyi.familypoints.dto.TaskDefinitionCreateRequest();
+        request.setTitle("Real task domain creation");
+        request.setAssignedMemberId(fixture.member());
+        request.setRecurrenceType(com.olehkobylianskyi.familypoints.entity.TaskRecurrenceType.ONCE);
+        request.setStartDate(java.time.LocalDate.of(2026,11,22));
+        request.setEndDate(java.time.LocalDate.of(2026,11,24));
+        request.setDueTime(java.time.LocalTime.of(17,0));
+        request.setInitialSlotTimes(java.util.List.of(java.time.LocalTime.of(17,0)));
+        UUID operation=UUID.randomUUID();
+        try {
+            var first=withEpoch(0L,()->receipts.activateTask(fixture.workspace(),template,operation,request));
+            var replay=withEpoch(0L,()->receipts.activateTask(fixture.workspace(),template,operation,request));
+            assertEquals(first.createdDefinitionId(),replay.createdDefinitionId());
+            assertFalse(first.replayed());
+            assertTrue(replay.replayed());
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM task_definitions WHERE family_id=? AND id=?
+                      AND start_date='2026-11-22' AND end_date='2026-11-24'
+                      AND due_time='17:00:00'
+                    """,Long.class,fixture.workspace(),first.createdDefinitionId()));
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM template_activation_receipts
+                    WHERE workspace_id=? AND operation_id=? AND created_definition_id=?
+                    """,Long.class,fixture.workspace(),operation,first.createdDefinitionId()));
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM template_activation_requests
+                    WHERE workspace_id=? AND operation_id=?
+                    """,Long.class,fixture.workspace(),operation));
+            assertEquals(409,assertThrows(ResponseStatusException.class,
+                    ()->withEpoch(0L,()->receipts.activateTask(
+                            fixture.workspace(),template+10000L,operation,request)))
+                    .getStatusCode().value());
+
+            // The valid immutable List.of(...) case above must not throw NPE.
+            // Invalid mutable lists must still be rejected transactionally.
+            request.setInitialSlotTimes(java.util.Arrays.asList(
+                    java.time.LocalTime.of(17,0), null));
+            assertThrows(IllegalArgumentException.class,
+                    ()->withEpoch(0L,()->receipts.activateTask(
+                            fixture.workspace(),template,UUID.randomUUID(),request)));
+            request.setInitialSlotTimes(java.util.List.of(
+                    java.time.LocalTime.of(17,0),java.time.LocalTime.of(17,0)));
+            assertThrows(IllegalArgumentException.class,
+                    ()->withEpoch(0L,()->receipts.activateTask(
+                            fixture.workspace(),template,UUID.randomUUID(),request)));
+            request.setInitialSlotTimes(java.util.List.of(java.time.LocalTime.of(17,0)));
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM task_definitions WHERE family_id=?
+                    """,Long.class,fixture.workspace()));
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM template_activation_requests WHERE workspace_id=?
+                    """,Long.class,fixture.workspace()));
+
+            // Fault at the very LAST receipt SQL insert, after real TaskService
+            // created work node/definition/participants in the same transaction.
+            UUID failedKey=UUID.randomUUID();
+            sql.execute("ALTER TABLE template_activation_receipts ADD CONSTRAINT "
+                    +"test_task_receipt_injected_failure CHECK "
+                    +"(operation_id <> '"+failedKey+"')");
+            try {
+                assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
+                        ()->withEpoch(0L,()->receipts.activateTask(
+                                fixture.workspace(),template,failedKey,request)));
+                assertEquals(1L,sql.queryForObject("""
+                        SELECT count(*) FROM task_definitions WHERE family_id=?
+                        """,Long.class,fixture.workspace()));
+                assertEquals(1L,sql.queryForObject("""
+                        SELECT count(*) FROM template_activation_requests WHERE workspace_id=?
+                        """,Long.class,fixture.workspace()));
+                assertEquals(1L,sql.queryForObject("""
+                        SELECT count(*) FROM template_activation_receipts WHERE workspace_id=?
+                        """,Long.class,fixture.workspace()));
+            } finally {
+                sql.execute("ALTER TABLE template_activation_receipts "
+                        +"DROP CONSTRAINT IF EXISTS test_task_receipt_injected_failure");
+            }
+            var second=withEpoch(0L,()->receipts.activateTask(
+                    fixture.workspace(),template,failedKey,request));
+            assertFalse(second.replayed());
+            assertNotEquals(first.createdDefinitionId(),second.createdDefinitionId());
+            assertEquals(2L,sql.queryForObject("""
+                    SELECT count(*) FROM task_definitions WHERE family_id=?
+                    """,Long.class,fixture.workspace()));
+            assertEquals(2L,sql.queryForObject("""
+                    SELECT count(*) FROM template_activation_receipts WHERE workspace_id=?
+                    """,Long.class,fixture.workspace()));
+        } finally {
+            org.mockito.Mockito.reset(taskControllerMock,current);
+        }
     }
 
     private static void await(CountDownLatch latch) {

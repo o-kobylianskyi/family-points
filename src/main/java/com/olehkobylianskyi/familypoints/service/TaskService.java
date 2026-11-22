@@ -211,7 +211,7 @@ public class TaskService {
         // No default execution must be created for definitions with explicit slots.
         if (initialSlotTimes != null && !initialSlotTimes.isEmpty()) {
             if (initialSlotTimes.size() > 12 || new java.util.HashSet<>(initialSlotTimes).size() != initialSlotTimes.size()
-                    || initialSlotTimes.contains(null)) {
+                    || initialSlotTimes.stream().anyMatch(java.util.Objects::isNull)) {
                 throw new IllegalArgumentException("Slot times must be unique and non-null (max 12)");
             }
             for (int index = 0; index < initialSlotTimes.size(); index++) {
