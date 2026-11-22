@@ -15,13 +15,12 @@ internal object RewardSpendSelectionPolicy {
 
     fun action(rewardSelected: Boolean, manualAmount: Int?, selectedTypeId: Long?): Action =
         when {
-            rewardSelected -> REWARD_PURCHASE_DISABLED()
+            rewardSelected -> Action.REWARD_PURCHASE_DISABLED
             manualAmount == null || manualAmount !in 1..100_000 ||
                 selectedTypeId == null || selectedTypeId <= 0 -> Action.INVALID
             else -> Action.MANUAL_SPEND
         }
 
-    private fun REWARD_PURCHASE_DISABLED() = Action.REWARD_PURCHASE_DISABLED
 
     fun catalog(
         rewards: List<RewardDefinitionSummary>,
