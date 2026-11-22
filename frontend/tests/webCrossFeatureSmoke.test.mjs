@@ -146,3 +146,15 @@ test('task and reward views use shared currency formatting and no hidden reset/r
   assert.ok(points.includes('RewardPurchaseRecoveryPanel'))
   assert.ok(!src('App.jsx').includes('path="/restore/execute"'))
 })
+
+test('theme preference radio labels are localized across all four languages', () => {
+  const preference = src('components/ThemePreference.jsx')
+  assert.match(preference, /useTranslation\(\)/)
+  assert.match(preference, /aria-label=\{labels\.group\}/)
+  for (const language of ['uk', 'ru', 'de', 'en']) {
+    assert.ok(preference.includes(language + ': { title:'), language)
+  }
+  for (const mode of ['system', 'light', 'dark']) {
+    assert.ok(preference.includes("['" + mode + "', labels." + mode + ']'))
+  }
+})
