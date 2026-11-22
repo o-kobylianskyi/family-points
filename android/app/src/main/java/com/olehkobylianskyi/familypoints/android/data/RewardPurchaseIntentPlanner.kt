@@ -39,7 +39,8 @@ internal object RewardPurchaseIntentPlanner {
         }
         return RewardPurchaseIntentStore.Intent(
             operationId, scope.accountId, scope.workspaceId, targetMemberId,
-            reward.id, scope.dataEpoch, route, "PREPARED"
+            reward.id, scope.dataEpoch, route, "PREPARED",
+            reward.pointTypeId, reward.pointTypeCode, reward.priceAmount
         )
     }
 
