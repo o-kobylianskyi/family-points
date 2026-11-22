@@ -24,6 +24,7 @@ export default function RewardPurchaseRecoveryPanel({
 
   useEffect(() => {
     const current = ++generation.current
+    let active = true
     // Session storage may be unavailable (privacy mode); review stays hidden.
     let record = null
     if (isScoped) {
@@ -34,13 +35,13 @@ export default function RewardPurchaseRecoveryPanel({
     }
     // Defer state updates to avoid synchronous effect setState lint issues.
     Promise.resolve().then(() => {
-      if (generation.current !== current) return
+      if (!active || generation.current !== current) return
       setPending(record)
       setResult(null)
       setChecking(false)
       requestLock.current = false
     })
-    return () => { generation.current++ }
+    return () => { active = false }
   }, [accountId, workspaceId, memberId, isScoped])
 
   const inspect = async () => {
