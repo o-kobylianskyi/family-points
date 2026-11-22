@@ -14,7 +14,7 @@ const { getRewardPurchaseOperationReceipt } = await import(
 
 const operationId = 'e489ea25-4e10-48ee-b8ea-7a9f4b2e3456'
 const intent = makeRewardPurchaseIntent({
-  accountId: 'parent', workspaceId: 13, memberId: 7, rewardId: 45, operationId
+  accountId: 'parent', workspaceId: 13, memberId: 7, rewardId: 45, operationId, expectedPointTypeId: 2, expectedPointTypeCode: 'POINTS', expectedPriceAmount: 10
 })
 const records = new Map()
 const storage = {
