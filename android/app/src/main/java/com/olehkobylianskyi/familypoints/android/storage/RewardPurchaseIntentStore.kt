@@ -177,13 +177,14 @@ class RewardPurchaseIntentStore(context: Context) :
 
     /** Quarantine all unresolved intents on generation change; never delete rows. */
     @Synchronized
-    fun quarantineEpoch(workspaceId: Long, verifiedEpoch: Long): Int {
-        require(workspaceId > 0 && verifiedEpoch >= 0)
+    fun quarantineEpoch(accountId: Long, workspaceId: Long, verifiedEpoch: Long): Int {
+        require(accountId > 0 && workspaceId > 0 && verifiedEpoch >= 0)
         return writableDatabase.update(
             "reward_purchase_intents",
             ContentValues().apply { put("state", "HELD") },
-            """workspace_id=? AND data_epoch!=? AND state IN ('PREPARED','UNCERTAIN')""",
-            arrayOf(workspaceId.toString(), verifiedEpoch.toString())
+            """account_id=? AND workspace_id=? AND data_epoch!=?
+               AND state IN ('PREPARED','UNCERTAIN')""",
+            arrayOf(accountId.toString(), workspaceId.toString(), verifiedEpoch.toString())
         )
     }
 }
