@@ -1,5 +1,6 @@
 import RewardAvailabilityEditor from '../components/RewardAvailabilityEditor'
 import RewardPurchaseHistory from '../components/RewardPurchaseHistory'
+import { rewardRecoveryCopy } from '../utils/rewardPurchaseRecoveryCopy'
 import { templateCategoryLabel } from '../utils/templateCategoryLabels'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -26,8 +27,6 @@ import {
   getRewardPurchases,
   getRewardRequests,
   getRewards,
-  purchaseReward,
-  purchaseRewardRequest,
   refreshRewardRequest,
   rejectRewardRequest,
 } from '../api/rewardApi'
@@ -129,8 +128,6 @@ function RewardsPageContent() {
   const [reputation, setReputation] = useState(null)
   const [notice, setNotice] = useState('')
   const actionLock = useRef(false)
-  const purchaseLocks = useRef(new Set())
-  const [pendingPurchases, setPendingPurchases] = useState([])
   const [rewards, setRewards] = useState([])
   const [categories, setCategories] = useState([])
   const [requests, setRequests] = useState([])
@@ -337,23 +334,11 @@ function RewardsPageContent() {
     }
   }
 
-  const purchaseOnce = async (rewardKey, action, rewardTitle) => {
-    // Lock only this reward, allowing another distinct reward to be obtained.
-    if (purchaseLocks.current.has(rewardKey)) return
-    purchaseLocks.current.add(rewardKey)
-    setPendingPurchases(Array.from(purchaseLocks.current))
-    setError('')
-    setNotice('')
-    try {
-      await action()
-      setNotice(t('rewardsUi.received', { title: rewardTitle }))
-      await loadAll()
-    } catch (actionError) {
-      setError(actionError.message)
-    } finally {
-      purchaseLocks.current.delete(rewardKey)
-      setPendingPurchases(Array.from(purchaseLocks.current))
-    }
+  const purchaseOnce = async () => {
+    // Purchase for self and approved requests still use old non-idempotent
+    // routes. Block both regardless of UI state until Backend QA authorizes
+    // the single UUID/receipt purchase contract. Never invoke legacy callbacks.
+    setError(rewardRecoveryCopy(language).blocked)
   }
 
   const createCategory = async (event) => {
@@ -698,6 +683,7 @@ function RewardsPageContent() {
 
       {pageTab === 'catalog' && (
         <>
+          <p className="error-message" role="status">{rewardRecoveryCopy(language).blocked}</p>
           <section className="rewards-grid">
             {rewards.length === 0 ? (
               <div className="empty-state">
@@ -757,10 +743,8 @@ function RewardsPageContent() {
                     </button>
                   )}
                   {myRequestForReward(reward.id)?.status === 'READY_TO_PURCHASE' && (
-                    <button type="button" className="primary-button" disabled={pendingPurchases.includes(`reward:${reward.id}`)}
-                      onClick={() => purchaseOnce(`reward:${reward.id}`, () => purchaseRewardRequest(
-                        getAccessToken(), currentUser.workspaceId, myRequestForReward(reward.id).id
-                      ), reward.title)}>
+                    <button type="button" className="primary-button" disabled={true}
+                      onClick={() => purchaseOnce()}>
                       {t('rewardsUi.receive')}
                     </button>
                   )}
@@ -772,14 +756,8 @@ function RewardsPageContent() {
                     <button
                       type="button"
                       className="primary-button"
-                      disabled={pendingPurchases.includes(`reward:${reward.id}`)}
-                      onClick={() => purchaseOnce(`reward:${reward.id}`, () =>
-                        purchaseReward(
-                          getAccessToken(),
-                          currentUser.workspaceId,
-                          reward.id
-                        ), reward.title
-                      )}
+                      disabled={true}
+                      onClick={() => purchaseOnce()}
                     >
                       {t('rewardsUi.receive')}
                     </button>
@@ -829,6 +807,7 @@ function RewardsPageContent() {
       )}
 
       {pageTab === 'requests' && (
+
         <section className="reward-request-list">
           {requests.length === 0 ? (
             <div className="empty-state">{t('rewardsUi.requestsEmpty')}</div>
@@ -1012,14 +991,8 @@ function RewardsPageContent() {
                 <button
                   type="button"
                   className="primary-button reward-request-claim"
-                  disabled={pendingPurchases.includes(`reward:${request.rewardDefinitionId ?? 'request:' + request.id}`)}
-                  onClick={() => purchaseOnce(`reward:${request.rewardDefinitionId ?? 'request:' + request.id}`, () =>
-                    purchaseRewardRequest(
-                      getAccessToken(),
-                      currentUser.workspaceId,
-                      request.id
-                    ), request.title
-                  )}
+                  disabled={true}
+                  onClick={() => purchaseOnce()}
                 >
                   {t('rewardsUi.claim')}
                 </button>
