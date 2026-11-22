@@ -44,6 +44,9 @@ if [ "$1" = "bash" ]; then
 fi
 case " $* " in
   *' config --quiet '*) exit 0 ;;
+  *' run --no-deps --rm backup-volume-init '*)
+     if [ "$FAKE_INIT_FAIL" = 1 ]; then exit 27; fi
+     exit 0 ;;
   *' up -d --build --no-deps backend web '*)
      if [ "$FAKE_DOCKER_FAIL" = 1 ]; then exit 21; fi
      exit 0 ;;
@@ -107,6 +110,14 @@ exit 0
         self.assertNotIn("git switch", self.events())
         self.assertNotIn("up -d", self.events())
 
+    def test_archive_init_failure_aborts_before_backend_start(self):
+        p = self.invoke("v1.2.3-beta.4", FAKE_INIT_FAIL="1")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("stage: archive-volume-init", p.stderr)
+        self.assertIn("run --no-deps --rm backup-volume-init", self.events())
+        self.assertNotIn("up -d --build --no-deps backend web", self.events())
+        self.assertNotIn("pg_restore", self.events())
+
     def test_docker_failure_reports_stage_without_rollback(self):
         p = self.invoke("v1.2.3-beta.4", FAKE_DOCKER_FAIL="1")
         self.assertNotEqual(p.returncode, 0)
@@ -132,7 +143,8 @@ exit 0
         self.assertEqual(p.returncode, 0, p.stderr)
         e = self.events()
         self.assertLess(e.index("sudo bash scripts/beta/backup.sh"), e.index("git switch --detach"))
-        self.assertLess(e.index("git switch --detach"), e.index("up -d"))
+        self.assertLess(e.index("git switch --detach"), e.index("run --no-deps --rm backup-volume-init"))
+        self.assertLess(e.index("run --no-deps --rm backup-volume-init"), e.index("up -d"))
         self.assertIn("BETA RELEASE OK", p.stdout)
 
 

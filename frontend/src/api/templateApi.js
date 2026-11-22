@@ -47,9 +47,10 @@ export const getTemplateImportReceipt = (token, workspaceId, operationId) =>
   read(apiRequest(`/workspaces/${workspaceId}/templates/imports/receipts/${operationId}`, {
     token, cache: 'no-store', headers: operationHeaders(operationId)
   }))
-export const activateTaskTemplateIdempotent = (token, workspaceId, templateId, request, operationId) =>
+export const activateTaskTemplateIdempotent = (token, workspaceId, templateId, request, operationId, getCurrentToken) =>
   read(apiRequest(`/workspaces/${workspaceId}/templates/${templateId}/activate-task/idempotent`, {
-    token, method: 'POST', body: request, headers: operationHeaders(operationId)
+    token, method: 'POST', body: request, headers: operationHeaders(operationId),
+    getCurrentToken
   }))
 export const activateRewardTemplateIdempotent = (token, workspaceId, templateId, request, operationId) =>
   read(apiRequest(`/workspaces/${workspaceId}/templates/${templateId}/activate-reward/idempotent`, {

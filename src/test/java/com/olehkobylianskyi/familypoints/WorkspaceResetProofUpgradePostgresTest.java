@@ -30,7 +30,8 @@ class WorkspaceResetProofUpgradePostgresTest {
         db.update("INSERT INTO workspace_reset_challenges(id,workspace_id,operation_id,account_id,verifier_hash,expires_at) VALUES (?,?,?,?,?,now()+interval '5 minutes')",
                 challenge,family,operation,account,"b".repeat(64));
         var flyway=Flyway.configure().dataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword())
-                .locations("classpath:db/migration").load();
+                .locations("classpath:db/migration")
+                .target(MigrationVersion.fromVersion("52")).load();
         assertEquals(8,flyway.migrate().migrationsExecuted);
         var row=db.queryForMap("SELECT * FROM workspace_reset_challenges WHERE id=?",challenge);
         assertEquals("b".repeat(64),row.get("verifier_hash"));

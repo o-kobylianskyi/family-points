@@ -25,7 +25,7 @@ class TaskExcuseConstraintUpgradeTest {
         var config = Flyway.configure()
                 .dataSource(DB.getJdbcUrl(), DB.getUsername(), DB.getPassword())
                 .locations("classpath:db/migration");
-        if (throughV37) config.target(MigrationVersion.fromVersion("37"));
+        config.target(MigrationVersion.fromVersion(throughV37 ? "37" : "52"));
         return config.load();
     }
 

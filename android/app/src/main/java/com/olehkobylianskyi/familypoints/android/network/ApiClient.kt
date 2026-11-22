@@ -180,6 +180,11 @@ object ApiClient {
         retrofit.create(RewardsApi::class.java)
     }
 
+    // Read-only draft PR57 receipt transport. Financial POST is NOT exposed here.
+    val rewardPurchaseReceiptApi: RewardPurchaseReceiptApi by lazy {
+        retrofit.create(RewardPurchaseReceiptApi::class.java)
+    }
+
     val membersApi: MembersApi by lazy {
         retrofit.create(MembersApi::class.java)
     }

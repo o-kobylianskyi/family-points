@@ -1,0 +1,179 @@
+package com.olehkobylianskyi.familypoints.android
+
+import android.database.sqlite.SQLiteDatabase
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.olehkobylianskyi.familypoints.android.storage.RewardPurchaseIntentStore
+import com.olehkobylianskyi.familypoints.android.data.RewardPurchaseReceiptPolicy
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.util.UUID
+
+/** Disposable on-device SQLite only. No network, monetary writes or reset. */
+@RunWith(AndroidJUnit4::class)
+class RewardPurchaseIntentSqliteTest {
+    private val database = "fp_reward_purchase_intents.db"
+
+    private fun fresh(block: (RewardPurchaseIntentStore) -> Unit) {
+        val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+        ctx.deleteDatabase(database)
+        try {
+            RewardPurchaseIntentStore(ctx).use(block)
+        } finally {
+            ctx.deleteDatabase(database)
+        }
+    }
+
+    private fun intent(
+        account: Long = 11, workspace: Long = 91,
+        id: UUID = UUID.randomUUID(), epoch: Long = 7
+    ) = RewardPurchaseIntentStore.Intent(
+        id, account, workspace, 24, 42, epoch, "MANAGER", "PREPARED",
+        2, "POINTS", 12
+    )
+
+    @Test fun legacyV1RowsSurviveUpgradeButCannotClaimVerifiedFinancialSnapshot() {
+        val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+        ctx.deleteDatabase(database)
+        val uuid = UUID.randomUUID()
+        try {
+            SQLiteDatabase.openOrCreateDatabase(ctx.getDatabasePath(database), null).use { db ->
+                db.execSQL("""CREATE TABLE reward_purchase_intents (
+                    operation_id TEXT PRIMARY KEY NOT NULL, account_id INTEGER NOT NULL,
+                    workspace_id INTEGER NOT NULL, member_id INTEGER NOT NULL,
+                    reward_id INTEGER NOT NULL, data_epoch INTEGER NOT NULL,
+                    route_kind TEXT NOT NULL, state TEXT NOT NULL)""")
+                db.execSQL("""INSERT INTO reward_purchase_intents
+                    (operation_id,account_id,workspace_id,member_id,reward_id,data_epoch,route_kind,state)
+                    VALUES (?,?,?,?,?,?,?,?)""",
+                    arrayOf(uuid.toString(), 11L, 91L, 24L, 42L, 7L, "SELF", "UNCERTAIN"))
+                db.version = 1
+            }
+            RewardPurchaseIntentStore(ctx).use { store ->
+                val legacy = store.scoped(11, 91).single()
+                assertEquals(uuid, legacy.operationId)
+                assertEquals("UNCERTAIN", legacy.state)
+                assertNull(legacy.expectedPointTypeId)
+                assertNull(legacy.expectedPointTypeCode)
+                assertNull(legacy.expectedPriceAmount)
+                assertThrows(IllegalStateException::class.java) {
+                    store.confirmReceipt(
+                        legacy,
+                        RewardPurchaseReceiptPolicy.Receipt(
+                            uuid.toString(), 111, 42, 24, 2, "POINTS", 12, "READY"
+                        ), 11, 91, 7
+                    )
+                }
+                assertEquals("UNCERTAIN", store.scoped(11, 91).single().state)
+            }
+        } finally {
+            ctx.deleteDatabase(database)
+        }
+    }
+
+    @Test fun identitySurvivesSqliteReopen() {
+        val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+        ctx.deleteDatabase(database)
+        val first = intent()
+        try {
+            RewardPurchaseIntentStore(ctx).use { it.prepare(first) }
+            RewardPurchaseIntentStore(ctx).use { reopened ->
+                assertEquals(first, reopened.scoped(11, 91).single())
+            }
+        } finally { ctx.deleteDatabase(database) }
+    }
+
+    @Test fun accountAndWorkspaceAreStrictlyIsolated() = fresh { store ->
+        val one = intent()
+        val two = intent(account = 12, workspace = 92)
+        store.prepare(one)
+        store.prepare(two)
+        assertEquals(listOf(one), store.scoped(11, 91))
+        assertEquals(listOf(two), store.scoped(12, 92))
+        assertTrue(store.scoped(12, 91).isEmpty())
+        assertTrue(store.scoped(11, 92).isEmpty())
+    }
+
+    @Test fun duplicateIntentIsRefusedWithoutReplacingOriginalUuid() = fresh { store ->
+        val first = intent()
+        store.prepare(first)
+        assertThrows(IllegalStateException::class.java) { store.prepare(intent()) }
+        assertEquals(first.operationId, store.scoped(11, 91).single().operationId)
+        assertThrows(android.database.SQLException::class.java) {
+            store.prepare(intent(account = 12, workspace = 92, id = first.operationId))
+        }
+    }
+
+    @Test fun epochDriftQuarantinesAndRetainsOriginal() = fresh { store ->
+        val entry = intent()
+        store.prepare(entry)
+        assertEquals(1, store.quarantineEpoch(11, 91, 8))
+        assertEquals("HELD", store.scoped(11, 91).single().state)
+        assertEquals(entry.operationId, store.scoped(11, 91).single().operationId)
+        assertThrows(IllegalArgumentException::class.java) {
+            store.transition(store.scoped(11, 91).single(), "UNCERTAIN", 11, 91, 8)
+        }
+    }
+
+    @Test fun quarantiningOneAccountDoesNotTouchAnotherAccountInSameWorkspace() = fresh { store ->
+        val one = intent(account = 11, workspace = 91, epoch = 7)
+        val two = intent(account = 12, workspace = 91, epoch = 7)
+        store.prepare(one)
+        store.prepare(two)
+        assertEquals(1, store.quarantineEpoch(11, 91, 8))
+        assertEquals("HELD", store.scoped(11, 91).single().state)
+        assertEquals("PREPARED", store.scoped(12, 91).single().state)
+    }
+
+    @Test fun newIntentAlwaysPersistsOriginalPriceAndCurrency() = fresh { store ->
+        val entry = intent()
+        store.prepare(entry)
+        val persisted = store.scoped(11, 91).single()
+        assertEquals(2L, persisted.expectedPointTypeId)
+        assertEquals("POINTS", persisted.expectedPointTypeCode)
+        assertEquals(12, persisted.expectedPriceAmount)
+        assertThrows(IllegalArgumentException::class.java) {
+            store.prepare(intent().copy(expectedPriceAmount = null))
+        }
+    }
+
+    @Test fun unknownOutcomeSurvivesAndCannotBecomeConfirmedWithoutReceipt() = fresh { store ->
+        val entry = intent()
+        store.prepare(entry)
+        store.transition(entry, "UNCERTAIN", 11, 91, 7)
+        val unknown = store.scoped(11, 91).single()
+        assertEquals("UNCERTAIN", unknown.state)
+        assertThrows(IllegalArgumentException::class.java) {
+            store.transition(unknown, "CONFIRMED", 11, 91, 7)
+        }
+        assertEquals("UNCERTAIN", store.scoped(11, 91).single().state)
+    }
+
+    @Test fun exactReceiptConfirmsButInvalidReceiptDoesNot() = fresh { store ->
+        val entry = intent()
+        store.prepare(entry)
+        val receipt = RewardPurchaseReceiptPolicy.Receipt(
+            entry.operationId.toString(), 100, entry.rewardId, entry.memberId,
+            2, "POINTS", 12, "READY"
+        )
+        assertThrows(IllegalStateException::class.java) {
+            store.confirmReceipt(entry, receipt.copy(status = "CANCELLED"), 11, 91, 7)
+        }
+        assertEquals("PREPARED", store.scoped(11, 91).single().state)
+        store.confirmReceipt(entry, receipt, 11, 91, 7)
+        assertEquals("CONFIRMED", store.scoped(11, 91).single().state)
+        assertThrows(IllegalArgumentException::class.java) {
+            store.confirmReceipt(store.scoped(11, 91).single(), receipt, 11, 91, 7)
+        }
+    }
+
+    @Test fun ownerSwitchCannotMutateForeignIntent() = fresh { store ->
+        val entry = intent()
+        store.prepare(entry)
+        assertThrows(IllegalStateException::class.java) {
+            store.transition(entry, "HELD", 12, 91, 7)
+        }
+        assertEquals("PREPARED", store.scoped(11, 91).single().state)
+    }
+}
