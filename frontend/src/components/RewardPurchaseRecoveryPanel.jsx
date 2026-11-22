@@ -80,6 +80,8 @@ export default function RewardPurchaseRecoveryPanel({
         </div>
       </div>
       <p>{copy.operation}: <code>{pending.operationId}</code></p>
+      {pending.version === 2 && <p>{copy.originalPrice}: {pending.expectedPriceAmount} {pending.expectedPointTypeCode}</p>}
+      {pending.version === 1 && <p role="alert">{copy.legacy}</p>}
       <p role="status">
         {copy.status}: {rewardRecoveryStatusMessage(state, result?.receipt, language)}
       </p>
