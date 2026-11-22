@@ -493,6 +493,75 @@ class PointMutationTransactionPostgresTest {
         }
     }
 
+
+    @Test void receiptReadsPersistedReadyRedeemedAndCancelledLifecycleWithoutAnotherDebit() {
+        var f=fixture();
+        long reward=sql.queryForObject("""
+                INSERT INTO reward_definitions
+                    (family_id,title,point_type_id,price_amount,requires_approval,
+                     active,cooldown_seconds)
+                VALUES (?,'Lifecycle receipt',?,8,false,true,0) RETURNING id
+                """,Long.class,f.workspace(),f.currency());
+        long actor=sql.queryForObject("""
+                INSERT INTO user_accounts(family_member_id,username,password_hash,enabled)
+                VALUES (?,?,'test-only',true) RETURNING id
+                """,Long.class,f.member(),"reward-lifecycle-"+UUID.randomUUID());
+        sql.update("""
+                INSERT INTO point_transactions
+                    (member_id,point_type_id,amount,created_at,type,source_type,description)
+                VALUES (?,?,20,now(),'EARN','MANUAL','Lifecycle disposable funds')
+                """,f.member(),f.currency());
+        var account=org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.entity.UserAccount.class);
+        org.mockito.Mockito.when(account.getId()).thenReturn(actor);
+        var current=context.getBean(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(current.getCurrentAccount()).thenReturn(account);
+        org.mockito.Mockito.when(current.belongsToWorkspace(f.workspace())).thenReturn(true);
+        org.mockito.Mockito.when(current.getCurrentMemberId()).thenReturn(f.member());
+        UUID key=UUID.randomUUID();
+        var service=context.getBean(RewardPurchaseOperationService.class);
+        try {
+            var first=service.purchaseSelf(f.workspace(),reward,key);
+            long id=first.purchase().getId();
+            assertEquals(com.olehkobylianskyi.familypoints.entity.RewardPurchaseStatus.READY,
+                    service.receipt(f.workspace(),key).purchase().getStatus());
+            sql.update("UPDATE reward_purchases SET status='REDEEMED',resolved_at=now() WHERE id=?",id);
+            var redeemed=service.receipt(f.workspace(),key);
+            assertEquals(id,redeemed.purchase().getId());
+            assertEquals(com.olehkobylianskyi.familypoints.entity.RewardPurchaseStatus.REDEEMED,
+                    redeemed.purchase().getStatus());
+            assertEquals(id,service.purchaseSelf(f.workspace(),reward,key).purchase().getId());
+            sql.update("UPDATE reward_purchases SET status='CANCELLED',resolved_at=now() WHERE id=?",id);
+            var cancelled=service.receipt(f.workspace(),key);
+            assertEquals(com.olehkobylianskyi.familypoints.entity.RewardPurchaseStatus.CANCELLED,
+                    cancelled.purchase().getStatus());
+            assertEquals(id,cancelled.purchase().getId());
+            assertEquals(8,cancelled.purchase().getPriceAmount());
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM point_transactions
+                    WHERE member_id=? AND source_type='REWARD_PURCHASE' AND source_id=?
+                    """,Long.class,f.member(),id));
+            assertEquals(12L,sql.queryForObject("""
+                    SELECT coalesce(sum(amount),0) FROM point_transactions
+                    WHERE member_id=? AND point_type_id=?
+                    """,Long.class,f.member(),f.currency()));
+            // A foreign actor in the same family cannot retrieve this UUID.
+            var foreign=org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.entity.UserAccount.class);
+            org.mockito.Mockito.when(foreign.getId()).thenReturn(actor+10000L);
+            org.mockito.Mockito.when(current.getCurrentAccount()).thenReturn(foreign);
+            assertEquals(404,assertThrows(ResponseStatusException.class,
+                    ()->service.receipt(f.workspace(),key)).getStatusCode().value());
+            org.mockito.Mockito.when(current.belongsToWorkspace(f.workspace())).thenReturn(false);
+            assertEquals(403,assertThrows(ResponseStatusException.class,
+                    ()->service.receipt(f.workspace(),key)).getStatusCode().value());
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM reward_purchase_operation_receipts
+                    WHERE workspace_id=? AND operation_id=?
+                    """,Long.class,f.workspace(),key));
+        } finally {
+            org.mockito.Mockito.reset(current);
+        }
+    }
+
     @AfterEach void clearRequest() {
         org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
     }
