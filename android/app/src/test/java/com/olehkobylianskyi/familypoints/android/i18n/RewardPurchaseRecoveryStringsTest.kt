@@ -10,6 +10,8 @@ class RewardPurchaseRecoveryStringsTest {
             assertTrue(labels.checkReceipt.isNotBlank())
             assertTrue(labels.checking.isNotBlank())
             assertTrue(labels.confirmed.isNotBlank())
+            assertTrue(labels.redeemed.isNotBlank())
+            assertTrue(labels.cancelledHistory.isNotBlank())
             assertTrue(labels.needsReview.isNotBlank())
             assertTrue(labels.pendingExplanation.isNotBlank())
             assertTrue(labels.noAutomaticRetry.isNotBlank())
