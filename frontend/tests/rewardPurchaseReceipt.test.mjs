@@ -7,7 +7,7 @@ import {
 } from '../src/utils/rewardPurchaseReceipt.js'
 
 const operationId = 'e489ea25-4e10-48ee-b8ea-7a9f4b2e3456'
-const intent = makeRewardPurchaseIntent({ accountId: 'parent', workspaceId: 13, memberId: 7, rewardId: 45, operationId })
+const intent = makeRewardPurchaseIntent({ accountId: 'parent', workspaceId: 13, memberId: 7, rewardId: 45, operationId, expectedPointTypeId: 4, expectedPointTypeCode: 'POINTS', expectedPriceAmount: 0 })
 const receipt = () => ({
   operationId, replayed: false,
   purchase: { id: 123, rewardDefinitionId: 45, memberId: 7, pointTypeId: 4,
