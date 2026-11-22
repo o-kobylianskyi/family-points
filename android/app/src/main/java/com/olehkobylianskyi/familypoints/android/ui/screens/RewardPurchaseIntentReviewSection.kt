@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import com.olehkobylianskyi.familypoints.android.i18n.AppLanguage
 import com.olehkobylianskyi.familypoints.android.i18n.rewardPurchaseRecoveryStrings
 import com.olehkobylianskyi.familypoints.android.storage.RewardPurchaseIntentStore
+import com.olehkobylianskyi.familypoints.android.data.RewardPurchaseRecoveryState
 
 /**
  * Read-only synthetic UI building block for an eventual family-scoped review page.
@@ -23,7 +24,8 @@ internal fun RewardPurchaseIntentReviewSection(
     language: AppLanguage,
     accountId: Long,
     workspaceId: Long,
-    records: List<RewardPurchaseIntentStore.Intent>
+    records: List<RewardPurchaseIntentStore.Intent>,
+    verifiedReceiptStates: Map<String, RewardPurchaseRecoveryState.State> = emptyMap()
 ) {
     val labels = rewardPurchaseRecoveryStrings(language)
     val entries = RewardPurchaseIntentReviewModel.scoped(records, accountId, workspaceId)
@@ -46,11 +48,20 @@ internal fun RewardPurchaseIntentReviewSection(
         }
         for (entry in entries) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                val stateLabel = when (entry.state) {
-                    "CONFIRMED" -> labels.confirmed
+                // External status projections must come from an already authenticated
+                // exact receipt validator; this standalone view never fetches or purchases.
+                val verifiedState = verifiedReceiptStates[entry.operationId]
+                val stateLabel = when {
+                    verifiedState == RewardPurchaseRecoveryState.State.CONFIRMED_REDEEMED &&
+                        entry.state == "CONFIRMED" -> labels.redeemed
+                    verifiedState == RewardPurchaseRecoveryState.State.CANCELLED_HISTORY_HOLD &&
+                        entry.state in setOf("HELD", "UNCERTAIN") -> labels.cancelledHistory
+                    entry.state == "CONFIRMED" -> labels.confirmed
+                    else -> when (entry.state) {
                     "HELD" -> labels.needsReview
                     "UNCERTAIN" -> labels.pendingExplanation
                     else -> labels.checkReceipt
+                    }
                 }
                 Text(stateLabel, style = MaterialTheme.typography.titleSmall)
                 Text(
