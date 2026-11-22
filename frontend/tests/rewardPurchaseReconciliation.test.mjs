@@ -16,7 +16,7 @@ const storage = {
 }
 const intent = makeRewardPurchaseIntent({
   accountId: 'parent', workspaceId: 13, memberId: 7,
-  rewardId: 45, operationId: uuid
+  rewardId: 45, operationId: uuid, expectedPointTypeId: 3, expectedPointTypeCode: 'POINTS', expectedPriceAmount: 10
 })
 const validBody = {
   operationId: uuid, replayed: true,
