@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 class IntegratedV53V54LegacyPg17UpgradeTest {
     @Container
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine")
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17-alpine")
             .withDatabaseName("family_points")
             .withUsername("family_points")
             .withPassword("synthetic_pg17_only");
