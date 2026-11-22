@@ -33,8 +33,9 @@ internal object RewardSpendSelectionPolicy {
             reward.active && reward.id > 0 &&
                 reward.priceAmount >= 0 && reward.pointTypeId > 0 &&
                 reward.pointTypeCode.isNotBlank() &&
-                reward.acquisitionMode != "REQUEST" && !reward.requiresApproval &&
-                types.any { it.id == reward.pointTypeId && it.code == reward.pointTypeCode }
+                reward.acquisitionMode in setOf("DIRECT", "DIRECT_OR_REQUEST") &&
+                !reward.requiresApproval &&
+                types.any { it.active && it.id == reward.pointTypeId && it.code == reward.pointTypeCode }
         }
     }
 }
