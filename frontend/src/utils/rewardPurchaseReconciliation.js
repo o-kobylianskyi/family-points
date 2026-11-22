@@ -1,6 +1,7 @@
 import { readRewardPurchaseIntent, rewardPurchaseIntentKey } from './rewardPurchaseIntent.js'
 import {
   classifyRewardPurchaseReceiptFailure,
+  verifyRewardPurchaseIdentity,
   verifyRewardPurchaseReceipt
 } from './rewardPurchaseReceipt.js'
 
@@ -30,7 +31,14 @@ export async function inspectPendingRewardPurchase({ storage, accountId, workspa
         receipt: null, intent: pending
       })
     }
-    const receipt = verifyRewardPurchaseReceipt(response.body, pending)
+    // A cancelled purchase is still a historical committed purchase. Do not
+    // confuse it with missing receipt or authorization to charge again.
+    // Validate the exact original identity and authoritative price first.
+    const receipt = verifyRewardPurchaseIdentity(response.body, pending)
+    if (receipt.purchase.status === 'CANCELLED') {
+      return Object.freeze({ status: 'HISTORICAL_PURCHASE_CANCELLED_HOLD', receipt, intent: pending })
+    }
+    verifyRewardPurchaseReceipt(receipt, pending)
     return Object.freeze({ status: 'CONFIRMED_PURCHASE', receipt, intent: pending })
   } catch {
     return Object.freeze({ status: 'UNKNOWN_NO_REPLAY', receipt: null, intent: pending })
