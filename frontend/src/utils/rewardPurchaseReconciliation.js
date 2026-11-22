@@ -17,6 +17,11 @@ export async function inspectPendingRewardPurchase({ storage, accountId, workspa
   const scope = rewardPurchaseIntentKey(accountId, workspaceId, memberId)
   const pending = readRewardPurchaseIntent(storage, scope)
   if (!pending) return Object.freeze({ status: 'NO_VALID_INTENT', receipt: null })
+  // Legacy v1 lacks immutable original price/unit. Do not infer it from the
+  // current catalog or claim a matching receipt proves the original amount.
+  if (pending.version !== 2) {
+    return Object.freeze({ status: 'LEGACY_SNAPSHOT_MISSING_HOLD', receipt: null, intent: pending })
+  }
   if (typeof receiptFetcher !== 'function') {
     return Object.freeze({ status: 'READ_UNAVAILABLE_NO_REPLAY', receipt: null, intent: pending })
   }
