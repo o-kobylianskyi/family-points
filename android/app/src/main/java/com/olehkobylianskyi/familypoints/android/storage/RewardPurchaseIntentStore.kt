@@ -14,7 +14,7 @@ import com.olehkobylianskyi.familypoints.android.data.RewardPurchaseReceiptPolic
  * The caller must verify the current authenticated account/workspace/epoch online.
  */
 class RewardPurchaseIntentStore(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "fp_reward_purchase_intents.db", null, 1) {
+    SQLiteOpenHelper(context.applicationContext, "fp_reward_purchase_intents.db", null, 2) {
 
     data class Intent(
         val operationId: UUID,
@@ -24,7 +24,10 @@ class RewardPurchaseIntentStore(context: Context) :
         val rewardId: Long,
         val epoch: Long,
         val route: String,
-        val state: String
+        val state: String,
+        val expectedPointTypeId: Long? = null,
+        val expectedPointTypeCode: String? = null,
+        val expectedPriceAmount: Int? = null
     )
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -36,14 +39,26 @@ class RewardPurchaseIntentStore(context: Context) :
             reward_id INTEGER NOT NULL,
             data_epoch INTEGER NOT NULL,
             route_kind TEXT NOT NULL CHECK(route_kind IN ('SELF','MANAGER')),
-            state TEXT NOT NULL CHECK(state IN ('PREPARED','UNCERTAIN','HELD','CONFIRMED'))
+            state TEXT NOT NULL CHECK(state IN ('PREPARED','UNCERTAIN','HELD','CONFIRMED')),
+            expected_point_type_id INTEGER,
+            expected_point_type_code TEXT,
+            expected_price_amount INTEGER
         )""")
         db.execSQL("""CREATE INDEX reward_purchase_intent_scope_idx
             ON reward_purchase_intents(account_id,workspace_id,state)""")
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) =
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion == 1 && newVersion == 2) {
+            // Old rows remain intact but lack the financial snapshot. They MUST
+            // be held for review, never guessed from the current reward catalog.
+            db.execSQL("ALTER TABLE reward_purchase_intents ADD COLUMN expected_point_type_id INTEGER")
+            db.execSQL("ALTER TABLE reward_purchase_intents ADD COLUMN expected_point_type_code TEXT")
+            db.execSQL("ALTER TABLE reward_purchase_intents ADD COLUMN expected_price_amount INTEGER")
+            return
+        }
         error("Unexpected reward intent schema upgrade: $oldVersion -> $newVersion")
+    }
 
     /** Fails rather than replace the immutable original UUID or intent. */
     @Synchronized
@@ -52,6 +67,11 @@ class RewardPurchaseIntentStore(context: Context) :
             intent.memberId > 0 && intent.rewardId > 0 && intent.epoch >= 0)
         require(intent.route == "SELF" || intent.route == "MANAGER")
         require(intent.state == "PREPARED")
+        require(intent.expectedPointTypeId != null && intent.expectedPointTypeId > 0 &&
+            !intent.expectedPointTypeCode.isNullOrBlank() &&
+            intent.expectedPriceAmount != null && intent.expectedPriceAmount >= 0) {
+            "Immutable reward price and currency are required before preparing a new intent"
+        }
         require(intent.operationId.toString() == intent.operationId.toString().lowercase())
         val db = writableDatabase
         db.beginTransaction()
@@ -75,6 +95,9 @@ class RewardPurchaseIntentStore(context: Context) :
                 put("data_epoch", intent.epoch)
                 put("route_kind", intent.route)
                 put("state", intent.state)
+                put("expected_point_type_id", intent.expectedPointTypeId)
+                put("expected_point_type_code", intent.expectedPointTypeCode)
+                put("expected_price_amount", intent.expectedPriceAmount)
             })
             db.setTransactionSuccessful()
         } finally {
@@ -87,7 +110,9 @@ class RewardPurchaseIntentStore(context: Context) :
         require(accountId > 0 && workspaceId > 0)
         return readableDatabase.rawQuery(
             """SELECT operation_id,account_id,workspace_id,member_id,reward_id,
-                      data_epoch,route_kind,state FROM reward_purchase_intents
+                      data_epoch,route_kind,state,expected_point_type_id,
+                      expected_point_type_code,expected_price_amount
+               FROM reward_purchase_intents
                WHERE account_id=? AND workspace_id=? ORDER BY rowid ASC""",
             arrayOf(accountId.toString(), workspaceId.toString())
         ).use { cursor ->
@@ -95,7 +120,10 @@ class RewardPurchaseIntentStore(context: Context) :
                 while (cursor.moveToNext()) add(Intent(
                     UUID.fromString(cursor.getString(0)), cursor.getLong(1),
                     cursor.getLong(2), cursor.getLong(3), cursor.getLong(4),
-                    cursor.getLong(5), cursor.getString(6), cursor.getString(7)
+                    cursor.getLong(5), cursor.getString(6), cursor.getString(7),
+                    if (cursor.isNull(8)) null else cursor.getLong(8),
+                    if (cursor.isNull(9)) null else cursor.getString(9),
+                    if (cursor.isNull(10)) null else cursor.getInt(10)
                 ))
             }
         }
@@ -156,7 +184,9 @@ class RewardPurchaseIntentStore(context: Context) :
         val decision = RewardPurchaseReceiptPolicy.evaluate(
             RewardPurchaseReceiptPolicy.Intent(
                 original.operationId.toString(), original.workspaceId,
-                original.accountId, original.rewardId, original.memberId, original.epoch
+                original.accountId, original.rewardId, original.memberId, original.epoch,
+                original.expectedPointTypeId, original.expectedPointTypeCode,
+                original.expectedPriceAmount
             ), receipt, verifiedWorkspaceId, verifiedAccountId, verifiedEpoch
         )
         check(decision == RewardPurchaseReceiptPolicy.Decision.ACCEPT) {
