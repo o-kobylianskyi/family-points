@@ -7,7 +7,7 @@ const positive = value => typeof value === 'number' && Number.isSafeInteger(valu
 const nonNegative = value => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0
 
 export function verifyRewardPurchaseIdentity(receipt, intent) {
-  if (!intent || intent.version !== 1 || intent.state !== 'UNKNOWN' ||
+  if (!intent || intent.version !== 2 || intent.state !== 'UNKNOWN' ||
       !receipt || typeof receipt !== 'object' ||
       receipt.operationId !== intent.operationId ||
       typeof receipt.replayed !== 'boolean') {
@@ -22,7 +22,10 @@ export function verifyRewardPurchaseIdentity(receipt, intent) {
       String(purchase.rewardDefinitionId) !== String(intent.rewardId) ||
       String(purchase.memberId) !== String(intent.memberId) ||
       typeof purchase.pointTypeCode !== 'string' ||
-      purchase.pointTypeCode.trim() === '') {
+      purchase.pointTypeCode.trim() === '' ||
+      purchase.pointTypeId !== intent.expectedPointTypeId ||
+      purchase.pointTypeCode !== intent.expectedPointTypeCode ||
+      purchase.priceAmount !== intent.expectedPriceAmount) {
     throw new Error('REWARD_PURCHASE_RECEIPT_INVALID')
   }
   // These identity and price checks run BEFORE interpreting purchase lifecycle.
