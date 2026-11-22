@@ -562,6 +562,64 @@ class PointMutationTransactionPostgresTest {
         }
     }
 
+
+    @Test void staleEpochCannotReplayRewardPurchaseOrReadAChargeAsNewPurchase() {
+        var f=fixture();
+        long reward=sql.queryForObject("""
+                INSERT INTO reward_definitions
+                    (family_id,title,point_type_id,price_amount,requires_approval,
+                     active,cooldown_seconds)
+                VALUES (?,'Epoch protected reward',?,4,false,true,0) RETURNING id
+                """,Long.class,f.workspace(),f.currency());
+        long actor=sql.queryForObject("""
+                INSERT INTO user_accounts(family_member_id,username,password_hash,enabled)
+                VALUES (?,?,'synthetic-only',true) RETURNING id
+                """,Long.class,f.member(),"reward-epoch-"+UUID.randomUUID());
+        sql.update("""
+                INSERT INTO point_transactions
+                    (member_id,point_type_id,amount,created_at,type,source_type,description)
+                VALUES (?,?,15,now(),'EARN','MANUAL','Synthetic epoch budget')
+                """,f.member(),f.currency());
+        var account=org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.entity.UserAccount.class);
+        org.mockito.Mockito.when(account.getId()).thenReturn(actor);
+        var user=context.getBean(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(user.getCurrentAccount()).thenReturn(account);
+        org.mockito.Mockito.when(user.belongsToWorkspace(f.workspace())).thenReturn(true);
+        org.mockito.Mockito.when(user.getCurrentMemberId()).thenReturn(f.member());
+        UUID key=UUID.randomUUID();
+        var service=context.getBean(RewardPurchaseOperationService.class);
+        try {
+            var original=withEpoch(0L,()->service.purchaseSelf(f.workspace(),reward,key));
+            assertEquals(4,original.purchase().getPriceAmount());
+            sql.update("UPDATE families SET data_epoch=1 WHERE id=?",f.workspace());
+            assertEquals(409,assertThrows(ResponseStatusException.class,
+                    ()->withEpoch(0L,()->service.purchaseSelf(f.workspace(),reward,key)))
+                    .getStatusCode().value());
+            assertEquals(409,assertThrows(ResponseStatusException.class,
+                    ()->withEpoch(0L,()->service.purchaseSelf(f.workspace(),reward,UUID.randomUUID())))
+                    .getStatusCode().value());
+            // A new epoch with the old UUID conflicts; the original ledger stays.
+            assertEquals(409,assertThrows(ResponseStatusException.class,
+                    ()->withEpoch(1L,()->service.purchaseSelf(f.workspace(),reward,key)))
+                    .getStatusCode().value());
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM reward_purchases
+                    WHERE member_id=? AND reward_definition_id=?
+                    """,Long.class,f.member(),reward));
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM reward_purchase_operation_receipts
+                    WHERE workspace_id=? AND operation_id=?
+                    """,Long.class,f.workspace(),key));
+            assertEquals(1L,sql.queryForObject("""
+                    SELECT count(*) FROM point_transactions
+                    WHERE member_id=? AND source_type='REWARD_PURCHASE'
+                    """,Long.class,f.member()));
+        } finally {
+            org.mockito.Mockito.reset(user);
+            org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+        }
+    }
+
     @AfterEach void clearRequest() {
         org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
     }
