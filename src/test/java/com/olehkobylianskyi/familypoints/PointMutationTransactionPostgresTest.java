@@ -810,6 +810,57 @@ class PointMutationTransactionPostgresTest {
         } finally {org.mockito.Mockito.reset(current);}
     }
 
+
+    @Test void approvedRequestLegacyPurchaseStillPostsOnceAndRejectsSecondPurchase() {
+        var f=fixture();
+        sql.update("""
+                INSERT INTO point_transactions
+                    (member_id,point_type_id,amount,created_at,type,source_type,description)
+                VALUES (?,?,23,now(),'EARN','MANUAL','Synthetic approved reward budget')
+                """,f.member(),f.currency());
+        long requestId=tx.execute(status->{
+            var workspace=context.getBean(WorkspaceRepository.class)
+                    .findById(f.workspace()).orElseThrow();
+            var member=context.getBean(WorkspaceMemberRepository.class)
+                    .findById(f.member()).orElseThrow();
+            var currency=context.getBean(PointTypeRepository.class)
+                    .findById(f.currency()).orElseThrow();
+            var request=new com.olehkobylianskyi.familypoints.entity.RewardRequest(
+                    workspace,member,null,"Approved synthetic request",null);
+            request.approve(currency,9,null,null,false);
+            return context.getBean(RewardRequestRepository.class)
+                    .saveAndFlush(request).getId();
+        });
+        var rewards=context.getBean(RewardService.class);
+        var bought=rewards.purchaseRequest(f.workspace(),f.member(),requestId);
+        assertEquals(9,bought.getPriceAmount());
+        assertEquals(com.olehkobylianskyi.familypoints.entity.RewardPurchaseStatus.READY,
+                bought.getStatus());
+        assertEquals("PURCHASED",sql.queryForObject("""
+                SELECT status FROM reward_requests WHERE id=?
+                """,String.class,requestId));
+        assertEquals(409,assertThrows(ResponseStatusException.class,
+                ()->rewards.purchaseRequest(f.workspace(),f.member(),requestId))
+                .getStatusCode().value());
+        assertEquals(1L,sql.queryForObject("""
+                SELECT count(*) FROM reward_purchases
+                WHERE reward_request_id=? AND member_id=?
+                """,Long.class,requestId,f.member()));
+        assertEquals(1L,sql.queryForObject("""
+                SELECT count(*) FROM point_transactions
+                WHERE member_id=? AND source_type='REWARD_PURCHASE'
+                  AND source_id=? AND amount=-9
+                """,Long.class,f.member(),bought.getId()));
+        assertEquals(14L,sql.queryForObject("""
+                SELECT coalesce(sum(amount),0) FROM point_transactions
+                WHERE member_id=? AND point_type_id=?
+                """,Long.class,f.member(),f.currency()));
+        assertEquals(0L,sql.queryForObject("""
+                SELECT count(*) FROM reward_purchase_operation_receipts
+                WHERE workspace_id=?
+                """,Long.class,f.workspace()));
+    }
+
     @AfterEach void clearRequest() {
         org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
     }
