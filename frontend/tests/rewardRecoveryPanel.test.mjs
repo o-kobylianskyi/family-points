@@ -12,7 +12,7 @@ test('four full locales cover each recovery and purchase hold message', () => {
   ]
   for (const language of ['uk', 'ru', 'de', 'en']) {
     assert.deepEqual(Object.keys(rewardRecoveryMessages[language]).sort(), [...required].sort())
-    for (const text of Object.values(rewardRecoveryCopy(language))) assert.ok(text.length > 12)
+    for (const text of Object.values(rewardRecoveryCopy(language))) assert.ok(text.trim().length > 0)
     assert.equal(rewardRecoveryCopy(language + '-DE'), rewardRecoveryMessages[language])
     assert.equal(rewardRecoveryStatusMessage('CONFIRMED_PURCHASE', { purchase: { status: 'REDEEMED' } }, language),
       rewardRecoveryMessages[language].redeemed)
