@@ -67,12 +67,22 @@ class RewardPurchaseIntentSqliteTest {
     @Test fun epochDriftQuarantinesAndRetainsOriginal() = fresh { store ->
         val entry = intent()
         store.prepare(entry)
-        assertEquals(1, store.quarantineEpoch(91, 8))
+        assertEquals(1, store.quarantineEpoch(11, 91, 8))
         assertEquals("HELD", store.scoped(11, 91).single().state)
         assertEquals(entry.operationId, store.scoped(11, 91).single().operationId)
         assertThrows(IllegalArgumentException::class.java) {
             store.transition(store.scoped(11, 91).single(), "UNCERTAIN", 11, 91, 8)
         }
+    }
+
+    @Test fun quarantiningOneAccountDoesNotTouchAnotherAccountInSameWorkspace() = fresh { store ->
+        val one = intent(account = 11, workspace = 91, epoch = 7)
+        val two = intent(account = 12, workspace = 91, epoch = 7)
+        store.prepare(one)
+        store.prepare(two)
+        assertEquals(1, store.quarantineEpoch(11, 91, 8))
+        assertEquals("HELD", store.scoped(11, 91).single().state)
+        assertEquals("PREPARED", store.scoped(12, 91).single().state)
     }
 
     @Test fun unknownOutcomeSurvivesAndCannotBecomeConfirmedWithoutReceipt() = fresh { store ->
