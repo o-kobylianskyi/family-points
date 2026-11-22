@@ -5,7 +5,9 @@ import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/authContextValue'
 import MemberAvatar from '../components/MemberAvatar'
-import { getRewards, getRewardAvailability, purchaseRewardForMember } from '../api/rewardApi'
+import { getRewards, getRewardAvailability } from '../api/rewardApi'
+import RewardPurchaseRecoveryPanel from '../components/RewardPurchaseRecoveryPanel'
+import { rewardRecoveryCopy } from '../utils/rewardPurchaseRecoveryCopy'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 
 import {
@@ -232,11 +234,10 @@ const handlePointOperation = async ({
 }) => {
   if (operation === 'spend' && rewardId != null) {
     if (!canPurchaseRewards) throw new Error('Reward management permission required')
-    // Purchase is the authoritative single debit; never also call spendPoints.
-    await purchaseRewardForMember(getAccessToken(), currentUser.workspaceId, rewardId, selectedMemberId)
-    try { await refreshPoints(); setError('') }
-    catch { setError(t('points.refreshAfterMutationFailed')) }
-    return
+    // The legacy purchase-for-member route is NOT idempotent. No reward
+    // mutation is authorized until PR57 + cross-client QA are accepted.
+    // Reward selection and receipt inspection remain read-only.
+    throw new Error(rewardRecoveryCopy(i18n.resolvedLanguage || i18n.language).blocked)
   }
   if (!canManagePoints) throw new Error('Point management permission required')
   const token = getAccessToken()
@@ -387,6 +388,14 @@ const handlePointOperation = async ({
         </section>
       )}
 
+      <RewardPurchaseRecoveryPanel
+        key={[currentUser.accountId ?? currentUser.userId ?? currentUser.id, currentUser.workspaceId, selectedMemberId].join(':')}
+        accountId={currentUser.accountId ?? currentUser.userId ?? currentUser.id}
+        workspaceId={currentUser.workspaceId}
+        memberId={selectedMemberId}
+        getAccessToken={getAccessToken}
+      />
+
       <section className="points-history-card">
         <div className="panel-header">
           <div>
@@ -451,6 +460,7 @@ const handlePointOperation = async ({
         initialAmount={initialPointOperationAmount(history, pointOperation, selectedMemberId)}
         availableBalance={balance}
         canPurchaseRewards={canPurchaseRewards}
+        rewardPurchaseEnabled={false}
         canManagePoints={canManagePoints}
         loadRewards={loadRewardsForSpend}
         loadRewardAvailability={loadRewardAvailabilityForSpend}
