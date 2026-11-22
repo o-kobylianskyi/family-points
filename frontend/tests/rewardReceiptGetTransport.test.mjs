@@ -129,7 +129,7 @@ test('receipt status progression is read-only and never invents a fresh purchase
   const states = [
     ['READY', 'CONFIRMED_PURCHASE'],
     ['REDEEMED', 'CONFIRMED_PURCHASE'],
-    ['CANCELLED', 'UNKNOWN_NO_REPLAY'],
+    ['CANCELLED', 'HISTORICAL_PURCHASE_CANCELLED_HOLD'],
     ['PENDING_APPROVAL', 'UNKNOWN_NO_REPLAY']
   ]
   let getCount = 0
