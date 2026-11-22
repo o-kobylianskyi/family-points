@@ -107,7 +107,7 @@ test('reload and changed account/member never transfer the old original UUID to 
 })
 
 test('pending, cancelled, unknown and mismatched completed receipts do not confirm charge state', async () => {
-  for (const state of ['PENDING_APPROVAL', 'CANCELLED', 'FAILED', 'UNKNOWN', null]) {
+  for (const state of ['PENDING_APPROVAL', 'FAILED', 'UNKNOWN', null]) {
     const before = setup()
     const result = await inspectPendingRewardPurchase(input(async () => ({
       status: 200,
@@ -122,6 +122,38 @@ test('pending, cancelled, unknown and mismatched completed receipts do not confi
   })))
   assert.equal(operationMismatch.status, 'UNKNOWN_NO_REPLAY')
   assert.equal(keys.get(intent.scope), before)
+})
+
+
+test('authenticated matching CANCELLED receipt reports historical purchase and HOLD without releasing UUID', async () => {
+  const before = setup()
+  const confirmed = await inspectPendingRewardPurchase(input(async (workspaceId, operationId) => {
+    assert.equal(workspaceId, 13)
+    assert.equal(operationId, uuid)
+    return { status: 200, body: {
+      ...validBody, purchase: { ...validBody.purchase, status: 'CANCELLED' }
+    } }
+  }))
+  assert.equal(confirmed.status, 'HISTORICAL_PURCHASE_CANCELLED_HOLD')
+  assert.equal(confirmed.receipt.purchase.status, 'CANCELLED')
+  assert.equal(confirmed.receipt.purchase.id, validBody.purchase.id)
+  assert.equal(keys.get(intent.scope), before)
+
+  for (const tamper of [
+    { operationId: 'not-the-original' },
+    { purchase: { ...validBody.purchase, status: 'CANCELLED', memberId: 99 } },
+    { purchase: { ...validBody.purchase, status: 'CANCELLED', rewardDefinitionId: 99 } },
+    { purchase: { ...validBody.purchase, status: 'CANCELLED', priceAmount: -1 } },
+    { purchase: { ...validBody.purchase, status: 'CANCELLED', pointTypeCode: '' } }
+  ]) {
+    const result = await inspectPendingRewardPurchase(input(async () => ({
+      status: 200,
+      body: { ...validBody, purchase: { ...validBody.purchase, status: 'CANCELLED' }, ...tamper }
+    })))
+    assert.equal(result.status, 'UNKNOWN_NO_REPLAY')
+    assert.equal(result.receipt, null)
+    assert.equal(keys.get(intent.scope), before)
+  }
 })
 
 test('reconciliation module never sends POST or clears pending, and is not yet wired to live spend', () => {
