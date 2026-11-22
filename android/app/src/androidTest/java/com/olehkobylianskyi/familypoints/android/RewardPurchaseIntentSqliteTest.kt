@@ -1,5 +1,6 @@
 package com.olehkobylianskyi.familypoints.android
 
+import android.database.sqlite.SQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.olehkobylianskyi.familypoints.android.storage.RewardPurchaseIntentStore
@@ -31,6 +32,45 @@ class RewardPurchaseIntentSqliteTest {
         id, account, workspace, 24, 42, epoch, "MANAGER", "PREPARED",
         2, "POINTS", 12
     )
+
+    @Test fun legacyV1RowsSurviveUpgradeButCannotClaimVerifiedFinancialSnapshot() {
+        val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+        ctx.deleteDatabase(database)
+        val uuid = UUID.randomUUID()
+        try {
+            SQLiteDatabase.openOrCreateDatabase(ctx.getDatabasePath(database), null).use { db ->
+                db.execSQL("""CREATE TABLE reward_purchase_intents (
+                    operation_id TEXT PRIMARY KEY NOT NULL, account_id INTEGER NOT NULL,
+                    workspace_id INTEGER NOT NULL, member_id INTEGER NOT NULL,
+                    reward_id INTEGER NOT NULL, data_epoch INTEGER NOT NULL,
+                    route_kind TEXT NOT NULL, state TEXT NOT NULL)""")
+                db.execSQL("""INSERT INTO reward_purchase_intents
+                    (operation_id,account_id,workspace_id,member_id,reward_id,data_epoch,route_kind,state)
+                    VALUES (?,?,?,?,?,?,?,?)""",
+                    arrayOf(uuid.toString(), 11L, 91L, 24L, 42L, 7L, "SELF", "UNCERTAIN"))
+                db.version = 1
+            }
+            RewardPurchaseIntentStore(ctx).use { store ->
+                val legacy = store.scoped(11, 91).single()
+                assertEquals(uuid, legacy.operationId)
+                assertEquals("UNCERTAIN", legacy.state)
+                assertNull(legacy.expectedPointTypeId)
+                assertNull(legacy.expectedPointTypeCode)
+                assertNull(legacy.expectedPriceAmount)
+                assertThrows(IllegalStateException::class.java) {
+                    store.confirmReceipt(
+                        legacy,
+                        RewardPurchaseReceiptPolicy.Receipt(
+                            uuid.toString(), 111, 42, 24, 2, "POINTS", 12, "READY"
+                        ), 11, 91, 7
+                    )
+                }
+                assertEquals("UNCERTAIN", store.scoped(11, 91).single().state)
+            }
+        } finally {
+            ctx.deleteDatabase(database)
+        }
+    }
 
     @Test fun identitySurvivesSqliteReopen() {
         val ctx = InstrumentationRegistry.getInstrumentation().targetContext
