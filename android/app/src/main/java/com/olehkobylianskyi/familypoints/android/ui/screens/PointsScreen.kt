@@ -53,6 +53,7 @@ import com.olehkobylianskyi.familypoints.android.i18n.pointsStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
 import com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore
 import com.olehkobylianskyi.familypoints.android.storage.PointQuickAmountStore
+import com.olehkobylianskyi.familypoints.android.storage.RewardPurchaseIntentStore
 import com.olehkobylianskyi.familypoints.android.network.ServerReachability
 import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import java.time.LocalDateTime
@@ -89,6 +90,10 @@ fun PointsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val quickAmounts = remember(context) { PointQuickAmountStore(context) }
+    val rewardIntentStore = remember(context) { RewardPurchaseIntentStore(context) }
+    var rewardIntents by remember(currentUser.accountId, currentUser.workspaceId) {
+        mutableStateOf<List<RewardPurchaseIntentStore.Intent>>(emptyList())
+    }
     val serverStatus by ServerReachability.status.collectAsState()
     val canManage = currentUser.permissions.any { it == "MANAGE_POINTS" || it == "ADMIN_OVERRIDE" }
     val canPurchaseRewards = currentUser.permissions.any {
@@ -100,6 +105,16 @@ fun PointsScreen(
     var pointTypes by remember { mutableStateOf<List<PointTypeResponse>>(emptyList()) }
     var currencyForms by remember(currentUser.workspaceId) { mutableStateOf<Map<Long, List<PointNameFormDto>>>(emptyMap()) }
     var rewardCatalog by remember { mutableStateOf<List<RewardDefinitionSummary>>(emptyList()) }
+    // Local identity journal only; no network, no mutation, no other-account read.
+    LaunchedEffect(currentUser.accountId, currentUser.workspaceId, refreshNonce) {
+        rewardIntents = try {
+            rewardIntentStore.scoped(currentUser.accountId, currentUser.workspaceId)
+        } catch (_: Exception) {
+            // A corrupt/locked journal must never trigger a new purchase.
+            emptyList()
+        }
+    }
+
 
     var members by remember {
         mutableStateOf<List<WorkspaceMemberResponse>>(emptyList())
@@ -761,6 +776,17 @@ fun PointsScreen(
                         }?.id].orEmpty().map {
                             com.olehkobylianskyi.familypoints.android.i18n.PointNameForms(it.language, it.one, it.few, it.many)
                         }
+                    )
+                }
+            }
+
+            if (rewardIntents.isNotEmpty()) {
+                item {
+                    RewardPurchaseIntentReviewSection(
+                        language = language,
+                        accountId = currentUser.accountId,
+                        workspaceId = currentUser.workspaceId,
+                        records = rewardIntents
                     )
                 }
             }
