@@ -16,7 +16,7 @@ import java.util.UUID
 class RewardReceiptTransportMockWebServerTest {
     private val uuid = "c40fc8c0-a894-4665-a87a-1e52b7645084"
     private val original = RewardPurchaseIntentStore.Intent(
-        UUID.fromString(uuid), 17, 19, 23, 29, 31, "SELF", "UNCERTAIN"
+        UUID.fromString(uuid), 17, 19, 23, 29, 31, "SELF", "UNCERTAIN", 4, "POINTS", 6
     )
     private val goodReceipt = """
         {"operationId":"$uuid","replayed":false,
