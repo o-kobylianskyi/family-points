@@ -70,10 +70,10 @@ test('receipt lookup 404 and write 409 keep distinct statuses and same original 
 test('malformed UUID aborts before any network call', async () => {
   let count = 0
   globalThis.__task401TestRequester = async () => { count++; throw Error('SHOULD_NOT_FETCH') }
-  await assert.rejects(
-    activateTaskTemplateIdempotent(fakeToken, 13, 43, payload, '../../foreign', () => fakeToken),
+  assert.throws(
+    () => activateTaskTemplateIdempotent(fakeToken, 13, 43, payload, '../../foreign', () => fakeToken),
     /INVALID_TEMPLATE_OPERATION_ID/
   )
-  await assert.rejects(getTemplateActivationReceipt(fakeToken, 13, 'bad'), /INVALID_TEMPLATE_OPERATION_ID/)
+  assert.throws(() => getTemplateActivationReceipt(fakeToken, 13, 'bad'), /INVALID_TEMPLATE_OPERATION_ID/)
   assert.equal(count, 0)
 })
