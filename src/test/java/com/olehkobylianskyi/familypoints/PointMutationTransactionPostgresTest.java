@@ -1351,6 +1351,40 @@ class PointMutationTransactionPostgresTest {
                     ()->withEpoch(0L,()->receipts.activateTask(
                             fixture.workspace(),template+10000L,operation,request)))
                     .getStatusCode().value());
+
+            // Fault at the very LAST receipt SQL insert, after real TaskService
+            // created work node/definition/participants in the same transaction.
+            UUID failedKey=UUID.randomUUID();
+            sql.execute("ALTER TABLE template_activation_receipts ADD CONSTRAINT "
+                    +"test_task_receipt_injected_failure CHECK "
+                    +"(operation_id <> '"+failedKey+"')");
+            try {
+                assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
+                        ()->withEpoch(0L,()->receipts.activateTask(
+                                fixture.workspace(),template,failedKey,request)));
+                assertEquals(1L,sql.queryForObject("""
+                        SELECT count(*) FROM task_definitions WHERE family_id=?
+                        """,Long.class,fixture.workspace()));
+                assertEquals(1L,sql.queryForObject("""
+                        SELECT count(*) FROM template_activation_requests WHERE workspace_id=?
+                        """,Long.class,fixture.workspace()));
+                assertEquals(1L,sql.queryForObject("""
+                        SELECT count(*) FROM template_activation_receipts WHERE workspace_id=?
+                        """,Long.class,fixture.workspace()));
+            } finally {
+                sql.execute("ALTER TABLE template_activation_receipts "
+                        +"DROP CONSTRAINT IF EXISTS test_task_receipt_injected_failure");
+            }
+            var second=withEpoch(0L,()->receipts.activateTask(
+                    fixture.workspace(),template,failedKey,request));
+            assertFalse(second.replayed());
+            assertNotEquals(first.createdDefinitionId(),second.createdDefinitionId());
+            assertEquals(2L,sql.queryForObject("""
+                    SELECT count(*) FROM task_definitions WHERE family_id=?
+                    """,Long.class,fixture.workspace()));
+            assertEquals(2L,sql.queryForObject("""
+                    SELECT count(*) FROM template_activation_receipts WHERE workspace_id=?
+                    """,Long.class,fixture.workspace()));
         } finally {
             org.mockito.Mockito.reset(taskControllerMock,current);
         }
