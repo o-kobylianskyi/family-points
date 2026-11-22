@@ -45,8 +45,13 @@ class RewardPurchaseReceiptPolicyTest {
         assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW, check(receipt = receipt.copy(pointTypeCode = "")))
     }
 
-    @Test fun cancelledFailedAndUnknownStatusesNeverConfirm() {
-        for (status in listOf("FAILED", "CANCELLED", "REJECTED", "FULFILLED", "UNKNOWN", "")) {
+    @Test fun readyAndRedeemedConfirmOriginalPurchaseIdentity() {
+        assertEquals(RewardPurchaseReceiptPolicy.Decision.ACCEPT, check(receipt = receipt.copy(status = "READY")))
+        assertEquals(RewardPurchaseReceiptPolicy.Decision.ACCEPT, check(receipt = receipt.copy(status = "REDEEMED")))
+    }
+
+    @Test fun cancelledPendingFailedAndUnknownStatusesNeverConfirm() {
+        for (status in listOf("FAILED", "CANCELLED", "PENDING_APPROVAL", "REJECTED", "FULFILLED", "UNKNOWN", "", "ready")) {
             assertEquals(RewardPurchaseReceiptPolicy.Decision.HOLD_FOR_REVIEW,
                 check(receipt = receipt.copy(status = status)))
         }
