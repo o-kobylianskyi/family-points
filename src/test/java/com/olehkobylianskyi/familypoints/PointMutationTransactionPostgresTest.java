@@ -741,6 +741,75 @@ class PointMutationTransactionPostgresTest {
         } finally { org.mockito.Mockito.reset(current); }
     }
 
+
+    @Test void approvalRequiredRewardCannotBypassRequestWithIdempotentDirectPurchase() {
+        var f=fixture();
+        long reward=sql.queryForObject("""
+                INSERT INTO reward_definitions
+                    (family_id,title,point_type_id,price_amount,requires_approval,
+                     active,cooldown_seconds)
+                VALUES (?,'Approval required',?,11,true,true,0) RETURNING id
+                """,Long.class,f.workspace(),f.currency());
+        long actor=sql.queryForObject("""
+                INSERT INTO user_accounts(family_member_id,username,password_hash,enabled)
+                VALUES (?,?,'synthetic-only',true) RETURNING id
+                """,Long.class,f.member(),"reward-approval-"+UUID.randomUUID());
+        sql.update("""
+                INSERT INTO point_transactions
+                    (member_id,point_type_id,amount,created_at,type,source_type,description)
+                VALUES (?,?,25,now(),'EARN','MANUAL','Approval fixture funds')
+                """,f.member(),f.currency());
+        var account=org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.entity.UserAccount.class);
+        org.mockito.Mockito.when(account.getId()).thenReturn(actor);
+        var current=context.getBean(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        org.mockito.Mockito.when(current.getCurrentAccount()).thenReturn(account);
+        org.mockito.Mockito.when(current.belongsToWorkspace(f.workspace())).thenReturn(true);
+        org.mockito.Mockito.when(current.getCurrentMemberId()).thenReturn(f.member());
+        try {
+            assertThrows(IllegalArgumentException.class,()->
+                    context.getBean(RewardPurchaseOperationService.class)
+                            .purchaseSelf(f.workspace(),reward,UUID.randomUUID()));
+            assertEquals(0L,sql.queryForObject("""
+                    SELECT count(*) FROM reward_purchases
+                    WHERE member_id=? AND reward_definition_id=?
+                    """,Long.class,f.member(),reward));
+            assertEquals(0L,sql.queryForObject("""
+                    SELECT count(*) FROM reward_purchase_operation_receipts
+                    WHERE workspace_id=?
+                    """,Long.class,f.workspace()));
+            assertEquals(0L,sql.queryForObject("""
+                    SELECT count(*) FROM point_transactions
+                    WHERE member_id=? AND source_type='REWARD_PURCHASE'
+                    """,Long.class,f.member()));
+            assertEquals(25L,sql.queryForObject("""
+                    SELECT coalesce(sum(amount),0) FROM point_transactions
+                    WHERE member_id=? AND point_type_id=?
+                    """,Long.class,f.member(),f.currency()));
+        } finally {org.mockito.Mockito.reset(current);}
+    }
+
+    @Test void realRoleWithoutManageRewardsCannotPurchaseForChild() {
+        var f=fixture();
+        var current=context.getBean(com.olehkobylianskyi.familypoints.security.CurrentUserService.class);
+        var account=org.mockito.Mockito.mock(com.olehkobylianskyi.familypoints.entity.UserAccount.class);
+        org.mockito.Mockito.when(account.getId()).thenReturn(987654L);
+        org.mockito.Mockito.when(current.getCurrentAccount()).thenReturn(account);
+        org.mockito.Mockito.when(current.belongsToWorkspace(f.workspace())).thenReturn(true);
+        org.mockito.Mockito.when(current.getCurrentMember()).thenAnswer(invocation->
+                context.getBean(WorkspaceMemberRepository.class)
+                        .findById(f.member()).orElseThrow());
+        try {
+            assertEquals(403,assertThrows(ResponseStatusException.class,()->
+                    context.getBean(RewardPurchaseOperationService.class)
+                            .purchaseForMember(f.workspace(),f.member(),99999L,UUID.randomUUID()))
+                    .getStatusCode().value());
+            assertEquals(0L,sql.queryForObject("""
+                    SELECT count(*) FROM reward_purchase_operation_receipts
+                    WHERE workspace_id=?
+                    """,Long.class,f.workspace()));
+        } finally {org.mockito.Mockito.reset(current);}
+    }
+
     @AfterEach void clearRequest() {
         org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
     }
