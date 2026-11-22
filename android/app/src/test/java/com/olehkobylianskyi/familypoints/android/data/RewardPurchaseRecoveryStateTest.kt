@@ -6,7 +6,7 @@ import org.junit.Test
 
 class RewardPurchaseRecoveryStateTest {
     private val operationId = "8c126e6b-7867-49ed-a40f-a20254cd0918"
-    private val intent = RewardPurchaseReceiptPolicy.Intent(operationId, 12, 34, 56, 78, 9)
+    private val intent = RewardPurchaseReceiptPolicy.Intent(operationId, 12, 34, 56, 78, 9, 2, "POINTS", 25)
     private val purchase = RewardPurchaseSummary(
         id = 111,
         rewardDefinitionId = 56,
@@ -54,6 +54,15 @@ class RewardPurchaseRecoveryStateTest {
             result(purchase = purchase.copy(status = "CANCELLED"), epoch = 10))
         assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW,
             result(uuid = "incorrect", purchase = purchase.copy(status = "CANCELLED")))
+    }
+
+    @Test fun mismatchedOriginalCurrencyOrPriceIsNeverConfirmed() {
+        assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW,
+            result(purchase = purchase.copy(priceAmount = 26)))
+        assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW,
+            result(purchase = purchase.copy(pointTypeId = 3)))
+        assertEquals(RewardPurchaseRecoveryState.State.NEEDS_REVIEW,
+            result(purchase = purchase.copy(pointTypeCode = "OTHER")))
     }
 
     @Test fun receiptMismatchAndScopeDriftAreHeld() {
