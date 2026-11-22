@@ -683,6 +683,7 @@ function RewardsPageContent() {
 
       {pageTab === 'catalog' && (
         <>
+          <p className="error-message" role="status">{rewardRecoveryCopy(language).blocked}</p>
           <section className="rewards-grid">
             {rewards.length === 0 ? (
               <div className="empty-state">
@@ -806,6 +807,7 @@ function RewardsPageContent() {
       )}
 
       {pageTab === 'requests' && (
+
         <section className="reward-request-list">
           {requests.length === 0 ? (
             <div className="empty-state">{t('rewardsUi.requestsEmpty')}</div>
