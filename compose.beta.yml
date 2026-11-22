@@ -16,6 +16,28 @@ services:
       retries: 15
     networks: [internal]
 
+  backup-volume-init:
+    # Runs only as the minimal volume bootstrap, never as the application.
+    image: alpine:3.20
+    restart: "no"
+    user: "0:0"
+    network_mode: none
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+    volumes:
+      - beta_backup_artifacts:/var/lib/familypoints/backups
+    entrypoint: ["/bin/sh", "/opt/init-backup-volume.sh"]
+    configs:
+      - source: beta_backup_volume_init
+        target: /opt/init-backup-volume.sh
+        mode: 0444
+
   backend:
     build:
       context: .
@@ -27,6 +49,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       SPRING_PROFILES_ACTIVE: beta
+      # Dedicated backend-only persistent encrypted .fpbackup store; never exposed to Web.
+      FAMILYPOINTS_BACKUP_LOCAL_DIRECTORY: /var/lib/familypoints/backups
       FAMILYPOINTS_WEB_URL: ${FAMILYPOINTS_WEB_URL:-https://family-point.com}
       FAMILYPOINTS_GLOBAL_ACCOUNT_REGISTRATION_ENABLED: ${FAMILYPOINTS_GLOBAL_ACCOUNT_REGISTRATION_ENABLED:-false}
       FAMILYPOINTS_MEMBER_EMAIL_INVITATIONS_ENABLED: ${FAMILYPOINTS_MEMBER_EMAIL_INVITATIONS_ENABLED:-false}
@@ -42,9 +66,13 @@ services:
       FAMILYPOINTS_GOOGLE_REGISTRATION_ENABLED: ${FAMILYPOINTS_GOOGLE_REGISTRATION_ENABLED:-false}
       FAMILYPOINTS_GOOGLE_LINKING_ENABLED: ${FAMILYPOINTS_GOOGLE_LINKING_ENABLED:-false}
       FAMILYPOINTS_FIRST_FAMILY_ENABLED: ${FAMILYPOINTS_FIRST_FAMILY_ENABLED:-false}
+    volumes:
+      - beta_backup_artifacts:/var/lib/familypoints/backups
     depends_on:
       database:
         condition: service_healthy
+      backup-volume-init:
+        condition: service_completed_successfully
     networks: [internal]
 
   web:
@@ -64,7 +92,13 @@ services:
 
 volumes:
   beta_postgres:
+  # Independent lifecycle from PostgreSQL. Never run `docker compose down -v`.
+  beta_backup_artifacts:
 
 networks:
   internal:
     driver: bridge
+
+configs:
+  beta_backup_volume_init:
+    file: ./scripts/beta/init-backup-volume.sh

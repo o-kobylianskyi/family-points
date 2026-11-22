@@ -143,3 +143,37 @@ export async function getRewardPurchaseHistory(token, workspaceId, filters = {})
   )
   return handleResponse(response, 'Failed to load reward purchase history')
 }
+
+ 
+// The server purchase owns both ledger debit and reward history. No automatic retry:
+// existing purchase endpoint has no verified idempotent receipt for unknown responses.
+export async function purchaseRewardForMember(token, workspaceId, rewardId, memberId) {
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/rewards/${rewardId}/purchase-for-member/${memberId}`,
+    { token, method: 'POST' }
+  )
+  return handleResponse(response, 'Failed to purchase reward for member')
+}
+
+// Read-only PR57 receipt lookup; the caller must validate the returned body
+// against the persisted original operation before claiming any purchase.
+// 404, 401 and 409 are NOT permission to resubmit a purchase.
+const PURCHASE_RECEIPT_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+
+export async function getRewardPurchaseOperationReceipt(token, workspaceId, operationId) {
+  // Never allow a corrupt or foreign journal field to become a URL segment.
+  // Canonical lowercase UUID matches crypto.randomUUID() and the persisted intent.
+  if (typeof token !== 'string' || token.trim() === '' ||
+      !Number.isSafeInteger(Number(workspaceId)) || Number(workspaceId) <= 0 ||
+      !PURCHASE_RECEIPT_UUID.test(String(operationId))) {
+    throw new Error('REWARD_PURCHASE_RECEIPT_REQUEST_INVALID')
+  }
+  const response = await apiRequest(
+    `/workspaces/${workspaceId}/rewards/purchases/receipts/${operationId}`,
+    { token, method: 'GET', cache: 'no-store' }
+  )
+  return {
+    status: response.status,
+    body: response.status === 200 ? await response.json() : null,
+  }
+}

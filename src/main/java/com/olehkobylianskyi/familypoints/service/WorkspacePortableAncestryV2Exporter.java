@@ -123,8 +123,13 @@ public class WorkspacePortableAncestryV2Exporter {
                 member.put("deletedAtSnapshot",dateTime.toString());
             else throw new SecurityException("PORTABLE_V2_TOMBSTONE_INVALID");
         }
-        if(withHistory)
+        if(withHistory) {
+            // The selected eight-category source must not silently omit any
+            // populated original-member dependent introduced by newer Flyway.
+            new WorkspacePortableMemberFkClosure(db)
+                    .requireHistoryClosure(sourceWorkspaceId);
             PortableV2HistoryGraph.capture(db,cats,sourceWorkspaceId);
+        }
         String rootDigest=PortableMemberAncestryV2.computeRootWithoutTrust(
                 root,sourceWorkspaceId,snapshotId,expectedEpoch);
         // The root computer validates a defensive copy; embed the independently

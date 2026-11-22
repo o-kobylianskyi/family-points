@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { applyTheme } from '../utils/theme'
 
 const KEY = 'familypoints.theme.preference'
@@ -23,6 +24,14 @@ export function ThemeInitializer() {
 }
 
 export default function ThemePreference() {
+  const { i18n } = useTranslation()
+  const language = (i18n.resolvedLanguage || i18n.language || 'en').split('-')[0]
+  const labels = ({
+    uk: { title:'Оформлення', hint:'Тема FamilyPoints зберігається в цьому браузері.', group:'Тема застосунку', system:'Як у системі', light:'Світла', dark:'Темна' },
+    ru: { title:'Оформление', hint:'Тема FamilyPoints сохраняется в этом браузере.', group:'Тема приложения', system:'Как в системе', light:'Светлая', dark:'Тёмная' },
+    de: { title:'Darstellung', hint:'Das FamilyPoints-Design wird in diesem Browser gespeichert.', group:'Anwendungsdesign', system:'Wie im System', light:'Hell', dark:'Dunkel' },
+    en: { title:'Appearance', hint:'The FamilyPoints theme is saved in this browser.', group:'Application theme', system:'System', light:'Light', dark:'Dark' },
+  })[language] || { title:'Appearance', hint:'The FamilyPoints theme is saved in this browser.', group:'Application theme', system:'System', light:'Light', dark:'Dark' }
   const [mode, setMode] = useState(savedMode)
   const choose = (next) => {
     setMode(next)
@@ -30,13 +39,13 @@ export default function ThemePreference() {
     applyTheme(next)
   }
   return <section className="settings-section">
-    <h2>Оформлення / Appearance</h2>
-    <p>Виберіть тему FamilyPoints. Налаштування зберігається в цьому браузері.</p>
-    <div className="fp-theme-options" role="group" aria-label="Тема застосунку">
+    <h2>{labels.title}</h2>
+    <p>{labels.hint}</p>
+    <div className="fp-theme-options" role="group" aria-label={labels.group}>
       {[
-        ['system', 'Як у системі / System'],
-        ['light', 'Світла / Light'],
-        ['dark', 'Темна / Dark'],
+        ['system', labels.system],
+        ['light', labels.light],
+        ['dark', labels.dark],
       ].map(([value, label]) => <label key={value}>
         <input type="radio" name="fp-theme" value={value}
           checked={mode === value} onChange={() => choose(value)} />

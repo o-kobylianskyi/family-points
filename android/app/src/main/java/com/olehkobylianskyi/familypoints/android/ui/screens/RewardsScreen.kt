@@ -691,13 +691,12 @@ fun RewardsScreen(
                                         acquisitionLabel(reward.acquisitionMode),
                                     processing = processing || showingCached || serverStatus != ServerStatus.ONLINE,
                                     onPurchase = {
-                                        scope.launch {
-                                            run {
-                                                repository.purchaseReward(
-                                                    currentUser.workspaceId,
-                                                    reward.id
-                                                )
-                                            }
+                                        // Legacy non-idempotent purchase is disabled here as well.
+                                        error = when (language) {
+                                            AppLanguage.UK -> "Покупки нагород до завершення фінансового QA тимчасово вимкнені. Бали не списано."
+                                            AppLanguage.RU -> "Покупки наград до завершения финансового QA временно отключены. Баллы не списаны."
+                                            AppLanguage.DE -> "Belohnungskäufe sind bis zum Abschluss der Finanz-QA deaktiviert. Keine Abbuchung."
+                                            AppLanguage.EN -> "Reward purchases are disabled pending financial QA. No points were charged."
                                         }
                                     },
                                     onRequest = {
@@ -909,13 +908,13 @@ fun RewardsScreen(
                                         }
                                     },
                                     onPurchase = {
-                                        scope.launch {
-                                            run {
-                                                repository.purchaseRequest(
-                                                    currentUser.workspaceId,
-                                                    request.id
-                                                )
-                                            }
+                                        // Request purchases require separate idempotent acceptance;
+                                        // never use a legacy financial endpoint as fallback.
+                                        error = when (language) {
+                                            AppLanguage.UK -> "Покупки нагород до завершення фінансового QA тимчасово вимкнені. Бали не списано."
+                                            AppLanguage.RU -> "Покупки наград до завершения финансового QA временно отключены. Баллы не списаны."
+                                            AppLanguage.DE -> "Belohnungskäufe sind bis zum Abschluss der Finanz-QA deaktiviert. Keine Abbuchung."
+                                            AppLanguage.EN -> "Reward purchases are disabled pending financial QA. No points were charged."
                                         }
                                     }
                                 )

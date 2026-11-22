@@ -53,6 +53,7 @@ import com.olehkobylianskyi.familypoints.android.i18n.pointsStrings
 import com.olehkobylianskyi.familypoints.android.ui.components.AppHeader
 import com.olehkobylianskyi.familypoints.android.storage.OfflinePointsQueueStore
 import com.olehkobylianskyi.familypoints.android.storage.PointQuickAmountStore
+import com.olehkobylianskyi.familypoints.android.storage.RewardPurchaseIntentStore
 import com.olehkobylianskyi.familypoints.android.network.ServerReachability
 import com.olehkobylianskyi.familypoints.android.network.ServerStatus
 import java.time.LocalDateTime
@@ -89,6 +90,10 @@ fun PointsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val quickAmounts = remember(context) { PointQuickAmountStore(context) }
+    val rewardIntentStore = remember(context) { RewardPurchaseIntentStore(context) }
+    var rewardIntents by remember(currentUser.accountId, currentUser.workspaceId) {
+        mutableStateOf<List<RewardPurchaseIntentStore.Intent>>(emptyList())
+    }
     val serverStatus by ServerReachability.status.collectAsState()
     val canManage = currentUser.permissions.any { it == "MANAGE_POINTS" || it == "ADMIN_OVERRIDE" }
     val canPurchaseRewards = currentUser.permissions.any {
@@ -100,6 +105,16 @@ fun PointsScreen(
     var pointTypes by remember { mutableStateOf<List<PointTypeResponse>>(emptyList()) }
     var currencyForms by remember(currentUser.workspaceId) { mutableStateOf<Map<Long, List<PointNameFormDto>>>(emptyMap()) }
     var rewardCatalog by remember { mutableStateOf<List<RewardDefinitionSummary>>(emptyList()) }
+    // Local identity journal only; no network, no mutation, no other-account read.
+    LaunchedEffect(currentUser.accountId, currentUser.workspaceId, refreshNonce) {
+        rewardIntents = try {
+            rewardIntentStore.scoped(currentUser.accountId ?: 0L, currentUser.workspaceId)
+        } catch (_: Exception) {
+            // A corrupt/locked journal must never trigger a new purchase.
+            emptyList()
+        }
+    }
+
 
     var members by remember {
         mutableStateOf<List<WorkspaceMemberResponse>>(emptyList())
@@ -347,14 +362,10 @@ fun PointsScreen(
             workspaceId = currentUser.workspaceId,
             viewerId = currentUser.memberId,
             quickAmounts = quickAmounts,
-            rewardCatalog = rewardCatalog.filter { reward ->
-                canPurchaseRewards &&
-                    serverStatus == ServerStatus.ONLINE &&
-                    reward.active &&
-                    reward.acquisitionMode != "REQUEST" &&
-                    !reward.requiresApproval &&
-                    pointTypes.any { type -> type.id == reward.pointTypeId }
-            },
+            rewardCatalog = RewardSpendSelectionPolicy.catalog(
+                rewardCatalog, pointTypes, canPurchaseRewards,
+                serverStatus == ServerStatus.ONLINE
+            ),
             onDismiss = {
                 if (!processing) {
                     pointOperation = null
@@ -368,15 +379,17 @@ fun PointsScreen(
                     try {
                         val kind = pointOperation!!.apiValue
                         if (selectedReward != null) {
-                            check(kind == "spend" && canPurchaseRewards &&
-                                serverStatus == ServerStatus.ONLINE) {
-                                "Reward purchases require an online session"
+                            // The old non-idempotent purchaseForMember endpoint MUST NOT
+                            // be invoked from the Points selector. Keep the selection,
+                            // original journal and member balance unchanged until
+                            // independent Backend financial QA authorizes idempotent POST.
+                            check(!RewardSpendSelectionPolicy.PURCHASE_WRITES_ENABLED)
+                            error = when (language) {
+                                AppLanguage.UK -> "Покупки нагород тимчасово заблоковані до фінансової перевірки. Бали не списано."
+                                AppLanguage.RU -> "Покупки наград временно заблокированы до финансовой проверки. Баллы не списаны."
+                                AppLanguage.DE -> "Belohnungskäufe sind bis zur finanziellen Prüfung gesperrt. Keine Punkte abgebucht."
+                                AppLanguage.EN -> "Reward purchases are disabled pending financial verification. No points were debited."
                             }
-                            rewardsRepository.purchaseForMember(
-                                currentUser.workspaceId, selectedMember.id, selectedReward.id
-                            )
-                            pointOperation = null
-                            loadPoints(selectedMember.id)
                         } else if (serverStatus != ServerStatus.ONLINE) {
                             check(canManage && kind != "spend") { "Offline spending is disabled" }
                             repository.queueOffline(
@@ -767,6 +780,17 @@ fun PointsScreen(
                 }
             }
 
+            if (rewardIntents.isNotEmpty()) {
+                item {
+                    RewardPurchaseIntentReviewSection(
+                        language = language,
+                        accountId = currentUser.accountId ?: 0L,
+                        workspaceId = currentUser.workspaceId,
+                        records = rewardIntents
+                    )
+                }
+            }
+
             item {
                 Text(
                     "",
@@ -934,10 +958,10 @@ private fun PointOperationDialog(
                         AppLanguage.RU -> "Цена: ${selectedReward.priceAmount} ${localizedCurrencyName(language, selectedReward.pointTypeCode, selectedReward.pointTypeName)}"
                     }, color = MaterialTheme.colorScheme.primary)
                     Text(when (language) {
-                        AppLanguage.UK -> "Буде оформлено покупку нагороди, а не окреме ручне списання. Сервер перевірить баланс та умови."
-                        AppLanguage.DE -> "Ein Belohnungskauf statt manueller Ausgabe. Der Server prüft Guthaben und Bedingungen."
-                        AppLanguage.EN -> "This creates a reward purchase, not a separate manual debit. The server checks balance and requirements."
-                        AppLanguage.RU -> "Будет оформлена покупка награды вместо ручного списания. Сервер проверит баланс и условия."
+                        AppLanguage.UK -> "Покупка нагороди — окрема операція. Зараз її створення заблоковано до QA; ручне списання не замінює покупку."
+                        AppLanguage.DE -> "Belohnungskauf ist ein eigener Vorgang. Bis zur QA gesperrt; manuelle Ausgabe ersetzt keinen Kauf."
+                        AppLanguage.EN -> "Reward purchase is a separate action. Disabled pending QA; manual spending is not a substitute."
+                        AppLanguage.RU -> "Покупка награды — отдельная операция. До QA заблокирована; ручное списание не заменяет покупку."
                     }, style = MaterialTheme.typography.bodySmall)
                 } else {
                 OutlinedTextField(
@@ -1061,7 +1085,14 @@ private fun PointOperationDialog(
                             }
                             return@Button
                         }
-                        onSubmit(reward.priceAmount, "", currency, reward)
+                        // Purchase is a separate server-authoritative operation.
+                        // Never substitute a manual point debit or use legacy purchase.
+                        localError = when (language) {
+                            AppLanguage.UK -> "Покупку нагороди буде доступно після фінансової перевірки."
+                            AppLanguage.RU -> "Покупка награды станет доступна после финансовой проверки."
+                            AppLanguage.DE -> "Belohnungskauf nach finanzieller Prüfung verfügbar."
+                            AppLanguage.EN -> "Reward purchase becomes available after financial verification."
+                        }
                         return@Button
                     }
                     val numericAmount = amount.toIntOrNull()
@@ -1087,7 +1118,7 @@ private fun PointOperationDialog(
                     onSubmit(numericAmount, description, currency, null)
                 },
                 enabled = !processing && !rewardSelectionExpired &&
-                    (selectedReward?.let { rewardCurrency != null } ?: (selectedType != null))
+                    selectedReward == null && selectedType != null
             ) {
                 Text(text.save)
             }

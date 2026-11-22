@@ -37,7 +37,8 @@ class WorkspaceSetupPostgresTest {
         flyway.target(MigrationVersion.fromVersion("45")).load().migrate();
         long old = db.queryForObject("INSERT INTO families(name) VALUES ('Existing family') RETURNING id",Long.class);
         assertEquals(7,Flyway.configure().dataSource(source).locations("classpath:db/migration")
-                .load().migrate().migrationsExecuted,"V46 should be additive");
+                .target(MigrationVersion.fromVersion("52")).load().migrate().migrationsExecuted,
+                "V46-V52 should be additive and not enroll legacy families");
         assertEquals(0L,db.queryForObject(
                 "SELECT count(*) FROM workspace_setup_states WHERE workspace_id=?",Long.class,old),
                 "Old families must not be enrolled automatically");
@@ -57,8 +58,12 @@ class WorkspaceSetupPostgresTest {
         assertTrue(a.steps().isEmpty());
         assertEquals(0L,a.dataEpoch());
         assertEquals("NOT_STARTED",f.service.current(f.familyB).status());
+        // This regression exercises only the V45 -> V52 historical setup phase.
+        // A newer migration (V54 reward receipts) must not be mistaken for
+        // a second execution of the setup migration.
         assertEquals(0,Flyway.configure().dataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword())
-                .locations("classpath:db/migration").load().migrate().migrationsExecuted);
+                .locations("classpath:db/migration")
+                .target(MigrationVersion.fromVersion("52")).load().migrate().migrationsExecuted);
     }
 
     @Test void stepChangesAreDurableAndRevisionConflictsHaveNoSideEffects() {

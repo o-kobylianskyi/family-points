@@ -73,6 +73,22 @@ class PortableV2HistoryDataPolicyTest {
                 ()->PortableV2HistoryDataPolicy.requireAcceptable(oversized));
     }
 
+    @Test void nestedHttpHeaderAliasesAndHyphenatedSecretsFailClosed() {
+        for(String category:CATEGORIES) {
+            for(String alias:List.of("authorization_header","x-api-key",
+                    "http_authorization","nested_private_key")) {
+                var rows=allCategories();
+                ((ObjectNode)rows.path(category).get(0))
+                        .putObject("metadata")
+                        .putArray("http")
+                        .addObject().put(alias,"sensitive");
+                assertThrows(SecurityException.class,
+                        ()->PortableV2HistoryDataPolicy.requireAcceptable(rows),
+                        category+"."+alias);
+            }
+        }
+    }
+
     @Test void unknownOrMissingHistoricalCategoryIsNeverTreatedAsComplete() {
         var source=allCategories();
         source.remove("REWARD_PURCHASES");

@@ -1,10 +1,13 @@
 import { useCurrencyQuantity } from '../utils/useCurrencyQuantity'
 import { initialPointOperationAmount } from '../utils/pointOperationDefaults'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/authContextValue'
 import MemberAvatar from '../components/MemberAvatar'
+import { getRewards, getRewardAvailability } from '../api/rewardApi'
+import RewardPurchaseRecoveryPanel from '../components/RewardPurchaseRecoveryPanel'
+import { rewardRecoveryCopy } from '../utils/rewardPurchaseRecoveryCopy'
 import { getWorkspaceMembers } from '../api/workspaceApi'
 
 import {
@@ -38,6 +41,11 @@ function PointsPage() {
   const [error, setError] = useState('')
   const [pointOperation, setPointOperation] =
     useState(null)
+
+  const canPurchaseRewards = currentUser.permissions.includes('MANAGE_REWARDS') || currentUser.permissions.includes('ADMIN_OVERRIDE')
+
+  const loadRewardsForSpend = useCallback(() => getRewards(getAccessToken(), currentUser.workspaceId), [getAccessToken, currentUser.workspaceId])
+  const loadRewardAvailabilityForSpend = useCallback(rewardId => getRewardAvailability(getAccessToken(), currentUser.workspaceId, rewardId), [getAccessToken, currentUser.workspaceId])
 
   const canManagePoints =
     currentUser.permissions.includes('MANAGE_POINTS')
@@ -222,7 +230,16 @@ const handlePointOperation = async ({
   operation,
   amount,
   description,
+  rewardId,
 }) => {
+  if (operation === 'spend' && rewardId != null) {
+    if (!canPurchaseRewards) throw new Error('Reward management permission required')
+    // The legacy purchase-for-member route is NOT idempotent. No reward
+    // mutation is authorized until PR57 + cross-client QA are accepted.
+    // Reward selection and receipt inspection remain read-only.
+    throw new Error(rewardRecoveryCopy(i18n.resolvedLanguage || i18n.language).blocked)
+  }
+  if (!canManagePoints) throw new Error('Point management permission required')
   const token = getAccessToken()
 
   const args = [
@@ -340,15 +357,15 @@ const handlePointOperation = async ({
 
               </div>
 
-            {canManagePoints && (
+            {(canManagePoints || canPurchaseRewards) && (
               <div className="point-actions">
-                <button
+                {canManagePoints && <button
                   type="button"
                   className="point-action earn"
-                   onClick={() => setPointOperation('earn')}
+                  onClick={() => setPointOperation('earn')}
                 >
                   + {t('points.earn')}
-                </button>
+                </button>}
 
                 <button
                   type="button"
@@ -358,18 +375,26 @@ const handlePointOperation = async ({
                   − {t('points.spend')}
                 </button>
 
-                <button
+                {canManagePoints && <button
                   type="button"
                   className="point-action penalty"
                   onClick={() => setPointOperation('penalty')}
                 >
                   {t('points.penalty')}
-                </button>
+                </button>}
               </div>
             )}
           </div>
         </section>
       )}
+
+      <RewardPurchaseRecoveryPanel
+        key={[currentUser.accountId ?? currentUser.userId ?? currentUser.id, currentUser.workspaceId, selectedMemberId].join(':')}
+        accountId={currentUser.accountId ?? currentUser.userId ?? currentUser.id}
+        workspaceId={currentUser.workspaceId}
+        memberId={selectedMemberId}
+        getAccessToken={getAccessToken}
+      />
 
       <section className="points-history-card">
         <div className="panel-header">
@@ -434,6 +459,11 @@ const handlePointOperation = async ({
         member={selectedMember}
         initialAmount={initialPointOperationAmount(history, pointOperation, selectedMemberId)}
         availableBalance={balance}
+        canPurchaseRewards={canPurchaseRewards}
+        rewardPurchaseEnabled={false}
+        canManagePoints={canManagePoints}
+        loadRewards={loadRewardsForSpend}
+        loadRewardAvailability={loadRewardAvailabilityForSpend}
         onClose={() => setPointOperation(null)}
         onSubmit={handlePointOperation}
       />

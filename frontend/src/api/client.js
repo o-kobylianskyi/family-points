@@ -89,6 +89,7 @@ export async function apiRequest(
     body,
     headers = {},
     cache,
+    getCurrentToken,
   } = {}
 ) {
   const requestMethod = method.toUpperCase()
@@ -98,6 +99,15 @@ export async function apiRequest(
     const epoch = await readWorkspaceEpoch(token, workspaceId)
     // The epoch header must not be overridden by consumers.
     scopedHeaders = { ...headers, 'X-Workspace-Data-Epoch': String(epoch) }
+  }
+  // A concurrent auth refresh can rotate the JWT during the async epoch read.
+  // Fail closed before a non-idempotent write rather than dispatching the stale
+  // token or silently replaying the mutation with different credentials.
+  if (workspaceId && scopedMutation.test(requestMethod) && getCurrentToken &&
+      getCurrentToken() !== token) {
+    const error = new Error('AUTH_SESSION_CHANGED_DURING_WRITE_PREFLIGHT')
+    error.status = 401
+    throw error
   }
   // Recheck after the asynchronous handshake: another tab may have invalidated
   // the workspace before this write is dispatched.
