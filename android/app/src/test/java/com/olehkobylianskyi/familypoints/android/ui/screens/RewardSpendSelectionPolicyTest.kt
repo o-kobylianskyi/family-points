@@ -1,6 +1,8 @@
 package com.olehkobylianskyi.familypoints.android.ui.screens
 
 import org.junit.Assert.*
+import com.olehkobylianskyi.familypoints.android.data.RewardDefinitionSummary
+import com.olehkobylianskyi.familypoints.android.data.PointTypeResponse
 import org.junit.Test
 
 class RewardSpendSelectionPolicyTest {
@@ -21,6 +23,26 @@ class RewardSpendSelectionPolicyTest {
         }
         assertEquals(RewardSpendSelectionPolicy.Action.INVALID,
             RewardSpendSelectionPolicy.action(false, 12, null))
+    }
+
+    @Test fun catalogRequiresDirectModeActiveCurrencyAndManageRewards() {
+        val pointType = PointTypeResponse(7, "POINTS", "Points", true, 0)
+        val reward = RewardDefinitionSummary(
+            id = 2, title = "One hour", description = null,
+            pointTypeId = 7, pointTypeCode = "POINTS", pointTypeName = "Points",
+            priceAmount = 25, minimumReputation = null, requiresApproval = false,
+            rewardKind = "TIME", defaultDurationMinutes = 60, acquisitionMode = "DIRECT",
+            categories = emptyList(), requirements = emptyList(), active = true
+        )
+        val list = listOf(reward)
+        assertEquals(list, RewardSpendSelectionPolicy.catalog(list, listOf(pointType), true, true))
+        assertTrue(RewardSpendSelectionPolicy.catalog(list, listOf(pointType), false, true).isEmpty())
+        assertTrue(RewardSpendSelectionPolicy.catalog(list, listOf(pointType), true, false).isEmpty())
+        assertTrue(RewardSpendSelectionPolicy.catalog(list, listOf(pointType.copy(active = false)), true, true).isEmpty())
+        assertTrue(RewardSpendSelectionPolicy.catalog(list, listOf(pointType.copy(code = "OTHER")), true, true).isEmpty())
+        assertTrue(RewardSpendSelectionPolicy.catalog(listOf(reward.copy(requiresApproval = true)), listOf(pointType), true, true).isEmpty())
+        assertTrue(RewardSpendSelectionPolicy.catalog(listOf(reward.copy(acquisitionMode = "REQUEST")), listOf(pointType), true, true).isEmpty())
+        assertTrue(RewardSpendSelectionPolicy.catalog(listOf(reward.copy(priceAmount = -1)), listOf(pointType), true, true).isEmpty())
     }
 
     @Test fun inaccessibleOrOfflineCatalogCannotOfferRewardPurchase() {
