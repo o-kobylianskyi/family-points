@@ -33,6 +33,9 @@ class RewardPurchaseIntentPlannerTest {
         assertEquals("SELF", result.route)
         assertEquals(14L, result.epoch)
         assertEquals(50L, result.rewardId)
+        assertEquals(7L, result.expectedPointTypeId)
+        assertEquals("POINTS", result.expectedPointTypeCode)
+        assertEquals(10, result.expectedPriceAmount)
     }
 
     @Test fun managerRouteRequiresPermissionAndSpecificTarget() {
