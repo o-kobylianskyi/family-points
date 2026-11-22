@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import NumberInput from './NumberInput'
 import { POINT_AMOUNT_PRESETS } from '../utils/pointOperationDefaults'
 import { eligibleDirectRewards, rewardScheduleIsOpen } from '../utils/rewardSpendEligibility'
+import { rewardRecoveryCopy } from '../utils/rewardPurchaseRecoveryCopy'
 
 function PointOperationModal(props) {
   const scope = [props.operation, props.member?.id].join(':')
@@ -16,6 +17,7 @@ function PointOperationContent({
   initialAmount = 5,
   availableBalance = 0,
   canPurchaseRewards = false,
+  rewardPurchaseEnabled = false,
   canManagePoints = false,
   loadRewards,
   loadRewardAvailability,
@@ -48,7 +50,7 @@ function PointOperationContent({
   const chosenReward = eligibleRewards.find(reward => String(reward.id) === rewardId)
   const chosenRewardId = chosenReward?.id ?? null
   const scheduleConfirmed = chosenReward && rewardScheduleIsOpen(rewardSchedule, chosenReward.id)
-  const canSubmitReward = !!chosenReward && canPurchaseRewards && !rewardAttempted &&
+  const canSubmitReward = rewardPurchaseEnabled && !!chosenReward && canPurchaseRewards && !rewardAttempted &&
     !rewardsLoading && !rewardsError && !scheduleLoading && !scheduleError && scheduleConfirmed
 
   const insufficient = operation === 'spend' && Number(amount) > Math.max(0, Number(availableBalance) || 0)
@@ -217,6 +219,7 @@ function PointOperationContent({
             </select>
             {rewardMode && <>
               {!canPurchaseRewards && <p role="alert">{messages[9]}</p>}
+              {!rewardPurchaseEnabled && <p role="status">{rewardRecoveryCopy(lang).blocked}</p>}
               {rewardsLoading && <p role="status">{messages[4]}</p>}
               {rewardsError && <p role="alert">{messages[5]}</p>}
               {!rewardsLoading && !rewardsError && !eligibleRewards.length && <p role="status">{messages[6]}</p>}
