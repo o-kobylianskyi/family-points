@@ -6,7 +6,7 @@ const CONFIRMED_PURCHASE_STATES = new Set(['READY', 'REDEEMED'])
 const positive = value => typeof value === 'number' && Number.isSafeInteger(value) && value > 0
 const nonNegative = value => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0
 
-export function verifyRewardPurchaseReceipt(receipt, intent) {
+export function verifyRewardPurchaseIdentity(receipt, intent) {
   if (!intent || intent.version !== 1 || intent.state !== 'UNKNOWN' ||
       !receipt || typeof receipt !== 'object' ||
       receipt.operationId !== intent.operationId ||
@@ -22,13 +22,19 @@ export function verifyRewardPurchaseReceipt(receipt, intent) {
       String(purchase.rewardDefinitionId) !== String(intent.rewardId) ||
       String(purchase.memberId) !== String(intent.memberId) ||
       typeof purchase.pointTypeCode !== 'string' ||
-      purchase.pointTypeCode.trim() === '' ||
-      !CONFIRMED_PURCHASE_STATES.has(purchase.status)) {
+      purchase.pointTypeCode.trim() === '') {
     throw new Error('REWARD_PURCHASE_RECEIPT_INVALID')
   }
-  // The purchase price and point unit come from the authenticated server
-  // response, never the preflight catalog or local intent.
-  // 'READY' means purchase exists, NOT reward delivered/fulfilled.
+  // These identity and price checks run BEFORE interpreting purchase lifecycle.
+  return receipt
+}
+
+export function verifyRewardPurchaseReceipt(receipt, intent) {
+  verifyRewardPurchaseIdentity(receipt, intent)
+  if (!CONFIRMED_PURCHASE_STATES.has(receipt.purchase.status)) {
+    throw new Error('REWARD_PURCHASE_RECEIPT_INVALID')
+  }
+  // READY means purchase exists, not delivery. REDEEMED means already used.
   return receipt
 }
 
